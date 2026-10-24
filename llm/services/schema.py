@@ -1,81 +1,71 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
 from llm.services.runtime.policies import TokenCounters
-from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey
+from llm.core.configuration_views import ConfigurationView, EngineConfigurationKey, ConfigurationPresentation
 from llm.core.json_data import JsonPointer
 
 from copy import deepcopy
 import json
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import dataclass
 
 from llm.components.base import Component, ComponentHook
-from llm.core.configuration import resolve_component_config
-from llm.core.models import ConversationStorage, ProjectConfig
+from llm.core.models import ProjectConfig
 from llm.core.configuration_targets import ParameterTargets
 from llm.core.policies import PolicySection, UsagePolicy
-from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes, SchemaKeyword, SchemaExtension, SchemaResource, SchemaBoolean
+from llm.core.schema import (
+    checked_schema,
+    object_schema,
+    implementation_schema,
+    checked_implementation_schema,
+    metadata_schema,
+    schema_nodes,
+    SchemaKeyword,
+    SchemaExtension,
+    SchemaResource,
+    SchemaBoolean,
+)
 
 
-@dataclass(slots=True)
-class ProjectConfigForm:
-    """Editable values and their schema share one field declaration.
-
-    Effective Engine/Component values are observations, never editable defaults.
-    """
-    title: str = field(metadata={"schema": lambda config, choices: {"type": "string"}})
-    conversation_storage: str | None = field(metadata={"schema": lambda config, choices: ConversationStorage.schema()})
-    components: list[str] = field(metadata={"schema": lambda config, choices: {
-        "type": "array", "uniqueItems": True,
-        "items": {"type": "string", "enum": list(choices)} if choices else False}})
-    config: dict = field(metadata={"schema": lambda config, choices: config})
-
-    @classmethod
-    def schema(cls, config, choices):
-        return {item.name: item.metadata["schema"](config, choices) for item in fields(cls)}
-
-    @classmethod
-    def from_project(cls, project):
-        return cls(project.title, project.conversation_storage, list(project.components), project.config.to_dict())
-
-    @classmethod
-    def from_snapshot(cls, project, components):
-        values = {**project, "components": list(components)}
-        return cls.from_dict(values)
-
-    @classmethod
-    def from_dict(cls, values):
-        return cls(**{item.name: deepcopy(values[item.name]) for item in fields(cls)})
-
-    def to_dict(self):
-        return asdict(self)
+from .configuration_records import (
+    ProjectConfigForm,
+    ProjectConfigurationView,
+    SessionConfigurationView,
+    ProjectConfigurationSnapshot,
+    ComponentConfigurationObservation,
+    ComponentSchemaObservation,
+)
 
 
-@dataclass(frozen=True)
-class ProjectConfigurationView:
-    """Detached UI observations; mutation still requires the captured version."""
-    project_id: str
-    values: ProjectConfigForm
-    stored_config: dict
-    schema: dict
-    config_version: str
-    effective_engines: dict
-    components: dict
+class ProjectSchemaDescription:
+    """Public editor catalog and IDs; implementation schemas retain their own validation."""
 
-
-@dataclass(frozen=True)
-class SessionConfigurationView:
-    """Detached Session overrides and effective Engine observations, never stored defaults."""
-
-    config: dict
-    effective_engines: dict
+    UNSPECIFIED = None
+    COMPONENTS = "x-components"
+    ENGINES = "x-engines"
+    SELECTED_COMPONENTS = "x-selected-components"
+    DIALECT = "https://json-schema.org/draft/2020-12/schema"
+    ENGINE_PREFIX = "urn:ish:engine:"
+    COMPONENT_PREFIX = "urn:ish:project-component:"
+    CONFIGURATION_SUFFIX = ":configuration"
+    COMPONENT_PARAMETERS = "컴포넌트 설정의 유일한 저장 위치. 대상 구현체가 검증·해석한다."
+    TARGET_PARAMETERS = "대상별 전달 인자. 같은 이름의 인자를 다른 대상으로 자동 전달하지 않는다."
 
     @classmethod
-    def describe(cls, app, project, session):
-        return cls(deepcopy(session.config),
-                   effective_engines(app, project.config, session_config=session.config))
+    def metadata(cls, components, engines, selected):
+        return {
+            SchemaKeyword.SCHEMA: cls.DIALECT,
+            cls.COMPONENTS: components,
+            cls.ENGINES: engines,
+            cls.SELECTED_COMPONENTS: list(selected),
+        }
 
-    def to_dict(self):
-        return asdict(self)
+    @classmethod
+    def engine_id(cls, name):
+        return cls.ENGINE_PREFIX + name + cls.CONFIGURATION_SUFFIX
+
+    @classmethod
+    def component_id(cls, name):
+        return cls.COMPONENT_PREFIX + name + cls.CONFIGURATION_SUFFIX
 
 
 @dataclass(slots=True)
@@ -87,7 +77,9 @@ class ProjectFormSchemas:
     @classmethod
     def read(cls, schema):
         general = deepcopy(schema)
-        config = general[SchemaKeyword.PROPERTIES][ProjectConfigForm.config.__name__][SchemaKeyword.PROPERTIES]
+        config = general[SchemaKeyword.PROPERTIES][ProjectConfigForm.config.__name__][
+            SchemaKeyword.PROPERTIES
+        ]
         parameters = config.pop(ProjectConfig.PARAMETERS)[SchemaKeyword.PROPERTIES]
         components = parameters.pop(ParameterTargets.COMPONENTS)[SchemaKeyword.PROPERTIES]
         engines = parameters.pop(ParameterTargets.ENGINES)[SchemaKeyword.PROPERTIES]
@@ -98,11 +90,18 @@ class ProjectFormSchemas:
 class ProjectConfiguration:
     """Owner of the public configuration description, detached from stored state."""
 
+    SORT_KEYS = True
+    ALLOW_NONFINITE = False
+    HOST_FIXED = "Host-fixed setting: "
+    PATH_SEPARATOR = "."
+
     @staticmethod
     def engine_parameter_schemas(schema):
         config = schema[SchemaKeyword.PROPERTIES][ProjectConfigForm.config.__name__]
         parameters = config[SchemaKeyword.PROPERTIES][ProjectConfig.PARAMETERS]
-        return deepcopy(parameters[SchemaKeyword.PROPERTIES][ParameterTargets.ENGINES][SchemaKeyword.PROPERTIES])
+        return deepcopy(
+            parameters[SchemaKeyword.PROPERTIES][ParameterTargets.ENGINES][SchemaKeyword.PROPERTIES]
+        )
 
     @staticmethod
     def engine_form_path(name):
@@ -114,110 +113,161 @@ class ProjectConfiguration:
 
     @staticmethod
     def view(snapshot):
-        record = deepcopy(snapshot)
-        values = ProjectConfigForm.from_dict(record["values"])
-        return ProjectConfigurationView(record["project"]["id"], values,
-            record["project"].get("config", deepcopy(values.config)), record["schema"],
-            record["config_version"], record.get("effective_engines", {}), record.get("components", {}))
+        record = ProjectConfigurationSnapshot(deepcopy(snapshot))
+        values = record.form
+        return ProjectConfigurationView(
+            record.project.id,
+            values,
+            record.project.config_or(values),
+            record.schema,
+            record.config_version,
+            record.effective_engines,
+            record.components,
+        )
 
     @staticmethod
     def with_schema(snapshot, schema):
-        return {**deepcopy(snapshot), "schema": deepcopy(schema)}
+        return ProjectConfigurationSnapshot.with_schema(snapshot, schema)
 
     @staticmethod
     def with_values(snapshot, values):
         """Build a detached edit preview, retaining the original CAS token."""
-        record = deepcopy(snapshot)
+        record = ProjectConfigurationSnapshot(deepcopy(snapshot))
         form = ProjectConfigForm.from_dict(values)
-        record["values"] = form.to_dict()
-        record["project"]["config"] = deepcopy(form.config)
-        return record
+        record.store_form(form)
+        record.project.store_config(form)
+        return record.to_dict()
 
     @staticmethod
     def snapshot(project, *, registry, configurations, version, component_versions):
-        values = asdict(ProjectConfigForm.from_project(project))
-        values.pop("components")
-        return {"project": {"id": project.id, **values},
-                "policy_schema": ProjectConfig.describe_policies(),
-                "config_version": version, "component_versions": deepcopy(component_versions),
-                "components": {name: {
-                    "directory": registry.get(name).directory,
-                    "configuration": deepcopy(configurations[name]),
-                    "effective": resolve_component_config(registry.get(name), deepcopy(project))}
-                    for name in project.components}}
+        return ProjectConfigurationSnapshot.create(
+            project,
+            registry=registry,
+            configurations=configurations,
+            version=version,
+            component_versions=component_versions,
+        ).to_dict()
 
     @staticmethod
     def describe(app, snapshot):
-        value = deepcopy(snapshot)
-        form = ProjectConfigForm.from_snapshot(value["project"], value["components"])
-        value["schema"] = app.describe_project_config(components=form.components)
-        value["values"] = asdict(form)
-        value["effective_engines"] = effective_engines(app, form.config)
-        return value
-
+        value = ProjectConfigurationSnapshot(deepcopy(snapshot))
+        form = ProjectConfigForm.from_snapshot(value.project.to_dict(), value.required_components)
+        value.store_schema(app.describe_project_config(components=form.components))
+        value.store_form(form)
+        value.store_engines(effective_engines(app, form.config))
+        return value.to_dict()
 
     @staticmethod
     def validate_edit(record, candidate):
         # Effective settings are observations. Never materialize host-fixed
         # leaves by importing a preset from another project.
+        record = ProjectConfigurationSnapshot(record)
         missing = object()
+
         def at(value, path):
             for part in path:
                 if not isinstance(value, dict) or part not in value:
                     return missing
                 value = value[part]
             return value
+
         fixed = set()
+
         def schema_locks(schema, path=()):
             if not isinstance(schema, dict):
                 return
-            if schema.get("x-host-override"):
+            if schema.get(SchemaExtension.HOST_OVERRIDE):
                 fixed.add(path)
-            for key, child in schema.get("properties", {}).items():
+            for key, child in schema.get(SchemaKeyword.PROPERTIES, {}).items():
                 schema_locks(child, (*path, key))
-            for child in schema.get("allOf", ()):
+            for child in schema.get(SchemaKeyword.ALL_OF, ()):
                 schema_locks(child, path)
-        schema_locks(record.get("schema", {}))
-        engine_keys = record.get("schema", {}).get("x-engines", {})
-        engines = [(EngineConfigurationKey.from_view(engine_keys.get(name, {}), default=name).configuration_key, view)
-                   for name, view in record.get("effective_engines", {}).items()]
-        components = [(name, spec.get("effective") or {}) for name, spec in record.get("components", {}).items()]
+
+        schema_locks(record.optional_schema)
+        engine_keys = record.optional_schema.get(ProjectSchemaDescription.ENGINES, {})
+        engines = [
+            (
+                EngineConfigurationKey.from_view(engine_keys.get(name, {}), default=name).configuration_key,
+                view,
+            )
+            for name, view in record.effective_engines.items()
+        ]
+        components = [
+            (name, ComponentConfigurationObservation.effective_or_empty(spec))
+            for name, spec in record.components.items()
+        ]
         for kind, entries in ((ParameterTargets.ENGINES, engines), (ParameterTargets.COMPONENTS, components)):
             for name, view in entries:
                 for pointer, editable in ConfigurationView.read(view).editable.items():
                     if editable:
                         continue
-                    path = ("config", ProjectConfig.PARAMETERS, kind, name,
-                            *JsonPointer.parts(pointer))
+                    path = (
+                        ProjectConfigForm.config.__name__,
+                        ProjectConfig.PARAMETERS,
+                        kind,
+                        name,
+                        *JsonPointer.parts(pointer),
+                    )
                     fixed.add(path)
         for path in fixed:
-            before, after = at(record["values"], path), at(candidate, path)
+            before, after = at(record.values, path), at(candidate, path)
             if before is missing and after is missing:
                 continue
-            if (before is missing or after is missing or
-                    json.dumps(before, sort_keys=True, allow_nan=False) != json.dumps(after, sort_keys=True, allow_nan=False)):
-                raise ValueError("Host-fixed setting: " + ".".join(path))
+            if (
+                before is missing
+                or after is missing
+                or json.dumps(
+                    before,
+                    sort_keys=ProjectConfiguration.SORT_KEYS,
+                    allow_nan=ProjectConfiguration.ALLOW_NONFINITE,
+                )
+                != json.dumps(
+                    after,
+                    sort_keys=ProjectConfiguration.SORT_KEYS,
+                    allow_nan=ProjectConfiguration.ALLOW_NONFINITE,
+                )
+            ):
+                raise ValueError(
+                    ProjectConfiguration.HOST_FIXED + ProjectConfiguration.PATH_SEPARATOR.join(path)
+                )
 
-def effective_engines(app, config, *, session_config=None):
+
+def effective_engines(app, config, *, session_config=ProjectSchemaDescription.UNSPECIFIED):
     """등록 엔진의 공개 설정 계약을 사용한다. 조회 중 모델/준비 함수를 호출하지 않는다."""
     result = {}
     for name in app.engines.names():
         engine = app.engines.get(name)
         describe = ConfigurationView.resolver(engine)
-        result[name] = describe(config, name, session_config=session_config) if describe else ConfigurationView.unavailable().to_dict()
+        result[name] = (
+            describe(config, name, session_config=session_config)
+            if describe
+            else ConfigurationView.unavailable().to_dict()
+        )
     return result
 
 
-def describe_project_config(app, components=None):
+def describe_project_config(app, components=ProjectSchemaDescription.UNSPECIFIED):
     registry = app.project_manager.components
-    selected = registry.names() if components is None else registry.validate(components)
+    selected = (
+        registry.names()
+        if components is ProjectSchemaDescription.UNSPECIFIED
+        else registry.validate(components)
+    )
     catalog = {}
     for name in selected:
         component = registry.get(name)
-        catalog[name] = {"directory": component.directory, "capabilities": list(component.capabilities),
-                         "required_components": list(Component.declared_dependencies(component)),
-                         "record_schema": checked_schema(getattr(component, "schema", object_schema())),
-                         "project_configuration": callable(getattr(component, ComponentHook.VALIDATE_PROJECT_CONFIG, None))}
+        catalog[name] = ComponentSchemaObservation(
+            component.directory,
+            list(component.capabilities),
+            list(Component.declared_dependencies(component)),
+            checked_schema(Component.declared_schema(component, object_schema())),
+            callable(
+                getattr(
+                    component, ComponentHook.VALIDATE_PROJECT_CONFIG, ProjectSchemaDescription.UNSPECIFIED
+                )
+            ),
+        ).to_dict()
+
     # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
     def resources(spec):
         for node in schema_nodes(spec):
@@ -235,42 +285,64 @@ def describe_project_config(app, components=None):
     for name in app.engines.names():
         engine = app.engines.get(name)
         from llm.engines.contracts import EngineHooks
+
         describe = EngineHooks.schema_describer(engine)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
         resources(spec)
         key = EngineConfigurationKey.schema_key(spec, default=name)
         if isinstance(spec, dict):
-            spec["$id"] = "urn:ish:engine:" + name + ":configuration"
-        engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec
+            spec[SchemaKeyword.ID] = ProjectSchemaDescription.engine_id(name)
+        engines[key] = {SchemaKeyword.ALL_OF: [engines[key], spec]} if key in engines else spec
         engine_catalog[name] = EngineConfigurationKey(key).to_dict()
     policies = ProjectConfig.describe_policies()
     names = sorted(TokenCounters.from_resolver(app.policy_resolver))
     if names:
-        policies["properties"][PolicySection.USAGE] = UsagePolicy.schema(counters=names)
+        policies[SchemaKeyword.PROPERTIES][PolicySection.USAGE] = UsagePolicy.schema(counters=names)
     # 비활성 컴포넌트의 설정도 보관할 수 있지만 선택 전에는 초기화/실행하지 않는다.
     project_components = {}
     for name in registry.names():
         component = registry.get(name)
-        if not callable(getattr(component, ComponentHook.VALIDATE_PROJECT_CONFIG, None)):
-            project_components[name] = False
+        if not callable(
+            getattr(component, ComponentHook.VALIDATE_PROJECT_CONFIG, ProjectSchemaDescription.UNSPECIFIED)
+        ):
+            project_components[name] = SchemaBoolean.REJECT
             continue
-        describe = getattr(component, ComponentHook.DESCRIBE_CONFIG, None)
+        describe = getattr(component, ComponentHook.DESCRIBE_CONFIG, ProjectSchemaDescription.UNSPECIFIED)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
         resources(spec)
         if isinstance(spec, dict):
-            spec["$id"] = "urn:ish:project-component:" + name + ":configuration"
+            spec[SchemaKeyword.ID] = ProjectSchemaDescription.component_id(name)
             # UI values에는 명시적으로 설정한 값만 제공한다. 중첩/배열/ref의 조건을 보존한다.
         project_components[name] = spec
-    config = object_schema({
-        ProjectConfig.POLICIES: policies, ProjectConfig.DATA: metadata_schema(),
-        ProjectConfig.PARAMETERS: object_schema({
-            ParameterTargets.ENGINES: object_schema(engines),
-            ParameterTargets.COMPONENTS: object_schema(project_components, additionalProperties=False,
-                description="컴포넌트 설정의 유일한 저장 위치. 대상 구현체가 검증·해석한다."),
-        }, description="대상별 전달 인자. 같은 이름의 인자를 다른 대상으로 자동 전달하지 않는다."),
-    }, **{"not": {"anyOf": [{"required": [name]} for name in
-          ProjectConfig.RETIRED_SECTIONS]}})
-    config.update({"x-owner": "project", "x-scope": "execution-policy"})
-    return checked_schema(object_schema(ProjectConfigForm.schema(config, registry.names()),
-        additionalProperties=False, **{"$schema": "https://json-schema.org/draft/2020-12/schema",
-         "x-components": catalog, "x-engines": engine_catalog, "x-selected-components": list(selected)}))
+    config = object_schema(
+        {
+            ProjectConfig.POLICIES: policies,
+            ProjectConfig.DATA: metadata_schema(),
+            ProjectConfig.PARAMETERS: object_schema(
+                {
+                    ParameterTargets.ENGINES: object_schema(engines),
+                    ParameterTargets.COMPONENTS: object_schema(
+                        project_components,
+                        additionalProperties=SchemaBoolean.REJECT,
+                        description=ProjectSchemaDescription.COMPONENT_PARAMETERS,
+                    ),
+                },
+                description=ProjectSchemaDescription.TARGET_PARAMETERS,
+            ),
+        },
+        **{
+            SchemaKeyword.NOT: {
+                SchemaKeyword.ANY_OF: [
+                    {SchemaKeyword.REQUIRED: [name]} for name in ProjectConfig.RETIRED_SECTIONS
+                ]
+            }
+        },
+    )
+    config.update(ConfigurationPresentation.project())
+    return checked_schema(
+        object_schema(
+            ProjectConfigForm.schema(config, registry.names()),
+            additionalProperties=SchemaBoolean.REJECT,
+            **ProjectSchemaDescription.metadata(catalog, engine_catalog, selected),
+        )
+    )

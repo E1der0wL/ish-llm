@@ -144,3 +144,30 @@ Completion schema를 직접 import하던 Application은 `llm.providers.schema.co
 SDK opaque kwargs 보존, metadata 무권한, 공개 schema inventory와 production AST의 accidental
 open object를 검사한다. Tool constraints/Memory/Skill/Refinement/approval 회귀는 기존 suite에서 검사한다.
 외부 SDK가 모든 미래 옵션을 지원한다는 뜻은 아니다. 실제 provider 지원 여부는 SDK/endpoint가 최종 판정한다.
+
+
+## 설정 조회·편집 Projection과 Host 관찰
+
+ProjectConfigForm / ProjectConfigurationView / SessionConfigurationView의 정규 선언은
+services/configuration_records에 있으며 services/schema는 같은 정의를 재공개한다.
+ProjectConfigurationSnapshot과 ProjectRecordSnapshot은 기존 공개 응답의 Owner Projection이다.
+저장 Reader나 대체 저장소가 아니며, 호출자가 기존 경계에서 분리한 사본 또는 읽기 전용으로
+빌린 관찰값만 다룬다. required 조회와 optional 관찰 조회를 구분하고 명시적 null, 알 수 없는
+관찰 확장, 원본 설정과 편집 values의 차이, config_version CAS 증거를 그대로 보존한다.
+관찰의 optional 기본값을 필수 영속 기록 복구에 사용하지 않는다.
+
+ComponentConfigurationObservation과 ComponentSchemaObservation은 Component가 제공한
+설정·유효값·기능 선언을 공개 응답으로 투영한다. 실제 설정 의미/검증은 Component가 소유한다.
+ProjectSchemaDescription은 편집기의 catalog 확장과 Schema ID를 선언한다. JSON Schema 어휘는
+core/schema를 사용하고 ConfigurationPresentation은 x-owner/x-scope 관찰 주석만 소유한다.
+Host 고정값 검사는 원래 properties/allOf와 ConfigurationView editable pointer를 사용하며,
+설정 생략과 명시적 null을 구별하고 Host 값을 저장 설정에 채워 넣지 않는다.
+
+BackendServices의 실제 필드 선언에 관찰 역할과 순서를 연결한다. ServiceIdentity와
+ToolRuntimeObservation은 등록 여부·구현 유형·명시적 관찰값만 투영하며 live callable/client/
+인증값을 직렬화하지 않는다. 초기 identity 조회, 구조 관찰, None 필터, scalar, Tool 관찰의
+기존 순서를 유지한다. BackendPaths는 Backend workspace의 projects 경로만 소유하며,
+WorkspacePaths의 Project 저장소 잠금/트랜잭션 의미를 바꾸지 않는다.
+
+Hub의 Schema catalog·설정 관찰 소비자 연결은 llm 전수 이후 계속한다. llm의 Owner 연결
+완료를 Hub의 리터럴·책임 전수 완료로 해석하지 않는다.

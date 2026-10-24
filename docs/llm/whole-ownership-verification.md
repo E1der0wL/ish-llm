@@ -7235,3 +7235,53 @@ Run 최종 마감 검사: 정적 S1–S7 exit 0(82개 검토·미검토/오래�
 미검토 196개(llm 19/Hub 177), 미분류 9551·미완료 계약 4개를 유지한다.
 실제 검토가 끝난 Run 파일만 완료 처리했으며 API의 두 명령 연결을 API 전수 완료로
 간주하지 않는다. 전체 llm 우선 작업과 최종 통합·정확한 SHA 원격 검증은 계속된다.
+
+## Gate44 원격 CI 확인 완료
+
+2026-10-24 16:46:25 UTC에 [CI 40110481534](https://github.com/E1der0wL/ish-llm/actions/runs/40110481534)의
+headSha가 `22f3ec38b1000d9f49739cb69570bc1e503b507e`이며 LLM/Hub 두 필수 Job과 필수 검사
+단계가 모두 success임을 실제 결과에서 확인했다. 원격 LLM 2502/2502/2502(1300.402273초),
+Hub 588/588/588(886.210697초), 모두 full scope·전체 발견 목록 일치,
+failure/error/skip/xfail/xpass/누락/추가/중복 0이다.
+원격 Python3.12.14/GCC 결과이며 로컬 Clang 실행과 구분한다. 이후 Event·Step·Run 및
+진행 중인 설정 서비스 변경은 이 SHA에 포함되지 않으며 후속 Gate45에서 통합 검증한다.
+
+
+## llm 설정 서비스·Host 구성 전수 — Level 1·2
+
+기준 f97231e. services/schema.py와 composition.py 전체를 검토하고 설정 form/snapshot,
+Component 관찰, 편집기 Schema metadata, Host 관찰을 정규 Owner로 연결했다.
+BackendServices 공개 필드·기본값·주입 시그니처, 비슬롯 dataclass 형식, 저장소 구성 순서를
+유지한다. Project/Session 조회는 원본 설정·편집 사본·유효 관찰값을 기존 경계대로 구분한다.
+공통 Schema/Component 선언과 Backend workspace 경로는 해당 Owner를 좁게 보강했다.
+제품 테스트와 기존 안전성 Assertion은 변경하지 않았다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/configuration-service-draft/ast-proof.py`
+exit 0: 기존 전체 함수 108개는 선언 전개 후 동일하다. 10개 표현 변경은 개별
+검토 후 별도 비교로 확인했다. AST 비교에서 instance field를 클래스 기본값으로 치환하지 않는다.
+같은 경로 values-proof.py exit 0: public_layouts 4, form_schema 3, snapshot_views 126, copy_cas 2, fixed_edit_checks 81, generated_schemas 45, schema_partition 18, resource_narrowing 9, project_snapshots 3, project_descriptions 4, session_descriptions 2, host_descriptions 12, host_composition 5.
+오류 유형/메시지, 응답 삽입 순서, 관찰 호출 순서, 필수 필드 누락과 optional null, 사본/CAS,
+Host 고정 pointer, 공유 Engine key, 자원 enum의 좁히기 및 빈 교집합 false를 비교했다.
+원본과 다른 모듈로 이동한 form 타입의 시그니처 비교는 같은 정규 form 타입으로 대응했으며,
+초기 보조 도구의 타입 모듈 불일치 로그를 보존했다. 불완전한 자원 Schema fixture를 성공으로
+해석하지 않고 유효한 config 외형의 경우를 추가하여 성공·거부를 함께 확인했다.
+
+- `whole-configuration-service-l1-01`: discovered/started/pass 158/158/158, exit 0, 42.500521초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-configuration-service-l1-01/llm.json --modules tests.llm.test_owner_declarations tests.llm.test_configuration_targets tests.llm.test_configuration_validation tests.llm.test_operations_schema tests.llm.test_project_component_settings tests.llm.test_project_creation tests.llm.test_settings_contract tests.llm.test_schema_ownership tests.llm.test_configuration_objects tests.llm.test_configuration_results tests.llm.test_configuration_values tests.llm.test_service_extensions tests.llm.test_extension_contracts`. source `88813bf5b7525575dde3475b2ca180ba1c1efca9fa8e78132da9da92bfdb7e47`, input `0b49906ff0ad9ce8bb621c505359dd9a4f4f7380a2c28b229434d1b08ce09817`.
+
+- `whole-configuration-service-l2-01`: discovered/started/pass 99/99/99, exit 0, 40.674499초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-configuration-service-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_interaction_storage tests.llm.test_policy_consumers tests.llm.test_run_reference_integrity tests.llm.test_execution_boundaries`. source `88813bf5b7525575dde3475b2ca180ba1c1efca9fa8e78132da9da92bfdb7e47`, input `0b49906ff0ad9ce8bb621c505359dd9a4f4f7380a2c28b229434d1b08ce09817`.
+
+- `whole-configuration-service-hub-01`: discovered/started/pass 42/42/42, exit 0, 126.532158초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-configuration-service-hub-01/hub.json --modules tests.hub.test_settings tests.hub.test_presets_widgets tests.hub.test_creation_contracts tests.hub.test_settings_navigation tests.hub.test_settings_json tests.hub.test_defaults`. source `88813bf5b7525575dde3475b2ca180ba1c1efca9fa8e78132da9da92bfdb7e47`, input `0b49906ff0ad9ce8bb621c505359dd9a4f4f7380a2c28b229434d1b08ce09817`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 간 중복 0, source/input은 실행 전후 및 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성과 격리 환경이다.
+`python -m tests.llm.check_budget_mutation` exit 0으로 실제 효과 횟수 기반 R3 누락 검출 유지.
+
+설정 생성/미리보기/CAS/Owner/확장 Schema/Host 주입 계약과 승인·Checkpoint·예산·원장·
+Run 참조·트랜잭션·RAG·데이터 수명 안전성 및 Hub 설정/프리셋/생성/탐색/JSON 소비자를 선택했다.
+표현과 관찰 경계의 변경이며 제품 정책/저장 형식/승인/예산 계산을 바꾸지 않는다.
+전체 회귀는 나머지 관련 llm 서비스·공개 계약과 묶은 Gate45에서 수행한다.
+이는 소단계 로컬 완료이며 전체 llm/Hub 또는 원격 CI 완료가 아니다. 안전성 결함이나
+영향 범위의 불확실성이 발견되면 전체 검증으로 즉시 승격한다.
+
+설정 서비스 마감 검사: `python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7` exit 0, 현행 82개 감사의 새/누락 항목 0. `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` 16/16, 3.390초, exit 0. `python -m tests.llm.check_docs` exit 0, 168문서/183Python fence/1256상대링크/37anchor, 오류 0. 전수 inventory 595파일, 미검토 194(llm17/Hub177), 미분류 9395, 미완료 계약 5, issues 0. 새 미완료 계약은 Hub 편집기 catalog 소비자로 명시했다.

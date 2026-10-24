@@ -9,6 +9,25 @@ from llm.core.json_data import JsonObject
 from llm.core.schema import SchemaExtension
 
 
+class ConfigurationPresentation:
+    """Read-only configuration descriptions, distinct from schema-author ownership."""
+
+    OWNER = "x-owner"
+    SCOPE = "x-scope"
+    PROJECT = "project"
+    HOST = "host"
+    EXECUTION_POLICY = "execution-policy"
+    INFRASTRUCTURE = "infrastructure"
+
+    @classmethod
+    def project(cls):
+        return {cls.OWNER: cls.PROJECT, cls.SCOPE: cls.EXECUTION_POLICY}
+
+    @classmethod
+    def host(cls):
+        return {cls.OWNER: cls.HOST, cls.SCOPE: cls.INFRASTRUCTURE}
+
+
 @dataclass(frozen=True, slots=True)
 class ConfigurationOverride(JsonValue):
     source: str

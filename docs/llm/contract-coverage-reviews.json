@@ -1605,210 +1605,228 @@
   },
   {
     "path": "llm/core/paths.py",
-    "sha256": "f3c49a91fab48a093c8195b5ce1a2458422b22ad64ec58e0576becf67a14cf5a",
-    "reason": "Each domain Paths class declares its existing filename/directory components before methods. Accessors compose these same values without new paths or normalization. RunPaths.output_path still supports injected structural state paths. Reviewed every accessor and actual file Reader/Writer, retention containment, backup and injected state-path consumers. Other workspace/Provider logs have separate roots and are not aliases of a domain path. WorkspacePaths now supplies the lock/journal/reserved path contract to both ordinary and recovery targets; directory durability has one implementation with original public forwarding seams. Original storage/transaction/locking and direct safety consumers pass; prior independent contracts remain tracked.",
+    "sha256": "1e541cac8a235a27e05ae4500b25047fdb4b430a74743bbbb17fa708b033c8c4",
+    "reason": "Each domain Paths class declares its existing filename/directory components before methods. Accessors compose these same values without new paths or normalization. RunPaths.output_path still supports injected structural state paths. Reviewed every accessor and actual file Reader/Writer, retention containment, backup and injected state-path consumers. Other workspace/Provider logs have separate roots and are not aliases of a domain path. WorkspacePaths now supplies the lock/journal/reserved path contract to both ordinary and recovery targets; directory durability has one implementation with original public forwarding seams. Original storage/transaction/locking and direct safety consumers pass; prior independent contracts remain tracked. Narrow optional Component schema hook, read-only presentation annotations and Backend workspace path declarations preserve existing policy/record/locking semantics.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "107034456225cc00d6ec888fc533d1962c1aa3a6428e7aec3a0656d2eaf5c160",
+        "id": "d6568f5ddf8ba381102c07c44bc69c00c08b5db6d81194c73c3154bb0f2ece65",
+        "classification": "non_contract",
+        "owner": "BackendPaths",
+        "reason": "Python frozen/slots declaration metadata for an immutable path projection, not a runtime policy."
+      },
+      {
+        "id": "d11ff326e8d292adaf1f5fbc23588b618e7bcdff14ccc674efad8387221c72f8",
+        "classification": "non_contract",
+        "owner": "BackendPaths",
+        "reason": "Python frozen/slots declaration metadata for an immutable path projection, not a runtime policy."
+      },
+      {
+        "id": "c162fe6a0f2937a9678e04daae297efd9f4a9cd8d0d91ce6915f20f5db4da8ae",
+        "classification": "declaration",
+        "owner": "BackendPaths",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "0b6cf85582b8ced0fd8ed94deef52d746144ccc9257a4cceffa4e4833c7bd117",
         "classification": "non_contract",
         "owner": "WorkspacePaths",
         "reason": "Python frozen/slots dataclass declaration metadata, following the existing path record types; not a serialized or execution-policy value."
       },
       {
-        "id": "ae25fd461c3a024dbe329233f8bfc9539362e780f2342f65df0b8b288656f791",
+        "id": "f833f8526dc0fc12e9b38d713f0cede45efe1358434b9e9f80a27c1d7ade1cad",
         "classification": "non_contract",
         "owner": "WorkspacePaths",
         "reason": "Python frozen/slots dataclass declaration metadata, following the existing path record types; not a serialized or execution-policy value."
       },
       {
-        "id": "1111ea69aec3316f661fb90b98e0a880804e081af94435c9721f3f9ff72e0005",
+        "id": "bba9f036def24cc82239834e7b64b8131f538adbf1ebdf8c8bf4398acd40f672",
         "classification": "declaration",
         "owner": "WorkspacePaths",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9dc1481688b4724b1aea73d7da199ba67029998cb8eda0ff733e2b15e2329986",
+        "id": "1b7a4b30bdca4e739d009326c0b16470e5a1fa22d29b0937209f7ddfd6e43fa4",
         "classification": "declaration",
         "owner": "WorkspacePaths",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "586b54350c247665f57c6df9a3f8ea330722cde040c84e0b8769b4a58c3d0fe2",
+        "id": "2840d3ba2f4ff072f4b21a10615efe4d44a3bb07a2133316b2c327f9450185bc",
         "classification": "non_contract",
         "owner": "WorkspacePaths.reserved",
         "reason": "First component of an already parsed relative Path; structural indexing, not a persisted field or policy default."
       },
       {
-        "id": "a61bd9247723ec512f547d799cd978902bd076b573c9b35622b162922fea99dc",
+        "id": "4f161e5364693cb21726d0d4674b873e7fa8249ef5a9afa0b68adab98cc1ed55",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "618ae4d68ef0906a354d0d7730f86d726c98eb2f5718de92145f38e3137e5e0e",
+        "id": "88bcaa7ba4a5486af868d14adfcc27b7c8613a5a189e4a64b22ac774bfa0e159",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "ccfe3af201ad69cc13354e6e8d037e659f71b72eb084599912ea882cf9aa3c49",
+        "id": "9df8ef795c4158629433d975efb604e84672998f3dd51a1b47e2a99fdf1806d1",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "dffcad21d5dbcc1b7518f7d680921f7d94daacdaac32c1c74540fe187f2df780",
+        "id": "ccc26452526b5c3700ea2a1489bc9291fc0511b5492c6c7884a3c910f73aee9c",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "4d0b59005d464f8f7766fa5292c5cea774b438bdce11c2a92e7e4d3b152a9071",
+        "id": "4d31d48c8ed87ff3aa4fae3a5a71528a41de4db2e1d3ece54eed34985e51f883",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "3e892e1e51ed3ebe8ba1ee453755be8c717c0ef87f480b9d16acbe24db91322f",
+        "id": "e16e443e1d3eaa26780bda71d9ce9bd11f427ea3849e3ac81e15dec802af4e8b",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "7a8457838547534c155b382dc78a243118e02cb54529e95b2e1b4f06ff1ec112",
+        "id": "6193be414a0451b05fdcd04c00eac2f42ecfb07675a643be8dd42fb10fed2bba",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "40514be4bceaf80a9fb4738e16a96488255282bbd71023f855cb01f03bac5380",
+        "id": "d92f5ce32b9abf88ba7007c974ebca1296dde589dbeb3bf58127bf60afb00559",
         "classification": "declaration",
         "owner": "ProjectPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "ea209b44e0fe847e9765e9c2c22ef400503ef8cb331aec6d97af03fbf6333f9f",
+        "id": "7bc2b42165aa746b8a545da2fe67152c422640fc68fdc8e375fc2a8237a43298",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "593d28fc749172f74c30a3378fd7d422f46da0cba60d17c65c20bc014432f8e5",
+        "id": "a97e90833dcf318ff2057548abbc6382b94f94063ffb4c9ad1012286f7c6b14b",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "6f1efc731cdb5aff808a178c38a84260cc6f8e450acd8e88ca99301cd77e488d",
+        "id": "86b207c7710da752b1fda8455966933ecd94239d1718d68d81a05f6768d3085d",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "d0aaaac2a159f122ffa109e14aa862255dc1c4213646469675f73b0f2274a9b2",
+        "id": "0dfcbd3802ce5299afff544ff0028c94095f95fac0c6be980b789a305687622f",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "2e7dcd161136c8d29d0d9b16aab9604964a336fdf5575fa3f0f2bbaf2f65a0a9",
+        "id": "5e1967b7dec9dc034cc67fdeb002be20b087bec36b8f95385e9273bf524f0858",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "e5d55ad4c513bc38816bf29729e34e5f25d8138d1d8ac5d3924702a3df3a6bec",
+        "id": "017c9b9fa803ec9a053d443d945190042fa1e419f7b37630f46ab0511794f3b8",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "d9ff8196fcf866ef4c465a7a1f6fe75a5c630536502891da1da6b91884961f7c",
+        "id": "8d7c679906260c9bbf5fad8bbdb45361a8c87de793c508c298b75d311ff875fb",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "22e0b5eafae0ee4092e0a963aa40b05c1ec26661a830da158c6b9742aed2e58c",
+        "id": "4a7895327e20936b66896c64d9b3c261b2bab8223550c0f397aa32befc97c4ef",
         "classification": "declaration",
         "owner": "SessionPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "779b839aac2237612f2d46781108607231a3be4152d35193c650d84038cb776f",
+        "id": "352f52f5bc39570850f3074716be14b2883a1bc9b4ad10f899e9c2364f4912c9",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "4fd610cfd3f4e4e822113b1b5ababcd0dfb8ea02f05505a187f34300a06c4faa",
+        "id": "7f0a824612ba0c607c23bf008673c4ca3d4755cc535fa35bfc9a619e4df07ba1",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "81ef9549c8243f86d38ab761dc46fc0835c7c058db1e2d87be571c3caa341740",
+        "id": "929d60637cd699f09931bbd5eea1115720a7acd162e5b46c4ca2842c505c0ade",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "5edf253f81b95196841fb4e27e8eead5b6b64a42cb76ee1bbf4551cde0babd32",
+        "id": "f82064db40e4ffcd6f1a38fd414f0cde90de5884601066af70af2fefaa17b5a4",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "c9cb0457b38dfd8f601fc984a28fa916b6dc5f7b25c4e28d3aa2cb56ece0f728",
+        "id": "50ea70c377059234db9868d2b89f0c8a4c83a65ee469e059d89299a3710fe458",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "bf8f7cb6bc617372aa446a97ce32b39dd28ce6cde4191448833c661e492c9747",
+        "id": "8119cec257519a092ff4eeb4d77c9f6f8dd3987a1d8c21da8775294608818640",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "2aaa7d4909279b625a545f83c89bd1f9637d5f97a67b32e2f89a36913bc2bbac",
+        "id": "fd23080976cb7f94607df72e78ee1acc279eb4078fd00689d500cef1d45e987b",
         "classification": "declaration",
         "owner": "RunPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "81ad6ce5774c8c35cb97087093c85ddffc6661be767372b66eaf14e30c0ce188",
+        "id": "cbe09735fd4b41fabfce8d432b388cc9e10af951c1d24b239153fba94a1dfc78",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "5d26764f48baded5c0949151f9147f2c83cbed6f8be6b7c34c2b8daa7c407e50",
+        "id": "04ae72003d40e27a96348f73212bd45b8605dfbd757965c4d34eebe1a91b11b1",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots decorator mechanics for path containers; no storage filename, execution state or policy value is defined here."
       },
       {
-        "id": "60ba2f63fbc8e22b9f32eea078e6b809c5427b6e5ea6ccdfc38de2e0f188fa70",
+        "id": "4c806d032bd364c73efdc4e7b582f5a5260070140a7b5204c0a41813dcbea587",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "9404ed14bf818fa21a49ede07ddfb0c3e3f677d43eda76e709a43ac10d32467d",
+        "id": "082f8fc465028fb453995956990bd27a18ed72522443c4b7d2abf8feae82b9f2",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "98f8deec0dea159c71188baec117f39c0f59957e69a8530f76f86a3358a4dc78",
+        "id": "6921ce97fbd5ea6ec346a63574b1ddd92b4d164390d1d4f4d5b393a73d0dba70",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
       },
       {
-        "id": "a6c12957b8f7b687664f26812498817760638d5ef6c503a259a42c048404da7a",
+        "id": "97013b0fc46d33a862c303019d947b9021b7a1e2e5bd1962ff0ae9072ebbcc2d",
         "classification": "declaration",
         "owner": "StepPaths",
         "reason": "Canonical domain filename or directory component, before methods in its owning Paths class. All path accessors reference it and structural output resolution preserves the original layout."
@@ -1819,35 +1837,60 @@
         "owner": "ProjectPaths / SessionPaths / RunPaths / StepPaths",
         "declaration": "llm/core/paths.py",
         "consumers": [
+          "llm/services/composition.py",
+          "llm/services/configuration_records.py",
           "llm/services/history/conversation.py",
           "llm/services/history/retention.py",
+          "llm/services/host_observations.py",
           "llm/services/infrastructure/locking.py",
           "llm/services/infrastructure/storage.py",
           "llm/services/lifecycle/projects.py",
           "llm/services/lifecycle/sessions.py",
           "llm/services/lifecycle/steps.py",
-          "llm/services/runtime/runs.py"
+          "llm/services/runtime/runs.py",
+          "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/llm/test_backup_owner_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_conversation_mutation_integrity.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_domain_record_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_locking_io.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operational_storage.py",
+          "tests/llm/test_operations_schema.py",
           "tests/llm/test_output_integrity.py",
+          "tests/llm/test_owner_declarations.py",
           "tests/llm/test_persistence.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -1857,27 +1900,52 @@
         "owner": "WorkspacePaths",
         "declaration": "llm/core/paths.py",
         "consumers": [
+          "llm/services/composition.py",
+          "llm/services/configuration_records.py",
+          "llm/services/host_observations.py",
           "llm/services/infrastructure/locking.py",
+          "llm/services/infrastructure/transaction_records.py",
           "llm/services/infrastructure/transactions.py",
-          "llm/services/infrastructure/transaction_records.py"
+          "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/llm/test_backup_owner_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_conversation_mutation_integrity.py",
           "tests/llm/test_current_contracts.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_locking_io.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operational_storage.py",
+          "tests/llm/test_operations_schema.py",
           "tests/llm/test_output_integrity.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -1887,138 +1955,174 @@
   },
   {
     "path": "llm/core/configuration_views.py",
-    "sha256": "3e78aee0e5e44417546485e162f7f8a04cc93bbacecceb5a6644e00515d90454",
-    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here. JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained.",
+    "sha256": "14522688bb95f0ee6416545ab651db3f07a3451cc10299be02cb7dafa02bc926",
+    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here. JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained. Narrow optional Component schema hook, read-only presentation annotations and Backend workspace path declarations preserve existing policy/record/locking semantics.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "714d3a930d4422db5abda3165add3836ccd19051cf8f30d47cf068276acb6754",
+        "id": "64d755856fb1b9e014eadd009f43c51dc0f958f8f1960ba396d25426cedfff78",
+        "classification": "declaration",
+        "owner": "ConfigurationPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "28cd674ba66a871343ae05dcdfa1df21b7fc2cde9fb60fb0b39179558051eb20",
+        "classification": "declaration",
+        "owner": "ConfigurationPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "4050183cc9aed63bbc212bcf7cf88ece0fbc0e5b4221fa594c3c723481cddc80",
+        "classification": "declaration",
+        "owner": "ConfigurationPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c566916201a302678c418816f21f256fa9c94c97198472ccd1c7cff54bbc8965",
+        "classification": "declaration",
+        "owner": "ConfigurationPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8137fe57a5b66ba878571714a1e9df43f7470ed2979c0ac5082edc24a63f55bc",
+        "classification": "declaration",
+        "owner": "ConfigurationPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f2e73480c5b5f59d93489ef13b2c6ca03ed9262d8e41a3254b29eec7d05d1f82",
+        "classification": "declaration",
+        "owner": "ConfigurationPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "34ffc3563ead796a8e6a51cf819556776576f6fc9f6053d2e4b223bb5e8a329c",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "edf7de3146df0b05be73012fdde0cf94fd64e2df4a1ab7918650ef7eb407fbd5",
+        "id": "3be4bb7c6301d4dd4363848f0bef92e10c37c1828d75237f84704c1a13310e5a",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "4316552fbe159bb23388a049cc728ba085347fb212952825e066211b467fc6df",
+        "id": "642a80fdf2867a26aa2140fad5e0013f734a1c9450d976e90d6f804200164900",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "9c633d691583a075ddfb09875ecef5da84acebd6916b546e88162fb2d0dc4f36",
+        "id": "ba83877b0c99848caddfb362d331d3c06b2d12c4f8c61799029752fe704f9114",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "04bd285546aff86a8f89eaebd8f91451d2cc0cc1fab091dc4d19864958ea2dff",
+        "id": "e53697a68d1eb87cbf44f0e7f8cb4243e90a319cff9bf051556c10154fbc64e1",
         "classification": "declaration",
         "owner": "ConfigurationResolution",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "1e05d34eb4f3ce45a7a80e5e5514471554f106dfbd70bf5776e138066d247736",
+        "id": "cfef9b3dde45f1048a3c2987cd866ae662b8d2ea9d6570f183a9ae2efb2c6f2b",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "0d4789ace62ca2eb96e9b3e5a5e965afa5f62ae64c3be6f636f8c288c0ad8427",
+        "id": "8969518dbcef1cb181161617e68f52bdcaf94bfbd50d577dc852f12e966b5ea2",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "10b64eb59eb38b3582a29b6198ab016aa3868bc74c3e16c0918d5daa8e9967d6",
+        "id": "fe443e474f5cfacfd015b7dff87a4f273996abcaf61bb9531762a3917c48493a",
         "classification": "declaration",
         "owner": "EngineConfigurationKey",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       },
       {
-        "id": "97559b5379b705dc3f7a9f2a9ab451b75ada7a3851e1068b49dbe68226de2fbc",
+        "id": "14a5ff7a38b9a101c8371c1040363bd041e9225fd09793a0a1089c4c83a5875d",
         "classification": "declaration",
         "owner": "EngineConfigurationKey",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "ed5c8fbbe164fceddde10aca684f70dcb888f92f9232cade51f6ae3d93b41e7a",
+        "id": "a289ac725847f6e3c2ec84def390b0d8ff199a58340a5b1188781fb75cf05a0f",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "2f75009cc2dd95fb328e26cefd2d1d206c06a313128098b0561913af1f53198c",
+        "id": "86e8a9f110e8c56ddcf8a1808a407ceefd38bb458dbc84f638c1f6de7fc8bbf3",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "b32043b8531e3f8c3f2fbad1cb9e14ead3244e9b874af97b945c9fb92aaa0f6b",
+        "id": "28836b69ceb34457f1131c13aecc66987e76289341848e0034e3ffcbe8821dab",
         "classification": "declaration",
         "owner": "RuntimeConfiguration",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "9d597df9c30dfeee02403adaaef8645fefa2b55656f3bb82c188481d8fd370bd",
+        "id": "580d5737c4fc3ba51895129ba845cd96bf358701254fc4aee52da1514b37cede",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "ee8fd777f1dee410f9c24994fb5f458a18d4ef85aa911ddf312fd5a980dfa165",
+        "id": "d0086bac153c8dfcdbed9357da0f8b39e2073639af890e305d47d01b95736272",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "7e8a59e93ce44968874db719e108d4db992d8d38fefcac6b8c8fa1b048cd26e4",
+        "id": "78cae40114286f9c49bd3a8f88ba88b04d121c3e30676d487710e375f645eccf",
         "classification": "declaration",
         "owner": "RuntimeOnlyConfiguration",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "b705d2edfa3c13eb9aebe56a6bc62f597660fa1f48180f40237b0c0fdae7391d",
+        "id": "54f468925756fd383094899c0cda3039b581910d9c20c29fb5700a10203206c3",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "c7f3e69fb4baa67a1e3f1e5634afc63f15686647254a074f8f713b5c511fa6eb",
+        "id": "bc8d724e6527f784fc5ee0868c40d3ae86e9fec78cd6bbe6a57d6e3180dd0a20",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "c359db98c882d8c9904e06eae9bf22f08e114b72c71d502bd8ba6adc9cb9f28d",
+        "id": "3e8018f22cc25b44d887cd294481a8d8d88687aa3f6a63747a5702a7f6afcb5a",
         "classification": "non_contract",
         "owner": "Python dataclass generation",
         "reason": "Frozen/slots/init generation mechanics. Typed constructors validate query data, and these flags are not stored settings, runtime defaults, state or field names."
       },
       {
-        "id": "4347410cf21eae50817ba2c925486700c12ffce6d5d902025c06765963a058bf",
+        "id": "d6da2f00c919638d7e978983924634dc0d8d85c137c546198c3276702d0f3cd1",
         "classification": "declaration",
         "owner": "ConfigurationView",
         "reason": "The canonical optional query field/runtime-only observation/resolver protocol declaration, before methods. JSON encoding and reading derive fields from the same type, while original omission is retained separately."
       },
       {
-        "id": "8fafa279a80f285fd74b603f3d4948788b9fdb0da730724eace8590a1d432a99",
+        "id": "14ad29bdad1c226c94cf6615080bf3ea11efb14b60d9d5458777b99697ace469",
         "classification": "declaration",
         "owner": "ConfigurationView",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       },
       {
-        "id": "59852bbdd1497c1f6f9c8eecd6d7a6009d62938a916e297b4addeb1ccc7ec59d",
+        "id": "4f952f81a12e0a4fc8818af513cfb029b7a5b6f94e24d7dddaa225d2889c6c1f",
         "classification": "non_contract",
         "owner": "ConfigurationEnforcement",
         "reason": "Python dataclass frozen/slots type layout, not a runtime domain default or stored policy."
       },
       {
-        "id": "67e56b936a47acf945b555e05ffccc62e1330ffef5492e7e436d40350801c391",
+        "id": "925856e6bee38672bfc1479c008ffda12aa7cd35eb0e04d130737cce14d629fd",
         "classification": "non_contract",
         "owner": "ConfigurationEnforcement",
         "reason": "Python dataclass frozen/slots type layout, not a runtime domain default or stored policy."
@@ -2029,25 +2133,54 @@
         "owner": "ConfigurationView / ConfigurationResolution / Override / Engine key / runtime observations",
         "declaration": "llm/core/configuration_views.py",
         "consumers": [
-          "llm/core/configuration.py",
-          "llm/engines/loop/engine.py",
-          "llm/engines/graph/engine.py",
-          "llm/engines/agents.py",
-          "llm/engines/registry.py",
-          "llm/components/rag/component.py",
-          "llm/services/schema.py",
           "hub/backend/execution/engine_selection.py",
           "hub/backend/tools/retry.py",
+          "hub/ui/settings/pages.py",
           "hub/widget/forms/settings.py",
-          "hub/ui/settings/pages.py"
+          "llm/components/rag/component.py",
+          "llm/core/configuration.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
+          "llm/services/composition.py",
+          "llm/services/configuration_records.py",
+          "llm/services/host_observations.py",
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_configuration_validation.py",
-          "tests/llm/test_settings_consistency.py",
-          "tests/llm/test_explicit_configuration.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
           "tests/hub/test_settings.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       },
@@ -2055,17 +2188,46 @@
         "owner": "EngineConfigurationKey Schema key / ConfigurationView.resolver",
         "declaration": "llm/core/configuration_views.py",
         "consumers": [
-          "llm/engines/registry.py",
+          "llm/core/configuration.py",
           "llm/engines/agents.py",
           "llm/engines/graph/engine.py",
           "llm/engines/loop/engine.py",
-          "llm/services/schema.py",
-          "llm/core/configuration.py"
+          "llm/engines/registry.py",
+          "llm/services/composition.py",
+          "llm/services/configuration_records.py",
+          "llm/services/host_observations.py",
+          "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
-          "tests/llm/test_configuration_results.py"
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       },
@@ -2074,11 +2236,44 @@
         "declaration": "llm/core/configuration_views.py",
         "consumers": [
           "llm/components/rag/configuration.py",
-          "llm/components/vision/configuration.py"
+          "llm/components/vision/configuration.py",
+          "llm/services/composition.py",
+          "llm/services/configuration_records.py",
+          "llm/services/host_observations.py",
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_vision.py",
-          "tests/hub/test_rag_extensions.py"
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }
@@ -2507,7 +2702,7 @@
   {
     "path": "llm/core/schema.py",
     "sha256": "a29ed68ea7ae069dafffa11bbc2bf3687254903ac96fb48b180b54ecdcf49e83",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved.",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -56785,8 +56980,8 @@
   },
   {
     "path": "llm/components/base.py",
-    "sha256": "b1fbf8ff71a61f2d2ec176ef75d58c8098ec0a223023bd32508f63d5c9449084",
-    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation.",
+    "sha256": "67e3cc4d1e4b6950186e77f60985332974ded24c7db80feaab82802a241def33",
+    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation. Narrow optional Component schema hook, read-only presentation annotations and Backend workspace path declarations preserve existing policy/record/locking semantics.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -56946,85 +57141,91 @@
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "b2eafeba181843c84231c9c069c782abfac1f8b990e099f5c5a359b7eb555025",
+        "id": "c4c4dc8072b90849e5bf503fef80ae4dd8f6aa68b1cb502ed2b595c90f082df9",
+        "classification": "declaration",
+        "owner": "Component.Field",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "691c7859a554a43efb63a9242a3560137a305f70886eddf9d8f69a886fd5d8b9",
         "classification": "declaration",
         "owner": "Component.Field",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "40f70bd1ed258bbecae7a2cbaf2ae836a9ee247f041758dac38018150731cf15",
+        "id": "f3799006f3333e7a1b50fdaeda40e16fc8d138917c279fb6782316d6021b4251",
         "classification": "declaration",
         "owner": "Component.Field",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "a644c71004943cb000ba95dca1668b6dd4a93e5cdbdd5b932842c16fb6936fff",
+        "id": "4cf1c385e4c612da340cbc841dd6c86157bb7f40a41fd00bb5ced5a5c28191eb",
         "classification": "declaration",
         "owner": "Component.Field",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "d55ed771145cbd35da7e84e07b713e0a7459b893c47e0fd8a21a1dd79c8fcd31",
+        "id": "fe5340972865a836de560ebbd4d32a2dd3360978a90f700d0c8b345a06fbdd72",
         "classification": "declaration",
         "owner": "Component",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "55b5a3829f9006f68121690a944e76e81242c2a6af0bb4e5e604466edfa709e6",
+        "id": "fc8beebd0ee1d17a8478921af6bed663947721e37908eb450c7dc9b700f7b35e",
         "classification": "declaration",
         "owner": "Component",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "20adc2ee5ba8da6acefc4356c6e27c1468de588f4c598751f325359814d87168",
+        "id": "52e90ac170e24bf6c315ff8c06f20518dd275d89c79c93d998f245f09a0d5c52",
         "classification": "non_contract",
         "owner": "Component.validate_backup",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "071867176902bfbc702d5dcd0c08ac9c59a0736766e098f9200605f7cb1d3807",
+        "id": "f90f651902beff7be73414c083a404426958a9ad18ebb86eade20a008660972f",
         "classification": "non_contract",
         "owner": "Component.validate_config",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "ee051134d113e4403a69e035541835ac004859f375fc8c78ddeb401481dbb40e",
+        "id": "48625ca994bf38beb26a77b4031109837c8f149b2a1072f85f698662250be96b",
         "classification": "non_contract",
         "owner": "Component.validate_record",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "a33ce3f4c758d20edbfad60ae5c097b821749189b9926c8e076dae1207c29bb9",
+        "id": "7ca3415be2bfef6a53e2e0c1d6615ff044423a503643c378488a3f27bb1e4a7c",
         "classification": "non_contract",
         "owner": "Component.initialize",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "23166c2e4f8b390fbf10fc0b08a2d53ea5c92da397f64ec5ba0586004bb812a9",
+        "id": "092463d32758005107bb2a55ffc57cae5ca00bfe6fc4435e8f2f5022325f6fdc",
         "classification": "non_contract",
         "owner": "Component._write",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "9715b16d5394c0234644e67936e553a87f0a951db2e6e82cfaa43b916ccc864a",
+        "id": "9d0e2d4fb5e361b1b2f4343a14c1d9442ec168c84607ea19dc64b13470cbde5b",
         "classification": "non_contract",
         "owner": "Component.save",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "806ae9574b1b1589265505878e895408d53a261445dfcca8d7d50c33ae23b70e",
+        "id": "4f1b9a7b33cce697d9044e0897f60b8eba3c4da5e221fdeaa2922e82bf7d04b6",
         "classification": "non_contract",
         "owner": "Component.delete",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "6020810e517d68e5edda0755168622ed42668d44a6b9cc4719fef4e340f3777e",
+        "id": "a1ec7108505337ed2cfe664b6118cb70906a4f07e1d849c054454258d9726bc6",
         "classification": "non_contract",
         "owner": "Component.delete_directory",
         "reason": "Python return type annotation -> None; no runtime default or policy."
       },
       {
-        "id": "986e0f783443baf08f856d96e90862a2fcbfa2bbb04591fd4eb384a3555be09f",
+        "id": "a5e72c4755a79f358277b0f92c4af4205619c6b964e9a09c362a52b2dd43d867",
         "classification": "non_contract",
         "owner": "Component.clone",
         "reason": "Python return type annotation -> None; no runtime default or policy."
@@ -57035,21 +57236,48 @@
         "owner": "ProjectComponent / Component / ComponentHook",
         "declaration": "llm/components/base.py",
         "consumers": [
-          "llm/services/schema.py",
+          "llm/components/registry.py",
+          "llm/services/composition.py",
+          "llm/services/configuration_records.py",
+          "llm/services/host_observations.py",
           "llm/services/lifecycle/components.py",
-          "llm/components/registry.py"
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_component_dependencies.py",
-          "tests/llm/test_project_component_settings.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_resource_references.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_components.py",
-          "tests/hub/test_component_managers.py"
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_dependencies.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -79615,6 +79843,642 @@
           "tests/llm/test_runtime.py",
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/schema.py",
+    "sha256": "2ee786bf5ab8f0010dcc7a42c368c460f5dea1a3a3d7f29ad259f94c03bbd39b",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "da303916ff3be6ceece64554268f39cb9cf200832abd5d79d02c498d07da90ac",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "e44e88b03ec7f8588a1b61d9693d99e9fa13b58b18307f1923e14702540cce17",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "1a86268bdce739738035ecabb4984402a8d423c35f824709f4f8a7c06b2952c6",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "624009c8a61d4e0bb84ddd0f36361a07e0749a122b1e0c5ee13f8fa6d2bea9b9",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "d5d6637691293bec0cc64d87221222214758ca5f4b1bc87b1c7cbcc681d96787",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "0fd65bc9e74f1c376d77f426c21b4f66996890a62738993c0b45107011bb1e89",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "d2166eeef07366b44f4c15d43947e415b2e0de8798b9d4da335b5d85c66f18f9",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "91a0d44528bf33221023d79570745ade8177fb5b0073415f8eb30ce1cb175ab4",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "70e2eeec186b8ccf9e73e22515dd3478c89476d104293648de4b4bed1a09b183",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "40b43cde2b2f780dcf251c7c6c1431c70b55d04edb9b23de78ac94e4e84272d8",
+        "classification": "declaration",
+        "owner": "ProjectSchemaDescription",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "e8e588aae40523e1496446d775eb9c3983beedf8c930423a1bbaec1ebed6aa0d",
+        "classification": "non_contract",
+        "owner": "ProjectFormSchemas",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "d7afbb33f11956f1325758dda7270e58e9fd2274904cb684c07167db890860e1",
+        "classification": "declaration",
+        "owner": "ProjectConfiguration",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "9382f610ddfb4613b0530cba1b9fdc62d152e7f197daa83f061a1b9cee4473e4",
+        "classification": "declaration",
+        "owner": "ProjectConfiguration",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "876fa301da0b9319d0df1dd35439312749856013ef5cb723b46203e542c9f971",
+        "classification": "declaration",
+        "owner": "ProjectConfiguration",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      },
+      {
+        "id": "a5719136c47172b2dabe9dce8883f6856e4b3f2d9dfe8f4a6a1de17507f2b887",
+        "classification": "declaration",
+        "owner": "ProjectConfiguration",
+        "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectConfiguration / ProjectFormSchemas / ProjectSchemaDescription",
+        "declaration": "llm/services/schema.py",
+        "consumers": [
+          "llm/services/api.py",
+          "llm/services/lifecycle/projects.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py"
+        ],
+        "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Project Schema catalog — Hub consumers pending",
+        "declaration": "llm/services/schema.py",
+        "consumers": [
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/services/composition.py",
+    "sha256": "107013ef0dacda994075a25c51e43015af20379eabf692263bf6515e367f1dc7",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "dd53d7707faa83b34f0da1fb8934dcf8ca0d4db6704981048c68dd67ee57c4d3",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "1c53132fb5ee34e851ba2dba22f4a67e2902b7f50cf8380359a44070d597c14e",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "66805e33c76371351b45fa28dde161481a7a73b88989905dedb15129fe9425a3",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "ec653241ca359939744bba1964cc8e610b3853b8cb95cbbf539eff646b0e7592",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "f1aca8730ec5b1e23f69bda77e528010d9dd95e8074aeafa9479028674016cf5",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "786c26c5970361a2e449ae849e98e2b26ce29330bf18ca62a407a9e5958344b1",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "b67def30844513424bcd47c54cdeceff2004b6c3033d28aea84f7d705415c8a6",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "8e91e248b891bd7bcdcaaa904998b70f1aa25bad8a0b93b7b5aa4ec8ba163009",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "2668593da71c899bb4ea2f6dd509f37c430d9950598fc1511c348112e9112697",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "d0e4f8768b4afde8a44239a4a9f7fd96866a28523f4f49c73208b624738206bc",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "5387e8f104fd6fcbe3828f06bc0213e0ae0a205c3f88bd6ee9b69600e75b84a0",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "dc4ddb527f4bbab4075b3c3a716f3b96f95165213cf73c561bb0f36c33638275",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "b40bb2791012ab26b2127f59f274ef168a3b4748c12d61b07f4dfbccfa187319",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "688bbbdac25aedf4e838451c9eab7ba274acfacb04ec07cc9d7c95ba380298c5",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "fdddffd93676cc5134446bdb0aea9d111eb1cf3d4d6e90b30cb76f00848f3907",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "e1b98a70afd7405c6c18c380e4361f23d33e5cd5b1d97265677f4f90283311e3",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "ef2ef61bbedacb8d5a4e487f552d1b3f67228a4359328945775d7a4620941060",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "d97eed4b015e16f28468159e38a831f71925b33790bdd2c09855cc0f2d3e99b5",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "d36245a5ec5046a4848823e831af20fc2ffc41575793a85db22dd231ebef8174",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "be383b05180032f9e26701af74817f9f56e30967ebc2ef8d4363f40ac11887e3",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "72e5dde61dccd4e8f1bb62eca7f7680d15603bc18289295d0eca169f8ee0f3cc",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "a3fdfe00422cc36c34d7856cb4f32f1e0461fb95606625a21542e5005d06b9a6",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      },
+      {
+        "id": "2f1d6cd091e8c0ad49275b16b64ae0ad00ef307f35e4e2f689d1c7c30de92cd4",
+        "classification": "declaration",
+        "owner": "BackendServices",
+        "reason": "Actual dataclass fields declare values and ordered observation metadata; error/default declarations at class head. Domain paths and Host projections use their Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BackendServices",
+        "declaration": "llm/services/composition.py",
+        "consumers": [
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/configuration_records.py",
+    "sha256": "8c2024876f01e077fe8799d5169df0d63963b4f9b8281aa10c12b1891c3ea0da",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f41b815d9b501db86a9cc1a984e5fa6890b8f6a13b1b412a277ff8678645fbe4",
+        "classification": "declaration",
+        "owner": "FormSchema",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "d0d8e81037bdb71d33b52e39e7e7293309411ea40100b0a3221a600246aac090",
+        "classification": "non_contract",
+        "owner": "ProjectConfigForm",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "47ae81bd8b3c2232a762f41fe1a4ad550966dfa59a22c1a7ddeb25e99fa0ae8e",
+        "classification": "declaration",
+        "owner": "ProjectConfigForm",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "633e07406696db5885dc0934e9cb9278487d2e09a9160c2ea00a7587fda8ff77",
+        "classification": "non_contract",
+        "owner": "ProjectConfigurationView",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "9eed97b0a69685abe598fe7a03409763a5e130035519a85f3cae61c92e37d169",
+        "classification": "non_contract",
+        "owner": "SessionConfigurationView",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "c71d12912b31a8622f93e1604f9f127ee48b0362ac6ab23e8269a54d0bae49dc",
+        "classification": "non_contract",
+        "owner": "ComponentConfigurationObservation",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "cf51341d92ebdcf1814a37841b0d4bf5ae5a62674fe27b2b53e046a372f0daca",
+        "classification": "non_contract",
+        "owner": "ComponentConfigurationObservation",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "effa8436c743e16851038d7af6d889a19ae640c407e0eb5cbebd4b2ffe7b9e73",
+        "classification": "non_contract",
+        "owner": "ComponentSchemaObservation",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "1f344394c72c9fe196ec3c2a26822cb05bbcc0fd3b7d293d02034d7a3cc6d70b",
+        "classification": "non_contract",
+        "owner": "ComponentSchemaObservation",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "341a7c4c7e490bb70979748a1fff5f42ee6c8a283748aef65204b74b33d081e4",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "b84ec404ab50ec37c89ea7224bdd1790763866439cb463febf717fc25f2bfb2b",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "e96a3f02ad77a05b17676d6b1c1000db2314d0eef5af5d29ac5eb9cf1a7b04d9",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "9699491c3072c557f11cab1f7df435b285cd652035a021f4d8dac6a903586935",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "dbdb01f506ba9c62caeaf27e27f91f772bba3311b9e0e5f6d66f458d81e5cda3",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "e24e6ce1ed7c8c4150e390b0f74b6d0556e45cff96ef1c934bb62e9018e89af0",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "ebc2d212aa971999f2b80d501c9d63ca0e52635e12a061ab7e8b3795b63e467d",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      },
+      {
+        "id": "026fe453d3ac59964436478bcc5a8840bc03950937c8edaed218b1144d33d36e",
+        "classification": "declaration",
+        "owner": "ProjectConfigurationSnapshot.Field",
+        "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectConfigForm / ProjectConfigurationSnapshot / ProjectRecordSnapshot / ComponentConfigurationObservation / ComponentSchemaObservation",
+        "declaration": "llm/services/configuration_records.py",
+        "consumers": [
+          "llm/services/schema.py",
+          "llm/services/api.py",
+          "llm/services/lifecycle/projects.py"
+        ],
+        "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/host_observations.py",
+    "sha256": "c1ae23fd9aaeeee3c4c6f5ece9f74acd07d58611bbe14b39c0c676bc45fa176d",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ab0c0ffeaadca4f1c75016f2875b3dcb0cbc2db974ab834febb58d0b74bec8b5",
+        "classification": "declaration",
+        "owner": "ServiceProjection",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "bc3e788594f10e7b184353288d17791f0252f487e19c781666ad63dafcf86a54",
+        "classification": "declaration",
+        "owner": "ServiceProjection",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "8a10e1a461236c96900f00b73a21b9ba9e263022679d73b2ec4622385db9c7c9",
+        "classification": "declaration",
+        "owner": "ServiceProjection",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "f40ccc205192d162f8226ab65476ee52a5e76488f156d4e2c7b28a3eeca78e00",
+        "classification": "declaration",
+        "owner": "ServiceProjection",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "4d52d3c5d76a178923df7187ee33a6e57c3d7de43d7d90600c5d0101a525fd0c",
+        "classification": "non_contract",
+        "owner": "ServiceIdentity",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "1628f3908d49a17677928c1150d2facd08ab7fa47812d824ec21bd8761a3989c",
+        "classification": "non_contract",
+        "owner": "ServiceIdentity",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "0abab1d7c3a5e3e4fe660d593f95f4014f39405c07261757feead9b1f22e2210",
+        "classification": "declaration",
+        "owner": "ServiceIdentity",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "71be0ddab7f2783ed01b8f42ab21c14de0456429ed5b9fc419583ee0116f610e",
+        "classification": "declaration",
+        "owner": "ServiceIdentity",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "44f06a5cd51837f681ade3082eaa6945d573cbdc6ebd2b5a236e7db4f172299f",
+        "classification": "declaration",
+        "owner": "ServiceIdentity",
+        "reason": "Read-only Host observation fields and roles declared at Owner head; Tool adapter fields derive existing ToolRuntime descriptors, never new execution policy."
+      },
+      {
+        "id": "8bd304e1bc06e404537fde735a346862f9d979937ddbffe49da159f7d1f2ae55",
+        "classification": "non_contract",
+        "owner": "HostServiceSnapshot",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      },
+      {
+        "id": "0b521f649627fe6b63e54516b52236a758f0af2babb8d2c4306d7e58cc7dac6e",
+        "classification": "non_contract",
+        "owner": "HostServiceSnapshot",
+        "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ServiceProjection / ServiceIdentity / ToolRuntimeObservation / HostServiceSnapshot",
+        "declaration": "llm/services/host_observations.py",
+        "consumers": [
+          "llm/services/composition.py"
+        ],
+        "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_extension_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_owner_declarations.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_project_creation.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_settings_contract.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],

@@ -6,6 +6,18 @@ from typing import ClassVar
 
 
 @dataclass(frozen=True, slots=True)
+class BackendPaths:
+    """Backend namespace; locking remains owned by the selected Project repository."""
+
+    PROJECTS: ClassVar[str] = "projects"
+    root: Path
+
+    @property
+    def projects(self) -> Path:
+        return self.root / self.PROJECTS
+
+
+@dataclass(frozen=True, slots=True)
 class WorkspacePaths:
     """Permanent lock and transaction namespace of the existing repository root."""
 

@@ -70,6 +70,7 @@ class Component:
     UNSUPPORTED_CAPABILITY = "Unsupported component capability"
 
     class Field:
+        SCHEMA = "schema"
         DATA_CLASS = "data_class"
         DIRECTORY = "directory"
         REQUIRED_COMPONENTS = "required_components"
@@ -78,6 +79,10 @@ class Component:
     required_components: tuple[str, ...] = NO_REQUIRED_COMPONENTS
     # Optional ComponentData subclass; None keeps the generic service handle.
     data_class: Optional[type] = NO_DATA_CLASS
+
+    @classmethod
+    def declared_schema(cls, component, default):
+        return getattr(component, cls.Field.SCHEMA, default)
 
     @classmethod
     def data_type(cls, component):
