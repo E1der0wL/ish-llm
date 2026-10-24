@@ -53848,33 +53848,81 @@
   },
   {
     "path": "llm/components/rag/corpus_records.py",
-    "sha256": "48714fb893f488bc232b89b97d16b98d8ea04c3d67414ea54bd9b76a98c6389f",
-    "reason": "Whole Data API, input preparation, required corpus access and document/snapshot projections reviewed with direct/dynamic consumers. Previously completed source/Job/ingestion/retrieval files updated for the canonical input and snapshot boundary. Actual whole-method equivalence, independent copy/wire/version/input tests and current real file/fault/safety regressions preserve original assertions. Component remains pending whole-file scope.",
+    "sha256": "3c98ceb9d3d8b4e020fc111bde6d502855020d9518d23c517303002255af1d69",
+    "reason": "Complete corpus/publication record modules and actual Component/public Data/search/Job consumers reviewed. Canonical Writers/readers/projections replace literal schema interpretation; full previous method comparison and real storage/fault/consumer regressions preserve strict evidence and effects. Remaining Component behavior is still pending whole-file review.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "a3993c84b6901ece29fe6222ce72500a01d120327a3c28a2f22a14b06911470c",
+        "id": "c3fce5982bf0fe838458e4421e26afc99c6525ed2934a76c22c3b9380ee8ac4b",
         "classification": "declaration",
         "owner": "RAGCorpus",
-        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
       },
       {
-        "id": "71309ad1c981860da33faa9ce65af902f329666fc04f1a465e30b3c83cb3353f",
+        "id": "8d65f7734dd83b3a08a784aea089b430837e8b3435f34d2425791e7dc94640a0",
         "classification": "declaration",
-        "owner": "RAGCorpus.Field",
-        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
       },
       {
-        "id": "a19255e66cfe3e227545294b5176686eb5fbaa078e803d33d8512f6880d534bc",
+        "id": "32b63d341f8dc10120a8fcd75e4ca1714955aa57ec1bbba138d98afecefa2cc2",
         "classification": "declaration",
-        "owner": "RAGCorpus.Field",
-        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
       },
       {
-        "id": "048f30c2adddb13835c26e6be0c26b740e1d1d5b758e6f84d65b7b0f34be82b7",
+        "id": "900483b9e0a16544b2dca5d2c02f692a405c3cd9dbef64f44c168b81d75192cb",
+        "classification": "declaration",
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "b11fe4f3ca6214e5064b3395dac0fc049dab186671742cfc56960ff51710e929",
+        "classification": "declaration",
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "5195eae8d07a4214ef9524ced3ad73d8b7deee7e0a7bea4aa12536046c10efe6",
+        "classification": "declaration",
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "e562cb66c7d59d1f131255c776111a205426847711c20c98d257989e4afa0b6c",
+        "classification": "declaration",
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "656c493ed732a21a02fea0bdb8631d6ea7201e69926410685a2d8e0cfe24b8f3",
+        "classification": "declaration",
+        "owner": "RAGCorpus",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "99e4de0537c8fdf7c9d29b1135b4d7dcd1272fa17a5c4f6c9f3563d3ef338bdf",
         "classification": "declaration",
         "owner": "RAGCorpus.Field",
-        "reason": "Corpus identity, generation and required document-container keys and identity-prefix width are declared at the Owner head. Required getters do not restore missing data. Broader stored corpus validation stays in the still-pending Component implementation."
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "b22e3fd1173835f7d85ef245d158f3cbbd12941c438fd2cacb4dc91ad6b135e7",
+        "classification": "declaration",
+        "owner": "RAGCorpus.Field",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "ec0d9ab1c58cbb166d52430f06548bde6bceeef8b1946140fe6762719f21562d",
+        "classification": "declaration",
+        "owner": "RAGCorpus.Field",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
+      },
+      {
+        "id": "7e1b73807bbe368893350c0efbc157a08901d9f810857964c4647bb2c8589b08",
+        "classification": "declaration",
+        "owner": "RAGCorpus.Field",
+        "reason": "Corpus fields/version/absence and diagnostics are declared before implementation. Strict corpus Reader invokes the selected Component document callback and canonical document/profile contracts without adding recovery. Creation/snapshot Writers preserve exact JSON and reference semantics; consumers use typed properties."
       }
     ],
     "contracts": [
@@ -53882,19 +53930,19 @@
         "owner": "RAGCorpus",
         "declaration": "llm/components/rag/corpus_records.py",
         "consumers": [
+          "llm/components/rag/component.py",
           "llm/components/rag/data.py",
-          "llm/components/rag/retrieval_records.py"
+          "llm/components/rag/retrieval_records.py",
+          "llm/components/rag/publication_records.py"
         ],
         "tests": [
-          "tests/llm/test_rag_components.py",
-          "tests/llm/test_rag_query_evidence.py",
-          "tests/llm/test_rag_batch_identity.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_input_integrity.py",
-          "tests/llm/test_rag_retry_presence.py",
           "tests/llm/test_rag_catalog_integrity.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/llm/test_rag_corpus_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_components.py",
+          "tests/hub/test_rag_retention.py"
         ],
         "complete": true
       }
@@ -54231,6 +54279,183 @@
           "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_operations_schema.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/publication_records.py",
+    "sha256": "26719d2027f8c33e4c470f769220adc5d244e6067a7b3fa8dde8adc053101553",
+    "reason": "Complete corpus/publication record modules and actual Component/public Data/search/Job consumers reviewed. Canonical Writers/readers/projections replace literal schema interpretation; full previous method comparison and real storage/fault/consumer regressions preserve strict evidence and effects. Remaining Component behavior is still pending whole-file review.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "92781dcb7c029b2ab8ac0fd68a76083ba94e7c4ba42bf6d3799b07cae759604c",
+        "classification": "declaration",
+        "owner": "CorpusIdentity",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "f37029e7386af19a3bdf3bf9594ff29db628cf028051300b5254916d7da593c8",
+        "classification": "declaration",
+        "owner": "CorpusIdentity",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "16a8e96dad0febfe5b9b1d0a45d98d1e71b8ed6d42e8163560e9c725c739b04f",
+        "classification": "declaration",
+        "owner": "CorpusPointer",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "b4c364aeeea196e55af24e51647eec468ece7eab2865d70a02af2bafc9d84169",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "714662cb9a50e6e3bd3210eeee5d871f2cd58d085ee79757a6c6a143e502b223",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "e555b719502ebca5b139079592bd8db1efa795563dcad4027f69c629902ec11d",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "2ad55bed39dc8a5e8c3e1543d2a2c9151868542366128baadd74b3bf009668f0",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "01d17f05ca6dc9161ee1e53c32fd61a329a9932fd96e1fb63888bee4ecd9f9d4",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "0cdc8b618aec57446cba1ef17bd19e3e8b5e7edb65a84bb38fb8c79af5c84e9e",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "dbe730a3c037c74e8ab9970f6c4b99a9fd30ab314c7aa3a556fe5466ed8fd1f7",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "99f89a14dbdc951f90d31bb7b4ce3841d0e7a4e274bc0640d296b89fed96c940",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "8ef4b9c8f56586f65689463391d67418bacd153c34be56a50f128c4f4a1535bc",
+        "classification": "declaration",
+        "owner": "CorpusControl",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "da63f58dc250226db2f16c7e7a6eef8b67b4c9dc7baf4bb8c19f745261ae87b9",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "3bd186fd014f87b09dd18a8653b6e0aafcecfd0effb9c94d0f8463c2f4735423",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "ef171ccf71dc8706ed5f16c9ca2cea841ef6e71993a3796225a707995875e1b7",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "52c8ef45e8857f8e2aa681d701700cf668ccd67cfdf82a78e468302811ae36dc",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "78f66de3367c97c675aadd13bc9cd22894f8b957225310f2a3dca257396f8722",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "164c8062ea2b61ef388db50f71d50f4fcbc5b883637960f006ca00d932c4cdc4",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "bed4bec96c5ed1a869cfb1ee1513ce71341a412f186a2e8799548d104c5bc5f1",
+        "classification": "declaration",
+        "owner": "CorpusControl.Field",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "f0e3e9f3c63531949260e498749098b44a88e0405351b10fb4edcdef73f089ea",
+        "classification": "declaration",
+        "owner": "CorpusCatalog",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "da305e55b6c2d81c6820956a01ee90a503c792dcfbc16d85798da60170a49380",
+        "classification": "declaration",
+        "owner": "CorpusCatalog",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "a165062e9174655d80c1d22a082d9a7bda4ec226cf83db05b4c6b416a44d3990",
+        "classification": "declaration",
+        "owner": "CorpusCatalog",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "f77a9dd2be8fbe56e3f309f8235a4c137228dea6ace7a2c44a3c7d1c4e0d13b6",
+        "classification": "declaration",
+        "owner": "CorpusCatalog",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "cce86baf04b2f4d1772a5baa9d3f3c6176d0f4e8db0eaec692267abf6ea31495",
+        "classification": "declaration",
+        "owner": "CorpusCatalog",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      },
+      {
+        "id": "3252a66534ad3606de071a54762998d560c95d6fbae2c191657b256d9e49d991",
+        "classification": "declaration",
+        "owner": "CorpusCatalog",
+        "reason": "Identity/pointer/control/catalog shape, version, revision fields, required sets, grammar and diagnostics are declared at their canonical Owners. Catalog projects the document fields from RAGDocument. These Owners interpret records only; Component retains file checks and exact identity/shape/control/UUID/revision order. No policy inference or stored defaults."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CorpusIdentity/CorpusPointer/CorpusControl/CorpusCatalog",
+        "declaration": "llm/components/rag/publication_records.py",
+        "consumers": [
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_corpus_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_components.py",
+          "tests/hub/test_rag_retention.py"
         ],
         "complete": true
       }

@@ -1,4 +1,5 @@
 """RAG publication evidence protects catalog reads, source preservation and recovery."""
+from llm.components.rag.publication_records import CorpusCatalog
 
 from llm.providers.operations import LiteLLMOperations
 import hashlib
@@ -102,7 +103,7 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
         original, proof = self.catalog.read_bytes(), self.control.read_bytes()
         rows = json.loads(original)
         cases = [None, {}, [], [None], rows + rows]
-        for missing in RAGComponent.CATALOG_FIELDS:
+        for missing in CorpusCatalog.REQUIRED:
             cases.append([{key: value for key, value in rows[0].items() if key != missing}])
         for key, value in (('title', ''), ('title', False), ('revision', True), ('revision', 1.0),
                            ('generation', 'invalid'), ('description', None), ('unknown', True)):

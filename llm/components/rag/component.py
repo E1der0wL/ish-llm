@@ -31,6 +31,8 @@ from .search import search, search_schema, SearchOptions
 from .splitting import split_markdown
 from .chunk_records import RAGChunk, RAGSection, SplitDocument
 from .document_records import RAGDocument, RAGDocumentInput, ExtractionManifestEntry
+from .corpus_records import RAGCorpus
+from .publication_records import CorpusIdentity, CorpusPointer, CorpusControl, CorpusCatalog
 from .retrieval_records import RetrievalSource, CatalogCursor, CatalogRequest, CatalogPage
 from .graph_records import GraphEntity, GraphRelation, GraphRecord, GraphSearchResult, ExtractionCheckpoint, validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import ExtractionFailurePolicy, extraction_schema
@@ -65,14 +67,9 @@ class RAGComponent(DefinitionComponent):
     IDENTITY_FILE = "identity.json"
     ACTIVE_FILE = "active.json"
     CONTROL_FILE = "corpus.manifest.json"
-    SCHEMA_VERSION = 1
-    CONTROL_FIELDS = frozenset(("schema_version", "project_id", "component", "identity_revision",
-                                "active_revision", "corpus_revision", "catalog_revision"))
     CORPUS_FILE = "corpus.json"
     CATALOG_FILE = "catalog.json"
-    CATALOG_FIELDS = frozenset(("id", "title", "generation", "revision"))
     GENERATIONS_DIRECTORY = "generations"
-    GRAPH_SCHEMA_VERSION = 1
 
     name = directory = RAGIdentity.CAPABILITY
     capabilities = (RAGIdentity.CAPABILITY, ToolRegistry.CAPABILITY)
@@ -127,8 +124,8 @@ class RAGComponent(DefinitionComponent):
             return
         super().initialize(project)
         identity = uuid4().hex
-        atomic_json(root / self.IDENTITY_FILE, {"id": identity})
-        atomic_json(root / self.ACTIVE_FILE, {"generation": None})
+        atomic_json(root / self.IDENTITY_FILE, CorpusIdentity.create(identity))
+        atomic_json(root / self.ACTIVE_FILE, CorpusPointer.create(RAGCorpus.ABSENT))
         self._write_control(project, identity, None, None, None)
         JobStorage(project, self).initialize()
 
@@ -177,22 +174,8 @@ class RAGComponent(DefinitionComponent):
 
     @classmethod
     def validate_corpus(cls, value):
-        """Published and prepared documents use the same owning field contract."""
-        if (not isinstance(value, dict) or type(value.get("graph_schema_version")) is not int
-                or value["graph_schema_version"] != cls.GRAPH_SCHEMA_VERSION):
-            raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
-        if value.keys() != {"graph_schema_version", "documents", EmbeddingEvidence.Field.PROFILE} or not isinstance(value["documents"], dict):
-            raise ValueError("Invalid RAG corpus fields")
-        documents = value["documents"]
-        for identifier, document in documents.items():
-            cls.validate_document(document)
-            if document["id"] != identifier:
-                raise ValueError("RAG corpus document identity changed")
-            if document[EmbeddingEvidence.Field.PROFILE] != value[EmbeddingEvidence.Field.PROFILE]:
-                raise ValueError("RAG corpus and document embedding profiles disagree")
-        if not documents and value[EmbeddingEvidence.Field.PROFILE] is not None:
-            raise ValueError("Empty RAG corpus requires an explicit null profile")
-        return value
+        """The selected Component callback validates every canonical corpus document."""
+        return RAGCorpus.validate(value, cls.validate_document)
 
     @classmethod
     def _check_revision(cls, document, expected_revision, expected_generation):
@@ -350,7 +333,7 @@ class RAGComponent(DefinitionComponent):
         super().validate_backup(project)
         JobStorage(project, self).validate_sources()
         snapshot = self.snapshot(project)
-        generation = snapshot["generation"]
+        generation = RAGCorpus(snapshot).generation
         if generation is not None:
             path = self._generation_path(project, generation)
             if not (path / ChromaIndex.DIRECTORY).is_dir() or not (path / GraphStore.FILE_NAME).is_file():
@@ -375,42 +358,22 @@ class RAGComponent(DefinitionComponent):
         return read_json(path)
 
     def _write_control(self, project, identity, generation, corpus, catalog):
-        atomic_json(self.root(project) / self.CONTROL_FILE, {
-            "schema_version": self.SCHEMA_VERSION, "project_id": project.id, "component": self.name,
-            "identity_revision": revision_token({"id": identity}),
-            "active_revision": revision_token({"generation": generation}),
-            "corpus_revision": None if corpus is None else revision_token(corpus),
-            "catalog_revision": None if catalog is None else revision_token(catalog)})
+        atomic_json(self.root(project) / self.CONTROL_FILE,
+                    CorpusControl.create(project.id, self.name, identity, generation, corpus, catalog))
 
     def _corpus_control(self, project):
         """Read the current owner proof without parsing the immutable corpus."""
         root = self.root(project)
         identity = self._read_evidence(root / self.IDENTITY_FILE)
         active = self._read_evidence(root / self.ACTIVE_FILE)
-        if not isinstance(identity, dict) or identity.keys() != {"id"}:
-            raise ValueError("RAG identity record is incomplete or changed")
-        if not isinstance(active, dict) or active.keys() != {"generation"}:
-            raise ValueError("RAG active pointer is incomplete or changed")
+        CorpusIdentity.validate(identity)
+        CorpusPointer.validate(active)
         control = self._read_evidence(root / self.CONTROL_FILE)
-        if not isinstance(control, dict) or control.keys() != self.CONTROL_FIELDS:
-            raise ValueError("RAG corpus manifest is incomplete or changed")
-        if type(control["schema_version"]) is not int or control["schema_version"] != self.SCHEMA_VERSION:
-            raise ValueError("Unsupported RAG corpus manifest version")
-        if control["project_id"] != project.id or control["component"] != self.name:
-            raise ValueError("RAG corpus manifest ownership mismatch")
-        if (control["identity_revision"] != revision_token(identity)
-                or control["active_revision"] != revision_token(active)):
-            raise ValueError("RAG identity or active pointer integrity mismatch")
-        identity = identity["id"]
+        CorpusControl.validate(control, project.id, self.name, identity, active)
+        identity = CorpusIdentity(identity).identifier
         self._validate_identity(identity)
-        generation = active["generation"]
-        for name in ("corpus_revision", "catalog_revision"):
-            value = control[name]
-            if generation is None:
-                if value is not None:
-                    raise ValueError("Empty RAG storage cannot declare published evidence")
-            elif not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
-                raise ValueError("RAG publication requires its corpus and catalog revisions")
+        generation = CorpusPointer(active).generation
+        CorpusControl.validate_revisions(control, generation)
         if generation is None:
             generations = self._checked(root / self.GENERATIONS_DIRECTORY)
             if generations.exists() and any(generations.iterdir()):
@@ -429,7 +392,7 @@ class RAGComponent(DefinitionComponent):
     def source_version(self, project):
         """Bind a read snapshot across model calls without parsing the corpus again."""
         identity, generation, control = self._corpus_control(project)
-        version = (identity, generation, control["corpus_revision"], control["catalog_revision"])
+        version = (identity, generation, CorpusControl(control).corpus_revision, CorpusControl(control).catalog_revision)
         if generation is None:
             return version
         path = self._generation_path(project, generation)
@@ -447,39 +410,20 @@ class RAGComponent(DefinitionComponent):
 
     @classmethod
     def _catalog_rows(cls, documents):
-        return [{key: doc[key] for key in (*sorted(cls.CATALOG_FIELDS), "description") if key in doc}
-                for _, doc in sorted(documents.items())]
+        return CorpusCatalog.rows(documents)
 
     def _catalog(self, project, generation, control):
         rows = self._read_evidence(self._generation_path(project, generation) / self.CATALOG_FILE)
-        if not isinstance(rows, list):
-            raise ValueError("RAG catalog must be a list")
-        identifiers = []
-        for row in rows:
-            if (not isinstance(row, dict) or not self.CATALOG_FIELDS <= row.keys()
-                    or row.keys() - self.CATALOG_FIELDS - {"description"}):
-                raise ValueError("RAG catalog requires complete current document fields")
-            identifier = validate_name(row["id"])
-            RAGDocument.validate_versions({identifier: row})
-            if not isinstance(row["title"], str) or not row["title"].strip():
-                raise ValueError("RAG catalog title must be non-empty text")
-            if "description" in row and not isinstance(row["description"], str):
-                raise ValueError("RAG catalog description must be text")
-            identifiers.append(identifier)
-        if identifiers != sorted(set(identifiers)):
-            raise ValueError("RAG catalog identifiers must be unique and sorted")
-        if revision_token(rows) != control["catalog_revision"]:
-            raise ValueError("RAG catalog integrity mismatch")
-        return rows
+        return CorpusCatalog.validate(rows, control)
 
     def snapshot(self, project):
         identity, generation, control = self._corpus_control(project)
         if generation is None:
-            return {"identity": identity, "generation": None, "documents": {}, EmbeddingEvidence.Field.PROFILE: None}
+            return RAGCorpus.empty_snapshot(identity)
         path = self._generation_path(project, generation)
         source = self._checked(path / self.CORPUS_FILE)
         info = source.stat()  # Deletion/replacement must never be hidden by a cached generation.
-        key = (str(source), identity, generation, control["corpus_revision"], info.st_dev, info.st_ino,
+        key = (str(source), identity, generation, CorpusControl(control).corpus_revision, info.st_dev, info.st_ino,
                info.st_size, info.st_mtime_ns, info.st_ctime_ns)
         # Missing means inactive, not a tuning default or a materialized configuration value.
         maximum = 0 if self.snapshot_cache_max_bytes is None else self.snapshot_cache_max_bytes
@@ -487,10 +431,10 @@ class RAGComponent(DefinitionComponent):
         cached = value is not None
         if not cached:
             value = self.validate_corpus(read_json(source))
-            if revision_token(value) != control["corpus_revision"]:
+            if revision_token(value) != CorpusControl(control).corpus_revision:
                 raise ValueError("RAG corpus integrity mismatch")
         catalog = self._catalog(project, generation, control)
-        if revision_token(catalog) != revision_token(self._catalog_rows(value["documents"])):
+        if revision_token(catalog) != revision_token(self._catalog_rows(RAGCorpus(value).documents)):
             raise ValueError("RAG catalog disagrees with its published corpus")
         if not self._checked(path / ChromaIndex.DIRECTORY).is_dir():
             raise FileNotFoundError("RAG generation requires its vector index")
@@ -498,7 +442,7 @@ class RAGComponent(DefinitionComponent):
             raise FileNotFoundError("RAG generation requires graph.kuzu")
         if not cached:
             self.snapshot_cache.put(key, value, maximum)
-        return {**value, "identity": identity, "generation": generation}
+        return RAGCorpus.snapshot(value, identity, generation)
 
     def list_catalog(self, project, *, limit, cursor=CatalogRequest.ABSENT):
         """현재 세대에 함께 공개된 설명 목록만 읽는다. 원본은 corpus가 소유한다."""
@@ -707,7 +651,7 @@ class RAGComponent(DefinitionComponent):
     def publish(self, project, previous, documents, *, progress=None):
         """DB를 닫고 포인터·필수 증거를 같은 workspace transaction으로 확정한다."""
         current = self.snapshot(project)
-        if (current["identity"], current["generation"]) != (previous["identity"], previous["generation"]):
+        if (RAGCorpus(current).identity, RAGCorpus(current).generation) != (RAGCorpus(previous).identity, RAGCorpus(previous).generation):
             raise RAGConflictError("Corpus changed during preparation; reload and retry explicitly")
         if progress:
             progress("validating")
@@ -719,8 +663,7 @@ class RAGComponent(DefinitionComponent):
             if not isinstance(first, dict) or EmbeddingEvidence.Field.PROFILE not in first:
                 raise ValueError("RAG document requires its embedding profile")
             profile = first[EmbeddingEvidence.Field.PROFILE]
-        corpus = self.validate_corpus({"graph_schema_version": self.GRAPH_SCHEMA_VERSION,
-            "documents": documents, EmbeddingEvidence.Field.PROFILE: profile})
+        corpus = self.validate_corpus(RAGCorpus.create(documents, profile))
         generation = uuid4().hex
         path = self._generation_path(project, generation)
         from llm.services.infrastructure.storage import make_directory
@@ -730,12 +673,12 @@ class RAGComponent(DefinitionComponent):
         try:
             if progress:
                 progress("indexing")
-            if previous["generation"] and type(self)._build is RAGComponent._build and "_build" not in self.__dict__:
-                source = self._checked_tree(self._generation_path(project, previous["generation"]))
+            if RAGCorpus(previous).generation and type(self)._build is RAGComponent._build and "_build" not in self.__dict__:
+                source = self._checked_tree(self._generation_path(project, RAGCorpus(previous).generation))
                 shutil.copytree(source / ChromaIndex.DIRECTORY, path / ChromaIndex.DIRECTORY, copy_function=copy_file)
                 copy_file(source / GraphStore.FILE_NAME, path / GraphStore.FILE_NAME)
-                update_index(path / ChromaIndex.DIRECTORY, previous["documents"], documents, batch_size=self.index_batch_size)
-                update_graph(path / GraphStore.FILE_NAME, previous["documents"], documents, options=self.graph_options)
+                update_index(path / ChromaIndex.DIRECTORY, RAGCorpus(previous).documents, documents, batch_size=self.index_batch_size)
+                update_graph(path / GraphStore.FILE_NAME, RAGCorpus(previous).documents, documents, options=self.graph_options)
             else:
                 self._build(path, documents)
             if progress:
@@ -750,8 +693,8 @@ class RAGComponent(DefinitionComponent):
         # 오류가 나더라도 여기서 지우지 않아 active가 없는 DB를 가리키지 않게 한다.
         if progress:
             progress("publishing")
-        atomic_json(self.root(project) / self.ACTIVE_FILE, {"generation": generation})
-        self._write_control(project, previous["identity"], generation, corpus, catalog)
+        atomic_json(self.root(project) / self.ACTIVE_FILE, CorpusPointer.create(generation))
+        self._write_control(project, RAGCorpus(previous).identity, generation, corpus, catalog)
         # Finish only previously committed deletion intents; publication never selects old generations.
         try:
             self.recover_compaction(project)
@@ -778,20 +721,20 @@ class RAGComponent(DefinitionComponent):
                 continue
             generation = path.name
             self._generation_path(project, generation)
-            if generation != current["generation"]:
+            if generation != RAGCorpus(current).generation:
                 if {entry.name for entry in path.iterdir()} != {self.CORPUS_FILE, self.CATALOG_FILE, ChromaIndex.DIRECTORY, GraphStore.FILE_NAME}:
                     raise ValueError("Retired RAG generation has incomplete or unknown entries")
                 corpus = self.validate_corpus(self._read_evidence(path / self.CORPUS_FILE))
                 catalog = self._read_evidence(path / self.CATALOG_FILE)
-                if revision_token(catalog) != revision_token(self._catalog_rows(corpus["documents"])):
+                if revision_token(catalog) != revision_token(self._catalog_rows(RAGCorpus(corpus).documents)):
                     raise ValueError("Retired RAG catalog disagrees with its source corpus")
                 if not self._checked(path / ChromaIndex.DIRECTORY).is_dir() or not self._checked(path / GraphStore.FILE_NAME).is_file():
                     raise ValueError("Retired RAG generation requires its stored indexes")
             files = tree_snapshot(path)
             row = {"generation": generation, "bytes": sum(item["bytes"] for item in files.values()),
                    "revision": revision_token(files)}
-            (protected if generation == current["generation"] else candidates).append(row)
-        result = {"identity": current["identity"], "active_generation": current["generation"],
+            (protected if generation == RAGCorpus(current).generation else candidates).append(row)
+        result = {"identity": RAGCorpus(current).identity, "active_generation": RAGCorpus(current).generation,
                   "candidates": candidates, "protected": protected}
         return {**result, "version": revision_token(result)}
 
@@ -816,19 +759,19 @@ class RAGComponent(DefinitionComponent):
             remove_named_tree(root, self._generation_path(project, generation), generation)
 
     def search(self, project, snapshot, query, vector, **options):
-        if snapshot["generation"] is None:
+        if RAGCorpus(snapshot).generation is None:
             return []
-        path = self._checked_tree(self._generation_path(project, snapshot["generation"]))
-        return search(path, snapshot["documents"], query, vector, lexical_cache=self.search_cache,
+        path = self._checked_tree(self._generation_path(project, RAGCorpus(snapshot).generation))
+        return search(path, RAGCorpus(snapshot).documents, query, vector, lexical_cache=self.search_cache,
                       cache_chars=self.search_cache_chars, candidate_count=require_config(self.search_options, SearchOptions.Field.CANDIDATE_COUNT, scope=SearchOptions.SCOPE),
                       rrf_constant=require_config(self.search_options, SearchOptions.Field.RRF_CONSTANT, scope=SearchOptions.SCOPE), **options)
 
     def graph_search(self, project, *, seed, max_hops, limit):
         snapshot = self.snapshot(project)
-        incomplete = [identifier for identifier, doc in snapshot["documents"].items() if doc.get(RAGDocument.Field.GRAPH_COMPLETE) is False]
+        incomplete = [identifier for identifier, doc in RAGCorpus(snapshot).documents.items() if doc.get(RAGDocument.Field.GRAPH_COMPLETE) is False]
         status = {RAGDocument.Field.GRAPH_COMPLETE: not incomplete, "graph_incomplete_documents": incomplete}
-        path = (self._generation_path(project, snapshot["generation"]) / GraphStore.FILE_NAME
-                if snapshot["generation"] else None)
+        path = (self._generation_path(project, RAGCorpus(snapshot).generation) / GraphStore.FILE_NAME
+                if RAGCorpus(snapshot).generation else None)
         if path is None:
             return {**GraphSearchResult.seeded(seed, [], []), **status}
         return {**graph_search(path, seed, max_hops=max_hops, limit=limit, options=self.graph_options,
@@ -836,8 +779,8 @@ class RAGComponent(DefinitionComponent):
 
     def combined_result(self, project, snapshot, query, hits, *, max_hops, relation_limit):
         """동일한 불변 세대에서 문서 검색 결과와 근거 관계를 묶는다."""
-        path = (self._generation_path(project, snapshot["generation"]) / GraphStore.FILE_NAME
-                if snapshot["generation"] else None)
+        path = (self._generation_path(project, RAGCorpus(snapshot).generation) / GraphStore.FILE_NAME
+                if RAGCorpus(snapshot).generation else None)
         graph = GraphRecord.create([], [])
         if path is not None and hits:
             graph = related_graph(path, [hit["id"] for hit in hits], max_hops=max_hops, limit=relation_limit,
@@ -845,7 +788,7 @@ class RAGComponent(DefinitionComponent):
         sources = {}
         for hit in hits:
             sources[RAGChunk(hit).identifier] = RetrievalSource.from_hit(hit)
-        documents = snapshot["documents"]
+        documents = RAGCorpus(snapshot).documents
         chunk_indexes = {}
         for relation in graph[GraphRecord.Field.RELATIONS]:
             if relation[GraphRelation.Field.SOURCE_ID] in sources:
@@ -865,6 +808,6 @@ class RAGComponent(DefinitionComponent):
         JobStorage(source, self).validate_sources()
         super().clone(source, destination)
         snapshot = self.snapshot(source)
-        if snapshot["generation"] is not None:
+        if RAGCorpus(snapshot).generation is not None:
             # 불변 원문/벡터/관계를 복제해 DB를 재구축한다. 인증/모델 호출은 필요 없다.
-            self.with_config(destination).publish(destination, self.snapshot(destination), snapshot["documents"])
+            self.with_config(destination).publish(destination, self.snapshot(destination), RAGCorpus(snapshot).documents)

@@ -46,7 +46,8 @@ Component의 기존 검증 콜백은 정규 Document Owner에 위임합니다. �
 | [__init__.py](__init__.py) | RAGComponent/RAGConflictError와 EmbeddingModel/RerankModel/TripleExtractor의 공개 import입니다. |
 | [component.py](component.py) | 설정 검증과 문서·색인 generation의 원자적 공개·복제를 담당합니다. |
 | [document_views.py](document_views.py) | 공개 문서의 내부 증거 제외, 문서 변경 CAS 인자와 작업용 설정/원본 스냅샷 Projection입니다. |
-| [corpus_records.py](corpus_records.py) | 코퍼스 identity·generation·필수 문서 컨테이너의 정규 필드와 조회입니다. 전체 저장 검증은 Component가 계속 소유합니다. |
+| [corpus_records.py](corpus_records.py) | 코퍼스 필드·버전·엄격한 문서 검증과 메모리 snapshot Projection을 소유합니다. |
+| [publication_records.py](publication_records.py) | identity·active 포인터·공개 manifest·카탈로그의 정규 필드, 무결성 검증과 Writer를 소유합니다. 파일 효과는 수행하지 않습니다. |
 | [data.py](data.py) | Project 수명·잠금 경계를 유지하는 문서 CRUD·검색·Job 공개 API입니다. |
 | [document_records.py](document_records.py) | 원본 입력·준비 문서·revision/CAS의 정규 필드와 엄격한 Reader, 추출 manifest Writer를 소유합니다. |
 | [chunk_records.py](chunk_records.py) | 분할 문서·섹션·청크의 형식·순서/ID·내용 digest와 원본/섹션 연결 검증을 소유합니다. |

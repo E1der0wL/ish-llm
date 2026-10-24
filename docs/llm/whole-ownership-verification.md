@@ -5168,3 +5168,56 @@ Hub 588/588/588 pass, 1418.446164646초. failure/error/skip/xfail/xpass/누락/�
 집중 검증 이후 chunk_records.py EOF의 빈 줄 하나만 정리했다. 위치 정보 포함 AST가 동일함을
 확인했다(이전 `3840eff2aad1c5d71d0b380fbb5a4b1f320f0e290ac1f18fbdab0366b020a248`, 현재 `a3806b3e6ade46c00364606e211254a110780e085099a7a2b7496cd6a7b888af`). 위 집중 결과는 명시한 이전 source hash의
 실행으로 유지하며, 현재 커밋의 실제 전체 검증은 다음 Level 3에서 별도로 수행한다.
+
+
+## llm RAG 코퍼스·공개 증거·카탈로그 Owner — Level 1·2
+
+기준 83b16147055552ec77115de2f95cba9029079e4b. RAGCorpus가 코퍼스의 버전·필수 필드·
+문서 identity/profile 일치와 snapshot Projection을 소유한다. CorpusIdentity/CorpusPointer/
+CorpusControl/CorpusCatalog가 공개 증거의 필드·정확한 버전·소유권·revision·정렬·유일성 및
+Writer를 소유한다. Component는 읽기 순서와 파일 효과를 조율하고 검증을 Owner에 위임한다.
+identity/pointer의 구조 검증 후 기존 UUID 형식 검증과 generation 파일 존재 검사를 같은
+순서로 수행한다. 전체 trust 경계의 검사를 작은 구조 검증 하나로 대체하지 않았다.
+코퍼스의 선택 Component validate_document 콜백, catalog/manifest의 JSON 형태와 revision,
+snapshot cache 재확인, 공개·삭제·원자적 commit 순서는 그대로다. 생성·조회 소비자는
+Owner 속성/Writer를 사용하며 고정 dict 조립과 필드 해석의 복제 경로를 제거했다.
+
+원본/공개/Checkpoint 형식, 삭제 허가, 실행 정책을 변경하지 않는다. 카탈로그 필수 필드를
+읽는 기존 테스트 1개만 정규 Owner 참조로 바꾸었고 독립 wire 기대값과 모든 Assertion을
+보존했다. Component 전체는 아직 미완료이며 설정·모델 준비 조율 및 저장 책임 이동을
+후속 범위로 남긴다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-publication-draft/proof.py`
+(한 셸 명령), exit 0. 실제 이전 Component 40·Corpus 3·Document 13개 전체 함수는
+Owner 위임/속성/Writer를 확장하면 동등하다. 독립 버전/필수 필드 4·코퍼스 및 문서
+손상/누락 481·선택 콜백/오류 순서 65·카탈로그 필수 필드/revision/정렬/digest 182·
+control Writer 18·공개 증거의 실제 읽기/검사 순서와 소유권/null/digest trace 482·
+독립 snapshot/identity wire 3개 비교를 통과했다. 보조 AST 도구의 Document 속성 Owner
+등록 누락은 도구 단계에서 수정했으며 실제 제품 시험 실패와 구분한다.
+
+- `whole-rag-publication-l1-01`: discovered/started/pass 30/30/30, exit 0, 45.237833초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-publication-l1-01/llm.json --modules tests.llm.test_rag_catalog_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_rag_storage tests.llm.test_rag_query_evidence`. source `8a50bbc4a50d9bb33e4a783d4fc572bbc1b56cc00cff0973bc4a4bfa5e193d22`, input `2d34aa1fb97d504971ab11bcc6524f1a1bead3a06795927b364acf3bf73fa7a7`.
+
+- `whole-rag-publication-l2-01`: discovered/started/pass 247/247/247, exit 0, 231.565732초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-publication-l2-01/llm.json --modules tests.llm.test_rag_prepared_integrity tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_batch_source tests.llm.test_operations_schema tests.llm.test_rag_batch_identity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_rag_retention_policy tests.llm.test_rag_job_state_integrity tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `8a50bbc4a50d9bb33e4a783d4fc572bbc1b56cc00cff0973bc4a4bfa5e193d22`, input `2d34aa1fb97d504971ab11bcc6524f1a1bead3a06795927b364acf3bf73fa7a7`.
+
+- `whole-rag-publication-hub-01`: discovered/started/pass 33/33/33, exit 0, 162.738958초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-publication-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults`. source `8a50bbc4a50d9bb33e4a783d4fc572bbc1b56cc00cff0973bc4a4bfa5e193d22`, input `2d34aa1fb97d504971ab11bcc6524f1a1bead3a06795927b364acf3bf73fa7a7`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+LLM 발견 2,492·Hub 588 유지. L1 ID는 L2에서 제외하며 동일 제품·테스트·Fixture·고정 의존성·
+Python 3.12.14/Clang·Host d833790·namespace/X11 환경을 확인했다. 해당 모듈의 실제
+파일 손상·원본 보존·포인터 replay·프로세스 중단·원자적 publication/삭제, 직접 Job·검색·
+Hub 소비자, 승인·예산·외부 효과·Checkpoint·수명주기 검증을 포함한다.
+
+공개 기록 검증에 대한 영향은 코퍼스/검색/Job 소비자로 제한되고, 전체 함수 동등성 및
+실제 무결성·중단 시험으로 검증했다. 공통 transaction 구현/commit 경계·실행 허가는
+변경하지 않았다. 이 소단계에서는 전체 회귀를 유예하고 다음 RAG 설정/저장/준비 처리
+관련 묶음의 Level 3에서 현재 통합 상태를 검증한다. 동시에 진행되는 게이트 35는 이전
+고정 SHA의 별도 실행이며 이번 변경의 전체 검증 증거로 승계하지 않는다.
+
+공개 증거 소단계 보조 검사: 정적 S1–S7 reviewed 111·new/stale/outstanding 0,
+문서 168개·Python fence 183개·링크 1,201개·anchor 37개 오류 0.
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`
+16 pass/3.445초·exit 0. `python -m tests.llm.check_budget_mutation` exit 0이며 실제
+효과 Assertion으로 의도된 한도 누락 2개를 검출했다. 정적 dependency 12건을 재검토했다.
+파일 540·미검토 259(llm 82/hub 177)·미분류 16,998·미완 계약 3·issues 0이며
+이 수치는 전체 완료를 의미하지 않는다.
