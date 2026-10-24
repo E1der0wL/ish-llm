@@ -4872,3 +4872,47 @@ R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 �
 전체 inventory 532개, 미검토 265개(llm 88/hub 177), 미분류 18,264개,
 미완료 계약 4개·stale/분류 오류 0. 결과 경로는
 `/workspace/llm-clean-resume/whole-ownership/rag-extractor-draft/`이다.
+
+
+## llm RAG 검색·색인·목록 Projection — Level 1·2
+
+기준 0660f40. SearchOptions/검색 인자 Owner가 검색 설정·Schema를, RetrievalHit/
+RetrievalSource/CatalogCursor/CatalogPage가 검색 결과와 출처·페이지 응답을 소유한다.
+ChromaIndex와 GraphStore가 저장 이름·SDK 조회 결과를, 검색·색인 구현 선언이 토큰화·
+RRF·LRU 제어 값을 소유한다. Component/Data는 해당 Owner의 설정·조회·Projection을
+사용한다. 공개 API·순서·캐시 용량/비활성화·Missing/Null/Value·세대/CAS 검사는 유지한다.
+Tool은 기존 READ_CONTRACT와 실행 바인딩을 보존한다. Component/Data 전체 책임 분리는
+여전히 별도 미완료 범위다. 테스트·Fixture의 독립 wire 값과 기존 Assertion은 변경하지 않았다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-search-draft/proof.py`
+(한 셸 명령), exit 0. 실제 Owner를 확장한 전체 함수 126개와 parameter_layout 선언이
+동등하다. 별도 실제 실행 비교: Schema 2·설정/생략 176·Unicode 토큰 259·독립 bigram 1·
+LRU 순서/용량 240·실제 BM25 점수 960·용량 거부 8·전체 검색 쿼리/응답 540·
+커서 형식/세대 대조/페이지 144·Tool Schema/권한/콜백 순서 56개. 이 증거와 실제
+파일/DB·장애 주입·관련 소비자 시험을 함께 사용하며 AST 동일성만으로 안전성을 판정하지 않는다.
+
+- `whole-rag-search-l1-01`: discovered/started/pass 102/102/102, exit 0, 77.262694초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-search-l1-01/llm.json --modules tests.llm.test_markdown_rag tests.llm.test_rag_query_evidence tests.llm.test_rag_components tests.llm.test_rag_optimization tests.llm.test_rag_catalog_integrity tests.llm.test_explicit_configuration`. source `8648808925618625a90685fb1226c14ac3c2921d81c5c173864eb32aa30f5180`, input `e6bef341a947d88e62b9ceed81ebe1e982286a6aeae8396149ab00290a36128f`.
+
+- `whole-rag-search-l2-01`: discovered/started/pass 221/221/221, exit 0, 180.179584초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-search-l2-01/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_prepared_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_corpus_integrity tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_retention_policy tests.llm.test_rag_input_integrity tests.llm.test_rag_storage tests.llm.test_rag_job_state_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_settings_contract tests.llm.test_naming_contract tests.llm.test_schema_ownership tests.llm.test_tool_selection`. source `8648808925618625a90685fb1226c14ac3c2921d81c5c173864eb32aa30f5180`, input `e6bef341a947d88e62b9ceed81ebe1e982286a6aeae8396149ab00290a36128f`.
+
+- `whole-rag-search-hub-01`: discovered/started/pass 33/33/33, exit 0, 151.293883초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-search-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults`. source `8648808925618625a90685fb1226c14ac3c2921d81c5c173864eb32aa30f5180`, input `e6bef341a947d88e62b9ceed81ebe1e982286a6aeae8396149ab00290a36128f`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0. source/input은 전후와 실행 간 동일하며
+L1 결과는 같은 제품·시험·Fixture·의존성·실행 환경에서만 재사용했다. L2와 ID 중복은 없다.
+LLM 전체 발견 2,492·Hub 588 유지. Python 3.12.14/Clang·Host d833790 및 같은 고정 의존성,
+실제 namespace/X11 환경. RAG의 검색/목록/설정·저장/원본/배치/재개/삭제와 공통 승인·예산·
+Tool 효과·Checkpoint·수명 안전성 및 직접 Hub 소비자를 검증했다.
+
+조회와 기존 저장 경계의 의미가 동일하고 영향 범위가 입증되어 이 소단계 전체 L3는 유예한다.
+앞선 5개 RAG 변경의 Level 3는 0660f40에 고정해 실행 중이며 이 검색 변경을 포함하지 않는다.
+검색과 후속 RAG 변경을 모은 다음 게이트에서 전체 검증 후 Push·정확한 SHA의 CI를 확인한다.
+
+최종 감사 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`:
+16/16 pass, 3.226초, exit 0. 정적 S1–S7 exit 0, finding 112개·미검토/stale 0.
+동일 ParameterLayout 선언의 SearchOptions 참조로 바뀐 정확한 S3 occurrence 하나만 실제
+선언 동일성·설정/Schema 검증을 근거로 재검토하고 소스/README 의존 증거 15개를 갱신했다.
+문서 검사 exit 0. R3 Mutation exit 0: 원래 두 실제 효과 Assertion으로 호출 한도 누락을 검출했다.
+전체 inventory 533개, 미검토 262개(llm 85/hub 177), 미분류 18,006개,
+미완료 계약 4개·stale/분류 오류 0. 상세 증거는
+`/workspace/llm-clean-resume/whole-ownership/rag-search-draft/`에 보존한다.

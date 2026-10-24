@@ -5,7 +5,8 @@ from .ingestion_records import EmbeddingEvidence
 
 from .status import RAGJobStatus
 from copy import deepcopy
-from .search import SearchMethod, validate_search_options
+from .search import SearchMethod, validate_search_options, SearchOptions
+from .retrieval_records import RetrievalHit
 from llm.core.configuration import require_config
 from uuid import uuid4
 
@@ -147,9 +148,9 @@ class RAGData(ComponentData):
         if not isinstance(query, str) or not query.strip():
             raise ValueError("Query must be nonempty text")
         component, snapshot = await self._async_call(self._snapshot)
-        options = {"method": method, "expand": expand, "limit": limit, "rerank": rerank}
-        options = {key: (component.search_options.get(key, False) if key == "rerank" else require_config(component.search_options, key, scope="rag.search")) if value is None else value for key, value in options.items()}
-        method, expand, limit, rerank = (options[key] for key in ("method", "expand", "limit", "rerank"))
+        options = {SearchOptions.Field.METHOD: method, SearchOptions.Field.EXPAND: expand, SearchOptions.Field.LIMIT: limit, SearchOptions.Field.RERANK: rerank}
+        options = {key: (component.search_options.get(key, SearchOptions.RERANK_DISABLED) if key == SearchOptions.Field.RERANK else require_config(component.search_options, key, scope=SearchOptions.SCOPE)) if value is None else value for key, value in options.items()}
+        method, expand, limit, rerank = (options[key] for key in (SearchOptions.Field.METHOD, SearchOptions.Field.EXPAND, SearchOptions.Field.LIMIT, SearchOptions.Field.RERANK))
         validate_search_options(options)
         vector = None
         if snapshot["documents"] and method != SearchMethod.BM25:
@@ -162,7 +163,7 @@ class RAGData(ComponentData):
         if rerank and component.reranker is None:
             raise ValueError("Configure a reranker first")
         hits = await self._async_call(self._search, snapshot, query, vector,
-                                     {"method": method, "expand": expand, "limit": limit})
+                                     {SearchOptions.Field.METHOD: method, SearchOptions.Field.EXPAND: expand, SearchOptions.Field.LIMIT: limit})
         if rerank and hits:
             await self._async_call(self.require_model_observation, component.reranker)
             response = await component.reranker.rerank(query, [hit["text"] for hit in hits])
@@ -173,7 +174,7 @@ class RAGData(ComponentData):
             order = [row.index for row in rows]
             if len(set(order)) != len(order) or any(type(i) is not int or not 0 <= i < len(hits) for i in order):
                 raise ValueError("Invalid rerank indexes")
-            hits = [{**hits[row.index], "rerank_score": row.score} for row in rows]
+            hits = [RetrievalHit.reranked(hits[row.index], row.score) for row in rows]
             # 모델 호출 중 프로젝트가 삭제/해제되었는지도 다시 확인한다.
             await self._async_call(self._current_snapshot, snapshot)
         return snapshot, hits
@@ -352,13 +353,13 @@ class RAGData(ComponentData):
                       max_hops=None, relation_limit=None) -> dict:
         """문서와 해당 문단에 근거한 관계·출처를 한 세대에서 반환한다."""
         validate_search_options({key: value for key, value in
-            {"max_hops": max_hops, "relation_limit": relation_limit}.items() if value is not None})
+            {SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit}.items() if value is not None})
         snapshot, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
-        max_hops = require_config(snapshot["search_options"], "max_hops", scope="rag.search") if max_hops is None else max_hops
-        relation_limit = require_config(snapshot["search_options"], "relation_limit", scope="rag.search") if relation_limit is None else relation_limit
-        validate_search_options({"max_hops": max_hops, "relation_limit": relation_limit})
+        max_hops = require_config(snapshot["search_options"], SearchOptions.Field.MAX_HOPS, scope=SearchOptions.SCOPE) if max_hops is None else max_hops
+        relation_limit = require_config(snapshot["search_options"], SearchOptions.Field.RELATION_LIMIT, scope=SearchOptions.SCOPE) if relation_limit is None else relation_limit
+        validate_search_options({SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit})
         return await self._async_call(self._combined, snapshot, query, hits,
-                                     {"max_hops": max_hops, "relation_limit": relation_limit})
+                                     {SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: relation_limit})
 
     @workspace_locked
     def graph_search(self, seed: str, *, max_hops=None, limit=None) -> dict:
@@ -366,9 +367,9 @@ class RAGData(ComponentData):
         if not isinstance(seed, str) or not seed.strip():
             raise ValueError("Seed must be a nonempty entity name")
         project, component = self._current()
-        max_hops = require_config(component.search_options, "max_hops", scope="rag.search") if max_hops is None else max_hops
-        limit = require_config(component.search_options, "relation_limit", scope="rag.search") if limit is None else limit
-        validate_search_options({"max_hops": max_hops, "relation_limit": limit})
+        max_hops = require_config(component.search_options, SearchOptions.Field.MAX_HOPS, scope=SearchOptions.SCOPE) if max_hops is None else max_hops
+        limit = require_config(component.search_options, SearchOptions.Field.RELATION_LIMIT, scope=SearchOptions.SCOPE) if limit is None else limit
+        validate_search_options({SearchOptions.Field.MAX_HOPS: max_hops, SearchOptions.Field.RELATION_LIMIT: limit})
         return component.graph_search(project, seed=seed, max_hops=max_hops, limit=limit)
 
     agraph_search = async_method(graph_search)

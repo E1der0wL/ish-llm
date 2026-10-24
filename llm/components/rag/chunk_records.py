@@ -14,6 +14,11 @@ class RAGContent:
 class RAGDocument:
     class Field:
         ID = "id"
+        TITLE = "title"
+        METADATA = "metadata"
+        GENERATION = "generation"
+        REVISION = "revision"
+        DESCRIPTION = "description"
 
     def __init__(self, value):
         self._value = value
@@ -21,6 +26,22 @@ class RAGDocument:
     @property
     def identifier(self):
         return self._value[self.Field.ID]
+
+    @property
+    def title(self):
+        return self._value[self.Field.TITLE]
+
+    @property
+    def metadata(self):
+        return self._value[self.Field.METADATA]
+
+    @property
+    def generation(self):
+        return self._value[self.Field.GENERATION]
+
+    @property
+    def revision(self):
+        return self._value[self.Field.REVISION]
 
 
 class RAGSection:

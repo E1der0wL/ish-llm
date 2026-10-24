@@ -49665,141 +49665,171 @@
   },
   {
     "path": "llm/components/rag/chunk_records.py",
-    "sha256": "cedc475f78e8bc0e3775ea90161feaa9bce457a99071361d791b3d6ab73f72ef",
-    "reason": "Complete graph data, store and traversal implementations plus all changed direct consumers reviewed. Actual expanded method equivalence, independent invalid evidence/query/result traces, current strict L1/L2 and actual file/database/fault/cancellation/safety consumers pass. Explicit SQL parameter binding, finite JSON, source and support integrity, model repair policy and test assertions remain unchanged.",
+    "sha256": "1e4d869554176c0274c9e9e24c903c97428e16349dfdc205684301417361a5b6",
+    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "cf1f6e87994f50ee332646cfed1a4710a291cc4b82d8ac99a5641eea3268fbe8",
         "classification": "declaration",
         "owner": "RAGContent",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
         "id": "287733d17129c101141b3b362d41733fd9376941c8225bde7f2c24c1727fa02d",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "c48221e6d7035eb43c7c1a52bb427ea660607f4d930c786aced658c61b6bb9b6",
+        "id": "64b9a6abf3c79657500121f2fdcb1d75db16ce860dafe9aeccc88e7dc03d5971",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
+      },
+      {
+        "id": "5cc5a71044b40dda85005571f8812b1db5e463794a541013df9f63e15067f6ba",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
+      },
+      {
+        "id": "3de77ed9036b261c9e8dd47b880fe1ae32fb762f243ffa54c215a419445ffcab",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
+      },
+      {
+        "id": "274eae7ae5c5cc5e88862c36450656351e72c76db2e0fc175b52f1f63101dd98",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
+      },
+      {
+        "id": "8a1440b201157641fde543bfbfc9261ea65c3c0e696479e0902aaaa94bfe6206",
+        "classification": "declaration",
+        "owner": "RAGDocument.Field",
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
+      },
+      {
+        "id": "d6c4006f01881ed10c35049f6fe6b283a80562454c3eeed512f988bf0e1b05c7",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "95b74ebb44aa602108539d5d47cc70ea270e3986a0de60d48667aa8c27cb96af",
+        "id": "ce89165697deb337f15b8215879f37b595a1660de1b91f3d5f45b5554a9b7ab2",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "00034e8eac505087aa3620f75df851245d3a4cb07253a324c65225fa10c83b8f",
+        "id": "0f7c678c2b03d9557339b3d49032fa50d2caa1ff46718cb9dbf17c5073c8a344",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "119b106a344ffea69a91acdba1278fdc72137fe33f1060b7278f174b915a0c61",
+        "id": "2e58f9cf1002a28eb4c613a2f3ec5f515c5cd2187f7bf4cfab17dbbe799b2eff",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "ba5dc9e96b7cba4ea754590ae80757ee7387d7f25f302ba439d97879474aa39f",
+        "id": "5715a7ca408d4cca6e8e293f535b459128c0d93fe19c7f1e57422282bff39826",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "6ee647b1b691c5dd56cdc5a43c5cc9b22471998ca363524f37b3e61e4a652c59",
+        "id": "408794bc09d0f2ce0343d6479a6b3bd129fffe28937d888756e382da4d237ea0",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "01f193d3a6323dd77640011e05bbcfd563b32489c25dc368c436abdf5969c96c",
+        "id": "2ebafb850e1a93f0bac096197c961cbe7df93c70cb9d44cf3b214e3b2cd5d7bf",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "75761182f93787eeb571edd63e10e839bf26432ba15b71595e1a35bc05a099f2",
+        "id": "3f4b06098c8326227d3e1483a3c676a0794c1af4da0c841dc26fb0a2ed7a833a",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "3b1a2b2d457c55c23001f9266919b6caa6f762024807adff5fa4d9dad1d2cf6d",
+        "id": "caeac24543a80e294bdaf0f7b6693fafecf5b6a77edf8ef1ecb49a34f0c6cd19",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "cb67e38baaab9efeec0b065bbb23912bf6e7a0d22e60402226ced473b23e81c3",
+        "id": "0020a852323c7d7432f1e024e25b5184d873eb9328d5f01795fc79c92a11d119",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "c17c5d2325617129504a62cfc7dece9ad2d3c8af2938260d10b442580eb8cb58",
+        "id": "ab09c6b8e3ed4dd004a73a0a0e2223d68ffb19b4722cb7cad29bed5462e4903c",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "391dddcd124c5f1c6caf7e4cd2661d82136ebd58ce7b9e713135440a5ff23e4b",
+        "id": "144f25a85109e02679454df0591155099c6416f43761cbe2613ab0536dd2b63e",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "aed56edbd880400af16089d4a236d49c52ffbaa2235da435be0df84eeaaa7e3d",
+        "id": "3f9d36840d166fb12343678e45a2ff94a27d99de2f981de0d1b465692835c270",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "d83bf81c34df96d2f3cf1c005c259d4b5c8272d4a8511fc69732501d8f568524",
+        "id": "e57b890e6a963de56a68c5125101f5d442f0d560e843e9da43e93018d8832c89",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "bb24d5f2c4902010478eb796f69f043034852726255007f948f42e26e67ef2e7",
+        "id": "99e208fc9c0e06f0aa910bec79183653673930d259bf6d6b921b2e3e1b6bc8a4",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "f54a9fac3c4ef4d19f7e88ae8bb0e7ea8b274b1fd851c44f5b175bc2fc74d5f2",
+        "id": "bc686e2d57879a3c7f290251f304333dfd3616dc8c5f7c782d618261de1a661c",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "8bdb84198f886841f650261448d6dbc4d0e1cbb4e0cd576b2e9d737e5fc120ec",
+        "id": "fe26efeb05f4e74ce59b8a50ae4b0fa2b767e45ab05a898e4750f48ba53b176c",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "d17c20940081c2a495118477e497352b71d29e51f0413b4ffcad87441f61ae83",
+        "id": "a711160c6321dfdfb465c5c646c104357ae2f3a2682d4e4e16aa307f0fe22e37",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "5c19dcc739169b51dc9aac8f2f7b1c71cba4205b22acda7b59adb9b3842b421d",
+        "id": "7a4b22d95c413f39790efdc4689db78d2d6fee7be0dff4e53dc2df7ca48a32b0",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       },
       {
-        "id": "7fefeeb882f9b75ffc17b83b9d0432c7d67eba781162d705dc3a3944e95e255e",
+        "id": "83b008a07d3a129182df85603d8ddc3e10ce4b123a089decd4150d60dca1ec11",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "The previously reviewed chunk/section/source contracts remain unchanged. Document identity now has its own required stored getter, reused by vector and graph indexing; no fallback or validation is added to that projection."
+        "reason": "Existing complete chunk/section/source declarations remain unchanged. Document title/metadata/generation/revision getters now own required retrieval field access; no missing source or version is repaired."
       }
     ],
     "contracts": [
@@ -49808,20 +49838,20 @@
         "declaration": "llm/components/rag/chunk_records.py",
         "consumers": [
           "llm/components/rag/component.py",
+          "llm/components/rag/data.py",
+          "llm/components/rag/splitting.py",
           "llm/components/rag/ingestion.py",
-          "llm/components/rag/graph_records.py",
-          "llm/components/rag/graph_indexing.py",
-          "llm/components/rag/indexing.py"
+          "llm/components/rag/search.py",
+          "llm/components/rag/retrieval_records.py"
         ],
         "tests": [
           "tests/llm/test_markdown_rag.py",
-          "tests/llm/test_rag_extraction_repair.py",
-          "tests/llm/test_rag_graph_checkpoint.py",
-          "tests/llm/test_architecture_boundaries.py",
-          "tests/llm/test_rag_prepared_integrity.py",
-          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_catalog_integrity.py",
           "tests/llm/test_rag_storage.py",
-          "tests/llm/test_unified_rag.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_settings_contract.py",
           "tests/hub/test_resource_tools.py"
         ],
         "complete": true
@@ -50975,159 +51005,165 @@
   },
   {
     "path": "llm/components/rag/graph_indexing.py",
-    "sha256": "bc617f6601d83f6b0ccc31d823f52770ed21683f0f0a042ab7838ea563f4dacb",
-    "reason": "Complete graph data, store and traversal implementations plus all changed direct consumers reviewed. Actual expanded method equivalence, independent invalid evidence/query/result traces, current strict L1/L2 and actual file/database/fault/cancellation/safety consumers pass. Explicit SQL parameter binding, finite JSON, source and support integrity, model repair policy and test assertions remain unchanged.",
+    "sha256": "1c8e55494cea930f30162ca5d04e625825bbe975ce03c915ae7b9968d7f375b9",
+    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "19b5c64cd007b7228de0580db6fa257bf48a82611d78e580ada90fa8947d3a09",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "d8da20069f75315b9c244a18d8ca6fa40c5c95e1c5c707bc98a616d4f6d2199d",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "f3ba56bd06270bc0775f7cc20a43375a8aa7b42ed2a252e8d017b21ff900fdb2",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "877df93ba6db9b41a0215d67c39b69a61f29fe4a08a5b87a04c1c26115c0595f",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "66b42f85353a783519af5e3447171579e672b838db35db41249a031d484977e6",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "16dc69b9683e0b8480d5f6e0ec384df2c70c4a710d87faeb3b31bc9917c4553e",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "7d59b10dcf73b2b8471945534046e5aa691978d70d59764fd8188ca328cc96e4",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "1f928839d66a12cbd69cc5e79a779017441b20b0bf113475fea90753c7301946",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "b2142342eeeff322211d6ab5f8a6f7fb62569bac582506ca4538747f72afba34",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "006c8511729c3a4bde1a9758c1d8ad75c2611f09d277a3687673131fb30f75b5",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "baa35a015aef1821f7667bae74d7f93f255ae24db53186a618c0eb5989c5c1dd",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "a869094507801a84876b2aca02dede70b7574b2a986f7d8e21cba3f33fb2013e",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "0cd39ac3f3aaaadcd2e01589f5603dfb470ce2e4ccf017276763845427bb7886",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "c7fdf7059ee76186dd01de5d70ed6fc3e4f9caa94f3ed7962148b54fc71df704",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "230261144c4725fb7c396058480bc658d1ea0fff8182b3467b83dced4970baba",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "a6cdb52a8668473d5bb6ce5a74fb89f0caccdf7721c1ed7874e3838f673f8116",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "0aa16e5131ce0abf9bac93bb55415bf91602198f07875c2ca0f4885472da40a1",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "8ebcade610a3a621fda345b86c6ed8da00ad164b3dac6b1abd52af330daef0d8",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "fff71d4fec36c000342b7c01e27295fb75a2422f2893392b614003c8afa24520",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "c684eed5dfbb4dc8ea3c033e6711e4f2a87fa87f0e39515bc61ee7cd0f083b94",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
         "id": "2c8465f22f31745e20e980709d05859f037278495aac97df0cd495c965dec6a0",
         "classification": "declaration",
         "owner": "GraphQueries",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
-        "id": "664d69b3f4ca314388ec56a5967f58563151881dc0a3021577942f068388cd00",
+        "id": "9994c576ef48da7ef55f851471eb8b041ae15a3effcaf7de4e0817211fde14cf",
         "classification": "declaration",
         "owner": "GraphStore",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
-        "id": "6acbf953210da76f07fcd7a5bb024104bf5c34bfc520691c16a55dd3f1f492b9",
+        "id": "f56965ae10f0b12543497789b80d7940f461cfa8290de9e56cfba80078e79b7c",
         "classification": "declaration",
         "owner": "GraphStore",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
-        "id": "f771d50786b3dabb28a8890701bad69f4c1513f4d34087649b9b8020c232c3cf",
+        "id": "6d48cd657854d35e4a9f17d826e3e01ddf0c13e6d87830af39670389e1e54046",
         "classification": "declaration",
         "owner": "GraphStore",
-        "reason": "Full Kuzu schema and query text, parameter projection, absence and finite JSON encoding are declared at the graph store Owner. Runtime index changes use graph record fields and source identity; neither connection nor index writers interpret execution policy."
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
       },
       {
-        "id": "5cff72cbe9a99036daff7067fb8441757b3315bdaabe9a8762ee6f06ef366b17",
+        "id": "ed60d3331a741db6e4e4a3d571684ce0aa96b52dbc7e7555ef7eec9ff337c839",
+        "classification": "declaration",
+        "owner": "GraphStore",
+        "reason": "Previously verified complete SQL/binding/control declarations are preserved; the graph database filename is now at its storage Owner and all Component path consumers reference it."
+      },
+      {
+        "id": "501bb4cf380c657f28029a68d91b61388f7302a4e31ee1c272c31adb89796172",
         "classification": "non_contract",
         "owner": "build_graph",
-        "reason": "Python return annotation only; no execution policy or stored/API fallback."
+        "reason": "Python return annotation -> None; no runtime, policy or stored value."
       }
     ],
     "contracts": [
@@ -51140,13 +51176,12 @@
         ],
         "tests": [
           "tests/llm/test_markdown_rag.py",
-          "tests/llm/test_rag_extraction_repair.py",
-          "tests/llm/test_rag_graph_checkpoint.py",
-          "tests/llm/test_architecture_boundaries.py",
-          "tests/llm/test_rag_prepared_integrity.py",
-          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_catalog_integrity.py",
           "tests/llm/test_rag_storage.py",
-          "tests/llm/test_unified_rag.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_settings_contract.py",
           "tests/hub/test_resource_tools.py"
         ],
         "complete": true
@@ -51679,6 +51714,586 @@
           "tests/llm/test_component_record_integrity.py",
           "tests/hub/test_rag_defaults.py",
           "tests/hub/test_provider_recovery.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/search.py",
+    "sha256": "e11d402e709315a242c001ca6976ea8baa540cfe08daefd333d8f823eafb12d6",
+    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "49b90d2dc45be2f6cf011d8f0b178e024e2197b184bfa153c328df0a4d27f131",
+        "classification": "declaration",
+        "owner": "SearchMethod",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "71d9310b375766e27261a22d99c3baa0de9b5ccb3ce6c55ca33a9538b26a97b2",
+        "classification": "declaration",
+        "owner": "SearchMethod",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "fea9b3093b6f49a7578b7fcc313ff1a4b4612d87ec66e40542031e6c74abcdfb",
+        "classification": "declaration",
+        "owner": "SearchMethod",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "1be5fc67e36ebc5b5789e6302a5eb7c453245e73f2320d055919f3236c73e5fd",
+        "classification": "declaration",
+        "owner": "SearchExpansion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "86369fa0e82591ba9c0f8cd921dc1e015e72b2ae1f767cdbe7c6274f0bb1682e",
+        "classification": "declaration",
+        "owner": "SearchExpansion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "efd2073bb609e64836f34e185e33fd78ca082ad39a103a66bea435669f739f65",
+        "classification": "declaration",
+        "owner": "SearchExpansion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "8e0beec35fe2fb01de3dece37012df8f24c5891b41a5615f931c12fcf732b776",
+        "classification": "declaration",
+        "owner": "RelationRanking",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "5a0d5157f790af334c7b632804759c50e1c08b269df665036b539a5ac3a09d45",
+        "classification": "declaration",
+        "owner": "RelationRanking",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "cb043d257b7ec96c4ef375e9507cf82c8b9df93bea1c6875f03dbf849cad9732",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "d73dbe90ed649d4e66edc79168ee7de879f6549a496b40d297c80f11902d9679",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "3d56c82c762196aa0dca56fc0e0b5f4f2a332af11a14e238337d04b4446ef7e3",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "ddf7e3358bdb6a9f0fe91d8719e070386f81a174d47951a61b677fd56d153c82",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "824c2d14aabd2f829c3b5fd1f32733b9a7551c69e45370db85f4b905f3c2a356",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "b3414cb7579f1c720f9746a4202044ef737b5ab9b6bd7620dc7d48a33015393b",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "b772d2975183d3e1f5d70211db35e0ced7412567d1e0202389257dbc1f198ab0",
+        "classification": "declaration",
+        "owner": "SearchOptions",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "8872a4323d6c6ae040c23541a434f054e76e60eaafb9379ac27c500f5a50bb3c",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "1a9c4922948e953e1886b32a7bf7a45531b503e8ac515537110e27da1e7734a8",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "e0b156df723c471071afb898e31cf9a9869f2ae6b032fd6af7b923592709ca8d",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "53587ba67d6a3b1952a010b0ba2515011dd8cf0139db74fd77c32667314159e8",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "c7b733edd1d5bd6a27ea093a78248caa60e2cdaa85071b211e39ac808a2ed493",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "8750b094ae4a49c1b203fb54bc37f9cecf1814b5116515099af35d5768327645",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "e81f580e13adf460738df6f5589947cbe45104a05153e312fc8085a1ba93d4b7",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "1be3bcd99b412a870e1c796da4554bb76d09a42d7786d5d501fc57b97ca3ba0c",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "24cc6fd9fd22bf24f2574cd823fee5051a76e1bd4ad2b9fccf4eb20e6dc012f6",
+        "classification": "declaration",
+        "owner": "SearchOptions.Field",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "3a363a6c906048c78107ab80c0d6c67d9b7cb1be9d5dc6794085706368dc192b",
+        "classification": "declaration",
+        "owner": "RetrievalArguments",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "f38a6d25ba06e0ac9fa185d9b56d536d4a5a909eba926d6726a86096bcfdb3d4",
+        "classification": "declaration",
+        "owner": "RetrievalArguments",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "9e00b971c0a1b592ee0144e0b1502969a24d7fa3f0f29352e6df94751c96bcd2",
+        "classification": "declaration",
+        "owner": "SearchTokens",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "cb7b83b4b1fdbbc74dc0cbd081f100cb50d8fc4db97933be4b9e915cad7777de",
+        "classification": "declaration",
+        "owner": "SearchTokens",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "0b7db213fb91fc2167ef1b2ca3ae0ead810b721ec71afcf9a0346ddca05d5621",
+        "classification": "declaration",
+        "owner": "SearchTokens",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "85f967a1f7d169c41d4c6217cf58ab6b80ac12d0b0f27af9002cba40ecf0bf9e",
+        "classification": "declaration",
+        "owner": "RankFusion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "a2c9c98abaf1cf44d3649f7fd6692ba0364824e899c3851df1d3ea14c67bbb64",
+        "classification": "declaration",
+        "owner": "RankFusion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "4f554031868a3d8045b4a8e127d053ada9736e90907e3d11634d5728be6ada10",
+        "classification": "declaration",
+        "owner": "RankFusion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "a957ca0d3a570cd05d538247e3369a7010af2911f0d2242bad0f0fe5772da5eb",
+        "classification": "declaration",
+        "owner": "RankFusion",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "a9ff7c49a53bbe13d370fc068464016986fea6e141211f4fea94d3e3b6018d66",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "7f2d85ccd89dc1950f5b3b6574c0a608b23e82c36fffeb61ada2fc276a34a846",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "fb4e6fe98889367e6a6980ae1df7f129979065e35af360a41ff971e88a87c9b7",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "a33e28c30e4839980e4a6256a6eedccb60e497858ae4dc59815d504045210dc8",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "b437beef4cc57ea060bc2cc46a0774997d9ac2de690896cb7bbcdcf8f045e0f4",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "1321240cebd490215a2c592f2f4bb2ee10fb225a8a44bc6e3cadebb7f501021f",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "f985fd209eb194401144e789331f464c8fcb27345a63894b213fba91e557ebed",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      },
+      {
+        "id": "0975b1f347a4d030caf3032f2982df7ff495c3e6e2afe12cf882b9620ef9f1f0",
+        "classification": "declaration",
+        "owner": "LexicalCache",
+        "reason": "Configuration and public argument keys/schema belong to SearchOptions/RetrievalArguments; tokenization, RRF and cache controls are at the implementation declaration heads. Chroma wire and result/source fields use their Owners; ranking and cache behavior is unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SearchOptions/RetrievalArguments/SearchTokens/RankFusion/LexicalCache",
+        "declaration": "llm/components/rag/search.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/data.py",
+          "llm/components/rag/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/indexing.py",
+    "sha256": "6c86d37c1788f037a9c3082ef2d1bcb8402fa3515f36d0d5ec68fa6efab89843",
+    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f54b5b4f115e773ffeaa48c104055362f44bb3bb25196c6a5eb320f25efd496c",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "39a4f2cb4e3e516b086a078d4aaeb534ca32680ff262ce9f59faafc429644dd7",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "e6d397a8abda5cda78fadaeae47f649bc0200d19e33d33e3ed4d58462d69d6e2",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "3200200b63430541233b2672d6343bc715d4fee5a52300886e81d11fe511717f",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "5d332a656e022f9e193ac4153a0b85e3d9363aad5dc53d2d2facfc5b55038e27",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "050b80ad3f7ace9bca0d97c323119bc390cace2c95c61b726d06d501edeb4be2",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "74a6df13db7639e27f4856a94d53d577480d055a23404798ac3ade4fb010ac0f",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "4def07225d27e23a6a94106f394ac46587a93dfd88fb24b6c8902a9a9bdc4b5c",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "51ff02676a6c6c674f3f73475b4b3f8f74eb6ce391aecabf096d5d79906aa3ce",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "d8d4afd3e85c33f8ed00cc04165dbd0c316f42de96f287a12eb07e4f13d09d05",
+        "classification": "declaration",
+        "owner": "ChromaIndex",
+        "reason": "Chroma paths, collection/wire keys, connection flags, batch offsets and metadata projections are declared at their owning class heads. Stored chunk, document and embedding fields use the existing Owners."
+      },
+      {
+        "id": "c8ad7546ee1d5b7c3d3e9dc731faab2b04989ed0026b4a8bcd90fe08684b5ba4",
+        "classification": "non_contract",
+        "owner": "build_index",
+        "reason": "Python return annotation -> None; no runtime, policy or stored value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ChromaIndex/ChunkIndexMetadata",
+        "declaration": "llm/components/rag/indexing.py",
+        "consumers": [
+          "llm/components/rag/search.py",
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/tools.py",
+    "sha256": "cdb2b43874a97173d0eed8c684ebc9ceb50a7bc1985562288b5a8767f6de37d0",
+    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "466b4b1795cf7325abb88206373bb8a2a62e839b5629cd009de4c1112c4d420b",
+        "classification": "declaration",
+        "owner": "RAGToolText/READ_CONTRACT",
+        "reason": "Public descriptions and diagnostics are at the owning declaration head. The existing single trusted READ_CONTRACT declaration is preserved. Schemas, config reads, catalog cursor and response merge use their sole Owners."
+      },
+      {
+        "id": "d29c2f73495621994d949db16cfb0e3a6e9b3b853ccc19c3c31e7adfd190abd7",
+        "classification": "declaration",
+        "owner": "RAGToolText/READ_CONTRACT",
+        "reason": "Public descriptions and diagnostics are at the owning declaration head. The existing single trusted READ_CONTRACT declaration is preserved. Schemas, config reads, catalog cursor and response merge use their sole Owners."
+      },
+      {
+        "id": "3a42df442a0fbf8bb0ebaeab3788545fd94613657ca52201051c505c6bd24a18",
+        "classification": "declaration",
+        "owner": "RAGToolText/READ_CONTRACT",
+        "reason": "Public descriptions and diagnostics are at the owning declaration head. The existing single trusted READ_CONTRACT declaration is preserved. Schemas, config reads, catalog cursor and response merge use their sole Owners."
+      },
+      {
+        "id": "771ea1f5602be02841797f040cc29f926900f9a28dd8e014c0372b71e0dea43e",
+        "classification": "declaration",
+        "owner": "RAGToolText",
+        "reason": "Public descriptions and diagnostics are at the owning declaration head. The existing single trusted READ_CONTRACT declaration is preserved. Schemas, config reads, catalog cursor and response merge use their sole Owners."
+      },
+      {
+        "id": "e8761eb4c4cf2cfc971bc7dfd0033695a4ca5f0f3bb8a674aee17dfb744d156b",
+        "classification": "declaration",
+        "owner": "RAGToolText",
+        "reason": "Public descriptions and diagnostics are at the owning declaration head. The existing single trusted READ_CONTRACT declaration is preserved. Schemas, config reads, catalog cursor and response merge use their sole Owners."
+      },
+      {
+        "id": "cf269247c79c00d588d9410d402546504069524481cdbfb91f620dc1adf96b91",
+        "classification": "declaration",
+        "owner": "RAGToolText",
+        "reason": "Public descriptions and diagnostics are at the owning declaration head. The existing single trusted READ_CONTRACT declaration is preserved. Schemas, config reads, catalog cursor and response merge use their sole Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGToolText/READ_CONTRACT",
+        "declaration": "llm/components/rag/tools.py",
+        "consumers": [
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/retrieval_records.py",
+    "sha256": "5c432e75905df8312df7b90af1796e2c85b4d3625b6b134a1ac135f5ed113027",
+    "reason": "Whole retrieval/index/Tool/projection implementations and consumers reviewed; previous complete chunk and graph-index reviews updated only for required document getters and graph filename. Actual method/projection equivalence, independent wire/query/cache comparisons and current unchanged real file/fault/safety assertions pass. Component/Data remain pending whole-file reviews.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6bb65cbc79db593b5abfb47d2faa279b2f8199915f6afeb36592f744bc7cc16d",
+        "classification": "declaration",
+        "owner": "RetrievalHit.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "0adc0c47edde0a6b4d627fdc908ac0da615c9065774fe1a428e90fda6f4e08d0",
+        "classification": "declaration",
+        "owner": "RetrievalHit.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "a1632ebee46bca202255160635dbea90e8a0df1c82c4ef5aa79c251b9b540c32",
+        "classification": "declaration",
+        "owner": "RetrievalHit.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "acb0b9f007ad558f6ec163cf8e3239022a09993585bd12cb6894f23efb86ff93",
+        "classification": "declaration",
+        "owner": "CatalogCursor",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "ccfac2274b8b1e67b90cc29f6087a85bffa92cd60601eec0a9c4df8cdfb1ce99",
+        "classification": "declaration",
+        "owner": "CatalogCursor",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "1d0c3152dc7b02cced6e2b29b3777d5ffa3c3f1cfe8c9db76b6f65bcd8abba62",
+        "classification": "declaration",
+        "owner": "CatalogCursor.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "bd6e895f31a72328161422583a8727be6c7d441eefe2c127c8dc9655379f0070",
+        "classification": "declaration",
+        "owner": "CatalogCursor.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "df7d7e6a092fc2ce4e9b2e430a540e9c30ef79c23df42c8ebfaafb93534d437d",
+        "classification": "declaration",
+        "owner": "CatalogCursor.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "0daf61e09d403f622232afdb25482731d5bdb331533839a64111dfa3e8fed719",
+        "classification": "declaration",
+        "owner": "CatalogRequest",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "a4b11798c6f5323bb816846a8cd3b3f522b3fe25cc67bf1cb144f04162895e9b",
+        "classification": "declaration",
+        "owner": "CatalogRequest",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "43864ca1d9911ac5ddff188aa6ecd73a86c89e8c38463f23157f913806cc5987",
+        "classification": "declaration",
+        "owner": "CatalogRequest",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "0dda0b48252d838f91445a388458e93b849f585cb9d1893d45e53a0b12c50207",
+        "classification": "declaration",
+        "owner": "CatalogRequest",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "2361f61559436fffd08291d8710813213a7b4abfc8dd5c282806c7a33b14870a",
+        "classification": "declaration",
+        "owner": "CatalogRequest",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "008fbb5a62e0e16633a6c4fc4733e742d2b5502083018f4fcf4a67ac6fa21d89",
+        "classification": "declaration",
+        "owner": "CatalogRequest",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "7e772b9a6fa12baea654d0a9350a241c8854df4dce777a5d54f054855dbbc997",
+        "classification": "declaration",
+        "owner": "CatalogRequest.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "7015961dda1d16f380162a81dbfebb6e5717316bdb05d6aed8ccf123645ef89b",
+        "classification": "declaration",
+        "owner": "CatalogRequest.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "d7d0be98199657324360de454826fc45100c7c1412bbbf25ff9742c571974bb7",
+        "classification": "declaration",
+        "owner": "CatalogPage.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "2201197602f7de5f3e6cfc2831da9330ab47cab06054cb031490b387771e6289",
+        "classification": "declaration",
+        "owner": "CatalogPage.Field",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      },
+      {
+        "id": "6b6922a6defde5378f8352c4c1e39991ab3b190219cf87b61a25bfc8acad917e",
+        "classification": "declaration",
+        "owner": "RAGToolResult",
+        "reason": "Exact result/source/page field sets, catalog validation and raw Tool schema are declared by their owning records at the class heads. Factories preserve original ordering, required lookups and merge precedence without new defaults."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RetrievalHit/RetrievalSource/CatalogCursor/CatalogRequest/CatalogPage/RAGToolResult",
+        "declaration": "llm/components/rag/retrieval_records.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/data.py",
+          "llm/components/rag/tools.py",
+          "llm/components/rag/search.py"
+        ],
+        "tests": [
+          "tests/llm/test_markdown_rag.py",
+          "tests/llm/test_rag_query_evidence.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }

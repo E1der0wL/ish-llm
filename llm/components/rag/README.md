@@ -20,6 +20,11 @@ Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/
 공개 capability와 Tool 이름은 [identity.py](identity.py)가 선언합니다. Component·Tool 등록과
 Agent 선택은 같은 선언을 사용하며 모델/저장 경계에는 기존 문자열 값을 전달합니다.
 
+검색 설정과 공개 인자는 `search.SearchOptions`/`RetrievalArguments`, 검색 결과와 출처·목록
+응답은 `retrieval_records`가 소유합니다. Chroma 저장 이름·조회 결과는 `indexing.ChromaIndex`,
+그래프 파일명은 `graph_indexing.GraphStore`를 참조합니다. 검색 순서·캐시·원본과 세대 대조,
+Tool의 읽기 권한과 공개 응답 형식은 유지합니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -42,6 +47,7 @@ Agent 선택은 같은 선언을 사용하며 모델/저장 경계에는 기존 
 | [files.py](files.py) | 세대 구성 시 파일 복사/reflink 등 Linux 파일 처리를 돕습니다. |
 | [indexing.py](indexing.py) | 문서 벡터를 Chroma 색인으로 구성합니다. |
 | [graph_indexing.py](graph_indexing.py) | Kuzu 엔티티·관계·출처 색인을 구성합니다. |
+| [retrieval_records.py](retrieval_records.py) | 검색 결과·출처·페이지 커서·목록 응답의 정규 필드와 Projection을 소유합니다. |
 | [search.py](search.py) | BM25/vector/hybrid 검색, RRF 결합과 섹션 확장입니다. |
 | [graph_search.py](graph_search.py) | 검색 문서·엔티티에 연결된 그래프 증거를 탐색합니다. |
 | [tools.py](tools.py) | rag_search와 rag_list_documents Tool의 schema와 handler입니다. |

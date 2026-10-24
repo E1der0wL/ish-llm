@@ -26,13 +26,14 @@ from llm.services.infrastructure.storage import atomic_json, read_json, remove_n
 from llm.services.infrastructure.logging import log_event
 from .data import RAGData
 from .identity import RAGIdentity
-from .indexing import build_index, update_index
-from .search import search, search_schema
+from .indexing import build_index, update_index, ChromaIndex
+from .search import search, search_schema, SearchOptions
 from .splitting import split_markdown
-from .chunk_records import RAGChunk, RAGSection, SplitDocument
+from .chunk_records import RAGChunk, RAGSection, RAGDocument, SplitDocument
+from .retrieval_records import RetrievalSource, CatalogCursor, CatalogRequest, CatalogPage
 from .graph_records import GraphEntity, GraphRelation, GraphRecord, GraphSearchResult, ExtractionCheckpoint, validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import ExtractionFailurePolicy, extraction_schema
-from .graph_indexing import build_graph, update_graph
+from .graph_indexing import build_graph, update_graph, GraphStore
 from .graph_search import graph_search, related_graph
 from .files import copy_file
 from llm.core.configuration import resolve_config, require_config
@@ -85,7 +86,7 @@ class RAGComponent(DefinitionComponent):
     POLICY_FIELDS = ("embedding_concurrency", "provider", "ingestion")
     parameter_layout = ParameterLayout(
         config=("chunk_size", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
-                "index_batch_size", "search", "graph", "document_kwargs", "query_kwargs",
+                "index_batch_size", SearchOptions.CONFIG_KEY, "graph", "document_kwargs", "query_kwargs",
                 "embedding_params", "extraction_params", "rerank_params"),
         policy=POLICY_FIELDS,
         paths={**{"extraction." + key: "config.extraction." + key
@@ -103,7 +104,7 @@ class RAGComponent(DefinitionComponent):
             setattr(self, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
         from .search import LexicalCache
         self.search_cache = LexicalCache(0)
-        self.search_options, self.graph_options = values.get("search", {}), values.get("graph", {})
+        self.search_options, self.graph_options = values.get(SearchOptions.CONFIG_KEY, {}), values.get("graph", {})
         self.extraction_options, self.extraction_prompt = values.get("extraction", {}), {"messages": []}
         self.provider_options = values.get("provider", {})
         self.vector_cache = VectorCache()
@@ -142,8 +143,8 @@ class RAGComponent(DefinitionComponent):
         return path
 
     def _build(self, path, documents):
-        build_index(path / "chroma", documents, batch_size=self.index_batch_size)
-        build_graph(path / "graph.kuzu", documents, options=self.graph_options)
+        build_index(path / ChromaIndex.DIRECTORY, documents, batch_size=self.index_batch_size)
+        build_graph(path / GraphStore.FILE_NAME, documents, options=self.graph_options)
 
     @classmethod
     def validate_input(cls, source):
@@ -361,7 +362,7 @@ class RAGComponent(DefinitionComponent):
         worker._configuration_source = self
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
             setattr(worker, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
-        worker.search_options, worker.graph_options = values.get("search", {}), values.get("graph", {})
+        worker.search_options, worker.graph_options = values.get(SearchOptions.CONFIG_KEY, {}), values.get("graph", {})
         worker.extraction_options = deepcopy(values.get("extraction", {}))
         worker.provider_options = values.get("provider", {})
         worker._cache_namespace = project.id
@@ -414,7 +415,7 @@ class RAGComponent(DefinitionComponent):
             "snapshot_cache_max_bytes": field("integer", "Corpus projection cache capacity; absent or zero disables caching", minimum=0),
             "extraction_batch_size": field("integer", minimum=1),
             "search_cache_chars": LexicalCache.capacity_schema(),
-            "index_batch_size": field("integer", minimum=1), "search": search_schema(),
+            "index_batch_size": field("integer", minimum=1), SearchOptions.CONFIG_KEY: search_schema(),
             "graph": object_schema({"buffer_pool_size": field("integer", minimum=1),
                                     "max_num_threads": field("integer", minimum=1)}),
             "document_kwargs": deepcopy(embedding_schema), "query_kwargs": deepcopy(embedding_schema),
@@ -457,7 +458,7 @@ class RAGComponent(DefinitionComponent):
         generation = snapshot["generation"]
         if generation is not None:
             path = self._generation_path(project, generation)
-            if not (path / "chroma").is_dir() or not (path / "graph.kuzu").is_file():
+            if not (path / ChromaIndex.DIRECTORY).is_dir() or not (path / GraphStore.FILE_NAME).is_file():
                 raise ValueError("RAG backup requires matching vector and graph generation")
 
     def resolve(self, project, capability):
@@ -543,9 +544,9 @@ class RAGComponent(DefinitionComponent):
                 raise FileNotFoundError(f"RAG source requires a regular file: {name}")
             info = source.stat()
             version += ((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns),)
-        if not self._checked(path / "chroma").is_dir():
+        if not self._checked(path / ChromaIndex.DIRECTORY).is_dir():
             raise FileNotFoundError("RAG generation requires its vector index")
-        if not self._checked(path / "graph.kuzu").is_file():
+        if not self._checked(path / GraphStore.FILE_NAME).is_file():
             raise FileNotFoundError("RAG generation requires graph.kuzu")
         return version
 
@@ -596,32 +597,32 @@ class RAGComponent(DefinitionComponent):
         catalog = self._catalog(project, generation, control)
         if revision_token(catalog) != revision_token(self._catalog_rows(value["documents"])):
             raise ValueError("RAG catalog disagrees with its published corpus")
-        if not self._checked(path / "chroma").is_dir():
+        if not self._checked(path / ChromaIndex.DIRECTORY).is_dir():
             raise FileNotFoundError("RAG generation requires its vector index")
-        if not self._checked(path / "graph.kuzu").is_file():
+        if not self._checked(path / GraphStore.FILE_NAME).is_file():
             raise FileNotFoundError("RAG generation requires graph.kuzu")
         if not cached:
             self.snapshot_cache.put(key, value, maximum)
         return {**value, "identity": identity, "generation": generation}
 
-    def list_catalog(self, project, *, limit, cursor=None):
+    def list_catalog(self, project, *, limit, cursor=CatalogRequest.ABSENT):
         """현재 세대에 함께 공개된 설명 목록만 읽는다. 원본은 corpus가 소유한다."""
-        if type(limit) is not int or limit < 1:
-            raise ValueError("Catalog limit must be a positive integer")
+        if type(limit) is not int or limit < CatalogRequest.MINIMUM_LIMIT:
+            raise ValueError(CatalogRequest.INVALID_LIMIT)
         identity, generation, control = self._corpus_control(project)
-        after = ""
-        if cursor is not None:
-            if not isinstance(cursor, dict) or set(cursor) != {"identity", "generation", "after"}:
-                raise ValueError("Invalid catalog cursor")
-            if (cursor["identity"], cursor["generation"]) != (identity, generation):
-                raise RAGConflictError("RAG catalog changed; restart pagination")
-            after = validate_name(cursor["after"])
-        rows = [] if generation is None else self._catalog(project, generation, control)
-        selected = [row for row in rows if row["id"] > after][:limit + 1]
+        after = CatalogRequest.FIRST_AFTER
+        if cursor is not CatalogRequest.ABSENT:
+            CatalogCursor.validate(cursor)
+            if CatalogCursor(cursor).binding != (identity, generation):
+                raise RAGConflictError(CatalogCursor.CONFLICT)
+            after = validate_name(CatalogCursor(cursor).after)
+        rows = [] if generation is CatalogRequest.ABSENT else self._catalog(project, generation, control)
+        selected = [row for row in rows if RAGDocument(row).identifier > after][:limit + CatalogRequest.LOOKAHEAD]
         more = len(selected) > limit
         selected = selected[:limit]
-        return {"documents": selected, "generation": generation,
-                "next_cursor": {"identity": identity, "generation": generation, "after": selected[-1]["id"]} if more else None}
+        return CatalogPage.create(selected, generation,
+            CatalogCursor.create(identity, generation, RAGDocument(selected[CatalogRequest.LAST_ROW]).identifier)
+            if more else CatalogRequest.ABSENT)
 
     async def embed(self, texts: list, *, query=False) -> list:
         if not isinstance(texts, list) or len(texts) != 1:
@@ -836,10 +837,10 @@ class RAGComponent(DefinitionComponent):
                 progress("indexing")
             if previous["generation"] and type(self)._build is RAGComponent._build and "_build" not in self.__dict__:
                 source = self._checked_tree(self._generation_path(project, previous["generation"]))
-                shutil.copytree(source / "chroma", path / "chroma", copy_function=copy_file)
-                copy_file(source / "graph.kuzu", path / "graph.kuzu")
-                update_index(path / "chroma", previous["documents"], documents, batch_size=self.index_batch_size)
-                update_graph(path / "graph.kuzu", previous["documents"], documents, options=self.graph_options)
+                shutil.copytree(source / ChromaIndex.DIRECTORY, path / ChromaIndex.DIRECTORY, copy_function=copy_file)
+                copy_file(source / GraphStore.FILE_NAME, path / GraphStore.FILE_NAME)
+                update_index(path / ChromaIndex.DIRECTORY, previous["documents"], documents, batch_size=self.index_batch_size)
+                update_graph(path / GraphStore.FILE_NAME, previous["documents"], documents, options=self.graph_options)
             else:
                 self._build(path, documents)
             if progress:
@@ -883,13 +884,13 @@ class RAGComponent(DefinitionComponent):
             generation = path.name
             self._generation_path(project, generation)
             if generation != current["generation"]:
-                if {entry.name for entry in path.iterdir()} != {self.CORPUS_FILE, self.CATALOG_FILE, "chroma", "graph.kuzu"}:
+                if {entry.name for entry in path.iterdir()} != {self.CORPUS_FILE, self.CATALOG_FILE, ChromaIndex.DIRECTORY, GraphStore.FILE_NAME}:
                     raise ValueError("Retired RAG generation has incomplete or unknown entries")
                 corpus = self.validate_corpus(self._read_evidence(path / self.CORPUS_FILE))
                 catalog = self._read_evidence(path / self.CATALOG_FILE)
                 if revision_token(catalog) != revision_token(self._catalog_rows(corpus["documents"])):
                     raise ValueError("Retired RAG catalog disagrees with its source corpus")
-                if not self._checked(path / "chroma").is_dir() or not self._checked(path / "graph.kuzu").is_file():
+                if not self._checked(path / ChromaIndex.DIRECTORY).is_dir() or not self._checked(path / GraphStore.FILE_NAME).is_file():
                     raise ValueError("Retired RAG generation requires its stored indexes")
             files = tree_snapshot(path)
             row = {"generation": generation, "bytes": sum(item["bytes"] for item in files.values()),
@@ -924,32 +925,31 @@ class RAGComponent(DefinitionComponent):
             return []
         path = self._checked_tree(self._generation_path(project, snapshot["generation"]))
         return search(path, snapshot["documents"], query, vector, lexical_cache=self.search_cache,
-                      cache_chars=self.search_cache_chars, candidate_count=require_config(self.search_options, "candidate_count", scope="rag.search"),
-                      rrf_constant=require_config(self.search_options, "rrf_constant", scope="rag.search"), **options)
+                      cache_chars=self.search_cache_chars, candidate_count=require_config(self.search_options, SearchOptions.Field.CANDIDATE_COUNT, scope=SearchOptions.SCOPE),
+                      rrf_constant=require_config(self.search_options, SearchOptions.Field.RRF_CONSTANT, scope=SearchOptions.SCOPE), **options)
 
     def graph_search(self, project, *, seed, max_hops, limit):
         snapshot = self.snapshot(project)
         incomplete = [identifier for identifier, doc in snapshot["documents"].items() if doc.get("graph_complete") is False]
         status = {"graph_complete": not incomplete, "graph_incomplete_documents": incomplete}
-        path = (self._generation_path(project, snapshot["generation"]) / "graph.kuzu"
+        path = (self._generation_path(project, snapshot["generation"]) / GraphStore.FILE_NAME
                 if snapshot["generation"] else None)
         if path is None:
             return {**GraphSearchResult.seeded(seed, [], []), **status}
         return {**graph_search(path, seed, max_hops=max_hops, limit=limit, options=self.graph_options,
-                              ranking=self.search_options.get("relation_ranking")), **status}
+                              ranking=self.search_options.get(SearchOptions.Field.RELATION_RANKING)), **status}
 
     def combined_result(self, project, snapshot, query, hits, *, max_hops, relation_limit):
         """동일한 불변 세대에서 문서 검색 결과와 근거 관계를 묶는다."""
-        path = (self._generation_path(project, snapshot["generation"]) / "graph.kuzu"
+        path = (self._generation_path(project, snapshot["generation"]) / GraphStore.FILE_NAME
                 if snapshot["generation"] else None)
         graph = GraphRecord.create([], [])
         if path is not None and hits:
             graph = related_graph(path, [hit["id"] for hit in hits], max_hops=max_hops, limit=relation_limit,
-                                  options=self.graph_options, ranking=self.search_options.get("relation_ranking"))
+                                  options=self.graph_options, ranking=self.search_options.get(SearchOptions.Field.RELATION_RANKING))
         sources = {}
         for hit in hits:
-            sources[hit["id"]] = {key: hit[key] for key in (
-                "id", "document_id", "section_id", "heading", "text", "title", "generation", "revision", "metadata")}
+            sources[RAGChunk(hit).identifier] = RetrievalSource.from_hit(hit)
         documents = snapshot["documents"]
         chunk_indexes = {}
         for relation in graph[GraphRecord.Field.RELATIONS]:
@@ -961,8 +961,7 @@ class RAGComponent(DefinitionComponent):
             if identifier not in chunk_indexes:
                 chunk_indexes[identifier] = {RAGChunk(c).identifier: c for c in SplitDocument(doc).chunks}
             chunk = chunk_indexes[identifier][relation[GraphRelation.Field.SOURCE_ID]]
-            sources[RAGChunk(chunk).identifier] = {**chunk, "title": doc["title"], "generation": doc["generation"], "revision": doc["revision"],
-                                     "metadata": doc["metadata"]}
+            sources[RAGChunk(chunk).identifier] = RetrievalSource.from_document(chunk, doc)
         incomplete = [identifier for identifier, doc in documents.items() if doc.get("graph_complete") is False]
         return {"query": query, "documents": hits, **graph, "sources": list(sources.values()),
                 "graph_complete": not incomplete, "graph_incomplete_documents": incomplete}

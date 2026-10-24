@@ -44,6 +44,7 @@ class GraphQueries:
 
 
 class GraphStore:
+    FILE_NAME = "graph.kuzu"
     ABSENT = None
     ASCII_ONLY = False
     ALLOW_NONFINITE = False
