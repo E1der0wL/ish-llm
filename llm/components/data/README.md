@@ -70,7 +70,8 @@ Data owner는 `data/<id>/quarantine/files/`에 관측한 원본 바이트를 복
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | DataComponent 공개 import |
-| [component.py](component.py) | 정의·격리 영수증 owner와 명시적 격리/삭제 API |
+| [component.py](component.py) | 최신 참조·실행 상태를 확인하는 격리/삭제 API와 파일 효과를 소유합니다. |
+| [records.py](records.py) | 정의 schema·격리 관측/영수증의 필드·버전·바인딩 검증과 공개 snapshot Projection을 소유합니다. |
 
 공유 storage 구현은 [files.py](../files.py), revision 계약은
 [revisions.md](../../../docs/llm/revisions.md)를 참고한다.

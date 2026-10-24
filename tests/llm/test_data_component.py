@@ -22,6 +22,12 @@ class DataTests(unittest.IsolatedAsyncioTestCase):
         self.data = self.project.components["data"]
         await self.data.acreate({"title": "Dataset", "metadata": {"temporary": True}}, identifier="samples")
 
+    async def test_definition_schema_does_not_invent_field_descriptions(self):
+        properties = self.component.schema["properties"]
+        self.assertEqual(properties["title"], {"type": "string"})
+        self.assertEqual(properties["description"], {"type": "string"})
+        self.assertNotIn("description", await self.data.aload("samples"))
+
     async def test_binary_import_range_and_cas(self):
         source = self.root / "input.bin"
         content = bytes(range(256)) * 8192

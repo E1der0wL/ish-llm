@@ -4357,3 +4357,89 @@ File 최종 delta: 감사 `python -m unittest tests.llm.test_contract_coverage t
 한도 누락의 2개 실제 효과 Assertion 실패를 검출했다. FileEvidence의 변경 없는 schema 위임
 소비자에 FileManifest를 연결해 검토 목록에도 기록했다. inventory는 521파일, 미검토 277
 (llm 100/hub 177), 미분류 19,574, 미완료 계약 4, stale/검토 오류 0이다.
+
+
+## llm Data 정의·격리 관측/영수증 — Level 2
+
+기준 f494fd1. DataDefinition이 정의 schema를, DataQuarantineInspection/Receipt가 관측·영수증
+필드·정확한 버전 타입·Project/Component/identifier·원본 revision·시각 검증을 소유한다.
+DataComponent는 복사·양쪽 바이트 검증·영수증 확정·원본 제거 순서를 유지한다. DataData는
+현재 Project 참조·모든 Session의 실행/미완료 Resume 검사를 기존 잠금 안에서 계속 수행한다.
+공통 저장소가 Data 격리 허가를 해석하지 않는다. 일반 files manifest와 격리 tree_snapshot의
+bytes/digest 증거 형식은 구분되며 변환·이중 저장·호환 Reader를 만들지 않았다.
+
+공개 data/version 관측은 기존 EditableSnapshot Owner를 사용한다. 자체 생성하거나 검증한
+JSON 관측을 공통 타입으로 읽고 사본으로 내보내며, data/version 필드를 다시 정의하지 않는다.
+Core의 기존 JSON/필드 검증·사본 보장을 재사용한다. 불완전한 별도 snapshot 형식을 허용하지
+않는다. 이 관측은 실행 권한이 아니며 실제 CAS·원본·참조·중단 검증을 대체하지 않는다.
+
+초기 Data 기능 25개는 통과했지만 독립 Schema wire 비교가 field()의 암묵적 빈 description
+추가를 검출했다. 기존 두 텍스트 필드는 type만 선언했으므로 명시 TEXT_SCHEMA 선언으로
+수정했다. `schema-failure-execution.json`의 비교 명령 exit 1과 두 초기 실패 로그를 보존했다.
+비교 Assertion을 삭제하지 않았으며 수정 후 전 비교가 통과했다. 새 독립 회귀
+`test_definition_schema_does_not_invent_field_descriptions`는 실제 Data schema의 필드 존재와
+저장 데이터의 생략을 검증한다. 기대값은 제품 Owner에서 생성하지 않는다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/data-quarantine-draft/proof.py`
+최종 exit 0: schema wire 순서 1·공개 값 8·receipt 선언 3, 필드/타입/바인딩/시각 오류 107,
+inspection/snapshot/receipt Projection 각각 3, 실제 inspection 1, 실제 복사→receipt→원본 제거
+및 명시 삭제/장애 후 파일 바이트 8, 소실/손상 증거 조회 시 변경 0 검증 4. 정상 격리와 삭제가
+실제 완료됐는지 독립 기대값으로 확인했다. 사용자 정의 field/helper를 추가해 잘못된 wire를
+기준으로 재정의하지 않았다.
+
+- `whole-data-quarantine-l1-01`: discovered/started/pass 25/25/25, exit 0, 9.053008초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-data-quarantine-l1-01/llm.json --modules tests.llm.test_data_component tests.llm.test_data_quarantine`. source `883ca26f5438d8802df8168971dad52976652f4fa776253c3c45ae7f5d0a8944`, input `0564c159845e1b827e4677b2e4c7d6649419480c7d4e8cc710f3cd238c192e62`.
+
+- `whole-data-quarantine-01`: discovered/started/pass 96/96/96, exit 0, 42.282597초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-data-quarantine-01/llm.json --modules tests.llm.test_data_component tests.llm.test_data_quarantine tests.llm.test_resource_references tests.llm.test_skill_references tests.llm.test_typed_contracts tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `9ef7b129b7cc58c558536cb96eb0d2d2ee59e22c1b5c393852083c9404b818f1`, input `9bc2c6deeb35b9639a4c8ec5429a9c47a401f0064c5ecd16ff4f809b0bd0bf26`.
+
+- `whole-data-quarantine-hub-01`: discovered/started/pass 11/11/11, exit 0, 92.919938초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-data-quarantine-hub-01/hub.json --modules tests.hub.test_resource_tools tests.hub.test_rag_retention`. source `9ef7b129b7cc58c558536cb96eb0d2d2ee59e22c1b5c393852083c9404b818f1`, input `9bc2c6deeb35b9639a4c8ec5429a9c47a401f0064c5ecd16ff4f809b0bd0bf26`.
+
+- `whole-data-schema-regression-01`: discovered/started/pass 9/9/9, exit 0, 0.971097초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-data-schema-regression-01/llm.json --modules tests.llm.test_data_component`. source `c76aa51e7ae0edbd09f9fb2315ba458ee75e85012f1e9c24a7e786fa55109342`, input `3bf23914cf1fd9dba2147223dee4fabc7d5870b5826d04f5148501552b7468a9`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 동일이다.
+초기 25개는 수정 전 소스이며 최종 근거로 승계하지 않는다. 수정 후 Level 2는 LLM 96·Hub 11개다.
+이후 제품 코드는 그대로이고 test_data_component.py에 회귀 시험만 추가했다. source/input
+manifest 비교에서 그 파일 하나만 달라졌고 Fixture·환경·의존성은 동일함을 확인했다.
+변경된 모듈 전체 9개를 별도로 재실행했다. 이들을 하나의 105개 실행이나 전체 회귀로 표현하지
+않는다. 현재 전체 발견 수는 LLM 2,492개이며 다음 전체 게이트/CI는 그 목록을 검증해야 한다.
+Python 3.12.14/Clang·Host d833790·고정 의존성 및 실제 namespace 셸을 유지했다.
+
+Data 실제 격리/재시작/소실/원본 보존/프로세스 중단·예산, 파일·Skill 참조·typed 계약,
+공통 승인·예산·효과·Checkpoint·RAG·수명 및 직접 Hub 자료·retention 소비자를 포함한다.
+기존 시험과 안전성 Assertion은 모두 유지했다. 정적 finding 112개는 새/소멸 없이 동일하다.
+File 후속 변경과 묶어 다음 Level 3를 수행하며, 0dd6499의 frozen group32 결과에 섞지 않는다.
+전체 llm/와 hub/ 리팩터링은 아직 미완료다.
+
+### 앞선 전체 게이트 원격 확인
+
+2026-10-23 23:51 UTC, Push SHA `570ecb6c609803c95a6185ce822ed4e6df1eba8f`의
+[CI run 40037971329](https://github.com/E1der0wL/ish-llm/actions/runs/40037971329)와 필수 두 Job·
+실제 전체 결과 artifact를 확인했다. LLM 2,491/2,491 pass(2074.072251314초),
+Hub 588/588 pass(1111.374333873초), failure/error/skip/xfail/xpass/누락/추가/중복 0.
+원격 Python은 3.12.14/GCC이며 로컬 Clang 결과와 별도 증거다. 이 성공은 570ecb6의 것이며
+후속 SHA의 완료 증거로 승계하지 않는다.
+
+Data 최종 delta: `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`
+16/16 pass, exit 0, 3.267초. S1–S7 정적·문서 검사 exit 0, R3 mutation exit 0이며 의도한
+2개 실제 효과 Assertion 실패를 검출했다. inventory는 522파일, 미검토 276(llm 99/hub 177),
+미분류 19,499, 미완료 계약 4, stale/검토 오류 0이다. 추가 회귀 시험 때문에 다음 전체 LLM
+발견 목록은 2,492개다. 전체 단계 완료는 아직 선언하지 않는다.
+
+### 압축·요약·병합 group32 전체 게이트와 Push
+
+frozen checkout `/workspace/ish-llm-group32-validation`, SHA
+`0dd6499f2d3a04d486be033f2076c07b22582b03`에서 사전 정적·문서·R3·Provider·실제 LLM/Hub
+namespace/X11 환경 6개 검사 모두 exit 0 후 전체를 실행했다.
+`python /workspace/llm-clean-resume/whole-ownership/gate.py whole-owners-group32-l3` exit 0:
+LLM 2,491/2,491 pass/1465.687048821초, Hub 588/588 pass/1127.554397972초,
+각 failure/error/skip/xfail/xpass/누락/추가/중복 0. source
+`68d50d09497883faaf55a13cc24fca731be058c9e815854bf48950895fcc3b73`, input
+`c8a73e4d4112719ef74433cc80ff1042567f1d1748e0035e08b27df83319f942`, 전후 동일이다.
+Python 3.12.14/Clang·Host d833790·고정 의존성과 실제 namespace 셸에서 수행했다.
+
+main `94229cb865374d99f20ec48c5e48269488041a4e`, refactor/llm-backend
+`bb0946257ab6bcabb9a3ef04d3d854e5333b07d5`의 원격 불변을 읽기 전용으로 확인했다.
+`git push origin 0dd6499f2d3a04d486be033f2076c07b22582b03:refs/heads/refactor/llm-clean`
+exit 0으로 570ecb6→0dd6499를 Push했다. main/backend/Draft PR #1은 변경하지 않았다.
+2026-10-23 23:59 UTC 확인한 [CI run 40042631053](https://github.com/E1der0wL/ish-llm/actions/runs/40042631053)은
+정확한 head SHA의 필수 두 Job이 실행 중이다. 원격 성공은 아직 확인하지 않았다.
+후속 File(f494fd1)·Data와 새 회귀 시험은 이 전체 실행/Push에 포함되지 않는다.

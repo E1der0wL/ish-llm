@@ -4308,7 +4308,7 @@
   {
     "path": "llm/core/editable_snapshot.py",
     "sha256": "ddc86f09a02377d2c5a1cbf820987359dbd5c48fb79175dffd868a5fbf0985e8",
-    "reason": "Read all declarations, constructor, Reader, detached properties and serialization and all public snapshot call sites. One field declaration supplies strict JSON parsing; opaque Component contents and CAS token remain unchanged. Actual stale save/delete and detached mutation tests verify no disk effects.",
+    "reason": "Read all declarations, constructor, Reader, detached properties and serialization and all public snapshot call sites. One field declaration supplies strict JSON parsing; opaque Component contents and CAS token remain unchanged. Actual stale save/delete and detached mutation tests verify no disk effects. Data record/schema and quarantine observation consumers now delegate to this unchanged Owner; exact wire, copy, malformed evidence and real file safety checks validate the connection.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -4352,7 +4352,9 @@
           "hub/backend/tools/management.py",
           "llm/components/skills/data.py",
           "llm/components/refinement/data.py",
-          "llm/components/memory/data.py"
+          "llm/components/memory/data.py",
+          "llm/components/data/records.py",
+          "llm/components/data/component.py"
         ],
         "tests": [
           "tests/llm/test_editable_snapshots.py",
@@ -48040,7 +48042,7 @@
   {
     "path": "llm/components/file_manifest.py",
     "sha256": "9f3075150b3751aef73e87c9aea835980fb8e430a35e5ba1ed316d97385f90ee",
-    "reason": "Whole file and actual consumers reviewed. Manifest optional/present/required lookup, mutation/copy and last-entry removal preserve existing absence semantics and strict file evidence. Path validation and storage effects keep exact predicate, CAS, IO, sync and transaction order. Actual Owner-method expansion proves full consumer bodies identical, with independent wire/path/state checks and real fault/process-death regression tests. No new retry, legacy Reader, default evidence or business policy is introduced. Broader Base/Data/Memory consumer files remain separately unreviewed.",
+    "reason": "Whole file and actual consumers reviewed. Manifest optional/present/required lookup, mutation/copy and last-entry removal preserve existing absence semantics and strict file evidence. Path validation and storage effects keep exact predicate, CAS, IO, sync and transaction order. Actual Owner-method expansion proves full consumer bodies identical, with independent wire/path/state checks and real fault/process-death regression tests. No new retry, legacy Reader, default evidence or business policy is introduced. Broader Base/Data/Memory consumer files remain separately unreviewed. Data record/schema and quarantine observation consumers now delegate to this unchanged Owner; exact wire, copy, malformed evidence and real file safety checks validate the connection.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -48063,7 +48065,8 @@
         "consumers": [
           "llm/components/files.py",
           "llm/components/data/component.py",
-          "llm/components/memory/data.py"
+          "llm/components/memory/data.py",
+          "llm/components/data/records.py"
         ],
         "tests": [
           "tests/llm/test_data_component.py",
@@ -48320,6 +48323,296 @@
           "tests/hub/test_resource_tools.py",
           "tests/hub/test_summary_api.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/data/records.py",
+    "sha256": "6de14c5e661bb80edfc68674c40a3d09a43190cf84c4d81b87bdd20cb78cd22f",
+    "reason": "Read the full records/storage/handle implementations and direct consumers. Definition schema preserves exact old field presence after the independent comparison detected and rejected an accidental empty description. Receipt validation, source/Project/revision binding, copy/receipt/removal order, active and Resume/reference guards, retained originals, explicit CAS and process-death boundaries are unchanged. Public observation fields reuse EditableSnapshot and its existing JSON validation/copy contract; no second snapshot field declaration or new storage policy exists. Independent actual-file fault traces, malformed evidence and focused/core safety regressions retain original assertions; one independent schema regression was added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b21f5cc636e0bb31c48219f6020182dd19ebb51c8fde553c8afff5f8b0fd120d",
+        "classification": "declaration",
+        "owner": "DataDefinition.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "3fb56044b80d6803cf7781278b5afc8cd9ee4b1c89aac01f5140c8a33f654297",
+        "classification": "declaration",
+        "owner": "DataDefinition.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "5fa70eac9ae468404eff8bf2d8b0db2cf4fe596edb0e0097368188cec0c75360",
+        "classification": "declaration",
+        "owner": "DataDefinition.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "24516bc9b5b3c92698e4336be8724498a144fe23ca198a56fc3f69fc552ec495",
+        "classification": "declaration",
+        "owner": "DataQuarantineInspection.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "f674a6f005d28b944c394357d1d0bb49a92061c250cdc8799f55035a1c9188d9",
+        "classification": "declaration",
+        "owner": "DataQuarantineInspection.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "f847586ee9049c7fc4a00da2d32d699f24d487637c96e8c7230c0d4064d6ad13",
+        "classification": "declaration",
+        "owner": "DataQuarantineInspection.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "e55d0c3f0c77cbc8993c33e091029b1bee358d58908bf371500a3d23208fb650",
+        "classification": "declaration",
+        "owner": "DataQuarantineInspection.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "7554e618d4316f8c8e650c26de9909e8dc9fc11ee61d33e5c445001d5db7c4cb",
+        "classification": "declaration",
+        "owner": "DataQuarantineInspection.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "2eabd016f997cfb1e0c2d7e55169531bce41587baee5f79e36ac5c2cc7b8b9c7",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "a6978a02cc31cabb91282b32664a1ddd4498558ad704d8b99d8bd2940866d26f",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "75ab80f0e68a81a8a49441eb62397248183c576ead346899edb07d4b5316aef1",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "6d8ccdff9d7ff361dcf3d34863b4060cae6f342498126428296b87772a595c86",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "4a5f0511b824a119dfc4768e6c94e2d2402eeaecc9572d9ca122bb2fa55ecb88",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "d581975556a42ecf9afbf24bd7710ee0f8c593720cf559992ff7f6c937c1efb6",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "809fdfd792741bf53ca00feea4d406b7969f38dd00520bf30fc3cd8c2ce19cc5",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "097610d628b7e3c10de0bdcb81c7caf7d67a5f1f321d18880677f0b4c67379e2",
+        "classification": "declaration",
+        "owner": "DataQuarantineReceipt.Field",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "ff1bd11718afa94f9e82c64ada7c69e9775d4a7d59b3faa77907ffbba11d4d53",
+        "classification": "non_contract",
+        "owner": "DataQuarantineReceipt.validate",
+        "reason": "This is the datetime API sentinel for a missing UTC offset, not a record default, status, policy or replacement for missing evidence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DataDefinition / DataQuarantineInspection / DataQuarantineReceipt",
+        "declaration": "llm/components/data/records.py",
+        "consumers": [
+          "llm/components/data/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_typed_contracts.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/data/component.py",
+    "sha256": "9200e77a7485c599718e1dfd0779903965598cc32e3264a737d05f51205b4e1b",
+    "reason": "Read the full records/storage/handle implementations and direct consumers. Definition schema preserves exact old field presence after the independent comparison detected and rejected an accidental empty description. Receipt validation, source/Project/revision binding, copy/receipt/removal order, active and Resume/reference guards, retained originals, explicit CAS and process-death boundaries are unchanged. Public observation fields reuse EditableSnapshot and its existing JSON validation/copy contract; no second snapshot field declaration or new storage policy exists. Independent actual-file fault traces, malformed evidence and focused/core safety regressions retain original assertions; one independent schema regression was added.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "92dba65558dbd27184429cd891ef91aafec62b42698d49f55912baa156905ad0",
+        "classification": "declaration",
+        "owner": "DataData",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "eeb7e469585c8c3615e77bc39488eb79f0597041a3f3a9371b61a5f745ae8d92",
+        "classification": "declaration",
+        "owner": "DataData",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "c0180e1566c18f34b4a2e63f03895835e5ada0085d57381f3b9bd62f7c50a8ee",
+        "classification": "declaration",
+        "owner": "DataData",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "42505a78e1445b750baaa2f2cc5deb9f63806590170b8311f62bee47b0d733d8",
+        "classification": "declaration",
+        "owner": "DataData",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "5017e287f06a09aa3221d3965a967db0fb4e28d239e8992ba3c378338c0ad5fd",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "2dfed0dfa6046ac2cd91d1e0bc9358ab1e79a5122fc0c7b08573978e685ee7c3",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "f546c19b18ca5d3767e214661cfdaee374d2671df47a8e9ebeae0bf4ac19e309",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "1752593792d529156488a2ff293c27854557ee4ad5e388a09d789603432e7207",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "b7aad779e8e79a30f80d8ab42b386942b5f5796a79978d935da46f7ed6ca76f3",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "46e03c493202b2c743fd5150a185d4e85473e8ba7dbb6f5f5d644a7a3c1b0c26",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "6edeb83844fbef2c663e83f8b032a0accc9c12e9a51447f203ee624f312d1c80",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "86fb9981b0d545b46ee22686ca1f590add5fae42e1fabe8ddc16ce98400b1398",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "bd4d4fdeb5dbebe098ab8be5c6b3870f3fabbb0c7de93a771437ccc85beb4c40",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "bca68e5045bb6af7d1bc94507346ad49772d02e7b4803e1a414ba0630dee7cb7",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "dd44b003563b90333a52d27d7e900a33c35390340a7bf8e88867b475c18a3781",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "4d44df14dd57462d6783098526408d61c7afa133e6fc7c226dfa0b1e87e4f47b",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "a66afb20cf76bae25ecc497480e6639ecad5b46f6bca3fb010a615b5940e7e5a",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "6854721a8bf39b275fe896467a6ab6fb66d76ecfa4e9b17d8c2e74971a60171c",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "69d056a991b3d00b7469ebad01c3e3e4ef054b1df131805c2ac6f7ada4c40d83",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "e669de30bdff8795f1223873972a8c56e9a04d90136568bbfd99568f557a3367",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "21cfc8175287efbf3c957c53a8a638b7ee18a5ea1f11c4394fb416515820b939",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      },
+      {
+        "id": "6af0dff7aa7148f8e91f5e9ee626d7f856ae7722c8ab1544a6a9915cc43844d0",
+        "classification": "declaration",
+        "owner": "DataComponent",
+        "reason": "Read the complete Owner: schema fields, evidence status/version, diagnostics, control and absence values are declared before methods. Actual schema/Writer/Reader/validator/projection consumers use these declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DataComponent / DataData",
+        "declaration": "llm/components/data/component.py",
+        "consumers": [
+          "llm/components/registry.py",
+          "llm/components/memory/data.py",
+          "llm/components/skills/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_data_component.py",
+          "tests/llm/test_data_quarantine.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_skill_references.py",
+          "tests/llm/test_typed_contracts.py",
+          "tests/hub/test_resource_tools.py",
           "tests/hub/test_rag_retention.py"
         ],
         "complete": true
