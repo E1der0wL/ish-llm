@@ -118,6 +118,10 @@ class SettingsCatalog(SettingsResponse):
     active_project: str
     preferences: dict
 
+    @classmethod
+    def observe(cls, value):
+        return SettingsCatalogObservation(value)
+
 
 @dataclass(frozen=True, slots=True)
 class SettingsBatch(SettingsResponse):
@@ -139,3 +143,39 @@ class PresetApplication(SettingsResponse):
     catalog: dict
     project: dict
     presets: dict
+
+    @classmethod
+    def observe(cls, value):
+        return PresetApplicationObservation(value)
+
+
+@dataclass(frozen=True, slots=True)
+class SettingsCatalogObservation:
+    """Borrow the public response; only requested fields are interpreted."""
+
+    record: dict
+
+    @property
+    def preferences(self):
+        from ...config.preference_records import PreferenceSnapshot
+
+        return PreferenceSnapshot(self.record[SettingsCatalog.preferences.__name__])
+
+
+@dataclass(frozen=True, slots=True)
+class PresetApplicationObservation:
+    """Observe the applied preset without reading the unused Project response."""
+
+    record: dict
+
+    @property
+    def catalog(self):
+        return SettingsCatalog.observe(self.record[PresetApplication.catalog.__name__])
+
+    @property
+    def presets_record(self):
+        return self.record[PresetApplication.presets.__name__]
+
+    @property
+    def batch_error(self):
+        return SettingsBatch.error_from_record(self.record[PresetApplication.batch.__name__])

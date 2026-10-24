@@ -49,6 +49,20 @@ class PreferenceSnapshot:
     def general(self):
         return GeneralSettings(**self._value.get(PreferenceSection.GENERAL, {}))
 
+    def required_profile(self):
+        return UserProfile(**self._value[PreferenceSection.PROFILE.value])
+
+    def required_general(self):
+        return GeneralSettings(**self._value[PreferenceSection.GENERAL.value])
+
+    def theme(self):
+        return HubTheme(**self._value.get(PreferenceSection.APPEARANCE, {}))
+
+    @property
+    def optional_sidebar_width(self):
+        return self._value.get(PreferenceSection.APPEARANCE, {}).get(
+            HubTheme.sidebar_width.__name__)
+
     def apply_sidebar(self, width):
         self._value.setdefault(PreferenceSection.APPEARANCE.value, asdict(HubTheme()))[
             HubTheme.sidebar_width.__name__

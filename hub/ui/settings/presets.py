@@ -8,9 +8,9 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.widgets import Label
 
-from ...config.general import GeneralSettings
-from ...config.profile import UserProfile
-from ...config.theme import HubTheme
+from dataclasses import dataclass
+from ...backend.project.settings_contracts import PresetApplication, SettingsOperation
+from ...config.preset_records import PresetIndex, PresetSelection
 from ...widget.controls import Button
 from ...widget.dialog import Dialog
 from ...widget.input_field import InputField
@@ -18,43 +18,89 @@ from .. import host
 
 EXPORT_CURRENT = object()
 
+
+@dataclass
+class PresetEditorDraft:
+    EDITING = True
+    IDLE = False
+    NO_ERROR = ""
+
+    text: str
+    editing: bool = IDLE
+    error: str = NO_ERROR
+
+    @classmethod
+    def from_export(cls, exported):
+        return cls(
+            JsonDocument.render(
+                exported, allow_non_finite=JsonDocument.ALLOW_NON_FINITE_PREVIEW
+            )
+        )
+
+    def start(self):
+        self.editing = self.EDITING
+
+    def accept_text(self, text):
+        self.text = text
+        self.error = self.NO_ERROR
+
+    def finish(self):
+        self.editing = self.IDLE
+
+
 class PresetUI:
+    NO_SELECTION = PresetIndex.UNSELECTED
+    NEW_PRESET = None
+    NO_RESULT = None
+    LOADED = True
+    NOT_LOADED = False
+    LOADING = True
+    NOT_LOADING = False
+    NEW_DEFINITION = False
+    EDIT_BUTTON_WIDTH = 12
+
     def __init__(self, view):
         self.view = view
         self.names = []
-        self.selected = ""
-        self.loaded = False
-        self.loading = False
+        self.selected = self.NO_SELECTION
+        self.loaded = self.NOT_LOADED
+        self.loading = self.NOT_LOADING
 
     def items(self):
         return [(name, name) for name in self.names] + [
-            (EXPORT_CURRENT, self.view.t(MessageKey.PRESET_EXPORT_CURRENT)), (None, self.view.t(MessageKey.PRESET_ADD))]
+            (EXPORT_CURRENT, self.view.t(MessageKey.PRESET_EXPORT_CURRENT)),
+            (self.NEW_PRESET, self.view.t(MessageKey.PRESET_ADD)),
+        ]
 
     def loaded_names(self, result):
-        if result is not None:
-            self.names, self.selected = result["names"], result["selected"]
+        if result is not self.NO_RESULT:
+            selection = PresetSelection.from_record(result)
+            self.names, self.selected = selection.names, selection.selected
             self.view.profile_bar.presets.value = self.selected
-            self.loaded = True
+            self.loaded = self.LOADED
 
     def call(self, operation, *args, completed):
         def done(result):
-            if result is None:
+            if result is self.NO_RESULT:
                 self.view.notice = self.view.settings.status
             completed(result)
             get_app().invalidate()
+
         self.view.settings.call(operation, *args, completed=done)
 
     def refresh(self):
         if self.loading:
             return
-        self.loading = True
+        self.loading = self.LOADING
+
         def done(result):
-            self.loading = False
+            self.loading = self.NOT_LOADING
             self.loaded_names(result)
             # A bad file should report once, not trigger another disk read on
             # every output snapshot. Explicit operations can still try again.
-            self.loaded = True
-        self.call("preset_list", completed=done)
+            self.loaded = self.LOADED
+
+        self.call(SettingsOperation.PRESET_LIST, completed=done)
 
     def choose(self, name):
         screen = self.view.settings
@@ -63,77 +109,123 @@ class PresetUI:
         if any(page.dirty for page in screen.drafts.active_pages()):
             self.view.notice = self.view.t(MessageKey.PRESET_DRAFTS)
             return
-        if name is None or name is EXPORT_CURRENT:
+        if name is self.NEW_PRESET or name is EXPORT_CURRENT:
             self.view.profile_bar.presets.value = self.selected
-            self.call("preset_export", self.view.project_id,
-                      completed=lambda value: self.create(value, exporting=name is EXPORT_CURRENT))
+            self.call(
+                SettingsOperation.PRESET_EXPORT,
+                self.view.project_id,
+                completed=lambda value: self.create(
+                    value, exporting=name is EXPORT_CURRENT
+                ),
+            )
             return
-        self.call("preset_apply", name, self.view.project_id, completed=self.applied)
+        self.call(
+            SettingsOperation.PRESET_APPLY,
+            name,
+            self.view.project_id,
+            completed=self.applied,
+        )
 
     def applied(self, result):
-        if result is None:
+        if result is self.NO_RESULT:
             return
         screen = self.view.settings
-        preferences = result["catalog"]["preferences"]
-        screen.drafts.pages.clear()
-        screen.page = None
-        screen.drafts.saved_sidebar_width = preferences.get("appearance", {}).get("sidebar_width")
-        screen.loaded_catalog(result["catalog"])
-        self.view.user_profile = UserProfile(**preferences["profile"])
-        self.view.general = GeneralSettings(**preferences["general"])
-        self.view.set_theme(HubTheme(**preferences.get("appearance", {})))
-        self.loaded_names(result["presets"])
-        if result["batch"]["error"]:
-            screen.error(result["batch"]["error"])
+        applied = PresetApplication.observe(result)
+        preferences = applied.catalog.preferences
+        screen.drafts.reset_for_preset(preferences)
+        screen.loaded_catalog(applied.catalog.record)
+        self.view.user_profile = preferences.required_profile()
+        self.view.general = preferences.required_general()
+        self.view.set_theme(preferences.theme())
+        self.loaded_names(applied.presets_record)
+        if applied.batch_error:
+            screen.error(applied.batch_error)
             self.view.notice = screen.status
         else:
             self.view.notice = self.view.t(MessageKey.PRESET_APPLIED)
             screen.drafts.prompt_restart(screen.global_keys)
         get_app().invalidate()
 
-    def create(self, exported, *, exporting=False):
-        if exported is None:
+    def create(self, exported, *, exporting=NEW_DEFINITION):
+        if exported is self.NO_RESULT:
             return
         view, screen = self.view, self.view.settings
-        draft = {"text": JsonDocument.render(exported, allow_non_finite=JsonDocument.ALLOW_NON_FINITE_PREVIEW), "editing": False}
-        status = Label(lambda: draft.get("error", ""))
+        draft = PresetEditorDraft.from_export(exported)
+        status = Label(lambda: draft.error)
+
         def open_editor():
-            if draft["editing"]:
+            if draft.editing:
                 return
-            draft["editing"] = True
+            draft.start()
+
             async def edit():
                 try:
-                    draft["text"] = await host.edit_text(draft["text"], view.general, suffix=JsonDocument.SUFFIX)
-                    draft["error"] = ""
+                    draft.accept_text(
+                        await host.edit_text(
+                            draft.text, view.general, suffix=JsonDocument.SUFFIX
+                        )
+                    )
                 except Exception as error:
                     from ..error_presentation import operation_notice
-                    view.operation_diagnostics.record(getattr(view, "project_id", ""), error)
-                    draft["error"] = operation_notice(error, view.t)
+
+                    view.operation_diagnostics.record_view(view, error)
+                    draft.error = operation_notice(error, view.t)
                 finally:
-                    draft["editing"] = False
+                    draft.finish()
                     get_app().invalidate()
+
             get_app().create_background_task(edit())
-        name = InputField(button_text=view.t(MessageKey.PRESET_EDIT), button_width=12, on_action=open_editor)
+
+        name = InputField(
+            button_text=view.t(MessageKey.PRESET_EDIT),
+            button_width=self.EDIT_BUTTON_WIDTH,
+            on_action=open_editor,
+        )
+
         def save():
-            if draft["editing"]:
+            if draft.editing:
                 return
             try:
                 from ...config.presets import PresetStore
-                value = PresetStore.validate(JsonDocument.parse(draft["text"]))
+
+                value = PresetStore.validate(JsonDocument.parse(draft.text))
                 if not name.text.strip():
                     raise ValueError(view.t(MessageKey.SETTINGS_TITLE_REQUIRED))
             except (ValueError, TypeError) as error:
-                draft["error"] = str(error)
+                draft.error = str(error)
                 return
+
             def saved(result):
-                if result is not None:
+                if result is not self.NO_RESULT:
                     self.loaded_names(result)
-                    if view._dialog is popup:
+                    if view.dialogs.current is popup:
                         view.close_dialog()
                 else:
-                    draft["error"] = screen.status
-            self.call("preset_save", name.text, value, completed=saved)
-        popup = Dialog(title=view.t(MessageKey.PRESET_EXPORT_CURRENT if exporting else MessageKey.PRESET_ADD), body=HSplit([
-            Label(view.t(MessageKey.PRESET_EXPORT_HINT if exporting else MessageKey.PRESET_HINT)), Label(view.t(MessageKey.PRESET_NAME)), name, status]),
-            buttons=[Button(view.t(MessageKey.SETTINGS_SAVE), handler=save), Button(view.t(MessageKey.CANCEL), handler=view.close_dialog)])
+                    draft.error = screen.status
+
+            self.call(SettingsOperation.PRESET_SAVE, name.text, value, completed=saved)
+
+        popup = Dialog(
+            title=view.t(
+                MessageKey.PRESET_EXPORT_CURRENT if exporting else MessageKey.PRESET_ADD
+            ),
+            body=HSplit(
+                [
+                    Label(
+                        view.t(
+                            MessageKey.PRESET_EXPORT_HINT
+                            if exporting
+                            else MessageKey.PRESET_HINT
+                        )
+                    ),
+                    Label(view.t(MessageKey.PRESET_NAME)),
+                    name,
+                    status,
+                ]
+            ),
+            buttons=[
+                Button(view.t(MessageKey.SETTINGS_SAVE), handler=save),
+                Button(view.t(MessageKey.CANCEL), handler=view.close_dialog),
+            ],
+        )
         view.dialogs.show(popup, name.input)

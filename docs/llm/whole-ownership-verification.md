@@ -7787,3 +7787,51 @@ Push하고 정확한 SHA의 원격 CI를 확인한다. 집중 검증만으로 �
 기존 inline 편집기 종료 대기 2초 finding 한 곳은 HostEditor 선언으로 이동해 폐기하고 원 검토를 보존했다.
 현재 인벤토리는 608파일, 미검토 154, 미분류 7579, 미완료 소비자 계약 18,
 stale/위반/issues 0이다. UI의 남은 전체 파일·고정 구조 소비자 작업은 계속된다.
+
+
+## Preset UI의 응답 관찰·편집 상태·운영 진단
+
+PresetUI가 정규 SettingsOperation과 PresetSelection/응답 observation을 사용한다.
+PreferenceSnapshot은 요청한 필드만 읽는 조회를 제공한다. 필수 profile/general과 선택 appearance,
+생략 sidebar_width의 기존 의미를 유지한다. 미사용 Project 응답이나 host 필드를 미리 검증하지 않는다.
+초안 제거→현재 페이지 해제→폭 조회→카탈로그 갱신→Profile/General/Theme 적용→선택 목록→batch 오류
+처리 순서를 보존한다. 원본 응답·목록·ErrorInfo의 참조도 유지하며 저장 Reader를 대체하지 않는다.
+
+PresetEditorDraft가 텍스트·편집 중·오류를 소유한다. 중복 편집/편집 중 저장 차단과 JSON/이름 검증,
+실패·취소 뒤 편집 상태 해제, 저장 콜백 및 현재 Dialog identity 확인은 유지한다.
+OperationDiagnostics가 UI의 Project provenance 조회를 소유하고 세 소비자가 해당 API를 사용한다.
+기존 32개 보관 한도·Project 필터·문자열 표시·20,000자 제한·원본 ErrorInfo/tuple 기록은 그대로다.
+전체 파일 완료는 Preset UI와 OperationDiagnostics 두 파일이며 Screen/Drafts/ChatProjects는 좁은 연결이다.
+
+독립 비교는 정상/손상 응답의 상태·적용 순서 64, 선택 필수성 6, 갱신 콜백 4, 선택 guard/dispatch 9,
+응답 참조 4, 진단 필터/한도/표시 4, Project 관찰 4, 편집 초기값 6과 상태 전이 6이다.
+실제 위젯 값/콜백에서 정상·export·빈 이름·저장 실패·다른 Dialog·편집기 오류·취소·잘못된 JSON 8 흐름이
+기존과 일치한다. 실제 화면 입력은 아래 기존 회귀에서 검증한다.
+
+초기 비교는 필수 설정 누락의 KeyError 문자열에 Enum repr이 포함되는 차이를 검출했다.
+Owner의 `.value` 사용으로 기존 문자열을 보존하고 같은 64개 경로를 다시 통과했다.
+별도 위젯 비교 도구가 Label의 실제 Window/FormattedText 경계를 잘못 조회한 오류도 수정했다.
+첫 실패 로그를 보존하며 제품의 테스트·Fixture 기대값·안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-preset-ui-l1-01`: discovered/started/pass 38/38/38, exit 0, 50.096733초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-preset-ui-l1-01/hub.json --modules tests.hub.test_presets_widgets tests.hub.test_error_contract tests.hub.test_rag_jobs`. source `08fce4514fa8a7f27105bb9156943e216d9112868b39449e8bdfd8ddb2a867e3`, input `c4f5e23a2568260bc32b2df55a503dfa24d17552bd13ee49d28e426a2a2cb704`.
+
+- `whole-hub-preset-ui-l2-01`: discovered/started/pass 41/41/41, exit 0, 79.381535초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-preset-ui-l2-01/hub.json --modules tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_global_preferences tests.hub.test_settings_restart tests.hub.test_project_authority tests.hub.test_settings_json tests.hub.test_settings_editor tests.hub.test_workspace_settings`. source `08fce4514fa8a7f27105bb9156943e216d9112868b39449e8bdfd8ddb2a867e3`, input `c4f5e23a2568260bc32b2df55a503dfa24d17552bd13ee49d28e426a2a2cb704`.
+
+- `whole-hub-preset-ui-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.100031초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-preset-ui-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `08fce4514fa8a7f27105bb9156943e216d9112868b39449e8bdfd8ddb2a867e3`, input `c4f5e23a2568260bc32b2df55a503dfa24d17552bd13ee49d28e426a2a2cb704`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+같은 suite 안의 모듈 중복 0, 전후 및 실행 사이 source/input manifest 동일을 확인했다.
+실제 명령/exit/로그는 `hub-preset-ui-draft/selected-results.json`, 독립 비교는 `proof-commands.json`에 있다.
+Python 3.12.14/Clang, Host d833790, 고정 의존성·Linux/X11/Bubblewrap 환경이다.
+R3 Mutation도 exit 0이며 기존 실제 효과 Assertion으로 한도 누락을 검출한다.
+
+Level 1은 Preset 위젯·오류 계약·RAG 작업 진단, Level 2는 설정/Project/전역 설정·재시작·Host 권한·JSON/
+외부 편집기/Workspace 소비자이다. 승인·예산·효과·Checkpoint·저장/삭제·실행 경계는 계속 확인한다.
+실행 정책·저장 Reader·원자적 경계를 바꾸지 않는 UI 관찰/상태 변경이므로 이번 소단계에서 전체 회귀는
+유예하고 후속 설정 UI 묶음의 Level 3에서 통합한다. Gate47의 동결 소스는 이 후속 변경을 포함하지 않는다.
+소단계 완료를 전체 전수 또는 원격 CI 완료로 기록하지 않는다. 기존 미완료 공유 소비자 계약은 유지한다.
+
+마감 검사: S1–S7 개별 검토 83, new/stale/outstanding/review error 0; 감사 회귀 16개와 문서 검사 모두 exit 0이다.
+새 observation 타입의 frozen/slots는 Python 클래스 선언 문법으로 각 발생을 개별 검토했다.
+감사 기록을 쓰기 전 시도는 이 네 발생이 미분류여서 차단됐으며 기록 후 같은 검사를 통과했다.
+기록 전 실패 로그도 보존한다. 현황 608파일/미검토 152/미분류 7,509/미완료 공유 계약 18, stale/위반/issues 0이다.

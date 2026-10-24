@@ -20,6 +20,11 @@ class SettingsDrafts:
         self.initial_appearance = asdict(screen.view.theme)
         self.saved_sidebar_width = None
 
+    def reset_for_preset(self, preferences):
+        self.pages.clear()
+        self.screen.clear_page()
+        self.saved_sidebar_width = preferences.optional_sidebar_width
+
     def select_project(self, identifier):
         self.current_project_id = identifier
 

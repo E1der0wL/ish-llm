@@ -137,6 +137,10 @@ class PresetSelection:
     names: list[str]
     selected: str
 
+    @classmethod
+    def from_record(cls, value):
+        return cls(value[cls.names.__name__], value[cls.selected.__name__])
+
     def to_dict(self):
         return asdict(self)
 

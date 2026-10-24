@@ -34,7 +34,7 @@ class ChatProjects:
             self.busy = False
             self.view.progress.finish(token)
             if error is not None:
-                self.view.operation_diagnostics.record(getattr(self.view, "project_id", ""), error)
+                self.view.operation_diagnostics.record_view(self.view, error)
                 self.view.notice = self.view.t(MessageKey.ERROR, error=operation_notice(error, self.view.t))
                 self.selected = getattr(self.view, "project_id", "")
             elif completed:

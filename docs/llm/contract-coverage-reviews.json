@@ -85197,8 +85197,8 @@
   },
   {
     "path": "hub/config/preference_records.py",
-    "sha256": "a3d5e87c4cd5b71b36fcf47f73acff3f2c6d78398065680109ea17e611c522f5",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved.",
+    "sha256": "a7aceebb900cab4e2f342d26d2010f7d706f3f9a3f6c4750d701bbea6f7022fa",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -85214,37 +85214,37 @@
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "ae6eb04e0b947c7e2c93eeedaeb8184e2d0d45ebfe9ef586ec039fac42156ef4",
+        "id": "fdd478e9c7ce6b6c01ff882e8195440b1e50633ddb9f0a87b95bbb0e11497dd3",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "52fc2006cadc03d105805459d2c4d7e91402e1386102f14e97728b951328e579",
+        "id": "7bf79525b57c010fbc16f09c093c3e800860bd1f1838e2e3b7649b554658c29b",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "53446063e79bb5b739305dd55eec2fa9b0eb47da3169ac43b67b6e42be3e00c0",
+        "id": "530b8800d0e964fb41012ba643310e5bb9a4d18a6a03565636efc3c21ab16393",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "7b967e39de95395372b9ceff182e18c3f86eaa4a169ff2bc01a70f2bb1b5cfb9",
+        "id": "92dddc4ea2107b189aed18c8cfc268266dc869a3afe8643b1e4cd7b2fb9c91e9",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "f3fa66b69df9e1b0f712fea2e639a1b27a1c944f80751edd9350173cc89fe29b",
+        "id": "f82d847941dd1c865c32261845226a9274f6b28444bbb24cf6d38780c4cc2d93",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "4f255a66161422fe0a4c7948560c66d1143c38f0bf91f967173c99ecd36f55a2",
+        "id": "1a45b26b835a027ba481232890a1dab63b73d42ef2c9217a082dc797b9f1d878",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
@@ -85261,13 +85261,16 @@
           "hub/config/preferences.py",
           "hub/config/presets.py",
           "hub/config/restart.py",
-          "hub/ui/live.py"
+          "hub/ui/live.py",
+          "hub/ui/settings/drafts.py",
+          "hub/ui/settings/presets.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_coding_skill.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_naming.py",
@@ -85276,6 +85279,7 @@
           "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_question_tools.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_settings.py",
@@ -88299,8 +88303,8 @@
   },
   {
     "path": "hub/config/preset_records.py",
-    "sha256": "2053adeb7ef96c20742836fea42c20dd436c8b25ee1740c52c27839bbcfa3660",
-    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Startup still reads the selected Project template fields directly; UI selection and startup consumers remain explicitly pending.",
+    "sha256": "ac3e70b228a9892e3b502b912b2dac0d19875e139b33799647531e9d7d1b06ba",
+    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Startup still reads the selected Project template fields directly; UI selection and startup consumers remain explicitly pending. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88394,67 +88398,67 @@
         "reason": "Python dataclass slots annotation, not a stored flag or application policy."
       },
       {
-        "id": "81c56c293b37108a25a1d9d4016a3f5d43062d339adf0977368cc5cee1770636",
+        "id": "3369615fa9d0e5cb498c2bd2d8832859c2db094b3a9bd3cb880deb32f67e12ad",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "2358d74861aac80d621da6ff4a41731e0b988ad655a192fb96fe2046e3ea4d3d",
+        "id": "f81ff8f18536c5911f99ddcc5412bf557d0b271682282ce01d873256c2254308",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "d22aaa2aa65be25e0d72e92bf1b815023ee9beb29ba96ccdfec6e3d3f5060bb9",
+        "id": "9142c8a4dd165646082250e350cc224d6716aefee340f46d300d49c43dd32297",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "daa32dfe16d0617c6c3f6b57c3a7039760d10ea4915e1087e4924295b6da8d22",
+        "id": "7d6f66c33dc5cff35607ad1169b98ef0f0e7afc0a1d91c92c00caa9dedc8115d",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "9706c52fcbf124e7bec34891245a5997ddb55024df23e469e2ee8fb9a5422794",
+        "id": "5474b8842c4b8acceeef92e2f18942a8ed783767bf0fbe4d6fc50ca573d916de",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "79c6dd31720be3114f63bd38b695d70d3f5a8c30269d5c48057f41f2a92892ba",
+        "id": "4d9f4bbb60b89c7d777c1c44ce170db8b5a3efbcad5ffaa3a809f5cde77c4e91",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "a69735ed9561bdc0608aff3dc36c6dbdccef6d4eef48f189ebb0d37bbcff9920",
+        "id": "d05d253175269feda431f10da5d70d3fe4bbe48e9a6b21c0267aa5a1e776b4f0",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "440eae8574749451077007443acf14c6aba0bda2f62167759ca697c81bf8b5bc",
+        "id": "285c4569761582cfbede880e0025841404c16d9f21c9dc395d024bc8e3c2b23a",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "eea7901f805e165207f56be2b3d180074faa7f950ce6ba435fb44e480017b567",
+        "id": "0d5d056672b08630e79871491117a420c4dc4e3bbb0cdcb2835d6d344d3a3c29",
         "classification": "declaration",
         "owner": "PresetName",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "3c8fbfd4077c98a7f0f254bddce80c8c48ca314ca61844521381e616514eba0c",
+        "id": "baf0d170a5a141b7c69e09a4205262d9bb75fd63207361abe6ec58a13f5bdea3",
         "classification": "declaration",
         "owner": "PresetName",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "2fc5c9e8a738d11055bef25c23dc294540c573d78b426ff69c3300b207144ba3",
+        "id": "266c7a335e06e3064c39001b3c1e63cc49e37aa82fd04693dfde0e5f8ae00614",
         "classification": "declaration",
         "owner": "PresetName",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
@@ -88469,14 +88473,17 @@
           "hub/backend/project/presets.py",
           "hub/backend/project/settings.py",
           "hub/config/presets.py",
+          "hub/ui/settings/drafts.py",
           "hub/ui/settings/presets.py"
         ],
         "tests": [
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_locale_keys.py",
           "tests/hub/test_naming.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -88504,8 +88511,8 @@
   },
   {
     "path": "hub/backend/project/settings_contracts.py",
-    "sha256": "9baf7a871c0580c6a8d0c7756945bf59a9faa3649cef8d3de2cce34328f62ce0",
-    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure.",
+    "sha256": "f5284157b068231a5111139c607c767f0181c95df7b27d9a4c9071eee40cf226",
+    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88695,40 +88702,64 @@
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "240bc678e2f8de450f72a9f22ac55a3aa2cc2ec5815706108bd2041ce1d941b4",
+        "id": "8b6f11e9e50df8c7e2b52bdd5b9e4f721ccaa475ab189f2aa2a66a84510d88e6",
         "classification": "non_contract",
         "owner": "SettingsBatch",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "e2197978db2d2386de3c8730d113668bfff738d5dc184feee1c37176ec2da98a",
+        "id": "004c7f7770febe7593aaeceb1d939a8c47b4efe2d2c4cb285c974377019c99af",
         "classification": "non_contract",
         "owner": "SettingsBatch",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "e800a254d9e3a57d0e96447e36c2828739805a2389cbf0d8c3fb6ae013241b72",
+        "id": "07d9dde2fe25ac93393032820c2e49b8ca7613055b3130d29973200034369201",
         "classification": "declaration",
         "owner": "SettingsBatch",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "2180cc7852019fd8f28fcdb7400d4976023e62c1ec67221d03117cbb77597399",
+        "id": "2632cef0e960f1e5c1b31e169371c9839b30802333ec48989345954f08c99fdc",
         "classification": "declaration",
         "owner": "SettingsBatch",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "0ccb84ab6e6fcd938fa58a8b9bd3b73be07b2ab36d722078ae4fed7d1e3b71a4",
+        "id": "17fdbbbdd71f41bf9157987cc5344870dca835727fbab19c57feb7ed68affb01",
         "classification": "non_contract",
         "owner": "PresetApplication",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "d4e7b957a9f201581048c34724653b140b29fff0eb23c8e21a36b982ba5e25e2",
+        "id": "1ac9e9da52e49d0ebe48c11d0ef491008ee4f50705c93b2873e23defa1982528",
         "classification": "non_contract",
         "owner": "PresetApplication",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
+      },
+      {
+        "id": "d830c376c36df3a10fe7fd8628b1049db70a2cf6cecf5646225feb024c3cb5b1",
+        "classification": "non_contract",
+        "owner": "SettingsCatalogObservation",
+        "reason": "This occurrence is the Python dataclass frozen declaration on the observation type; it carries no serialized field, policy or execution value."
+      },
+      {
+        "id": "e8df84476cf5df71e71b21bb65e51e1063723cf8b884b1fe23635d9ca1626ba1",
+        "classification": "non_contract",
+        "owner": "SettingsCatalogObservation",
+        "reason": "This occurrence is the Python dataclass slots declaration on the observation type; it chooses instance layout, not a domain literal in an implementation body."
+      },
+      {
+        "id": "fe12aef814d223df32c9004b51356cb094decbc321482f5427e9790968fea1c2",
+        "classification": "non_contract",
+        "owner": "PresetApplicationObservation",
+        "reason": "This occurrence is the Python dataclass frozen declaration on the observation type; it carries no serialized field, policy or execution value."
+      },
+      {
+        "id": "409182e21e0321245046c9306d5729ef83736f8e2f9b3b580624a0f6c91b1a01",
+        "classification": "non_contract",
+        "owner": "PresetApplicationObservation",
+        "reason": "This occurrence is the Python dataclass slots declaration on the observation type; it chooses instance layout, not a domain literal in an implementation body."
       }
     ],
     "contracts": [
@@ -88736,32 +88767,62 @@
         "owner": "SettingsOperation / SettingsDispatch / SettingsResponse projections",
         "declaration": "hub/backend/project/settings_contracts.py",
         "consumers": [
-          "hub/backend/project/settings.py",
           "hub/backend/project/presets.py",
-          "hub/ui/settings/screen.py",
+          "hub/backend/project/settings.py",
+          "hub/ui/chat/projects.py",
           "hub/ui/settings/drafts.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
-          "hub/ui/chat/projects.py"
+          "hub/ui/settings/screen.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
+          "tests/hub/test_naming.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_stores.py",
           "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_observation_values.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_declarations.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": false
+      },
+      {
+        "owner": "PresetApplicationObservation / SettingsCatalogObservation",
+        "declaration": "hub/backend/project/settings_contracts.py",
+        "consumers": [
+          "hub/ui/settings/presets.py"
+        ],
+        "tests": [
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings_restart.py",
           "tests/hub/test_project_authority.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_naming.py",
-          "tests/llm/test_usage_ownership.py",
-          "tests/llm/test_usage_declarations.py",
-          "tests/llm/test_observation_values.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",
@@ -88770,7 +88831,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -89105,6 +89166,195 @@
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/settings/presets.py",
+    "sha256": "d274ca23592a2a4daac4b127f1503649c783cc60d83d5d13171889ba74b24135",
+    "reason": "Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1affbca85d4a2b10f590e9954aa9e0b2f1b1c40aff5dd6b4bc2d43ec62e6f95f",
+        "classification": "declaration",
+        "owner": "PresetEditorDraft",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "5a92ed64d7c5a9199b52ed0af6c03314b0327b060d26bf261eb5516080b2d2ea",
+        "classification": "declaration",
+        "owner": "PresetEditorDraft",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "13092e9616d61acaa247586c9e0f9629951e81475affe03d880e5107e3b277af",
+        "classification": "declaration",
+        "owner": "PresetEditorDraft",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "ec2b372aa78aa9c7dbe3ef6e882485adb1bc26778c1fa9ff2e42b616b4897948",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "e403de2be54130528cfa07bcc5fd83d5aa887a34f0a141abd092c53a6a4b494f",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "dc71ccac82761cf7e5eee50ed7bfa1950756fb0639ba8b01efe4dbeafdfeeeed",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "1abee47cd608a4ba71483afd9225eb062b46531a3c56470c54a6a6ac0998f9a4",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "65297605aa1b285096417fd081ab2bbfdaf21fd61f19c776536936b98f988137",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "e726c8d743150b59761a5ba6b32cd10e0c1d353e63b85755d892f7e79ca374b9",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "ed44372aab809e4e5a6df6d5951b2d8ce6faa820d7f0ea2fce64e1ae7767d6c5",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      },
+      {
+        "id": "1e79210d6a470097526405ec2c674333ca5ad9acd027c820811ebca1bf09c951",
+        "classification": "declaration",
+        "owner": "PresetUI",
+        "reason": "Selection, load state, add/export choice and edit button width are declared at their UI Owners. Backend operation names, borrowed selection/application responses and required preferences are consumed through their canonical Owner APIs. Draft text, editing and error are typed state, not an ad hoc mapping."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PresetUI / PresetEditorDraft",
+        "declaration": "hub/ui/settings/presets.py",
+        "consumers": [
+          "hub/widget/profile.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/operation_diagnostics.py",
+    "sha256": "0f89c79c1390a9560338ff7113624937171976ba20f8374b929ab0dcc578bec4",
+    "reason": "Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ec4c94a1d5df1abd703c21ed5c2e76e8d3c4d4865e668a66482e19686b67099d",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      },
+      {
+        "id": "369b6b7edf8360446154fb10df9e161e435fc6f9a1254fc3f1f17018f2ca2979",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      },
+      {
+        "id": "29e05a911bdde8934627f7d647fdfeed578c633476b5e19f7b1e1e4fac921629",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      },
+      {
+        "id": "793e4575f2988572b9b0c044990ffbb280569832ebec1173787d77116afca695",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      },
+      {
+        "id": "ff0e3c59ca360bdd3d1b7d6dd49b39700b2c4d21b7d27d128ae87ba59f979bbe",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      },
+      {
+        "id": "0015e2aad0906e2118c911d99a05fbb7e4cc5be1ee073eff7a6f05efa8b5b5cc",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      },
+      {
+        "id": "e3fb037a9cf88d28e32a19f572f8cee0d714e52ac174f5b2f2a6692178ade709",
+        "classification": "declaration",
+        "owner": "OperationDiagnostics",
+        "reason": "The process-local diagnostic buffer owns capacity, project provenance fallback, detail clipping and separators. JSON presentation uses the canonical draft format flags while preserving diagnostic default=str. The original tuple records and ErrorInfo identity remain unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OperationDiagnostics",
+        "declaration": "hub/ui/operation_diagnostics.py",
+        "consumers": [
+          "hub/ui/settings/presets.py",
+          "hub/ui/settings/screen.py",
+          "hub/ui/chat/projects.py",
+          "hub/ui/live.py",
+          "hub/ui/chat/history_ui.py"
+        ],
+        "tests": [
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_operation_integrity.py",

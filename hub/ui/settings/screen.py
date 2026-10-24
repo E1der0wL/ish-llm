@@ -27,6 +27,8 @@ from ...widget.content_inset import ContentInset
 
 
 class SettingsScreen:
+    NO_PAGE = None
+
     def __init__(self, view):
         self.view, self.t = view, view.t
         self.navigation = SettingsNavigation(self)
@@ -82,6 +84,9 @@ class SettingsScreen:
         self.layout.main_region.on_click = self.layout.focus_main
         self.container = self.layout.container
         self._sidebar()
+
+    def clear_page(self):
+        self.page = self.NO_PAGE
 
     def main_width(self):
         return max(1, self.view._columns() - self.view.sidebar_width() - 1)
@@ -256,7 +261,7 @@ class SettingsScreen:
         from ..error_presentation import operation_notice
         from ...errors.adapters import from_exception
         info = from_exception(error, operation="settings", validation=isinstance(error, (ValueError, TypeError)))
-        self.view.operation_diagnostics.record(getattr(self.view, "project_id", ""), info)
+        self.view.operation_diagnostics.record_view(self.view, info)
         self.status = self.t(MessageKey.ERROR, error=operation_notice(error if isinstance(error, str) else info, self.t))
         get_app().invalidate()
 
