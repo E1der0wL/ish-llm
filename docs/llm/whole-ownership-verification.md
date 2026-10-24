@@ -6337,3 +6337,60 @@ LLM/Hub를 반복하지 않았으며 상위 또는 원격 완료를 뜻하지 �
 계약을 보존했고 단일 choice의 첫 원소 조회를 정확한 occurrence의 순수 list 연산으로 분류했다.
 나머지 Protocol의 Ellipsis/반환형 None 외에는 구현부 리터럴이 없다. 이 분류와 집중 검증은
 Gate41 또는 전체 llm 완료를 대체하지 않는다.
+
+
+## 게이트 40 정확한 SHA 원격 검증 완료
+
+`f46dbd35cd27c49c501b7b9e2b44014e36145dac`의 GitHub Actions
+[40081410762](https://github.com/E1der0wL/ish-llm/actions/runs/40081410762)를 2026-10-24
+10:08 UTC에 실제 확인했다. `check-ci.py f46dbd35cd27c49c501b7b9e2b44014e36145dac
+whole-owners-group40-l3` exit 0, verified=true다. 정확한 head SHA, 필수 contracts(llm/hub)
+두 Job 및 환경·문서·정적·전체 회귀·R3·실제 SDK probe·증거 보존 step의 success를 확인했다.
+원격 LLM 2492/2492/2492, 2030.306248초; Hub 588/588/588, 1473.409125초다.
+Python3.12.14/GCC13.3.0이며 전체 scope, failure/error/skip/xfail/xpass/누락/추가/중복 0이다.
+이 증거는 f46dbd3의 Graph 게이트에만 적용하며 이후 Loop·Provider 커밋으로 승계하지 않는다.
+
+## llm Provider 진단·로깅·SDK 초기화 Owner — Level 1·2
+
+기준 ef780db. ProviderDiagnostics/RequestDiagnostics/ErrorDiagnostics/FailureObservation과
+SDKError·SDKMappingMessage·관측 전용 Tool ID Projection을 연결했다. SDKRuntime과
+ProviderLogPaths/Logging/LogSource/LoggingStatus/LibraryLog/LogRecord/ExceptionRecord가
+초기화·로그 모양/경로·출처·예외 위치의 정규 선언/Writer를 소유한다. SDK import/lock·실제 I/O,
+ContextVar scope·복사된 관찰자 전달·오류 격리 순서는 기존 runtime에 남는다.
+SDKError의 header/body/request ID 조회를 공통화하고 RetryAfter도 같은 header protocol 이름을
+참조한다. SDK module identity는 SDKOperation에 한 번 선언하고 기존 retry 위치는 참조한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/provider-runtime-draft/ast-proof.py`
+및 같은 경로 `values-proof.py` 각각 exit 0. 기존 runtime와 공유 Owner의 전체 함수 84개를
+정규 Writer/Projection으로 전개해 비교했다. 요청 상세 385·오류 상세 245·설정 검증 168,
+옵션 조회 순서 2·오류 property 조회 순서 2, 실패 관측 168·traceback 28·관측 자체 장애 1,
+출처 24·신뢰된 로그/라이브러리 로그/안전한 LogRecord 각각 3·경로 2를 이전 구현/독립 기대값과
+비교했다. 오류 타입은 상세 조회보다 먼저, frame의 file/line/function은 기존 순서대로 읽는다.
+보조 AST 전개에서 생긴 body=body 반환 연결과 dataclass 필드 순서는 명시적으로 처리했으며
+제품의 기존 assertion·오류/취소 결과는 변경하지 않았다.
+
+- `whole-provider-runtime-l1-01`: discovered/started/pass 79/79/79, exit 0, 19.83336초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-runtime-l1-01/llm.json --modules tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_provider_choices tests.llm.test_provider_transport tests.llm.test_retry`. source `1265ddf24bb91899c97040e72c54056369794cb38261cc3f4d058112d97ca94f`, input `36a5b2ca219a17759c6d7dd7eab7849ffbb92403b8052c2f84c4f20d1a64986a`.
+
+- `whole-provider-runtime-l2-01`: discovered/started/pass 73/73/73, exit 0, 30.982769초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-runtime-l2-01/llm.json --modules tests.llm.test_common_provider_acceptance tests.llm.test_completion_integrity tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage`. source `1265ddf24bb91899c97040e72c54056369794cb38261cc3f4d058112d97ca94f`, input `36a5b2ca219a17759c6d7dd7eab7849ffbb92403b8052c2f84c4f20d1a64986a`.
+
+- `whole-provider-runtime-hub-01`: discovered/started/pass 21/21/21, exit 0, 87.350498초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-provider-runtime-hub-01/hub.json --modules tests.hub.test_provider_activity tests.hub.test_backend_diagnostics tests.hub.test_error_contract`. source `1265ddf24bb91899c97040e72c54056369794cb38261cc3f4d058112d97ca94f`, input `36a5b2ca219a17759c6d7dd7eab7849ffbb92403b8052c2f84c4f20d1a64986a`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치.
+전후 및 실행 간 source/input, Python3.12.14/Clang·의존성·Fixture·전체 발견 목록·Host d833790·
+namespace/X11 환경이 같고 L1/L2 LLM ID는 중복되지 않는다. R3
+`python -m tests.llm.check_budget_mutation` exit 0으로 실제 효과 Assertion에 의한 결함 검출을
+유지했다. 원래 tests/llm·tests/hub 시험과 Assertion은 변경하지 않았다.
+
+직접 영향 범위는 SDK 초기화/실제 HTTP, Provider/Run/Step 진단·usage 관측과 Hub 활동/오류 조회다.
+실제 파일 쓰기 장애·원본 파일 보존·후속 쓰기 복구, 동시 scope/import·로그/observer 장애,
+원본 실패·취소 보존, 숨은 SDK retry 0과 명시 SDK/client 정책, 승인·예산·실제 효과·Checkpoint·
+삭제/저장·RAG 원본 무결성을 확인했다. 상세 문자열 opt-in과 수집 시점, SDK 초기화가 실행
+정책을 만들지 않는 계약도 유지한다. 관련 Loop·Provider 묶음의 **Gate41 전체 Level 3**에서
+현재 통합 상태를 검증한다. 이 소단계는 상위/원격 완료가 아니며 전체 회귀를 별도 반복하지
+않았다. 남은 litellm 스트림/decoder 소비자와 llm 전수 작업을 계속한다.
+
+종료 정적 S1–S7·감사 16개(3.378초)·문서 검사 각각 exit 0. 기존 S5 표준
+`FileHandler.handleError` 예외는 변경된 AST 식별자에 재연결했고 S3 2개를 해소했다.
+정적 발견 86, new/stale 0; 문서 168·Python fence 183·링크 1242·anchor 37, 오류 0.
+전수 inventory는 577개 파일, 미검토 225(llm 48/Hub 177), 미분류 12743,
+미완 계약 5이며 stale/확정 위반/도구 issues 0이다. 전수 완료는 아직 아니다.

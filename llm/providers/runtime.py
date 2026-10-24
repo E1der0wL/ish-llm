@@ -11,6 +11,22 @@ import logging
 import os
 import threading
 from dataclasses import dataclass
+from typing import ClassVar
+from llm.core.model_protocol import ModelRole
+from .request_values import ModelParameters, LiteLLMParameters
+from .response_values import SDKMessage, SDKMappingMessage
+from .error_values import SDKError
+from .wire_codec import SDKToolCodec
+from .runtime_values import (
+    SDKRuntime,
+    ProviderLogPaths,
+    ProviderLogging,
+    ProviderLogSource,
+    ProviderLoggingStatus,
+    ProviderLibraryLog,
+    ProviderLogRecord,
+    ProviderExceptionRecord,
+)
 from collections.abc import Mapping
 from functools import lru_cache
 from importlib.metadata import version, PackageNotFoundError
@@ -27,7 +43,7 @@ _options = ContextVar("provider_log_options", default=None)
 _lock = threading.RLock()
 _handler = None
 _sdk = None
-_names = ("LiteLLM", "LiteLLM Router", "LiteLLM Proxy", "httpx", "httpcore", "dotenv", "py.warnings", "llm.provider")
+_names = ProviderLogging.NAMES
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,16 +55,25 @@ class ProviderDiagnostics:
     max_detail_chars는 명시했을 때만 개별 상세 문자열을 자른다. 원본 요청/응답은 저장하지 않는다.
     """
 
+    UNSPECIFIED: ClassVar[None] = None
+    SELECTED: ClassVar[bool] = True
+    MINIMUM_DETAIL_CHARS: ClassVar[int] = 1
+    INVALID_FLAGS: ClassVar[str] = "Provider diagnostic flags must be boolean or None"
+    INVALID_LIMIT: ClassVar[str] = "max_detail_chars must be a positive integer"
+    INVALID_INSTANCE: ClassVar[str] = "diagnostics must be ProviderDiagnostics"
+
     error_details: bool | None = None
     request_summary: bool | None = None
     max_detail_chars: int | None = None
 
     def __post_init__(self):
         for value in (self.error_details, self.request_summary):
-            if value is not None and type(value) is not bool:
-                raise TypeError("Provider diagnostic flags must be boolean or None")
-        if self.max_detail_chars is not None and (type(self.max_detail_chars) is not int or self.max_detail_chars < 1):
-            raise ValueError("max_detail_chars must be a positive integer")
+            if value is not self.UNSPECIFIED and type(value) is not bool:
+                raise TypeError(self.INVALID_FLAGS)
+        if self.max_detail_chars is not self.UNSPECIFIED and (
+            type(self.max_detail_chars) is not int or self.max_detail_chars < self.MINIMUM_DETAIL_CHARS
+        ):
+            raise ValueError(self.INVALID_LIMIT)
 
 
 @contextmanager
@@ -62,10 +87,10 @@ def diagnostic_context(**source):
         _source.reset(token)
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=SDKRuntime.VERSION_CACHE_SIZE)
 def _sdk_versions():
     result = {}
-    for name in ("litellm", "openai"):
+    for name in SDKRuntime.PACKAGES:
         try:
             result[name] = version(name)
         except PackageNotFoundError:
@@ -73,65 +98,149 @@ def _sdk_versions():
     return result
 
 
+class ProviderRequestDiagnostics:
+    MODEL = ModelParameters.MODEL
+    ENDPOINT = "endpoint"
+    VALID_OBJECT = "valid_object"
+    ROLE = SDKMessage.ROLE
+    CONTENT_TYPE = "content_type"
+    CONTENT_CHARS = "content_chars"
+    CONTENT_PARTS = "content_parts"
+    TOOL_CALLS = SDKMessage.TOOL_CALLS
+    REQUEST_SUMMARY = "request_summary"
+    MESSAGES = LiteLLMParameters.MESSAGES
+    MESSAGE_COUNT = "message_count"
+    TOOL_COUNT = "tool_count"
+    UNRESOLVED_CALLS = "unresolved_tool_calls"
+    UNMATCHED_RESULTS = "unmatched_tool_results"
+    DUPLICATE_CALL_IDS = "duplicate_tool_call_ids"
+    OUT_OF_ORDER = "out_of_order_messages"
+    LEGACY_FUNCTION_ROLE = "function"
+    RECOGNIZED_ROLES = (
+        ModelRole.SYSTEM.value,
+        ModelRole.DEVELOPER.value,
+        ModelRole.USER.value,
+        ModelRole.ASSISTANT.value,
+        ModelRole.TOOL.value,
+        LEGACY_FUNCTION_ROLE,
+    )
+    UNKNOWN_ROLE = "unknown"
+    TEXT = "text"
+    PARTS = "parts"
+    NULL_CONTENT = "null"
+    INVALID_CONTENT = "invalid"
+    EMPTY_URL_PART = ""
+    IPV6_SEPARATOR = ":"
+    IPV6_HOST = "[{host}]"
+    PORT = ":{port}"
+    INITIAL_COUNT = 0
+    COUNT_INCREMENT = 1
+    INVALID_OBJECT = False
+
+    @classmethod
+    def read(cls, request):
+        """진단용 구조 요약. 값/Tool 이름/ID/본문/인증 헤더는 복사하지 않는다."""
+        result = {}
+        if isinstance(ModelParameters(request).optional_model, str):
+            result[cls.MODEL] = ModelParameters(request).model
+        options = _options.get()
+        if options is ProviderDiagnostics.UNSPECIFIED:
+            return result
+        if options.error_details is ProviderDiagnostics.SELECTED and isinstance(
+            LiteLLMParameters(request).optional_api_base, str
+        ):
+            try:
+                url = urlsplit(LiteLLMParameters(request).api_base)
+                # 사용자 정보/query/fragment는 endpoint identity에 포함하지 않는다.
+                host = url.hostname or cls.EMPTY_URL_PART
+                if cls.IPV6_SEPARATOR in host:
+                    host = cls.IPV6_HOST.format(host=host)
+                result[cls.ENDPOINT] = urlunsplit(
+                    (
+                        url.scheme,
+                        host + (cls.PORT.format(port=url.port) if url.port else cls.EMPTY_URL_PART),
+                        url.path,
+                        cls.EMPTY_URL_PART,
+                        cls.EMPTY_URL_PART,
+                    )
+                )
+            except ValueError:
+                pass
+        if options.request_summary is not ProviderDiagnostics.SELECTED:
+            return result
+        messages = LiteLLMParameters(request).optional_messages
+        if not isinstance(messages, (list, tuple)):
+            return result
+        rows, pending, seen, duplicates, unmatched, out_of_order = (
+            [],
+            set(),
+            set(),
+            cls.INITIAL_COUNT,
+            cls.INITIAL_COUNT,
+            cls.INITIAL_COUNT,
+        )
+        for message in messages:
+            if not isinstance(message, Mapping):
+                rows.append({cls.VALID_OBJECT: cls.INVALID_OBJECT})
+                continue
+            role = SDKMappingMessage(message).role
+            content = SDKMappingMessage(message).content
+            calls = SDKMappingMessage(message).tool_calls
+            row = {
+                cls.ROLE: role if role in cls.RECOGNIZED_ROLES else cls.UNKNOWN_ROLE,
+                cls.CONTENT_TYPE: (
+                    cls.TEXT
+                    if isinstance(content, str)
+                    else (
+                        cls.PARTS
+                        if isinstance(content, list)
+                        else (
+                            cls.NULL_CONTENT
+                            if content is ProviderDiagnostics.UNSPECIFIED
+                            else cls.INVALID_CONTENT
+                        )
+                    )
+                ),
+            }
+            if isinstance(content, str):
+                row[cls.CONTENT_CHARS] = len(content)
+            if isinstance(content, list):
+                row[cls.CONTENT_PARTS] = len(content)
+            if pending and role != ModelRole.TOOL.value:
+                out_of_order += cls.COUNT_INCREMENT
+            if isinstance(calls, list):
+                row[cls.TOOL_CALLS] = len(calls)
+                for call in calls:
+                    key = SDKToolCodec.observed_identifier(call)
+                    if isinstance(key, str) and key:
+                        duplicates += int(key in seen)
+                        seen.add(key)
+                        pending.add(key)
+            if role == ModelRole.TOOL.value:
+                key = SDKMappingMessage(message).result_call_id
+                if isinstance(key, str) and key in pending:
+                    pending.remove(key)
+                else:
+                    unmatched += cls.COUNT_INCREMENT
+            rows.append(row)
+        result[cls.REQUEST_SUMMARY] = {
+            cls.MESSAGES: rows,
+            cls.MESSAGE_COUNT: len(rows),
+            cls.TOOL_COUNT: (
+                len(LiteLLMParameters(request).tools)
+                if isinstance(LiteLLMParameters(request).optional_tools, (list, tuple))
+                else cls.INITIAL_COUNT
+            ),
+            cls.UNRESOLVED_CALLS: len(pending),
+            cls.UNMATCHED_RESULTS: unmatched,
+            cls.DUPLICATE_CALL_IDS: duplicates,
+            cls.OUT_OF_ORDER: out_of_order,
+        }
+        return result
+
+
 def _request_details(request):
-    """진단용 구조 요약. 값/Tool 이름/ID/본문/인증 헤더는 복사하지 않는다."""
-    result = {}
-    if isinstance(request.get("model"), str):
-        result["model"] = request["model"]
-    options = _options.get()
-    if options is None:
-        return result
-    if options.error_details is True and isinstance(request.get("api_base"), str):
-        try:
-            url = urlsplit(request["api_base"])
-            # 사용자 정보/query/fragment는 endpoint identity에 포함하지 않는다.
-            host = url.hostname or ""
-            if ":" in host:
-                host = f"[{host}]"
-            result["endpoint"] = urlunsplit((url.scheme, host + (f":{url.port}" if url.port else ""), url.path, "", ""))
-        except ValueError:
-            pass
-    if options.request_summary is not True:
-        return result
-    messages = request.get("messages")
-    if not isinstance(messages, (list, tuple)):
-        return result
-    rows, pending, seen, duplicates, unmatched, out_of_order = [], set(), set(), 0, 0, 0
-    for message in messages:
-        if not isinstance(message, Mapping):
-            rows.append({"valid_object": False})
-            continue
-        role = message.get("role")
-        content = message.get("content")
-        calls = message.get("tool_calls")
-        row = {"role": role if role in ("system", "developer", "user", "assistant", "tool", "function") else "unknown",
-               "content_type": "text" if isinstance(content, str) else "parts" if isinstance(content, list) else "null" if content is None else "invalid"}
-        if isinstance(content, str):
-            row["content_chars"] = len(content)
-        if isinstance(content, list):
-            row["content_parts"] = len(content)
-        if pending and role != "tool":
-            out_of_order += 1
-        if isinstance(calls, list):
-            row["tool_calls"] = len(calls)
-            for call in calls:
-                key = call.get("id") if isinstance(call, Mapping) else None
-                if isinstance(key, str) and key:
-                    duplicates += int(key in seen)
-                    seen.add(key)
-                    pending.add(key)
-        if role == "tool":
-            key = message.get("tool_call_id")
-            if isinstance(key, str) and key in pending:
-                pending.remove(key)
-            else:
-                unmatched += 1
-        rows.append(row)
-    result["request_summary"] = {"messages": rows, "message_count": len(rows),
-        "tool_count": len(request["tools"]) if isinstance(request.get("tools"), (list, tuple)) else 0,
-        "unresolved_tool_calls": len(pending), "unmatched_tool_results": unmatched,
-        "duplicate_tool_call_ids": duplicates, "out_of_order_messages": out_of_order}
-    return result
+    return ProviderRequestDiagnostics.read(request)
 
 
 def request_details(request):
@@ -142,46 +251,64 @@ def request_details(request):
         return {}
 
 
-def _error_details(error):
-    """서버가 제공한 식별자만 기본 기록하고 상세 오류 문자열은 opt-in으로 수집한다."""
-    result = {}
-    response = getattr(error, "response", None)
-    headers = getattr(response, "headers", None) or getattr(error, "headers", None)
-    request_id = getattr(error, "request_id", None)
-    if isinstance(request_id, str):
-        result["request_id"] = request_id
-    elif hasattr(headers, "items"):
-        for key, value in headers.items():
-            if str(key).lower() in ("x-request-id", "request-id", "x-amzn-requestid") and isinstance(value, str):
-                result["request_id"] = value
-                break
-    options = _options.get()
-    if options is None or options.error_details is not True:
+class ProviderErrorDiagnostics:
+    REQUEST_ID = SDKError.REQUEST_ID
+    REQUEST_ID_HEADERS = ("x-request-id", "request-id", "x-amzn-requestid")
+    PROVIDER_ERROR = "provider_error"
+
+    @classmethod
+    def read(cls, error):
+        """서버가 제공한 식별자만 기본 기록하고 상세 오류 문자열은 opt-in으로 수집한다."""
+        result = {}
+        headers = SDKError(error).headers
+        request_id = SDKError(error).request_id
+        if isinstance(request_id, str):
+            result[cls.REQUEST_ID] = request_id
+        elif hasattr(headers, SDKError.HEADER_ITEMS):
+            for key, value in headers.items():
+                if str(key).lower() in cls.REQUEST_ID_HEADERS and isinstance(value, str):
+                    result[cls.REQUEST_ID] = value
+                    break
+        options = _options.get()
+        if (
+            options is ProviderDiagnostics.UNSPECIFIED
+            or options.error_details is not ProviderDiagnostics.SELECTED
+        ):
+            return result
+        body = SDKError(error).body
+        detail = {}
+        for key in SDKError.DETAIL_FIELDS:
+            value = body.get(key) if isinstance(body, Mapping) else ProviderDiagnostics.UNSPECIFIED
+            if isinstance(value, str):
+                detail[key] = (
+                    value[: options.max_detail_chars]
+                    if options.max_detail_chars is not ProviderDiagnostics.UNSPECIFIED
+                    else value
+                )
+        if SDKError.MESSAGE not in detail:
+            value = str(error)
+            detail[SDKError.MESSAGE] = (
+                value[: options.max_detail_chars]
+                if options.max_detail_chars is not ProviderDiagnostics.UNSPECIFIED
+                else value
+            )
+        result[cls.PROVIDER_ERROR] = detail
         return result
-    body = getattr(error, "body", None)
-    if isinstance(body, Mapping) and isinstance(body.get("error"), Mapping):
-        body = body["error"]
-    detail = {}
-    for key in ("message", "type", "code", "param"):
-        value = body.get(key) if isinstance(body, Mapping) else None
-        if isinstance(value, str):
-            detail[key] = value[:options.max_detail_chars] if options.max_detail_chars is not None else value
-    if "message" not in detail:
-        value = str(error)
-        detail["message"] = value[:options.max_detail_chars] if options.max_detail_chars is not None else value
-    result["provider_error"] = detail
-    return result
+
+
+def _error_details(error):
+    return ProviderErrorDiagnostics.read(error)
 
 
 class _FileHandler(logging.FileHandler):
     def __init__(self, path, owner):
         self.owner = owner
         # Provider diagnostics are append-only; retention belongs to the Application.
-        super().__init__(path, encoding="utf-8")
+        super().__init__(path, encoding=ProviderLogPaths.ENCODING)
 
     def handleError(self, record):
         # 디스크 장애에서도 logging 자체의 traceback을 TUI에 내보내지 않는다.
-        self.owner.failed_writes += 1
+        self.owner.failed_writes += ProviderLogging.FAILURE_INCREMENT
 
 
 class _DiagnosticsHandler(logging.Handler):
@@ -191,76 +318,101 @@ class _DiagnosticsHandler(logging.Handler):
         super().__init__()
         self.files = OrderedDict()
         self.file_lock = threading.RLock()
-        self.failed_writes = 0
+        self.failed_writes = ProviderLogging.INITIAL_FAILURES
 
     def emit(self, record):
-        directory = _directory.get() or Path.home() / ".ish" / "llm-provider-logs"
+        directory = _directory.get() or ProviderLogPaths.default()
         # SDK import 중 다른 스레드의 로그와 lock 순서가 뒤집히지 않게 별도 잠금을 쓴다.
         with self.file_lock:
-            path = directory / f"providers-{os.getpid()}.log"
+            path = ProviderLogPaths.process(directory)
             if path not in self.files:
-                if len(self.files) >= 16:
-                    _, previous = self.files.popitem(last=False)
+                if len(self.files) >= ProviderLogging.MAX_OPEN_DESTINATIONS:
+                    _, previous = self.files.popitem(last=ProviderLogging.EVICT_NEWEST)
                     previous.close()
                 try:
-                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.parent.mkdir(
+                        parents=ProviderLogPaths.CREATE_PARENTS, exist_ok=ProviderLogPaths.EXIST_OK
+                    )
                     handler = _FileHandler(path, self)
                 except OSError:
-                    self.failed_writes += 1
+                    self.failed_writes += ProviderLogging.FAILURE_INCREMENT
                     return
-                handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+                handler.setFormatter(logging.Formatter(ProviderLogging.FORMAT))
                 self.files[path] = handler
             self.files.move_to_end(path)
             # SDK 원문/traceback/args를 전달하지 않는다. 신뢰한 진단도 이 모듈에서만 생성한다.
-            payload = getattr(record, "provider_diagnostic", None) if record.name == "llm.provider" else None
-            if payload is None:
-                payload = {"code": "provider_library_log", "logger": record.name,
-                           "module": record.module, "line": record.lineno, "level": record.levelname}
-            safe = logging.LogRecord(record.name, record.levelno, "", 0, json.dumps(payload, ensure_ascii=False), (), None)
+            payload = ProviderLogRecord.trusted_payload(record)
+            if payload is ProviderLogRecord.UNSPECIFIED:
+                payload = ProviderLibraryLog.from_record(record).to_dict()
+            safe = ProviderLogRecord.safe(record, payload)
             self.files[path].emit(safe)
 
 
 def logging_status():
     """로그 저장소 장애 관찰. 실패 카운터는 진단이며 도메인 저장 성공을 뜻하지 않는다."""
-    return {"failed_writes": _handler.failed_writes if _handler is not None else 0}
+    return ProviderLoggingStatus(
+        _handler.failed_writes
+        if _handler is not ProviderLogging.UNSPECIFIED
+        else ProviderLogging.INITIAL_FAILURES
+    ).to_dict()
 
 
-def configure_logging(workspace=None, *, refresh=False):
+def configure_logging(workspace=ProviderLogging.UNSPECIFIED, *, refresh=ProviderLogging.KEEP_CONFIGURATION):
     """현재 실행 문맥의 진단 목적지. 다른 workspace의 비동기 작업과 분리한다."""
     global _handler
-    if workspace is not None:
-        _directory.set(Path(workspace).absolute() / "logs")
+    if workspace is not ProviderLogging.UNSPECIFIED:
+        _directory.set(ProviderLogPaths.workspace(workspace))
     # 느린 최초 SDK import가 같은 lock을 소유해도 이벤트 루프의 진단은 대기하지 않는다.
-    if _handler is not None and not refresh:
+    if _handler is not ProviderLogging.UNSPECIFIED and not refresh:
         return
     with _lock:
-        if _handler is not None and not refresh:
+        if _handler is not ProviderLogging.UNSPECIFIED and not refresh:
             return
-        if _handler is None:
+        if _handler is ProviderLogging.UNSPECIFIED:
             _handler = _DiagnosticsHandler()
         names = set(_names)
-        names.update(name for name in logging.Logger.manager.loggerDict
-                     if any(name.startswith(prefix + ".") for prefix in _names))
+        names.update(
+            name
+            for name in logging.Logger.manager.loggerDict
+            if any(name.startswith(prefix + ProviderLogging.LOGGER_SEPARATOR) for prefix in _names)
+        )
         for name in names:
             logger = logging.getLogger(name)
             logger.handlers[:] = [_handler]
-            logger.setLevel(logging.INFO if name == "llm.provider" else logging.WARNING)
-            logger.propagate = False
-        logging.captureWarnings(True)
+            logger.setLevel(logging.INFO if name == ProviderLogging.LOGGER else logging.WARNING)
+            logger.propagate = ProviderLogging.PROPAGATE
+        logging.captureWarnings(ProviderLogging.CAPTURE_WARNINGS)
 
 
 @contextmanager
-def logging_scope(workspace, *, project_id=None, session_id=None, run_id=None, engine=None, diagnostics=None):
+def logging_scope(
+    workspace,
+    *,
+    project_id=ProviderLogSource.UNSPECIFIED,
+    session_id=ProviderLogSource.UNSPECIFIED,
+    run_id=ProviderLogSource.UNSPECIFIED,
+    engine=ProviderLogSource.UNSPECIFIED,
+    diagnostics=ProviderDiagnostics.UNSPECIFIED,
+):
     """동시에 사용하는 백엔드가 서로의 로그 경로를 덮어쓰지 않게 한다."""
-    directory = Path(workspace).absolute() / "logs"
+    directory = ProviderLogPaths.workspace(workspace)
     same_workspace = _directory.get() == directory
-    if diagnostics is not None and not isinstance(diagnostics, ProviderDiagnostics):
-        raise TypeError("diagnostics must be ProviderDiagnostics")
+    if diagnostics is not ProviderDiagnostics.UNSPECIFIED and not isinstance(
+        diagnostics, ProviderDiagnostics
+    ):
+        raise TypeError(ProviderDiagnostics.INVALID_INSTANCE)
     token = _directory.set(directory)
-    option_token = _options.set(diagnostics if diagnostics is not None else _options.get() if same_workspace else None)
-    source_token = _source.set({**(_source.get() or {} if same_workspace else {}), **{key: value for key, value in (
-        ("project_id", project_id), ("session_id", session_id), ("run_id", run_id),
-        ("engine", engine)) if value is not None}})
+    option_token = _options.set(
+        diagnostics
+        if diagnostics is not ProviderDiagnostics.UNSPECIFIED
+        else _options.get() if same_workspace else ProviderDiagnostics.UNSPECIFIED
+    )
+    source_token = _source.set(
+        {
+            **(_source.get() or {} if same_workspace else {}),
+            **ProviderLogSource(project_id, session_id, run_id, engine).to_dict(),
+        }
+    )
     try:
         configure_logging()
         yield
@@ -275,21 +427,20 @@ def litellm_sdk():
     global _sdk
     with _lock:
         # 초기화의 외부 비용표 fetch를 격리한다. 추론 옵션/Project 설정 기본값이 아니다.
-        os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        os.environ["DEFAULT_MAX_RETRIES"] = "0"
-        if _sdk is None:
-            configure_logging(refresh=True)
+        SDKRuntime.prepare_environment()
+        if _sdk is SDKRuntime.UNSPECIFIED:
+            configure_logging(refresh=ProviderLogging.REFRESH)
             try:
-                _sdk = importlib.import_module("litellm")
+                _sdk = importlib.import_module(SDKRuntime.MODULE)
             except Exception as error:
-                diagnostic_failure(error, operation="initialize", stage="sdk_import")
+                diagnostic_failure(error, operation=SDKRuntime.INITIALIZE, stage=SDKRuntime.SDK_IMPORT)
                 raise
             # Host owns the terminal: SDK help banners must not corrupt its input UI.
-            _sdk.suppress_debug_info = True
-            configure_logging(refresh=True)
+            SDKRuntime.silence_banners(_sdk)
+            configure_logging(refresh=ProviderLogging.REFRESH)
         # LiteLLM의 `max_retries or DEFAULT_MAX_RETRIES` 호환성 규칙.
         # 외부 코드가 전역값을 변경한 경우에도 호출 진입 시 복구한다.
-        _sdk.DEFAULT_MAX_RETRIES = 0
+        SDKRuntime.reset_unselected_retries(_sdk)
         return _sdk
 
 
@@ -297,14 +448,16 @@ def litellm_sdk():
 def diagnostic_scope(callback):
     """동기 callback은 UI/보고서 수집용이다. 예외가 실행 결과를 바꾸지 않게 한다."""
     previous = _observer.get()
+
     def observe(event):
         for handler in (callback, previous):
-            if handler is not None:
+            if handler is not ProviderLogging.UNSPECIFIED:
                 try:
                     # Observation must not rewrite evidence used by recovery.
                     handler(type(event).from_dict(event.to_dict()))
                 except Exception:
                     pass
+
     token = _observer.set(observe)
     try:
         yield
@@ -314,22 +467,60 @@ def diagnostic_scope(callback):
 
 def diagnostic(code, *, severity=DiagnosticSeverity.INFO.value, **details):
     from llm.core.contracts import Diagnostic
-    event = Diagnostic(code, ProviderDiagnosticText.describe(code), severity=severity,
-                       details={**(_source.get() or {}), **details})
+
+    event = Diagnostic(
+        code,
+        ProviderDiagnosticText.describe(code),
+        severity=severity,
+        details={**(_source.get() or {}), **details},
+    )
     try:
         configure_logging()
-        logging.getLogger("llm.provider").log(getattr(logging, severity.upper()), event.message,
-                                             extra={"provider_diagnostic": event.to_dict()})
+        logging.getLogger(ProviderLogging.LOGGER).log(
+            getattr(logging, severity.upper()), event.message, extra=ProviderLogRecord.extra(event)
+        )
     except Exception:
-        if _handler is not None:
-            _handler.failed_writes += 1
+        if _handler is not ProviderLogging.UNSPECIFIED:
+            _handler.failed_writes += ProviderLogging.FAILURE_INCREMENT
     callback = _observer.get()
-    if callback is not None:
+    if callback is not ProviderLogging.UNSPECIFIED:
         try:
             callback(event)  # diagnostic_scope supplies a separate copy to each observer.
         except Exception:
             pass
     return event
+
+
+class ProviderFailureObservation:
+    BAD_REQUEST = 400
+    BOUNDARY = "provider"
+    MODULE_SEPARATOR = "."
+    UNSPECIFIED = None
+    HTTP_NOT_SEEN = False
+    HTTP_SEEN = True
+    PARAMETER_TERMS = ("unsupported parameter", "unknown parameter", "unrecognized request argument")
+    CONTEXT_TERMS = (
+        "context_length_exceeded",
+        "maximum context length",
+        "context length exceeded",
+        "context window exceeded",
+        "exceeds the context",
+        "exceeds context",
+        "context window limit",
+        "too many tokens",
+        "prompt is too long",
+    )
+
+    @classmethod
+    def request_reason(cls, error):
+        body = SDKError(error).body
+        message = SDKError.body_message(body)
+        text = (message if isinstance(message, str) else str(error)).lower()
+        return (
+            ErrorReason.PARAMETER
+            if any(term in text for term in cls.PARAMETER_TERMS)
+            else ErrorReason.CONTEXT if any(term in text for term in cls.CONTEXT_TERMS) else cls.UNSPECIFIED
+        )
 
 
 def diagnostic_failure(error, *, operation, stage, **details):
@@ -342,51 +533,56 @@ def diagnostic_failure(error, *, operation, stage, **details):
     try:
         from llm.errors import exception_chain
         from .requests import error_code
+
         chain = []
-        request_failure = None
-        http_seen = False
+        request_failure = ProviderFailureObservation.UNSPECIFIED
+        http_seen = ProviderFailureObservation.HTTP_NOT_SEEN
         for current in exception_chain(error):
-            entry = {"type": f"{type(current).__module__}.{type(current).__qualname__}", "frames": [],
-                     **_error_details(current)}
-            status = getattr(current, "status_code", None)
+            type_name = ProviderExceptionRecord.type_name(current)
+            entry = ProviderExceptionRecord.create(type_name, _error_details(current))
+            status = SDKError(current).status
             if type(status) is int:
-                entry["status_code"] = status
-                if not http_seen and status == 400:
+                ProviderExceptionRecord.http_status(entry, status)
+                if not http_seen and status == ProviderFailureObservation.BAD_REQUEST:
                     # Interpret only this cause, even when detailed logging is disabled.
-                    body = getattr(current, "body", None)
-                    if isinstance(body, Mapping) and isinstance(body.get("error"), Mapping):
-                        body = body["error"]
-                    message = body.get("message") if isinstance(body, Mapping) else None
-                    text = (message if isinstance(message, str) else str(current)).lower()
-                    reason = (ErrorReason.PARAMETER if any(term in text for term in (
-                        "unsupported parameter", "unknown parameter", "unrecognized request argument")) else
-                        ErrorReason.CONTEXT if any(term in text for term in (
-                        "context_length_exceeded", "maximum context length", "context length exceeded",
-                        "context window exceeded", "exceeds the context", "exceeds context",
-                        "context window limit", "too many tokens", "prompt is too long")) else None)
+                    reason = ProviderFailureObservation.request_reason(current)
                     if reason:
                         request_failure = ProviderRequestFailure(reason, len(chain), status)
-                http_seen = True
+                http_seen = ProviderFailureObservation.HTTP_SEEN
             if isinstance(current, OSError) and type(current.errno) is int:
-                entry["errno"] = current.errno
-            if isinstance(current, AttributeError) and isinstance(current.name, str) and current.name.isidentifier():
-                entry["attribute"] = current.name
+                ProviderExceptionRecord.os_error(entry, current.errno)
+            if (
+                isinstance(current, AttributeError)
+                and isinstance(current.name, str)
+                and current.name.isidentifier()
+            ):
+                ProviderExceptionRecord.attribute(entry, current.name)
             if isinstance(current, ImportError) and isinstance(current.name, str):
                 # ImportError.name은 Python import identity다. args/message/path는 기록하지 않는다.
-                if all(part.isidentifier() for part in current.name.split(".")):
-                    entry["module"] = current.name
+                if all(
+                    part.isidentifier()
+                    for part in current.name.split(ProviderFailureObservation.MODULE_SEPARATOR)
+                ):
+                    ProviderExceptionRecord.module(entry, current.name)
             trace = current.__traceback__
-            while trace is not None:
+            while trace is not ProviderFailureObservation.UNSPECIFIED:
                 code = trace.tb_frame.f_code
-                entry["frames"].append({"file": code.co_filename, "line": trace.tb_lineno,
-                                        "function": code.co_name})
+                ProviderExceptionRecord.frame(entry, code.co_filename, trace.tb_lineno, code.co_name)
                 trace = trace.tb_next
             chain.append(entry)
-        return diagnostic(error_code(error), severity=DiagnosticSeverity.ERROR.value, operation=operation, boundary="provider",
-                          **(request_failure.details() if request_failure else {}),
-                          stage=stage, exceptions=chain, sdk_versions=_sdk_versions(), **details)
+        return diagnostic(
+            error_code(error),
+            severity=DiagnosticSeverity.ERROR.value,
+            operation=operation,
+            boundary=ProviderFailureObservation.BOUNDARY,
+            **(request_failure.details() if request_failure else {}),
+            stage=stage,
+            exceptions=chain,
+            sdk_versions=_sdk_versions(),
+            **details,
+        )
     except Exception:
         # 파일/observer/예외 객체가 고장나도 원래 실패와 cleanup 순서를 보존한다.
-        if _handler is not None:
-            _handler.failed_writes += 1
-        return None
+        if _handler is not ProviderLogging.UNSPECIFIED:
+            _handler.failed_writes += ProviderLogging.FAILURE_INCREMENT
+        return ProviderFailureObservation.UNSPECIFIED

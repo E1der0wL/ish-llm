@@ -65276,18 +65276,12 @@
   },
   {
     "path": "llm/providers/retry.py",
-    "sha256": "50a632a67b43e24857352a8075c05926108de4f67e5cf1915f04666f248d3e67",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "sha256": "6e8308fb54d68614745f10fe0b8e19147a15fa29cbf0900f5c9d5bfb9ad9927f",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "2759a9b19985e0f54513816738524fc4238aee368796fb6936ea0c1aff8bb055",
-        "classification": "declaration",
-        "owner": "RetryAfter",
-        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
-      },
-      {
-        "id": "95041911ebf6f03552e3a3d16622b7edea1d7b691d3a6ab1411c13115b4043ed",
         "classification": "declaration",
         "owner": "RetryAfter",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -65310,9 +65304,10 @@
         "owner": "RetryAfter / RetryPolicy delegation",
         "declaration": "llm/providers/retry.py",
         "consumers": [
-          "llm/providers/requests.py",
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
+          "llm/providers/requests.py",
+          "llm/providers/runtime.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -65334,6 +65329,7 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
@@ -65540,288 +65536,288 @@
   },
   {
     "path": "llm/providers/request_values.py",
-    "sha256": "bb96dd9a658b3db783b0661ce50cf778a3e2343173577488d1321a404c5de5b2",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved.",
+    "sha256": "64513704deb7847204234e5b1b53c5fcb7014684d2eb2bac8ddf6335536081be",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "031e3b326f223f0e2cb4f6985151f66204e352ba63509b13b0955edb8e38b427",
+        "id": "4890f4b214a0f0339d81f23be80a91bc1ac230ccbf5d936fe772e9c6c7bb3cc0",
+        "classification": "declaration",
+        "owner": "SDKOperation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "33211b901872770e950b9c20f666408f3f2700c296eff28843571b5e821609a2",
         "classification": "declaration",
         "owner": "SDKOperation",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "87945390e7736d3ee698d61764bfc7b0035398a088980e5cd9f0aeeba10b4d1f",
+        "id": "a220769a99863ea53ad7fc07c46988c18da9063e4618490cace26d1e6c155410",
         "classification": "declaration",
         "owner": "SDKOperation",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "5470de5cdff84b1cb88c6f4c3d73b3a529f03d21895b168d879c3aaeada37853",
+        "id": "d69821fe8891be350b2a3e029b235a8cd7130c195f1e453c344aa34759f3b10e",
         "classification": "declaration",
         "owner": "SDKOperation",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "c954c80d7ef8aae016997645d3925de979b32942027cd392dca6ad74f7f5c387",
+        "id": "b8a2a412c28f396f6a86865d6743b9a3567a2ac4b81faa086dae5e880fe793c9",
         "classification": "declaration",
         "owner": "SDKOperation",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "db987ed354a7a3aeb5d5091055bae96d12970bc453feae7eba119610bea81a94",
+        "id": "002f07fe26f2b077c467e8d2cdd3cfb04bf925707c2afd432023a6ddd4cb4752",
         "classification": "declaration",
         "owner": "ModelParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "eca8f62f8a02ba516e6ae592cb1cbc1c2e96f728bf84a5337d27218e3a118d75",
+        "id": "31ecb46410e144b806bf23f55e51b348b2ca728cac48e943a326423ad7be3fa0",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "1dac0d09028687c2aa186468722976eb573dece2b0ec895aa9c1b6d65aabd128",
+        "id": "e68d8e649725902601647d9f2b04d2df25f88b312e090775deaacabaf1dd60d5",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "f077b55ff3a66972892bc48e58168ee7f693428ecf2320cf08241453901bff26",
+        "id": "3e40ebe8ff24e28651895328630ce5ca41068d663f4e04a6015bc20bf2c81066",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "28d04c6998d648e0e6671e3b124f70902433f602b15b2baf959c80842c423b95",
+        "id": "404f2f66299f2d666dda3cbd756a996ca0ab94cb0ec93a5fdbbcecfa6d436552",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "2df8bb1ba90d8518c1ce640d76e2f3086579b533564b47fdbfb804d1faf3d049",
+        "id": "be37ea3d62f5f7ab02118e4c7e16689e394cb54028272d05254d21d878437564",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "1eecf1ec0a0a723444c8a63e8f0ef59e1e0d4e9b925e253c2a06a58e06ed4e0f",
+        "id": "ba5bb4f2124e8cd2cc93e13d514b1bbd02280929e548b6352a3d88a4ef7becd1",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "6a6c0c58fdf9679be7ea90b6b5a204b7d0be0af6ccaa709a41a0cb74c05ef398",
+        "id": "075730a53d5f49d13c8968f7c02e4590cc90fb04185d75aef72784e2aba025a4",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "d3578353e5bc35b687a564708c9bc6ed2a3862aa60961b841495ae2b2188fb69",
+        "id": "63722d1d800161f5e954661c8ef1c00c273d6ef02e2016e23f1705f3b32ba04c",
         "classification": "declaration",
         "owner": "SDKRetryParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "c6e632f6b4d6b222ef6d1500f377314f4353506a9b0c06cf233b221afc9d6582",
-        "classification": "declaration",
-        "owner": "SDKRetryParameters",
-        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
-      },
-      {
-        "id": "ad4f1fb8fb3b63f220e7c14db605cb09c1d1baaea60d87930df7d005c92e9b7e",
+        "id": "452cd0abe4efbe63457abe08fd554c47d18a79773721454bdff817a314daac12",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "a867361f9b7594a6ce1a3346a1dcfffa5ffbd7fbe04b6016f18b3165d6699cdf",
+        "id": "5d41eb6b3045001c8d092e1d81320236973338a9735c364799c24084f268f272",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2c31d8dc44227b2f1abcc7944a5a94b3692fd1797243bbe991b8bc10936494d5",
+        "id": "4fc61d98925f4d2d90f696dfe7c91cfcad203ac5b64e0690bb2f0b2fe40e193d",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "3335a549347a12b1a0c7feee0755e359ffe08675af0f3390059943410ca4d37f",
+        "id": "15630c3880580c9005e2671b2c94fbd314377e42de6078dcda89ea2040323e05",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "6fd3b848529e901cdabbd434f1f912e320ed0874f7534e43a724514e38382868",
+        "id": "53784e5b1411f5916b61a709b77f6bdfe391c7c7e892a8c08b033f68c189fa7f",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "df94d7d75601988d86550c89ad0b5671d5f8df3ff47d1406c44e3f2a743e8fc6",
+        "id": "4e6c85879c7f003c9c1dc868e5cb8bfed3c8ea19aefd1807d40d4b26fedc43a7",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "df4aea9280e83aff5389f821f8505f7733270cb4ae077671570c6772b773eb43",
+        "id": "fd9c1dcd453bbb7a4c51ac2aec6eb265b32b8eb2f7adb698c221c1013d5d5c90",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "606bba23e1cd9318bc12c454ccbf60078fc8beb1cd19c7e22e7dfed298b22fa9",
+        "id": "3f0e529a430a10b10faf6c7ea5ef8e8a63b87125f630a2e29d5a61413ef2ba15",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "53ac4ad5ca8f934c2747b403a7646c2b12138bcc819eebdaa0c855f5b29c94a4",
+        "id": "ae4e1978e2b759321796f444034ad7a76ce83ad669f87dcfb024408388908a8e",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "e908c8061b89cb44d84bf14fe3608bd0f708f01b89c4e04c38e00b40a202edc5",
+        "id": "93f41d04bb34fd2b20ce3f87e4226e773385b8e39433bd70a3668c3d7098fa93",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "cfe9aadf60822b33b4f5ebf5f73e05155e27224fd4360d061630338d4b735d0c",
+        "id": "e6ee16e0593279d80cc1d24f8683e37e51a05c17ab1d4f9510a30638a2a43fda",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "faffdcff5f7001f0a82674adebbacb4b3ac41f8c02f4ff562f05ef18fdd10902",
+        "id": "2c27fcd8b3c097577a483ed89867eddb42dd61dd72fd4fb1d4174dd7ba046457",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "472488423ed53457b2235c4c57e077cde63942a2eddcf8fa407a7d356ebdf955",
+        "id": "3aa3531e61aa7bd04dbbba0e42ba077a68fc20cfa0798eeeb0a712841114193c",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "55d725d5e921152d8b40957ba3fadb82d2b7d4ea5c1450024973802a33524e9a",
+        "id": "f8c378fb0455a99bf6f9900164a7c671664f704879da7b4a27c24829d55e04f5",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "81cd3b8c77465f906f3cdddf7678aca3adafdd1834b46048a3dfc26bc3e64421",
+        "id": "41523deccb281305d2cf7376efa28b7de295beb9427a5886bd4d3eabcfc25c33",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "6202c1847e08ce35baf79b7298d3f03321a1ebfef09c3111c40f23092bfac5f6",
+        "id": "c3fbdd52b97f1aba831ff6f18f6b5019ca4d80509d1b144424308d179f74a8dd",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "851a5431bacb082e49b6ba7458ecd13a7fb3507571f582db59c4e76d5cf4b0f5",
+        "id": "ca613e1165b1719f23fc953788f1d7de4f7c17b517af6b66c33ebbdccc5113c3",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "3f6c3076387c3701251378795e69e5ad4fe99baa2c5e871ae93c26590526f3c5",
+        "id": "d8fc2956d4043bed9b5a05982f253107f9202237f1f3fe28a977286544bd6b40",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "9dfc8a154ce78a7447022f43932a23f1ab774dd3218305cb24d4dea8e9052f21",
+        "id": "9e0e01222f18d6fdcab765e905e7773dd0b472e8c19d563992483edc80b68be2",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "f62f12c380d0e5a23fdd6132701b0af13f2efa3984295e84cb1560624f9aebad",
+        "id": "6ff497cd3103beedd48be35d0a0b0e1e7877ec5e376f493236cdbd0ada824332",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a9a2fc7802164e7a6331ea341088aca739cc6784a344e1ceafbbcd61f3c6db79",
+        "id": "0f5f5d26f7d2e1c1467939cdfb2b5d9aa176db7d6f34cde30b10e6cbf00f181e",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d8ec85bff6f994ee55daf92b0ff13fc8afbdb9da3d920afc571ad96a8d371abc",
+        "id": "697a8a50ffe3ae97ebb1b366fab544a94780b298632d4fa1847f83964e83b7c4",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "672f0037edb2333c29b63ca19ca8020a480e7a711a0cd57253b7ae4a37900c6e",
+        "id": "12239b0bb74af4851beb13c5c9481f8a5a9fe902f83d11105a31595248887186",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cc9b3ef96bb46dc7852f1cb76aa71e0d7bfc580666c606a0b783e5f911c91d34",
+        "id": "fc7c2711885640c85309a7555d8cb64c024916363e1b26323a33637f0a17af09",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2173df8ea037870bdc0ac1c78e92996cca2516e0d53aa1cc47404be8d9b67e2a",
+        "id": "625fc4d867abec11f20ddb91fb0ff30c2287d8c8a4849a96609038b76aed7cd2",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3bfaae8d039064ac8b8b15009045badbe3a73c2c973aa136a5099ce19f4af6e4",
+        "id": "3af1c182a70e1e89232d8620bbc37324b2aebdcdc73c38f7f035ba2c6c9622e5",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "551fb3d3e9327a99ccbe5b5e9a4453ada37370a342546e2ac6456aa32947a1c6",
+        "id": "64eee30cac4d319531b91e7dd4c21a7ea8af86e087faaf2dc9c3efc985ff761e",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4ee48c6cbb4001b975a864011820d52e8100b1d20351128e5dde5528cb940e53",
+        "id": "fcf5e649a90c5087c0f061423770c0b3a47f8aed7c99ed643acc1529dd855e1e",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f4d4af9db999ee8d655e85689d2898cc0dc4bbf66a7e106826fc2dfe50578bc2",
+        "id": "d04fa4badd1cd6d1306b231bdccc2d8591d5320fbc41e7be40485fffab9b986a",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6f96435472307525294b594060c062caa9e492f557aa858092aee2d2caa11c1d",
+        "id": "72d5aaf9e2710fb54cd5ec68d02d3c0136f15c8e6331237cb14ffb231cda22a4",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b68b975a1ec9bb562785cdaa4b28110d8e38ca2b4e9b82d45fd01e1bc6638444",
+        "id": "aa3e37a1c6262f075b315838acad1f0ff0308d9e62e7280ff93dfe26d14fee1b",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "357de7b5edddd75211347c8490c1ae41e0311688965a44762293a853780e5263",
+        "id": "ddb35e567261df99401fd19a917d23a0087e3b1f2976446feca2ce30d7831d28",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "41ce93d6442b9e578f00abcd50274cab10175b26a08ae2e0f5f7e4039dd3e8b2",
+        "id": "66e4fed392b66cea8d3944b609861f46ca888472e27f491bc6f166a2d4e4556b",
         "classification": "declaration",
         "owner": "EmbeddingParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -65835,6 +65831,7 @@
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
           "llm/providers/requests.py",
+          "llm/providers/runtime.py",
           "llm/providers/wire_codec.py",
           "llm/services/runtime/runs.py"
         ],
@@ -65921,30 +65918,72 @@
   },
   {
     "path": "llm/providers/error_values.py",
-    "sha256": "c633f201d9a90e938e22bb05b18f7e0587ed6b6c80e8b2fa881d30982c93fe01",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "sha256": "2d04cfb333cedfd61f39a949657cb4c762e5486dd840a9b70dd52d5f6b28955c",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "79428a590ed686aeaa7b0cbbb0f4cc48cd1f503ed4b31cc88109d2f2226ea5bd",
+        "id": "4e2271f7928edde2cb695cb95ef753f4d988fe45d3c991abf0d9c175c62dbedd",
         "classification": "declaration",
         "owner": "SDKError",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "8aa0fe9faae1416a5ee995696027d27743bfd2e86bf8a5f6f2fd062503cb1341",
+        "id": "b3fed265af4873534751c8efab896924f36ded7c63393d1d99fdc76ac993ac52",
         "classification": "declaration",
         "owner": "SDKError",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "2a983ab0a26392ff8e909d466ac2ec7b61a2f428103b220135c0fb7d190251e5",
+        "id": "650f1729ff60bdd983c2a9ee3118a5597457d085e4f7e4f8ce3255039ed0e27f",
         "classification": "declaration",
         "owner": "SDKError",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "7d8d864fbe233860537b3bc0e53a1d1c55f27970c8c8d4b856e90c4aa87c9638",
+        "id": "a06c5e25578a1995163f8a787762d84427d24163911eda41bc6ec9550174112f",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "97628f0535ac711980bc416bb6eee9fede7492e33800adebbf65b0d462c26a8e",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5b79565e07718e95f1c96efa698a5a3d512a79c1d5d049c6701948fe23923393",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d7c499a5e450111b0708d9b9b115519ad627129ae9c7510a2dcee4e1d4034bd6",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9574ffad7d4adb7d03679087b0b73ea7d3c6fa617e9537711928cf32aaa12f97",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c222c045cb7fbf2e6a2013d8fabe04c48557c85f1d174d2499ded38183e1202b",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fa74eb45df4ae50419debdd70778993aef0392411876aac514ab2294c7935860",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ff1f203a19350a7578254533e62f4a629b9c71cf7a4f6b40583c26e8931092ac",
         "classification": "declaration",
         "owner": "SDKError",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -65955,9 +65994,10 @@
         "owner": "SDKError",
         "declaration": "llm/providers/error_values.py",
         "consumers": [
-          "llm/providers/requests.py",
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
+          "llm/providers/requests.py",
+          "llm/providers/runtime.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -65979,6 +66019,7 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
@@ -66011,19 +66052,20 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "llm/providers/response_values.py",
-    "sha256": "a79de869747c323a918ce921378744dc6addc3451c7d62f7112da0cc84702d82",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved.",
+    "sha256": "4e97d05ca6b448a0d3ec5399a5b7c3b97b6a6be1dc535027314d577120e98d56",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -66063,97 +66105,97 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "35cc042087e28b7c8d3c1b8bb5e0ed808e0e9c8a0093b8668acbb803df37c3ed",
+        "id": "d92b9c3d8dafc1ac246373f18561d7dbbd2b0892f961414fe791df69158d9a28",
         "classification": "declaration",
         "owner": "SDKOperationResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0a77867b60bf042ba7994a1043694145386cfc32f28c33b8465a8a07e5e40d80",
+        "id": "80e469656fa9ab3ffbec92332a6d5a291befdcf96fde70c7193c688e7a897896",
         "classification": "declaration",
         "owner": "SDKOperationResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8dc66d8b1e548ac1bc5b902007fad0e5784b3fd4d78874a0e50b1664a162314f",
+        "id": "71453d242cd9bc90d0553f4b7c23bec866597fecdf0a63030eaeb08dfeb3c859",
         "classification": "declaration",
         "owner": "SDKOperationResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8894ab48cafc143de44d6575ffc3ca05c7210a86df7799ae8abf2c86a7f226a4",
+        "id": "4d9f42cbd37604efae02681377f46f162f05d715e0d4c335879271a02bb28a0e",
         "classification": "declaration",
         "owner": "SDKOperationResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f95290e2ed8118543bd5b4908570710b6c4e1eb7ac5600ff0e961b42ebb72474",
+        "id": "69b3705062c26c0d9c07b87813a2c867476eb831418a4a1d232b6cae98426c30",
         "classification": "declaration",
         "owner": "SDKOperationResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8a1ba93121efffeca8a3ffd2f9eefbbf5681313d1ae6e800203b44bc7157eb51",
+        "id": "a8aedf5b9e683b779bc7701a9d8c59e018dd5c4f2fc91e0b444bb9937308d39d",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "217cfc1702f23451543cc5151459c57b87896f8041c6411c0582b097824a5784",
+        "id": "74f2982001fbf2233895a194713d40250a5e2b37263a5b3fdd0fe31689507a48",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "22f0904183bcb99760318eda67012d60533b6122d0d1f9724203cca16b98a30b",
+        "id": "616cd3023a5dcec2f47f505057b0b79c955ef8649a2b666c69b1bab3df6dd308",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b171470006a6facd94e1fe0bd82b98b4ecfdff04106ea21a11a2b24aca290dcd",
+        "id": "9c0fc37efa415af1257244adcdfbef834ab4d1ea564d6357f4bc9c0d4515db31",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "04fcac9bca338518a011ffeef3827fa87305802f28792155ed6bcde8b31ad5db",
+        "id": "158a88e5fcb0a050594763e1f693b314affb14f2f7942afe7e9efbd7e48a2157",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fa097f7b3b1cd25b7ae756d402d57ce7f304d1e0640de0c60bb2e8db0ddcaf72",
+        "id": "ec3fe35237f99368a13e3d6d26b5ce35fdd76624c85f3ddf3040babaccc584b2",
         "classification": "non_contract",
         "owner": "SDKCompletionResponse.to_model_response",
         "reason": "First element after requiring exactly one SDK completion choice; pure ordered-list projection, not default evidence or a configured limit."
       },
       {
-        "id": "6212052b47c2004955fef3a2515855c18c28ab9ea151f255b54199c3adaba07a",
+        "id": "be1b8651aeda9e2bad8827650fbfc8ba5375693076ed5ae144ab48644ba41813",
         "classification": "declaration",
         "owner": "SDKRerankResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "07299f69d11320bc3e88ea8b3ee01e5f0da1b985bda7f53a821b278a5488af92",
+        "id": "e4d80ca90d30c271619d4b3328e8341e22eae98a4ad8942b1b993636564d3585",
         "classification": "declaration",
         "owner": "SDKRerankResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8b30b036dcf49b5883dc3563e4399bce60de33c86e32c9be05ba39e614292925",
+        "id": "89778d971d01e6563ae669a9d28b408aa0a661a482e814685494725a560606e3",
         "classification": "declaration",
         "owner": "SDKRerankResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "895e7c4155ea2dc736b8297bcb607604ae5dc4fc62a0a29fd2ac69334afdc75d",
+        "id": "465decc584aa5b68402cd88e3c5a3f5d59ef55ebce71f5d3b4a9f66d9b98d8e0",
         "classification": "declaration",
         "owner": "SDKRerankResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "130de4f3bff824bae92a4b2bb097faf0a9630ac542da00a68cbd44ff2e71e176",
+        "id": "303884ac9d7ad1940cd32955c8b07fabe5787386652b69fa39a7775976644593",
         "classification": "declaration",
         "owner": "SDKRerankResponse",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -66167,6 +66209,7 @@
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
           "llm/providers/requests.py",
+          "llm/providers/runtime.py",
           "llm/providers/wire_codec.py",
           "llm/services/runtime/runs.py"
         ],
@@ -66211,6 +66254,7 @@
         "consumers": [
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
+          "llm/providers/runtime.py",
           "llm/providers/wire_codec.py"
         ],
         "tests": [
@@ -66252,10 +66296,10 @@
   },
   {
     "path": "llm/providers/README.md",
-    "sha256": "b567a0910703e6eb35f0cfb5a18d37d495d1671ca37739e07f50640459eb10dd",
+    "sha256": "b8fe085ea0098b74c24ff5466afcbe304cf42f4d801b2df5e8da4102e2297e35",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit. Codec Owner map and public single-implementation wrappers were checked; remaining Adapter consumers stay incomplete. Nonstreaming operation Owner/API and actual response normalization responsibilities were checked; remaining direct SDK consumers are explicit.",
+    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit. Codec Owner map and public single-implementation wrappers were checked; remaining Adapter consumers stay incomplete. Nonstreaming operation Owner/API and actual response normalization responsibilities were checked; remaining direct SDK consumers are explicit. Runtime Owner boundaries, actual optional diagnostics/SDK behavior, storage paths and logging callback protocol were checked; superseded pending-consumer notes were replaced by the current litellm remainder.",
     "contracts": [
       {
         "owner": "Provider contract guide",
@@ -66306,8 +66350,8 @@
   },
   {
     "path": "llm/providers/wire_codec.py",
-    "sha256": "1d2abb9dae4f5a5b3c76a8884449abc2d33de0f0761ca74eb3696b73bb218257",
-    "reason": "Whole Codec review covers message/call/result/content-part/Tool definition/request structure, immutable copies and runtime client identity, exact current opaque fields and presence, original Tool argument text with JSON type-sensitive comparison, unknown extensions and anti-injection rules. Existing global function names remain one delegate per canonical implementation. All implementation literals are in Owner declaration heads; no blanket exception.",
+    "sha256": "3c6fa6b65373e4f05a29e5da6aeda626c918454aa8bb2d208a90f897238cc6dd",
+    "reason": "Whole Codec review covers message/call/result/content-part/Tool definition/request structure, immutable copies and runtime client identity, exact current opaque fields and presence, original Tool argument text with JSON type-sensitive comparison, unknown extensions and anti-injection rules. Existing global function names remain one delegate per canonical implementation. All implementation literals are in Owner declaration heads; no blanket exception. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -66587,175 +66631,175 @@
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "aef57c8dd6b33fb28a4873371e130aea46d3f63c729505d626597b8ec2773297",
+        "id": "e1d1c0de55912fd55ff411c8058f6f61ff9dfebcbe78ec9e445173969449f46d",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "40a3479b8dd575334b6c553b27092c922a0c77b4f23dedb469a76bb3161b2df1",
+        "id": "c5767e04ab9dd9550390ff0ed73013808d130f1012adae285369be57944b8621",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "e48b1c346dec4ba5913e0e9b0540da1ed1c201b7779b916be5aa668ab8cf4ab8",
+        "id": "829d653748a80574cf74d9336b5ef56fea7f0de1e4903262d39a5e2c4996a94a",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "7627886eef88c6f551633a73e6aa88ebf28c60bbdcf85f19997279ff2174afa0",
+        "id": "f545de31ab1903ec519d0fe09f90f648bbd902bc69cd37243512165dca5bf7e0",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "13bcd742f80c00cf615d9fa3896ae012cef4fdc5978bd34f6d00e9fc3cd2291f",
+        "id": "47b142c6a126cab68b9a6dd7d6ba927e49e33251a9591564540b76e7829b072e",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "d13fe19424e360e6b4a8b4c05fe94863a1bc95b26470cb296d318a88219b695c",
+        "id": "e612a11a32ce69dc28ee25a2210fc400f73c99b4a20ff557a7ff2b207a9d31f6",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "029ef7cb22c4d231389a7bc62c1bf630144d63ea1d3d9b721d945b88645b88c0",
+        "id": "73f28ef570eb16d8568c18ade0eed825d0ff61696cc91a97b73945e374fe8ee0",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "770e49a9d2896f9886c23e66642dc462dfe516468d0c75a985c4fdab6f7d7810",
+        "id": "4361e3a1f3a804766b3de585634bb9ec58b2ed23a0a7a846522ce0ab0a473e06",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "9aa6a936a7753196a69b4dca9683ca416698f5eb871e247a92d9be9e913e3511",
+        "id": "6532594f9e353a694c64b0482d86add30b658492888519cfa0eb9cd698894211",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "6d07c2a4440582d1ccd1848f21e134cb8f33b14e9c38e0a72c1d9cdd35fbba82",
+        "id": "0b40265eb8046a47a43555c07574271f1d9159bc1684bad3e7a946957d1613bf",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "bd64b2f0d055839b4856a9adaea2a94d3d51f665b4c97d5e070588b16ad2407c",
+        "id": "c3fbc30da33ef998a73b29bdc6f50650053691b6c351ccab829f0ccba79a44ef",
         "classification": "declaration",
         "owner": "SDKContentPartCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "ba539bfa27013de6c06505a1ce2402239e7c34af6a234c79ee1b659ffa94114f",
+        "id": "371debd51032045c9bc25c60822575b9dd93a88c1ba125d6237efd26a34db6ab",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "7748383733e54328ff0643f2da25ff88f84c081cdab04b13cd10224ea72d199b",
+        "id": "be234721e0438b3a46daef42f6322837ac3764123e93074b3869d4d870e3b262",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "334c68f2e04a53deba238aaa42bc18c1239d083f96969798f9f2430bfd8542d9",
+        "id": "67f684f217d43f3d63db79de0cdb1ae337b7ef97ac41237166095c139ba192d1",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "4e3cc8c7cd4bfc6f0f1b1b5db9d517db17a644c38971a7ef5f717132d82bc0dd",
+        "id": "558c010f2cef0757e5f78e9ccb61fa824d51ab68ceded9edb6af62188b024898",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "d683fdfa0b94842316e42ef91b58d560a8d17fee26556801825dc18b017f77f5",
+        "id": "0d8bcdc0cb3b379e9f72f0a5a90aa1670efb56bd53e39f8d8d1fe8e6d93e9eac",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "4d151360f67ccb3c43dbe16eb216347a4f1be9c817ead52d9129792790667d26",
+        "id": "de0d4081b78236ba1a8eb5881a39ed36ca5376c7e5e609c018f17e145541e20c",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "b7414505b12eae9affa58ba37634148b1cd2d3d832d823159b3f5c295ed79511",
+        "id": "80f96e3d561d8255685491f2df54e43fd5cc598d7b9ca95861c587ecbb4101d8",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "62f8c2cb9e020e1ae8ec6189419f4a2619274010a2d3881a637c3f4dda75f662",
+        "id": "5525ea680cbf93f9e9ef4ab65224cb8cf9f0acfb57be8f076a445bbbcaa759ec",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "0b7bdaeee578d5562d84d3460c80f3c98a2ce64e91a4d19267598b4aabd78859",
+        "id": "371a036dfef2b517b80bf2a72cda838518dfa52cfc2d02a65bab0cf59e4839b7",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "d18817d1cd7a2e3cfece62b024dea8180c0d09b3770cba0b9d4f986668ed5b5e",
+        "id": "1606526f8d710466081bfa46a4a66777bcd739d7e8ce729932a7371df5773475",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "8a85e71491e02ebd8d1080f131d8084acdce92867b5da3414a5cb7defb0c8d00",
+        "id": "8bcbf24678a3783c411ebae2fd8b719bb7428f7ffa222b05c7c644b11b3f36fb",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "7fe15c383dc7a81294bf86e07213bbfa08b10ed16666afa8a37f8dea37b72f03",
+        "id": "4bc09638d12c1b59086fb27e10f5e6b5319bfd3d7b18080350fac4cf6045ade7",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "2934dfe4728ade4d101bc797cacd63ebe55d874368b20403b373c93cc06a16ce",
+        "id": "fc684d751f926d50b7ff6aae9aad6a6f690202c0d65ed501717a06c8503d9f27",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "01e90b9bd2ad43242a4dcbe18170378fbe6de575cca12e51506c7afc7dbfcf77",
+        "id": "92b137725f0944ec1a3c856390e6b60c9f14f4bb8f5d11a08e8b9eaa42dfd6ce",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "81da24f3869fb6968775be24eec6c3834d242f24f9756ea5e134c80df56ca90d",
+        "id": "0cd6ccd74ed035b3ad9cfd14b1665c94b7439baffa24b0d4a822820d7b77b09e",
         "classification": "declaration",
         "owner": "SDKMessageCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "8ac84e69567a9a95094eebca7bd0c86a600a637befd171c3c8f68600e869a68b",
+        "id": "958020d80221f84bbe5108e7646f358bcb1f1b66161044244b240703a4988978",
         "classification": "declaration",
         "owner": "SDKRequestCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "aa02de452ff8fc4bf19d26219f4fa708b0b52acd3c0c8db316c61a06ed9eda2a",
+        "id": "43ea7a3a607e5296eddc81495505ec6322cb80d36cc0abaece14a9ed20dfe499",
         "classification": "declaration",
         "owner": "SDKRequestCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
       },
       {
-        "id": "b51fd4472bfa741edb80bee68bb866c21d417ae85bbcf086ab3a9360ce2fa423",
+        "id": "932bdb8cc4eede11ac7597e1366e10ea2a850b6e153ca1881a520cafe913d063",
         "classification": "declaration",
         "owner": "SDKRequestCodec",
         "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
@@ -66767,27 +66811,36 @@
         "declaration": "llm/providers/wire_codec.py",
         "consumers": [
           "llm/providers/litellm.py",
-          "llm/providers/operations.py"
+          "llm/providers/operations.py",
+          "llm/providers/runtime.py"
         ],
         "tests": [
+          "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_stream_output.py",
           "tests/llm/test_base_engine.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_project_policies.py",
+          "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
           "tests/llm/test_provider_runtime.py",
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
-          "tests/llm/test_usage_deletion.py"
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -66953,6 +67006,926 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_vision.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/runtime.py",
+    "sha256": "a69deb219dcb9202647e166ee992f9bca55f475d5699577eb44d9d0cddab938e",
+    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bfed41711487473c669f5fed392902fe50c615b4dc1152673faf71fe8ce477b1",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "f891a360c3006d5c9dfcfbc4e5cb574720acfbfb6ea556f8ac419aa3928d9a24",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "8d7c582092cd41d1478058a601fb48ba0cb79390a870d529a5da22f2e45f39de",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "922f87479dc1a8e7e5d59174b380a06a0cf110f0c0e436937466c3df4dfd5fed",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "9e47bc7956937010d7cd1be002212d3e608ba626ac73ff28321e3e9635ba307c",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "3e7867d1996164d11c2c32eedd5abd3da3d64cc6b1ab67979972550ee0711407",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "74db8b55dee893ddbbc016217ad8aec27b640a803db0c8db3fbe84e3e44e837e",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "44d2c43fb27b4380ce934d5ea9ad5e2c7f6babc9eac0518edefa2b6dc23a9993",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "7f5c604db439640459a3bbf75658ec98cc42e1f8ea9fb31c6b659184b193703a",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c2b5fdf2f2647c820ccdc1fd29220161f96c0f2ab1670d1ec029b9a55949579b",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "062119dc7e6a5428ca8fd889cc810928139e1e54a6e5cf0a301b2f5ce5ff57dc",
+        "classification": "non_contract",
+        "owner": "ProviderDiagnostics",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "a1998da95d08f113416354f110490adc0e494293ae00c03eb8b0ac13b916c044",
+        "classification": "non_contract",
+        "owner": "ProviderDiagnostics",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "26ad2d1d8fefd8ab29af89b2e8527b5d6fc344605466035bc12dda790a5a8106",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "31b1fc219a80577e83f0ed059fd8f90ecc4af60174f9e8319d615748ba2b0c50",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "f9fcbff2c6243c3751612fa9fc33e5ae32b68bb08392458edc4e00a8dced23f1",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "f025097fb612a77121884738e3d167f15bfdb401acd64f59aa0d6e2e417a4078",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "0df9d4f69ff1626e32ee2f565f64e8c74d4cee74c550e045ced0a5ebce9266f9",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "499bc8017442b75f45bfae6495add88a1c716d8c7f254239131576bdabc35f1d",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "a5fcc5e84bda70f028ce86b169241bad1a50597d8398d5111c958ce58fff990e",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "996bae432e69f183b32be54c88386f8c8ace21c19552472867fee1f6400019cb",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "bfe9e8a0ed04393608d61400996861781d10035f83cc6e17b3aceb6a6010eb3b",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "a50be2277e7c88293da18e7dacdff81e7665808b1f0f345672450c47bd4a3c7c",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "697dfab27a9c29a836c082bcf490336438ca496f3420a120c0c24fb7e2756988",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e820ac29de8054daf11664952b00b3c6da2e0fd4eb17a76dcfe9737986f463cf",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "34312bade57190f0db697481e00dec4ed8aef01e873f1c2fc77861065ec5e6f1",
+        "classification": "declaration",
+        "owner": "ProviderDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "a4a5b7b63d28bd32479cbaffb1c690dfb7d8ef86d7f7be2ec8810f02dcf8fcb9",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "9a0c974f54ca6878e67ca2254c3a71b4ddfed03c184103aa98f8631c58e53a55",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "08e8dceeee1f97890f1d55b349ac7ca4d7cd70b7d8a36aacfcbab6390dfece48",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "ab480f460d72264933d68fe28f5b4273d3a30087ef1cdf27b260b3ed68548fea",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "40fa768612328291807715f8efee3d40f9cae84f8a7a36ebad0de479b1248aec",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "71b269619b4f7387e2fb2298313249a0de729e8f502451e82008e00fdbc3e4b7",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d3fa8339f2b84ef88926a916c0649498a0a5f16474f01362879438240ab71149",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "f1cedc84934daf2deff261434f231f0892e802f46f19c3c019ab659d85455d07",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "36f67a425f25bd7b2cded03d70eb03577eb7a82c9c6ccefdcf0b6fe954a773fc",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "ff4f082f48f9f37dbc5f205a3cdd335f8af1ffee71d36f2d30917dfd35cb5675",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "030807e84101055247b50b9f4af08973e8da62816d672cd67435aebb36756e2f",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "6251e162a1fbfc08af901b15078d8d70012d2461b21a20ecb3be020e3d13c54e",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d81559f2055b1aa7fee3e09000281fcdc217bbde69aaa7cc5c30412be6b115c5",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c668c49da9d2a7e5ef7231b7ff5374eec8000b6ae39d310a4245a9313aa1669c",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "caceec91fab1be39323c5f5e5c83f97cbeb7278203c1f221f8866615da54c235",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "4d7a8b432804e310443e3aff39c4e1136af7e78cff5a217e78de54fedab7d168",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c6006deb0317ca6d3c2ef8c0ef1b5375a91f5c88a81f9253da1966e54b09445e",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "ce39fed33dc64858f8a630d2da44cfdefdfa4ad836acdb123af2b340a1390e46",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "05a7586e4c8620a8e21d64984cf76fc787b70cd128dae255512674f8a735123b",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "f4336bf2e29d3ecbd3eb582f38cd4db2cef595ced8375c4e7fb4638d1f9cf579",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "43ef097e2b5ea17c3a3151ddf2d9e413362a20679cd68a3fdf625df7de7d553b",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "0ce9eb8cbcf63ec47bf0e5a1a50349f075122d16ab2bf294258a804c141a01e8",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "6b3d8ed59cbd65d1e2354434cd4e6d78e75b15b0537bfcd17790d4db6ee811c2",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "cc169b4417403a373f48150aa8b82b2406edc5b838b514bc62803f84e9274f19",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "dcfa54349f664b8a3caeaeed52c52c26211959de754cbb261632a6d9ccee089d",
+        "classification": "declaration",
+        "owner": "ProviderRequestDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "3a57e7a92f09e1f83c847d23ad6829109ad3d08ac587e4abc9665fd40f136d00",
+        "classification": "declaration",
+        "owner": "ProviderErrorDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "348b3fe1630457e7767a0c6bc26234931a587648dbb4aa924879fc229f3d1378",
+        "classification": "declaration",
+        "owner": "ProviderErrorDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c4f71303534c6302f5ef5d1ec5160c2ca8fd8db504a0bf5120f4d2b1347a1e2b",
+        "classification": "declaration",
+        "owner": "ProviderErrorDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "089efe1cf765417f492010b4f92cd5a9ca27e3e6019cf2e8b0237c0c740a380f",
+        "classification": "declaration",
+        "owner": "ProviderErrorDiagnostics",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "490190a4b149dcfbb776bf6626bcb97e8ed036bd6ffad777bb7ead81aedffeb4",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "050bc8732618a44e7ad69fdb61c1db3e347304e267db504f6c91e293fbf4fb83",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "1799d7e5070b7a49d4c7dfab29f222f802ec1c750439b788be26bd6e62e733cd",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "b7f3b8287de87c6a3ca88fd13fc6aa838d2114103d0bd70f9c52ff67fd49a6fb",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "507b8fd341cf76b457ef504b287d79d5564e15ff7a288180304ab394a578d0e1",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "6867aeadae64a0463ff5a11a0a2b21485a6e9020f30068b1e34c9e4b0f7e5a80",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d53d676ddd53a03b15cba09af225097b75c0a9fcfaa4e69a39932216b6355893",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "cfedde90fdd4be607c5e6f1f5e280d49e87faf8d9a7fbdeda60cfa9bfd08bb05",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "eb44a3ced80df39265b4cc258e6be955ca3f72b6e1bb15fae37fe9c7dd02afee",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c15e2f7abd070e1cfb2bcbb834ecbe69ed7c5d9af8a045daee6ed23083842e31",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "69378e55cf8692c6511efdffa98c298047c1d2bbd71916cb6c6150e657bd6df0",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e1ed608c4919dffa864d07daaa4ed8342652716ee25702719ec99c926a24d05b",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "29c168a7b01e155c50bc802f697a2bf84d5e22ccfba65ed187b7c94e499aac36",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "044a2090d566f6539e349cb9856041cbc1f7634aded3d4fd715750f49fe4fae8",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "b3941a2ce5c003be461efecfcf44f217c2b8cd26ec426af6a1c3b10e67cb3629",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "502b6a88b4f9ae1db5a3ba595a58fb29121e4f41f1eacf096a7d6131b0bd975a",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "4d00e2cf83d283ab243d3c4169e14226c562d09309b88d97d9a456e885352057",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "fa84dfbd571b01be708571971b16b7bbdc65a8b54c40d246c4183f32353a1694",
+        "classification": "declaration",
+        "owner": "ProviderFailureObservation",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderDiagnostics / ProviderRequestDiagnostics / ProviderErrorDiagnostics / ProviderFailureObservation / logging and SDK coordination",
+        "declaration": "llm/providers/runtime.py",
+        "consumers": [
+          "llm/providers/litellm.py",
+          "llm/providers/requests.py",
+          "llm/services/runtime/runs.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/runtime_values.py",
+    "sha256": "d846611d6d186ed1b1d1e5ad5ecc52f4e496a9b6e4c1430d7cf39e0d1f7281c3",
+    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c70633cf6a40ddd1463514c5038a19e0daabc5d5a4be01fd05f2eb4e535f9e6d",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "8833e049c1999f767e79788f3c570700aa3aa0fe24e6c5cf00ef05f1a0540028",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "796afc817127a35acc170490e84ff978cb4081fd30d601d8470695e0ba0e52fb",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "ac24081f4a024328b4d6bde072026fb539fc5e34a3dce5b61457dc8413d8c05f",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "68fb6b574544b87e88d8f8de005606c780de13422d465c7c3a59f5ea4c289300",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "02b3a9ad618e30a6ed444c6ba48ba6b566ede5510606c54d19f05510139de2e7",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "3c2716ed2b3b2783a315301e8bb7a7815c7fdef6a20bbd67b74ac2ba062cf396",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "14db033c642c3d95d1cfb5365072cced898330f39b77b88c78e9ea1e559ac6d1",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e514aa2b555570e3b60a1e3dd6d1a4d6b03dd3739b58ea4ae6116b2de0f8e087",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "ef7563a6df9dc58756f9325184ac22f62f77a70acd9a3a7d4f43076053621d54",
+        "classification": "declaration",
+        "owner": "SDKRuntime",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "53d541e5162e088438e848bcb5cda2450d03628409da4cdf6254a7fb191b17cd",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "99c46361886d41ae7aafbd8ccac87770a5ddd59287b3b4654d7e071738ab104a",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "7e6ee15239845c5b00e075336add54f939eb5a15988459d8eac9e2bf44a79bef",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e46a845b0600354ccd72261b7287737fa9e9b677db9a7391652021b26efa148c",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "6d7c72267e075eeb623e53bc928a904a9685e24e00f543a6b68e5c63ba1d9afd",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d93d74e5c4fd84d692a28248a14ac6b1d45860c35812f9124479c88c65c236cd",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "f7869a71eb9a3d53c2e792b22017829c0d2db73087ebbfbef8b07899c14719ff",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "ff29ab1204d5461340cc3498e90f33403ab4d1a11f86bcac4f6171897a3d3569",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "45507a6bd890cb21339d28c8e877fad8f64f98df1195df559181fb96227dc698",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "bd10f04c19ea8edcd8937edf295527df3e07d878fc857c5e03c6d1155e3dec55",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "7ba67fa226571fcc533a378b5bfa166d844b97b5b7d1a11e0cf5e72e6bf498cb",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "b0c10bbb4fff7795828fb313c71d3d647607752b9cadd8a5e8ae83ae65a2205a",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "aa2caca91dc5b88bd65b43af1ca9cd58ffb3db8a928d3bec890686c64165923f",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "b61b33ef075436a1ea8a925d46b8a4f264b024df04756933427cbbfc6003c827",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "43eb195f51e6a002cf00698e342b3becc577134392d205b6bdb0e7499040f8b8",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "b48be1150e7ce19f9939fb370dc9a86a621e20cded4906c5f7c540dceb203ba7",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d84a8b55f62aa7ba044d9e985ddec0152488659cff8511177749afa01377713f",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "119f9481eead297447a784d72ec9f0c7082daaf989c0cb181df0296f644dd758",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "7cbfba22b49fc367af60c5d5dcda98ad3476722c37dc24f6d2a88741cb888672",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "71992aba2e6e6123bd367c6a2eed4f11d908808a99c04c4c74fa4d993b8940eb",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "0fdada0b3e1d85ed035faad04c9e3f6f84aff48669e2430230f9129fa817abe1",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c944297c01ecfeb2fa13c310c653a0cb664a320ba75b54c81e0c58a15c7d75ba",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "394222425c7d452f68b201ac960caa3377b77325bf38b3dd1b0b84950a2db0a5",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d1ad92d3be377364777b40cb2689ff19cd743b45f721fa6bba3516c72e10b251",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e5f049f1aa598bee61be6f1c7164cc2c4b4b9df19928b83d9efc9cfabdd9d448",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "8513e67ac5df1a8d3ab4bdb97579d9f5f8ee5362d886ef4fa9e99fe61365d16b",
+        "classification": "declaration",
+        "owner": "ProviderLogging",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "977a4d3631bc6cb656e322faf21361cbcc0119282fdee0f6f4dd4c6175bf1ec4",
+        "classification": "non_contract",
+        "owner": "ProviderLogSource",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "8c66ed652df885b48160428a2532819bc8c20eba56922a46efec80cf2795e897",
+        "classification": "non_contract",
+        "owner": "ProviderLogSource",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "11f6654bbfa6dd16b1c7f0a730139a7ef535edffc0969b14085c0e3d43904425",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "a977ad6811b920d0ffbe8df4e153b556557f0aea02fb0e7c1f4505f4b22f9dfc",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "02ae79de1ecc35ad2498bfe4388be615551cfd7fa102e3731ee9f0a95306d005",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "1c7689999c16cbd5ce1476f026872cc65661ebc24be52c52b09ea5e2a2d18256",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "55ff2d6611656621ae01ca880ffdec03cbb3499a1c0fcb649f9839a80f4245ee",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c351c68c4f761048c41f7a9732bc9dd36bc77fbe331f78bce9cb8fb2de1e5dc3",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "5b0b3f270279695cf09acd1efb3ba972e7bf9961ae01a2ed1dbbd17fe78b6f99",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e462394cf05642a27cfc3b07c83c2b6282ebaa84c468b94cb636d99b40752a6a",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "86678390af80e58dcb4508da16f0ca748a6fe2d0b2e8d6efc2483cca62f64f1c",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "5bae2d17b11da18cc893598dd2d105e6a49ce0d68105dfdcd85d510bec6f994b",
+        "classification": "declaration",
+        "owner": "ProviderLogSource",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e86c3fc38f9fd6e95d868f15796f66021133aca3684fef3dbddc1bcfed8f1f7a",
+        "classification": "non_contract",
+        "owner": "ProviderLoggingStatus",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "28fdfa2862fae093186779c376e988b0d9c36a970da9212f68a11071750803f6",
+        "classification": "non_contract",
+        "owner": "ProviderLoggingStatus",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "0bdbf29623a3095f2f6de528ea8f6261412c3c1d9be96d0db704dd602c85dd74",
+        "classification": "non_contract",
+        "owner": "ProviderLibraryLog",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "13ebaf826e47f1d2edf39388949c5805ed1772f5c49d7d240fdbf55afdd72a1b",
+        "classification": "non_contract",
+        "owner": "ProviderLibraryLog",
+        "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
+      },
+      {
+        "id": "9f46ae137ff075dd80e674e8bd78fa5f7e83df991e46347484bd0138cc4a9517",
+        "classification": "declaration",
+        "owner": "ProviderLibraryLog",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "445f3a977601516aa8a7cba25d7cb5f0f833da776f7ce8385f3c2ce1e2c358ae",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "c713c092c347e3e7c0e84436b11c61c298d0bf21aeae70a8d5dfab3d58ea9f36",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "a3e0796099caf5bc3a95eb30b3bfbbaaaefec6f627a3c4143f53b06bc31235e1",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "8cbd296860fd31456028b5ce4879b03ad96f10743e4dc5dba560d0f3b170fc18",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "50657117efb2c20209331354ace31a13daf88cab29b3997b1e205aea229b6c6c",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "3cfba4e84a58fba4632553cb59a0154dd2dd7ee7fc819dc9520b22178347ebd0",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "b7824e6fd309947bf03a6c301e1e057194ada4bb8b17be2398ca12d10bbe1873",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "317c24e7e7d66c4fd863ca851fe32b6793bb72bf066d4c8736f71051b2aef2eb",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "3665dd44ffc615eedce329877507eb3bc852c9d6d5fc453f11e315599c964df0",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "59e091dcb8d5f62218da30b73e61c3dea8e148f0559284e0e86cb00956baa419",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "dc95a7cd2b085a0b588fabbd795c4603cf273fac68ffbd4c9bd91e544fac3e41",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "816d00fcb7c446628d64a1daed32251233b2b85225faa462cf178d7b0db3aaf2",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "762d0393fe294850da1c44f0bafd39fe57d4f939d993eb0bc10115d169699618",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "e987299574b9fd374b39efa76c2c934aab91efdb51e00a1a5cd59a7de9d62182",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      },
+      {
+        "id": "d983e3fa67ab2a76b3859da0cfd8f3f973741acdae0371aec7f03c95f6f1f9c5",
+        "classification": "declaration",
+        "owner": "ProviderExceptionRecord",
+        "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SDKRuntime / ProviderLogPaths / ProviderLogging / ProviderLogSource / ProviderLoggingStatus / ProviderLibraryLog / ProviderLogRecord / ProviderExceptionRecord",
+        "declaration": "llm/providers/runtime_values.py",
+        "consumers": [
+          "llm/providers/litellm.py",
+          "llm/providers/requests.py",
+          "llm/services/runtime/runs.py",
+          "llm/llm.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }

@@ -38,6 +38,26 @@ class SDKMessage:
         return {cls.ROLE: cls.DEFAULT_ROLE, **message}
 
 
+class SDKMappingMessage(SDKMessage):
+    """Request/diagnostic mapping projection; SDK response attributes use SDKMessage."""
+
+    @property
+    def role(self):
+        return self._value.get(self.ROLE)
+
+    @property
+    def content(self):
+        return self._value.get(self.CONTENT)
+
+    @property
+    def tool_calls(self):
+        return self._value.get(self.TOOL_CALLS)
+
+    @property
+    def result_call_id(self):
+        return self._value.get(self.TOOL_CALL_ID)
+
+
 class SDKOperationResponse:
     USAGE = "usage"
     MODEL = "model"

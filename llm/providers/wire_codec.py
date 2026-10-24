@@ -136,6 +136,11 @@ class SDKToolCodec:
     INCOMPLETE_CALL = "Incomplete SDK Tool call"
 
     @classmethod
+    def observed_identifier(cls, call):
+        """Diagnostic correlation only; execution uses the complete call Reader."""
+        return call.get(cls.ID) if isinstance(call, Mapping) else cls.UNSPECIFIED
+
+    @classmethod
     def decode_call(cls, call):
         call = SDKWire.object(call)
         if SDKToolCodec.TYPE in call and call[SDKToolCodec.TYPE] != SDKToolCodec.FUNCTION_KIND:

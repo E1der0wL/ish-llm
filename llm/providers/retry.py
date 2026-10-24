@@ -17,7 +17,7 @@ class RetryAfter:
     """Interpret only the server header, without changing the selected deadline."""
 
     HEADER = "retry-after"
-    ITEMS = "items"
+    ITEMS = SDKError.HEADER_ITEMS
     MINIMUM_SECONDS = 0.0
     UNSPECIFIED = None
 

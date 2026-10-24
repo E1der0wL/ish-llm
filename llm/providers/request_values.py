@@ -4,6 +4,7 @@ from llm.core.model_protocol import copy_model
 
 
 class SDKOperation:
+    MODULE = "litellm"
     COMPLETION = "completion"
     ASYNC_COMPLETION = "acompletion"
     ASYNC_EMBEDDING = "aembedding"
@@ -41,7 +42,7 @@ class SDKRetryParameters(ModelParameters):
     UNSPECIFIED = None
     ENABLED = True
     NOT_ENABLED = False
-    SDK_MODULE = "litellm"
+    SDK_MODULE = SDKOperation.MODULE
 
     def transport_copy(self, sdk):
         result = copy_model(self._value)
@@ -146,6 +147,18 @@ class LiteLLMParameters(SDKRetryParameters):
     @property
     def api_base(self):
         return self._value[self.API_BASE]
+
+    @property
+    def optional_messages(self):
+        return self._value.get(self.MESSAGES)
+
+    @property
+    def optional_tools(self):
+        return self._value.get(self.TOOLS)
+
+    @property
+    def tools(self):
+        return self._value[self.TOOLS]
 
     def validate_retry_contract(self, original):
         for key in self.RETRY_PROTECTED:

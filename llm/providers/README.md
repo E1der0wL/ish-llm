@@ -16,6 +16,7 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | --- | --- |
 | [__init__.py](__init__.py) | provider 패키지의 역할을 설명합니다. 함수·클래스는 각 모듈에서 import합니다. |
 | [runtime.py](runtime.py) | LiteLLM 지연 초기화, SDK 재시도·런타임 격리 불변식, 로그·진단 라우팅입니다. |
+| [runtime_values.py](runtime_values.py) | SDK 초기화 불변식, Provider 로그 경로/출처/안전한 로그·예외 frame의 정규 Writer입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
 | [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
 | [request_values.py](request_values.py) | Model/Embedding 설정의 정규 조회, SDK 작업 이름, 명시 retry/client 계약과 전송 사본 Writer입니다. |
@@ -290,8 +291,6 @@ Backend 시도 계산은 계속 기존 RetryPolicy에만 있다. `RetryAfter`는
 `ProviderCallStats`는 active/waiting의 공개 사본을 만들고 ProviderCalls의 잠금·실제 종료 후
 release·취소된 waiter 정리 순서를 유지한다. 새로운 실행 기본값이나 레거시 Reader는 없다.
 
-전체 Adapter 소비자 전환은 아직 진행 중이다. litellm/operations/wire_codec/runtime의 남은
-요청·응답·진단 소비자는 전수 감사의 미완 계약으로 추적하며 이 소단계 완료로 대체하지 않는다.
 
 
 Codec의 공개 함수는 각 Owner의 한 구현으로 연결된다. Tool call/definition의 필수 필드·
@@ -301,7 +300,7 @@ SDKWire는 finite JSON 복사·확장 충돌·원본 인자 문자열 비교 형
 messages/tools/tool_choice는 SDKRequestCodec의 전송 Writer에서만 조립하며 Backend 내부
 소비자는 공통 ModelRequest/ModelMessage/ToolDefinition 타입을 사용한다. 저장 형식이나
 추가 승인·Tool 호출 권한을 만들지 않는다. 정상/손상 입력 모두 기존 Reader와 같은 결과·
-오류 순서를 유지한다. 다른 Adapter 소비자(litellm/operations/runtime) 전환은 계속 남아 있다.
+오류 순서를 유지한다.
 
 
 비스트리밍 LiteLLMOperations는 요청의 공통 exchange를 검증하고 호출을 조율한다.
@@ -312,4 +311,22 @@ SDKOperationResponse는 SDK 객체의 opaque 확장을 투영하고, SDKCompleti
 SDKEmbeddingResponse/SDKRerankResponse는 각 응답을 공통 결과 타입으로 변환한다.
 단일 choice·벡터 무결성·ranking index·사용량 unknown 규칙과 오류 순서는 기존과 같다.
 명시 client/transport의 identity·retry·timeout 선택은 유지하며 새 호출이나 retry를 만들지 않는다.
-남은 직접 SDK 소비자 전환은 litellm과 runtime이다.
+
+
+
+ProviderDiagnostics는 opt-in 상세 수집의 기존 flag/문자 상한을 소유한다.
+ProviderRequestDiagnostics/ProviderErrorDiagnostics/ProviderFailureObservation은 요청 요약,
+서버 오류 상세와 첫 HTTP cause의 원인 관찰만 작성한다. SDKError는 같은 header/body 조회를
+제공하고 SDKMappingMessage는 요청 Mapping, SDKMessage는 SDK 응답 객체의 조회를 유지한다.
+진단을 읽는 시점과 모델/header/body의 조회 순서도 유지한다. 본문·Tool 이름/ID는 요약에
+넣지 않으며 상세 서버 문자열은 기존 error_details 선택을 따른다.
+
+ProviderLogPaths/ProviderLogging은 로그 경로·handle LRU·라이브러리 라우팅을,
+ProviderLogSource/LoggingStatus/LibraryLog/LogRecord/ExceptionRecord는 각 직렬화 모양을
+소유한다. Provider의 workspace 로그 경로는 Project/Run 저장 경로와 독립이다.
+표준 logging.FileHandler.handleError 이름과 append 쓰기/실패 계수/후속 쓰기 복구를 유지한다.
+SDKRuntime은 bundled cost map·기본 retry 0·배너 억제의 기존 초기화 불변식만 선언한다.
+실제 import와 lock, ContextVar 격리, 관찰자 복사·오류 격리와 I/O 순서는 runtime에 남는다.
+로그 장애가 원래 실행 실패/취소를 바꾸거나 진단 데이터가 실행 허가·저장 증거가 되지 않는다.
+
+남은 직접 SDK 소비자 전환은 litellm.py의 요청 준비·스트림 bridge·decoder다.
