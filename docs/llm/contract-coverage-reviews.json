@@ -65540,8 +65540,8 @@
   },
   {
     "path": "llm/providers/request_values.py",
-    "sha256": "e9ff56d4accd1e61556f017376a1aa27dcd5c8961c5ce07e9ddbf54501cf3c57",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "sha256": "ade2a3fa85c87929187092c72f4a4d3f5ab7d348e58a94f049b545de2ca98576",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -65635,115 +65635,121 @@
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "bf42a4e95cd30bb2a8a4c92d044285e7c4589bf61abc4f9efef04b189b6f644d",
+        "id": "a867361f9b7594a6ce1a3346a1dcfffa5ffbd7fbe04b6016f18b3165d6699cdf",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "2c31d8dc44227b2f1abcc7944a5a94b3692fd1797243bbe991b8bc10936494d5",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "91b5c475f8d27091a51d96ff28a62641a755a830a1d134c59591e58e5a7f8660",
+        "id": "3335a549347a12b1a0c7feee0755e359ffe08675af0f3390059943410ca4d37f",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "f1bf238c53555b9da9819da2a9ae6771b8946587cec400db56e59b965d4c47aa",
+        "id": "6fd3b848529e901cdabbd434f1f912e320ed0874f7534e43a724514e38382868",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "b8bfba44dcf8b1e8f1baf81200c47de13886c05df994f239724a1c00068489b1",
+        "id": "df94d7d75601988d86550c89ad0b5671d5f8df3ff47d1406c44e3f2a743e8fc6",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "271adb87a503e1439777cb90caff53321e380b594b3b3131735b8cf3ba4271eb",
+        "id": "df4aea9280e83aff5389f821f8505f7733270cb4ae077671570c6772b773eb43",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "da3d801b6f23e24b1b7a90cb37a0bd2b13cc81dc3321f9ff9a73c7efd7783fa7",
+        "id": "606bba23e1cd9318bc12c454ccbf60078fc8beb1cd19c7e22e7dfed298b22fa9",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "89250050836fdd9a4fa6d6fcb2a02efa8fee5ba01a161d801ea6d82330e17b5f",
+        "id": "53ac4ad5ca8f934c2747b403a7646c2b12138bcc819eebdaa0c855f5b29c94a4",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "fba9422c86a4ba154824220aaf2cf9982461f2723f4ef1fbfff334c2f925956b",
+        "id": "e908c8061b89cb44d84bf14fe3608bd0f708f01b89c4e04c38e00b40a202edc5",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "fc589cde5dc2d0f29dee93e73392e5614d192d83c12bdd0bee513e037b25048a",
+        "id": "cfe9aadf60822b33b4f5ebf5f73e05155e27224fd4360d061630338d4b735d0c",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "0464f726e88a5b9fd1469ceaa9e4272f2b9e213c96f969b7b057ec1c120402db",
+        "id": "faffdcff5f7001f0a82674adebbacb4b3ac41f8c02f4ff562f05ef18fdd10902",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "3e48fdff9dbb133fc69119a374bf76536f074e7446f83fe5775f539180ab91a3",
+        "id": "472488423ed53457b2235c4c57e077cde63942a2eddcf8fa407a7d356ebdf955",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "e5debd0fd35b300e75898b4c60608655424c76e456328bdba2a4dfdf16f9c2bb",
+        "id": "55d725d5e921152d8b40957ba3fadb82d2b7d4ea5c1450024973802a33524e9a",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "a61ce745555ec3c83755a3780273f0dd6ffc223f5ae203f25f6024824e971720",
+        "id": "81cd3b8c77465f906f3cdddf7678aca3adafdd1834b46048a3dfc26bc3e64421",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "5a5d69431932fc564db9b661844d4ade82992d0682da0910828047590d59271a",
+        "id": "6202c1847e08ce35baf79b7298d3f03321a1ebfef09c3111c40f23092bfac5f6",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "9f586237f5f2f018a34204c3caa74f6eff9b2119e6aaf61ccc5a8d4769a08362",
+        "id": "851a5431bacb082e49b6ba7458ecd13a7fb3507571f582db59c4e76d5cf4b0f5",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "c67e0f3e203728cbd957f6d318c7ab8553e1c2e01263c37c0718b5d78db028b1",
+        "id": "3f6c3076387c3701251378795e69e5ad4fe99baa2c5e871ae93c26590526f3c5",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "5b8420049797a2ff7b8726747be7f3c79d49537d6d4cd5a73e4041f9e206aeac",
+        "id": "9dfc8a154ce78a7447022f43932a23f1ab774dd3218305cb24d4dea8e9052f21",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "3f31bca6869ef25626cd50e9f26bdd35d746c51d01adc0facf3611232839770b",
+        "id": "63268a00aaa44b5e364a39582d40fcb9bd6bf2ea9615ee0f027c30a1f995dd9e",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "a6f5505fea35c25dfa37cbbaef7d4d7650f9222145a2c0239539f5d86dd68401",
+        "id": "cb1ea688889209c529f64c468054d8f6810245b200c57812458da56e6e8fd0cb",
         "classification": "declaration",
         "owner": "EmbeddingParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -65754,23 +65760,29 @@
         "owner": "SDKOperation / ModelParameters / EmbeddingParameters / SDKRetryParameters / LiteLLMParameters",
         "declaration": "llm/providers/request_values.py",
         "consumers": [
-          "llm/providers/requests.py",
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
+          "llm/providers/requests.py",
+          "llm/providers/wire_codec.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_base_engine.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_processing.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_provider_diagnostics.py",
@@ -65791,21 +65803,26 @@
         "consumers": [
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
-          "llm/providers/wire_codec.py",
-          "llm/providers/runtime.py"
+          "llm/providers/runtime.py",
+          "llm/providers/wire_codec.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_base_engine.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_processing.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_provider_diagnostics.py",
@@ -65925,24 +65942,48 @@
   },
   {
     "path": "llm/providers/response_values.py",
-    "sha256": "7639003590ac9d2b06dd1fc7c7e57be2db18ff947ce4d051e58a46f4c09be443",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "sha256": "2036dd769882528dd3e3541ee2bcd7161e6c875a614419b965c68f0e09a54b66",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "95e37cbbb2c74e6c36cd4cb6386a146ca0e0b2509230bbd055e2b01fe764c465",
+        "id": "00187e6cbeab441efe7b3ad1d41fb8d3ec9d619847c6d34608479498e3a05b68",
+        "classification": "declaration",
+        "owner": "SDKMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9569e6c2fd90054b301e674242e7566c2370a68edeb1403703782df4da86b380",
         "classification": "declaration",
         "owner": "SDKMessage",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "100f841ac341c2150e6ce4d4826e0742916c6198913bef006cf499772708ce84",
+        "id": "23279e8a7abf4cce057bb961bd3699d9eff35fe71eb72e8daf94af0dfd5c70cf",
+        "classification": "declaration",
+        "owner": "SDKMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ed67cb2072cdab07ba69c227934e86ef6401f27ffb5179e998fe18cc9a4420ba",
+        "classification": "declaration",
+        "owner": "SDKMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e54650ba9479377dc7db71a67f19ecd39eec7687cf6c151a627eb9fed078f01a",
+        "classification": "declaration",
+        "owner": "SDKMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "232eec775d2e943bb903b661993270a0fa2d21a69d634a3d55f5dee65be34744",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "da4038f99cf74962a44c533e06b4ababc7255150ef2e52e9e1f0405b00c011d2",
+        "id": "3c7a4d2407674761263b6986f42344692bf9ae6022b909cdc55fcc30e94bd8e1",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -65953,23 +65994,29 @@
         "owner": "SDKCompletionResponse / SDKMessage",
         "declaration": "llm/providers/response_values.py",
         "consumers": [
-          "llm/providers/requests.py",
           "llm/providers/litellm.py",
           "llm/providers/operations.py",
+          "llm/providers/requests.py",
+          "llm/providers/wire_codec.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_base_engine.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_processing.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_provider_diagnostics.py",
@@ -65994,16 +66041,21 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_base_engine.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_processing.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_provider_diagnostics.py",
@@ -66022,31 +66074,37 @@
   },
   {
     "path": "llm/providers/README.md",
-    "sha256": "9836dc384ff19faa5d311e14c54fc5d9e4084788838df98427b848354ad5978d",
+    "sha256": "59e953b455c1e070298c3494ceff7fc8ff4a63f1919bf40abebc0c54ef87b2fd",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit.",
+    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit. Codec Owner map and public single-implementation wrappers were checked; remaining Adapter consumers stay incomplete.",
     "contracts": [
       {
         "owner": "Provider contract guide",
         "declaration": "llm/providers/README.md",
         "consumers": [
-          "llm/providers/requests.py",
           "llm/providers/litellm.py",
-          "llm/providers/runtime.py"
+          "llm/providers/requests.py",
+          "llm/providers/runtime.py",
+          "llm/providers/wire_codec.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_base_engine.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_processing.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_provider_diagnostics.py",
@@ -66058,6 +66116,495 @@
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/wire_codec.py",
+    "sha256": "1d2abb9dae4f5a5b3c76a8884449abc2d33de0f0761ca74eb3696b73bb218257",
+    "reason": "Whole Codec review covers message/call/result/content-part/Tool definition/request structure, immutable copies and runtime client identity, exact current opaque fields and presence, original Tool argument text with JSON type-sensitive comparison, unknown extensions and anti-injection rules. Existing global function names remain one delegate per canonical implementation. All implementation literals are in Owner declaration heads; no blanket exception.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1dddebaa611b62c89ff6239ba419dd198729f610883f19b53a71774a08bf945d",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "d7017ff871ec5f9eedd830bbfd0ed5f7797a1e0763f42589c0342d6b3a705adc",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "5f1c7c7c8a3a735034130f03f1efc7767395bd4b5ba295f690f922b9019023bd",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "3522f0d49789643879a6e6e9c9076dc03ea060bad60c608aaffadbd79c6e88fe",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "be249909d7d0f7110768b65001197e2324d5af2a5af7b60b334d53c21115b27d",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "b05fa348ae75c3c70250256bf573a8d57ce9f87d46bd330bf3ccf018d5d09e3e",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "d39145904dc5cca4aa65fb7d40775b979980b8ecefd2eb4339a67d3f58fa4b78",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "0e78c0ed9cb47072d30bee2223e5107d472ee7b894d48a50985011158f3858ba",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "2e45461ae7e500fc48dd4d92c6fcc0bd0f99827f8fb0c62dcd09389d1bb86047",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "5e2c979eb5c1b4c06aad7a58669c9b7b78a584ab64d354e883e5209f90392970",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "87a85ba325e1a975a88f09fff65ec1de0c7b33acaa10e983e1cb6d5048d1e989",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "2aa9593195ada5c9456f1abdf37888559871741991a396a2439b3e1f7ab6f1a1",
+        "classification": "declaration",
+        "owner": "SDKWire",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "1b51c351636a69d4128b4be11bd82496e99b08a87595765a8f8c01b20b81afc9",
+        "classification": "declaration",
+        "owner": "SDKFinishReason",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "ed3f80b4477c275fca570f5c48db995f73b448ea94a756e1f349e81864d6e2f4",
+        "classification": "declaration",
+        "owner": "SDKFinishReason",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "cc66fbef3d2c5a941598cac35b007316449b1f9b7d07d41c11ec1a2baf3e6ac5",
+        "classification": "declaration",
+        "owner": "SDKFinishReason",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "cc2d1e6206bd29b9ef503e41fdb50547d798e25e6a520d8e2dc08618b7702f79",
+        "classification": "declaration",
+        "owner": "SDKFinishReason",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "21c22d11b8d2dcafe5c307bfac40c7548404be0c0c948de9ac6bb263dba5a155",
+        "classification": "declaration",
+        "owner": "SDKFinishReason",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "98dafe7859ed1d6bc89c353390ee51410b4db8c235a025f0f25a3a6837798c37",
+        "classification": "declaration",
+        "owner": "SDKFinishReason",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "cdf684beb31bd8a6f39295ec48efd546178a98bcf52c3c37dd1936e0d1c756a3",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "37e7c9b4d56578f6dc3e1aea101444d9cb44c8e858633f903cb4566a137d34fd",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "e1f2f50d96d68721ecec35b32dae6c12f2d847740b969440a006f6fb64bf1f37",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "0c7657f766592b7b86dc58cc0a6fc28870d03488669cabcc3d8514e0f09760fe",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "fb1535f0a41bb46a0e68407eaa21158fca0bce8b6f60fd8b072d8277a98772a4",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "070d5be30a4d475d226ea2c5bcef2945edea731f2fc3d816641e28b3e20aa2e2",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "02adf4599d7c638f17754cf9baef2dedb95c39bbb332f3f710ed91e50fe54649",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "940978c1524e309286be6f9ae62ee2065f41d4c267cbecc5d3dda16bc3dae85a",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "1ab1c7317c75c8f7c4936c1fbad6c7286d15ddc8e3124bfb165f3b24a4147529",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "1704b3994db7a053955587dd6f555991082bb6ad87b601d8794808b4221cf764",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "035cf40fe88bc022bef60096c09851a131789b82671e9e98dca0ace3359130d4",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "9fbf495037a9e9f84aa3c3e5575a21bd6f8d85c1895e4e18681d36cf9fca4d5f",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "ae1b6b0cc2d9e05f23e72e7cc1fa2c9c4d3a3fea83b97087bbfa2ca2c3f8751b",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "526df24bd3ca8f98aed82020c4005e64f5259917fc4af9f0480960cece731037",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "43a932670b414a692f6825ab44faac2f96b19634e9b60f79782f9cd9af7d62dc",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "3bc330c2ffa530545d31af13c9ed201d63c1a40ab282622f35b70aceea96a47e",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "6be41b20019290b5292c390a751092eee1afb986b3cf4062a7ef3254a0d662d0",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "1e17859b30ffda7c6cf6337e76788db83afa0e871798a6cc0ab6024728b41f1c",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "4fb703770ee63b0005ee9952a70899c0973039f9943ba8a2e985cc27eacdfba4",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "fa39f25112b21f2ddff5a79fc456e47397d6b0e16d1a1e5353688796f795a5af",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "84d6f55a9f1d1c9d6907a326c91d14b4247617298461a1ad1a3288df27a718a2",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "c1ebb30d92a9c2e67be538d19ec3c9e294f188f34738461bd7844cca0728bee3",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "a35265c6b4e7b50c909a7f2f767be7319d9f8fc58e51cdab19ab2c8d80179181",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "4bffac59351bd9f756dd3ccd29e17c76fed7a9bef298056f3c0e64a6e410c83f",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "3b120da74b53b7a120f20fba47cd6efa3a2b7e99232de27a1aac47389181a3b7",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "936307a93586390a628bb87c4274c3fb4a5c6bae6fec655bf905db6d748354ef",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "c1c6b27f3be4415d25e54e8f00c5bd7012585bd35131a2e98a70bcbab6926818",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "097a68f2183c266bf6c16e9f72075410b7dcebdf14c7b4c4685176b7df26592b",
+        "classification": "declaration",
+        "owner": "SDKToolCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "aef57c8dd6b33fb28a4873371e130aea46d3f63c729505d626597b8ec2773297",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "40a3479b8dd575334b6c553b27092c922a0c77b4f23dedb469a76bb3161b2df1",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "e48b1c346dec4ba5913e0e9b0540da1ed1c201b7779b916be5aa668ab8cf4ab8",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "7627886eef88c6f551633a73e6aa88ebf28c60bbdcf85f19997279ff2174afa0",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "13bcd742f80c00cf615d9fa3896ae012cef4fdc5978bd34f6d00e9fc3cd2291f",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "d13fe19424e360e6b4a8b4c05fe94863a1bc95b26470cb296d318a88219b695c",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "029ef7cb22c4d231389a7bc62c1bf630144d63ea1d3d9b721d945b88645b88c0",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "770e49a9d2896f9886c23e66642dc462dfe516468d0c75a985c4fdab6f7d7810",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "9aa6a936a7753196a69b4dca9683ca416698f5eb871e247a92d9be9e913e3511",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "6d07c2a4440582d1ccd1848f21e134cb8f33b14e9c38e0a72c1d9cdd35fbba82",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "bd64b2f0d055839b4856a9adaea2a94d3d51f665b4c97d5e070588b16ad2407c",
+        "classification": "declaration",
+        "owner": "SDKContentPartCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "ba539bfa27013de6c06505a1ce2402239e7c34af6a234c79ee1b659ffa94114f",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "7748383733e54328ff0643f2da25ff88f84c081cdab04b13cd10224ea72d199b",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "334c68f2e04a53deba238aaa42bc18c1239d083f96969798f9f2430bfd8542d9",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "4e3cc8c7cd4bfc6f0f1b1b5db9d517db17a644c38971a7ef5f717132d82bc0dd",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "d683fdfa0b94842316e42ef91b58d560a8d17fee26556801825dc18b017f77f5",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "4d151360f67ccb3c43dbe16eb216347a4f1be9c817ead52d9129792790667d26",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "b7414505b12eae9affa58ba37634148b1cd2d3d832d823159b3f5c295ed79511",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "62f8c2cb9e020e1ae8ec6189419f4a2619274010a2d3881a637c3f4dda75f662",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "0b7bdaeee578d5562d84d3460c80f3c98a2ce64e91a4d19267598b4aabd78859",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "d18817d1cd7a2e3cfece62b024dea8180c0d09b3770cba0b9d4f986668ed5b5e",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "8a85e71491e02ebd8d1080f131d8084acdce92867b5da3414a5cb7defb0c8d00",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "7fe15c383dc7a81294bf86e07213bbfa08b10ed16666afa8a37f8dea37b72f03",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "2934dfe4728ade4d101bc797cacd63ebe55d874368b20403b373c93cc06a16ce",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "01e90b9bd2ad43242a4dcbe18170378fbe6de575cca12e51506c7afc7dbfcf77",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "81da24f3869fb6968775be24eec6c3834d242f24f9756ea5e134c80df56ca90d",
+        "classification": "declaration",
+        "owner": "SDKMessageCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "8ac84e69567a9a95094eebca7bd0c86a600a637befd171c3c8f68600e869a68b",
+        "classification": "declaration",
+        "owner": "SDKRequestCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "aa02de452ff8fc4bf19d26219f4fa708b0b52acd3c0c8db316c61a06ed9eda2a",
+        "classification": "declaration",
+        "owner": "SDKRequestCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      },
+      {
+        "id": "b51fd4472bfa741edb80bee68bb866c21d417ae85bbcf086ab3a9360ce2fa423",
+        "classification": "declaration",
+        "owner": "SDKRequestCodec",
+        "reason": "Canonical wire/opaque shape/error/serialization declarations. Fixed raw JSON is interpreted and emitted inside its designated Codec Owner; public functions invoke exactly that Reader/Writer. Common consumers use typed model values."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SDKWire / SDKFinishReason / SDKToolCodec / SDKContentPartCodec / SDKMessageCodec / SDKRequestCodec",
+        "declaration": "llm/providers/wire_codec.py",
+        "consumers": [
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py"
+        ],
+        "tests": [
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_base_engine.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_policies.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }

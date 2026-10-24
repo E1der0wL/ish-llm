@@ -21,6 +21,7 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [request_values.py](request_values.py) | Model/Embedding 설정의 정규 조회, SDK 작업 이름, 명시 retry/client 계약과 전송 사본 Writer입니다. |
 | [error_values.py](error_values.py) | SDK 예외의 상태·header 관찰을 읽습니다. 실행 허가나 retry 결정을 만들지 않습니다. |
 | [response_values.py](response_values.py) | SDK completion envelope와 message 내용의 조회 Projection입니다. 필수 응답 검증은 호출 경계에서 유지합니다. |
+| [wire_codec.py](wire_codec.py) | SDKWire·SDKFinishReason·SDKToolCodec·SDKContentPartCodec·SDKMessageCodec·SDKRequestCodec의 단일 Reader/Writer입니다. |
 
 | [codes.py](codes.py) | SDK/runtime에 의존하지 않는 정규 Provider 오류 코드 선언입니다. |
 | [options.py](options.py) | Provider의 명시적 재시도·기한 설정 Schema/Reader입니다. 생략을 보존하고 실제 시도 횟수 계산은 RetryPolicy에 위임합니다. |
@@ -290,3 +291,13 @@ release·취소된 waiter 정리 순서를 유지한다. 새로운 실행 기본
 
 전체 Adapter 소비자 전환은 아직 진행 중이다. litellm/operations/wire_codec/runtime의 남은
 요청·응답·진단 소비자는 전수 감사의 미완 계약으로 추적하며 이 소단계 완료로 대체하지 않는다.
+
+
+Codec의 공개 함수는 각 Owner의 한 구현으로 연결된다. Tool call/definition의 필수 필드·
+original argument text·opaque 확장·presence 상태는 SDKToolCodec이, text/image/opaque 부분은
+SDKContentPartCodec이, role/result/누락·null·빈 call shape는 SDKMessageCodec이 읽고 쓴다.
+SDKWire는 finite JSON 복사·확장 충돌·원본 인자 문자열 비교 형식만 소유한다. request의
+messages/tools/tool_choice는 SDKRequestCodec의 전송 Writer에서만 조립하며 Backend 내부
+소비자는 공통 ModelRequest/ModelMessage/ToolDefinition 타입을 사용한다. 저장 형식이나
+추가 승인·Tool 호출 권한을 만들지 않는다. 정상/손상 입력 모두 기존 Reader와 같은 결과·
+오류 순서를 유지한다. 다른 Adapter 소비자(litellm/operations/runtime) 전환은 계속 남아 있다.

@@ -93,6 +93,7 @@ class LiteLLMParameters(SDKRetryParameters):
     """Known SDK arguments; unrecognized provider extensions remain unchanged."""
 
     API_KEY = "api_key"
+    MESSAGES = "messages"
     API_BASE = "api_base"
     TEMPERATURE = "temperature"
     REASONING_EFFORT = "reasoning_effort"

@@ -6245,3 +6245,48 @@ README 갱신을 포함한 감사 근거 재연결 전 검사는 static/audit ex
 전수 목록 576개 중 미검토 228개(llm 51/hub 177), 미분류 후보 13314개다. 기존 미완 계약
 3개와 이번 SDK 요청/예외/응답의 잔여 소비 연결 3개를 각각 보존하여 미완 계약은 6개이며
 stale/violation/issue 0이다. Provider 전체와 llm 전수 완료를 선언하지 않는다.
+
+
+## llm Provider 메시지·Tool·요청 Codec Owner — Level 1·2
+
+기준 69616ec. wire_codec의 기존 공개 함수를 SDKWire/SDKFinishReason/SDKToolCodec/
+SDKContentPartCodec/SDKMessageCodec/SDKRequestCodec의 단일 구현으로 연결했다. 고정 wire 필드·
+상태·형식·오류 문구는 Owner 선언에 있고 raw dict 해석·조립은 해당 Reader/Writer 경계에서만
+수행한다. 공통 계층의 ModelRequest/ModelMessage/ToolDefinition은 그대로 사용한다.
+SDKMessage의 필드 선언과 LiteLLMParameters의 messages 선언은 기존 Provider Owner에서 공유한다.
+Tool과 콘텐츠 부분의 Reader를 메시지 Reader에서 호출하며 별도 호환 Reader를 만들지 않았다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/provider-codec-draft/ast-proof.py`
+와 같은 경로 `values-proof.py` exit 0. 원래 Codec 14개와 기존 공통 Owner 16개 전체 함수의 본문을
+정규 선언과 이동 Reader로 전개해 비교했다. 메시지 decode/roundtrip 각각 1188, Tool call
+각각 144, 인자 JSON 타입 보존 64, Tool definition 각각 120, call state 무결성 50,
+message shape 21, opaque 주입 거부 4, 요청 Writer 24, 종료 사유 10을 이전 구현과 비교했다.
+원본의 누락/null/빈 배열, Unicode·서명·미지 필드, False/0 및 1/1.0, 잘린 JSON·NaN·무한대,
+삭제/추가된 필수 opaque 상태와 고정 필드 덮어쓰기 거부를 포함한다. 보조 검증의 ModelRequest
+생성은 현행 list 타입 계약으로 수정했으며 제품 Reader나 기존 Assertion은 변경하지 않았다.
+
+- `whole-provider-codec-l1-01`: discovered/started/pass 74/74/74, exit 0, 21.846106초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-codec-l1-01/llm.json --modules tests.llm.test_provider_codec tests.llm.test_model_protocol tests.llm.test_common_provider_acceptance tests.llm.test_completion_processing tests.llm.test_base_engine`. source `27be1e10b3fbc09017b24c9bb87ff45e06c51ea47c94c1a0321745e15598f4bc`, input `27574b0545a29d7a644668363ef6f27c343851f4860adb7a9d2a195ae896c544`.
+
+- `whole-provider-codec-l2-01`: discovered/started/pass 100/100/100, exit 0, 45.321455초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-codec-l2-01/llm.json --modules tests.llm.test_provider_runtime tests.llm.test_provider_transport tests.llm.test_rag_models tests.llm.test_rag_retry_presence tests.llm.test_project_policies tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity`. source `27be1e10b3fbc09017b24c9bb87ff45e06c51ea47c94c1a0321745e15598f4bc`, input `27574b0545a29d7a644668363ef6f27c343851f4860adb7a9d2a195ae896c544`.
+
+- `whole-provider-codec-hub-01`: discovered/started/pass 11/11/11, exit 0, 75.402958초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-provider-codec-hub-01/hub.json --modules tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_provider_activity`. source `27be1e10b3fbc09017b24c9bb87ff45e06c51ea47c94c1a0321745e15598f4bc`, input `27574b0545a29d7a644668363ef6f27c343851f4860adb7a9d2a195ae896c544`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID가 같고 L1/L2의
+LLM ID는 중복되지 않는다. 실행 전후와 실행 간 source/input, Python3.12.14/Clang·의존성·
+Fixture·전체 발견 목록·Host d833790·namespace/X11 환경 동일성을 확인했다. R3
+`python -m tests.llm.check_budget_mutation` exit 0, 원래 실제 효과 Assertion으로 호출 한도 누락을
+검출했다. 기존 tests/llm·tests/hub 테스트와 Assertion을 유지했다.
+
+직접 소비자는 BaseEngine·Completion processor·공통 Model/SDK Adapter·RAG·Project policy와
+Hub 출력/Provider 활동이며 승인·예산·실제 효과·Checkpoint·삭제/원본 보존 안전성을 포함했다.
+원래 모든 Codec 본문/분기/검증 순서가 같고 실제 SDK/소비자 시험이 통과한 범위에서 L1·2를
+완료한다. Tool 실행 입력과 함께 연결되므로 관련 Loop·Provider 묶음의 **Gate41 전체 Level 3**
+대상으로 유지한다. 이 소단계에서 전체 회귀를 다시 실행하지 않았으며 상위/원격 완료로 기록하지
+않는다. litellm/operations/runtime의 잔여 소비 연결 및 llm 전수는 계속 진행한다.
+
+Codec 종료 감사: S1–S7 exit 0, 현행 finding 88개·new/stale 0, dependency 6건 재검토.
+감사 시험 16개/3.328초 통과, 문서 168·Python fence 183·상대 링크 1240·anchor 37·오류 0,
+`git diff --check` exit 0. 전체 목록 576개 중 미검토 227개(llm 50/hub 177), 미분류 후보
+13100개이며 기존 미완 계약 6개를 보존했다. Codec 구현부 후보는 0, 전수 감사의
+stale/violation/issue 0이다. 이 수치는 원래 본문·실제 소비 경로 검증을 보조하며 단독 완료
+증거로 사용하지 않는다. 후속 Gate41 전체 검증과 남은 Adapter 소비자 전환은 계속 필요하다.

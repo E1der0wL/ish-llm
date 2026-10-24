@@ -4,7 +4,12 @@ from .embeddings import value
 
 
 class SDKMessage:
+    ROLE = "role"
     CONTENT = "content"
+    TOOL_CALLS = "tool_calls"
+    TOOL_CALL_ID = "tool_call_id"
+    NAME = "name"
+    FIELDS = frozenset((ROLE, CONTENT, TOOL_CALLS, TOOL_CALL_ID, NAME))
 
     def __init__(self, message):
         self._value = message
