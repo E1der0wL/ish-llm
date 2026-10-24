@@ -1,57 +1,87 @@
-"""Workflow의 JSON 입출력 계약. 저장 검증과 실행기가 같은 포인터/스키마 규칙을 쓴다."""
+"""Workflow JSON pointer and declared input/output/schema binding Owners."""
 
 from copy import deepcopy
-
+from enum import StrEnum
 from jsonschema import Draft202012Validator
 from llm.core.json_data import JsonPointer
 
 
-def pointer_parts(path: str) -> list[str]:
-    """RFC 6901 포인터를 해석한다. 표현식이나 Python 코드는 실행하지 않는다."""
-    return JsonPointer.parse(path)
+class BindingDirection(StrEnum):
+    INPUT = "input"
+    OUTPUT = "output"
+    RESUME = "resume"
 
 
-def read_pointer(document, path: str):
-    """누락된 필드는 명시적 오류다. null과 누락을 구분한다."""
-    value = document
-    for part in pointer_parts(path):
-        if isinstance(value, dict) and part in value:
-            value = value[part]
-        elif (isinstance(value, list) and part.isascii() and part.isdecimal()
-              and (part == "0" or not part.startswith("0")) and int(part) < len(value)):
-            value = value[int(part)]
-        else:
-            raise KeyError(f"Missing binding path: {path}")
-    return value
+class BindingPointer:
+    ZERO_INDEX = "0"
+    MISSING_PATH = "Missing binding path: {path}"
+
+    @classmethod
+    def read(cls, document, path: str):
+        value = document
+        for part in pointer_parts(path):
+            if isinstance(value, dict) and part in value:
+                value = value[part]
+            elif (
+                isinstance(value, list)
+                and part.isascii()
+                and part.isdecimal()
+                and (part == cls.ZERO_INDEX or not part.startswith(cls.ZERO_INDEX))
+                and int(part) < len(value)
+            ):
+                value = value[int(part)]
+            else:
+                raise KeyError(cls.MISSING_PATH.format(path=path))
+        return value
 
 
-def validate_contract(definition: dict) -> None:
-    """매핑과 JSON Schema를 저장 전에 검사한다. 외부 스키마 조회는 허용하지 않는다."""
-    for direction in ("inputs", "outputs"):
-        if direction not in definition:
-            continue
-        mapping = definition[direction]
-        if not isinstance(mapping, dict):
-            raise ValueError(f"{direction} must be an object")
-        for name, path in mapping.items():
-            if not isinstance(name, str) or not name:
-                raise ValueError("Binding names must be nonempty strings")
-            pointer_parts(path)
+class WorkflowBindings:
+    INPUTS = "inputs"
+    OUTPUTS = "outputs"
+    SCHEMA_SUFFIX = "_schema"
+    SCHEMA_NAME = "{direction}" + SCHEMA_SUFFIX
+    INPUT_SCHEMA = BindingDirection.INPUT + SCHEMA_SUFFIX
+    OUTPUT_SCHEMA = BindingDirection.OUTPUT + SCHEMA_SUFFIX
+    RESUME_SCHEMA = BindingDirection.RESUME + SCHEMA_SUFFIX
+    MAPPINGS = (INPUTS, OUTPUTS)
+    SCHEMAS = (INPUT_SCHEMA, OUTPUT_SCHEMA, RESUME_SCHEMA)
+    STATE_FIELDS = (INPUTS, OUTPUTS, INPUT_SCHEMA, OUTPUT_SCHEMA)
+    ABSENT = None
+    INVALID_MAPPING = "{direction} must be an object"
+    INVALID_NAME = "Binding names must be nonempty strings"
 
-    from llm.core.schema import validate_local_refs
-    for name in ("input_schema", "output_schema", "resume_schema"):
-        if name in definition:
-            validate_local_refs(definition[name])
-            Draft202012Validator.check_schema(definition[name])
+    @classmethod
+    def validate_contract(cls, definition: dict) -> None:
+        for direction in cls.MAPPINGS:
+            if direction not in definition:
+                continue
+            mapping = definition[direction]
+            if not isinstance(mapping, dict):
+                raise ValueError(cls.INVALID_MAPPING.format(direction=direction))
+            for name, path in mapping.items():
+                if not isinstance(name, str) or not name:
+                    raise ValueError(cls.INVALID_NAME)
+                pointer_parts(path)
+        from llm.core.schema import validate_local_refs
+        for name in cls.SCHEMAS:
+            if name in definition:
+                validate_local_refs(definition[name])
+                Draft202012Validator.check_schema(definition[name])
+
+    @staticmethod
+    def bind(mapping: dict, source: dict) -> dict:
+        return {name: deepcopy(read_pointer(source, path)) for name, path in mapping.items()}
+
+    @classmethod
+    def validate_value(cls, definition: dict, direction: str, value: dict) -> None:
+        schema = definition.get(cls.SCHEMA_NAME.format(direction=direction))
+        if schema is not cls.ABSENT:
+            Draft202012Validator(schema).validate(value)
 
 
-def bind(mapping: dict, source: dict) -> dict:
-    """원본과 분리된 최상위 키 객체를 만든다. 목적 키의 암묵적인 중첩 쓰기는 없다."""
-    return {name: deepcopy(read_pointer(source, path)) for name, path in mapping.items()}
-
-
-def validate_value(definition: dict, direction: str, value: dict) -> None:
-    """입력은 호출 전, 출력은 상태 병합 전에 검증한다."""
-    schema = definition.get(f"{direction}_schema")
-    if schema is not None:
-        Draft202012Validator(schema).validate(value)
+# Existing public entry points share one implementation with their declared Owners.
+pointer_parts = JsonPointer.parse
+read_pointer = BindingPointer.read
+validate_contract = WorkflowBindings.validate_contract
+bind = WorkflowBindings.bind
+validate_value = WorkflowBindings.validate_value

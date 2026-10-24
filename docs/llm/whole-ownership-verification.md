@@ -5958,3 +5958,59 @@ dependency 19건 재검토. 이전 선언 occurrence 2건을 보존하고 정확
 검출했다. 전수 inventory 559·미검토 243(llm 66/hub 177)·미분류 14939·미완 계약 3·issues 0.
 Vision 이미지 Owner의 실제 소비 연결을 확인하여 그 미완 계약만 닫았다. 공유 Owner의 기존
 모든 계약 및 완료/미완 상태를 보존했다. llm 전체와 hub 작업은 계속 남아 있다.
+
+
+## 게이트 39 고정 전체 검증 착수
+
+Vision 통합 e61295c3ae469e3a67526bcc3d371610a01a421d을 별도 clone에 고정했다.
+`group39-auxiliary` 6개 필수 검사 exit 0, host d833790/ish.platform 연결을 확인했다.
+`whole-owners-group39-l3`에서 LLM→Hub 전체를 순차 실행한다. 실행 전 source는
+9da9756103c491c6151e60fa640873ba56132448132d6cbc5de369c1b70b82fd, input은
+e7eee006cf457eb27122485da51c306a038b7cbafdecea38790d347f9d1ca39a이다. 이 시점 전체 완료·
+원격 통과는 미확인이다. 이후 Workflow 변경은 고정 Vision SHA에 포함되지 않는다.
+
+## llm Workflow 정의·binding·참조 Owner — Level 1·2
+
+기준 e61295c. WorkflowDocument/Node/Edge/Condition/Case의 단일 필드 선언과 검증된 참조
+Projection, BindingDirection/WorkflowBindings의 mapping/schema, BindingPointer의 경로 조회,
+WorkflowValidation의 구조 수치/진단 선언을 연결했다. 버전 값은 WorkflowGraph가 그대로
+소유한다. WorkflowComponent의 보존 action 탐색은 WorkflowAgentReferences에 위임하고
+선택 handler의 원래 참조 Reader/호출 순서를 유지한다. 공통 필드 외 action 옵션을 Graph가
+해석하지 않으며 schema 또는 동기 validate 계약은 선택 handler가 소유한다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/workflow-contract-draft/proof.py`
+(한 셸 명령) exit 0. 원래 전체 함수 15개를 실제 Owner 선언으로 전개해 AST가 같음을 확인했다.
+schema/공통 필드/정규 연결 5개, 구조·오류 변형 1150개, 빌더 roundtrip 5개, 포인터 및 누락/null
+60개, binding/schema 240개, 분리 사본 5개, 선택 handler schema 20개, 참조 전체 호출 8개와
+실제 호출 지점별 장애 45개가 이전 구현과 일치한다. 비교 harness에서 staticmethod 장식을
+정규화하지 못한 초기 차이는 보정했으며 제품 동작 실패나 Assertion 완화는 아니다.
+
+top-level/중첩 정확한 버전, 닫힌 구조, 도달성·순환 거부·병렬 합류/외부 진입·bounded loop,
+누락/null 구별·원본 사본·외부 schema 조회 거부를 유지했다. 기존 실패 재현 Assertion과
+원본 파일 보존·승인/중단/재개/실제 효과 검사를 그대로 실행했다.
+
+- `whole-workflow-contract-l1-01`: discovered/started/pass 71/71/71, exit 0, 41.181516초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-workflow-contract-l1-01/llm.json --modules tests.llm.test_workflow_format tests.llm.test_schema_ownership tests.llm.test_graph_engine tests.llm.test_graph_decisions tests.llm.test_agent_workflow`. source `d655bb2625b4205524e5886e6e2b68af6d6b312be2b680d5c26095e5599763a1`, input `dd131c03f678d6d60138ad38db27427544954bb6f77f265875d2b9096dc8f0ba`.
+
+- `whole-workflow-contract-l2-01`: discovered/started/pass 114/114/114, exit 0, 77.360729초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-workflow-contract-l2-01/llm.json --modules tests.llm.test_nested_graph tests.llm.test_graph_checkpoints tests.llm.test_agent_resource_integrity tests.llm.test_resource_references tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity`. source `d655bb2625b4205524e5886e6e2b68af6d6b312be2b680d5c26095e5599763a1`, input `dd131c03f678d6d60138ad38db27427544954bb6f77f265875d2b9096dc8f0ba`.
+
+- `whole-workflow-contract-hub-01`: discovered/started/pass 5/5/5, exit 0, 29.641996초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-workflow-contract-hub-01/hub.json --modules tests.hub.test_agent_graph tests.hub.test_defaults`. source `d655bb2625b4205524e5886e6e2b68af6d6b312be2b680d5c26095e5599763a1`, input `dd131c03f678d6d60138ad38db27427544954bb6f77f265875d2b9096dc8f0ba`.
+
+모든 failure/error/skip/xfail/xpass/누락/추가/중복 0, 각 exit 0이며 발견/실행/통과 ID가 일치한다.
+같은 source/input·Python3.12.14/Clang·의존성·Host d833790·namespace/X11·전체 발견 목록에서
+전후/실행 간 동일성과 L1/L2 비중복을 확인했다. 관련 범위는 저장 Writer/Reader와 실제
+Graph/Agent 및 Hub 소비자, 중첩·병렬·승인·Checkpoint·예산·효과·삭제/저장 무결성이다.
+R3 호출 한도 mutation도 별도로 검출했다. 새 테스트나 skip/예외로 기존 기준을 대체하지 않았다.
+
+구조 검증과 참조 순회의 원래 전체 동작이 증명되는 정의 Owner 이동이므로 이번 소단계의
+전체 LLM/Hub 실행은 유예한다. Graph 실행 소비자와 Tool 경계를 후속 묶음 게이트 40에서
+검증한다. GraphEngine 안의 저장 필드·binding 방향 등 미전환 소비자는 새 Owner의 미완
+계약으로 남겨 추적한다. Workflow 정의 연결을 완료한 사실을 Graph/llm 전수 완료로 표현하지 않는다.
+
+Workflow 정의 소단계 보조 검사: 정적 S1–S7 reviewed 100·new/stale/outstanding/review_errors 0.
+Owner 필드 참조로 바뀐 버전 검사 occurrence 2건의 과거 근거는 보존했다. 정확한 type/value
+검사 자체는 전체 AST와 실제 top-level/중첩 손상 시험으로 유지함을 확인했다. 공유 dependency
+추가 갱신은 0건이다. 계약/architecture 감사 16 pass·3.346초·exit 0, 문서 168개·fence 183개·
+링크 1223개·anchor 37개 오류 0이다. R3 mutation exit 0, 의도된 한도 누락 2개 검출.
+전수 inventory 561·미검토 239(llm 62/hub 177)·미분류 14642·미완 계약 5·issues 0.
+추가 미완 2개는 GraphEngine/Tool의 Workflow 정의 및 binding 소비 전환을 추적한다.

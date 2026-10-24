@@ -11,6 +11,8 @@ UI가 조립한 노드·간선·입출력 mapping을 JSON으로 저장하고 구
 | [data.py](data.py) | 저장된 그래프의 검증·빌더 복원을 제공하는 WorkflowData입니다. |
 | [graph.py](graph.py) | schema_version=1 그래프 빌더와 분기·병렬 합류·bounded loop 구조 검증입니다. |
 | [bindings.py](bindings.py) | JSON pointer를 사용하는 입력·출력 binding과 schema 검증 계약입니다. |
+| [contracts.py](contracts.py) | 그래프·노드·간선·조건의 필드와 검증된 정의의 읽기 Projection입니다. |
+| [references.py](references.py) | 보존한 action을 순회해 선택 handler Owner의 Agent 참조를 읽습니다. |
 
 ## 가장 작은 그래프
 
@@ -46,3 +48,16 @@ GraphEngine은 handler 내부 옵션을 복제하거나 해석하지 않습니�
 [GraphEngine 안내](../../engines/graph/README.md), [입출력·검증 예제](../../../examples/llm/graph_rag.md)를 참고하세요.
 
 [상위 안내](../README.md)
+
+
+BindingDirection/WorkflowBindings가 입력·출력·재개 schema와 mapping 이름을 선언합니다.
+pointer_parts/read_pointer/bind/validate_contract/validate_value 공개 진입점은 같은 정규
+JsonPointer/BindingPointer/WorkflowBindings 구현을 사용합니다. JsonPointer는 경로 문법,
+BindingPointer는 값 조회와 누락 오류를 소유합니다. null을 누락으로 바꾸지 않으며 배열의
+선행 0·비 ASCII 숫자·범위 초과를 기존처럼 거부합니다. bind는 원본에서 분리한 사본을 만듭니다.
+
+WorkflowDocument/WorkflowNode/WorkflowEdge/WorkflowCondition/WorkflowCase는 각 구조의 필드
+정의이며 COMMON_NODE_FIELDS는 WorkflowNode.COMMON_FIELDS의 공개 참조입니다. 버전 값과
+빌더가 관리하는 필드는 여전히 WorkflowGraph가 선언/사용합니다. WorkflowValidation의 진단과
+구조 수치 선언은 검증 알고리즘에서 공유합니다. 실제 action 옵션의 의미는 선택 handler에
+남아 있으며 참조 조회에서도 그 handler의 AgentReferenceReader만 호출합니다.

@@ -60323,5 +60323,1040 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/workflows/bindings.py",
+    "sha256": "4c2be2ae7328ae565767f0c1cbac06cd54f123943559c4140dc76fa78f1873fd",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e4f0ca0c4943d033c218c2d4af2b471e9eb7475946d7c9ea0bfb729efecc943a",
+        "classification": "declaration",
+        "owner": "BindingDirection",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "41dab6ba4180d6fb4fc5bca6774a7beb74ffe358d48c2d2f9907a92dbd84609b",
+        "classification": "declaration",
+        "owner": "BindingDirection",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "b4c7723f5207078f4a57f52743e3dd696c155d991cd0bacd27bb5aa543b2261d",
+        "classification": "declaration",
+        "owner": "BindingDirection",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "b45b91a7b0751527d43b291f35a91e6f008eeb28bbea8a19e09e2c39aa73c49e",
+        "classification": "declaration",
+        "owner": "BindingPointer",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "955b172d5a67420e04166bfae304e9e6cd55b3c1d1428e1fb9902f402c30da45",
+        "classification": "declaration",
+        "owner": "BindingPointer",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "493a836f755ac8da98e4480f38403a311d8a72233c971625c42e66f4a4a9a184",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "0941f25f0790c071d5ddea927508ea6275d63d975a3591f8eabac9dfeae7d036",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "c44610872c95b1e3aef4151f36bc8892689b90ce8b5597abb4236d3a0b22650f",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "4ce26ef2bc2448c9c80fdb2db3714d53699b781c7d516cd51da48cfef51f9d9a",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a168bab702f5e48d192629732daa1db1022266c18f0603c9edf1f1f4471b1324",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "8d55954831b6182ae05c2b0976f85e58e5a04fac811e4a226c1b833d6f3295c0",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "74263a2c76f80391b8554eaa82637aa6a646b3d3ea5dd8a89cb5f8de3162aece",
+        "classification": "declaration",
+        "owner": "WorkflowBindings",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "63198cfd5e62f612ca3c807604e2edd75b70e7492334c713b0f4481f39b50a06",
+        "classification": "non_contract",
+        "owner": "WorkflowBindings.validate_contract",
+        "reason": "Python -> None return type annotation, not a missing-field/default policy."
+      },
+      {
+        "id": "8033b464e75dcee217c9948f0767268cd271e24953b1483ada24f0b458830dbe",
+        "classification": "non_contract",
+        "owner": "WorkflowBindings.validate_value",
+        "reason": "Python -> None return type annotation, not a missing-field/default policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BindingPointer / BindingDirection / WorkflowBindings",
+        "declaration": "llm/components/workflows/bindings.py",
+        "consumers": [
+          "llm/components/workflows/data.py",
+          "llm/components/workflows/component.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/contracts.py",
+    "sha256": "5a66347d2685619c13515f21ac309b4ab484347e4db1717aa59abd5ea5ae27ff",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a651a6122f14f9916bab883b2aea661fbe626faea96ff26ca8b0737d0a213d86",
+        "classification": "declaration",
+        "owner": "WorkflowEdge",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a5c6b38d87b7c2bc199098b79f0f767202c70575b3ba04dea48aa90d732eb8f7",
+        "classification": "declaration",
+        "owner": "WorkflowEdge",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "0b85ac4726ac6c237c2a5b6b7cb48f233ffcff4d0ffe353591fe8d24852aa3f2",
+        "classification": "declaration",
+        "owner": "WorkflowEdge",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "7be728a152bb176b6bbb818e3eea6cbb340ac7b15ceb1c5030597e228fd81b7b",
+        "classification": "declaration",
+        "owner": "WorkflowCondition",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3907c540be2ac4c905d7eee06a67787b14b4fbb40c6024e4f6f7aaebb89782c3",
+        "classification": "declaration",
+        "owner": "WorkflowCondition",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "0e97883e0f044c84d45ea7b253fb6e7652d5562ebb0515517967dbf9da63c72e",
+        "classification": "declaration",
+        "owner": "WorkflowCondition",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "bdd1351d6221d3321338fb3a80f76f6bab32183c1b7a88bff978309d828f152a",
+        "classification": "declaration",
+        "owner": "WorkflowCase",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "623b679c41d18bb90810a4c355cc3b5b5f56aeeca66f1de3d668395a79a7cb5b",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "8dce8eed4d139f7212ec162ba9e11fb9540039384dfa8f5327523e3e28eb41a5",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "e15d7e8fa4db4b40c5ebcc6f98a7afd898274ccc588d4a116e870f575bd0e107",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "57c922425de64d913bc08bb8f5da14c7bc96d1be64442d8336535f9272e87eb6",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "de383192f4c035768cf550e6397896a86cbbf6eda31054ffd30edc0f5f093d3a",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "62d9e8b9d7a8992478702e361a24eb9b02149a600a8fe8d35ad0edf51014f362",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "51b2d6fa8b7142de484d8a06274fe0e4c4bd44d16768dee2803dafeb69d37034",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "37bb8a1805223f4be7ae5864dd2f54e133b99c094446df7cbc899de90c9cce37",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "7224e0d0e12eac6ddda9cc6d2317054971e86174ce0fdb0155baab7896943ad2",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "63c289234b37bbbcee1b6921b316e77431f2b954a80a3d09588502492e62b3d2",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "56a5449191e0715e316a4ae0758da64e1f39a2446cca1cdd655642c2658a32fa",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d63e58f5221b84342b72c6b209fc3f7642334bbc2b52a1fdb1881f1fcbc62667",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d031af0a2127375dc49e4ba296e4bece2ab6086486878c566a542a7c06dea777",
+        "classification": "declaration",
+        "owner": "WorkflowNode",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "01b64bed66469a3290c584c3854d089447e5c2c6adced9e460ebb7d827163fc1",
+        "classification": "declaration",
+        "owner": "WorkflowDocument",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "cab32dc703a77ee85ca2a051eff478f29182c32f2c2293757ba38b1ef4af2393",
+        "classification": "declaration",
+        "owner": "WorkflowDocument",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "20e7511a763a59579eaf9d2c1687bcde253f0d7942433811d0532714782f22ac",
+        "classification": "declaration",
+        "owner": "WorkflowDocument",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "10fccc89c936161dbc7591925ed80c4d5de39512870002df1f4e74cd61372a69",
+        "classification": "declaration",
+        "owner": "WorkflowDocument",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "4e9b0f1ada32cfb57a7e332f0301918d1b0df6fcd0db6d9fb24fc5666118b26b",
+        "classification": "declaration",
+        "owner": "WorkflowDocument",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "7613293b13a7fb1bb2e71eff7cda42fb155ff0e690406bc78d66887069adc9eb",
+        "classification": "declaration",
+        "owner": "WorkflowDocument",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkflowDocument / WorkflowNode / WorkflowEdge / WorkflowCondition / WorkflowCase",
+        "declaration": "llm/components/workflows/contracts.py",
+        "consumers": [
+          "llm/components/workflows/data.py",
+          "llm/components/workflows/component.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/graph.py",
+    "sha256": "870764bfe10512aa6418631468e55bf576438b7429ef7cbf7c1b782e20e04644",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1645551783766cbb6629b75242dda47b661fbf497daaab8576a9cf319ad42f4e",
+        "classification": "declaration",
+        "owner": "ControlNodeType",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "c2ac914fa800f6981f1ecf0e925ebfb14b7dcba872c40454c8e4790db33b688b",
+        "classification": "declaration",
+        "owner": "ControlNodeType",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "7137f989203e97b9eff362a76470b6d57fcb86614c9e795d875f2640c3b52be2",
+        "classification": "declaration",
+        "owner": "ControlNodeType",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "96f6d9d5b75ce215bed29927dc9f5fb251de142b3c4ea04ea52d5247a465b47e",
+        "classification": "declaration",
+        "owner": "ControlNodeType",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "289bf883d09d737266e3d70a8ab3006caa21e236e49ac7e1a6aaea28d8a94790",
+        "classification": "declaration",
+        "owner": "ControlNodeType",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "9c33f579e09c02bf1d8014290108553105b9822ef427011ddeb622a87e1eb011",
+        "classification": "declaration",
+        "owner": "ControlNodeType",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "277c409d7bbe12faed534321f2b61c3ed7d95b60c4132c17371170f98463805d",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "1b75fbe30d0169107b85943d7508cc934d60937b897c2abc894b8e37504ab159",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "bee2df63b1c190d286db851b20baba01b285157b81e413d35e4a9387df427225",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "afd34ab6ef6a503b4d0ee84276c9b6f0c358ace695aceaf488908d5ebd9ac1bf",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "8161faf80512bb6a7b1867bc8316dcf03211e14f75f3627bf963078689e05caa",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "2a4e9bf6cafa6dc3a3153938b5568f971cd0f93f8dca84914e3dd465cd8f0124",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a771b05b037640786fc97fe073a8f13fc3049e272812756518e38242a5324b9d",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3f91e9a9eed9c1a0a4bea32e9b4eb8c1e7e77668ec1dfabe77afb5b7443a7faf",
+        "classification": "declaration",
+        "owner": "ConditionOperator",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "03a576624e7368a8649e94e092503196efaea006650dfed1af8e2ded50b2cf5a",
+        "classification": "declaration",
+        "owner": "JoinWait",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "e0f0c5b93ebf8c2d54244950ac8045438b7c4bd7f6dadecedcf119677173fb5c",
+        "classification": "declaration",
+        "owner": "LoopLimit",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "eaa324f6b5be728e49dc2f3960c50d8fcf73b660bf7508fac1c840ad9a3959c6",
+        "classification": "declaration",
+        "owner": "LoopLimit",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "46ad47f15eb5ec9f9f9d67149f67ad29524dfdb603a5773d23c05fab6b1c09b2",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "c1d5e8f95586e8547e2962bf26ab6a39feb2c5730d67e50f0ca9d108a873adb7",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a7a8570e9d41f2ebea27a8aae8f5508e1d54f607ff9bbaf3e67dc91f110e4481",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "9492439dd00e7e71320169e8ce2b558ffca5ad6997ca3ce9738cf5710263bf4b",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "7a302db2515cdf212434341d2e7a796a32e651cdaf7084b1634231ac08763410",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d339f0430bf6ebfc44905494065508c9ff5878902e65ee5af75e1a0093b40d18",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "9d974cee01ab8c118586d15a0c88b732f3cd9c9f355c6fca7cd1b0e4267a9e28",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3e544c432f4cca1f83f0365ee7f865479018c7549a3a1fc5aa2a6c7f2bb57c49",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "15d6bdbefa69fd9b3caa1260491918f0766434013ef7cbae57bacf15d657b480",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3b1991c22dd7733f11fd237cda89f8b98d0cce592316df4253e092c4db8aab22",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a583be51eb3c7076ec5923b78b3054e19fac5660f4abc67771c2c3c09a36affb",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "13bf507acae7768ca4a229b8d79c68b2b545f2dae5a7a8d5b1e3400aedf111ff",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "8ec8bb160fdfbe818b063728efc8aba755d75f9ab775faee0b75be10ed1a2964",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "7b152a30c081235353db1168b10738e104e891618ac2d7257117e165a3c708c6",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "f3a6999ba1dd25b3d9e3ce0059879547e699daa87904d9e31a55a057cdd2cf9e",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "068fe58bffa9652d52c909b404f6d63cb3e5eca1237bdee40abd046e70cba825",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3780c1685465d697562c6e0c243a5760f4fc31827016b1dc2d9391d2effc159d",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "1eb2cf157092630fdc4aaae9e6500117089880c00358b39c647fa138974a9652",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "95c828c6142e1cb1926b213950369903ee1b4946bf9563bacafcb3644a314646",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "6e3d791c64013794618f8cd2b148c5fcf325f5c36c5aead6114882d70f0702c4",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "621758f98de7cbdaab581d691b63f99523d42838f95c56531d04e8feb154b31f",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d4566e590135d27dc8cd0a374ea56ece5883bf93176056a637c8f49c54637625",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "b41e66b8449f7bf027853de6b2384bab08549aac8b014bb1316345af6d5d0ab1",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "469fb3c529267218f8bdca915609c37b528a5b04ac3c08212558274c68f040ac",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "e7e1c06e363f211e762e9934cd52d3e73cabe853b1c13eca4640cf636672b83a",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "2929b9771120bdafdbc4a43b8bda2b3831e2b73ad9009d2ab4f1b8cda246b4a9",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "c0cb37165c8d97604ba6b8e4373630c9c5fc1fd24ea995e128c7ef27a17094e8",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "c1b463ca7a283499cd5fd6dcf0cd67768d442b5409f2031b026c30f2572e09c7",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "57e341c5e9daef8c65a7fe7cddcc55c4d0867e4368f908a2d254625f518055d9",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "4c02523f89afea044db8188b99a2d7dae3fd855b452a6ba2f863a341abae750c",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "bb584c86b3118bf6181362fda25c105a86c4197dfeb3b349f109d7c09242847c",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d9b93b7c8cae76a89f8915372d8aaae5207c595a3ed3291e3dbd596ac2f906e9",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "123ffcf8c8c018817cbafa65fc1bc889dc1d4f72fe4ce021c4c672b38f52a779",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "c4d6a49e125654a20c6a95d563763df20509f24bc319a4346093506f892fc42b",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "48c06d20851479525f3e73aa9277d937645554e229039a31ff99b21750e3481f",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "20edba84e8605908030daa0a4208f4e093d5ea8408c677e35a4b6d684cf86e65",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "708eda2aef26555fba8252837fcc95dd3732ac62583f866744a79c0af5bab87b",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "8edb7348b17e5f0310adb00f77eba8a5b4935f19c302f325b68ec8878d564f8b",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3aed1c1f47174168bf8ed19632b2c9dde2455ac5f4240d4d8a7f004db77afa7b",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "554938863816e7edcfbe81be7d7d503e2ec7f6ec249b8598f37bd31ffa5a8573",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "684537b4407da8d32cd6348aed9cd9efb8536b8cf8f0955dd8ecc3bc4afa49ff",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d23c24a278a7e42701709de46c2a0eba926023c75260fd9a4648386dd5862e15",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "ae6c2d0acaa4301428ea5c9bbb58d5dd912d0d199b77a74e039506d1f13b5cf0",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "4a58de21a39108328a04388d5a89b2360de8a39b1f63c723083ba1a9c28b6047",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "2113088253095d461006bbc34fafc2f789b049a71c22ec8fa0f093a13b5dfcf0",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "941f4694044b499136551e2b7a5aa29b1ee0064967b8c138e4d96b26e2ffe7d1",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "fdd042cc12c0fd83f9bfa3b24228a389f02bad42a3ed09a90cb4459e3d2c5928",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "6d3a54707aa3d97c7f42fd7591fdf2df00752db9880c05ea63b30f1bc3d14bd2",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "f19e9a649037a83fae3c7895f4fee6bc31530dd2787f5a0e66c0bdf48b4543fd",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "5758f6f37abb7c863ef8c6f31525aa2d28a267ad1bcc64003fb7147271ac6d1c",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "d7b3657438b922dd75ddbd0d90721bbc135c4841ebf945bcb3fb45c4ad63ef7b",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "bc22612192a34d4d47b6c42b2bd3f7a71f5bbffdb7b884107f72dca8e18abb13",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "aead08bc30dce3a290243056221ebae4abf30100f07ed9eea91fa595cded2c8f",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "307e1f1ab6af351369f9ef231d60925a7d53c2be50940b1a4565dad9f827fb27",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "5e73d844e22ffb1cc1f180fb9ec316563ec14b9bfa86c76de438ebf2efe538db",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "b87e60948e13b13517302d7f0ea14cd5bbada066fa7df2ff2308af7edc3695a7",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "3ee7e16a2933d2820996120c159b18422dfb3e758589a1d479ea69167d61a6d8",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "bbd90744afef17bb0053e7c5508657afd1b2e64fbbe25ef4b6065b8a8558c009",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "e9ae037b821e42e7337ba33a41477551169c2ff87118195ef358b4b35cdd4267",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "4b7b7b6b78c10712e6e31c0f4e3f740211c16f93b28e33aee92ffc7ade637afc",
+        "classification": "declaration",
+        "owner": "WorkflowValidation",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "17433c297697b426c9704b2f58230cc654c6d652f505f10059e8641c406be54e",
+        "classification": "declaration",
+        "owner": "WorkflowHandlerContract",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "b635765efc739febbe3ff53a99b1c19d5d98934628046138909c83d513ff7a0a",
+        "classification": "declaration",
+        "owner": "WorkflowHandlerContract",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "02785ee892679a6214ed2483ba4936146afa200d6aad1d009bc7b54156276489",
+        "classification": "declaration",
+        "owner": "WorkflowHandlerContract",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a2d44cfe9fc6c6d00ce2dc34644c3dc528d5183734c72763a8464a5332bff49d",
+        "classification": "declaration",
+        "owner": "WorkflowHandlerContract",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "ee350187e4cc008c42e3b1d77cea9fdea520a2ccb953793a20088ec3fae413bc",
+        "classification": "non_contract",
+        "owner": "_condition",
+        "reason": "Python -> None return type annotation, not a missing-field/default policy."
+      },
+      {
+        "id": "1e3770576f4e006f38732b61e3604032e35446ba9deb8911414aa3ab4f82c9b0",
+        "classification": "non_contract",
+        "owner": "validate_graph",
+        "reason": "Python -> None return type annotation, not a missing-field/default policy."
+      },
+      {
+        "id": "e800f31dfe8ec87e5035b879ab41368d616d2747329a3f395716c19d6dbc72f8",
+        "classification": "declaration",
+        "owner": "WorkflowGraph",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "a9fa78ced39818dd4545725e643c6d2001d022d551fad07639f4348b59b862a2",
+        "classification": "non_contract",
+        "owner": "WorkflowGraph.__init__",
+        "reason": "Python -> None return type annotation, not a missing-field/default policy."
+      },
+      {
+        "id": "a71b5682496540eefe2e5e32dccc2afea04c2c83393d6ea3ef5fdb1767650bee",
+        "classification": "non_contract",
+        "owner": "WorkflowGraph.node",
+        "reason": "Python forward return type annotation; no runtime contract key or state."
+      },
+      {
+        "id": "ae971349d5e3a835bda655a56c90209f4942a3012943293d7291294ad02a087f",
+        "classification": "non_contract",
+        "owner": "WorkflowGraph.connect",
+        "reason": "Python forward return type annotation; no runtime contract key or state."
+      },
+      {
+        "id": "cf59ee15c81298733f9ca7e018a1ece3425ce9a0255991aea415706fdcb639d7",
+        "classification": "non_contract",
+        "owner": "WorkflowGraph.from_dict",
+        "reason": "Python forward return type annotation; no runtime contract key or state."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkflowGraph / Workflow structure validation / WorkflowHandlerContract",
+        "declaration": "llm/components/workflows/graph.py",
+        "consumers": [
+          "llm/components/workflows/data.py",
+          "llm/components/workflows/component.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/component.py",
+    "sha256": "4cf5ca45fd7ecd399f734e2a31587ced5e6291a09469c36b4cd445feb49df7b8",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "671be888b7d979d5043947decf7b163aaa4dbf86d25439459bc5b22d2d51f056",
+        "classification": "non_contract",
+        "owner": "WorkflowPaths",
+        "reason": "Python dataclass frozen/slots layout; not a storage or execution default."
+      },
+      {
+        "id": "118412dd0ece16fcf4512e6e4ce6ba3d4b6be8ffd74f997eb228ce5ea9d9007c",
+        "classification": "non_contract",
+        "owner": "WorkflowPaths",
+        "reason": "Python dataclass frozen/slots layout; not a storage or execution default."
+      },
+      {
+        "id": "b058413d515ce3a28f6241446ebeaa11d5520aa1c8c95effae15ac906de3f641",
+        "classification": "non_contract",
+        "owner": "WorkflowPaths.for_project",
+        "reason": "Python forward return type annotation; no runtime contract key or state."
+      },
+      {
+        "id": "2d3f2e2ade21472b40bf059fa8bfacf69feef0bb4a1e796e370658484fec35ec",
+        "classification": "non_contract",
+        "owner": "WorkflowComponent.validate_record",
+        "reason": "Python -> None return type annotation, not a missing-field/default policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkflowComponent / WorkflowPaths",
+        "declaration": "llm/components/workflows/component.py",
+        "consumers": [
+          "llm/components/workflows/data.py",
+          "llm/components/workflows/component.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/references.py",
+    "sha256": "98d0d71cf81d8938d9ba3deb66c9fe21f254b3c8f85f1ba334a239b3e5ef6f14",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7a2ded45223a416a1afbf9585d097810d7f0e4138e11eb0c549810ad02adac0b",
+        "classification": "declaration",
+        "owner": "WorkflowAgentReferences",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      },
+      {
+        "id": "b52f2394aeee0c495981e05086dc977fa3ae6e1c69db31ecc8592f5001005b78",
+        "classification": "declaration",
+        "owner": "WorkflowAgentReferences",
+        "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkflowAgentReferences",
+        "declaration": "llm/components/workflows/references.py",
+        "consumers": [
+          "llm/components/workflows/data.py",
+          "llm/components/workflows/component.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool.py"
+        ],
+        "tests": [
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/workflows/README.md",
+    "sha256": "bbbb7422b8a0da7aabb68ab34bc7e8d6f7232dd458e0d86664570b647296f7cc",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "The complete Workflow guide describes the current public JSON format, Builder version authority, bounded controls, selected handler field ownership and actual storage/runtime separation. Added file map and canonical binding/structure Owner notes match the implementation; examples are documentation of the public wire format.",
+    "contracts": [
+      {
+        "owner": "Workflow public guide",
+        "declaration": "llm/components/workflows/README.md",
+        "consumers": [
+          "llm/components/workflows/graph.py",
+          "llm/engines/graph/engine.py"
+        ],
+        "tests": [
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

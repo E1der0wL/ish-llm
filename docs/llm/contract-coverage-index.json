@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 559,
-    "unreviewed_files": 243,
+    "files": 561,
+    "unreviewed_files": 239,
     "stale_files": 0,
-    "unclassified": 14939,
+    "unclassified": 14642,
     "violations": 0,
-    "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 245,
+    "incomplete_contracts": 5,
+    "unreviewed_dynamic_paths": 241,
     "unreadable_files": 0,
-    "candidates": 23496,
+    "candidates": 23333,
     "issues": 0
   },
   "files": [
@@ -2391,8 +2391,8 @@
     },
     {
       "path": "llm/components/workflows/README.md",
-      "status": "unreviewed",
-      "sha256": "32e8acdf0349ec4aca13c86665d42febbaeaa3cbaf51407344e574b6ee6c3de5",
+      "status": "reviewed",
+      "sha256": "bbbb7422b8a0da7aabb68ab34bc7e8d6f7232dd458e0d86664570b647296f7cc",
       "candidates": 0
     },
     {
@@ -2403,15 +2403,21 @@
     },
     {
       "path": "llm/components/workflows/bindings.py",
-      "status": "unreviewed",
-      "sha256": "4f3fcedb29997e2f4a573ff9612f13e7bd891b83151738cd6a13f3f110470fc7",
+      "status": "reviewed",
+      "sha256": "4c2be2ae7328ae565767f0c1cbac06cd54f123943559c4140dc76fa78f1873fd",
       "candidates": 14
     },
     {
       "path": "llm/components/workflows/component.py",
-      "status": "unreviewed",
-      "sha256": "16aec6a6f1906de4cf0f04f908ff2b3120fdb3bcffc36a66286d1285bb637680",
-      "candidates": 15
+      "status": "reviewed",
+      "sha256": "4cf5ca45fd7ecd399f734e2a31587ced5e6291a09469c36b4cd445feb49df7b8",
+      "candidates": 4
+    },
+    {
+      "path": "llm/components/workflows/contracts.py",
+      "status": "reviewed",
+      "sha256": "5a66347d2685619c13515f21ac309b4ab484347e4db1717aa59abd5ea5ae27ff",
+      "candidates": 26
     },
     {
       "path": "llm/components/workflows/data.py",
@@ -2421,9 +2427,15 @@
     },
     {
       "path": "llm/components/workflows/graph.py",
-      "status": "unreviewed",
-      "sha256": "5f5424a1d0a4aa6b0b033e25d3039e471c20e9092ff24ce85481341be1b00d05",
-      "candidates": 268
+      "status": "reviewed",
+      "sha256": "870764bfe10512aa6418631468e55bf576438b7429ef7cbf7c1b782e20e04644",
+      "candidates": 88
+    },
+    {
+      "path": "llm/components/workflows/references.py",
+      "status": "reviewed",
+      "sha256": "98d0d71cf81d8938d9ba3deb66c9fe21f254b3c8f85f1ba334a239b3e5ef6f14",
+      "candidates": 2
     },
     {
       "path": "llm/core/README.md",
