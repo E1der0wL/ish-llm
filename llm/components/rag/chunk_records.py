@@ -194,3 +194,9 @@ class RAGDocumentInput:
         CONTENT = SplitDocument.Field.CONTENT
         METADATA = RAGDocument.Field.METADATA
         DESCRIPTION = RAGDocument.Field.DESCRIPTION
+
+
+    @classmethod
+    def create(cls, title, content, metadata, identifier):
+        return {cls.Field.TITLE: title, cls.Field.CONTENT: content,
+                cls.Field.METADATA: metadata, cls.Field.IDENTIFIER: identifier}

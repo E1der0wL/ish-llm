@@ -49665,189 +49665,189 @@
   },
   {
     "path": "llm/components/rag/chunk_records.py",
-    "sha256": "2babfb18d3d958490197dda8887d647f9a33af5ab67e29a8756425601375a294",
-    "reason": "Whole Job record and storage implementations plus their direct/dynamic consumers reviewed. Required state/attempt/failure/lease/source evidence, exact manifest and receipt fields, immutable changes and stored file order are unchanged. Real file/fault/safety regressions and independent old/new comparisons pass all original assertions. Jobs orchestration, Component/Data and common storage still require later whole-file review.",
+    "sha256": "bb37e23aa59a78da6f7d136eed83f485a25d1201713392b0d042d45b3a59514c",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "cf1f6e87994f50ee332646cfed1a4710a291cc4b82d8ac99a5641eea3268fbe8",
         "classification": "declaration",
         "owner": "RAGContent",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "9c703c461854854604d07679b4575a422940c76d6ccd0d09c3ba7ec691c969dc",
         "classification": "declaration",
         "owner": "RAGDocument",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "ab2cbd44fa4e93a85061515cecc4dc199434f17841e6e17a1f82e6b036f62fb6",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "3d5b0dced34f6acc0958673075aafc810cbf1318a4957fca7609d039e391be12",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "8e18c8d7da13c2a897caf88387754edf6c9395ce58886b666a2c441bf84b9c1b",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "2ec1eca3061ddc58fd168f44e2410d44f07588db193a013e599553bad4813dcb",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "8fb4375edd43d645e14074043ee303ebd758f11aa623a29d01dab6afa66e5aa9",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "c1a83bc85f54a7a14036544d95eac5da7be09276b560fd237449479975c44cb5",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "df61f4792ac5bd12e566635f4da166f6b44058218d98bf646620c8a5792b87c1",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "525dbb5ee2004a43090017b27f763fa418dd725bbae2163fb8c146c23d6890da",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "a41d39909e374905917e34309d6ce0a94402ae1373526c9292be9f175fd929cc",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "5298f7c6c586245f42dfdd5fd8fd525c4fecfaa00bfa287b71065e5f80bcb080",
         "classification": "declaration",
         "owner": "RAGSection",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "4f8398e35d732f5a217040ea04567ea96362d444463cc507306c79b12b07f0f2",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "e8601aa102af34447eb2ee4c41656e7e16ca228897b659641bcf4ba462b00083",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "5834f141d6f97aabf49f2fcf2ff167860ba717bfbb06202b84e1eb68582c69e4",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "addc5820db4e15c15125c729384d142154fdfc9c3c96bb1b4392fa5d8a60f93c",
         "classification": "declaration",
         "owner": "RAGSection.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "4bc0edd3200412a55bc7c95ce6394c3713087b81739ac69e76d4ba0a3ea6d346",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "dc877b69e7ea9e577d59acb5b82f7c85ad6d4ec6f03ed8edfda9eeeaf2fd8706",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "69dd7986392f27e24b29edff0e3847271bf81cc56b33c694440dcb538fb26521",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "44e5a6b7231eed287f2d35c62b2e0554801d90c818c18235c5d39a1058a8187c",
         "classification": "declaration",
         "owner": "RAGChunk",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "d88bc3854794fab11ef99064455ae308d1daaa473cff51d4b3f18ea101158467",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "a8bd1ada8bedbec5edf271e282059e69fb8bd488540e0c481474aaafa9ab50ce",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "35e0d47a0800f482928ad43a4e4d20bc4b0fc9c5ded4571f5bcc6668d5b89b25",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "d858c9d6030bb3ca669f832f3a2aa190e05c1bc4ffa1f19372e8fdc6a98253bc",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "c74b3fd330b97dbbcf630cae66e6a3a1f60c2f8e14a66c5ead1c60bfdf3ad6b4",
         "classification": "declaration",
         "owner": "RAGChunk.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "632ea50c7b9383d8a1cef4cf3b6cb41ebeaeccdd1c48fa276772f392a5c4c834",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "fe9ec42b1b42ab707be9488643e54406dd1dba5b010185554d82cbb8b41f81f9",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "8410de53be3190ecef7ad2607be08de0287ec363ac47472969e5017c2e8f4d1f",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "750154a1790da85fb3e439ffb9700fac3c93e5f233364c3ab5fecd7e6a3e7700",
         "classification": "declaration",
         "owner": "SplitDocument.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       },
       {
         "id": "64823e14761422d49d12fbffac490bc578adb3f8e51baba66c8be3672b165c37",
         "classification": "declaration",
         "owner": "RAGDocumentInput.Field",
-        "reason": "Previously reviewed complete chunk/section/source contracts remain unchanged. Prepared document configuration/revision and input identifier are now canonical head declarations; input title/content/metadata/description reference the corresponding original document/text owners without introducing defaults."
+        "reason": "Previous complete source/chunk/section review is retained. Input construction is now a single projection with exact original field order and value preservation; all declarations remain at owning class heads."
       }
     ],
     "contracts": [
@@ -49858,18 +49858,19 @@
           "llm/components/rag/job_storage.py",
           "llm/components/rag/jobs.py",
           "llm/components/rag/component.py",
-          "llm/components/rag/search.py",
-          "llm/components/rag/splitting.py"
+          "llm/components/rag/splitting.py",
+          "llm/components/rag/search.py"
         ],
         "tests": [
           "tests/llm/test_rag_job_state_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
           "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_rag_prepared_integrity.py",
           "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_resilience.py",
           "tests/llm/test_rag_job_retention.py",
           "tests/llm/test_transactions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_progress.py",
           "tests/hub/test_rag_jobs.py"
         ],
         "complete": true
@@ -50314,369 +50315,392 @@
   },
   {
     "path": "llm/components/rag/ingestion_records.py",
-    "sha256": "bdcda5252eed7c67121c22eac4f637e39b29f5fa87dafd2eaf8acc90a803c15e",
-    "reason": "Full implementations and dynamic/direct consumer paths reviewed. All existing method bodies, wire/omission contracts and ordered worker/cache traces are equivalent; selected strict current L1/L2 and actual file-effect/fault/restart/cancellation tests pass without assertion changes. Remaining Component/Data/Jobs/Indexing contracts are not declared complete by these consumer edits.",
+    "sha256": "8c7331da5620b713d8432fc0f59e4bbef442f0567da9011b9c0b20e68a395109",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "3101a70d3161675a9463c5fca8c5c4ac95788bf6829967d470e34688c6ec54c7",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
         "id": "d3f068459725102a560651f025ea17da94815f55cdae0a7689d75899a1b73fa0",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
         "id": "0e41bc255e3f4f8ee0221d223c825bf1d72e29fcb353217b77d77445b1eaaa64",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
         "id": "5565ad721d654f8cdeddaa027d8596c7813adda9d4f14cbb5edcdf6f2e1048cf",
         "classification": "declaration",
         "owner": "BatchCheckpointName",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "dc2a388ea1570eaa9aa132345d0c8b074fbfd0bf956086a394255c6c00277145",
+        "id": "dc43ed6d243939180a4c964014628e07b79aa305511eedfb80f3c60a78aa114c",
+        "classification": "declaration",
+        "owner": "BatchCheckpointName",
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+      },
+      {
+        "id": "5e736fce6e7f6dbc1870bfff4a9133c7dd12df92d9f506e98de3725eab38b05e",
+        "classification": "declaration",
+        "owner": "BatchCheckpointName",
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+      },
+      {
+        "id": "e2b9b2380d4bb3140c44e5bea398d02665f0cfc1cef12f0bc5acdc5d69845a1e",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "b09e449bea0fef4f7cad80f52945df053e0444b4f13c8395be247d8233f58eed",
+        "id": "f4536257b131be6c6e2fb9b3b9601af92f5a56f3805379d07c847ed879e090bf",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "a051eae3e49e21afd9f0e539d36a6a0f81b66594ca8d97afa2d2e459cdfef135",
+        "id": "cf4bdc1770e36784079ce115ddb820003d7d08a88b579790ee942ce7ed644db5",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "1ff3c876e12fba1ed79896765a1728fef98e8144be9edebd9f1f5d03b75df222",
+        "id": "6d59cfda7ae3411efce498aa8f5bfba2301e28b8269e8ac357921c23c7ffc0f3",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "adeac79c21abc44267cac4873e93c835603b91ef964406a510a499dcadbbbef0",
+        "id": "91fbeeb0ff1500f7256fca01d39f25246531a3eab97a01396b85e9aafa48cb0e",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "d4377611472a9f5dcc7b45bbab5b0fd4c95e6870f98fe15db6c4bb42c229e020",
+        "id": "5993529058b5c1838785fcd2bd26d2d2f7d2426048032b034b3c1566d301f4b9",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "79da2c174cdb8f79143553fbb962b46d5ce5ba40b321a65be3278dfbe814a521",
+        "id": "23a93e4a8c07d645eb17a79f6746edbae6a7fc73f8692429ea72c1cc9297fc71",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "55b0a66acf780c70bbc5af01fd6c8bab77781e959963b736b6c0353f26a47ebe",
+        "id": "55f130f4ad8eb246a8838bd36e66202c24542d2f538a14eb6be78b662496581c",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "8e860e8515d34df356f68092f3517fc488da88cada7b0334b9ab467a05e5e244",
+        "id": "437a9217bcbbfb06664d972046c5763489c768d5a35775c89a2ac16774b00977",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "7e8f3100ad310ad5ff6cf1ef94d5e2e7719fd7ceda5281bcc0c159de7b5b5fbe",
+        "id": "2c5124538a67ab552c3c5db8e502c219e4263b2b3ddb8595d55e21531f586682",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "e6c609c83dbd4ea820a922dc737f2ce93d0f3e5c2961b0a11fd131483bbbe5e4",
+        "id": "a662afd8b4c3b0de85a83548b906892b344e7ae5921b8c224d1d97003de53062",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "4495ab77b30fff3e1f86e35f513640b1d5e073de8ab5ee60afc42866f51303d4",
+        "id": "b468ee12875fc7ef48508bbd8640b7be11f5ef044a768c573d7f9a5eaa71a86f",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "25dabd59198c703e5a4fc82a10aca4a2f15c37ef832842cb2da987621a13ca87",
+        "id": "65dee21282779cb092245f3624b4ce66aa831e33ec1edc23329c1b84c6ab5698",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "d9ce145252836067a1fd64eba457fe1b35e5eb248e907021d02c37a26cc3af54",
+        "id": "f89f9fecb837ab7a77a6b2245a46bbacab95eb1167b5b43e05f7f90be2777042",
         "classification": "declaration",
         "owner": "EmbeddingProfile",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "ecaa1403c0a78df11c9ae30e180f3a027cb5b810500816665cc32a63ddbe7aab",
+        "id": "c825866d7e0ee3f9a6d62681c24070160faf229b9b9ecf9c9bbdf21b7f3453d4",
         "classification": "declaration",
         "owner": "EmbeddingProfile",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "1f1347f583517aebffaf138cc3e1d9bcf9464d1f843c3afc813ea511ccfb3be5",
+        "id": "c7044a39bb3021812343e8fb95383a9cee17a129b332ec5209583191dfd3c113",
         "classification": "declaration",
         "owner": "EmbeddingProfile.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "39cdcee0dbb8d1596f0e2ba3f30dcf38eebc51bd9fc4b5c1dabda1dedb80d551",
+        "id": "f2cfadd23ee5dcf572c4efda18c8c9031b38a414b9ba7f6e3d9efaae53d3f57d",
         "classification": "declaration",
         "owner": "EmbeddingProfile.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "e6459336eeb13752f521b22256151d75570428da54d0aa546ca06f1e09f4fa0b",
+        "id": "0b0528a80af063bc75192d765431169c8381b0fbe682fdba1e2387ec0880d1c9",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "75e6df298cff55832a9f3dee686085e06169aff436add6365d3ed3982ceafc01",
+        "id": "ade66401ea6f87d0f8a50f4d5a2a0e06353fd2c5b18d71cb4140fe8f7d4afb00",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "7e95ff28289643f59c985e22bfd8ca42708cf9aad6947451815d481feef0bfb6",
+        "id": "7b22547008188e5b04c4aac17316fba4e733542ee74c23c3cec96a2281a278ef",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "d75f95fa323d56f49648a582743b137d366170240ce73715153c74e48f104ca2",
+        "id": "7c833b1e155092fb11267137559637e9b758cc2bb92afa3664589af16bea7559",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "7b6b280d976ee59704ca88c0d48b36b22d395bda664afdb046903e0f77a9654c",
+        "id": "d9b7a5967b4511cc45bcda6cf00cd112fb5c6ca187ea837fc99ed1946d9034ce",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "2575239102eb9eba30e728b85d324d0fbd8e4618f9c3e9856c02adb0e351c473",
+        "id": "55f3876a6a508ca7d7b0c1fdb816a7c58225238b62c920ac8e3a9fbed49dd727",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "727df94aa3bc103bb66d0dc16a9af01cf3019d97a74346c0d3b312551ec4909e",
+        "id": "9b68bbb268de2de4e79db1438f6a9624e52505e0a28563a3663e0e17b1d6c6f9",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "b2899f8b1985022f9f0a4bee0ebb245ccfa40a329f1c2b5747dfe39dec72c192",
+        "id": "7c131cf9c602b0efa17c5240b28aab45d30bf786650ec1cbe80c04b42a24ead7",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "6cb9147cc9477b98815d43c3e00093fd72f68ce7a36500910b3c4e4c98b07563",
+        "id": "0bfc02fee2d66db6dd2aeb57227b8872f63c6635d01ec1fe38778598665d3903",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "f980c1890a9a2dae2bc0ef7e1325a32bcd6d64a2890503764db8678b916c315e",
+        "id": "c3d111ee974d7db2c37735ed705c8977502445c1e200674f28d7db49cb2b5748",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "938a200c88811cc5f3c719ab5705c21b9dade891730ceb8b4efc562ebfd0e1fa",
+        "id": "9f992dc825c310c7782cf6e721a1c71209bc13147f76464ab38e33f30365a12f",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "ff9c153ab7ef2022247e56012c7c23722628aa18896a78e3fa5d6f1a27662203",
+        "id": "8e5679d0e28f7e8d0758c2b70c8ecfd7055a94199611c0bacf0b56d6c8451c3c",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "51b02ffa0ec2c695092cb74760c003f0b7867d6d747a12c302a3ee08045119a7",
+        "id": "31c6e6625903eaa12834a60213e1011ddaa559e44808ca64c00ee0182ace1350",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "51a5e11666f37ae2a40dc2b3a476f4aa29584fc54816c4d8a4186b2dbf362ab0",
+        "id": "d46b8323e730475c8eef8347e639d5bf1d189cbfc87dac126e032e418b3975bc",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "829d0ba3a4d95247324931c8bfe004a17b2343e3f368c0f60a70dbfe06645dae",
+        "id": "975c5adf814e1910366a4cdcedc21559e3939518159ce2baaa882b285e4671e0",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "01edad4d85b3325468e4d32785a0152fb64c5fe7d4e8fa2a99f478cf93e99eb5",
+        "id": "86b5811bb0aacb89bf1597a81ed39b8b14712810b9166a13e396491b12551199",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "302ee4d4775acd4bf25138038b623974e63ff7188331b82bfc1c540b96b89604",
+        "id": "df7a254a601f0d304e46d02c53cfe2a0d7acc889193c5d28660fc114b03aae9e",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "5d4e9e749061b8773acf3a2bad7cd092a593a4f1024ff372cb86114522479c60",
+        "id": "c829bdad75e1dde6f44da973f3128f20819158fcbd68c12403964b925e680e01",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "30e7ab74e1dda44bc1732173ae79acede0779383d0caf60db9f41568257691bb",
+        "id": "99f4e0c21c8e2ee8aa1acf44e8618b63ef6d2cb19b65302305f853804a0850f4",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "de9772cc379703d9d46c82d7b92bf91c67589ef8cbaac74be8a8c5478551e1e0",
+        "id": "a1c409dbcd09d831e898d27a1f99fde0df0cf88117200a832899222920bbee6e",
         "classification": "declaration",
         "owner": "IngestionObservation",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "3418e36d66b13e6acbd2119c178d5b1520c5a8c12c6965fe108dc2c0857addc2",
+        "id": "db916086fac5ec567d89589d48ad0e46d328c8268c49edb3a59621f406107e09",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "7fea35e354d8c29aea319870ca328a500492660410d327dc0b43eb784b319d64",
+        "id": "e35687fbfdd9d074dac1a01bba80150394cc79cba72621422196934b790986e4",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "f27d25dda513cfe824606531686367d4391971e833b0ad1bdef049b356c3d71c",
+        "id": "ad2eb2e999c81fbe4e2395aca4847896822506950e0904a510d3148d1bae919a",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "8887dc792abddd91c82a76ee0500caf549648500ddf831027601d5eac4e731c9",
+        "id": "198998b95e1781b9e7a63c7ac3d2372fea7c2e5c718696fa86c69ab318f449fa",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "eda377f6a806e2984078eed9b6504bb26b515c00512845bfdb460420b077ae33",
+        "id": "3fc258532171ada06816805f131c0bfa3603cea0a61ba19cb8a1948f3daafdee",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "6ed783ad4ef19eafa0c3959d887f346e3d04e535610f10eb23c6a97244ae2d2b",
+        "id": "88358f253e83bf8af9d2767b0583ea983ff60e63dba5b53b94e6ed3ac0f03f54",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "bd7e97d831de06b192663edd52809596f6c71aa6a7381d7b24f75f8f2fa40d81",
+        "id": "bf0af52da274b9cc9de47da0f2bcc02ad68364589df163767b24c6186944ff29",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "e94489085d4faf2263969e6e6be99f6ff5db533028e0404b9c7322cf9fb0e8a4",
+        "id": "e586beef48c6e72563c8c5b3915f854f2ef8a6d58a6400d7524c9ae2360c192b",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "4f740ba2f6ab89326e785001dbe0babb7c7bcb6251a5e8d190f4f3a3751c4b84",
+        "id": "937dea27a96ab17b1aa19ec035b468c2d9698ecbe33d9ed2270ce15cdf6c599b",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "93af635c6e7d9145ef03b92d1e3d74e552ec55a95afe0db21174cf8d6ebd95ed",
+        "id": "3271d1f2197184f0566dff69398835f0107aa32e2790725ef7db4fae475642d9",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "5f207a97c2c14c9fd4df8141882e5e1f040fc446245e1d6fad670d82d898cd9f",
+        "id": "da48b41d55f495c33a382d444f9dd9b1ef114d484c5d6995d52f4ffd759fd4b0",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "14010bfbb0a501e6fee4572928aaed581894e3285472392d4af73b52122a3cc9",
+        "id": "558e79aa0d3b8d58a098f3461a7354a49ce8880639ab4619c7c0a324811da6aa",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "b01e9dbeffb58c0d57ebe2a84d3d4b5833fc3b8b1a6e75639575ba42543b7375",
+        "id": "07db4d8f6e1840ad803f7b0f56d5f38c6c1d15ac5e5d092de1c4e67706177237",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "f1bf0ec832ba553c5778cdaefa6a87a8a159de3873e667dc4e52ad3a92586dc3",
+        "id": "9473d3afc228b18fe80f2a82e10cc58bae1bfa996b2c8f39811d40dcc78c15aa",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       },
       {
-        "id": "4b89d21e66ddb083c17c7a70ff185892941552ce659751cb410cede363818be8",
+        "id": "143f7982618fbad8f7e5065c49bb8776cd058a1267881266bdbfd6467d201976",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
-        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+      },
+      {
+        "id": "55bbb66e179fd97615ab12e3a29ef699332708ef47168337143b4baff8fa040f",
+        "classification": "declaration",
+        "owner": "PreparationCallbacks",
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
+      },
+      {
+        "id": "d2d90fc4662e69ff316966d61f9033cceebc256e3ae3a80e8d6b1e987b952a77",
+        "classification": "declaration",
+        "owner": "PreparationCallbacks",
+        "reason": "Previous complete embedding evidence and observation semantics are retained. Bare/scoped document batch names and prepare/publish callback argument projections now have canonical declarations, preserving exact original names and callback selection."
       }
     ],
     "contracts": [
       {
-        "owner": "EmbeddingCheckpoint/EmbeddingProfile/EmbeddingEvidence/EmbeddingFingerprint/IngestionObservation/BatchCheckpointName",
+        "owner": "BatchCheckpointName/EmbeddingCheckpoint/EmbeddingProfile/EmbeddingEvidence/EmbeddingFingerprint/IngestionObservation/PreparationCallbacks",
         "declaration": "llm/components/rag/ingestion_records.py",
         "consumers": [
-          "llm/components/rag/ingestion.py",
-          "llm/components/rag/component.py",
-          "llm/components/rag/data.py",
           "llm/components/rag/jobs.py",
-          "llm/components/rag/indexing.py"
+          "llm/components/rag/component.py",
+          "llm/components/rag/ingestion.py",
+          "llm/components/rag/extraction.py"
         ],
         "tests": [
-          "tests/llm/test_rag_resilience.py",
-          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
           "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_rag_prepared_integrity.py",
-          "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/hub/test_rag_jobs.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_rag_jobs.py"
         ],
         "complete": true
       }
@@ -52319,332 +52343,398 @@
   },
   {
     "path": "llm/components/rag/job_records.py",
-    "sha256": "53c1e9ca548c8166f18501301032837f06e6228a299023eb2f58493afe113c57",
-    "reason": "Whole Job record and storage implementations plus their direct/dynamic consumers reviewed. Required state/attempt/failure/lease/source evidence, exact manifest and receipt fields, immutable changes and stored file order are unchanged. Real file/fault/safety regressions and independent old/new comparisons pass all original assertions. Jobs orchestration, Component/Data and common storage still require later whole-file review.",
+    "sha256": "47dd15900eafb9956f91f4885c078195c2a270999b57f11d964c363263962e05",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "f43598f2cac1e6609f1d2603409bfdcdc3820d0a0ba6be8a975dd8e4bf53bf2b",
         "classification": "declaration",
         "owner": "JobProgress",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
         "id": "c8442de6bd49f005ee182bce2ee15209eaad79e815b527522baa3fe4e51fe997",
         "classification": "declaration",
         "owner": "JobProgress",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "b4cccca610fa299d12e8eec7437859318326f5db9aaee66549f92869beb50194",
+        "id": "06171e22166dbb6c282869b089e2c1decc98795377cbfc4a097948f99eaf2c23",
+        "classification": "declaration",
+        "owner": "JobProgress",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "c188fe39ca55560f785c773433f50b33fae8a1b50631a7f10e4754adbae96eea",
+        "classification": "declaration",
+        "owner": "JobProgress",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "48f251f6ac18131f056ae19bd0ae86166ec7633f3812fa708ae02d62cce745b9",
+        "classification": "declaration",
+        "owner": "JobProgress",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "6cb050c5a06f35986d2131976beff268fec9ddc9193823295625ee3d08bea65a",
+        "classification": "declaration",
+        "owner": "JobProgress",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "72346c079e0075783aebf50f6515465e8f59e23f98edea239d686d7ba625614e",
+        "classification": "declaration",
+        "owner": "JobProgress",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "5169e8167e4671155005d5e6e4eb2b191f1785d7abc0127094fb43b4be571c10",
+        "classification": "declaration",
+        "owner": "JobProgress",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "974e37dcef62be1643e8b3b34dd28ce91e700d96ef84f0010a78673b5347c157",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "b66af7673d99da88bc7393c15dd99706548e2aa0b930916c6389d397adb7882a",
+        "id": "52bcacefbc2a320c5844d28852579fdd845bc62cde12d074e650951be65a8d46",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "c0823512d6eab6e1a1847910ca959b5dec1c4522c563c6f838114b884225f43d",
+        "id": "c470811b6b1aeda74853ea5e1b02a2856091ab6b7d2d635dfd55c08eb9329705",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "1b8414b08c2f3b5f463ebc55861787fedf8d2271c52fa4c2b8aa856dab906569",
+        "id": "d50aa900aed6567b0e846e1c4637a2ce0b93a4c9be3bbcc23ca25938a3b0a635",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "1a253805436361ab3c5cbddc039526a3dc5001588821bc436d84fd2eb197bcb5",
+        "id": "0fc48a3fd3236c715038ad00ec53b777177319e69b54144660cb58e703c4ee37",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "4b5cbccf935b17fe6230d6e986e81e85c3ab0b33ab20af9b578cedd977ce8fda",
+        "id": "b0e711a4734c89cea306047b3a62fdd0ba88171c523a2a95b1d55da8541973c2",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "0600e27d771e4a939de4295ecea19818bc0f35559fb2677f0963788c8cc897ee",
+        "id": "e6deded2cc7a0ef8738c3b316d92aee6577cae535ee4b8342b085dd782c6494b",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "0482871d6e438093b0a729794227edc24844a97800c566af09998890f44258f0",
+        "id": "894df04e05c658d8415e9d1cb533bdf64be5001bce0e50cbc9bcacff8114e9bb",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "9e2d78d77e7370ce439b11e638caeffadbee01da13a5863eca4fb58b6460694d",
+        "id": "dc4cd689a7282e9f6f06c1219ba99624952257b79a49da1bec80ef8489d8a9b5",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "3292022bebdfa7824518eceeb4ed9936c987dddff6278b3ac4c11f3c978b048d",
+        "id": "8e53dd59219b277981f5e5f5e16be411d6a84d8a43231a700e5ba0f72a812178",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "7b91c34b2913de6f12f3df7aa73b9e016f6c96e5aaf8ef3e8be08ed08181f9d0",
+        "id": "96122cb4c927fdafca47f5aa337bd398e23c5161d48aecc61034439e9d337fb8",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "65d5ed6ab671c272a150bbce2f8e2b80ce211f33c3363bb8c8caf3c99b2222a3",
+        "id": "58bd3fb923c3087b5f10827053433ad67a828c21e67c4bda5b572628ae0af890",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "e0ed30601efa06b0aa37df242b852e49c7a35a886ca0da7f726aadd5c87efc27",
+        "id": "c100242ffff46a685484f08bda4995f2a8977f580788bae6905914a6932ed5fc",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "cf208169cdadf2c24fba428a7e3fd959813ce5a7edfaf6bd9c683b79bb693831",
+        "id": "29a4bcc6f05c9e27931a74d86efd2c1b465029796593839fe9140efe61ff1621",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "f99f13933653439690cedcbb69b57edf94b86768c8af68cf4b4fab94f8b3e395",
+        "id": "f45b2a6859c11212a01ff7f54dd61c6e2993dce0685c2de5c198cc21158f713d",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "76747d3b479701b96a0c45c25429b89442b7db4e197beb3bb2dd2cef82eaa28f",
+        "id": "61d2bf08cbf9fbb698621f8633d7e97b50821fdf8af8fe42c9eeec2b45ea3240",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "f8349967148883b05a5fd4b0993490ce60bb1b67ed056e2a0c13f2b2c9152cac",
+        "id": "6c9260d67c5939c69b0deecfc81d7cd0e6ed0834d59218a9497542c2632da017",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "9484d7ca83b6e57f308f9fec319d1aad604d1cab9f2c7376f64bb05fe679f7d0",
+        "id": "9c1bcbe215f84fa504fc1df6f09487762848b1238e0e3774f57b1301a37177b2",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "4ff3e9e5bc8f1299676cce43386812b7cb6f9498b88d7725ad50a4cb6b365874",
+        "id": "ce30637fb3e5286019feac6d4eceb4f7bcd4ed423a0678e3725d729daeec5d17",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "6ee9f60f534d6de7024517d6f58face0d5fd26dc9c2eb01b6c65c74e2cdee6a6",
+        "id": "3997e46784b807ffa00e96c05fbc44b1dd7cf52014a4713f8a6e65dddf9f5c8a",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "aa49ae9b684528af1c691cd264a45bd35002dc5b07a5edec418351d168076fe9",
+        "id": "8eba4ebd7c7f8c24b9a23500de2a42c80d8c957be09b6c3926d2e4dbe4ce8d79",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "a88a74be20623b509b6f05854e53a9f2d265aeb920c05f737b2ced0e23e6bcb7",
+        "id": "548d4f8808a2ceac9ee735b38d06a981a8312aa02b032646523a0717371f1f40",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "2b010c02b537b33accc8d63b842c17189bbecd031ab5c5027826d2f58a93f0b3",
+        "id": "a871f88440b96ce920c275ca1aa10cacd2aca91da28b842fc4e98eb6f26fc698",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "64804f9976ea6299b79fe22a14b89b46aeee6213c017e3fa4ccbdef3e0fffed7",
+        "id": "0a2e133ae64abd50a37843fdb5989c4bb82087012e1c692469a44171184cbe97",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "8d83d164dacdd12624f77ad63062ad226d269f24313a5e9bb00a530d62d9869a",
+        "id": "4ef70b3530e9d19249f1e3aa2b083249654b7839173123e883d945ef517ba7d4",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "eecaf0d3b3ce4f2c10e9cba9901a1abcd4a963ad79fd8422de02281b33e0284c",
+        "id": "6aa0fcd1bf7c697745b366f633ca11f7e486117a94d48d372bf17138e107ebcc",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "3a0319fa88eb3966144dfd489c2d65ff0738e8408d757182dd13f92b0c9a909d",
+        "id": "2b106028aaa22c10560b72bd8d65307762f915a9793cad634a898281e4b1f672",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "1b47c1d0621ef809165ab647e93d057b44b81678f4c911992a045acbe001b50b",
+        "id": "37404ae0c408be1554099a526604b60ad59f452da25337aed6b2f1c7b232e63c",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "c08c1bd678f7443343f10aa69e5bea47da0d06171944c401004d0701f9202272",
+        "id": "2c2af5b0cf0977c340872f4cb5eb9280a6cc7ad1b62da90e1024a57f15d51dca",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "6cf2f5617920c7275cb8dfe8870ccb8f14db4c2c8de0dc9db7b91aed700786ee",
+        "id": "ebee4352da89af6e54b469be8a13da89e27ca8bad9238c9ea1b8af07693108d5",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "f5080ed2c6f573ab5e06449167d89b076f17d1693ae89f9f64cb1bce778aef4b",
+        "id": "558db4e62f7c2784a52156fa64b364ae9680facf2a85fbd0a4c2db61601ad7ac",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "8abd6bace48d18b1c0ee83ff64e642292300077156717f6acae4ef322d1f33b7",
+        "id": "3a64a78e50baa962e63427fdc45dde8078d29309de7ee9c93369b3aae61ed963",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "f001e30a37620db8f63893f486e92679a3f55e948c78eeaed93e11bd2d9d749b",
+        "id": "bca4041132f06264a5e1b95e8ecc8167dfdc0757ec3b5360884037b936e111e9",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "82f76a2dd8adc057db4b6d2d354317b8d56f4dff01afe7257d9a500964bde8fa",
+        "id": "a6a3f3e2830b8f6d146dcb8d97cf4c9bc8672940cc0edc9693e6b998b6e29742",
         "classification": "declaration",
         "owner": "JobRecord",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "cac0ba96e9d094410b0ced621b75496592d8fd472a78667dec94e4a53429adfc",
+        "id": "ffb1ddc61f5b35344a145a9cfbc54a4c07d3f0304c14bfc630f8ada3d591559d",
+        "classification": "declaration",
+        "owner": "JobRecord",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "68b18a6c85f01321f7b986c833786ace2cbfdb51be4a5cb5dca7e23ce5e4fa85",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "298fbb7286bc5edebc41a99c4ee254355bdde751cc0e4ee31a876b323330426c",
+        "id": "f8cc191895bf05d231e39d18428db72d273756f709129a9a2493ae0e14e2fd1f",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "638dc6404d9d022077a5ec738dc31377bf230daf9557df786dc0e619389cab37",
+        "id": "65291327247035e8db4b1eb86c00ccd86b961aa48862881b9d40c3ad61f7de32",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "69e48ab1c930ad812f05aa752bb28e1361d3c9d00eb1241c91e9998262d7d32f",
+        "id": "2dcb1d4634cc332a01664bd76978169f23a489c099d7b1509640146cfe4a5736",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "dbf621825ee121dc52fa1e365ea7142f1e293fa97fdd0bec345361a6504c9f2e",
+        "id": "bccc525bab0b58e9d211186ef5a599d9a95968c6b02518e13e068ee4ed689e15",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "9dc25507661bf605d4931283443da49e1b5dda4372cb00f89956aae28550e3bc",
+        "id": "adeefef8122c59bbc7dc044baffa3b9a25b48f7ab9e1aa8ab48623729709aaf0",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "5589ffa9bc1889bce4bf55779f3bf6af6307ec6567f9064fdb7a0e6cd9f035af",
+        "id": "b5b6bfabef78b756a95cea7002a21a9979b3794b84d2387008f7bb14ada0e7b8",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "f8c793892f9835ad6e511799df0a24075bc19b94fd2a14f5cc439f705d23d164",
+        "id": "39b20ea97146ee6b7940062849762a4957f578502f182d44574e877c7f03c822",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "1a3384e93b91670845a20df984e8bc9a63d68888eac6e5e4ef1fac9c56556a6b",
+        "id": "b66a04710fcfb8a4c80cd8aab3c6cb1e353176416ae0eb5d909796fd92535351",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "9eb49f710255afecef93faf98828b528409d23e20a25ad064c1edbbd0014f415",
+        "id": "9b68817998f5348560b5e690f7d14c2cd6b88619370e0475fd9367f33dafa815",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "96aeb8f7e3bf02a7cf02dca1bea05ed0a82ee0fa60ff334f1a54cb72f81157c6",
+        "id": "a5453a7d5f75fddfd0b80ef5d8140617aa95731a0d875e31aed582a34feeed6d",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "8628ebfdd0c07d8e680ff263f793f67ccc5932d89ae173522979eb4f5f10ab0d",
+        "id": "a9b254b4408d0cad77c27e97e768b0c1dd0e8c39889a16439c8cd87d5e8922b9",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "914a28a48cb5800b8c775835b9c6795d4069790a8ff32183d39698c4afeaabd5",
+        "id": "ba3b0bf3870cefcf8322e6ea5cec192dc22bd0a15263ec94002eb5e95d7379aa",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "d25b820840c7491adc5f2a3ef9326df3b1c856b1e4bd878c8506dbe9a8fbff56",
+        "id": "453f683ae2f4b49943ab1e3e3a959f152f4ca5686ac82092605c2e24f9393bc9",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "9f11dfaa43e0c05c2e87231e7a7b86c2051b046fe310784bc26a08e0718e302f",
+        "id": "4ee382cfb514ce1394926807db6fe469ddf45fe56d4ac2bc8c35d196cc8cd34b",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "7a9ada722923e2a9382b566e9dccfdc6f467b4747c0b559be7d361a5b9d81d2d",
+        "id": "3e327fe5665d26a79da3d32eec7e2fe8792c88f4dad2839d4de8f06861fcc59c",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       },
       {
-        "id": "451747f6d9edcf8a6038c6e22ce2e084f9d578e6e7ff9c48191bca2983aaf04f",
+        "id": "5802d8c4fc984c3cf015d5671c471d417bbf90527c17fea6617fd2dc8a767e7d",
         "classification": "declaration",
         "owner": "JobRecord.Field",
-        "reason": "Job fields, original stored lifecycle requirements and error text are declared at the owning class head; shared abandonment/diagnostic/progress keys reference their existing Owners. The single state/attempt/failure/immutable-update reader preserves every original guard and order. Queued/completed factories produce the exact original shapes."
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "9e5dfecf0a415f28e0a351b6f2e4a76791598ecd4f5884b77b609e43e902afe3",
+        "classification": "declaration",
+        "owner": "JobFailure",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "44a9a33a2e232cfbd45065f37ac1875a9ac517b278a7a5b18d3f7feefe05488c",
+        "classification": "declaration",
+        "owner": "JobFailure",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "c37b9f29d2ed6b600216694969feb061cc9f5ed4d3ae59deee1903ee8635b40f",
+        "classification": "declaration",
+        "owner": "JobFailure",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
+      },
+      {
+        "id": "4eada4dd36b590e3e5aeba74b2225e80aac2c766caa25e12df9ffac6b975a700",
+        "classification": "declaration",
+        "owner": "JobFailure",
+        "reason": "Existing sole state/attempt/failure reader remains unchanged. Existing lifecycle update fields and progression observations now have canonical Writers. Shared progress/diagnostic/abandonment declarations remain owner-derived. Failure code observations do not grant retries."
       }
     ],
     "contracts": [
       {
-        "owner": "JobRecord/JobProgress",
+        "owner": "JobRecord/JobProgress/JobFailure",
         "declaration": "llm/components/rag/job_records.py",
         "consumers": [
           "llm/components/rag/job_storage.py",
@@ -52654,11 +52744,12 @@
           "tests/llm/test_rag_job_state_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
           "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_rag_prepared_integrity.py",
           "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_resilience.py",
           "tests/llm/test_rag_job_retention.py",
           "tests/llm/test_transactions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_progress.py",
           "tests/hub/test_rag_jobs.py"
         ],
         "complete": true
@@ -53121,6 +53212,463 @@
           "tests/llm/test_rag_input_integrity.py",
           "tests/llm/test_rag_job_retention.py",
           "tests/llm/test_transactions.py",
+          "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/jobs.py",
+    "sha256": "7f7df8600665535747c2a4f8f79051167775839fee9c02ca7efd756a044ff41c",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "984ab20b184afafbdd1a01da50f6c71d660e8edad5425482780d66cfb45475ac",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "707039af199bf0b3f38822105be08375292f9db44d402e1c10ae1c1e6dd477f0",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "6ac135439faa0873489fa6b8d0f63b9a91d31595b5c31c8dbb9274df9af3745f",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "2fa65be79dad1697a67634a2fb876192bb24e23bef3d85686df8946c36e6f26d",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "d73fca481a9a5d427844125863be63f9cb8ff94cdab49b22c61f5da97f87f1c6",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "a23020b58618b8f4649837da18a8447ccd0067f752e4052d316ec384d96f9a75",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "9a827ece51449a81de5cd22aff1aaed6e4fd81c9a33a7ee5a6010aadb5f57558",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "5172e0e137340db73cefbc301cbb1342a158c124fab81da4ba4fe914ba5022f9",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "122bcaa4c34c49cfd7d63860c30799699545f476e72c43127d8c158e74888561",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "92efd04efbce86018d5e597062f0830724de4843a61fb782e19a9e0625b4c433",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "e85174deffa0cb604a1e88d447b1a299acc46f3927cef87288489a83f6b9ab05",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "bf78d34f15cc4d602ff4bdc3ca04e7559085f9ed29a5325c8728bbc48ff57c3f",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "38381a1c4babd92e777b7f3a969f9b1860a88b7fcb04da1a6d49e1a78f7a0500",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "2489292697b0acd92643376348f34f24aaf3137bef2007f6b1220cc930630fca",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "722009e0cceb33c3ced161032da3997f5792ed0d824a015f024e077a701ffe70",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "d435d386fe1e45880bbab21ae98414f99e52f0c9f2560d7b7ee29a6aa7376639",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "dfaf5fffcc5443f20c01c734db190a9b4b7abb583bdd3845c7229cd44aae78bb",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "2a78f45145450db641d08e5aa18936ed55fd7a5d9d720a6c650e16a1c7f19f1a",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "1a18af9d7fd864a5bff39067928d904bfa2f8a5140946ea9f1ea18de19960f0c",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "752a691441de1684cab16f584e863e1d4cd406bc47840a7b0cea98bee6ae0312",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "4a6ca62a3b5dd7f9e795dbcbc38cde3fa706b69080ef919059759e87fd5f7121",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "00a6a5b6de273efc38c05f80872332324a1c87983c4ed75982852d7d0106dd97",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "545cf1b7eb442f6c4180f094a829035666d868fe99d0676c9d4f6957eceb5a7a",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "c5f3a3d17e66456e12f60117ce8b4494d398a1378635d778db1bada96d71e9e5",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "a7a73ca325e892498ce92a445b3aba2f582e00929bdf7fb7fbc8de74b4614f6c",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "765fba8bb0703d572bc91b4b7c3305b05d226de05231ce9510f75727d727b738",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "f06188d2d12529ff113addb02652216480688af0bb50759a8bf2097417211240",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "481ee3258f3f28735034a05f02af25c6ee770a63038941f9afd449fec256cc2a",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "45db4463fc63689dbdf9f10328e3d009187980dc3eddfc75958c7d92b73b5a49",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "6c5b77f860786e388c7d1515d068da85a5596567284ae66560c6e4d3628cad89",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "952eda0857f676dfea4069a1cbbb22f67bb937e5efa89abfce6b959fb33ca153",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "30b5850f74d18f4f1dd1e026293b0879b8e8e0fe2f31991aecb9889109a92f4b",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "a36b7182474179910d9c0ec0a34e5465840d3e85ea35dc520e8c4d125e532ad9",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "3c9e20abb91b80a2aae89161517fea4002be20bae3abfa2f2f9db78fa11af293",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "cab7cf0997a678cdfce6f3d82552c74ef86215f63c04b651e753a00c7f2f132b",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "b398eac1a550ef643f83925a57f1f4f3060b5d38f2f129612cbff75c4daa72a2",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "b300424e600c03156a1a6018edf47d891406895dc2b4001cce40a4531892d58c",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "c8e8fb7da7f1752f439618acf183f2932c10ec9a4ab73aa73eb1cd48f4587ce9",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      },
+      {
+        "id": "c055b0941b16c1ebad00290c154a9880d8d4330d1858912eecdf129ba67d6f37",
+        "classification": "declaration",
+        "owner": "RAGJobs",
+        "reason": "All lifecycle/plan/batch methods reviewed. Execution controls and diagnostics are at the class head. Record updates, progress, response/version projections, configured limits, input fields and callbacks use their owning APIs. The coordinator preserves mandatory current evidence checks, lease lifetime, explicit retry, model observation and commit/cleanup boundaries."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGJobs",
+        "declaration": "llm/components/rag/jobs.py",
+        "consumers": [
+          "llm/components/rag/data.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/job_views.py",
+    "sha256": "1d580eca6e2c5e61f070173ecd551403c0af14828ce68a5a3277487a5d8b113b",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "098286682edbafb382b4aaadaa9481f249f48d15e3b59cf4f89ae4b81324d187",
+        "classification": "declaration",
+        "owner": "JobPlanEvidence",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "d04c726a7a16c4849de89a4a79d52c53b8ffd87d4c82e8ba08d3aff2ee8d32c3",
+        "classification": "declaration",
+        "owner": "JobPlanEvidence",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "0c3c363a61e1ac6d0578d27f804aafb01bc008f57921333cd576bb16d1d03f51",
+        "classification": "declaration",
+        "owner": "JobPlanEvidence",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "cef9401e14e033940b1bba361f0acd767e0519f1ec01084ddb1f2bd390ac5d1e",
+        "classification": "declaration",
+        "owner": "JobPlanEvidence",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "238ffa5ca7ae0fd8ee9ea5ddb1a2830d149a81f4b8017377ccadae501cb42633",
+        "classification": "declaration",
+        "owner": "JobPlanEvidence",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "f016437fe7b3a2a624ced33ae058c896bda58c63e521a2c26b7232919ea7528a",
+        "classification": "declaration",
+        "owner": "JobCleanupRow",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "fa74d9937b2e35893931f711656bce33d0a04f497684c0f28107cdb3f7cd4579",
+        "classification": "declaration",
+        "owner": "JobCleanupRow",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "f5a89ce1565f8d403210b1563748e521a66837f47caf25c6bde3219d8e3640b9",
+        "classification": "declaration",
+        "owner": "JobCleanupRow",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "234dd86131104d839e5039502c412b4ec12e9006503641123f6540edc2eba4d4",
+        "classification": "declaration",
+        "owner": "JobCleanupPlan",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "ba681a8c9db4f46bfe5b850d736e7946250eb85f7edd706033d44546ea7e323b",
+        "classification": "declaration",
+        "owner": "JobCleanupPlan",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "5356f413b84c9cec8ac726d4d3cd2b627da42eb2e59e55d353d9a2a7d8696af3",
+        "classification": "declaration",
+        "owner": "JobCleanupPlan",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "6c0fb49094e4cc706ce7b5083c80aaca8114e5955f968ec613e100b43b9e4970",
+        "classification": "declaration",
+        "owner": "JobCleanupPlan",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "9d8abf043aee8dd76208bc23f08fdd141154e71a25ce6e2eb7128843c6cf71a1",
+        "classification": "declaration",
+        "owner": "JobCleanupPlan",
+        "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "JobPlanEvidence/JobCleanupRow/JobCleanupPlan",
+        "declaration": "llm/components/rag/job_views.py",
+        "consumers": [
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/job_policy.py",
+    "sha256": "6a50d69a23f668f78a62d822ada59113637b1650e8953ad7013dc226694fb3b4",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b7df5034de371dba490ce5910f6b23db05bbbf20eb96e901b157fab1e0a6e8e1",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "b55af24bc715c0577e531404078646f740aaa18646c6d3940ec5fa336b8ed35d",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "7ec5c3ceeac94af0d8e0ef46a0bd940ff122dd8a6d8e08cfb9564fbea57612a2",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "ab5f0af0d0c180586a1e45fae3cd851a1c3fa016a63c4efaee5c24fb3ede88a7",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "71ba78ddaadd5e63061d942c39c83bcdf793b196e9a84c4d92ced4aa1e058442",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "fe6d4dff6de731b34d11dc0d2fd48737e01a307f36bb78a81ce70040ff3e59f5",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "be190d816aa9c522998e6528efcfe514af614bca2d09760b3a03dce641220f12",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "01e19e59f71bc96e9044f6bd4672a66d41bce874f819baaae1dd666b684acb3b",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      },
+      {
+        "id": "7c1793be905bc3d5777cb014ac6f3f2710cc6f4cd8fec57e5abf45cf26c9a361",
+        "classification": "declaration",
+        "owner": "JobAdmission",
+        "reason": "Only the explicit ingestion concurrency configuration key, field/schema and validation diagnostics are declared here; no omitted limit or policy composition is synthesized."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "JobAdmission",
+        "declaration": "llm/components/rag/job_policy.py",
+        "consumers": [
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_progress.py",
           "tests/hub/test_rag_jobs.py"
         ],
         "complete": true

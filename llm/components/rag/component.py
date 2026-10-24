@@ -49,6 +49,7 @@ from .ingestion import VectorCache, prepare_vectors
 from .ingestion_records import (BatchCheckpointName, EmbeddingCheckpoint, EmbeddingEvidence,
                                 EmbeddingProfile, IngestionObservation)
 from .job_storage import JobStorage, JobBatchReceipt
+from .job_policy import JobAdmission
 
 
 class RAGConflictError(RuntimeError):
@@ -83,7 +84,7 @@ class RAGComponent(DefinitionComponent):
     data_class = RAGData
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})
-    POLICY_FIELDS = ("embedding_concurrency", "provider", "ingestion")
+    POLICY_FIELDS = ("embedding_concurrency", "provider", JobAdmission.KEY)
     parameter_layout = ParameterLayout(
         config=("chunk_size", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                 "index_batch_size", SearchOptions.CONFIG_KEY, "graph", "document_kwargs", "query_kwargs",
@@ -423,7 +424,7 @@ class RAGComponent(DefinitionComponent):
             "extraction": extraction_schema(),
             "provider": provider_schema(),
             "rerank_params": child_schema(self.reranker, RerankModel),
-            "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)})},
+            JobAdmission.KEY: JobAdmission.schema()},
             **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]}))
 
     def validate_config(self, data):
@@ -434,9 +435,9 @@ class RAGComponent(DefinitionComponent):
         if error:
             raise ValueError("Invalid RAG configuration: " + error.message)
         data = self.parameter_layout.unpack(data)
-        for value in (data.get("ingestion", {}).get("max_active"),):
+        for value in (data.get(JobAdmission.KEY, {}).get(JobAdmission.MAX_ACTIVE),):
             if value is not None and type(value) is not int:
-                raise ValueError("ingestion.max_active requires an integer")
+                raise ValueError(JobAdmission.INTEGER_REQUIRED)
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
             if name in data and type(data[name]) is not int:
                 raise ValueError(f"{name} requires an integer")

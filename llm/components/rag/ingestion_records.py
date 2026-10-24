@@ -13,6 +13,17 @@ class BatchCheckpointName:
     GRAPH = "graph"
     PATTERN = r"(?:d(0|[1-9][0-9]*)_)?(embedding|graph)_(0|[1-9][0-9]*)"
     FORMAT = "{kind}_{position}"
+    DOCUMENT_FORMAT = "document_{position}"
+    SCOPED_FORMAT = "d{position}_{key}"
+
+    @classmethod
+    def document(cls, position):
+        return cls.DOCUMENT_FORMAT.format(position=position)
+
+    @classmethod
+    def scoped(cls, position, key):
+        return cls.SCOPED_FORMAT.format(position=position, key=key)
+
 
     @classmethod
     def parse(cls, name):
@@ -232,3 +243,16 @@ class IngestionObservation:
         return {**stats, OperationProgress.phase.__name__: cls.EXTRACTION_PHASE,
             OperationProgress.completed.__name__: completed, OperationProgress.total.__name__: total,
             OperationProgress.unit.__name__: cls.BATCH_UNIT}
+
+
+class PreparationCallbacks:
+    PROGRESS = "progress"
+    TELEMETRY = "telemetry"
+
+    @classmethod
+    def prepare(cls, progress, telemetry):
+        return {cls.PROGRESS: progress, cls.TELEMETRY: telemetry}
+
+    @classmethod
+    def publish(cls, progress):
+        return {cls.PROGRESS: progress}

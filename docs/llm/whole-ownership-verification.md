@@ -4989,3 +4989,55 @@ a03a2bb → 0660f40만 refactor/llm-clean에 Push했다. Draft PR #1은 수정�
 [정확한 SHA의 CI](https://github.com/E1der0wL/ish-llm/actions/runs/40053702193)는
 2026-10-24T02:21:11Z 확인에서 두 필수 전체 회귀 Job이 진행 중이었다. 아직 원격 성공을
 선언하지 않으며 완료 후 실제 Job/Step/전체 결과를 다시 확인한다.
+
+
+## llm RAG Job 실행 조율·계획·진행 Owner — Level 1·2
+
+기준 4b24211. RAGJobs의 전체 실행·취소·재개·삭제/정리·배치 경로를 검토했다.
+JobRecord가 기존 취소/실패 이력 보존/시작/완료 Writer를, JobProgress가 진행 Projection을
+소유한다. 실패 이력 보존과 failed_phase 기록 시점은 원래와 같이 시간/진단 평가보다 앞에
+둔다. JobAdmission은 설정 키·Schema만 소유하며 생략된 동시 실행 제한을 만들지 않는다.
+JobPlanEvidence/JobCleanupRow/JobCleanupPlan은 기존 버전 입력·응답 필드와 Projection을
+소유한다. 승인·실행 허가를 의미하지 않는 조회 자료다. 계획 버전 대조·보호 대상 판정과
+lease 확보/해제·명시 retry·prepare/commit/별도 cleanup의 실행 순서는 유지한다.
+
+원본 입력 Writer와 배치명은 RAGDocumentInput/BatchCheckpointName, 준비 callback 인자는
+PreparationCallbacks, 파일 snapshot의 바이트/digest 형식은 저장 인프라 SnapshotFile을
+참조한다. Component는 동일 Job 설정 선언을 사용한다. 해당 작은 연결만으로 Component나
+공통 storage 전체 완료를 선언하지 않는다. 제품 실행 정책/저장 형식과 모든 테스트·Assertion은
+변경하지 않았다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-jobs-draft/proof.py`
+(한 셸 명령), exit 0. 실제 선언/Projection/상태 Writer를 확장한 전체 기존 함수 158개가
+동등하다(Jobs 29·Job records 7·Component 41·Chunk records 28·Ingestion records 27·
+공통 storage 26). 전체 설정 Schema와 parameter_layout 2개, 독립 진행/배치명/계획 wire
+1,000개 및 기존/현재 전체 run·문서 배치 실행 trace 240개가 일치한다.
+실행 trace는 단일/다중 입력·준비 결과 재사용·description 생략/Null/값·명시 retry 유형,
+claim/prepare/commit 실패·cleanup 실패 보존·실제 callback/모델 관찰/lease 종료 순서를
+포함한다. 기존 실제 파일·프로세스 중단·장애 주입 테스트와 함께 검증했다.
+
+- `whole-rag-jobs-l1-01`: discovered/started/pass 87/87/87, exit 0, 113.153684초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-jobs-l1-01/llm.json --modules tests.llm.test_rag_job_state_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_prepared_integrity tests.llm.test_rag_batch_identity tests.llm.test_rag_batch_source tests.llm.test_rag_input_integrity tests.llm.test_rag_job_retention tests.llm.test_rag_resilience`. source `35a23943283cb4392dff2f0283aa286cd0e0324555ef3a54f97edc71e3c5c124`, input `b988f53c5a1ae693a88a33cadbade3af720fd9817239105140ae06aee54354ed`.
+
+- `whole-rag-jobs-l2-01`: discovered/started/pass 210/210/210, exit 0, 105.8242초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-jobs-l2-01/llm.json --modules tests.llm.test_markdown_rag tests.llm.test_rag_components tests.llm.test_rag_storage tests.llm.test_rag_corpus_integrity tests.llm.test_rag_retention_policy tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_graph_checkpoint tests.llm.test_transactions tests.llm.test_component_storage_integrity tests.llm.test_component_record_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_settings_contract tests.llm.test_naming_contract tests.llm.test_schema_ownership`. source `35a23943283cb4392dff2f0283aa286cd0e0324555ef3a54f97edc71e3c5c124`, input `b988f53c5a1ae693a88a33cadbade3af720fd9817239105140ae06aee54354ed`.
+
+- `whole-rag-jobs-hub-01`: discovered/started/pass 35/35/35, exit 0, 143.663194초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-jobs-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_progress`. source `35a23943283cb4392dff2f0283aa286cd0e0324555ef3a54f97edc71e3c5c124`, input `b988f53c5a1ae693a88a33cadbade3af720fd9817239105140ae06aee54354ed`.
+
+모든 성공 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0. source/input 전후 및 실행 간
+동일하며 L1 결과는 동일 제품·시험·Fixture·의존성·환경에서만 재사용했다. 추가 L2와 테스트
+ID 중복 0. LLM 발견 2,492·Hub 588 유지. Python 3.12.14/Clang·Host d833790·동일 고정
+의존성·실제 namespace/X11 환경. Job 상태/재개/취소/원본/영수증/정리와 공통 트랜잭션/
+삭제/Component 저장·승인/예산/Tool 효과/Checkpoint·직접 Hub 계획/진행 소비자를 검증했다.
+
+실행 경계에 닿아 영향 승격을 검토했다. 전체 함수·실제 순서/효과 trace·원래 안전성 및
+장애 주입 Assertion으로 정책·효과·저장 의미의 불변을 입증했으므로 소단계 L3는 유예한다.
+검색·Job 및 후속 RAG 관련 변경을 모은 다음 게이트에서 전체 L3 후 Push·정확한 SHA CI를
+확인한다. 안전성 실패·범위 불명확성이 발견되면 이 유예 근거를 폐기하고 즉시 재평가한다.
+
+최종 감사 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`:
+16/16 pass, 3.212초, exit 0. 정적 S1–S7 exit 0·finding 112개·미검토/stale 0;
+실제 동등성 및 소비자 검증에 따라 소스/README 의존 증거 24개를 갱신했다.
+문서 검사 exit 0, R3 Mutation exit 0·원래 두 실제 효과 Assertion으로 한도 누락을 검출했다.
+전체 inventory 536개, 미검토 260개(llm 83/hub 177), 미분류 17,418개,
+미완료 계약 4개·stale/분류 오류 0. 상세 증거는
+`/workspace/llm-clean-resume/whole-ownership/rag-jobs-draft/`에 보존한다.

@@ -20,6 +20,15 @@ from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.infrastructure.transactions import current_transaction, watch
 
 
+class SnapshotFile:
+    BYTES = "bytes"
+    DIGEST = "digest"
+
+    @classmethod
+    def create(cls, size, digest):
+        return {cls.BYTES: size, cls.DIGEST: digest}
+
+
 class DeletionJournal:
     DIRECTORY = ".deletions"
 
@@ -57,7 +66,7 @@ def tree_snapshot(root: Path, *, exclude=()) -> dict:
             with path.open("rb") as stream:
                 digest = hashlib.file_digest(stream, "sha256").hexdigest()
                 size = path.stat().st_size
-            result[relative] = {"bytes": size, "digest": digest}
+            result[relative] = SnapshotFile.create(size, digest)
     return result
 
 

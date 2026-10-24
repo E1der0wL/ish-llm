@@ -12,6 +12,37 @@ from .status import RAGJobStatus
 class JobProgress:
     COMPLETE = 1
     UNIT = "job"
+    PREPARING = "preparing"
+    PREPARING_DOCUMENTS = "preparing_documents"
+    DOCUMENT_UNIT = "document"
+    DOCUMENTS_COMPLETED = "documents_completed"
+    DOCUMENTS_TOTAL = "documents_total"
+    DOCUMENT_INDEX = "document_index"
+    COUNT_FIELDS = (OperationProgress.completed.__name__, OperationProgress.total.__name__, OperationProgress.unit.__name__)
+    DEFAULT_MESSAGE = OperationProgress.__dataclass_fields__[OperationProgress.message.__name__].default
+
+    @classmethod
+    def document(cls, position, total):
+        return {OperationProgress.phase.__name__: cls.PREPARING_DOCUMENTS,
+                OperationProgress.completed.__name__: position, OperationProgress.total.__name__: total,
+                OperationProgress.unit.__name__: cls.DOCUMENT_UNIT, cls.DOCUMENTS_COMPLETED: position,
+                cls.DOCUMENTS_TOTAL: total, cls.DOCUMENT_INDEX: position}
+
+    @classmethod
+    def documents_finished(cls, count):
+        return {OperationProgress.phase.__name__: cls.PREPARING_DOCUMENTS,
+                OperationProgress.completed.__name__: count, OperationProgress.total.__name__: count,
+                OperationProgress.unit.__name__: cls.DOCUMENT_UNIT,
+                cls.DOCUMENTS_COMPLETED: count, cls.DOCUMENTS_TOTAL: count}
+
+    @classmethod
+    def observe(cls, job, values):
+        if JobRecord.Field.PHASE in values:
+            job[JobRecord.Field.PHASE] = values[JobRecord.Field.PHASE]
+            job[JobRecord.Field.PROGRESS] = {key: values[key] for key in cls.COUNT_FIELDS if key in values}
+        job[JobRecord.Field.INGESTION] = {**job[JobRecord.Field.INGESTION], **{key: value for key, value in values.items()
+                           if key not in (JobRecord.Field.PHASE, *cls.COUNT_FIELDS)}}
+
 
     @classmethod
     def completed(cls):
@@ -53,6 +84,7 @@ class JobRecord:
     ABSENT = None
     MINIMUM_PID = 1
     NOT_CANCELLED = False
+    CANCEL_REQUESTED = True
     DIGEST_PATTERN = r"[a-f0-9]{64}"
     KIND = "rag_job"
 
@@ -214,3 +246,43 @@ class JobRecord:
             raise ValueError(JobRecord.ERROR_CANCELLATION_CANNOT_BE_REVOKED)
         if previous[JobRecord.Field.RESUME_ABANDONMENT] is not JobRecord.ABSENT and job[JobRecord.Field.RESUME_ABANDONMENT] != previous[JobRecord.Field.RESUME_ABANDONMENT]:
             raise ValueError(JobRecord.ERROR_ABANDONMENT_EVIDENCE_CANNOT_CHANGE)
+
+
+    @classmethod
+    def request_cancellation(cls, job):
+        job[cls.Field.CANCEL_REQUESTED] = cls.CANCEL_REQUESTED
+        if job[cls.Field.STATUS] != RAGJobStatus.RUNNING.value:
+            job[cls.Field.STATUS] = RAGJobStatus.CANCELLED.value
+            job[cls.Field.PHASE] = RAGJobStatus.CANCELLED.value
+
+    @classmethod
+    def archive_attempt(cls, job):
+        if cls.Field.DIAGNOSTIC in job:
+            job[cls.Field.FAILURES].append({key: job[key] for key in cls.FAILURE_FIELDS})
+        for key in cls.ERROR_FIELDS | {cls.Field.ENDED_AT}:
+            job.pop(key, cls.ABSENT)
+
+    @classmethod
+    def start_attempt(cls, job, pid, started_at, configuration):
+        job.update({cls.Field.STATUS: RAGJobStatus.RUNNING.value, cls.Field.PHASE: JobProgress.PREPARING,
+                    cls.Field.PROGRESS: {}, cls.Field.PID: pid, cls.Field.STARTED_AT: started_at,
+                    cls.Field.CONFIGURATION: configuration})
+
+    @classmethod
+    def finish_publication(cls, job, ended_at):
+        job.update({cls.Field.STATUS: RAGJobStatus.COMPLETED.value, cls.Field.PHASE: RAGJobStatus.COMPLETED.value,
+                    cls.Field.PROGRESS: JobProgress.completed(), cls.Field.ENDED_AT: ended_at})
+
+    @classmethod
+    def finish_failure(cls, job, cancelled, code, diagnostic, ended_at):
+        job.update({cls.Field.STATUS: RAGJobStatus.CANCELLED.value if cancelled else RAGJobStatus.FAILED.value,
+                    cls.Field.PHASE: RAGJobStatus.CANCELLED.value if cancelled else RAGJobStatus.FAILED.value,
+                    cls.Field.ERROR: code, cls.Field.DIAGNOSTIC_CODE: code,
+                    cls.Field.DIAGNOSTIC: diagnostic, cls.Field.ENDED_AT: ended_at})
+
+
+class JobFailure:
+    CANCELLED = "rag_cancelled"
+    FAILED = "rag_failed"
+    BOUNDARY = "component"
+    OBSERVED_CODE = "observed_code"
