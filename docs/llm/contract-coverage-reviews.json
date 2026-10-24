@@ -49957,5 +49957,150 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/components/rag/_client.py",
+    "sha256": "ee6dc2546a2169f642b02e29c3d59064290ea596bf991fe9c7898ff9d3363c1f",
+    "reason": "Complete model client and embedding implementations and all direct callers reviewed. Falsey injected Adapter identity, original parameters/omission/null, merge/copy behavior, caller-selected retry, instance method cache identity and common normalized response checks retain existing semantics. All old method bodies and schema wire compare equal after actual Owner expansion; current disjoint L1/L2, real HTTP and core safety tests preserve assertions. Provider schema remains a separate pending whole-file scope.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fdbc47bd4aa9eab1e30cf4c0d4fa7b604b5c55cd7291277b924dec9de1d4860c",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "3cf70906fdc8e303dc0e4d51c6b4298800a8a5dfc9519982073a44cb16045511",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "9720e40855d162b70f9f5694b5302d29c8fbd11cadd75eca754f85ff57580352",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "c3c28db5bf0c2ba6d08a97d5f1632893554be2931db6fe61f7135d4269aeb238",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "3c80bbbb38d33a6ce0d2398140ed7a033afa6cae6a479b9fed1f669b83dbb41d",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "0db8ab3db33231215cae9d560d001068c4acdf5ed5c886c809e71d25ceb10f39",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "c13aafe6964daa5cf979c8290f89077ddcebead1937e3dde93d05893102e095f",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "c8428edc9e3b523d677c0890de9afa47a5ec563c7ba5f9b6b69f6dd389d83053",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "816a71290b2d0bec96c2ffc2d95a1c5f4cc1a3e93a02ff48f33d7976a1b7149d",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "0ca26c90b9f83dc622d6396eb02718768c81baf54eb76748f13c0a5c51f4032f",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "49a82a8098f2c17b3309410f758692f7fde68ed462c93486972a65c1defc4899",
+        "classification": "non_contract",
+        "owner": "ModelClient.__init__",
+        "reason": "Python constructor return type annotation only; not an API fallback, execution policy or stored value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ModelClient",
+        "declaration": "llm/components/rag/_client.py",
+        "consumers": [
+          "llm/components/rag/embedding.py",
+          "llm/components/rag/rerank.py",
+          "llm/components/rag/extraction.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_adapter_boundaries.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/embedding.py",
+    "sha256": "d793f7dc42ba9e19e7f968d9232dc64d3fe36b547386d8dfb858d8142573ae13",
+    "reason": "Complete model client and embedding implementations and all direct callers reviewed. Falsey injected Adapter identity, original parameters/omission/null, merge/copy behavior, caller-selected retry, instance method cache identity and common normalized response checks retain existing semantics. All old method bodies and schema wire compare equal after actual Owner expansion; current disjoint L1/L2, real HTTP and core safety tests preserve assertions. Provider schema remains a separate pending whole-file scope.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9ff228ebb07e5bdc1dd88cc24105d19b0e0367e9fc8225f80a1e38984ae728f3",
+        "classification": "declaration",
+        "owner": "EmbeddingModel",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "c286379c0a9f416de8e750ab20f9e1a8b0b51a983f6c99624f1cc43bafde0504",
+        "classification": "declaration",
+        "owner": "EmbeddingModel",
+        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+      },
+      {
+        "id": "7c9718fe08785e3e678c08691bd2d1695127e28f10d93b34059057bf38a5b907",
+        "classification": "non_contract",
+        "owner": "EmbeddingModel.__init__",
+        "reason": "Python constructor return type annotation only; not an API fallback, execution policy or stored value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EmbeddingModel",
+        "declaration": "llm/components/rag/embedding.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/ingestion.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_adapter_boundaries.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

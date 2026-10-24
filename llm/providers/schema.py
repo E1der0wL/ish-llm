@@ -26,6 +26,14 @@ class ModelParameters:
         return self.MODEL in self._value
 
 
+class EmbeddingParameters(ModelParameters):
+    DIMENSIONS = "dimensions"
+
+    @property
+    def optional_dimensions(self):
+        return self._value.get(self.DIMENSIONS)
+
+
 def completion_schema():
     return open_schema("LiteLLM completion adapter / SDK", category="provider", properties={
         ModelParameters.MODEL: {"type": "string", "minLength": 1, "description": "공급자/모델 이름"},
@@ -55,7 +63,7 @@ def model_schema(operation):
         "timeout": {"type": ["number", "null"], "exclusiveMinimum": 0},
         "num_retries": {"type": ["integer", "null"], "minimum": 0},
         "max_retries": {"type": ["integer", "null"], "minimum": 0},
-        **({"dimensions": {"type": ["integer", "null"], "minimum": 1}} if operation == "aembedding" else {}),
+        **({EmbeddingParameters.DIMENSIONS: {"type": ["integer", "null"], "minimum": 1}} if operation == "aembedding" else {}),
     }, **{"x-open-parameters": True})
 
 

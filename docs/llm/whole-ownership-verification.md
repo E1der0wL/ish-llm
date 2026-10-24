@@ -4639,3 +4639,64 @@ R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 �
 전체 inventory 529개, 미검토 272개(llm 95/hub 177), 미분류 18,966개,
 미완료 계약 4개·stale/분류 오류 0이다. 결과는
 `/workspace/llm-clean-resume/whole-ownership/rag-chunks-draft/`에 보존했다.
+
+
+## llm RAG ModelClient·EmbeddingModel — Level 1·2
+
+기준 ee6affc. ModelClient의 생성·주입·사본·명시 retry 선택기·프로세스 캐시 식별 값과 오류를
+Owner 선언으로 모았다. 기존 cache_identity 공개 API와 instance embed override 관측을
+유지했다. EmbeddingModel은 두 경로의 결과 타입 검사를 단일 require_result로 사용한다.
+서브클래스의 동명 오류 선언이 일반 completion 오류를 바꾸지 않도록 소유 오류 이름을 구분했다.
+이 검사는 생략한 값이나 잘못된 결과를 복구하지 않는다.
+
+모델 키는 기존 ModelParameters를 사용하고 dimensions의 선언·조회는 Provider의
+EmbeddingParameters가 소유한다. Provider schema도 같은 선언을 참조한다. 원본 params·
+명시 null·생략·주입 client identity·with_config 병합 및 입력 검증 시점은 그대로다.
+SDK/Backend retry나 저장된 정책을 추가하거나 변경하지 않았다. Provider schema 전체의
+나머지 리터럴은 아직 미검토이며 이 작은 필드 연결을 전체 파일 완료로 기록하지 않는다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-model-client-draft/proof.py`
+(한 셸 명령), exit 0. 실제 선언·getter·타입 검사 확장 시 기존 Client 8개·Embedding 6개·
+Provider schema 8개 전체 메서드 AST가 같다. 생성/생략/falsey/구형 인자 거부 12개,
+instance cache override 4개, 사본/병합/검증/선택기 identity 5개, 모델 identity 15개,
+결과 타입/차원/검사 순서 60개, Schema wire 4개, 실제 Adapter 호출 인자 3개,
+Rerank에서 상속한 completion 오류 1개가 일치했다. 기존 Assertion은 바꾸지 않았다.
+
+- `whole-rag-model-client-l1-01`: discovered/started/pass 42/42/42, exit 0, 16.525771초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-model-client-l1-01/llm.json --modules tests.llm.test_rag_models tests.llm.test_operations_schema tests.llm.test_schema_ownership`. source `1783e9eccc970e604fef6a5e83dd1131fbb6ab5b1da32f46a5bee69aee4015a7`, input `be103b98bb75d0632fb1fbd69b02b638a4935518b3326a6cafb68274d4854740`.
+
+- `whole-rag-model-client-l2-01`: discovered/started/pass 165/165/165, exit 0, 72.441353초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-model-client-l2-01/llm.json --modules tests.llm.test_provider_transport tests.llm.test_provider_runtime tests.llm.test_provider_choices tests.llm.test_adapter_boundaries tests.llm.test_common_provider_acceptance tests.llm.test_rag_retry_presence tests.llm.test_rag_optimization tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity`. source `1783e9eccc970e604fef6a5e83dd1131fbb6ab5b1da32f46a5bee69aee4015a7`, input `be103b98bb75d0632fb1fbd69b02b638a4935518b3326a6cafb68274d4854740`.
+
+- `whole-rag-model-client-hub-01`: discovered/started/pass 40/40/40, exit 0, 120.310808초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-model-client-hub-01/hub.json --modules tests.hub.test_provider_recovery tests.hub.test_rag_jobs tests.hub.test_rag_extensions`. source `1783e9eccc970e604fef6a5e83dd1131fbb6ab5b1da32f46a5bee69aee4015a7`, input `be103b98bb75d0632fb1fbd69b02b638a4935518b3326a6cafb68274d4854740`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일이다.
+제품·시험·Fixture·의존성·환경이 그대로인 L1 42개를 재사용하고 중복 ID 없는 Level 2 범위만
+추가했다. 이를 한 번의 전체 회귀로 합산하지 않는다. 전체 발견 수 LLM 2,492·Hub 588 유지.
+Python 3.12.14/Clang·Host d833790·고정 의존성·실제 namespace/X11 환경이다.
+실제 HTTP 요청/재시도·Adapter 공통 계약, 명시 retry/부분 응답/취소, RAG cache/embedding/
+checkpoint·사용량과 공통 승인·예산·외부 효과·Checkpoint·원본 보존, 직접 Hub 복구/Job/
+설정 소비자를 포함한다. 형식과 전체 함수의 동일성을 입증했으므로 전체 L3를 소단계마다
+반복하지 않고 앞선 RAG 청크와 관련 후속 변경을 다음 통합 게이트로 묶는다.
+
+### 앞선 group33 전체 게이트 Push
+
+고정 SHA `a03a2bbee04f62b66b3a3ce67172d90384f22091`에서 전체 LLM 2,492/2,492
+pass(1453.4408507710323초), Hub 588/588 pass(1143.1444620619877초), 모든 실패/오류/
+Skip/xfail/xpass/누락/추가/중복 0을 확인했다. source
+`172a3a23442be34ab8280ca4ad5934ae8e8bf5625c57b591364ccab20e74ab43`, input
+`ab3922f14084fe708c204fa5ad5c6c4b4b794edadcd1e3d3ca22e883ff21596e`, 전후 동일.
+supervisor와 6개 필수 보조 검사 모두 exit 0. `git push origin
+a03a2bbee04f62b66b3a3ce67172d90384f22091:refs/heads/refactor/llm-clean` exit 0,
+0dd6499→a03a2bb fast-forward. main 94229cb·backend bb09462는 변경하지 않았다.
+2026-10-24 00:57 UTC [CI run 40047468953](https://github.com/E1der0wL/ish-llm/actions/runs/40047468953)의
+정확한 head SHA와 실행 중 상태를 확인했다. 아직 CI 성공을 선언하지 않는다.
+후속 RAG ee6affc와 이번 모델 변경은 이 Push에 포함되지 않으며 다음 게이트 대상이다.
+
+이번 소단계 최종 감사 `python -m unittest tests.llm.test_contract_coverage
+ tests.llm.test_architecture_reviews`: 16/16 pass, 3.179초, exit 0.
+정적 S1–S7 exit 0, 기존 finding 112개·new/stale/미검토 0; 공유 Schema 및 README 의존 증거
+12개를 실제 동등성·소비자 검증에 따라 갱신했다. 문서 검사 exit 0. R3 Mutation exit 0,
+원래 두 실제 효과 Assertion에서 의도적 호출 한도 누락을 검출했다.
+전체 inventory 529개, 미검토 270개(llm 93/hub 177), 미분류 18,943개,
+미완료 계약 4개·stale/분류 오류 0. 결과 경로는
+`/workspace/llm-clean-resume/whole-ownership/rag-model-client-draft/`이다.
