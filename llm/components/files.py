@@ -264,8 +264,15 @@ class FileComponent(DefinitionComponent):
 class FileData(ComponentData):
     """파일 변경은 필수 CAS와 기존 workspace transaction 안에서 완료한다."""
 
+    MISSING_METHOD = None
     NO_REVISION = None
     REQUIRED_REVISION = "File changes require expected_revision from snapshot"
+
+    @classmethod
+    def supports_file_operations(cls, value):
+        """The structural read/write/snapshot interface, without invoking effects."""
+        return all(callable(getattr(value, method.__name__, cls.MISSING_METHOD))
+                   for method in (cls.read_file, cls.write_file, cls.snapshot))
 
     def _edit(self, identifier, expected_revision):
         if not isinstance(expected_revision, str) or not expected_revision:

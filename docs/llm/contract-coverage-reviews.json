@@ -48087,219 +48087,225 @@
   },
   {
     "path": "llm/components/files.py",
-    "sha256": "547ba499ee7abcf0e965dc66fbf579a394e5730abe511e4e391c5cf9852efc05",
-    "reason": "Whole file and actual consumers reviewed. Manifest optional/present/required lookup, mutation/copy and last-entry removal preserve existing absence semantics and strict file evidence. Path validation and storage effects keep exact predicate, CAS, IO, sync and transaction order. Actual Owner-method expansion proves full consumer bodies identical, with independent wire/path/state checks and real fault/process-death regression tests. No new retry, legacy Reader, default evidence or business policy is introduced. Broader Base/Data/Memory consumer files remain separately unreviewed.",
+    "sha256": "2b99cf099986b5e6190598b66a0b4e2468f6ed213e69a101e48de933397578b7",
+    "reason": "Whole file and actual consumers reviewed. Manifest optional/present/required lookup, mutation/copy and last-entry removal preserve existing absence semantics and strict file evidence. Path validation and storage effects keep exact predicate, CAS, IO, sync and transaction order. Actual Owner-method expansion proves full consumer bodies identical, with independent wire/path/state checks and real fault/process-death regression tests. No new retry, legacy Reader, default evidence or business policy is introduced. Broader Base/Data/Memory consumer files remain separately unreviewed. FileData now owns its structural read/write/snapshot interface check using actual public method names. All previous methods are AST-identical; independent 27-case short-circuit trace and direct Memory consumers verify the added method.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "759d7dd2bdf448b1cd566e057ad5419e30bdb790cbd25cc21704dd2cea5c1722",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "a70eb27fdd9fd8204db4fb9f4ced536c017b0ebf7ec6f43e13c4fe0b70249317",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "8b878babb5f7c236de7a9c9b7c49108b16a21765bf96b990bb17a04994e63707",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "19004a6b42137ebc5e8bfe87b2088dd6b56581d1643a910d1aceef1c7ae22efa",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "32bb3aa3a01e4254bf349cf556c1e0cf9b14f47c7092120e8da538e8217f0342",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "da17ec85b7d0d4e1f37e8f6977d3cb5906e104bae8b2bae266608a745199f903",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "55de933c62429659fdaa7fc21742aeeea842462cdbc0f7070bdf4a083844f9dc",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "a12499667a5f6abde751b2d242321e675c88fb6da792c1aaafa5cf4f6d3e9cd0",
         "classification": "declaration",
         "owner": "FilePath",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "2328bfa8a9b5c9806ca186624bb119a922593cf813ddc8af9f8150b143fc1441",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "da6288d4dbeaf906bc3efd3039734dddf1df1c9b848743617947008ce606e7d5",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "4987ba75f86ec046783f9b9c480413c3ceb82c5c86f383d6ccdcc4b7086c4d4c",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "a8dbf507ef130af49e7a8f8113b36cbd1bb5ce3f17d1e90f8bac2e3b44baacf8",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "0cd835d66f871e026b785caaeff41799db10ef3328a4ddc07265d10fe6cb5363",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "0f3e44bc5eb16d5d5f221211dd02eddc6669d2aac2d31a6f0d97d4d92cc2f158",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "264dbba6cab2cba9452bcfa894f8832498b79a2c457d5f506621a40fa245d85f",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "c8cd41cb93e7132db067ac785d53ee5bb05576458c30c33b7790c4d566abfdf3",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "6ebfc14aef7b17515da1336620cd483bb79f4fee5e709bf863fc01508c6f9dc8",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "950844884c541512513da8e29cb8aef2d256e59596a5624d103622f5bae6c38f",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "4a589cff1cd8eef74b44b67eda6539624a2ebb90cce350f5c3b3dc92c26bec18",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "05ab3696419055b6a11959bd1e1f6e7c7d912f430f6be0406ec30309a0b049dd",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "526608d1baf46a15c9050e8fc8c4b677be564f4b755d447e4a03b0f60798ba7b",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "5b3e3e85492a4990013ec83358a9090a9bd9818b401c85b3e96f7f167e9d5f2b",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "c63b789a647b6e8f26f8bdfbed5c3983ef93054099a7d4c728f1bca6a78ba68b",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "c223d9ff072d4b5f1f069f164b5668a58e722a0a2a4a492d6d4ebb0d5121adb8",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "f0955145b28744ec1544c6a91c990d8b06a70ece3ecf6d858a601f6c7dbe11ff",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "6fc34a41fc15f7c3d0810e9a29fbbad56151ffab814401b1f716de06f8ec70b2",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "5229a33b802a93c58acafcb9fbd3be9dc33a0481340456d174190446b5fa0603",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "d9c40dee2c5511235803c2a9b26f61944ebf4d762b9a88ea73c80093c7802d04",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "53639bab5ba9c0b72e507e2181d98d08dc4d72cc5086ab8c6ac5c6e35c8f9b22",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "1f96e04ea6bb246daa234d6c4a73281f7892f4eb43f672b9ae8d8e04a9ea9fc3",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "6c1b0c2a93cf9f740927e16623f548f3f54735583677992b612cf8aa19c85d45",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "a5f850bd2de865b59c5ce768ad351a8dce7ce53090b7fc7045d94f7d6ce2bc32",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
         "id": "de612ab9d896ce059e236d3a107a8d94c0cda9dfb5d44127f126877552742314",
         "classification": "declaration",
         "owner": "FileComponent",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
-        "id": "3dd72f47febbc4a75b9e6e5e403a40928446606f82784b366b5c074ca9f35730",
+        "id": "9943308e8e8e0d91e91a21ce08246bee98625cc793999d906afd407ddee89334",
         "classification": "declaration",
         "owner": "FileData",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       },
       {
-        "id": "373a8b7efa4ee7637c66948d34bb16c4a7fc7c3f03c057ea98723546ab8f13e0",
+        "id": "16a5f2301ab46f819e5dcb41265da349a4d155efe8ffe6a8b40d311cf41a2939",
         "classification": "declaration",
         "owner": "FileData",
-        "reason": "Read the full Owner: file/schema/path/diagnostic/mode/absence values are declared before implementation, while every fixed manifest consumer uses the typed Owner API. Dynamic file paths remain open caller-owned data."
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
+      },
+      {
+        "id": "1625721cda50b2f99999b6d2f55d1f124f964e5f4e324fc33df318f16d6391e1",
+        "classification": "declaration",
+        "owner": "FileData",
+        "reason": "File path, stream, API and missing-method declarations precede implementation; the actual public interface checker uses method declarations rather than repeated method-name strings."
       }
     ],
     "contracts": [
@@ -48310,7 +48316,8 @@
           "llm/components/data/component.py",
           "llm/components/memory/data.py",
           "llm/components/skills/component.py",
-          "llm/components/skills/storage.py"
+          "llm/components/skills/storage.py",
+          "llm/components/memory/component.py"
         ],
         "tests": [
           "tests/llm/test_data_component.py",
@@ -48614,6 +48621,336 @@
           "tests/llm/test_typed_contracts.py",
           "tests/hub/test_resource_tools.py",
           "tests/hub/test_rag_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/component.py",
+    "sha256": "6429cd67cc7df105f3f5755402b0cb90e3fc8c545104f63d866b174069d9efad",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "51ce7a1a1ad87be6f6e1df434200a23d8301c7ce9bf0a67c5e5d5a817bfc8aaa",
+        "classification": "declaration",
+        "owner": "MemoryConflictError",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "068f14b407d6ed1321c1748fb126a3e5cf147fc9af8471d5128980e9b0edff5d",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "1d44c49423bcd37d7b957e131b348c87a2515636912888d6ce245b01ab78db03",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "192c21cc0bc29cbbdd456c4adaad7af076a274256e89c81acc2b6312a07a63cb",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "192e3c65e2ea17e8c0e1dad02b458f4c87e2c052681f530f7619cf5e7df5f4e1",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "b25fbe8984874370262a86c53779f66a207e68923bab317b7d099abb355b7d96",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "bc00f5283fdccec35a39184726dbc9a9b6dbe58a488b167c3111e219199d7796",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "f658fbb0f2051ea37296a2f9ac930a66da419a4e79e5597e2a7308173e5d5f3c",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "c46abc32e55f962e5d977892b4878c11f504f31b50bbbdfec818b40883321922",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "411d0a3294ab54e040a2c764119cbc074d0e477c532e791552ad4c567879c5ff",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "9d9d6466c8a833996133db2621c6b5413f6c639702b363f96fed3025216d7de1",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "0d742a0c43e4284101469a2a7587e5d8fb357eb46211fc19cd2c635ce79af39d",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "3dde1effbf0f100fd3e9a39e068bf5a5eb830d1677368904a8172160c7d048b5",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "6bbbf6d41c18c38d1eb8b814b573bfd8abdfd477241b27c7ea168bb039d4956f",
+        "classification": "declaration",
+        "owner": "MemoryComponent",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryComponent / MemoryConflictError",
+        "declaration": "llm/components/memory/component.py",
+        "consumers": [
+          "llm/components/memory/data.py",
+          "llm/components/memory/consolidation.py",
+          "llm/components/registry.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/identity.py",
+    "sha256": "d26558a9229e96429323979181f5030e6fda08c055d54c2ff7a65cce8cb844f8",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7fa1a1da0a3e06f797c16d297e9d12ea3f9beadd710a14899e3b1fa9310f21d6",
+        "classification": "declaration",
+        "owner": "MemoryIdentity",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "a6a29f49186c976e3b450830ba6294887f0010873472d5ad131042311eb8d44a",
+        "classification": "declaration",
+        "owner": "MemoryIdentity",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "bc8b602961e65a6a2f7223da35f86d761c230af55dd197d379124e3ec2d052fa",
+        "classification": "declaration",
+        "owner": "MemoryIdentity",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "4dd64dda6d649a4bf2a630261bd148c312163017fd29fec61e4b3b659f318f17",
+        "classification": "declaration",
+        "owner": "MemoryIdentity",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryIdentity",
+        "declaration": "llm/components/memory/identity.py",
+        "consumers": [
+          "llm/components/memory/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/record_cache.py",
+    "sha256": "ef570ad69e68e829271210a3c7bdfd0d2d34324976117332c97254ef0fe347bc",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "03bd807ef702aaa061599a1c64c19f3ff40b392cffd5fef49879dda59d910acb",
+        "classification": "declaration",
+        "owner": "MemoryRecordCache",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "378831d52866c5e7b98a83886b4ef8cc57ae10e1e8d4e4a32c5b7ccbbacd5cad",
+        "classification": "declaration",
+        "owner": "MemoryRecordCache",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryRecordCache / MemoryCacheEntry",
+        "declaration": "llm/components/memory/record_cache.py",
+        "consumers": [
+          "llm/components/memory/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/search.py",
+    "sha256": "392c8d090072dba01141912c54e0615adffaa154f61624b40b7b960b8d219378",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1ae0bc7670cdbab526a2935efbec08288bdec6ce9d5e6dc4e51b12ec062e41e6",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "efff34d2515e7f9f67d9f74f0f577e04130cfb946399f0e072bf4990fba5411a",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "59543ca1372a11afe1eb04c84eb98e7df38da9b2894f3aa835a8d422c43c0a81",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "4f09bbe6f7b80392890d591b1dd24d61747b2ba1dca981b30473256c4156d8c6",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "96374f581c3270b18d4e061d6dc3c8776dabde5dd520340f76316d1459dde4de",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "a5e787f79bcc1e0a491e4d622968a6639af3a3cecb4be6eef9a1a0542e0ded4c",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "78a1c5c731c9a0c8793dc2c566d3f9200d91c07bd1af93596e82b0007dee7900",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "b92844230c06ee15b7e6cea7e484c5a48658c2417d9c568cd0ad93d1aa8d3ec4",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "82cc099c4a5081f20f2597132ee53db1685e6f69b36f33a2e5392d445ded8706",
+        "classification": "declaration",
+        "owner": "MemorySearch",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemorySearch",
+        "declaration": "llm/components/memory/search.py",
+        "consumers": [
+          "llm/components/memory/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/memory/dependencies.py",
+    "sha256": "4d4f452314450c096f026591cc93e2c9b89408f7f613a56b4d3272a18eb44c80",
+    "reason": "Full implementation and dynamic paths reviewed. Memory retains storage and callback orchestration; identity, search, decode-cache and runtime dependency semantics have explicit Owners. Independent baseline traces preserve errors, order, falsey injected objects, keyword versus host scores, raw integrity before cache, copy/eviction, and lazy structural public interface checks. Existing record, history, summary, consolidation, quota and lifecycle safety checks remain.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1b9047e0dee0d2fe43e062d5f6a9572cfdd50f0726bee8b4926a915f9f83d087",
+        "classification": "declaration",
+        "owner": "MemoryDependencies",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "fa7006dedb6974835a8a23a098a38b6742637c6d0a65c9d6a6a8b48ff246247a",
+        "classification": "declaration",
+        "owner": "MemoryDependencies",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      },
+      {
+        "id": "17b1395e7f1b7be78c77d76fc44da0ef2a4fb7fb3415a0dda98579362567b019",
+        "classification": "declaration",
+        "owner": "MemoryDependencies",
+        "reason": "Read the whole Owner and its direct consumers: meaningful format/algorithm/error/control/API defaults are declared before methods, and actual readers/writers/validators/projections use those declarations. No raw contract literal remains in method bodies."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryDependencies",
+        "declaration": "llm/components/memory/dependencies.py",
+        "consumers": [
+          "llm/components/memory/component.py",
+          "llm/components/memory/processing.py"
+        ],
+        "tests": [
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_runtime_choices.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_summary_api.py"
         ],
         "complete": true
       }

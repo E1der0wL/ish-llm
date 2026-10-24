@@ -32,7 +32,7 @@ from llm.core.results import EngineOutput
 from llm.core.models import MessageStatus
 from llm.core.steering import is_instruction
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
-from llm.providers.litellm import LiteLLMCompletionAdapter
+from .dependencies import MemoryDependencies
 from llm.policies import ExecutionLimitError
 
 
@@ -80,6 +80,7 @@ class MemoryProcessor:
 
     name = "memory"
     close_timeout = None  # CompletionSession.aclose는 자원을 소유하지 않는 no-op이다.
+    INVALID_PRIORITY = "Memory processor priority must be an integer"
     UNCONFIGURED_PRIORITY = 0  # Neutral ordering; enabled processing requires an explicit config priority.
     RAISE, CONTINUE = MemoryProcessingConfig.RAISE, MemoryProcessingConfig.CONTINUE
     FAILURE_MODES = MemoryProcessingConfig.FAILURE_MODES
@@ -94,15 +95,12 @@ class MemoryProcessor:
         return MemoryProcessingConfig.describe(completion_adapter=completion_adapter, declaration=cls)
 
     def __init__(self, data, *, completion_adapter=None, token_counter=None, priority=UNCONFIGURED_PRIORITY):
-        if token_counter is not None and not callable(token_counter):
-            raise TypeError("Memory model and token counter must be callable")
+        MemoryDependencies.validate_callables(token_counter)
         if type(priority) is not int:
-            raise TypeError("Memory processor priority must be an integer")
+            raise TypeError(self.INVALID_PRIORITY)
         self.data = data
         self.priority = priority
-        self.completion_adapter = LiteLLMCompletionAdapter() if completion_adapter is None else completion_adapter
-        if not callable(getattr(self.completion_adapter, "stream", None)):
-            raise TypeError("Memory completion_adapter requires stream")
+        self.completion_adapter = MemoryDependencies.completion(completion_adapter)
         self.token_counter = token_counter
 
     def session(self, context):
