@@ -2402,8 +2402,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "391ceae54ad563c9983e6199ab59553b1492e6ccd65c36603cc6e3c2c48153b8",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete.",
+    "sha256": "5d17e531aad635ccf90abea7d2fa781b1f9f9a6946594557a727d4dc8accd250",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2449,487 +2449,493 @@
         "reason": "Single standard JSON Schema keyword declaration; policy field schemas and constraint bounds consume it."
       },
       {
-        "id": "9b2e6a54c2577956ad9e5ca36661f75e28e00973eaab1f95be04337267c72fcb",
+        "id": "001ea139d121f0ba59445f593c8b96f41dceb8714c2cf36b631433ceab154404",
+        "classification": "declaration",
+        "owner": "SchemaKeyword",
+        "reason": "Canonical JSON Schema maximum-array-length keyword, used by the ordered image operation schema; no traversal/default interpretation changed."
+      },
+      {
+        "id": "9be486c29c591369f2ae5470ce08d29f8ec99a0a5cf312492edbb3c12fa17b35",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Name the existing standard minProperties and pattern keywords; no Schema algorithm or constraint changed."
       },
       {
-        "id": "a98d282ba3e199496471151b015fa69cf32a4f6e39232c28a2bd7d8db5d89861",
+        "id": "9ef3f9de011e63c039766c5516d363e06ab03ddfbd59715e9e6754302047733e",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Name the existing standard minProperties and pattern keywords; no Schema algorithm or constraint changed."
       },
       {
-        "id": "ce0eb3e72e9f24a2d18212b88847f521ff47cb9df6b73b4c93fffac85f0bd11e",
+        "id": "6ab02cc97867f03da4090a4fd62dd799647d49399c34f0cc6df77cbb81325322",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema vocabulary, shared by selection field metadata and Schema consumers."
       },
       {
-        "id": "08caca326888f3569317584160d2a7c12a3b9bdaa69526978b3cab69a961c5cd",
+        "id": "5ac080ac562b66b05be56ed1c46d9913510cf196f14ca0b7935eb6a98261aefd",
         "classification": "declaration",
         "owner": "SchemaKeyword",
         "reason": "Canonical JSON Schema vocabulary, shared by selection field metadata and Schema consumers."
       },
       {
-        "id": "b8a71f0fb82e627cd195f5b730b05aece17c895ffee996fd720a033d2c73620a",
+        "id": "bf6185c805513416c590034436703cb8c1338c5ae6fca6e0781e2baf427d198b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8c15b650a6b680056cffa232b8f6d384b6b6bec30c280d2aeb04d44ad45427d1",
+        "id": "4709b99de853b176cfbbcac94068ba8e9d37b67cbadcc932d2758bcc35d1e704",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "366fa4f8dd955a0d38e6b133553edaad71d4b824d639da8f8776d87c566211f1",
+        "id": "7049b0ba3f8e654020c52a64e46cb85ce4ee6a8ce45f0de696446219e124cc08",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "4e16d37aaa1e765f60f0b8ce6ff9214808c601f2159c4c5861d3b89f7b1e3019",
+        "id": "5df9be72d381c858d3603893179333a3be65ae5aac03721e7d7b44c485f1440d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a0bedd802696c1d126c1d618239cc704c896d49c52376c90e9476059e6c83016",
+        "id": "6456488b42df664b306d3003dd5069fc4e874b8ab6c1c3dfb4b642528d14f00e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5b0a7f01863d7e7863cf8b1cb20d01a77d76d7418cc6a1deb23e2b9131f363dc",
+        "id": "2ff3c15507f79fc2601c657a4bf9c4cb93baf4eeff9136fba377cac7c9f83ea0",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "36649accee7a514f7245c58156a33243dd4f4a2d8b01975bcb05309a799e94c7",
+        "id": "ccfdc3f1d1cde785805b741915e19f32ef612ebebee3ff261701471958778aa6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "71639f9e391c23869e4761b0baa58e18af9bb21fffa35d4e2796fbaee21c4289",
+        "id": "23be94df7ed89842c16385fdd5fcb7400434afbf4040c365f81802deb57d8b67",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d496907911b6961b41b267eae773b67fbca7bc6ed66678b6d6d1d452f311b989",
+        "id": "de1c481c93536d52bbc40de8da1897c40f2e5f198593f9867b430f0ce1c2d27f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3ad42a985b1eb7e4876d26fdcca78720fb53fdb8f0403ad6d314da6f55f14591",
+        "id": "95bb8c217efe9438a3ff02e6230a1468058bfd1ff1a358f180c658fdd6f75e70",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "99910605c9840ccdc608103a4c726e8ea7e73d3ff3ae131a19dbe316962464f4",
+        "id": "8ffc39a8dfca86c585f5c36634d9df059e502bd6a2cf2f5c4c3db165746c2a58",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b90660dbe12d9dc5f32ec556c9f90fd6f7efb6cb44d2740692d9b81ac22a1573",
+        "id": "80a1962ad2f2eae8eebcb2561864937dff94ffab2ed59084c716a0dc13645b4f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "afc28cac9723835913a5ac91f894949d6d524d598d8d22639a3f4c1ac7c53b71",
+        "id": "abf1bb123d95c48a29ec96a45ed9b58398e37a642d6e52a71ea2f75ccd1d81c1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "9260b5dd591c940bd7fd0ddb7ba99b36328ad6f0ba6c42b3583c5096464d4299",
+        "id": "1717258e312e224f89dc70a1385daaee1eb943af635b60b42d625ec1dedb0953",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a17e440aad651f52ba0f5e9b04905f1f7968e85a0854fc7d65768ba4ca5809f3",
+        "id": "eb8bd9c04fe7841d09b1c73eaf5a7191635129f9b30500acd6df5a1847a95aae",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "68c619fad01bad6dd3b17078a3549f080b52038b4a12068da3d26bcf5cbcf3de",
+        "id": "c0a9636863a2f48f7c10f1e12629a310136affa11ca9f52d2532c447fe1a2597",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1f4c21b87380dd84768f210c056d1c0fc89aa4ef1a035a9f09151810d5874f08",
+        "id": "bf07b824ac559bd0eb2405aae13a04c3211335f1824441c30e4dbd131d1acf05",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e09a8c25e0882a5103cedff5d4e62da3609065743e587d76bc3aef6e431d10d2",
+        "id": "ad862b33ef99e489e0cace08756f32a92ab0343e04cc5a5cf0e35b8418345728",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ea9525e14d29fe0cdfbc5bcfa855cdb8a2b254abf0514f5daa92a5b6d83dea0e",
+        "id": "6e08a57a6482943493c1b57bcf6c5f41f807a21f21f0c9c17b1864f16ad6583c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d21f0686558e015c514de96b49087eae4b254e8f685236e0e9a0b056c492d855",
+        "id": "fc301848bc60d889ff32f066d5234f83b0c4e4c8e39dde6d35460e2a26de1dc6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8e891c9e568de3347cc08d857b2a645b16ca92b1df5c352477ac56ba0c17ff47",
+        "id": "3240090831f34024193b5ef569de59919ec9154e27db19e16ceab5f9cb720848",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3b4173dcf769ae0aa17ec1eb5d68f39b674527984feaa5178c42d32f37591aa4",
+        "id": "1c6645a897f0a64431d3ad9d4b0650bd05ebba0fbed7c84c332febc718c46d9d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "dfdbd56d4454e2192606f0e4cab524d7fe19139519e4357c7f0bc4547433e5f8",
+        "id": "f97e9d93f26966a4bca4a8abb905ba25ba9e52f48e552f6add6cb8d06923a8e0",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "650b1695924d7d7edd98eff53cbd9be4b90ae79f1c79c3ba052178e8852b8876",
+        "id": "72c69fc130cd21ca9c5bae38920285e5b6583d812a430c417b42cbdf99b7c8f7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "db8f3d94da649d221913cfcc60edee5cecb7ecb46f8d4d585a95a891b53e9d63",
+        "id": "43457b6c2e41fa76a1298c4164d1243113177a8573f37c824e920fb82902b62e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1e9bfda48fe6a5182b0cc81da125cb2d81c7da466794e1bc982771d6fc531d8b",
+        "id": "be198c8e27e086013a89218962be9d878a70288c24e7a5a84af7f0827ba8a33b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b89cee67b16316a41179c0053584643aa8e91c36ef7d536e5f7dc1ae2087c56d",
+        "id": "e78a38c49dd15699b5b91f9794227e77f0baeb5c3bd20f3e3947b72f028d2775",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3b52cfdee42e9a47c6418d454e0bef8fb8c616e8adcde9b1e58c8502a84a7faf",
+        "id": "ae6f67eba3e2c98acda6352d6b6477643cbead56740d5076552bb10a8751df15",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8b626e889eff4985c5ca5f7bd988e6edefe2e679fd2cdbe0a5fe10dd993caabf",
+        "id": "4c7e2b42f6e3b98204606c7755707288cf2016faffc3d7a1e669e946efeab994",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d9ccff5cb4a33a0a6665eda26af448fdbd949f06e2e25e98d1d0ee6ac31793c9",
+        "id": "0d78fece16cc1c8e404baf536449c68ffb3b75a7e258d0beff2e7f6fa8f38703",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a42a29da38a8a42ee6ae6ea779ea5c3a45faa975c78a5fe849666b35c92f92d3",
+        "id": "a83e352fbf8efac8b2cedd18dd61f632d486e7267d28e947c5d04072d9545c7f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "de0ebe8713a24b057160466c3a8f657ae817e2b59b193f70e8d61d6576cc9c71",
+        "id": "908c5779f35b60d82805a8d7f62dc751f8f0631536cd29b64858f724c4c1b216",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2fc6a1d13185411632c14a8d5731ffe253faa314942c7e16e5a45a7780a5b5f5",
+        "id": "c0b4c33a36b8b79c3404abdc2840c0c6e7a91784b142e8b912e2619690379c7c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b1a3b92736f5b6e46a8fc5d85856b299a76591cdd472a9d6dcc2288117298ddb",
+        "id": "04fb83b9c07ad6eb16c81afd42e23015b6845af855722d8f2932eea84887f3af",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "34a5d0d44351e816f6931d733676cb7d4adbf5178e73f96fd5ab8908e1f81ad1",
+        "id": "f6c8e1a874a2c5fe3f88e1ecf79da37d23e7fea291824f9a4bf00d3743bdbc54",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ff2f69d9a3b63d9432eaf76ee882117d724c5d8490c21564016e7c0b55045d48",
+        "id": "9534a3b40c08967d5ac97cfcb91b765b68ed1ffe757da82f7f87d906be6e9284",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b29ddc42e17352db32246347b2d0f13ec5593dc6605edc6d55b665cc17efe37e",
+        "id": "b4a37d41bdf23a2f5dfb7a5b1e85860706ad45037eb6aa0b14457f9f72e779d3",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "baf4257ffc96430a33f5e8d8ae57656a129f60f58d6408431a976335e3511416",
+        "id": "f4e6e7640ec117f9deb8ae3e85e7c2f836a1bf8b3827c1f3b8422f9c67fff061",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b28bb151d570176fb0fbf63e41756989e1ad8465fdb474d6a4e7fee22cc8b5ca",
+        "id": "f9477fb76677c494a65fa85055378a75d99037ab3410d5179ce9e2bd258307c2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d0974d15eb9a9ba8338b8fd2f29d6a0f2182ca51d4e5c5f20d6292a452ec070d",
+        "id": "85d5b84fe44e7166ee989d817fcdacc7069602c9585627d67b8a91db00be7314",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e3358ab1a3a4b63e1e49a3745c795d606f8a9ed7e8823b0d9bd912efcd1395a3",
+        "id": "42be9c53692d5dbec25b398015f48ac0c2496f22cae4eadc2a40423349bc720e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "6dec1a4010f73185f1628a99fed2629bcac18e5e77ae149423be842c483b88e6",
+        "id": "7fb76c85c7b4095e807842ffd1ce4c2c56268691e9878a98c064577063cc78e7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e9353a8bad611d3dfe90451925863a537dfe9d3cf1448c04cb456d8f5a88c018",
+        "id": "52bd10e49e4a817d66e304bf8e3624b79dee415b548c428bb5b5d3dbca1db2f4",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Canonical runtime configuration schema annotation now shared by the existing RAG and Graph schema writers; complete unchanged schema and Graph methods and consumer tests preserve its wire value."
       },
       {
-        "id": "d4e4f1958e4ce840e4353cca6704e61dc0ee7c6b8c9cc91fbed01dc12022b77f",
+        "id": "3075978252adce256293313c117ce6f2798ab80817bfe26b8e26186681a900cf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3bc7afd7b2c5327742658667f03c1c08d99bc1a86de8f0ebdb66406ca2a06961",
+        "id": "712549ebbf6318a067f867dd47d324e9f39b465660c24391654d1dc6815fddfd",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       },
       {
-        "id": "03f678bd124da13c816277dca0463864d8bf8f8a2dd59e76c8551b8273e47646",
+        "id": "52d3a09c926b2862ffcc77d78eddb975147c8ad5be160f14f4f92158673459c9",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "adf9d4ae0417900c5e37f6e4508cb7d3bbe615226c606bcf854117fce9087f83",
+        "id": "64d28ead8a274dd39314ccbafe2b2ddc14601bf07578aab197b7a21bf45530d7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ce5cbab13c262118280af5d17dfe4ff67c6c0a3e286d965a980417abbba82ea2",
+        "id": "bf7be11a8b68575c28a2bbfba73293629354a1c1fda4bf9d2cf5a2d102d0e9a1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "78554890b4f6ce7c4fef5e7769bda9f9868784c4df97f37c32a4e93575777d8c",
+        "id": "46c6e90dfbeccb40e15751311672f89e3de82fae1759461e01a09f1a0e3255c2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "147a716800211654f3c64c593bc5e61d840f143070942c99015ef488cf815905",
+        "id": "0d39246f0bb44b1b24665f75cd5a1992c846202e9df5c89d6248ef70aed545b1",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d3e65ee8b51229d811333f3bf5adc7029f2e9f909b4865aadbb23293c405269a",
+        "id": "98829b8fe652106fa0cce1305eed9d027f9cb997e2b9405884887909784cd8cb",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "509729196a0bfacdb70b6528153262a0fca08bb3d21b4c23ec642d087375bcff",
+        "id": "12a6de47d2e11922e01e98a8353a0b897a0a0d8de5c6f4e16c88fa6fd19859c7",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "a18eb948136adf14d6da5ea318f51af0aa2b808f230f78804fb599a5c3a5e91d",
+        "id": "b1b6a2c7415682597934354cecbf329141dd0e1f49448f43032a4b2c4d8929f4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e42450fea838e74c92ea0ed247be8266d9ee38ec8006f6eb99a7fda1bae4b60d",
+        "id": "404ff673585dbffc2ec84238a421f509bf901e47cfb3a8af31280430238e682b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2a495f6023c4394dcc8c0736b78578f2f46355900dd0c983450a4ea5a0708670",
+        "id": "12bcba6767f966134c824789f8d15f55688529a8a2d23a2247df71bd895fec29",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d35738acef26606fa483503cb4b7d0fd895459879dc32f3f87d7eeec35eda49c",
+        "id": "fcb9ef60a6a42e68ef52a1d5bdad67a652736e556f9955680f64cf7829f7fcdf",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5cddf96a1848ede40e45924505fe8a4f2bdef6ef05130b233da4546dfaf398e1",
+        "id": "5cfa70642322fb6c5a6438ddc8da0c86b2f4ddcb59e96dba8365bf46495b9137",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0e37a266c0d7d1f85172c024e7f7114a770dde86d86f947222fd3d06cd650ce9",
+        "id": "025558f576afb4a92c28aaf6afe3b06a5dbae26667c100ca3e7b6a27039131d4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "55742f500fe9e333622609c6010d36e818d684d150b3bbbea65fcba3eb2dad1d",
+        "id": "a88616be4f16b3ddde34d886c9b28f3f1030ac8e5d7e71173a0415439da96d04",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "d7e85212bc9e0f1197d05f7b38a74558aebc66a6d98267b114ed77966fb3321d",
+        "id": "1bb33a90631aea88d41eb7a51e98410b01f653ae8898dd9dc89b46f9524d1fe5",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0c0b7a495c1e82669fae0a3f526fcd96832b14c54724524f9148af4cc169a508",
+        "id": "b59b3e32ebd0a2f5bfcb6855550b1d0b95aae68ff84d85cb7f5d546d385dd8dc",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a4a6ffa5a2ffca6c166f702019abcb9dbf2cd40954926e1453eea98fa7be5a10",
+        "id": "44bc85fbbb85f6ba344b7a4c90f19c7e7476714d7746a4abe6c8b8dff877ece2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "28eed6e56bac4fd039981107efe8f04e4870b214d54e8dcf58d4a9ef986e9be6",
+        "id": "2b72092cc248b447d957ee97b8c15a4525297aa5d9134cc7480ed98006ed2b9f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ad657bae16f8410821affaec844690705c965a11caa448cdcdb8697191c1a69f",
+        "id": "ea661cda97f94aac6624f2565b0a5a623004381ddebbb680220b23d1aebf07c7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "02d51261daa69a034c10cecff3854fd420b1dca744600f153286f2aeb5ea717f",
+        "id": "76a7b9282071b156d758cb86f7c50c39015662c126d54b88fd0a3a2d50f1458f",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3256c735910a9eb32578a418c4bab61e69cba5bd2eba01fe59af871a26e7b134",
+        "id": "e5bff4c99949261273e9a9c94a1b5961f91c0b966e633ce0386d94e5a6432398",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5703b4e9527f4c15d0a3a012f3355a452565ed3f5dfc920ee008a81a445a1e98",
+        "id": "456fb9731ed37bf71d605bcb520bed04667078c2a71b5fb6c2981ed2105243fe",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "7f733a90ff2bd495b7fa243e1790f7f8f53479cf0204b21d6da4abee0bceafe4",
+        "id": "72588b43ffc12550c3e6d68177dd3af3ce5961cc08c95e2073174786a6eb7c6e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "3eb05d723adb4869beaf520264c1c0f352b207e89c04bcd541785ddf832ed4f5",
+        "id": "e9c62baa9bc8eb3884dd8fff18c0606a7b2f41a87b53df9d1a6d5835d040210d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2845ae04d9645717c2f4fdca271284d507f8ec8cd1cc6d4dcfbfb10168868025",
+        "id": "88ccc00a09633dbebca464f2e035a66ad1f0770b71e650be0cffdbcfe99f71d6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e3d9ed35b19a0ef86c75ea396b3213082bde0b724befdee8385aedee0b61094a",
+        "id": "f3f372811d588e5ab69972aa9a4b9329425c2b8d83ea01f22b895049fb361896",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "54fe0d7d79eadaccc8b56a77f0f78b6beb958523f639237822e802716e3edf91",
+        "id": "964184d584593496901d456703a92a020fe7a06b871bd42f08193150169e9fb2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e44da267ec17003fd4218654392e806b5b5fd9019ee480d9b526020d0841f48c",
+        "id": "357c7a7335642a66e90ad3d4222b226310efb8571491e74881c3ce440c53e3bd",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "31cfa0522770665376fe4dda10e1816c0baa7a4f952bad0e582f98149d5546f2",
+        "id": "8789bf7fef8a2e787f308aa67f90bc676d12af5cac58453c3b52edabfc4abc42",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e85aaf44cf0c5c90d779543ed01f59ce13ddc2b1a13f8b563161da8212b53d3b",
+        "id": "df437ed541820745c2b6e3c4e7ecaa5e96735cbad87baa64a364708e997e514d",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f73b6deba42879320520174310d05a55e2009f5d668d75aca4af62d4ef05a595",
+        "id": "cff9f0382a8020d9a1ffe30ea180065c5494ac38b5d728dd298ea61ecbd6c965",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "ebc5ecf6da3314605be3ed61cc23b2911b80b8d521e7de98d8bd041a5d66697c",
+        "id": "cc1111ce24b2df1c27a9e6f241fd126181fbab9db72af155221d838d0e6df6fa",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -2944,7 +2950,8 @@
           "llm/core/configuration.py",
           "llm/engines/registry.py",
           "llm/services/schema.py",
-          "hub/widget/forms/settings.py"
+          "hub/widget/forms/settings.py",
+          "llm/components/vision/image_contracts.py"
         ],
         "tests": [
           "tests/llm/test_parameter_values.py",
@@ -58543,6 +58550,426 @@
           "tests/hub/test_component_managers.py"
         ],
         "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/images.py",
+    "sha256": "917db7d231368965aacb3c17430d3ca5953e911d38a53c60120f8f8a463e6082",
+    "reason": "Whole image source/validation/preprocessing and value/schema implementations reviewed. Existing conditional checks, IO/read limits, selected formats/modes, sequential transforms, pixel decoding, bytes and close order agree with the previous whole functions and actual error/file/pixel cases. Only individually identified Python annotation/layout syntax remains. Broader Vision consumer conversion is tracked as pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6e2cc23dbc83c923d21357acac8169bed01da14e1124f82a6284998ae197017c",
+        "classification": "declaration",
+        "owner": "ImageSource",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "55d51721a15a3fe0f36a2caf67dd827fb4ed5f5028a7afb2955b5b41536331a9",
+        "classification": "declaration",
+        "owner": "ImageSource",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "ef943b35f83d06b47201d0e3977fbd573573cd5263fb56236265734de937cb29",
+        "classification": "non_contract",
+        "owner": "validate_bytes",
+        "reason": "Python -> None return type annotation, not an omission/default policy."
+      },
+      {
+        "id": "185c4949084dd7f7737d6c13c4a216b37bc73679e032987559a311723bff331e",
+        "classification": "non_contract",
+        "owner": "check_size",
+        "reason": "Python -> None return type annotation, not an omission/default policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ImageSource / Pillow image lifecycle",
+        "declaration": "llm/components/vision/images.py",
+        "consumers": [
+          "llm/components/vision/data.py",
+          "llm/components/vision/component.py",
+          "llm/components/vision/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/image_contracts.py",
+    "sha256": "4bac46a1b9fad47a456d16612ae922694156f360c068090e7a75024a91fb0bc9",
+    "reason": "Whole image source/validation/preprocessing and value/schema implementations reviewed. Existing conditional checks, IO/read limits, selected formats/modes, sequential transforms, pixel decoding, bytes and close order agree with the previous whole functions and actual error/file/pixel cases. Only individually identified Python annotation/layout syntax remains. Broader Vision consumer conversion is tracked as pending.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "45f1de85fc95776c341c26ffee24562e275f069c2a0fefc7ed86cad7234e178f",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "53b7513432e25f728447dbc9d603017cb379782a8b4efc587070ef1cb2fecc50",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "fb3dc28375946c616e107120550974b96407cb3871ba862ed9c8452e715e0703",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "d4637c36a3d0920cefb6bf2f40fb2d4c1081ca29e82018d514489ddddf0382d2",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "e86a07e660221fce0073e17f429c85d2cd2e3122fb252a9be546fb99285e49d9",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "c80c73612e1e5bdd74cdc69191c9b7adc67be07b751fa70e2668f08952ecb42e",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "1fc15e35ae7ac57d0b25318ebf53579d22501047137d923f8a708823d5166ac9",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "88f101b2b88b9f6b594473f71d7cae94b681bcae8be5b886c3fcd4bc4b0b82b6",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "eb4caa5e391313662859db7b5a8730ac54cd74d92576d4c03b97c7cd611b0bc8",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "c510b12480179fd5353b81fc9a2660b96fff42bdefede2ef783773d1922031c9",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "c95d60af42c4345eb6a79d987dc1975cf09b448e7eac9409c681aefd14219c4a",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "458b5f31172aec75612925066741c77ec5a874aaae79847fa506586fe87a910a",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "83dbb4080d6ba8d9e04fea9965a6fa70608a4fc742750d369d5403d5e998d484",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "b2d64f5a014cd6ab8a70d3110f79fccd9764a0f0c907646b15eb63deae87b217",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "de895e15e599c1ed2c89003bc26f2215adcf24075d550cd69fdf1223c7cc82ee",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "cdc330ccaf1d95b97b60c1df6159fb7fdc4abbb91a0f809118598d7cebd447cd",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "ce5b2ae0898760b8b1e8ff43537766d214455107e5ea09b1579e5577f0004ae5",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "78621f70d41fa605f124caaaf9d118066a6449d8f9d4c054ed10a38258e2c8d7",
+        "classification": "declaration",
+        "owner": "ImageEncoding",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "6a1c3e25c51fb7cd22aafa799734410fe1ff7213fb70aec1707507af5f3153d7",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "0161c57819e10ccf9a0c20ecddda8e0ee4b3d89ea255d69767b725c16ba8128a",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "f74aa05a6fc007c8dcf85f272c6527dba6433210030b1e5f09023f2374c482c5",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "6dfb3859d3e2168e6f9f58458cdc2720ccf8518688a168d2fed9a6ee27107f67",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "53e6f0bcd15cf923a982e197884f6b6caac10ba351b1bd76798c9f692c8aab1c",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "495cb18219796a102268bda7cd263c43d7184a757371a05b1e4304e6ee2a9af7",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "5e388496f0bfff1cb17ca1465c953fc4966ef3f71ecd657ca65db03f4d68ff6f",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "e1f4b9206de131d05629029491763a5d84b313951cd4b074377f17304167dab4",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "2514c9f6da86b1338f9e2214560615eb7324ca2c6120cbce6843f0d296247778",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "fe875ce34bf6baeae41753f7991a5e24e93e298236cdd0ab2408f302153eab6a",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "0a2b04d5a07d7c204f5c8134a08d24493dcd41c176cc8f7557e558da589ba221",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "7e24f55bb90e55d77b620a022eff226c52f4c85973e532f3c6a492e3b9caa582",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "e803cd7ab37b487b93f3b16d28e605f1cd543991286f59de68dbf771a8c0fd2e",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "a38232f225f843e1d4164d58342ba4c26f109dccb535fb8a5e42553aad08c8a5",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "4ff7b29bb4b8d4e230ebc474281b9dce48c72ec809b8843f4c73faf91be682b4",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "826c646b4b1ffcbad0f89ed55d7a2fc703f2afbe6d82e05ad4745029a4ee4e85",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "aa713cb890e78b96017d2a3c7e72f9ddb1d7715bedd92b3f4726220ae3af5791",
+        "classification": "non_contract",
+        "owner": "ImageInfo",
+        "reason": "Python dataclass frozen/slots type layout, not a runtime format, state or policy."
+      },
+      {
+        "id": "bb83136c2e2e92326c44deaac6e6e44c8e435dd3ed6cbdb0f4304a82870eb363",
+        "classification": "non_contract",
+        "owner": "ImageInfo",
+        "reason": "Python dataclass frozen/slots type layout, not a runtime format, state or policy."
+      },
+      {
+        "id": "8cb2c9288dda6df9466d7a5dcd6329fabfa5b4b5ba50189fad599d48293b25c2",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "17fcdd2de7e32ec5ae81f2c21e38a40fe8b37f617a9eff2c5b9cf2842bef4688",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "1145f012765266d0a59970e8d75de379bcd195a44722b822aeda0429d837dbad",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "2dc92e4aa3188eb05eb5143d9f80c44f6dc493e6d213faff95aa0fc226532923",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "55cf2fbb85ad6326058f1b7ae02427fdf4060c214e9415db9db3681ed615a0a5",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "d8fe3c77a19e8197167ab209b1ea47baa415660d26178ce942377a4a0093da79",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "96633d5a5a76051219d394d46fa6c7ebb36cb669ee3e7e996369f072f769ea23",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "675499de80a797648bbc05fd54b988c997d6e1c57b55ee7e060678212146408a",
+        "classification": "declaration",
+        "owner": "ImageOperationKind",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "c3a29e79943760b74cc941ba82bd4855475f2ff135b372f51451e4bf983ba644",
+        "classification": "declaration",
+        "owner": "ImageOperation",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "9aa66146545920103c5ae61a659704698ee33d2231082e387d42ed75c4dfc38d",
+        "classification": "declaration",
+        "owner": "ImageOperation",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "62fd2a5c6b005f802ad0ac2ebbdadf7daf0f4a41a254b1dca8338aa4a7babff6",
+        "classification": "declaration",
+        "owner": "ImageOperation",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "3032472bbb974e56a893b529b8681e2ee3e4d178747b74bbb88e041811d20289",
+        "classification": "declaration",
+        "owner": "ImageOperation",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "46fc1cb6f75f1048710e0f4b60033b93cf57ab16bb636ad880368ee94dd61ebe",
+        "classification": "declaration",
+        "owner": "ImageOperation",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "be107155e9570f1c5e6f5e537207a2d4343b2ccdb6d7dd7820aea9ce1ff99a16",
+        "classification": "declaration",
+        "owner": "ImageOperation",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "1f8f08173bd359d8c963ae8c3bd10bf649d421af838922c042b989f2702ff8a5",
+        "classification": "declaration",
+        "owner": "ImageOperation.Field",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "1262298905037e2e0696eecd5f1f5afbd911bc53f5680dc872e31828ec77399d",
+        "classification": "declaration",
+        "owner": "ImageOperation.Field",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "ea638a6320b9de548820c950d99bca412961888c7c0690ff7aae86a2458623ea",
+        "classification": "declaration",
+        "owner": "ImageOperation.Field",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "6a6b1f6635ff45e63c81b6c22741e34e862bfa137d08b84f6f71a02e99409e80",
+        "classification": "declaration",
+        "owner": "ImageOperation.Field",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      },
+      {
+        "id": "2d4740fa2f28fc443d57b443f5d137eff7ef83af047261241208b810a6215749",
+        "classification": "declaration",
+        "owner": "ImageOperation.Field",
+        "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ImageEncoding / ImageGeometry / ImageLimits / ImageOperation / ImageInfo",
+        "declaration": "llm/components/vision/image_contracts.py",
+        "consumers": [
+          "llm/components/vision/data.py",
+          "llm/components/vision/component.py",
+          "llm/components/vision/tools.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": false
       }
     ]
   }

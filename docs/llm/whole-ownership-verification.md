@@ -5827,3 +5827,58 @@ dependency 13건 재검토. 이전 Tool 승인 선언 2개/명시 평가 정책 
 전수 inventory 553개·미검토 249(llm 72/hub 177)·미분류 15,469·미완 계약 3·issues 0.
 Refinement 정의의 Data/Tool 소비 전환만 닫았으며 AgentDefinition의 Engine/lifecycle/Hub
 미전환 계약 등 기존 완료/미완 추적은 유지했다. 전체 리팩터링 완료를 선언하지 않는다.
+
+
+## 게이트 38 고정 전체 검증 착수
+
+Refinement 정의/소비 변경을 포함한 정확한 SHA b24f55d27d724a4b94d2c60bc43c6337b8cfc523을
+별도 로컬 clone에 고정했다. Host d833790의 ish.platform 연결과 원본 소스/의존성/환경을
+확인하고 6개 보조 검사(정적 S1–S7·문서·R3·SDK·LLM/Hub 실제 환경)가 모두 exit 0이다.
+`whole-owners-group38-l3`의 전체 LLM/Hub 실행은 로컬 UI 대기와 자원 경쟁을 줄이도록
+LLM→Hub 순차로 진행한다. 테스트 발견/실행 규칙이나 Assertion은 동일하다. 이 기록 시점
+전체 결과/원격 통과를 선언하지 않으며, 이후 Vision 변경은 고정 SHA에 포함되지 않는다.
+
+## llm Vision 이미지 입력·형식·전처리 Owner — Level 1·2
+
+기준 b24f55d. ImageEncoding은 PNG/JPEG·Pillow 모드/프레임 계약, ImageGeometry는 좌표/회전,
+ImageLimits는 명시적인 바이트/픽셀 제한, ImageOperation은 변환 schema/입력 해석,
+ImageInfo는 디코딩 결과 Writer를 소유한다. images는 기존 파일/bytes 접근과 Pillow 자원
+수명·호출 순서를 조율한다. 공개 operation_schema는 같은 정규 정의를 가리킨다.
+공통 SchemaKeyword에 maxItems 선언만 추가하고 기존 Schema 함수는 변경하지 않았다.
+
+입력 변환·등록·저장 정책을 바꾸지 않았다. 가공본의 PNG 표현, 명시 JPEG의 native 인코딩,
+순차 좌표, 원본 bytes, 링크 거부, 제한 초과 탐지용 1 byte 읽기, 손상된 픽셀의 실제 load,
+다중 프레임 거부, 알파를 임의 제거하지 않는 규칙과 finally close를 유지한다. 새로운
+품질/크기/리트라이 기본값은 없으며 제품 테스트/Assertion은 그대로다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/vision-images-draft/proof.py`
+(한 셸 명령) exit 0. 이전 이미지 전체 함수 5개를 실제 Owner 함수/속성/Writer를 전개해
+비교했고 기존 Schema 함수 13개는 그대로다. 정확한 schema/공개 연결 2개, bytes 제한 56·
+좌표/픽셀 제한 72·실제 이미지 디코딩 72·픽셀 변환 bytes/오류 198·손상 이미지 4·실제 파일/
+링크/bytes 입력 56개를 비교했다. 원본 이미지 파일도 동일하다.
+
+- `whole-vision-images-l1-01`: discovered/started/pass 20/20/20, exit 0, 4.91522초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-vision-images-l1-01/llm.json --modules tests.llm.test_vision`. source `cf539e7f19bdd0f8850ebfea132f36b71bc18f1e926974ba7d4b16b086cb2a4f`, input `cd32f71f72041b87b28be644f620bf0348812b95c00e875d5246cd4210becf8a`.
+
+- `whole-vision-images-l2-01`: discovered/started/pass 74/74/74, exit 0, 33.80586초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-vision-images-l2-01/llm.json --modules tests.llm.test_schema_ownership tests.llm.test_resource_references tests.llm.test_component_record_integrity tests.llm.test_operation_integrity tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity`. source `cf539e7f19bdd0f8850ebfea132f36b71bc18f1e926974ba7d4b16b086cb2a4f`, input `cd32f71f72041b87b28be644f620bf0348812b95c00e875d5246cd4210becf8a`.
+
+- `whole-vision-images-hub-01`: discovered/started/pass 12/12/12, exit 0, 37.789361초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-vision-images-hub-01/hub.json --modules tests.hub.test_rag_extensions tests.hub.test_defaults`. source `cf539e7f19bdd0f8850ebfea132f36b71bc18f1e926974ba7d4b16b086cb2a4f`, input `cd32f71f72041b87b28be644f620bf0348812b95c00e875d5246cd4210becf8a`.
+
+모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 일치.
+실행 전후 및 실행 간 source/input 동일, L1/L2 ID 중복 없음. Python 3.12.14/Clang,
+고정 의존성·Host d833790·namespace/X11·전체 발견 목록을 보존했다. 원래 Vision 테스트의
+실제 Tesseract·프로세스 취소·자산 손상/트랜잭션 실패·원본/삭제·Graph/Loop 승인/재개와
+RAG 문서 출처를 포함한다. Schema/자원 소비자 및 공통 승인·예산·효과·Checkpoint·삭제/
+저장 무결성과 직접 Hub 이미지→RAG/기본 등록 소비자를 함께 검증했다.
+
+Pillow/검증/자원 정리의 원래 전체 알고리즘이 동일한 제한된 Owner 이동이므로 이 소단계의
+전체 회귀는 유예한다. Vision의 저장·설정·OCR/모델·Data/Tool 소비자 전환을 묶어 후속
+Level 3 게이트에서 전체 검증한다. ImageInfo/형식/제한의 남은 Component 소비자는 미완으로
+추적하며 Vision 전체나 원격 검증 완료를 선언하지 않는다.
+
+Vision 이미지 소단계 보조 검사: 정적 S1–S7 reviewed 103·new/stale/outstanding/review_errors 0,
+dependency 14건 재검토, 계약/architecture 감사 16 pass / 3.260초 / exit 0.
+문서 168개·fence 183개·링크 1,216개·anchor 37개 오류 0. R3 mutation exit 0이며 의도된
+호출 한도 누락 2개를 기존 실제 효과 Assertion으로 검출했다. 전수 inventory 554개·미검토
+248(llm 71/hub 177)·미분류 15,344·미완 계약 4·issues 0. 추가 미완 계약은 새 이미지
+정의의 Component/Data 소비 전환을 추적한다. 기존 Schema 미전환 계약은 유지했다.

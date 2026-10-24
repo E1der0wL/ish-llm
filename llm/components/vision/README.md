@@ -142,8 +142,17 @@ PaddleOCR/EasyOCR 구현 및 자동 선택은 아직 포함하지 않습니다.
 | [component.py](component.py) | 설정·레코드·asset 저장, 복제, capability 등록 |
 | [data.py](data.py) | UI/Tool/RAG가 공유하는 수명 검사 API |
 | [images.py](images.py) | Pillow 검증·전처리. 저장/모델 호출 없음 |
+| [image_contracts.py](image_contracts.py) | 이미지 형식·좌표·명시적 크기 제한·순차 변환 입력과 디코딩 결과의 정규 선언 |
 | [backends.py](backends.py) | OCR 계약·Tesseract·LiteLLM 분석과 결과 검증 |
 | [tools.py](tools.py) | 공통 API를 사용하는 세 Tool 어댑터 |
 | [__init__.py](__init__.py) | 공개 import |
 
 실행 가능한 예제는 [vision.md](../../../examples/llm/vision.md)를 참고하세요.
+
+
+이미지 전처리의 정규 정의는 ImageEncoding/ImageGeometry/ImageLimits/ImageOperation/ImageInfo에
+있습니다. operation_schema 공개 진입점은 같은 ImageOperation.schema를 가리킵니다. images는
+호스트 파일/bytes 읽기와 Pillow 자원 수명·순서만 조율하며 한 번 검증한 변환 입력을 타입으로
+소비합니다. 저장 레코드 검증·변환 결과 등록과 OCR/모델 호출은 별도 기존 경계에 남습니다.
+입력 순서와 원본 보존, 손상/다중 프레임 거부, 명시적 제한, JPEG 알파 처리와 finally 정리는
+유지합니다. Component/Data/Backend/Tool 전체 Owner 전환은 후속 작업입니다.

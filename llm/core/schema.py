@@ -15,6 +15,7 @@ class SchemaKeyword:
     EXCLUSIVE_MINIMUM = "exclusiveMinimum"
     MIN_LENGTH = "minLength"
     MIN_ITEMS = "minItems"
+    MAX_ITEMS = "maxItems"
     MIN_PROPERTIES = "minProperties"
     PATTERN = "pattern"
     ENUM = "enum"
