@@ -70584,5 +70584,1048 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/services/infrastructure/ACTIVITY.md",
+    "sha256": "d07640162de798957a8bf5a9b4dc4e7297a884158e34f88be9a15c598be1a4d8",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit.",
+    "contracts": [
+      {
+        "owner": "Infrastructure observation/ownership guide",
+        "declaration": "llm/services/infrastructure/ACTIVITY.md",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/OBSERVABILITY.md",
+    "sha256": "f5c0f9b3b87c02acaa828d7c4f20afb3876f2235152280515fbd80f8c90f059e",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit.",
+    "contracts": [
+      {
+        "owner": "Infrastructure observation/ownership guide",
+        "declaration": "llm/services/infrastructure/OBSERVABILITY.md",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/README.md",
+    "sha256": "f3f96903bf4f53dac1c3972e907eef5c0fb06b105e0fd0d0ecd120821bb1fd1d",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read the complete existing guide and added only current declaration/projection boundaries. Existing observation-only, after-commit, privacy, cancellation and policy contracts remain; pending transaction path linkage is explicit.",
+    "contracts": [
+      {
+        "owner": "Infrastructure observation/ownership guide",
+        "declaration": "llm/services/infrastructure/README.md",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/activity.py",
+    "sha256": "6db77c0f0242e0561660d7de30638a761c003eb9ce1e7f54ac20a235d430ad8d",
+    "reason": "Complete current-file review includes dynamic extension labels/status maps, injected sinks/handlers, snapshot isolation, warning-as-error behavior, after-commit execution, read-order/error boundaries and nested process/thread ownership. Original functions are equivalent after bounded projection expansion; actual bytes and fault/effect safety regressions pass. This does not complete other storage/runtime/Hub files.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "dd7f2626d954dcd9d27b29311cdd0d282e1caddab3c4cc71553cf1533bc03cca",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "cecda648ae51eaca8763da09c912c596d56c6dc8e99e54f5dc9e78fb13ef1b35",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "599def0241923f7136fc3e7d6da211cc6bdda77cfdca4383438aa25a7fa2e756",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "b95662b51fde0089f4224522c8f67a6c149bcddeae7102ac08d235abb91264cd",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "105bb11405fb3c905d703b8f7e3a2596e16a564cf40f366a850429c85250708b",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f7c42b6a52dbfa1a56521cf2333df408bdcc4cd50920a2c08aef03e2f6a9f29f",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "e875eb1fc78296263211859bbba4757b6743fb21f7cd8912dac243be6ccb828a",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "7e24584696043964d410274b28c0b8ba963d527adc35044281456704daace2b6",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "2030ae4fe20d2b0600ec76643bc2bce1907464e50d1ef6cdfba2263eb01df8c5",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "10591160276b125282d4fa9d1fdbd4ab4a1de25d4ef82104dc2f022e2b2c43b7",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "0aee1bc663ae9b8d009aebe70cd05160a4d1a0d0f73bf3511911673f92900426",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "0d66975822c0f1b73f4bc20698ee889141efd9c90347715642a5f215715c366d",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "45b9a454fc0b8657730909adee4d660faffa32386ccae906020e278df6aefd69",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "fdd46fd5ce3255be6ce3e57b0ae8eddd4c7f9e6fff38c766ff3cb2408745c59e",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "4639feab52e753850af251f0fe5b31bc2ad0155a50f4c6f781b4591c51f0c8b5",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "eb7ea96f414b7b4099db18d3754b343bcb029ff82aa4772647a9795533df039a",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "27f9ec1c375289b056f7ee620e1531822f761efb7a8705f6131c887bff6fa30f",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "23f159c3db62e33ea4418255c49fec5f1a30ec8ed0858897216c3f301cdce7ed",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "1c9a4d08088b4311c4cb5670e16d5ffb22e84fdcd12a0ccd49d662632c773ae5",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "308053ef08eca29b2ad527db01aa6296c9b9101eb8209aad306be5b7e6cb7d94",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f0cfb39e9f4f40999cae3c4c89e1080ab65a1e4d290b90db15f1993152b6ef35",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "055c736491b0df905e4ca1b5815fbf44508440c2655d74508e164817d650067b",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "d2116a9d09d8465cda760b804274a47ffedf4b22b57bd67bfc13671834cd6c06",
+        "classification": "declaration",
+        "owner": "ActivityIndex",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "e8d3b7dbded5977b6267c627627b3e2cd6996b0360e3f6d3ad3793c2260c471f",
+        "classification": "non_contract",
+        "owner": "activity_event",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "fecd3fb9c6d1091ed22b35e50a81c7ac3d87b0950ed400810072548227e1192e",
+        "classification": "non_contract",
+        "owner": "read_activity",
+        "reason": "Tuple variadic return annotation syntax only; not a runtime sentinel or field contract."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ActivityIndex / ProjectActivityEvent",
+        "declaration": "llm/services/infrastructure/activity.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/logging.py",
+    "sha256": "04119010d6a13da4f2da3e9a6f9267cdb5f12dc6eb94f7263c6f12c4be4ad8eb",
+    "reason": "Complete current-file review includes dynamic extension labels/status maps, injected sinks/handlers, snapshot isolation, warning-as-error behavior, after-commit execution, read-order/error boundaries and nested process/thread ownership. Original functions are equivalent after bounded projection expansion; actual bytes and fault/effect safety regressions pass. This does not complete other storage/runtime/Hub files.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "07ae7968db9b02fad23bede9602ddc07022834e1ae85fa6fbd342f9a678d3675",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "726ef7a8e9597cd8848206d6b76b524287ae80793feb56329b19d51228b9dd1b",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "23a4b45a427f3bec69619451597345eef28598b425f8d8d58dde7c77953b8507",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c62f52984980b6dc62fe7d1418c5ce82bd7c14fdc137759c157ba8bce76147ad",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "2b537c167767f70d86c8de731d32826247e134da831d42f9d7196b364d8c3eea",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "7152102e0d84979deda4980675084f12bc8059f6c46b99b006d9c971c4b37974",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "d0f7255a0fa17a222aa79dd34716fe73660a013cfa1e9a7c3a730509edb2560d",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "8fc0df78092d70ebc3bcbbb2a2fad51ea8a251667275da37b587175b3fdf6e1a",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c8d5ceb76a841544c9a9cddb7e04cc7693c61bc1033f71a4db07bc9759bee9be",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "2a6b605a78ab64fece2486c68deccd0a32c6b3b4c3109792a322a14ab55410b7",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "0503735562bbac55df412d6e94c7edfe2d6804fb27307fa02342752589a80e0c",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "1bb5ad2b9b33233409395037e72f1872c04ac6d87f7d4c26f904a1d0a703ac68",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "783dab13d725298bbb14a4c10d8f19e73c0aace6b32363c677115f10d91ac28d",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "be769a6dfc857635ade64d47d6f034790d6c61ebce9ab408b0156ff9f513ddd7",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "e158132300cda625cc6306afe902064ae54b11a7b174b3dcd98b1e5ad1e32ca2",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "00504c6e6c64423a3e2c14c22d0a17806da1007159ed00fc45ff2f5e08b4d2a2",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "a8ab88b5ab1c7cce3d8717a12ee05ca91301bfebc1ca1b7605ad11729a379581",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "281699fc18330c26ff1b8c97bf1e2ca29c6ea2b24bfe45c83ad2af09fadbe6cd",
+        "classification": "declaration",
+        "owner": "LoggingFormat",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "ca4309583c5c50ff35a6605045f59f180236f03abab8ab4a0dd9fa97334ee602",
+        "classification": "non_contract",
+        "owner": "LogConfig",
+        "reason": "Python dataclass frozen/slots declaration syntax, preserving the configuration type; not a duplicated product setting."
+      },
+      {
+        "id": "67afd2649e10315daef4c793ead61abe8741580e6de032638ee86d9b17d2d33f",
+        "classification": "non_contract",
+        "owner": "LogConfig",
+        "reason": "Python dataclass frozen/slots declaration syntax, preserving the configuration type; not a duplicated product setting."
+      },
+      {
+        "id": "0773c16ecd6a8527e271ef3ab7975a29c4c14c0913ba31614c0e629b3d5f5089",
+        "classification": "declaration",
+        "owner": "LogConfig",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "71f35f5dd982469cea3f60f6c66060437133d821434055e2fabe9754b1eab511",
+        "classification": "declaration",
+        "owner": "LogConfig",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "7162225c79c6da524d3e6b6952d0625d3ecc7d4a3f7d3d27406fe6944e0de807",
+        "classification": "declaration",
+        "owner": "DomainLogger",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "b46aecc32857cb997cdb88985989ee7ec5d42f874d70cc77cbc8c336b6c59dab",
+        "classification": "declaration",
+        "owner": "DomainLogger",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "4f164da6737557a79c2b185e17c00b17678af6f5ad7e380fe434db70cdad8ea9",
+        "classification": "declaration",
+        "owner": "DomainLogger",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f5ca671fc629739b393c21327a4b4ada3a3a52f63049cae9eed3e9263b7c4f70",
+        "classification": "non_contract",
+        "owner": "log_event",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "8ded60478903b05aa18bce179ec5753e7e33bdc14233afd6990ee65be9570af6",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "9f54baaf6bb853bffcb2b4db7c30e5836a391f64dd7229e1ca43a15b96a57eca",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "13a2ecf9ced16e4d169642f13fab495d2da7137dd3fbfacc7d7ab63bc149d73d",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "68e68bc70ba28b3c17b942899749ffdf0891d8866d15076f6979c98299abf9f4",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "11be3e469107778277f943daeadd34265d3735d5ac292ddd24196456eef0e4ed",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "42333db9a43649770dc01bdf33f5db802c986261b8b546d27cc744c9e0b232e2",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "3071bf72695a0bd6fab6084a4002bd7884aa09cc39b85f1ed725447b070b0222",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "df8625d1e1975f76210e9949d6e305e80e83c54f80e21016bb8039753318dca4",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "3d42a9e895e015a7041fb43f61cb9561324b95d69fa5d93e1b320167b7c44816",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "1beb28d7bc7ba0c3fd1a3f9901b03c017266c532785fdcb593b9f805a1409065",
+        "classification": "declaration",
+        "owner": "OperationalLogRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "de7047342a6c6bc99351a278ed56a54960d23f89bdebb2d135f902befc58973c",
+        "classification": "non_contract",
+        "owner": "FileLogSink.handle_error",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "243fce0047c8de1547c73c25e0488b6915bd55fcc0cb1e854e164ed96d9a16e4",
+        "classification": "non_contract",
+        "owner": "_file_log_event",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LogConfig / DomainLogger / OperationalLogRecord / FileLogSink / LoggingFormat",
+        "declaration": "llm/services/infrastructure/logging.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/observability.py",
+    "sha256": "88d30abc5dcb96c5c8405f579d96d92143476e8c527b0ec6b7bcec29d3e0ac50",
+    "reason": "Complete current-file review includes dynamic extension labels/status maps, injected sinks/handlers, snapshot isolation, warning-as-error behavior, after-commit execution, read-order/error boundaries and nested process/thread ownership. Original functions are equivalent after bounded projection expansion; actual bytes and fault/effect safety regressions pass. This does not complete other storage/runtime/Hub files.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3aab4ace571164c7d8989a6da6e0c74b60bdcdf78271b1a8771f02d348f2cc8b",
+        "classification": "declaration",
+        "owner": "ObservationRuntime",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c16b0a1c8b8e59cd06a31996c6f32e8412483f74ceb879fa040f5768f11feb95",
+        "classification": "declaration",
+        "owner": "ObservationRuntime",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f6d469f5e94f7c6fc2f77655e263981ad2b3a4ec0beb745790577b9874cc14dc",
+        "classification": "declaration",
+        "owner": "ObservationRuntime",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "316d047491a1b26b3e1d71235163addf3eb13788316fb22ced41d42e755c2b0a",
+        "classification": "declaration",
+        "owner": "ObservationRuntime",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c8e6a9efe1063cf9a1b5956333e35c552adde3276eb5ac78569373ffe69523a3",
+        "classification": "declaration",
+        "owner": "ObservationRuntime",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "b5fccf442f682b99ccf85cd4c1b0e09367d34d3b8910d5ab34e0fdfe1e73a303",
+        "classification": "declaration",
+        "owner": "ObservationRuntime",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "1addea7658d0658fc21c1887776a444e183e3cc0cd19098cbe169b61842c899e",
+        "classification": "declaration",
+        "owner": "ObservationKind",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "9af8f846e26819ea165c78497530feb8f8765ec606dee32182adeb26e46ef1f0",
+        "classification": "declaration",
+        "owner": "ObservationKind",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "1263d52f806f632a506ab02ba55d530d9d325d9ac33fb6b55d54238454c68e51",
+        "classification": "declaration",
+        "owner": "ObservationKind",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "5197747b241d3ac34d6607890265a900dfae9e04b9ac0cb11de819dfa3743de9",
+        "classification": "declaration",
+        "owner": "ObservationKind",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "2a8b82f45dc44cb8ba03f422e31e2b4a4eec632b207956f4b7897a80f28fdf2c",
+        "classification": "declaration",
+        "owner": "ObservationKind",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "66aa74774983a48eee551aa1f0237d08bf764985da7f3a82e367534747f4bbed",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "aefc513715085d5854c4cb2bf62cb9099ad8e225373f116f87d67f35396024ab",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "16a5f7902773f64142a46c1f360dc29336896cc2914ff1562a77959503408a97",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f661e8bb851e5579173abaf0c34d40abcf1a035f25d265e61094b22deb3aa305",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "b8166ef869461a69d22cb652c5b3317eab44b80795869f2a8fa4ac127760c966",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c19296f8e6d6a41c963038c038a47ae54c06ef8cf3d1c1adf40958e9b384c91b",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "55691198d87a3a814a06bde32e1c3e2dc7d966f6f77f313641b20cbd78f00c2a",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "5c2a7cfe9aeb153af1c6aa11b9d3cff7b5b9386124d0b9ca7f7a9d9a0fa76636",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "5b00c18e77e7125a18d44623f6b6c601c54c99290bebb8294c1aeacc6f638605",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "8f4efe9921817c8886b49f7330b06643c9b3e2c1773176a515b13d36212f34af",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "d4094c4934482ae3b48a0b0e88a3b305507d9a685a02de70bd84f2ee0468684f",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "e703a835602308507f5ece73e352efda52d7b6f6eac6c190abedd7be185b5012",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c898692fa0704de1eb6928003ad950a0781ea8d06990e5a38502e518e697379d",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "3d931c23c6b6f856299bed38d18607c64b5e9a6c1d164f410944a0e71db92a0f",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "0e5edce18fd651de2850b8aa206444c79cb67f71f19fefc74d04cac71787518e",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "9fadbbd4b0653f6b748d6164816e3fc9fcca20f8d4815ff344cf3bc41904e845",
+        "classification": "declaration",
+        "owner": "ObservationStatus",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "a3a7dae1ae836e4113341bbeaef1913bd21c7c4e6e79933697678bf0de741561",
+        "classification": "declaration",
+        "owner": "ObservationRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "10bc02869f030c2151e2f40f84be147dab2274e17d7a7b470b0fc3faa7c57024",
+        "classification": "declaration",
+        "owner": "ObservationRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f1ba8ad6c43c14568ac50284fe8fdfe9165cabe1bef0bf73989a93a7e9ad5ba2",
+        "classification": "declaration",
+        "owner": "ObservationRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "fdbd546fa21e5c74901af914d46fe5b5412126c24432a2c8dacb18f70bfbf8d8",
+        "classification": "declaration",
+        "owner": "ObservationRecord",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "6d7d600b84a99811d0a312cae635075f60720041c950984736e991f2a1fb3554",
+        "classification": "declaration",
+        "owner": "ObservationLatency",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "336781e1357e6a4d688d82afd54b7462048f9dbd189ac983f6b02140e858fcb1",
+        "classification": "declaration",
+        "owner": "ObservationLatency",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "e47bc2f9f24699748be1104b9bf932f34ed291615bf74fda48d382555a701af9",
+        "classification": "declaration",
+        "owner": "ObservationLatency",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "7574c41f9ce1dc3afa2b1f0c6bf644ded0701cfc4a04b20a2bfa52127d827111",
+        "classification": "declaration",
+        "owner": "ObservationLatency",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "933b52735f9ff12c829c164ebd7582f4ce6db597912d19830a33e4f5063f5005",
+        "classification": "declaration",
+        "owner": "ObservationLatency",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "d35d27971cbbbb09da7ec74d715d7a6c228925a24c9428394d1fd8188ecbea97",
+        "classification": "declaration",
+        "owner": "ObservationLatency",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "cf78a17a4d46509a7842ac55c702285ca2dc826ec758b4761bae43bffe333dd1",
+        "classification": "declaration",
+        "owner": "ObservationSnapshot",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "1306e3c502ae9deb4af65c4f2878e3f46b899983eb5b38ad7ca184d38845b5c0",
+        "classification": "declaration",
+        "owner": "ObservationSnapshot",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "439574fdf41345636d332cce640ba1bc38b004afa5ff005c9904f3553403d19b",
+        "classification": "declaration",
+        "owner": "ObservationSnapshot",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "9dd13e1e97a8e3a922ebd1986cbe576f1a9f7f3147ffcd9f81fa5ffe97c6071c",
+        "classification": "declaration",
+        "owner": "ObservationSnapshot",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "bf70bc0af7d7641b13ba6089de149fbcb95810d0e528cedf6c41cc74acdc2227",
+        "classification": "declaration",
+        "owner": "ObservationSnapshot",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ObservationKind / ObservationStatus / ObservationRecord / ObservationLatency / ObservationSnapshot / Observability",
+        "declaration": "llm/services/infrastructure/observability.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/infrastructure/locking.py",
+    "sha256": "fe027b9abee12f654082522a4625721be8c991b186255ed5a2ea7514f3dcc06a",
+    "reason": "Complete current-file review includes dynamic extension labels/status maps, injected sinks/handlers, snapshot isolation, warning-as-error behavior, after-commit execution, read-order/error boundaries and nested process/thread ownership. Original functions are equivalent after bounded projection expansion; actual bytes and fault/effect safety regressions pass. This does not complete other storage/runtime/Hub files.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bfa3ede1302bed5436449af0b4bedce0f1df71180d37426f33a472f2d258d2d0",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "0fbb860e1f378f716aee9b65a48272e9914d299ec16f5cb0990a5e16ef234843",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "63fb53df3092db451faeb04ebf9a0facf343bcbc9e95146d0c3498429f585b90",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "998eec423e7df94e19f2807609e05f1ed9b2bb618bb8225f1e2943e787b9787d",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "bf30f01a39ccedb328b8623007a795492974f0829d74aff427c860d8f746596b",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "54818fb0cf4f476dbd7df5d3b954517be844bad263ce9f708cfe72bf2c7720ab",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "c71d7f457b62c32b2a7146438482e66d66c7853d873bcd5ca8348b8d5733da79",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "aa228863eef2067204081f6a3a9dfc67a49c74060e0b1dd9ef7d98dcd06bf247",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "511b3f560ae56023d250cd9f96e93aee0047ada18985356f8a23591d992e7c2e",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "2009c309f3fd94abde27a31862e00c8956ba826e820de40e747beeaf5a0fa8cf",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "480ad3fe27ef30c06cb5c00ed92719d0b22c73aa83e65354946d531679734817",
+        "classification": "declaration",
+        "owner": "WorkspaceLock",
+        "reason": "Each observation, log, activity or OS-lock declaration is at the responsible Owner head. Domain status/category and source fields reference existing domain declarations; typed Writers/projections own fixed structure interpretation."
+      },
+      {
+        "id": "f8eacd270d5d3ab2686ae20857b4cfc9b7a8050b8934771247ec3736c67a963f",
+        "classification": "non_contract",
+        "owner": "WorkspaceOwnership.__init__",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "03f17ce92073c3866ba4c57d8006cc6f1389caa3ea9c9b0239c89f27650ab29c",
+        "classification": "non_contract",
+        "owner": "WorkspaceOwnership.claim_session",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "9e001afcd85d1846637546cdddd9c6fca336602a887ba3da09f6b01d6e90642f",
+        "classification": "non_contract",
+        "owner": "WorkspaceOwnership.release_session",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "683cdba8d3b2bf9fe011f4c018a039f01eb3c65794b826b5b52f60b2d23cb2f5",
+        "classification": "non_contract",
+        "owner": "WorkspaceOwnership.retain",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      },
+      {
+        "id": "69a6a7d34bb1312d551339f67556a34c2e03ba0f56c01104521507179ef61748",
+        "classification": "non_contract",
+        "owner": "WorkspaceOwnership.release",
+        "reason": "Python None return annotation only, not a runtime default or stored/policy value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkspaceLock / WorkspaceOwnership",
+        "declaration": "llm/services/infrastructure/locking.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py",
+          "llm/services/runtime/events.py",
+          "llm/llm.py",
+          "llm/services/lifecycle/projects.py",
+          "llm/services/lifecycle/components.py",
+          "hub/backend/observability/logging.py"
+        ],
+        "tests": [
+          "tests/hub/test_activity.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_locking_io.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_activity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "WorkspaceLock.FILE — Transaction reserved-path consumers pending",
+        "declaration": "llm/services/infrastructure/locking.py",
+        "consumers": [
+          "llm/services/infrastructure/transactions.py"
+        ],
+        "tests": [
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_locking_io.py"
+        ],
+        "complete": false
+      }
+    ]
   }
 ]

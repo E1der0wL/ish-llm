@@ -35,3 +35,16 @@ Observability는 누적 통계만 소유합니다. active/waiting/queue 상태�
 프로세스 worker와 process group 관리는 runtime isolation입니다. filesystem/network sandbox는 명시적 별도 runner 정책이 필요합니다. [저장 트랜잭션](../../../docs/llm/storage-transactions.md)을 참고하세요.
 
 [상위 안내](../README.md)
+
+
+## 로그·관찰·잠금 선언
+
+LogConfig/DomainLogger가 설정 검증과 필터를, OperationalLogRecord가 허용 payload의
+Writer를, FileLogSink/LoggingFormat이 기존 파일 출력 경계를 소유한다. 로그 상태 허용
+목록은 기존 Session/Message/Run 선언을 참조하며 자동으로 새 상태를 허용하지 않는다.
+주입 sink·handler·Application 회전 정책과 경고·after-commit 순서는 유지한다.
+
+WorkspaceLock은 기존 영구 잠금 파일과 OS 잠금 기술값을 선언한다. WorkspaceOwnership의
+참조 수·프로세스 identity·중첩 잠금·트랜잭션/관찰 scope 순서를 바꾸지 않는다.
+Transaction의 예약 경로에 남은 동일 잠금 파일명은 저장 계층 후속 연결 대상으로 추적하며
+현재 이 문서의 검토가 저장·트랜잭션 파일 전체 완료를 뜻하지 않는다.

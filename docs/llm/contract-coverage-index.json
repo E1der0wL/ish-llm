@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 582,
-    "unreviewed_files": 215,
+    "unreviewed_files": 208,
     "stale_files": 0,
-    "unclassified": 11929,
+    "unclassified": 11727,
     "violations": 0,
-    "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 217,
+    "incomplete_contracts": 4,
+    "unreviewed_dynamic_paths": 210,
     "unreadable_files": 0,
-    "candidates": 21695,
+    "candidates": 21614,
     "issues": 0
   },
   "files": [
@@ -3207,20 +3207,20 @@
     },
     {
       "path": "llm/services/infrastructure/ACTIVITY.md",
-      "status": "unreviewed",
-      "sha256": "27f58c127a76df9eaf26493538cc84991af540ee0cb93cae0cb414f78373ce9f",
+      "status": "reviewed",
+      "sha256": "d07640162de798957a8bf5a9b4dc4e7297a884158e34f88be9a15c598be1a4d8",
       "candidates": 0
     },
     {
       "path": "llm/services/infrastructure/OBSERVABILITY.md",
-      "status": "unreviewed",
-      "sha256": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+      "status": "reviewed",
+      "sha256": "f5c0f9b3b87c02acaa828d7c4f20afb3876f2235152280515fbd80f8c90f059e",
       "candidates": 0
     },
     {
       "path": "llm/services/infrastructure/README.md",
-      "status": "unreviewed",
-      "sha256": "f09778a46f0ef63a40e2d73c723f71ba9436fe6493980a7109a364ca49877b68",
+      "status": "reviewed",
+      "sha256": "f3f96903bf4f53dac1c3972e907eef5c0fb06b105e0fd0d0ecd120821bb1fd1d",
       "candidates": 0
     },
     {
@@ -3231,9 +3231,9 @@
     },
     {
       "path": "llm/services/infrastructure/activity.py",
-      "status": "unreviewed",
-      "sha256": "130e389b8166661b426875aba3e7ac29ab1de83a6db09ae8f637c8963cfb4615",
-      "candidates": 45
+      "status": "reviewed",
+      "sha256": "6db77c0f0242e0561660d7de30638a761c003eb9ce1e7f54ac20a235d430ad8d",
+      "candidates": 25
     },
     {
       "path": "llm/services/infrastructure/backups.py",
@@ -3255,21 +3255,21 @@
     },
     {
       "path": "llm/services/infrastructure/locking.py",
-      "status": "unreviewed",
-      "sha256": "f2f5b1ff6b8983528ef862256e07eff34f4c3cd0de760af03bd9e2fc12a5d222",
-      "candidates": 23
+      "status": "reviewed",
+      "sha256": "fe027b9abee12f654082522a4625721be8c991b186255ed5a2ea7514f3dcc06a",
+      "candidates": 16
     },
     {
       "path": "llm/services/infrastructure/logging.py",
-      "status": "unreviewed",
-      "sha256": "7bd4c0af2d289ad56927338c06feba91bdb12029c93baf0ee0ec2ba980509214",
-      "candidates": 68
+      "status": "reviewed",
+      "sha256": "04119010d6a13da4f2da3e9a6f9267cdb5f12dc6eb94f7263c6f12c4be4ad8eb",
+      "candidates": 38
     },
     {
       "path": "llm/services/infrastructure/observability.py",
-      "status": "unreviewed",
-      "sha256": "9313e9e6b4e32162c03b0f3de414d479e7499f43b8383bb3b1da485b28cd29ed",
-      "candidates": 66
+      "status": "reviewed",
+      "sha256": "88d30abc5dcb96c5c8405f579d96d92143476e8c527b0ec6b7bcec29d3e0ac50",
+      "candidates": 42
     },
     {
       "path": "llm/services/infrastructure/process_command.py",

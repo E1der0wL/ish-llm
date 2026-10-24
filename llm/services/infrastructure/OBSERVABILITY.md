@@ -84,3 +84,13 @@ callback은 thread-safe이고 빠른 동기 함수여야 한다. core는 디스�
 
 UI는 drop 통계를 보고 저장된 Run/Step/output cursor를 다시 조회해야 한다.
 metrics/recent는 승인 기록, Tool 영수증, 저장된 실행 결과를 대체하지 않는다.
+
+
+## 고정 관찰 구조의 Owner
+
+ObservationRecord가 허용 필드·code/duration 검증과 transient fact를 소유한다. 내부
+집계는 has_code/has_duration 속성을 사용하며 sink와 recent snapshot에서만 기존
+dictionary를 노출한다. ObservationLatency가 latency의 생성·갱신을, ObservationSnapshot이
+조회 직렬화와 기존 runtime/provider/event Owner 결과의 합성을 소유한다. View는 고정
+키를 해석하거나 독립 gauge를 만들지 않는다. callback 조회·실패 순서와 깊은 사본 경계를
+유지하며 정규 실행 상태·저장 영수증과 관찰 상태를 합치지 않는다.

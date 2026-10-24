@@ -61,3 +61,11 @@ Provider retry 및 성공 Step의 상세 정보는 기존 관찰/도메인 조�
 - rotation, retention, 삭제, rebuild, 자동 재실행은 없습니다. Project backup의 파일 무결성
   정책도 변경하지 않으며 Activity 때문에 도메인 storage_version을 올리지 않습니다.
 - 8 KiB 읽기 블록은 I/O 구현 선택이며 결과 수나 실행을 제한하지 않습니다.
+
+
+## 선언과 내부 소비
+
+ActivityIndex가 경로·JSONL encoding·읽기 블록·명시 limit 의미와 오류 문구를 선언한다.
+필드·검증·직렬화 원본은 기존 ProjectActivityEvent/ResourceRef이며 별도 부분 Reader를
+두지 않는다. 공개 함수와 기존 after-commit callback 경계는 유지한다. 부분 tail의 거부,
+실패 warning의 격리 및 원본 domain 실행을 재생하지 않는 규칙은 변하지 않는다.

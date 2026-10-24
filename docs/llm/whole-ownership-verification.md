@@ -6723,3 +6723,61 @@ exit 0 (168문서/183 Python fence/1247 링크/37 anchor). `git diff --check` ex
 전수 분류 582파일, 미검토 215(llm 38/Hub 177), 미분류 11929, 미완료 연결 계약 3,
 stale/확정 위반/issue 0. History 소단계를 독립 로컬 커밋으로 보존하고 다음 llm 관련 범위를
 계속한다. 전체 refactor 완료나 Hub 구현 착수를 의미하지 않는다.
+
+
+## llm 로그·Activity·관찰·잠금 — Level 1·2, 저장 계층 묶음 대기
+
+기준 c93fcd0. ActivityIndex·LoggingFormat·LogConfig/DomainLogger·WorkspaceLock으로
+기존 각 경계의 경로·문구·기술값·설정 의미를 선언했다. OperationalLogRecord는 안전한
+로그 payload Writer를, ObservationRecord/ObservationLatency/ObservationSnapshot은
+검증된 관찰 fact·latency 변경·외부 조회 직렬화를 소유한다. 고정 구조의 내부 소비는
+속성·변경 API를 사용한다. 동적 kind/status counter map과 사용자 확장 label은 유지한다.
+관찰은 실행 권한이나 재개 영수증이 아니며 domain 상태를 새로 추정하지 않는다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/telemetry-draft/ast-proof.py`
+exit 0: 기존 전체 함수 32개를 선언·Writer·projection API 전개 후 비교했다. 로컬 duration
+인자 alias 외에 조건·예외·효과·순서를 생략하지 않았다. 같은 경로 `values-proof.py` exit 0:
+독립 raw Fixture의 log_status_allowlist 1, observation_fields 1, observation_boundaries 1, config_dataclass 1, config_fields 1, config_validation 64, frozen_config 2, observation_fact 2052, cumulative_sink_isolation 4, view_order 4, context_counts 2, actual_log_bytes 15, log_event_errors 8, activity_reverse_read 55.
+실제 로그 bytes·뒤쪽 JSONL I/O, 설정 dataclass/frozen/slots, 허용 상태·필드, 중첩 문맥,
+누적/최근 통계·sink 취소/오류 격리와 live gauge callback 순서를 이전 구현과 비교했다.
+기존 실제 파일·프로세스 장애/트랜잭션/승인/효과 Assertion을 그대로 실행한다.
+
+초기 *-01 실행은 projection의 최종 내부 연결 이전 증거로 보존한다. 제품 코드가 바뀌어
+아래 *-02에서 관련 범위를 다시 검증했으며 이전 결과를 최종 통과에 합산하지 않는다.
+
+- `whole-telemetry-l1-02`: discovered/started/pass 76/76/76, exit 0, 16.525245초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-telemetry-l1-02/llm.json --modules tests.llm.test_project_activity tests.llm.test_lifecycle_logging tests.llm.test_observability tests.llm.test_service_extensions`. source `2457dd5aee243a21f41127b7dcc06304672c36d47baf9800f4465704bcfe56ea`, input `4fc70c427ea3638e2193862abf9b35f8879dac72aaf4761b257552b86e5ce4ab`.
+
+- `whole-telemetry-l2-02`: discovered/started/pass 121/121/121, exit 0, 42.021239초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-telemetry-l2-02/llm.json --modules tests.llm.test_locking_io tests.llm.test_transactions tests.llm.test_execution_observations tests.llm.test_runtime_reliability tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage`. source `2457dd5aee243a21f41127b7dcc06304672c36d47baf9800f4465704bcfe56ea`, input `4fc70c427ea3638e2193862abf9b35f8879dac72aaf4761b257552b86e5ce4ab`.
+
+- `whole-telemetry-hub-02`: discovered/started/pass 22/22/22, exit 0, 106.80897초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-telemetry-hub-02/hub.json --modules tests.hub.test_log_retention tests.hub.test_activity tests.hub.test_provider_activity tests.hub.test_response_reliability`. source `2457dd5aee243a21f41127b7dcc06304672c36d47baf9800f4465704bcfe56ea`, input `4fc70c427ea3638e2193862abf9b35f8879dac72aaf4761b257552b86e5ce4ab`.
+
+최종 세 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID
+동일. LLM 두 선택 집합 중복 0, source/input·시험/Fixture·discovery·의존성·실행 환경이
+전후 및 실행 간 동일하다. Python3.12.14/Clang·Host d833790·namespace/X11 환경이다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0. 테스트나 Assertion은 수정하지 않았다.
+
+직접 로그/Activity·observer·공개 서비스와 실제 프로세스 잠금·중단/복구·비동기 취소,
+승인·예산·Tool 효과·Checkpoint·RAG·수명주기 및 Hub 로그 회전/활동/응답 소비자를
+검증했다. 공유 잠금 구현은 같은 전후 호출·상태·효과임을 증명했으며 전체 회귀는 Gate43에
+묶는다. 다음 저장 계층에서 Transaction의 예약 잠금 경로 중복 선언을 연결해야 하므로
+해당 연결 계약은 미완료로 유지한다. 전체 llm/hub 완료나 원격 통과 선언이 아니다.
+
+
+## Gate42 정확한 SHA 원격 CI 확인 완료
+
+2026-10-24 12:51:30 UTC, 83ebe73688c6abe31a550675e91b35d7b3549b9d의
+[CI 40093618572](https://github.com/E1der0wL/ish-llm/actions/runs/40093618572) 전체 필수 Job/단계
+success와 실제 JSON 집계를 확인했다. LLM 2502/2502/2502 (1251.512670초), Hub
+588/588/588 (1476.873231초), 모두 scope=full, failure/error/skip/xfail/xpass/누락/추가/중복 0.
+`check-ci.py 83ebe73688c6abe31a550675e91b35d7b3549b9d whole-owners-group42-l3` exit 0,
+정확한 headSha·필수 단계·실행 집계를 status.json에 보존했다. 이 통과는 이후 History 및
+로그/관찰 변경의 검증 증거로 승계하지 않는다. 후속 소단계는 Gate43 전체 검증 후 Push한다.
+
+정적 종료 `python /workspace/llm-clean-resume/whole-ownership/close-checks.py telemetry-draft`:
+S1–S7 exit 0 (finding 80, new/stale 0), 감사 회귀 16개 pass (3.398초), 문서 검사
+exit 0 (168문서/183 Python fence/1247 링크/37 anchor). 기존 5개 정적 occurrence는 실제
+선언 전환으로 사라졌고, 동일한 boolean logging 조건의 새 문법 occurrence 1개는 원래
+Owner·검증 근거와 함께 개별 재분류했다. 검사를 비활성화하거나 baseline을 늘리지 않았다.
+전수 분류 582파일, 미검토 208(llm 31/Hub 177), 미분류 11727, 미완료 연결 계약 4,
+stale/확정 위반/issue 0. 추가 1개는 Transaction 예약 경로 연결로, 다음 단계에서 해소한다.
+`git diff --check` exit 0. 로컬 소단계 커밋만 보존하고 Gate43 전에는 Push하지 않는다.

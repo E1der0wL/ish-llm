@@ -14,7 +14,22 @@ from pathlib import Path
 
 from llm._platform import require_linux
 from llm.services.infrastructure.logging import logging_scope
+from llm.services.infrastructure.observability import ObservationRuntime
 from llm.services.infrastructure.transactions import TransactionManager, watch
+
+
+class WorkspaceLock:
+    ABSENT = None
+    FILE = ".ish.lock"
+    ZERO_REFERENCES = 0
+    REFERENCE = 1
+    ATTACHED = "Session already has an attached runtime"
+    FORKED = "Create a new ProjectRepository after fork"
+    LINKED = "Linked workspace lock path"
+    CREATE_PARENTS = True
+    OPEN_MODE = "a+b"
+    BUSY = "Workspace is owned by another service instance"
+    NOT_HELD = "Workspace ownership is not held"
 
 
 class WorkspaceBusyError(RuntimeError):
@@ -23,21 +38,21 @@ class WorkspaceBusyError(RuntimeError):
 
 # 프로세스 소유권을 OS 잠금으로 유지하고 동기 트랜잭션을 직렬화한다.
 class WorkspaceOwnership:
-    def __init__(self, root: Path, *, logger=None) -> None:
+    def __init__(self, root: Path, *, logger=WorkspaceLock.ABSENT) -> None:
         require_linux()
         self.logger = logger
-        self.path = root.absolute() / ".ish.lock"
+        self.path = root.absolute() / WorkspaceLock.FILE
         self.transactions = TransactionManager(self.path.parent)
         self._mutex = threading.RLock()
-        self._stream = None
-        self._references = 0
+        self._stream = WorkspaceLock.ABSENT
+        self._references = WorkspaceLock.ZERO_REFERENCES
         self._pid = os.getpid()
         self._sessions = set()
 
     def claim_session(self, key) -> None:
         with self._mutex:
             if key in self._sessions:
-                raise ValueError("Session already has an attached runtime")
+                raise ValueError(WorkspaceLock.ATTACHED)
             self.retain()
             self._sessions.add(key)
 
@@ -59,33 +74,36 @@ class WorkspaceOwnership:
     def retain(self) -> None:
         with self._mutex:
             if os.getpid() != self._pid:
-                raise RuntimeError("Create a new ProjectRepository after fork")
+                raise RuntimeError(WorkspaceLock.FORKED)
             if not self._references:
                 for candidate in (self.path, *self.path.parents):
                     if candidate.is_symlink():
-                        raise ValueError("Linked workspace lock path")
-                self.path.parent.mkdir(parents=True, exist_ok=True)
-                stream = self.path.open("a+b")
+                        raise ValueError(WorkspaceLock.LINKED)
+                self.path.parent.mkdir(
+                    parents=WorkspaceLock.CREATE_PARENTS, exist_ok=WorkspaceLock.CREATE_PARENTS
+                )
+                stream = self.path.open(WorkspaceLock.OPEN_MODE)
                 try:
                     import fcntl
+
                     fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except OSError as error:
                     stream.close()
-                    raise WorkspaceBusyError("Workspace is owned by another service instance") from error
+                    raise WorkspaceBusyError(WorkspaceLock.BUSY) from error
                 except BaseException:
                     stream.close()
                     raise
                 self._stream = stream
-            self._references += 1
+            self._references += WorkspaceLock.REFERENCE
 
     def release(self) -> None:
         with self._mutex:
             if not self._references:
-                raise RuntimeError("Workspace ownership is not held")
-            self._references -= 1
+                raise RuntimeError(WorkspaceLock.NOT_HELD)
+            self._references -= WorkspaceLock.REFERENCE
             if not self._references:
                 self._stream.close()
-                self._stream = None
+                self._stream = WorkspaceLock.ABSENT
 
     @contextmanager
     def scope(self):
@@ -101,13 +119,18 @@ class WorkspaceOwnership:
 
 def workspace_locked(method):
     """Hold ownership throughout a synchronous service transaction."""
+
     @wraps(method)
     def guarded(self, *args, **kwargs):
         # Facade에 바인딩된 동기 Component API도 같은 Host 관찰 문맥을 전달한다.
         # 여기서 계측하거나 상태를 집계하지는 않는다.
-        observer = getattr(self, "_observability", None)
-        with observer.scope() if observer is not None else nullcontext(), self.ownership.scope():
+        observer = getattr(self, ObservationRuntime.BINDING, WorkspaceLock.ABSENT)
+        with (
+            observer.scope() if observer is not WorkspaceLock.ABSENT else nullcontext(),
+            self.ownership.scope(),
+        ):
             for value in (*args, *kwargs.values()):
                 watch(value)
             return method(self, *args, **kwargs)
+
     return guarded
