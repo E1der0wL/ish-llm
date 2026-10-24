@@ -53,6 +53,7 @@ class ProviderRequestHint:
 
 
 class ProviderRetryObservation:
+    DELEGATED = "provider_retry_delegated"
     JSON_MODE_FALLBACK = "provider_json_mode_fallback"
     RECOVERY_REJECTED = "completion_recovery_rejected"
     RECOVERY = "completion_recovery"
@@ -98,6 +99,10 @@ class ProviderAttempt:
     @property
     def next_attempt(self):
         return self.attempt + self.ORDINAL_INCREMENT
+
+    @classmethod
+    def call_details(cls, call_id, request_details):
+        return {cls.call_id.__name__: call_id, **request_details}
 
     def details(self, request_details):
         # Adapter observations keep the original final merge precedence.

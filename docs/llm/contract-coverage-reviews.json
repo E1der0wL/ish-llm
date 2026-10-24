@@ -2427,8 +2427,8 @@
   },
   {
     "path": "llm/core/schema.py",
-    "sha256": "5d17e531aad635ccf90abea7d2fa781b1f9f9a6946594557a727d4dc8accd250",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved.",
+    "sha256": "a29ed68ea7ae069dafffa11bbc2bf3687254903ac96fb48b180b54ecdcf49e83",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved.",
     "dynamic_paths_reviewed": false,
     "decisions": [
       {
@@ -2756,211 +2756,217 @@
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "52bd10e49e4a817d66e304bf8e3624b79dee415b548c428bb5b5d3dbca1db2f4",
+        "id": "6779c86806a278126afeae62451792e96cc5ae48c5d11afb3ca7162a5efb85a8",
+        "classification": "declaration",
+        "owner": "SchemaExtension",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "508474471da79d8c272c8b32bf0c777094f224a84ef12f26b8a4b5504ba41744",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Canonical runtime configuration schema annotation now shared by the existing RAG and Graph schema writers; complete unchanged schema and Graph methods and consumer tests preserve its wire value."
       },
       {
-        "id": "3075978252adce256293313c117ce6f2798ab80817bfe26b8e26186681a900cf",
+        "id": "5d814357eeb98fd249ffaab7497835e6c712b044d379e39309aefc4933d64ef4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "712549ebbf6318a067f867dd47d324e9f39b465660c24391654d1dc6815fddfd",
+        "id": "25c6803589e089ffde871f63bc9386d4596744d5cdb4c76479a13c1f41a4a3ec",
         "classification": "declaration",
         "owner": "SchemaExtension",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
       },
       {
-        "id": "52d3a09c926b2862ffcc77d78eddb975147c8ad5be160f14f4f92158673459c9",
+        "id": "54757ff35528c10502ace05607dd329f572c517b530fa99353d4a9ebfd10473b",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "64d28ead8a274dd39314ccbafe2b2ddc14601bf07578aab197b7a21bf45530d7",
+        "id": "786946a2889a2149b7a9ba7bdacaba21b090a7ea54178b10f5156fa0db98f268",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "bf7be11a8b68575c28a2bbfba73293629354a1c1fda4bf9d2cf5a2d102d0e9a1",
+        "id": "9bd6892fed5776f3e2b9b452771d6fb887ddc06351a7fffa05f5a442bebeaa44",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "46c6e90dfbeccb40e15751311672f89e3de82fae1759461e01a09f1a0e3255c2",
+        "id": "5e471bb4fdf2893bc4006bb23c67cd7258137a598e6e2931c83b8f2e5b2cdef8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "0d39246f0bb44b1b24665f75cd5a1992c846202e9df5c89d6248ef70aed545b1",
+        "id": "1a5800d0c0688c0ba28a04203e47a3dba9fc3234167afa39179f3799dbebfd51",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "98829b8fe652106fa0cce1305eed9d027f9cb997e2b9405884887909784cd8cb",
+        "id": "b0dd842deb4c2de195c45c683bee0494a98520ea92445fa91b2dc85b11dc0693",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "12a6de47d2e11922e01e98a8353a0b897a0a0d8de5c6f4e16c88fa6fd19859c7",
+        "id": "2140155798338a458b49760442a1cb0f54381126a5cb0ea81002583cf56cc3ce",
         "classification": "declaration",
         "owner": "SchemaExtension / SchemaResource",
         "reason": "Declare existing Schema resource vocabulary or registry attribute at its owning class; no new runtime default or policy."
       },
       {
-        "id": "b1b6a2c7415682597934354cecbf329141dd0e1f49448f43032a4b2c4d8929f4",
+        "id": "593d089a9d80885bf12e89beb0c63a6e86fd1646b002dd305ed8bf67c6a91b8c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "404ff673585dbffc2ec84238a421f509bf901e47cfb3a8af31280430238e682b",
+        "id": "02bfd081091311e8ef9a9907de83bbe4ff012a7568288ea329f9dbf1663c979e",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "12bcba6767f966134c824789f8d15f55688529a8a2d23a2247df71bd895fec29",
+        "id": "3303d452f0ba3de70dceca8b0518bfdda3a42337be67488c8ee0cd6c66294737",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "fcb9ef60a6a42e68ef52a1d5bdad67a652736e556f9955680f64cf7829f7fcdf",
+        "id": "1d762735de4cda35d6c5c690fe8a3fa287659645d5acaaa0cf4244c8ba208c72",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "5cfa70642322fb6c5a6438ddc8da0c86b2f4ddcb59e96dba8365bf46495b9137",
+        "id": "d2c82e47980c8c9fca807bae791bd60b300c3075cbb0eff41721bd4f589ddcb6",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "025558f576afb4a92c28aaf6afe3b06a5dbae26667c100ca3e7b6a27039131d4",
+        "id": "b2816c84d12edd89196799df0cf5bc89c9f2a1c26e84aa2569e16be80539b598",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "a88616be4f16b3ddde34d886c9b28f3f1030ac8e5d7e71173a0415439da96d04",
+        "id": "631b375fbc132b88b21cc0b542504ef733fc68617686b1bd463818088b21f024",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "1bb33a90631aea88d41eb7a51e98410b01f653ae8898dd9dc89b46f9524d1fe5",
+        "id": "b06d06edcd1244427416dd376c2935d9641fff022fff9ebda1c0443aca7b2055",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "b59b3e32ebd0a2f5bfcb6855550b1d0b95aae68ff84d85cb7f5d546d385dd8dc",
+        "id": "bce8a143ce33e01585da0faedf37441e24a0d53582c3af8e60f264bdc5425fca",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "44bc85fbbb85f6ba344b7a4c90f19c7e7476714d7746a4abe6c8b8dff877ece2",
+        "id": "61635df319453ca57a8094da4bba34537c008f6913d832f207b3616705747dd2",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "2b72092cc248b447d957ee97b8c15a4525297aa5d9134cc7480ed98006ed2b9f",
+        "id": "ee5f80a51a8b7fa2478e575c83dde7c840b42b756dc7b651fe6129b7642a8fac",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "ea661cda97f94aac6624f2565b0a5a623004381ddebbb680220b23d1aebf07c7",
+        "id": "cdba6000caf01bccc8d800af270807995b784657088f7c1e791e9952b7b1b56c",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "76a7b9282071b156d758cb86f7c50c39015662c126d54b88fd0a3a2d50f1458f",
+        "id": "4576faa02fdd5e76afbefff71a7abcbdbef9182d34ae572e76a3c292f4f2e4b4",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e5bff4c99949261273e9a9c94a1b5961f91c0b966e633ce0386d94e5a6432398",
+        "id": "1f649063521e3fc9b7a71805e0ab3ed20b2c0d9169d85a5799aaff69ce8e2385",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "456fb9731ed37bf71d605bcb520bed04667078c2a71b5fb6c2981ed2105243fe",
+        "id": "86993c413a4c60f10190d504640cd916145678c87c4036d9e0bb9d16aedd0279",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "72588b43ffc12550c3e6d68177dd3af3ce5961cc08c95e2073174786a6eb7c6e",
+        "id": "0fa305a774069eef53c627b02d721ff340693b66a5794fb663a64114d50e71b3",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "e9c62baa9bc8eb3884dd8fff18c0606a7b2f41a87b53df9d1a6d5835d040210d",
+        "id": "55d2b402cfafc5286d372e4359c5743f1f6391accf1ef573840e6fa01c24bf42",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "88ccc00a09633dbebca464f2e035a66ad1f0770b71e650be0cffdbcfe99f71d6",
+        "id": "d8815794074b5ae07a46b2b5c20b7fb3b3999e6fa7b78f9015fdce34568621e8",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "f3f372811d588e5ab69972aa9a4b9329425c2b8d83ea01f22b895049fb361896",
+        "id": "8e0b85b76a4a5b92fe800e168123cad11592a580ccad00b83c9d3b1473c91aec",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "964184d584593496901d456703a92a020fe7a06b871bd42f08193150169e9fb2",
+        "id": "b224974a0c49eafbbe3117e557fc8ba029edd90f6f864f1a9792c060850f0fbb",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "357c7a7335642a66e90ad3d4222b226310efb8571491e74881c3ce440c53e3bd",
+        "id": "a1f1bc906df5b0395c826ba96b855f6712cafc5d5c0c961dad963a59eb9057b7",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "8789bf7fef8a2e787f308aa67f90bc676d12af5cac58453c3b52edabfc4abc42",
+        "id": "43aec4a8997a9e60a53b76c39e0e5eae2bf8ad876a1a9a7366c55db2ad56f276",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "df437ed541820745c2b6e3c4e7ecaa5e96735cbad87baa64a364708e997e514d",
+        "id": "ee5f9b8a447316c261650bbd2f418119fe2250627d1c813193a447acc7bbf366",
         "classification": "declaration",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Canonical syntax, envelope, diagnostic template or layout grammar declaration before implementation; nested domain semantics remain with the selected implementation."
       },
       {
-        "id": "cff9f0382a8020d9a1ffe30ea180065c5494ac38b5d728dd298ea61ecbd6c965",
+        "id": "6803d39de8bd668d1e524ba64d1af134d548a81e0a8571c96cb57996d19ffb49",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
       },
       {
-        "id": "cc1111ce24b2df1c27a9e6f241fd126181fbab9db72af155221d838d0e6df6fa",
+        "id": "2209e487687b75f4eebcb6981c27b0b2c3cbb6bfeb8bb515e6439e5cc4ebb301",
         "classification": "non_contract",
         "owner": "JSON Schema vocabulary and traversal",
         "reason": "Local no-match/no-validation-error sentinel for iteration; no missing stored field is restored."
@@ -2971,18 +2977,43 @@
         "owner": "JSON Schema vocabulary and traversal",
         "declaration": "llm/core/schema.py",
         "consumers": [
-          "llm/core/parameters.py",
-          "llm/core/configuration.py",
-          "llm/engines/registry.py",
-          "llm/services/schema.py",
           "hub/widget/forms/settings.py",
-          "llm/components/vision/image_contracts.py"
+          "llm/components/vision/image_contracts.py",
+          "llm/core/configuration.py",
+          "llm/core/parameters.py",
+          "llm/engines/registry.py",
+          "llm/providers/requests.py",
+          "llm/providers/retry.py",
+          "llm/providers/schema.py",
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_parameter_values.py",
-          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_configuration_validation.py",
-          "tests/llm/test_policy_values.py"
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_parameter_values.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": false
       }
@@ -32243,8 +32274,8 @@
   },
   {
     "path": "llm/providers/diagnostic_values.py",
-    "sha256": "1d6c908f7d59f0afaaad5830ac2615682c54e0ef2c0ce147fc927c8c72c509e2",
-    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes.",
+    "sha256": "73dcd1c1abc4fd4439cbabbc365f332106b7ce204f097f474ef911e382bc8788",
+    "reason": "Full extraction/options/example/naming/observation implementations and direct/dynamic consumer paths reviewed. Existing shape/default presence and explicit retry/repair policy are preserved. Complete old/new methods and independent wire/call traces match; corrected import boundary and current L1/L2 real HTTP/file/fault/safety regressions pass unchanged assertions. Broader Component base and Provider Adapter remain pending whole-file scopes. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -32296,85 +32327,91 @@
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "7ac32df59f4a0df09946b1a81b5e8890e20a4257c867090e2d45936d6bf36680",
+        "id": "bee1c77a1e83838986f3a8da3316ee141d74e20b6cc6ed64e0cc1e1bd6b71dd5",
+        "classification": "declaration",
+        "owner": "ProviderRetryObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "47ce106c6943f20c64600b7e258b1dcdc11c05adc7dff6d5bcaa515a7dedbed3",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "c7f8d8daa3b6838b48661eec194cadfaedd1f4ab64c207dabd82cedaed34ae69",
+        "id": "d540da5e84b89ad4eaf7208900a4f5ff72a1a44da6f58bbcc2a6afee688edc4e",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "508bdb285d0840192f68c8aa36474c6c69be4f3b38f524cef0776ff2df9d4170",
+        "id": "6f478adcf3170c0cf74d6dac1c662056edd12cf7f43e2c10395eab116465a312",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "c836914e9ae57494630d0dd7259dcc9ecc6b342794fce143960842cd05a625cf",
+        "id": "39b379dae2fadba5f63c5e48f624402c253e1af57f3cc9b8881c408ce101afa2",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "971cce692d782e0332540b2a5a0d96836f61483ba3b91125dd98db111e22035c",
+        "id": "2d611bfd10f1403150f33d927d8fae748076041705dbb0cdcf5d8098ba53e717",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "9541a1b1fb3962aff400dbcddffe4cafdc6bdcf3e6f98cd86b91b385405ea341",
+        "id": "20da91d5147f980a91d8bdc33f129b084ec01a5dbc46e009597b6a1dccc53917",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "eaa2e4787cc52031c22725c9ba16eccac8a934ed00ef3f0aa8540b762e3327ce",
+        "id": "59fee1f344c4a96a8ce0109671a755aaf873f5dda2008208ba0d215a7bcd0fde",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "1857d3c352aa1753e20c9d62da263f68423eb8507b450971b197bc9a4a10929b",
+        "id": "35723ad0564ef395b2f02b74336dbde1ba96711c48dd75c5884ba80ed7a1a020",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "7c6b9f04ab6b0570a5d3227b7d8abdc883872199e5712b575d89fd614e741223",
+        "id": "dababb7e5af17842e16e7b6f3692fe74b3723b8367ecc06a7fc831809b5c99d5",
         "classification": "declaration",
         "owner": "ProviderRetryObservation",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "59c53f5ed139c0f7675ac6b6e7e53cabf98ea769b61237cf55c8d9748d48363e",
+        "id": "951167a5abe317d1a990ce3773b717a0eaca4ba9efe0b4ba9d527ee1cf7791f1",
         "classification": "declaration",
         "owner": "ProviderDiagnosticText",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "f9130464b7410525ecbe666b2ca9ec7f835a734a65c20a1369511becdce72948",
+        "id": "2b6882ea4a307ad8daf4a84fb300d7b49b117ff96bf6048a6e4fcbdc676fb605",
         "classification": "declaration",
         "owner": "ProviderDiagnosticText",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
       },
       {
-        "id": "5d0acd94a8d92682eb478d179f9bd7b194e6783f368fef7002bb35aebf69e5e2",
+        "id": "91742470c149045bd04d6aa7d72dbcb60b209498fadb9bc4212b243e787bffb7",
         "classification": "non_contract",
         "owner": "ProviderAttempt",
         "reason": "Unchanged Python dataclass frozen layout flag; neither execution authority nor a stored/API default."
       },
       {
-        "id": "746813ee6761e69b4f7fbeaaab76498566338243c29f65af790bfc7a81fa0cb8",
+        "id": "abbbce838d80af65fc29da09a57939d85b17c1a5b9fe11aca11e4ae7c56941df",
         "classification": "non_contract",
         "owner": "ProviderAttempt",
         "reason": "Unchanged Python dataclass slots layout flag; neither execution authority nor a stored/API default."
       },
       {
-        "id": "f4338753238bc100c509f7889be2aab57ba2f2dade81b6ee315c7fe628826996",
+        "id": "735a5cce124e394a45a1cd6ff5105b6fb51447e266c08f3d06baac1d2debe264",
         "classification": "declaration",
         "owner": "ProviderAttempt",
         "reason": "Provider observation keys and codes are at their owners. Completion JSON fallback obtains its unchanged operation label from the Adapter declaration; this observation never grants a retry. Existing request hints/attempt fields and omission contracts remain unchanged."
@@ -32385,22 +32422,41 @@
         "owner": "ProviderRequestFailure/ProviderRequestHint/ProviderRetryObservation/ProviderAttempt",
         "declaration": "llm/providers/diagnostic_values.py",
         "consumers": [
-          "llm/providers/requests.py",
-          "llm/providers/calls.py",
           "llm/components/rag/extraction.py",
-          "llm/components/rag/ingestion.py"
+          "llm/components/rag/ingestion.py",
+          "llm/providers/calls.py",
+          "llm/providers/requests.py",
+          "llm/providers/retry.py",
+          "llm/providers/schema.py"
         ],
         "tests": [
-          "tests/llm/test_rag_models.py",
-          "tests/llm/test_rag_extraction_repair.py",
-          "tests/llm/test_rag_retry_presence.py",
-          "tests/llm/test_operations_schema.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_provider_transport.py",
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_component_record_integrity.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
           "tests/hub/test_rag_defaults.py",
-          "tests/hub/test_provider_recovery.py"
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_extraction_repair.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
       }
@@ -64821,6 +64877,1185 @@
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/schema.py",
+    "sha256": "c7f0d9619b99123fa63504c2bd1aa292bd0de439bc934f3dc9ccd360ed3b8cf4",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0a7b74519f55c1116cae0fd0ef8d472dfbd4f69aa4e3a340acce0e014bcfb835",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "a965eeebd89aac2e5351f5f8ba9f2126683293fc49ab5da51c39a8485b2d950b",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "419e89e2ee9433448acda45221bb02c87d6740dd405bd22140c4ebd50c863327",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "efc32d4f6da1b83933be37301ad4fb8c2441e89f42aa57a8247ccc96aab01ec0",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "43a41aa77ec8285acc0cc4f29d58ca0ddb6fbcf6cb0d2f995213c4cef925f306",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "5d415ab531aecc263b5220239671e89e11659de47d71187e10b8ad16fdde3229",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "e3c65317cbd4f0cff0e160c8eb15c03536e9948f873cdcbddea57b189c80d451",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "21db1596b359fde2a039857b3a30d6f8824555c001b679cc6683129ebb036b18",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "75d5f1e8ea94b9fccc7bca47e468916845878363320667daf9c2e8537ee9d091",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "ac99c1b1718ce09059bdc766e5da852acebfdbe4dc8d653ee1ed8735b4f6ebb7",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "8034a8e38a907011961a784fdaf5b0c076aa7516ac71d6f924fddbcfd595a846",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "bf75064074e5925aeea3b59db7f457b6109e9402d9908c6337ffd35dd55e7566",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "a65b72509550c6e2b85d3a10caef1f96bf63d9c3770f0e98c21e523fddd018f2",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "ffe44586e3858a954405a29c5b2edeaf4f4cba3feb8c06c9de228f078069be04",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "b07710da17f41658dd9a751b5ef3a6006fbf85f6816420e54274351da1046774",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "540904eba269dc03a18f411dee21b26d33d809ca6f2adcfe8dad11880ad0851b",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "44aeaa231921f7d3c29dd3cd8b378570d01c04a481284f4b6f1a9a0f81b78fd0",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "a83a2efbebc3c965b1c6041ea1715d754820ece14eeb5aec51a6589e612c5a01",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "da9016c6e567221ac83e7681c48c49c7fb109b68499f35a0167e05ce3acb6f38",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "0c87e0687e234790b9171e084fd89e50dfbf2b8b5f044880b95233ad5e41d0f7",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "9dca5399c1897a99d0cf5def96b721ece0f4f7df251fc1155b41e3c1d0c74550",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "8b36862e2917200a0f3b3aac3f23e9eec2e74b6e5e92621ea4c1f4ca38053852",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "0af6982fdbe01a400c5c335995d8f7df4c2f9738719ec861a51de2b712589c91",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "cab8fb30799ce72440bc830ed3b8df4e105cd507b46f975a1e146be7d029ea52",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "78575f4bb89d73ac49928f26221769e800eadee51d698a2fe17213e59b628e12",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "76af0770b224f2551d73d6e5beab49364eb3b294cef5d5337e36982ea521c8ea",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "c90eb1155f59237ee517478e89c4c3b6c381006673d60ae1bb8828bb60bcb665",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "0ab0a7eb304d4ba733e5bf9e004bf0cf7a2718750399da064712cead185d7a67",
+        "classification": "declaration",
+        "owner": "ProviderRequestSchema",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderRequestSchema",
+        "declaration": "llm/providers/schema.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/calls.py",
+    "sha256": "3ac093bd1ad15f8962807927bac631969b1b6ed0e8a46f79b295af214cebe756",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ba30e21d0123d0e4bd0e0d6467958614dcc445de9d8c31b87e806ec2a5493dfd",
+        "classification": "declaration",
+        "owner": "ProviderLimits / ProviderCallStats / ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "5de0483fdf3077f6c5ce1d6b052716daa575a6d98bc41041cf395982df7f8f7a",
+        "classification": "declaration",
+        "owner": "ProviderLimits / ProviderCallStats / ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "c06358aad25f337316b9c51a86425e5ccfa7babba5490a88de4d5a4229e9ae49",
+        "classification": "non_contract",
+        "owner": "ProviderLimits",
+        "reason": "Python dataclass frozen/slots type layout; not an execution choice."
+      },
+      {
+        "id": "6a39cc50cada5968dc351476217fe469f37d4792045b3caa6766e8f9c40b22c0",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "86463f301d6e39e3f2769b0d663a830a7037744baa4bf50a89b4c838a2440025",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "d6d96aa1ad597046021737e05de30d73bba33ffb92caa05a51886ee7fbc15fd2",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "efb029f41fa8742230af6278930fc4b17329dacac945f2e44ae4cc84873e088d",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "cd4e9fb9ebba8102540e90ba9447de5f7dc6ab2d5bea9b584b173928dd2ea00c",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "d27c9342247276722202114fe55b072b8a9a4ee7ac2b10f369e4c4fdd2369ff0",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "cd2a8686347b5dfedbdde4ba949048004b72534a4f0ea03d445e9c88b88b80ae",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "dff6f3317109227e0e0b5d703f33a9ff117cff505be76180e72ebded5efb7456",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "29cdb51bdd5f92eff7c7b19c584892b39a0dafda4a55cf8d9a99ba6e9349a2f4",
+        "classification": "declaration",
+        "owner": "ProviderLimits",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "ebc99b07af470bc9497d078b9db962a32e43c6767e05fed181ee6c52cb92b175",
+        "classification": "non_contract",
+        "owner": "ProviderCallStats",
+        "reason": "Python dataclass frozen/slots type layout; not an execution choice."
+      },
+      {
+        "id": "34122a6b9d7bce7098d2ffafdac3fa4989824b386391a251769f75593b49e649",
+        "classification": "non_contract",
+        "owner": "ProviderCallStats",
+        "reason": "Python dataclass frozen/slots type layout; not an execution choice."
+      },
+      {
+        "id": "95b4b0422ce2dfc3265b1114d17f78e051e8b5cb724a6690c5e3d4b95a58f8f3",
+        "classification": "declaration",
+        "owner": "ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "185846b803410fd737edf0ffff3de0b7fff1a7b91641430931577c87b961bab7",
+        "classification": "declaration",
+        "owner": "ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "348ef599ced08107abbbc547711b5b46363cfd20bc24998be561cdc2b8fb3fd0",
+        "classification": "declaration",
+        "owner": "ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "dcd1b66a89393dff835da651c19c606e05f9d1d439815ac2fa13980133a8b092",
+        "classification": "declaration",
+        "owner": "ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "89cbca9058832e54dd94026e70bfe6de45ea7a60dc1e08b79c34484a25acc45c",
+        "classification": "declaration",
+        "owner": "ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "f3bded08a68b4d033f5772840cbfc2cac32d54089599a79f362090b297fc0cbf",
+        "classification": "declaration",
+        "owner": "ProviderCalls",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "6dc5afbe84f21d90c8c8b0fdf3bf8da20eefb8bb72d3c2d738097e9383a16da4",
+        "classification": "non_contract",
+        "owner": "ProviderCalls.acquire",
+        "reason": "Python loop syntax; exit and capacity/deadline rules remain owned by ProviderCalls and ProviderLimits."
+      },
+      {
+        "id": "295d3ed78bb532a55fb2926b0f99991a814df344185f435cf2e91679471c2f54",
+        "classification": "non_contract",
+        "owner": "ProviderCalls.acquire",
+        "reason": "Python exception chaining syntax preserves the original public timeout error."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderLimits / ProviderCallStats / ProviderCalls",
+        "declaration": "llm/providers/calls.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/retry.py",
+    "sha256": "50a632a67b43e24857352a8075c05926108de4f67e5cf1915f04666f248d3e67",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2759a9b19985e0f54513816738524fc4238aee368796fb6936ea0c1aff8bb055",
+        "classification": "declaration",
+        "owner": "RetryAfter",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "95041911ebf6f03552e3a3d16622b7edea1d7b691d3a6ab1411c13115b4043ed",
+        "classification": "declaration",
+        "owner": "RetryAfter",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "730d7e8a68a8355941fbb93f10519b4f6c69d0f9e24bbacd0c64338e33c85287",
+        "classification": "declaration",
+        "owner": "RetryAfter",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "2d28e843efb516f08d500a914ab3e046caadce8ca446ff7d2501330d34bbc750",
+        "classification": "declaration",
+        "owner": "RetryAfter",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RetryAfter / RetryPolicy delegation",
+        "declaration": "llm/providers/retry.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/requests.py",
+    "sha256": "b4162a9875537f337ee16079c593b67ee4436b4237c2503ff8023cb18c3cff25",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "eefcdb30d5f37336797d33a03cbe2e32d7e9a45cfc8178f92dd71b84dec67bae",
+        "classification": "declaration",
+        "owner": "ProviderError",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "26e7705385d08b03797b3bdd218500a8c3f2371fb03f53eabb032b1cc75b07bb",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "336daa33d6d492106172bf7e1b38683a2c16ee0cb414844b451e2c268b3ffd86",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "18001bd7d2845b063c97e05056aa50260e5676d92e46fd6a2442ae0222b82ac4",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "8422c260004528d821cddb6ca6e2d904f18e715dbce697d03e9cb24328032ad1",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "10538736498624ef539e27c8d477c383b75cf1d35954d87e7d084154d56f4168",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "2d556c6f72e25cc5587e306f5cbbdb1d809756cd0fe8f90e8be4663919c4195e",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "af4c5a48373c50e55aeb6610a65b4c66050d6f826c1d9173579b4e9bbbbb0acc",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "af9e3c39382dd53878702b1fb6547feeaac67e30cec3051adde7225f46dd968b",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "9e85c409efa28d8a84fdcb1100368578e0c7c4c2df803c8224f9c66a3abb5729",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "58d0ab5f2f9f210be0e4d9d9acbc4d7ab2aa7533ae6664d47681e635a63ed69c",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "364fb3ceb0964d5cde3f5fc07ee02c76e74a5e399a76d8a9096b9b28568e1c45",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "1ed7c96f0921883ec0689ed71677e3c5f2b1db3a1f9a3445159fccaa9038a34b",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "b7d5c9992f0401900a3f0bcc0a540fce1a842aab7607f10d619e0079f8e88ad1",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "c3a930690a6644a455719022643cfde57606be32b2d7c6c003f64f94c676668f",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "a45209a23d6080b876e828deb7184dd1d126b4fbe9c6f65366d2f2a4141f5584",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "992acec10db962e2a1b3cd6be9296c6f5a411b1cf5bb155b52287986a4e271bc",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "6146c84415efc50aa5b42358a4903d6d0ff857691504662d35585a943eb0f9bc",
+        "classification": "declaration",
+        "owner": "ProviderFailure",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "87988d5b60cddea2843aab9d8d38895c6aaaf8907b8c401a997e54957fb8a2f9",
+        "classification": "declaration",
+        "owner": "ProviderRequestExecution",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "f14678e9131fcc61013ef916e409df735c96b8b093e434f4f799c0333e08fe7d",
+        "classification": "declaration",
+        "owner": "ProviderRequestExecution",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "3e41f59ca354a96d0742ad8363a922894049ccbc4f9422a28e0697c30980100c",
+        "classification": "declaration",
+        "owner": "ProviderRequestExecution",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "d4a926a50602e3e0c1b5b109420b1a4a3a18c497e3787f4c874545702e23b868",
+        "classification": "declaration",
+        "owner": "ProviderRequestExecution",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "312df65a3df2e3274e99212782fb288c8a25da6d5bc630ba8949e68dd21ce30d",
+        "classification": "declaration",
+        "owner": "ProviderRequestExecution",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "89c3cf87f33435d0db07c8a16982dc3dea1eefd8631c68083087c93ae2ac6f95",
+        "classification": "declaration",
+        "owner": "ProviderRequestExecution",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "4444bf6b1ff20a90d3662c14fb5ade41219ae4f22613a60e6daeb567ff5d694a",
+        "classification": "non_contract",
+        "owner": "invoke.checked",
+        "reason": "First element of the explicitly validated nonempty ordered choices list; not an implicit response or policy value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderFailure / ProviderRequestExecution",
+        "declaration": "llm/providers/requests.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/request_values.py",
+    "sha256": "e9ff56d4accd1e61556f017376a1aa27dcd5c8961c5ce07e9ddbf54501cf3c57",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "031e3b326f223f0e2cb4f6985151f66204e352ba63509b13b0955edb8e38b427",
+        "classification": "declaration",
+        "owner": "SDKOperation",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "87945390e7736d3ee698d61764bfc7b0035398a088980e5cd9f0aeeba10b4d1f",
+        "classification": "declaration",
+        "owner": "SDKOperation",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "5470de5cdff84b1cb88c6f4c3d73b3a529f03d21895b168d879c3aaeada37853",
+        "classification": "declaration",
+        "owner": "SDKOperation",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "c954c80d7ef8aae016997645d3925de979b32942027cd392dca6ad74f7f5c387",
+        "classification": "declaration",
+        "owner": "SDKOperation",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "db987ed354a7a3aeb5d5091055bae96d12970bc453feae7eba119610bea81a94",
+        "classification": "declaration",
+        "owner": "ModelParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "eca8f62f8a02ba516e6ae592cb1cbc1c2e96f728bf84a5337d27218e3a118d75",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "1dac0d09028687c2aa186468722976eb573dece2b0ec895aa9c1b6d65aabd128",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "f077b55ff3a66972892bc48e58168ee7f693428ecf2320cf08241453901bff26",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "28d04c6998d648e0e6671e3b124f70902433f602b15b2baf959c80842c423b95",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "2df8bb1ba90d8518c1ce640d76e2f3086579b533564b47fdbfb804d1faf3d049",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "1eecf1ec0a0a723444c8a63e8f0ef59e1e0d4e9b925e253c2a06a58e06ed4e0f",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "6a6c0c58fdf9679be7ea90b6b5a204b7d0be0af6ccaa709a41a0cb74c05ef398",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "d3578353e5bc35b687a564708c9bc6ed2a3862aa60961b841495ae2b2188fb69",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "c6e632f6b4d6b222ef6d1500f377314f4353506a9b0c06cf233b221afc9d6582",
+        "classification": "declaration",
+        "owner": "SDKRetryParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "ad4f1fb8fb3b63f220e7c14db605cb09c1d1baaea60d87930df7d005c92e9b7e",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "bf42a4e95cd30bb2a8a4c92d044285e7c4589bf61abc4f9efef04b189b6f644d",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "91b5c475f8d27091a51d96ff28a62641a755a830a1d134c59591e58e5a7f8660",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "f1bf238c53555b9da9819da2a9ae6771b8946587cec400db56e59b965d4c47aa",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "b8bfba44dcf8b1e8f1baf81200c47de13886c05df994f239724a1c00068489b1",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "271adb87a503e1439777cb90caff53321e380b594b3b3131735b8cf3ba4271eb",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "da3d801b6f23e24b1b7a90cb37a0bd2b13cc81dc3321f9ff9a73c7efd7783fa7",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "89250050836fdd9a4fa6d6fcb2a02efa8fee5ba01a161d801ea6d82330e17b5f",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "fba9422c86a4ba154824220aaf2cf9982461f2723f4ef1fbfff334c2f925956b",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "fc589cde5dc2d0f29dee93e73392e5614d192d83c12bdd0bee513e037b25048a",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "0464f726e88a5b9fd1469ceaa9e4272f2b9e213c96f969b7b057ec1c120402db",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "3e48fdff9dbb133fc69119a374bf76536f074e7446f83fe5775f539180ab91a3",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "e5debd0fd35b300e75898b4c60608655424c76e456328bdba2a4dfdf16f9c2bb",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "a61ce745555ec3c83755a3780273f0dd6ffc223f5ae203f25f6024824e971720",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "5a5d69431932fc564db9b661844d4ade82992d0682da0910828047590d59271a",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "9f586237f5f2f018a34204c3caa74f6eff9b2119e6aaf61ccc5a8d4769a08362",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "c67e0f3e203728cbd957f6d318c7ab8553e1c2e01263c37c0718b5d78db028b1",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "5b8420049797a2ff7b8726747be7f3c79d49537d6d4cd5a73e4041f9e206aeac",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "3f31bca6869ef25626cd50e9f26bdd35d746c51d01adc0facf3611232839770b",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "a6f5505fea35c25dfa37cbbaef7d4d7650f9222145a2c0239539f5d86dd68401",
+        "classification": "declaration",
+        "owner": "EmbeddingParameters",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SDKOperation / ModelParameters / EmbeddingParameters / SDKRetryParameters / LiteLLMParameters",
+        "declaration": "llm/providers/request_values.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Remaining SDK request consumer connections",
+        "declaration": "llm/providers/request_values.py",
+        "consumers": [
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/providers/wire_codec.py",
+          "llm/providers/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/error_values.py",
+    "sha256": "c633f201d9a90e938e22bb05b18f7e0587ed6b6c80e8b2fa881d30982c93fe01",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "79428a590ed686aeaa7b0cbbb0f4cc48cd1f503ed4b31cc88109d2f2226ea5bd",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "8aa0fe9faae1416a5ee995696027d27743bfd2e86bf8a5f6f2fd062503cb1341",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "2a983ab0a26392ff8e909d466ac2ec7b61a2f428103b220135c0fb7d190251e5",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "7d8d864fbe233860537b3bc0e53a1d1c55f27970c8c8d4b856e90c4aa87c9638",
+        "classification": "declaration",
+        "owner": "SDKError",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SDKError",
+        "declaration": "llm/providers/error_values.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Remaining SDK exception diagnostic consumer",
+        "declaration": "llm/providers/error_values.py",
+        "consumers": [
+          "llm/providers/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/response_values.py",
+    "sha256": "7639003590ac9d2b06dd1fc7c7e57be2db18ff947ce4d051e58a46f4c09be443",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "95e37cbbb2c74e6c36cd4cb6386a146ca0e0b2509230bbd055e2b01fe764c465",
+        "classification": "declaration",
+        "owner": "SDKMessage",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "100f841ac341c2150e6ce4d4826e0742916c6198913bef006cf499772708ce84",
+        "classification": "declaration",
+        "owner": "SDKCompletionResponse",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "da4038f99cf74962a44c533e06b4ababc7255150ef2e52e9e1f0405b00c011d2",
+        "classification": "declaration",
+        "owner": "SDKCompletionResponse",
+        "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SDKCompletionResponse / SDKMessage",
+        "declaration": "llm/providers/response_values.py",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Remaining SDK response and codec consumers",
+        "declaration": "llm/providers/response_values.py",
+        "consumers": [
+          "llm/providers/litellm.py",
+          "llm/providers/operations.py",
+          "llm/providers/wire_codec.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/README.md",
+    "sha256": "9836dc384ff19faa5d311e14c54fc5d9e4084788838df98427b848354ad5978d",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit.",
+    "contracts": [
+      {
+        "owner": "Provider contract guide",
+        "declaration": "llm/providers/README.md",
+        "consumers": [
+          "llm/providers/requests.py",
+          "llm/providers/litellm.py",
+          "llm/providers/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],

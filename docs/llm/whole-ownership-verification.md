@@ -6178,3 +6178,70 @@ S5 신규 인자명 문제는 코드에서 수정했으며 새 예외는 없다.
 전수 인덱스는 573파일, 미검토 233(llm 56 / hub 177), 미분류 13626, 미완 계약 3,
 stale/violation/issue 0이다. 기존 공통 Owner의 복수 계약은 보존했다. 구현·L1·2 완료이며
 Gate41의 상위 전체 검증과 정확한 SHA의 원격 검증은 아직 남아 있다.
+
+
+## 게이트 40 전체 로컬 검증 성공·정확한 SHA Push
+
+고정 `f46dbd35cd27c49c501b7b9e2b44014e36145dac`에서 전체 LLM 2492/2492/2492,
+1434.096927초, Hub 588/588/588, 1102.136088초를 순차 실행했다. 각각 exit 0이며
+failure/error/skip/xfail/xpass/누락/추가/중복 0, 전체 발견·실행·통과 ID 일치를 확인했다.
+`verify-gate40-local.py`는 frozen checkout의 SHA·상태·실제 Host 연결, 전후 source/input,
+전체 scope와 required 집계, auxiliary 6개 exit 0, supervisor exit 0을 함께 검증했다.
+source 3bf4b6165e9f3dede1b44fc381ac759b5618613b4ee7bf3c77a91508fe188d8b,
+input c6efa3e75ead70b3479c4ec3729c14dea7b6031e7ae40ed5a82006d00c9a7d19가 유지됐다.
+
+이전 정확한 e61295c의 CI 통과를 확인한 뒤 원격 main 94229cb, refactor/llm-backend
+bb09462, 작업 브랜치 e61295c와 fast-forward 관계를 확인하고 **f46dbd3만** Push했다.
+명령 `git push origin f46dbd35cd27c49c501b7b9e2b44014e36145dac:refs/heads/refactor/llm-clean`
+exit 0. main/backend/Draft PR #1은 변경하지 않았다. 원격 CI는 정확한 f46dbd3에서 확인 중이며
+이 기록은 원격 성공을 선언하지 않는다. 이후 Loop·Provider는 이 Gate40에 포함되지 않는다.
+
+## llm Provider 요청·재시도·호출 슬롯 Owner — Level 1·2
+
+기준 9640b66. SDKOperation/ModelParameters/EmbeddingParameters/SDKRetryParameters/
+LiteLLMParameters와 ProviderRequestSchema를 연결했다. 원본 SDK 인자를 기본값으로 채우지
+않고 전송 사본만 SDK retry 0 규칙을 적용하며 명시 SDK/Client policy와 객체 identity를
+유지한다. Schema의 기존 타입 import는 같은 Owner를 참조한다. SDKError와 SDKCompletionResponse/
+SDKMessage가 원래 예외·응답 조회를 투영하고 ProviderFailure가 기존 분류 순서를 유지한다.
+ProviderLimits의 필드 metadata로 정규 제약을 선언하고 ProviderCallStats로 공개 상태 사본을
+생성한다. admission·release·사용량 관찰·예외/취소·selector·backoff의 순서는 변경하지 않았다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/provider-request-draft/values-proof.py`
+및 같은 경로 `ast-proof.py` exit 0. 원래 전체 함수 49개의 본문을 정규 Owner로 전개해 비교했다.
+Schema 4·fresh copy 4, 설정 검증 1664, retry 수정안 3000·client identity 3,
+전송 설정 8712·SDK 선택 17424, 호출 제한 504·stats 사본 9, 오류 분류 320·cause chain 320,
+Retry-After 36과 독립 기본 전송 기대값 1을 이전 구현/독립 기대값과 비교했다.
+시도 번호 Projection과 SDK getter의 전개 및 finite float seconds의 0/0.0 비교를 명시적으로
+다뤘으며 원래 제품 Assertion이나 테스트를 줄이지 않았다.
+
+- `whole-provider-request-l1-01`: discovered/started/pass 92/92/92, exit 0, 22.146288초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-request-l1-01/llm.json --modules tests.llm.test_provider_choices tests.llm.test_provider_runtime tests.llm.test_provider_transport tests.llm.test_retry tests.llm.test_schema_ownership tests.llm.test_provider_diagnostics`. source `b034a9eb1c963b2a769de00bd7f063eceff250d146654afc4439a5dc83c379e3`, input `2f4ab23387fbdad7defdaeba6ff437b4441e30f1fb816d68582e6cbdd01c83b2`.
+
+- `whole-provider-request-l2-01`: discovered/started/pass 99/99/99, exit 0, 34.716929초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-request-l2-01/llm.json --modules tests.llm.test_common_provider_acceptance tests.llm.test_model_protocol tests.llm.test_provider_codec tests.llm.test_rag_models tests.llm.test_rag_retry_presence tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_completion_integrity`. source `b034a9eb1c963b2a769de00bd7f063eceff250d146654afc4439a5dc83c379e3`, input `2f4ab23387fbdad7defdaeba6ff437b4441e30f1fb816d68582e6cbdd01c83b2`.
+
+- `whole-provider-request-hub-01`: discovered/started/pass 26/26/26, exit 0, 94.637996초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-provider-request-hub-01/hub.json --modules tests.hub.test_provider_activity tests.hub.test_retry_observations tests.hub.test_error_contract tests.hub.test_backend_diagnostics`. source `b034a9eb1c963b2a769de00bd7f063eceff250d146654afc4439a5dc83c379e3`, input `2f4ab23387fbdad7defdaeba6ff437b4441e30f1fb816d68582e6cbdd01c83b2`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 각 전후 및 실행 사이 source/input은
+같고 L1/L2의 LLM ID는 중복되지 않는다. Python3.12.14/Clang, 의존성·Fixture·전체 발견 목록,
+Host d833790·Linux namespace/X11 실행 환경도 같다. R3 `python -m tests.llm.check_budget_mutation`
+exit 0이며 주입 결함의 실제 효과 Assertion 실패 2개를 검출했다. 이는 정상 회귀 실패로 집계하지
+않고 Mutation 검출 증거로 별도 보존한다. tests/llm·tests/hub의 기존 기능·안전성 Assertion은 유지했다.
+
+실제 HTTP 생략 시 1회/provider.max_attempts=2 시 최대 2회, SDK retry 중첩 금지, 주입 client
+정책·identity, 원본 생략/명시값, 부분 응답 이후 retry 금지와 취소·대기 제한을 확인했다.
+관련 Model/RAG/Loop·Hub 관측 소비자, 승인·예산·외부 효과·Checkpoint·삭제/저장 무결성을
+같은 소스에서 검증했다. 확정된 실행 정책·원장·저장 형식은 변경하지 않았다.
+
+요청 retry 경계이므로 **게이트 41의 전체 Level 3 대상으로 승격**한다. 관련 Loop·남은 Provider
+변경과 묶어 전체 회귀·정적·R3·문서·실환경 및 정확한 SHA 원격 CI를 확인한다. 이 L1·2
+소단계는 상위 완료가 아니다. litellm/operations/wire_codec/runtime의 정규 Owner 소비 연결과
+llm 전수 잔여를 계속 진행하며 Hub 제품 리팩터링은 llm 완료 이후에 착수한다.
+
+요청 묶음의 종료 감사: S1–S7 exit 0, 현행 finding 88개·new/stale 0, error_code Owner 이동으로
+사라진 S2 1개/S3 6개 occurrence를 보존 기록 후 제거했고 dependency 17건을 재검토했다.
+README 갱신을 포함한 감사 근거 재연결 전 검사는 static/audit exit 1, docs exit 0이었다.
+해당 실패 로그를 보존하고 검토 근거를 연결한 뒤 static/audit/docs 모두 exit 0을 확인했다.
+감사 시험 16개/3.256초 통과, 문서 168·Python fence 183·상대 링크 1239·anchor 37·오류 0,
+`git diff --check` exit 0이다. 새 정적 예외나 제품 안전성 Assertion 삭제는 없다.
+전수 목록 576개 중 미검토 228개(llm 51/hub 177), 미분류 후보 13314개다. 기존 미완 계약
+3개와 이번 SDK 요청/예외/응답의 잔여 소비 연결 3개를 각각 보존하여 미완 계약은 6개이며
+stale/violation/issue 0이다. Provider 전체와 llm 전수 완료를 선언하지 않는다.

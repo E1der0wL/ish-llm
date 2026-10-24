@@ -7,31 +7,55 @@ import threading
 import time
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Optional
+from typing import Optional, ClassVar
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from llm.errors import CodedError
 
 
-_current_calls = ContextVar("llm_provider_calls", default=None)
+_CALL_CONTEXT = "llm_provider_calls"
+_UNBOUND_CALLS = None
+_current_calls = ContextVar(_CALL_CONTEXT, default=_UNBOUND_CALLS)
 
 
 @dataclass(frozen=True)
 class ProviderLimits:
     """백엔드 전체 호출/대기 상한. transport timeout은 completion 인자로 별도 설정한다."""
 
-    max_active: Optional[int] = None
-    max_waiting: Optional[int] = None
+    MINIMUM: ClassVar[str] = "minimum"
+    UNSPECIFIED: ClassVar[None] = None
+    MINIMUM_SECONDS: ClassVar[int] = 0
+    INVALID_COUNT: ClassVar[str] = "{name} must be an integer >= {minimum}"
+    INVALID_WAIT: ClassVar[str] = "wait_seconds must be finite and nonnegative"
+
+    max_active: Optional[int] = field(default=UNSPECIFIED, metadata={MINIMUM: 1})
+    max_waiting: Optional[int] = field(default=UNSPECIFIED, metadata={MINIMUM: 0})
     wait_seconds: Optional[float] = None
 
     def __post_init__(self):
-        for name, minimum in (("max_active", 1), ("max_waiting", 0)):
-            value = getattr(self, name)
-            if value is not None and (type(value) is not int or value < minimum):
-                raise ValueError(f"{name} must be an integer >= {minimum}")
-        if self.wait_seconds is not None and (isinstance(self.wait_seconds, bool) or not isinstance(self.wait_seconds, (int, float))
-                or not math.isfinite(self.wait_seconds) or self.wait_seconds < 0):
-            raise ValueError("wait_seconds must be finite and nonnegative")
+        for item in fields(ProviderLimits):
+            if self.MINIMUM not in item.metadata:
+                continue
+            minimum = item.metadata[self.MINIMUM]
+            value = getattr(self, item.name)
+            if value is not self.UNSPECIFIED and (type(value) is not int or value < minimum):
+                raise ValueError(self.INVALID_COUNT.format(name=item.name, minimum=minimum))
+        if self.wait_seconds is not self.UNSPECIFIED and (
+            isinstance(self.wait_seconds, bool)
+            or not isinstance(self.wait_seconds, (int, float))
+            or not math.isfinite(self.wait_seconds)
+            or self.wait_seconds < self.MINIMUM_SECONDS
+        ):
+            raise ValueError(self.INVALID_WAIT)
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderCallStats:
+    active: int
+    waiting: int
+
+    def to_dict(self):
+        return {item.name: getattr(self, item.name) for item in fields(self)}
 
 
 class ProviderCapacityError(CodedError, RuntimeError):
@@ -43,18 +67,26 @@ class ProviderCapacityError(CodedError, RuntimeError):
 class ProviderCalls:
     """공급자에 독립적인 슬롯 소유자. 별도 백엔드는 별도 인스턴스를 사용한다."""
 
-    def __init__(self, limits: Optional[ProviderLimits] = None):
-        if limits is not None and not isinstance(limits, ProviderLimits):
-            raise TypeError("Provider limits must be ProviderLimits or None")
-        self.limits = limits if limits is not None else ProviderLimits()
+    UNSPECIFIED = ProviderLimits.UNSPECIFIED
+    EMPTY_COUNT = 0
+    SLOT_INCREMENT = 1
+    INVALID_LIMITS = "Provider limits must be ProviderLimits or None"
+    WAITING_FULL = "Provider waiting capacity exhausted"
+    WAIT_EXPIRED = "Provider capacity wait timed out"
+    SLOT_NOT_HELD = "Provider slot is not held"
+
+    def __init__(self, limits: Optional[ProviderLimits] = UNSPECIFIED):
+        if limits is not self.UNSPECIFIED and not isinstance(limits, ProviderLimits):
+            raise TypeError(self.INVALID_LIMITS)
+        self.limits = limits if limits is not self.UNSPECIFIED else ProviderLimits()
         self._mutex = threading.Lock()
-        self._active = self._waiting = 0
+        self._active = self._waiting = self.EMPTY_COUNT
         self._waiters = set()
 
     @property
     def stats(self):
         with self._mutex:
-            return {"active": self._active, "waiting": self._waiting}
+            return ProviderCallStats(self._active, self._waiting).to_dict()
 
     @contextmanager
     def scope(self):
@@ -66,41 +98,45 @@ class ProviderCalls:
             _current_calls.reset(token)
 
     async def acquire(self):
-        deadline = None if self.limits.wait_seconds is None else time.monotonic() + self.limits.wait_seconds
+        deadline = (
+            self.UNSPECIFIED
+            if self.limits.wait_seconds is self.UNSPECIFIED
+            else time.monotonic() + self.limits.wait_seconds
+        )
         loop, ready = asyncio.get_running_loop(), asyncio.Event()
         with self._mutex:
-            if self.limits.max_active is None or self._active < self.limits.max_active:
-                self._active += 1
+            if self.limits.max_active is self.UNSPECIFIED or self._active < self.limits.max_active:
+                self._active += self.SLOT_INCREMENT
                 return
-            if self.limits.max_waiting is not None and self._waiting >= self.limits.max_waiting:
-                raise ProviderCapacityError("Provider waiting capacity exhausted")
-            self._waiting += 1
+            if self.limits.max_waiting is not self.UNSPECIFIED and self._waiting >= self.limits.max_waiting:
+                raise ProviderCapacityError(self.WAITING_FULL)
+            self._waiting += self.SLOT_INCREMENT
             self._waiters.add((loop, ready))
         try:
             while True:
                 with self._mutex:
-                    if self.limits.max_active is None or self._active < self.limits.max_active:
-                        self._active += 1
+                    if self.limits.max_active is self.UNSPECIFIED or self._active < self.limits.max_active:
+                        self._active += self.SLOT_INCREMENT
                         return
                     ready.clear()
-                remaining = None if deadline is None else deadline - time.monotonic()
-                if remaining is not None and remaining <= 0:
-                    raise ProviderCapacityError("Provider capacity wait timed out")
+                remaining = self.UNSPECIFIED if deadline is self.UNSPECIFIED else deadline - time.monotonic()
+                if remaining is not self.UNSPECIFIED and remaining <= ProviderLimits.MINIMUM_SECONDS:
+                    raise ProviderCapacityError(self.WAIT_EXPIRED)
                 try:
                     await asyncio.wait_for(ready.wait(), timeout=remaining)
                 except asyncio.TimeoutError:
-                    raise ProviderCapacityError("Provider capacity wait timed out") from None
+                    raise ProviderCapacityError(self.WAIT_EXPIRED) from None
         finally:
             with self._mutex:
-                self._waiting -= 1
+                self._waiting -= self.SLOT_INCREMENT
                 self._waiters.discard((loop, ready))
 
     def release(self):
         """실제 호출과 스트림 close가 종료된 스레드에서 호출한다."""
         with self._mutex:
-            if self._active <= 0:
-                raise RuntimeError("Provider slot is not held")
-            self._active -= 1
+            if self._active <= self.EMPTY_COUNT:
+                raise RuntimeError(self.SLOT_NOT_HELD)
+            self._active -= self.SLOT_INCREMENT
             for loop, ready in self._waiters:
                 try:
                     loop.call_soon_threadsafe(ready.set)

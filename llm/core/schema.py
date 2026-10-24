@@ -71,6 +71,7 @@ class SchemaBoolean:
 
 
 class SchemaExtension:
+    OPEN_PARAMETERS = "x-open-parameters"
     RUNTIME_CONFIGURATION = "x-runtime-configuration"
     PREFIX = "x-"
     PARAMETER_KEY = "x-parameter-key"

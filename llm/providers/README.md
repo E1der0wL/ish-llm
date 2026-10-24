@@ -1,6 +1,6 @@
 # Providers — SDK 연결과 공통 보호 경계
 
-현재 실제 SDK Adapter 계약이다. [A의 공통 typed 모델 전환](../../docs/llm/clean-refactor.md)은 미구현 목표다. 실제 Adapter·외부 프로토콜 불변식은 유지한다.
+공통 typed 모델과 실제 SDK Adapter 사이의 계약이다. [리팩터링 계약](../../docs/llm/clean-refactor.md)과 [공통 모델 프로토콜](../../docs/llm/model-protocol.md)을 따르며 실제 Adapter·외부 프로토콜 불변식을 유지한다.
 
 현재 SDK 지원 범위는 [pyproject.toml](../../pyproject.toml), 검증 조합과 재현 명령은
 [P0 SDK 전환 기록](../../docs/llm/p0-sdk-transition.md)을 따른다.
@@ -18,6 +18,10 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [runtime.py](runtime.py) | LiteLLM 지연 초기화, SDK 재시도·런타임 격리 불변식, 로그·진단 라우팅입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
 | [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
+| [request_values.py](request_values.py) | Model/Embedding 설정의 정규 조회, SDK 작업 이름, 명시 retry/client 계약과 전송 사본 Writer입니다. |
+| [error_values.py](error_values.py) | SDK 예외의 상태·header 관찰을 읽습니다. 실행 허가나 retry 결정을 만들지 않습니다. |
+| [response_values.py](response_values.py) | SDK completion envelope와 message 내용의 조회 Projection입니다. 필수 응답 검증은 호출 경계에서 유지합니다. |
+
 | [codes.py](codes.py) | SDK/runtime에 의존하지 않는 정규 Provider 오류 코드 선언입니다. |
 | [options.py](options.py) | Provider의 명시적 재시도·기한 설정 Schema/Reader입니다. 생략을 보존하고 실제 시도 횟수 계산은 RetryPolicy에 위임합니다. |
 | [requests.py](requests.py) | request_model 호출 경계와 invoke의 비스트리밍 시도, 명시적 wall timeout/outer retry, ProviderError 분류입니다. |
@@ -248,7 +252,7 @@ SDK 필드 이름을 추가하지 않습니다. canonical Tool/message/stream �
 CompletionAdapter는 `ModelRequest`를 받아 raw chunk를 전달하고, Decoder는 공통
 `CompletionUpdate`와 최종 `ModelResponse`를 만든다. `OperationAdapter`는 비스트리밍
 `ModelResponse`/`EmbeddingResult`/`RerankResult`를 반환한다. SDK 인자·응답·retry·보조 호출
-필터·실제 invocation 관찰은 Adapter 소유다. `SDK_RETRY_FIELDS`는 retry owner의 단일 선언이며
+필터·실제 invocation 관찰은 Adapter 소유다. `SDK_RETRY_FIELDS`는 `SDKRetryParameters.RETRY_FIELDS`의 기존 공개 참조이며
 보조 복구 호출의 중첩 SDK retry는 0, 제목/Memory의 명시적 retry 값은 기존 계약대로 유지한다.
 RAG의 강제 embedding cache-off와 일반 직접 Adapter 호출의 명시 cache 선택은 구분한다.
 순수 벡터 검증은 `core/embeddings.py`가 소유하고 SDK envelope 추출만 Provider에서 한다.
@@ -267,3 +271,22 @@ python -m tests.llm.provider_probe --output /tmp/provider-probe.json
 sync/async LiteLLM 임베딩 일치, SDK retry 중첩 방지, 165줄 문서 등록과 rerank를 확인한다.
 
 [상위 안내](../README.md)
+
+
+## 요청·호출 Owner 연결
+
+`ModelParameters`와 `EmbeddingParameters`의 정규 선언은 request_values에 있고 schema의 기존
+import 위치는 같은 타입을 참조한다. 이 경계는 원본의 생략/null/명시값을 바꾸지 않는다.
+`ProviderRequestSchema`는 알려진 Completion 필드 제약을 한 번 선언하고 작업별 Schema를
+fresh copy로 투영한다. provider 확장 인자와 주입 runtime 객체는 그대로 보존한다.
+재시도 수정안의 보호 필드·client identity 검증은 `LiteLLMParameters`가 소유한다.
+
+`SDKRetryParameters`는 SDK의 선택된 retry만 읽고 전송 사본에 숨은 기본 재시도를 막는다.
+Backend 시도 계산은 계속 기존 RetryPolicy에만 있다. `RetryAfter`는 HTTP header를 해석하고
+기한·backoff·선택기와 실제 실행 순서는 기존 retry/requests 경계에 남는다. `ProviderFailure`의
+정수 HTTP 범위·synthetic 응답·예외 이름 분류와 미분류 사용자 예외 보존도 동일하다.
+`ProviderCallStats`는 active/waiting의 공개 사본을 만들고 ProviderCalls의 잠금·실제 종료 후
+release·취소된 waiter 정리 순서를 유지한다. 새로운 실행 기본값이나 레거시 Reader는 없다.
+
+전체 Adapter 소비자 전환은 아직 진행 중이다. litellm/operations/wire_codec/runtime의 남은
+요청·응답·진단 소비자는 전수 감사의 미완 계약으로 추적하며 이 소단계 완료로 대체하지 않는다.
