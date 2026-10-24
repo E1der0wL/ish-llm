@@ -206,3 +206,27 @@ StepRecordView는 정규 Step 필드 선언을 사용하는 필수 identity 투�
 StepManager는 기존 전이 검증과 변경 전 watch를 유지하고 저장은 StepRepository에 위임한다.
 StepLogEvent가 Step 수명주기 로그 이름을 소유한다. StepEventRecorder의 실행 소유자·최종
 출력 검사와 오류 전이는 그대로다. Hub 구독 선택·stats 소비의 전수 연결은 llm 이후 남아 있다.
+
+
+## Run 저장·실행 조율의 Owner 연결
+
+RunRecordIdentity는 파일 소유권 확인에 필요한 값만 필수 조회하고, 전체 저장 계약의 검증은
+기존 Run.from_record가 같은 위치에서 수행한다. RunInteractionReadScope는 workspace 작업
+하나의 살아 있는 Reader를 묶는다. 중첩 범위 종료·예외에서 ContextVar를 복원하며 전역 캐시나
+새 영속 상태가 아니다. Repository의 load/checkpoint/list와 출력 확장점은 그대로 호출한다.
+
+RunCheckpointLineage와 RunCheckpointPlanEvidence는 검증된 원본을 기존 digest/CAS 입력으로
+투영한다. 저장 형식이나 실행 허가를 만들지 않는다. CheckpointSnapshot의 상속 Writer는
+검증된 원본의 Run/Engine 소유자만 기존 순서대로 바꾸며, 필수 기록 소실을 복구하지 않는다.
+CheckpointStep 상태 조회는 opaque Engine payload를 복사하거나 해석하지 않는다.
+
+새 Run/재개 후보의 정책·Agent 실행 증거는 해당 Owner의 Writer로 사본을 보존한다.
+ProjectConfig.bind_policy_snapshot은 분리된 실행 설정에 이미 접수된 정책을 그대로 바인딩한다.
+저장 Project 설정의 병합·검증 API를 대체하거나 기존 Run의 증거를 보충하는 경로가 아니다.
+기존 admission→dispatch ACK→capability/Engine 실행→저장→관찰 순서를 유지한다.
+
+EngineHooks가 명시적 재개 결정 인자를 조립하고 CapabilityResolverHooks가 기존 공개 메서드와
+선택적 admission validator를 조회한다. 새 필수 확장 메서드는 강요하지 않는다.
+InteractionOperation은 취소/갱신 명령을 선언하고 Facade와 Repository가 함께 소비한다.
+History와 Checkpoint 계획의 같은 차단 코드는 PlanBlockerCode를 공유한다.
+RunObservedFailure는 원래 관찰 오류를 보존하는 파생 상세이며 재시도 권한이 아니다.

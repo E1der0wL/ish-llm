@@ -24,6 +24,22 @@ class CapabilityResolver(Protocol):
     def model_usage(self, project: Project) -> list[dict]: ...
 
 
+class CapabilityResolverHooks:
+    ABSENT = None
+
+    @classmethod
+    def resolver(cls, value):
+        return getattr(value, CapabilityResolver.resolve.__name__, cls.ABSENT)
+
+    @classmethod
+    def usage_reader(cls, value):
+        return getattr(value, CapabilityResolver.model_usage.__name__, cls.ABSENT)
+
+    @classmethod
+    def validator(cls, value):
+        return getattr(value, ComponentToolResolver.validate.__name__, cls.ABSENT)
+
+
 class ComponentToolResolver:
     UNBOUND = None
     INVALID_TOOL_EXPORT = "Tool capability must export a ToolRegistry"

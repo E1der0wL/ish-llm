@@ -11,6 +11,7 @@ from llm.core.steering import SteeringMode
 
 
 class EngineHooks:
+    RESUME_DECISIONS = "decisions"
     EXECUTE = "execute"
     REQUIRED_CAPABILITIES = "required_capabilities"
     ADDITIONAL_CAPABILITIES = "additional_capabilities"
@@ -26,6 +27,10 @@ class EngineHooks:
     NO_CAPABILITIES = ()
     INVALID_CAPABILITIES = "Engine required_capabilities must be a tuple of distinct names"
     UNSUPPORTED_RESUME = "Engine does not support checkpoint resume"
+
+    @classmethod
+    def decision_arguments(cls, decisions):
+        return {cls.RESUME_DECISIONS: decisions} if decisions else {}
 
     @classmethod
     def executor(cls, engine):

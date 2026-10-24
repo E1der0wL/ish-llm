@@ -330,6 +330,10 @@ class ProjectConfig(dict):
         """UI용 정책 필드·허용 형식·설명. 실행 객체나 계산기 함수는 포함하지 않는다."""
         return describe_policies()
 
+    def bind_policy_snapshot(self, policies):
+        """Bind admitted evidence to a detached execution configuration, without merging."""
+        self[self.POLICIES] = deepcopy(policies)
+
     def configure_policies(self, changes: dict) -> dict:
         """정책 일부를 병합·검증한 뒤 반영하고 독립 사본을 반환한다.
 

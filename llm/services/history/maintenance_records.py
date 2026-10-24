@@ -2,7 +2,7 @@
 
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.models import ResourceKind, Run
-from llm.core.plans import RecoveryPlan
+from llm.core.plans import RecoveryPlan, PlanBlockerCode
 
 
 class HistoryMaintenanceStorage:
@@ -31,7 +31,7 @@ class HistoryMaintenanceStorage:
 
 
 class HistoryIssueCode:
-    RUNTIME_ATTACHED = "runtime_attached"
+    RUNTIME_ATTACHED = PlanBlockerCode.RUNTIME_ATTACHED.value
     OFFLINE_FILE_SESSION_REQUIRED = "offline_file_session_required"
     PENDING_RETENTION = "pending_retention"
     INVALID_INPUT_REFERENCE = "invalid_input_reference"

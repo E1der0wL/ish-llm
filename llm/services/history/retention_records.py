@@ -6,7 +6,7 @@ from llm.core.contracts import ResourceRef
 from llm.core.model_protocol import ModelMessage, ModelRequest
 from llm.core.models import Run
 from llm.core.paths import SessionPaths
-from llm.core.plans import RetentionPlan, RetentionUnit
+from llm.core.plans import RetentionPlan, RetentionUnit, PlanBlockerCode
 from llm.services.infrastructure.storage import record, tree_snapshot
 from .maintenance_records import HistoryEvidence, HistoryIssueCode
 
@@ -14,7 +14,7 @@ from .maintenance_records import HistoryEvidence, HistoryIssueCode
 class RetentionProtection:
     RUNTIME_ATTACHED = HistoryIssueCode.RUNTIME_ATTACHED
     NON_FILE_CONVERSATION = "non_file_conversation"
-    PENDING_MESSAGE = "pending_message"
+    PENDING_MESSAGE = PlanBlockerCode.PENDING_MESSAGE.value
     PINNED_OR_COMPONENT_REFERENCE = "pinned_or_component_reference"
     PENDING_MAINTENANCE = "pending_maintenance"
     EXTERNAL_OPERATION_HISTORY = "external_operation_history"

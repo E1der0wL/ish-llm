@@ -112,6 +112,11 @@ class CheckpointSnapshot(CheckpointContent):
             raise ValueError(cls.INVALID_FIELDS)
         return cls(**deepcopy(value))
 
+    @classmethod
+    def for_resume_attempt(cls, value, run):
+        """Retarget an already verified inherited snapshot; retain opaque Engine data."""
+        return {**value, cls.run_id.__name__: run.id, cls.engine.__name__: run.engine}
+
     def require_owner(self, run):
         if self.run_id != run.id or self.engine != run.engine:
             raise ValueError(self.INVALID_OWNER)
@@ -387,7 +392,12 @@ class CheckpointStep:
 
     @property
     def status(self):
-        return self._value.get(self.Field.STATUS)
+        return self.status_from_record(self._value)
+
+    @classmethod
+    def status_from_record(cls, value):
+        """Observe one lifecycle value without copying opaque Engine payload."""
+        return value.get(cls.Field.STATUS)
 
     @property
     def required_status(self):

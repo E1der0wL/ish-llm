@@ -2,6 +2,8 @@
 
 Navigable service handles; these objects are never persisted domain models."""
 
+from llm.core.interactions import InteractionOperation
+
 from llm.core.views import SessionRuntimeView, RunView, ActiveRunView
 from llm.core.plans import ResumePlan, RecoveryPlan, RecoveryResult, RetentionPlan, TurnDeletionPlan
 
@@ -647,10 +649,10 @@ class RunHandle(AsyncFacade):
             return self.app.run_repository.interaction_views(session, run, self.app.project_manager.sessions.conversations(session))
 
     def cancel_interaction(self, request: InteractionRequest):
-        return self._change_interaction(request, "cancel")
+        return self._change_interaction(request, InteractionOperation.CANCEL.value)
 
     def renew_interaction(self, request: InteractionRequest, *, expires_at=None):
-        return self._change_interaction(request, "renew", expires_at=expires_at)
+        return self._change_interaction(request, InteractionOperation.RENEW.value, expires_at=expires_at)
 
     ainteraction_views = async_method(interaction_views)
     acancel_interaction = async_method(cancel_interaction)

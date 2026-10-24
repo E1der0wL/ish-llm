@@ -73,6 +73,11 @@ class RunPolicySnapshot:
     def read(cls, metadata):
         return metadata[cls.KEY]
 
+    @classmethod
+    def store(cls, metadata, policies):
+        """Write a newly admitted snapshot; never repair a stored Run on read."""
+        metadata[cls.KEY] = deepcopy(policies)
+
 
 class ContextMode(StrEnum):
     """Project context policy choices shared by Schema and runtime selection."""

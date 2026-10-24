@@ -10,6 +10,11 @@ from .interactions import InteractionView
 class PlanBlockerCode(StrEnum):
     """Shared lifecycle-plan reasons; a code is evidence, never authorization."""
 
+    RUNTIME_ATTACHED = "runtime_attached"
+    PENDING_MESSAGE = "pending_message"
+    RESUME_REFERENCE = "resume_reference"
+    RESUME_RESERVED = "resume_reserved"
+    NO_CHECKPOINTS = "no_checkpoints"
     ACTIVE_RUN = "active_run"
     ACTIVE_WORKER = "active_worker"
     NOT_RESUMABLE = "not_resumable"
@@ -72,6 +77,8 @@ class ResumeState(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class ResumePlan(JsonValue):
+    CHECKPOINT_CODE_PREFIX: ClassVar[str] = "checkpoint_"
+
     source: ResourceRef
     engine: str
     can_resume: bool
@@ -85,6 +92,10 @@ class ResumePlan(JsonValue):
     restart_blockers: list[Diagnostic] = field(default_factory=list)
     active: bool = False
     abandoned: bool = False
+
+    @classmethod
+    def checkpoint_code(cls, state):
+        return cls.CHECKPOINT_CODE_PREFIX + state
 
 
 @dataclass(frozen=True, slots=True)

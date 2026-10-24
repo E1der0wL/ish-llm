@@ -13,6 +13,11 @@ from llm.core.json_data import JsonObject
 from .schema import checked_schema
 
 
+class InteractionOperation(StrEnum):
+    CANCEL = "cancel"
+    RENEW = "renew"
+
+
 class InteractionJSON:
     """Validation envelopes and exact JSON comparison; not persisted request fields."""
 

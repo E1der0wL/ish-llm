@@ -7170,3 +7170,68 @@ Event/Step 마감 검사: 정적 S1–S7 exit 0(82개 검토, 미검토·오래�
 감사 자체 시험 16개/3.472초 통과, 문서 검사 exit 0. 전체 592개 파일 중 미검토
 197개(llm 20/Hub 177), 미분류 10022·미완료 계약 4개다. 추가된 미완료 계약은
 Hub 구독 선택·stats 소비 연결이며 llm 이후 작업 순서로 유지한다. 전체 완료는 아니다.
+
+
+## llm Run 저장·실행 조율 전수 — Level 1·2
+
+기준 fe2fc2f. runs.py 전체와 새 run_values를 검토하고 고정 저장/계획/관찰 구조를 Owner
+Projection으로 연결했다. 필수 identity 조회, 잠금 내 live Reader 범위, 정책/Agent snapshot
+Writer, Engine/Capability 공개 확장점, 명시적 Interaction 명령과 공통 차단 코드를 연결했다.
+상태·재개·승인·예산·효과 판정과 실제 파일 쓰기/ACK/관찰 순서는 유지한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/runs-draft/ast-proof.py`
+exit 0: 공유 Owner의 기존 함수를 포함하여 559개 전체 AST가 선언·명시적 단순
+Writer 전개 후 동일하다. 표현 변경 14개는 이 주장에 포함하지 않고 차이를 개별 검토했다.
+같은 경로 values-proof.py exit 0: actual_storage_flows 9, storage_boundary_faults 22, stored_record_refusals 112, live_read_scopes 8, pure_projections 16, detached_policy_writers 8, detached_agent_writers 16, run_outcome_contract 63, project_policy_snapshots 8, checkpoint_status_projections 8, diagnostic_preservation 8, checkpoint_revision_projections 72, resume_lineage_and_refusals 13.
+같은 경로·고정 시각·실제 파일에서 결과/오류/bytes/Reader 및 쓰기 순서를 비교했다.
+사본 보존, 필수 기록 누락, CAS 직렬화, 잘못된 계보/반복/상속 원본과 중첩 Reader 복원을
+포함한다. 기존 실제 효과·중단·재개 Assertion과 제품 시험은 변경하지 않았다.
+
+AST 보조 도구의 최초 실행에는 미등록 Component.data_type 확장과 동명 모듈 함수의
+lookup 충돌이 있었다. 도구의 함수 조회를 파일별로 수정하고, 14개 표현 변경을 명시한
+허용 목록과 대조한 최종 결과만 통과 증거로 사용했다. 최초 로그는 보존했다.
+
+- `whole-run-owners-l1-01`: discovered/started/pass 189/189/189, exit 0, 43.042357초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-run-owners-l1-01/llm.json --modules tests.llm.test_run_api tests.llm.test_runtime tests.llm.test_runtime_reliability tests.llm.test_engine_requests tests.llm.test_request_admission tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_run_transitions tests.llm.test_service_extensions tests.llm.test_capability_owners tests.llm.test_execution_contexts tests.llm.test_current_contracts tests.llm.test_lifecycle_logging tests.llm.test_repositories`. source `9b4463e2da47e3a59b25c795eee571f6f9a960b044d3fe32071336700998695f`, input `e94620174c3cf93aa069566589cd9bec49ef4b9f75b844f8f389ae0f78bb1977`.
+
+- `whole-run-owners-l2-01`: discovered/started/pass 172/172/172, exit 0, 101.731438초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-run-owners-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_run_reference_integrity tests.llm.test_interaction_storage tests.llm.test_memory_history_integrity tests.llm.test_history_retention_integrity tests.llm.test_execution_boundaries tests.llm.test_multi_agent_crash tests.llm.test_loop_steering tests.llm.test_graph_checkpoints`. source `9b4463e2da47e3a59b25c795eee571f6f9a960b044d3fe32071336700998695f`, input `e94620174c3cf93aa069566589cd9bec49ef4b9f75b844f8f389ae0f78bb1977`.
+
+- `whole-run-owners-hub-01`: discovered/started/pass 29/29/29, exit 0, 36.401025초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-run-owners-hub-01/hub.json --modules tests.hub.test_execution tests.hub.test_multi_agent tests.hub.test_interaction_updates tests.hub.test_output_interaction tests.hub.test_stream_output tests.hub.test_engine_output tests.hub.test_backend_diagnostics`. source `9b4463e2da47e3a59b25c795eee571f6f9a960b044d3fe32071336700998695f`, input `e94620174c3cf93aa069566589cd9bec49ef4b9f75b844f8f389ae0f78bb1977`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 간 중복 0, source/input은 실행 전후 및 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성과 격리 환경이다.
+R3 mutation exit 0으로 실제 효과 횟수를 통한 Agent 한도 누락 검출을 유지했다.
+
+직접 Run API/상태/원래 요청/병렬 Agent/주입 서비스/문맥/저장과 승인·Checkpoint·예산·
+원장·Run 참조·트랜잭션·RAG·이력 보관·메모리 이력·실제 process-death·Loop/Graph 재개,
+Hub 실행/다중 Agent/승인/출력/진단 소비자를 선택했다. 유효 도메인과 명시적 2원소 정책
+resolver 계약에서 같은 동작을 확인했으며, 임의의 손상된 사용자 Python 객체까지 동등하다고
+주장하지 않는다. 기존 저장 Reader의 손상 거부는 실제 파일 시험으로 별도 확인했다.
+
+전체 회귀는 나머지 관련 llm 서비스·공개 계약과 묶은 Gate45로 유예한다. 이는 소단계의
+로컬 Level 1·2 완료이며 전체 llm·Hub·원격 CI 완료가 아니다. Gate44의 다른 소스 전체
+통과를 이 소스에 승계하지 않는다. 실제 안전성 결함이 발견되면 즉시 범위를 승격한다.
+
+
+Run 소단계 마감 감사에서 ResumePlan의 새 메서드가 필드 선언보다 앞에 있어 기존 기본값
+네 곳이 구현부로 분류되는 문제가 검출됐다. 첫 감사 exit 1과 선택 실행 -01의 실제 통과
+기록은 보존했다. 메서드를 모든 필드 선언 뒤로 이동하여 선언 위치 계약을 맞췄다.
+필드 순서·값·메서드 본문은 그대로이며 원래 시험/Assertion을 변경하지 않았다.
+수정한 현재 소스에서 AST/실제 저장 비교와 Level 1·2·Hub·R3를 다시 실행했다.
+아래 -02가 이 소단계의 최종 실행 근거다. -01과 합산해 전체 회귀라고 표시하지 않는다.
+
+- `whole-run-owners-l1-02`: discovered/started/pass 189/189/189, exit 0, 42.777942초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-run-owners-l1-02/llm.json --modules tests.llm.test_run_api tests.llm.test_runtime tests.llm.test_runtime_reliability tests.llm.test_engine_requests tests.llm.test_request_admission tests.llm.test_multi_agent tests.llm.test_multi_agent_parallel tests.llm.test_run_transitions tests.llm.test_service_extensions tests.llm.test_capability_owners tests.llm.test_execution_contexts tests.llm.test_current_contracts tests.llm.test_lifecycle_logging tests.llm.test_repositories`. source `2d16ed104bc6932242233f5298ea0eb211ce5cc4f28f54bd8d784e8a9267c9b2`, input `78e71aa4f44718b42e6493f8a79a7159d4c2fede21fc74af687320b7139ffba5`.
+
+- `whole-run-owners-l2-02`: discovered/started/pass 172/172/172, exit 0, 103.531814초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-run-owners-l2-02/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_run_reference_integrity tests.llm.test_interaction_storage tests.llm.test_memory_history_integrity tests.llm.test_history_retention_integrity tests.llm.test_execution_boundaries tests.llm.test_multi_agent_crash tests.llm.test_loop_steering tests.llm.test_graph_checkpoints`. source `2d16ed104bc6932242233f5298ea0eb211ce5cc4f28f54bd8d784e8a9267c9b2`, input `78e71aa4f44718b42e6493f8a79a7159d4c2fede21fc74af687320b7139ffba5`.
+
+- `whole-run-owners-hub-02`: discovered/started/pass 29/29/29, exit 0, 36.431285초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-run-owners-hub-02/hub.json --modules tests.hub.test_execution tests.hub.test_multi_agent tests.hub.test_interaction_updates tests.hub.test_output_interaction tests.hub.test_stream_output tests.hub.test_engine_output tests.hub.test_backend_diagnostics`. source `2d16ed104bc6932242233f5298ea0eb211ce5cc4f28f54bd8d784e8a9267c9b2`, input `78e71aa4f44718b42e6493f8a79a7159d4c2fede21fc74af687320b7139ffba5`.
+
+최종 실행 모두 exit 0, 발견/실행/통과 ID 일치, LLM 선택 집합 중복 0,
+failure/error/skip/xfail/xpass/누락/추가/중복 0. source/input은 최종 세 실행 전후와 실행 간
+동일하다. R3 mutation도 exit 0이다. 전체 Level 3는 명시한 Gate45에서 수행한다.
+
+Run 최종 마감 검사: 정적 S1–S7 exit 0(82개 검토·미검토/오래된 근거 0),
+감사 자체 시험 16개/3.437초 통과, 문서 검사 exit 0. 전체 593개 파일 중
+미검토 196개(llm 19/Hub 177), 미분류 9551·미완료 계약 4개를 유지한다.
+실제 검토가 끝난 Run 파일만 완료 처리했으며 API의 두 명령 연결을 API 전수 완료로
+간주하지 않는다. 전체 llm 우선 작업과 최종 통합·정확한 SHA 원격 검증은 계속된다.

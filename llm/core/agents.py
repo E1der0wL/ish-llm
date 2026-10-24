@@ -481,6 +481,22 @@ class AgentBinding:
         return value
 
     @classmethod
+    def store_request_context(cls, metadata, value):
+        metadata[cls.CONTEXT_FIELD] = deepcopy(value)
+
+    @classmethod
+    def has_execution(cls, metadata):
+        return cls.EXECUTION_FIELD in metadata
+
+    @classmethod
+    def execution(cls, metadata):
+        return metadata[cls.EXECUTION_FIELD]
+
+    @classmethod
+    def store_execution(cls, metadata, value):
+        metadata[cls.EXECUTION_FIELD] = deepcopy(value)
+
+    @classmethod
     def request_context(cls, metadata):
         return metadata.get(cls.CONTEXT_FIELD, UNSET)
 
