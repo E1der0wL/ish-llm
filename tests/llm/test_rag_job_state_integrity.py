@@ -11,6 +11,7 @@ from llm.llm import LargeLanguageModel
 from llm.components.rag import RAGComponent, EmbeddingModel
 from llm.components.rag.jobs import RAGJobs
 from llm.components.rag.job_storage import JobStorage
+from llm.components.rag.job_records import JobRecord
 from llm.services.infrastructure.storage import revision_token
 from llm.components.rag import job_storage
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -137,7 +138,7 @@ class JobStateStorageTests(unittest.IsolatedAsyncioTestCase):
     async def test_running_record_requires_every_initial_and_attempt_field(self):
         await self.rag._async_call(self.jobs._claim, self.job['id'], False)
         original = await self.rag.ajob(self.job['id'])
-        for key in JobStorage.REQUIRED | JobStorage.ATTEMPT_FIELDS | {'document_id'}:
+        for key in JobRecord.REQUIRED | JobRecord.ATTEMPT_FIELDS | {'document_id'}:
             with self.subTest(key=key):
                 value = deepcopy(original)
                 del value[key]
@@ -166,7 +167,7 @@ class JobStateStorageTests(unittest.IsolatedAsyncioTestCase):
         await self.fail_publication()
         original = await self.rag.ajob(self.job['id'])
         cases = []
-        for key in JobStorage.ERROR_FIELDS | {'ended_at'}:
+        for key in JobRecord.ERROR_FIELDS | {'ended_at'}:
             value = deepcopy(original)
             del value[key]
             cases.append(value)
@@ -195,10 +196,10 @@ class JobStateStorageTests(unittest.IsolatedAsyncioTestCase):
         failure = await self.rag.ajob(self.job['id'])
         result = await self.rag.arun_job(self.job['id'], retry=True)
         self.assertEqual(result['status'], 'completed')
-        self.assertEqual(result['failures'], [{key: failure[key] for key in JobStorage.FAILURE_FIELDS}])
+        self.assertEqual(result['failures'], [{key: failure[key] for key in JobRecord.FAILURE_FIELDS}])
         self.assertEqual(self.effects.read_text(), 'called\n')
         original = deepcopy(result)
-        for key in JobStorage.FAILURE_FIELDS:
+        for key in JobRecord.FAILURE_FIELDS:
             with self.subTest(key=key):
                 value = deepcopy(original)
                 del value['failures'][0][key]
@@ -215,7 +216,7 @@ class JobStateStorageTests(unittest.IsolatedAsyncioTestCase):
         cancelled = await self.rag.acancel_job(self.job['id'])
         self.assertEqual(cancelled['status'], 'cancelled')
         self.assertTrue(cancelled['cancel_requested'])
-        self.assertFalse(JobStorage.ATTEMPT_FIELDS & cancelled.keys())
+        self.assertFalse(JobRecord.ATTEMPT_FIELDS & cancelled.keys())
         with self.assertRaises(ValueError):
             await self.rag.arun_job(self.job['id'])
         self.assertFalse(self.effects.exists())

@@ -12,6 +12,7 @@ class RAGContent:
 
 
 class RAGDocument:
+    INITIAL_REVISION = 1
     class Field:
         ID = "id"
         TITLE = "title"
@@ -19,6 +20,7 @@ class RAGDocument:
         GENERATION = "generation"
         REVISION = "revision"
         DESCRIPTION = "description"
+        PREPARATION_CONFIGURATION = "preparation_configuration"
 
     def __init__(self, value):
         self._value = value
@@ -183,3 +185,12 @@ class SplitDocument:
     @property
     def content(self):
         return self._value[self.Field.CONTENT]
+
+
+class RAGDocumentInput:
+    class Field:
+        IDENTIFIER = "identifier"
+        TITLE = RAGDocument.Field.TITLE
+        CONTENT = SplitDocument.Field.CONTENT
+        METADATA = RAGDocument.Field.METADATA
+        DESCRIPTION = RAGDocument.Field.DESCRIPTION

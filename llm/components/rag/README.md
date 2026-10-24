@@ -25,6 +25,11 @@ Agent 선택은 같은 선언을 사용하며 모델/저장 경계에는 기존 
 그래프 파일명은 `graph_indexing.GraphStore`를 참조합니다. 검색 순서·캐시·원본과 세대 대조,
 Tool의 읽기 권한과 공개 응답 형식은 유지합니다.
 
+Job의 의미 검증과 상태 변경 허용 조건은 `job_records.JobRecord`가 소유합니다.
+`JobStorage`는 이를 호출하고 manifest·checkpoint·파일과 worker lease를 관리합니다.
+서비스는 저장소의 `checkpoint_declarations()`로 선언을 읽으며 내부 manifest 구조를 해석하지
+않습니다. 필수 기록·원본·lease·revision이 없거나 손상된 경우 기존대로 거부합니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -43,6 +48,7 @@ Tool의 읽기 권한과 공개 응답 형식은 유지합니다.
 | [cache.py](cache.py) | 명시적인 용량 안에서 불변 세대의 코퍼스 읽기 사본을 보관합니다. |
 | [jobs.py](jobs.py) | 등록 Job, 청크·추출 checkpoint와 명시적 재개를 관리합니다. |
 | [status.py](status.py) | 저장과 공개 소비자가 공유하는 RAG Job 상태값의 단일 선언입니다. |
+| [job_records.py](job_records.py) | Job 상태·필수 시도/실패 이력·취소/포기 불변 조건과 정규 생성/완료 진행 값을 소유합니다. |
 | [job_storage.py](job_storage.py) | 필수 Job 목록·리비전·worker lease identity와 원자적 저장을 소유합니다. |
 | [files.py](files.py) | 세대 구성 시 파일 복사/reflink 등 Linux 파일 처리를 돕습니다. |
 | [indexing.py](indexing.py) | 문서 벡터를 Chroma 색인으로 구성합니다. |

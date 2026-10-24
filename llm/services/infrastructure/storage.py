@@ -20,6 +20,10 @@ from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.infrastructure.transactions import current_transaction, watch
 
 
+class DeletionJournal:
+    DIRECTORY = ".deletions"
+
+
 # Metadata serialization and durable filesystem primitives.
 
 
@@ -226,7 +230,7 @@ def _remove_tree(owner: Path, target: Path, expected: Path) -> None:
         transaction.remove(resolved_target)
         return
     # Absolute target and containment have been verified above.
-    journal = resolved_owner / ".deletions"
+    journal = resolved_owner / DeletionJournal.DIRECTORY
     if journal.is_symlink():
         raise ValueError("Deletion journal cannot follow links")
     intent = journal / (hashlib.sha256(resolved_target.name.encode()).hexdigest() + ".json")
@@ -244,11 +248,11 @@ def _remove_tree(owner: Path, target: Path, expected: Path) -> None:
 
 def recover_deletions(owner: Path, *, protected=(), allowed=None) -> list[str]:
     """이미 승인·시작된 삭제만 완료한다. 새 경로나 외부 경로를 삭제 대상으로 받지 않는다."""
-    for path in (owner, *owner.parents, owner / ".deletions"):
+    for path in (owner, *owner.parents, owner / DeletionJournal.DIRECTORY):
         if path.is_symlink():
             raise ValueError("Deletion recovery cannot follow links")
     recovered = []
-    for intent in list((owner / ".deletions").glob("*.json")):
+    for intent in list((owner / DeletionJournal.DIRECTORY).glob("*.json")):
         if intent.is_symlink():
             raise ValueError("Deletion recovery cannot follow links")
         entry = read_json(intent)
@@ -265,7 +269,7 @@ def recover_deletions(owner: Path, *, protected=(), allowed=None) -> list[str]:
         if intent.exists():
             unlink_file(intent)
         recovered.append(name)
-    journal = owner / ".deletions"
+    journal = owner / DeletionJournal.DIRECTORY
     if journal.exists() and not any(journal.iterdir()):
         transaction = current_transaction()
         if transaction is not None and transaction.owns(journal):

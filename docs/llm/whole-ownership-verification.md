@@ -4916,3 +4916,76 @@ Tool 효과·Checkpoint·수명 안전성 및 직접 Hub 소비자를 검증했�
 전체 inventory 533개, 미검토 262개(llm 85/hub 177), 미분류 18,006개,
 미완료 계약 4개·stale/분류 오류 0. 상세 증거는
 `/workspace/llm-clean-resume/whole-ownership/rag-search-draft/`에 보존한다.
+
+
+## llm RAG Job 기록·상태 검증 Owner — Level 1·2
+
+기준 5acb88b. JobRecord가 정규 필드·필수 시도/실패 이력·상태/취소/포기 검증과 불변 갱신
+조건을 소유한다. JobStorage에 있던 유일한 의미 Reader를 옮겨 모든 저장/조회가 직접 사용하며
+구형 Reader나 위임 호환 메서드를 남기지 않는다. JobInventory/Entry·JobBatchReceipt는 저장
+envelope와 Writer를, JobProgress는 원래 완료 진행 값을 소유한다. RAGJobs는 생성/완료와
+필드 접근에 해당 Owner를 사용하고 checkpoint_declarations()로 저장 선언을 읽는다.
+Job 실행 조율·전체 Data/Component 책임 정리는 후속 범위로 남는다.
+
+원본 입력과 저장 문서의 키는 별도 RAGDocumentInput/RAGDocument를 사용한다.
+공통 파일 삭제의 journal 디렉터리 이름은 저장 인프라의 DeletionJournal로 옮겼다.
+이 인프라의 전체 파일은 아직 미완료이며 디렉터리 참조 외 실행·삭제·트랜잭션 코드는 동일하다.
+새 상태·자동 재개/재시도·복구 기본값이나 저장 형식을 추가하지 않았다.
+기존 상태 검증 테스트는 유일한 선언 Owner import/참조만 바꾸고 모든 Assertion을 보존했다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-job-records-draft/proof.py`
+(한 셸 명령), exit 0. 실제 Owner/Projection을 확장한 기존 전체 함수 149개가 동등하다
+(Storage 25·Jobs 29·Chunk records 28·Component 41·공통 storage 26).
+별도 독립 wire 6·손상/누락/거부 결과 2,711·전체 save 상태 전이/불변 조건 512·실제 파일
+생성/누락/손상/체크섬/lease와 원본 바이트 7개 비교를 통과했다.
+초기 생성 코드의 클래스 본문 자기 참조는 import 검사에서 발견해 테스트 전 수정했다.
+AST 보조 도구는 이동한 클래스 선언/전이 dict의 기존 값 해석을 보완했으며 초기 로그를 보존한다.
+
+- `whole-rag-job-records-l1-01`: discovered/started/pass 87/87/87, exit 0, 113.707277초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-job-records-l1-01/llm.json --modules tests.llm.test_rag_job_state_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_prepared_integrity tests.llm.test_rag_batch_identity tests.llm.test_rag_batch_source tests.llm.test_rag_input_integrity tests.llm.test_rag_job_retention tests.llm.test_rag_resilience`. source `0ce88573f67e9821afedf2e326a690760f38a97f6a644aef41b4f90421c3707c`, input `7e561cf4659dfe9c02cea100d4a00ce790916ce8c0dc2615c5387f68d2ab09c1`.
+
+- `whole-rag-job-records-l2-01`: discovered/started/pass 174/174/174, exit 0, 103.738497초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-job-records-l2-01/llm.json --modules tests.llm.test_markdown_rag tests.llm.test_rag_components tests.llm.test_rag_storage tests.llm.test_rag_corpus_integrity tests.llm.test_rag_retention_policy tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_graph_checkpoint tests.llm.test_transactions tests.llm.test_component_storage_integrity tests.llm.test_component_record_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `0ce88573f67e9821afedf2e326a690760f38a97f6a644aef41b4f90421c3707c`, input `7e561cf4659dfe9c02cea100d4a00ce790916ce8c0dc2615c5387f68d2ab09c1`.
+
+- `whole-rag-job-records-hub-01`: discovered/started/pass 32/32/32, exit 0, 146.043905초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-job-records-hub-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools`. source `0ce88573f67e9821afedf2e326a690760f38a97f6a644aef41b4f90421c3707c`, input `7e561cf4659dfe9c02cea100d4a00ce790916ce8c0dc2615c5387f68d2ab09c1`.
+
+각 성공 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+L1 결과는 동일 제품·시험·Fixture·의존성·Python 3.12.14/Clang·Host d833790·namespace/X11
+환경에서만 재사용했고 추가 L2 ID와 중복되지 않는다. 발견 목록 LLM 2,492·Hub 588 유지.
+실제 Job 원본/배치/준비 결과·상태/포기/취소/재개·retention·lease와 공통 트랜잭션/삭제/
+Component 저장, 승인·예산·Tool 효과·Checkpoint·수명 안전성 및 직접 Hub 소비자를 검증했다.
+
+상태 검증 이동과 공통 저장 경로 선언이 포함되어 영향 승격을 검토했다. 전체 함수·파일 효과
+동등성과 원래 장애 주입/안전성 Assertion으로 제한된 영향을 확인했으므로 이번 소단계 L3는
+유예한다. 의미 변경이나 안전성 회귀가 발생하면 즉시 재평가하며 축소하지 않는다.
+검색·Job 및 후속 관련 RAG 변경을 충분히 묶은 다음 통합 게이트에서 전체 L3 후 Push한다.
+
+
+최종 감사 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`:
+16/16 pass, 3.181초, exit 0. 정적 S1–S7 exit 0·finding 112개·미검토/stale 0;
+동일 Owner 이동과 소비자 검증에 따라 소스/README 의존 증거 25개를 갱신했다.
+문서 검사 exit 0, R3 Mutation exit 0·원래 두 실제 효과 Assertion으로 한도 누락 검출.
+전체 inventory 534개, 미검토 261개(llm 84/hub 177), 미분류 17,620개,
+미완료 계약 4개·stale/분류 오류 0. 상세 증거:
+`/workspace/llm-clean-resume/whole-ownership/rag-job-records-draft/`.
+
+## RAG 통합 게이트 34 — 0660f40
+
+전체 소스 `0660f40179c84867db0be0c60a04eaa0791557b7`에 chunk·ModelClient·ingestion·
+graph·extractor 소단계 5개를 모아 별도 worktree에서 전체 L3를 실행했다.
+현재 후속 검색/Job 변경을 이 검증에 포함하거나 부분 실행과 합산하지 않는다.
+
+- `whole-owners-group34-l3`: discovered/started/pass 2492/2492/2492, exit 0, 1457.888217초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group34-l3/llm.json`. source `4ad17b28ea128ac828d854571aeadbb8df407e33545d6f79150a04384e6841ce`, input `fcba5205675a5a8bcb4e8d97fb95210fa7fcfcba823508111a753ed10abf7783`.
+
+- `whole-owners-group34-l3`: discovered/started/pass 588/588/588, exit 0, 1125.289009초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group34-l3/hub.json`. source `4ad17b28ea128ac828d854571aeadbb8df407e33545d6f79150a04384e6841ce`, input `fcba5205675a5a8bcb4e8d97fb95210fa7fcfcba823508111a753ed10abf7783`.
+
+모든 failure/error/skip/xfail/xpass/누락/추가/중복 0, 전체 discovery/started/pass 일치,
+source/input 전후 동일·supervisor exit 0. 정적 S1–S7·문서·R3 Mutation·실제 SDK 진단·
+LLM namespace 환경·Hub X11 환경 6개 보조 검사 모두 같은 SHA에서 exit 0.
+증거는 `/workspace/llm-clean-resume/whole-ownership/group34-auxiliary/results.json`와
+`/workspace/llm-clean-resume/b/whole-owners-group34-l3/`에 보존한다.
+
+main 94229cb·refactor/llm-backend bb09462 유지와 대상 fast-forward를 확인하고
+a03a2bb → 0660f40만 refactor/llm-clean에 Push했다. Draft PR #1은 수정하지 않았다.
+[정확한 SHA의 CI](https://github.com/E1der0wL/ish-llm/actions/runs/40053702193)는
+2026-10-24T02:21:11Z 확인에서 두 필수 전체 회귀 Job이 진행 중이었다. 아직 원격 성공을
+선언하지 않으며 완료 후 실제 Job/Step/전체 결과를 다시 확인한다.

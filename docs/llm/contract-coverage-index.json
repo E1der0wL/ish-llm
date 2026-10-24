@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 533,
-    "unreviewed_files": 262,
+    "files": 534,
+    "unreviewed_files": 261,
     "stale_files": 0,
-    "unclassified": 18006,
+    "unclassified": 17620,
     "violations": 0,
     "incomplete_contracts": 4,
-    "unreviewed_dynamic_paths": 264,
+    "unreviewed_dynamic_paths": 263,
     "unreadable_files": 0,
-    "candidates": 25488,
+    "candidates": 25230,
     "issues": 0
   },
   "files": [
@@ -1744,7 +1744,7 @@
     {
       "path": "llm/components/rag/README.md",
       "status": "unreviewed",
-      "sha256": "108a99d444745a4feedd0daa9b61dde44e10deeba7f29898b614c4a59f65ee77",
+      "sha256": "f305c17764dac8f3c6d3191ff41f505a9d0d7b9d1ebed0b59f60ce0097a47f4b",
       "candidates": 0
     },
     {
@@ -1768,14 +1768,14 @@
     {
       "path": "llm/components/rag/chunk_records.py",
       "status": "reviewed",
-      "sha256": "1e4d869554176c0274c9e9e24c903c97428e16349dfdc205684301417361a5b6",
-      "candidates": 27
+      "sha256": "2babfb18d3d958490197dda8887d647f9a33af5ab67e29a8756425601375a294",
+      "candidates": 30
     },
     {
       "path": "llm/components/rag/component.py",
       "status": "unreviewed",
-      "sha256": "eb0aa8733d8b7addec546e6d93b178904f85a35e4cd99263ede6968043643a7f",
-      "candidates": 692
+      "sha256": "10ee537b728fa27dc5bb5e8b040737313c66755a34964ed80af91cdf29f5af41",
+      "candidates": 689
     },
     {
       "path": "llm/components/rag/data.py",
@@ -1844,16 +1844,22 @@
       "candidates": 56
     },
     {
+      "path": "llm/components/rag/job_records.py",
+      "status": "reviewed",
+      "sha256": "53c1e9ca548c8166f18501301032837f06e6228a299023eb2f58493afe113c57",
+      "candidates": 53
+    },
+    {
       "path": "llm/components/rag/job_storage.py",
-      "status": "unreviewed",
-      "sha256": "49232e64f71fed8b610aac4e3b5998c843bd989380697f7d1eece4d5edc40477",
-      "candidates": 293
+      "status": "reviewed",
+      "sha256": "13879cd3a51167f1c300b3686920d89cbed50b82a718c7075982ff5af2f87f56",
+      "candidates": 72
     },
     {
       "path": "llm/components/rag/jobs.py",
       "status": "unreviewed",
-      "sha256": "91e65fb56309fa3c663dd0786c0ac5999a0f93e63489ae64f54e3bb15d4f8ffc",
-      "candidates": 280
+      "sha256": "02b46b297753951354f8bf032df3e6fce0cbdaef2064e3fdaa02e75f04b373c2",
+      "candidates": 193
     },
     {
       "path": "llm/components/rag/prompts.py",
@@ -3010,8 +3016,8 @@
     {
       "path": "llm/services/infrastructure/storage.py",
       "status": "unreviewed",
-      "sha256": "cd08eabcdb10c83d6364e71a5b130806ffca6f17b479e25227283bc986e52b81",
-      "candidates": 97
+      "sha256": "693815f992da5fc92e5f5841d8ada57cadf632620072ebdc7db3c5482825aed6",
+      "candidates": 94
     },
     {
       "path": "llm/services/infrastructure/transactions.py",

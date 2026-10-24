@@ -48,7 +48,7 @@ from llm.providers.runtime import diagnostic, diagnostic_scope
 from .ingestion import VectorCache, prepare_vectors
 from .ingestion_records import (BatchCheckpointName, EmbeddingCheckpoint, EmbeddingEvidence,
                                 EmbeddingProfile, IngestionObservation)
-from .job_storage import JobStorage
+from .job_storage import JobStorage, JobBatchReceipt
 
 
 class RAGConflictError(RuntimeError):
@@ -172,12 +172,12 @@ class RAGComponent(DefinitionComponent):
         elif batch[1] is not None:
             raise ValueError("Single-document Job cannot have a batch document checkpoint")
         source = payload["documents"][int(batch[1])] if batch[1] is not None else payload
-        value = receipt["value"]
+        value = receipt[JobBatchReceipt.Field.VALUE]
         if batch[2] == BatchCheckpointName.EMBEDDING:
-            EmbeddingCheckpoint.validate(value, receipt["signature"])
+            EmbeddingCheckpoint.validate(value, receipt[JobBatchReceipt.Field.SIGNATURE])
             actual = [EmbeddingCheckpoint(value).chunk]
         else:
-            validate_extraction_checkpoint(value, receipt["signature"])
+            validate_extraction_checkpoint(value, receipt[JobBatchReceipt.Field.SIGNATURE])
             actual = value["chunks"]
         chunks = SplitDocument(split_markdown(source["content"], source["identifier"], chunk_size=value["chunk_size"])).chunks
         offset = int(batch[3])
