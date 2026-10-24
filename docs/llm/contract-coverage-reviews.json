@@ -59143,15 +59143,57 @@
   },
   {
     "path": "llm/core/step_tool_metadata.py",
-    "sha256": "cfb075032728196fcb0c3bee4e4fff7a26a6019af8a05add989a135d7938ba08",
-    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending.",
+    "sha256": "6e81c420d835c5c296ee168b9fe71889f9f66bb7c67cf934fd759e205b7410df",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending. Added canonical derived six-field Step operation receipt and required projection after original Run/Step reads; no execution authority is stored in the projection.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "2cf89c97b2244cb99aa9d8f3c975490dc7f00e53233b9196711ea95128a3b190",
+        "id": "a20396068422c9bd14f0b858c62bc0bf44e72f6a8a75aec350307abaf7ec3e09",
         "classification": "declaration",
         "owner": "ToolStepMetadata",
         "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
+      },
+      {
+        "id": "4b24b68fe8c72633a860e9c881644bf059d8f78d9236c0c2ab1a2a0ced0a5ff7",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1ccdc5def3ca9ab375e44535baa6c367532ee40743c86f918c370a6c387004f1",
+        "classification": "non_contract",
+        "owner": "StepOperationReceipt",
+        "reason": "Python frozen/slots dataclass declaration metadata for the new derived projection, not a persisted execution policy."
+      },
+      {
+        "id": "7493ef61e84349282323aa5dc0e5cf84f64caec70178fa20d0597dc05f9ec9c9",
+        "classification": "non_contract",
+        "owner": "StepOperationReceipt",
+        "reason": "Python frozen/slots dataclass declaration metadata for the new derived projection, not a persisted execution policy."
+      },
+      {
+        "id": "fc246c271d1e9bb376c47f4f17cd29387f10d60f715c47a4d90a1ff36f003b4c",
+        "classification": "declaration",
+        "owner": "StepOperationReceipt",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8736b19bc7b22980254cc39f4471386b39405f88e1cb27164a3bd64c6feb79f0",
+        "classification": "declaration",
+        "owner": "StepOperationReceipt",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "461c25b2c885eaa23908dc1401cc559cc5e0099a3c7e60e19b9651a4b05b19c6",
+        "classification": "declaration",
+        "owner": "StepOperationReceipt",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d4b040a98ec8bdb67ff3aa02101674b5a4c31352dad11b0bf44c65b3fbf51355",
+        "classification": "declaration",
+        "owner": "StepOperationReceipt",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -59159,23 +59201,39 @@
         "owner": "ToolStepMetadata",
         "declaration": "llm/core/step_tool_metadata.py",
         "consumers": [
+          "llm/core/component_reference.py",
           "llm/engines/loop/engine.py",
-          "llm/core/component_reference.py"
+          "llm/services/api.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
-          "tests/llm/test_refinement.py",
-          "tests/llm/test_architecture_boundaries.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_resource_references.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_resource_integrity.py",
-          "tests/llm/test_skill_packages.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_architecture_boundaries.py",
           "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_loop.py",
-          "tests/hub/test_component_managers.py"
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -75050,6 +75108,636 @@
           "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/operations.py",
+    "sha256": "3243b5562f5c349399a502afc0aa11a127990449ba9ead7b1d1f4bd21ed3924c",
+    "reason": "Full source and dynamic boundary review covers required Reader fields, nested evidence chronology, current version/identity/digest, exact manifest inventory, load/atomic_json injection, uncertainty/no-effect/reuse transitions, detached observations, CAS, actual fault/rollback behavior and derived Step receipt ordering. No dual Reader, fallback, schema or execution-policy change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "27c1c02111bd0139d66d2f036b07f649f42087758a4a1dd523ef7f30443ccff4",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "6454d8520417b1ab105deba57603f98c1926741d16d2b13e769e05513fec8c48",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "7e08d54e9b39474a305e83f998b080f22be11908019362b8a9b5cbe57f411c3a",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "b5a9a050a2b62b193a8319d5d5b3c9d69c2f2241cbad09673be6c7d96e612729",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "5c1be491f96151f10c678a3b47cf80075689575b585883dcdb7d3c5437495e8b",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "3bee475472045bfde5e0be8377f02e1918d97540b7585c1877b923fea2eef22f",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "33535d08be57d6ba6a0c4c647308fdcfe371df2fd2f3764aafecb041d592c58b",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "d63152443e5eb6a92b540a1fee6dd4365cffdb0261a268cb25c07ba9dbbc8375",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "e4aad92c3585ea9058754f261be52b80ff62b364cf3a5d65e151ee005a2f295e",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "9e121ccfaaa232526e6561afc6d2ff2219594caa9cbc230b0c51af85e468915a",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "0a0278db864a895b4b1af8b823da427bf33f4048ac6fb2c1a1df557213544760",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "10a37fddc063a1f82a2af4141afc5c5c36cb2f338952306f12697c4e44b28388",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "a24f4a431725e791f524c4a525ba5ce015f41c361324790872381132c20beca3",
+        "classification": "declaration",
+        "owner": "OperationRepository",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      },
+      {
+        "id": "186e5812bead19926bff45df042a898f231f34c1c599f47a71bedd365e702d26",
+        "classification": "non_contract",
+        "owner": "OperationRepository.claim",
+        "reason": "Forward Python annotation avoids the existing runtime import cycle; not a serialized contract value."
+      },
+      {
+        "id": "ebe51b3c7b5af133e3ed7dd790d014acbed1239d4ca9fa225edee2b7c8e1fd86",
+        "classification": "non_contract",
+        "owner": "OperationRepository.complete",
+        "reason": "Forward Python annotation avoids the existing runtime import cycle; not a serialized contract value."
+      },
+      {
+        "id": "7573c9ad7d1e4f665c81e51daab190f893d9759a6ec694381542517c009fc5ef",
+        "classification": "non_contract",
+        "owner": "OperationRepository.complete",
+        "reason": "Python None return annotation; no runtime default or policy."
+      },
+      {
+        "id": "dc21d1486e0e239e2e0fadf370efecf3be348304d8766efd38c4c2c9bc543e89",
+        "classification": "non_contract",
+        "owner": "OperationRepository.reconcile",
+        "reason": "Python None return annotation; no runtime default or policy."
+      },
+      {
+        "id": "2421cfc3fc4760557e3e56534645f80018e8bdf5608c86a1ce0c9f8084dd6b97",
+        "classification": "declaration",
+        "owner": "ToolOperations",
+        "reason": "Repository error declarations stay at its head; state, fields, evidence, storage and response semantics reference their specific Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OperationRepository / ToolOperations",
+        "declaration": "llm/services/runtime/operations.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/operation_records.py",
+    "sha256": "60babf6609424d74734f1c9d0420bbd95c60d44210c781aba5a2bf3fb7defb9d",
+    "reason": "Full source and dynamic boundary review covers required Reader fields, nested evidence chronology, current version/identity/digest, exact manifest inventory, load/atomic_json injection, uncertainty/no-effect/reuse transitions, detached observations, CAS, actual fault/rollback behavior and derived Step receipt ordering. No dual Reader, fallback, schema or execution-policy change.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "effda415c226041e6f384fd67775c2ec428ebc85f07c989f40ca728b1d91eba5",
+        "classification": "declaration",
+        "owner": "OperationIdentity",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "5f860d5b9ae1053f9ded9138e4ab69d537d74cb2586a1f7bd2ad6ad4a5d2ef2b",
+        "classification": "declaration",
+        "owner": "OperationIdentity",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "774a2bd2377f43da977e72502809e890dba67e4def4a6d1e7871cfed0ffa4181",
+        "classification": "declaration",
+        "owner": "OperationIdentity",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "e8621eda6de82839370fa92b6cc843e0d772fd56ac19d2bae4bab77fb4b34a91",
+        "classification": "declaration",
+        "owner": "OperationStatus",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "e039c5066209a59eb63b8cd950e7654b3a6e9868eaa9d1c9e9ade41a1cce1df0",
+        "classification": "declaration",
+        "owner": "OperationStatus",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "cbbe54a352ea6bf198a65ecec22cb49c65581ecec15aa848a519aaef57f4cd3d",
+        "classification": "declaration",
+        "owner": "OperationStatus",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "57dd36c67bfc66fb51afccad5fe0238db53865309a2e77e3fe18ce09230a3387",
+        "classification": "declaration",
+        "owner": "OperationEvidence",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "73be5d43da373dec6841cda905739515da4100ba624bc8f92592006457a46bae",
+        "classification": "declaration",
+        "owner": "OperationEvidence",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "e06f6f9f2fba9674441d357a50c13b005cba84c7f7113ef67fb5f499d7caec78",
+        "classification": "declaration",
+        "owner": "OperationEvidence",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "bf099eab6a326f2b74468d6c9eef7719bc1c9b3d197f1635d49d2d1187eb8598",
+        "classification": "declaration",
+        "owner": "OperationEvidence",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "64de3ad85518fe3dfc8bf6dacf76f373bae4cd8caf9496a14a047dda28284bf6",
+        "classification": "declaration",
+        "owner": "OperationEvidence",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "97a570c5f290ed23164a3c144cd711cc286e600b85e1a5d847c0695d4bad9058",
+        "classification": "non_contract",
+        "owner": "OperationEvidence.timestamp",
+        "reason": "The stdlib utcoffset None sentinel identifies naive datetimes; this is not a backend default."
+      },
+      {
+        "id": "cc48c01135afc3a2445885cabef154b980f073cb1f0bd3b866e00adb2f8bf554",
+        "classification": "declaration",
+        "owner": "OperationRequest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "4ef86a1263f8869375a82bed1f995d99b1583d14397a9018f1cfdaec2ba1f07f",
+        "classification": "declaration",
+        "owner": "OperationRequest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "cad97aabf06e95a739289e04bf66182fe0ce2f8e7cd51072fef5ffe8cbf86add",
+        "classification": "declaration",
+        "owner": "OperationRequest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "bd1ad2f9179f6c2f242274ce2e7c22e652bb5158db3d398326052280422c62f1",
+        "classification": "declaration",
+        "owner": "OperationStorage",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "960fa5502dd8824a589a7944353f548a5421ef7eccad772f8cb95a96a9474cee",
+        "classification": "declaration",
+        "owner": "OperationStorage",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "51e2d0f28867104e61371a678845aaa922ccf4f1c668ad9ae653a4074b00a0bd",
+        "classification": "declaration",
+        "owner": "OperationStorage",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "f98610faf3ae277143822bffb22afc173b1ce1683eca7d7bc79fb485857e4ac2",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "b4f9d632cbdb3041b5bc81a6dc9bc578f131f37d4e3274815deea67ae2086345",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "33f6ed391905eb00af4b7f4a28ac99aa91b594e28f98d590b1a80c1980fc9ca8",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "60033d991490fe6e0e5528dcecc6a6e1b117533712aa3fe1e7e80c26d42f6a6a",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "78812022c78f81adacc62f8c1188755e4c5d1f4a59ff42616746748dfaafa41c",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "11dbd620ba313c56d31c01d1bb413f13d6e38c131584a38e08abad4c26e0d7c0",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "cb449711bcfe659034b87acc30365a019cfd89d2cbddfb084cd70bd4bfef3ff7",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "f03049e4bb0a0880453fc7190c3128a988e7806aca8d113ab9826891cebbcbe7",
+        "classification": "declaration",
+        "owner": "OperationManifest",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "ccbfd5ef29a4d495c442bc0b9f742383ac20e29f58fd6a5c590d6ce94c9e2c76",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "43f0520096cf888edfd51d3e426d3b7050eb4b5b0daf6f0fc448a97677f9852f",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "5aa6c7623624271c96269a0a7deb589413c697fc9def2a59dd8632cb53276955",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "1c521ce5d6c6dd0a174009c083d9ce04951e622c6f9d24daf13cde4e6025d036",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "a8494a77c0bbbf8b643205208c50ad9df1ef11a424528d05b93c8ae464c17fbd",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "6c9ccd86749ce65d4b9db8dc0b639d8e32fffafe9e7c12d0b84489f82a04e38f",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "763c48b729217c41c476c9af8beb870c416a034a5d80b61fc417ece40ec04691",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "1fe7916703f30cb915289223057226f20453d1feb6b44b35d1e0f30f796cec3a",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "6626ba8cc501c53d1ad0f60bb3335b032a5a99adf08170eb4a58c45fb40e83d9",
+        "classification": "declaration",
+        "owner": "OperationAttempt",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "6d717fcf5eb8bf9cfba424284e56d16e0cecaefd49cf30e9401f2a3f5937f989",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "c473411d540ed0724f5a308694b1f221c60404cad0137710e33a71290053fc72",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "ba28335dd0e1d0d235388a34b0d57d0940cfcd82c80614e2435eb3df0714254f",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "9f8a6eafc3e9d4088463b55262a93b1f6e2cba6aa223454d3c9c6bf50aebcaf4",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "1892e77afeda5d16c38062e663aa04c9632976af435ce6b083178dce414f1048",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "fd20fcdc983c03bbfc911e9d43b216cd0a1f413c98e8e1d80cebc504efa61965",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "574e73e8bec6aa34f02fd7f710bbe8173dd3d577b321a7ed8856f2f10cdd7f68",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "b7cbea6ab11b354b0f68f041dbe5b06de7c422fb943b2c390359328c3bf91e16",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "c98e76f2acf5bb9bfe08c2b92b47e358bd652d8794a019236a35fcb31f842461",
+        "classification": "declaration",
+        "owner": "OperationObservation",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "8d56ccd0181b7aaa6c4e223c415d1a1285948cff4c224c646c9b53c9ddb408e8",
+        "classification": "declaration",
+        "owner": "OperationClaim",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "972e48f4746a1ae3ba7885946d6926cae28fa62b30ca0cc5261dd5f30fd233f9",
+        "classification": "declaration",
+        "owner": "OperationClaim",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "241bf53af0bf76e36915d356f8ff2494a81dfc95d6a346d3f864a148a831aeb9",
+        "classification": "declaration",
+        "owner": "OperationClaim",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "1334f93679b4ba4c724881e24bc4baba1a8dd24414bff9f1882d4d0622e64e66",
+        "classification": "non_contract",
+        "owner": "OperationRecord",
+        "reason": "The existing frozen dataclass declaration is retained without adding slots or changing the public layout."
+      },
+      {
+        "id": "8ae2b5c50af640736296c95e205bcda2616b23db0445b38e479a714926c706f9",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "b7e1c62ebdcd7702ec6fa9a15eea7f8d0688deeeb02b3b65dda44f48efcc3262",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "6499ac5dc311ab6ad30a8d4ef0b3c76ed4e67da95d3d40060df83a7d51160079",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "3600aeb05c219176fa3efd4c17a48c636ba308be54b7e20be07e15da6d01ba8e",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "c6be610ea82b3706352abaf3c86ccd6c1c4992c543c844338d82cd40240769f1",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "8097aa2141ebf5c4fa83b690908c6ef38e36dea9473762950b1abd0d65bec480",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "d85e500574b8eec5563bc255e68d61516704e97068533eaca2534ef8b8eca951",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "af2e9f1b7a83c8105d8e6c443f2cae631ae3e48db662843eb9ffe7b5be0741ef",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "1b34f1dd833f22aa11ebbd4a408aef7fdd8442c9a7611613d7a2099c77a098de",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "82ea864882b8cec88a732c1a6aa920c02b6b93ea8df73af20cb253f1d6c226cb",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "7e1b6e9ada535085cb72404c008b59c479bea5f4f741e60ad26239c5db0f651c",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "45050d00c4a40fb886cfdf10af576be4d9f496a360ced521a5c179951161ae5c",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "1887bf6e801948a268dd6499ad060e127bb564733e1c690df22a791c9f05cea5",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "7efd5be10871b77428ef8adbe4f15f44e32e74a78468194407bd51f4443efdde",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "2e55d47f267ac1d9456b303f296ce69fa0d11c9e108676ebe3687b647abb7379",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "131c58cf475604f7b7126f8889bdd01788277e2fa5dfa745d36987dfdc22f920",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "07249169cbba525b80b6ebd9e0d0083d479185034a8ddf53db08c0e9e7ab7d2e",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "bca4083586005a978ae1e41e6f85b7abb564549c18b30a4a0232a3f014811482",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "16a2f9dbbe98804efad61203ed3c749490cf914b88992be7f5846a617687a7d1",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "92f1cc9445e0b24f570e9a9546dc6ab20a2f8041a8e0d2c5ef75a29fc1cbe460",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      },
+      {
+        "id": "57986d4c5d5be1474e9342a37bddd77602666ef9fc2c3346545874c3a26848f3",
+        "classification": "declaration",
+        "owner": "OperationRecord",
+        "reason": "Each current value/format Owner declares its fields, version, status and validation messages at its head. Complete Record validation and typed state Writers share the one contract."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OperationRecord / OperationManifest / OperationAttempt / OperationObservation / OperationClaim / OperationStorage",
+        "declaration": "llm/services/runtime/operation_records.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "OperationClaim — ToolExecutor consumers pending",
+        "declaration": "llm/services/runtime/operation_records.py",
+        "consumers": [
+          "llm/services/runtime/tools.py"
+        ],
+        "tests": [
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": false
       }
     ]
   }

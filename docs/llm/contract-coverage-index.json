@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 586,
-    "unreviewed_files": 201,
+    "files": 587,
+    "unreviewed_files": 200,
     "stale_files": 0,
-    "unclassified": 10902,
+    "unclassified": 10695,
     "violations": 0,
-    "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 203,
+    "incomplete_contracts": 4,
+    "unreviewed_dynamic_paths": 202,
     "unreadable_files": 0,
-    "candidates": 21253,
+    "candidates": 21140,
     "issues": 0
   },
   "files": [
@@ -2656,8 +2656,8 @@
     {
       "path": "llm/core/step_tool_metadata.py",
       "status": "reviewed",
-      "sha256": "cfb075032728196fcb0c3bee4e4fff7a26a6019af8a05add989a135d7938ba08",
-      "candidates": 1
+      "sha256": "6e81c420d835c5c296ee168b9fe71889f9f66bb7c67cf934fd759e205b7410df",
+      "candidates": 8
     },
     {
       "path": "llm/core/tool_codes.py",
@@ -3446,10 +3446,16 @@
       "candidates": 29
     },
     {
+      "path": "llm/services/runtime/operation_records.py",
+      "status": "reviewed",
+      "sha256": "60babf6609424d74734f1c9d0420bbd95c60d44210c781aba5a2bf3fb7defb9d",
+      "candidates": 69
+    },
+    {
       "path": "llm/services/runtime/operations.py",
-      "status": "unreviewed",
-      "sha256": "e9eb68c2fbded6e86fa81d6c0a05f2d2089055457ccdfc8f12c59c82ffb96b53",
-      "candidates": 207
+      "status": "reviewed",
+      "sha256": "3243b5562f5c349399a502afc0aa11a127990449ba9ead7b1d1f4bd21ed3924c",
+      "candidates": 18
     },
     {
       "path": "llm/services/runtime/output.py",

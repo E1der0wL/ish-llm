@@ -7014,3 +7014,45 @@ failure/error/skip/xfail/xpass/누락/추가/중복 0, full discovery/available 
 최초 보조 확인 스크립트는 이전 clone의 untracked 심링크 상태를 worktree에 그대로 가정해 중단됐다. 실제 공통 exclude의 ish.platform 연결, /workspace/ish 대상, 정확한 HEAD와 깨끗한 추적 파일을 확인하고 보조 스크립트의 예상 상태만 수정했다. 제품·시험·전체 회귀 결과는 변경하지 않았다.
 
 전체 검증 성공 후 위 SHA만 refactor/llm-clean에 정상 Push했다. main 94229cb8, refactor/llm-backend bb094625와 Draft PR #1의 상태·head/base는 전후 동일하다. [원격 CI 40102793528](https://github.com/E1der0wL/ish-llm/actions/runs/40102793528)는 같은 headSha임을 확인했으며 2026-10-24 14:30:39 UTC 기준 실행 중이다. 원격 통과는 아직 선언하지 않는다.
+
+
+## llm 외부 작업 원장·Step 영수증 projection — Level 1·2
+
+기준 223e86d. OperationRecord의 전체 Reader를 operation_records로 옮기고 요청 digest,
+manifest, 이전 시도, 외부 관찰, claim 응답과 저장 경로를 각각의 Owner로 연결했다.
+Repository는 공개 load/claim 및 atomic_json 주입 경계, 전체 inventory/hash 검증,
+원장→manifest 쓰기와 workspace 트랜잭션을 유지한다. Step metadata는 파생 투영으로만
+생성한다. ToolExecutor의 claim 소비 연결은 아직 미완료이며 다음 소단계에서 확인한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/operation-storage-draft/ast-proof.py`
+exit 0: 선언 전개 후 기존 함수 7개 전체 AST 동일. 표현을 변경한 22개는 이 주장에 포함하지
+않고 별도로 비교했다. 같은 경로 `values-proof.py` exit 0: actual_flows 17, storage_faults 488, record_readers 556, observation_readers 112, stored_observations 56, identity 10, manifest_refusals 38, step_projection 84.
+같은 임시 경로·고정 시각과 실제 저장소에서 결과, 오류, 파일 bytes 및 I/O 순서를 비교했다.
+읽기/쓰기 전후 장애 488개에도 원본 또는 완전한 새 상태와 거부 결과가 같았다. 관찰 원본은
+변경되지 않고 completed의 명시적 null, 불확실 재시도 차단, 무효과 이력, 소유자/CAS 검사,
+Step 조회 순서와 기존 실제 process-death/효과 횟수 Assertion을 유지했다.
+첫 비교 스크립트는 WorkspaceOwnership에 없는 context-manager 사용으로 시작 전 실패했다.
+실제 retain/release API로 보조 스크립트만 수정했으며 제품·시험은 변경하지 않았다.
+
+- `whole-operation-storage-l1-01`: discovered/started/pass 89/89/89, exit 0, 34.145238초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-operation-storage-l1-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_operations_schema tests.llm.test_isolated_tools tests.llm.test_retry tests.llm.test_current_contracts`. source `19726d69f83ecc89c190824a7fe7776bcea51d2608cc469ecc029ae2c200b1b2`, input `31b50ae67df702b901990aa2277045a289245f134f6eaa79ea2e6d312fdaf95a`.
+
+- `whole-operation-storage-l2-01`: discovered/started/pass 124/124/124, exit 0, 43.533121초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-operation-storage-l2-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_run_reference_integrity tests.llm.test_runtime_reliability tests.llm.test_service_extensions`. source `19726d69f83ecc89c190824a7fe7776bcea51d2608cc469ecc029ae2c200b1b2`, input `31b50ae67df702b901990aa2277045a289245f134f6eaa79ea2e6d312fdaf95a`.
+
+- `whole-operation-storage-hub-01`: discovered/started/pass 29/29/29, exit 0, 91.982639초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-operation-storage-hub-01/hub.json --modules tests.hub.test_tool_history tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_retry_ui`. source `19726d69f83ecc89c190824a7fe7776bcea51d2608cc469ecc029ae2c200b1b2`, input `31b50ae67df702b901990aa2277045a289245f134f6eaa79ea2e6d312fdaf95a`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견/실행/통과 ID 일치.
+LLM 선택 집합 간 중복 0, source/input은 각 실행 전후와 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성/격리 환경을 사용했다.
+`python -m tests.llm.check_budget_mutation` exit 0, 실제 효과 Assertion의 누락 한도 검출 유지.
+
+직접 원장/격리 Tool/재시도/설정 소비자와 승인·Checkpoint·예산·삭제·RAG·트랜잭션·Run 참조,
+runtime/주입 서비스 및 Hub Tool 이력/재시도/관찰을 선택했다. 검증/실행 정책과 저장 형식은
+변경하지 않았고 이 범위의 실제 효과·장애 비교로 영향이 제한됨을 확인했다. 전체 회귀는
+다음 관련 runtime 묶음 Gate44에서 수행한다. 이 소단계는 로컬 Level 1·2 완료이며
+전체 단계·원격 CI 완료가 아니다. Gate43의 결과를 이 새 소스의 전체 통과로 사용하지 않는다.
+
+마감 검사: 최초 정적 감사는 새 S4 근거의 Owner 표기와 계약 문서 hash 누락으로 실패했다.
+실제 symbol `OperationManifest.read`와 storage-transactions 문서 hash를 기록한 뒤
+`static-closing-02` S1–S7 exit 0(85개 검토·미검토/오래된 근거 0)을 확인했다. 제품/시험은
+변경하지 않았다. 감사 자체 시험 16개/3.373초, 문서 검사 exit 0. 전체 587개 파일 중
+미검토 200개(llm 23/Hub 177), 미분류 10695·미완료 계약 4개를 계속 추적한다.

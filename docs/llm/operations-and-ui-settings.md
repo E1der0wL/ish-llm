@@ -90,8 +90,8 @@ runtime = ToolRuntime(authorize=authorize, runner=process_runner,
 계약은 신뢰한 개발자가 등록한다. Tool 레코드 편집으로 승인/격리 요구를 완화할 수 없다.
 실행 전 승인·작업 키 어댑터 및 ProcessToolRunner의 명령/격리 수준을 검사한다.
 `effect`는 개발자의 선언이며 실행 코드의 부작용을 자동 증명하는 기능은 아니다.
-기존 Tool은 계약이 없으면 기존 ToolRuntime 규칙을 유지한다. sandbox는 Bubblewrap을
-요구하며 사용할 수 없을 때 process 모드로 몰래 전환하지 않는다.
+현재 Tool은 명시적 ToolContract를 요구한다. 계약 누락을 기존 실행 규칙으로 복원하지 않는다.
+sandbox는 Bubblewrap을 요구하며 사용할 수 없을 때 process 모드로 몰래 전환하지 않는다.
 
 Tool 계약과 ToolRuntime fingerprint를 Loop/Graph 재개 검증에 포함한다.
 승인 함수/runner 내부 코드를 변경했다면 개발자가 `ToolRuntime.revision`을 올려야 한다.
@@ -222,3 +222,25 @@ unknown으로 남아 이후 토큰 한도 수락을 막는다. 예약은 모델�
 
 실제 5 Session × 3시간/2GB 부하·전원 장애·대상 Linux 배포판의 sandbox 검증은 별도다.
 공유 저장 잠금과 전체 corpus JSON, 한도 검사 또는 명시적 집계 시의 사용량 영수증 조회 비용도 남아 있다.
+
+
+## 외부 작업 원장과 Step 투영의 Owner
+
+`operation_records.OperationRecord`가 현재 원장 전체 필드·identity·상태·시각·시도/관찰
+증거를 검증하는 유일한 Reader다. OperationManifest는 별도 manifest 버전·소유자·revision
+목록을 검증한다. Repository는 실제 파일 목록과 원장 hash까지 확인한 뒤 사용한다.
+버전과 필수 증거가 누락된 파일을 기본값으로 복원하지 않는다.
+
+OperationRequest가 요청 digest 투영을, OperationAttempt/OperationObservation이 각각
+이전 무효과 시도와 외부 관찰 형식을 소유한다. Observation의 completed는 명시적 null을
+포함하여 result 필드의 존재를 요구한다. 불확실한 효과는 계속 재실행을 차단하며,
+NOT_APPLIED의 기존 증거를 보존한 다음 시도만 기존 규칙대로 허용한다.
+
+Repository의 공개 load/claim 반환 형식과 주입 경계는 유지한다. 내부 typed Record와
+상태 Writer는 같은 Reader/검증 구현을 사용하며 별도 호환 Reader를 두지 않는다.
+원장→manifest 쓰기 순서와 workspace 트랜잭션, 검증 CAS를 유지한다.
+OperationClaim은 공개 claim 응답을 소유한다. ToolExecutor 소비자 연결은 다음 소단계다.
+
+StepOperationReceipt는 여섯 필드의 파생 감사 투영이다. Run→Step 조회 뒤 저장하며
+Session 원장을 대신하는 실행 권한이나 두 번째 영수증 원본이 아니다. Step 상태는 계속
+Engine 이벤트가 소유한다. 원장 기록·조회 경로는 OperationStorage의 선언을 따른다.
