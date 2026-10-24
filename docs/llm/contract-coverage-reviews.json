@@ -83609,5 +83609,2204 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/config/store.py",
+    "sha256": "1617bd9bf1f915f672c4f95279899f1b48ce2f91b4eb3ee1b3ddc7153d5906ec",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "051bc3c30d7b2c176be22c8dde44f0b00fae225ab9df2112511d5b8dd12ef435",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "fded79778758482cd566ff6c4d5063b3898b3e7682edda3a9fd1ab5b601c0cfb",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "4bc356417ee18f28382f304fa8997c54e269fa171f519060d3567d120b5593b1",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "be01364a87bdf9d0deb29c1b9adc191917b5adb4ee55581e29b9f47e871da259",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "5472f48af6c31a6f71283cd7a3e2c42f502ced6a43549c2c20b6a422ca1856f8",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "601b6f98f1ad8fb8a33158459600d458ded3fa8ab481eb3faef2e0d2b9c86269",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "e246cf53330918439240fc2aa88bb3eb4422412af87875255848bb12d629bf46",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "b85cd277e143b10123864aff8dd2da1cccffbbb3a202a5898a214140a62c0996",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "202f377847dbe3b4f9338347eff07293bb58670078112dca4663abd14549caac",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "099ae2d832faeb4eb47d811a15d2704b419d19181c83be133ecb1772c387d003",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "2271c514f8306efea18183074e276da1c8f896f7befb2e8a10c0a503b9e4e751",
+        "classification": "declaration",
+        "owner": "WorkspaceJSONStore",
+        "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
+      },
+      {
+        "id": "d7943cd964d4b1ed3ffc4d9b40a5d92ae66929ae038c1d2afd87156dd93ecd6c",
+        "classification": "non_contract",
+        "owner": "WorkspaceJSONStore._write_json",
+        "reason": "Python local resource variable before a temporary stream exists; no missing persisted record is accepted."
+      },
+      {
+        "id": "e863165d5e89828db63aec8e4bbf5a7e5f2bb16bd4d97f48d9053e29d7a11017",
+        "classification": "non_contract",
+        "owner": "WorkspaceJSONStore._write_json",
+        "reason": "Local resource cleanup guard, not a stored state or recovery default."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkspaceJSONStore",
+        "declaration": "hub/config/store.py",
+        "consumers": [
+          "hub/config/preferences.py",
+          "hub/config/presets.py",
+          "hub/config/view_state.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/workspace.py",
+    "sha256": "ee1cc2d3ab678a854e2f184f6ebe1e4e8d4c39dc7e779d70505dc55972461487",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "121c4d2d02c82c0b91f56dc29ca33ef088feeb1368559ab136737e05ddf9bc7c",
+        "classification": "declaration",
+        "owner": "WorkspaceSelection",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "bcacb2addbeb3ff8b3e06e78a6de0b47b860b036694ed259a9fc31484596c23b",
+        "classification": "declaration",
+        "owner": "WorkspaceSelection",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "b92a08c985c91addded05ca57dee608864e84333826e84af5b8fcfed6123fb6a",
+        "classification": "declaration",
+        "owner": "WorkspaceSelection",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "bfc40733a141e41a60bf87778c02b19de11a517d2a1b4c46dfa33eb4d1399dc1",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "4a7c118c006ef9d16d6eb3cd7ff960d5178814cdf26c95954f72216dea415fe2",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "0ad7f9cd3739289d8ef714e9cd704472d4f2041962794bb57c3214a2ffab85b6",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "7f9dddfbe54ab9509a69adaab49c13625acca0f465be09219fd0189f8161390c",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "3335c273fa5c0d5249b355f9719f71c01b0ecc37cdce4622b5f58608d0ec9a76",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "e43265d47ee9bd52bf96aa7eeefe2e7ec8e9fdf50865c0cac859d51837d4772a",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "a579b2d889aa4430b1237bad5acccebf6210165b4879edf5c8243b0a81bca9ef",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "39bac5ae77936e9eaf8fe7984caf2249dc185a7a0e60e5f95b9e28cb58b10a93",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "53a405d0438588bad78853fe13367b03660a46528c089fe6d853764c26ce863f",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "bab42a046fa74a22974d9d53f7ced220bbee02d1d3c5258f1128bc5d7bd050d2",
+        "classification": "declaration",
+        "owner": "WorkspacePath",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "0404b1e81b753d051b106fa42771f25fb22199ad2939ed6908bbb75891b86c46",
+        "classification": "non_contract",
+        "owner": "workspace_path",
+        "reason": "Optional return type annotation."
+      },
+      {
+        "id": "9aa5975eb80e37ca44824d7f34af9b6375f4d6dad80db36c74ecd401072a3158",
+        "classification": "non_contract",
+        "owner": "validate_destination",
+        "reason": "Void return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WorkspacePath / workspace_path / validate_destination",
+        "declaration": "hub/config/workspace.py",
+        "consumers": [
+          "hub/config/general.py",
+          "hub/config/preferences.py",
+          "hub/config/restart.py",
+          "hub/backend/project/settings.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "WorkspaceSelection remaining startup consumers",
+        "declaration": "hub/config/workspace.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "hub/config/preferences.py",
+          "hub/config/restart.py",
+          "hub/backend/bootstrap.py",
+          "hub/backend/project/settings.py",
+          "hub/backend/project/presets.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/environment.py",
+    "sha256": "9ae4b85f6d2f503d162364f5b07ef3d694641122310bea53af229ab2dff9a41f",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fda9d96025f4db026243d6a3969a60fee24f903a6408d29460b4b3b70b92d5ba",
+        "classification": "declaration",
+        "owner": "ShellEnvironment / ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "bd8a894e7175b29df5d8a8cc938bcab502a10f865938aecba3d23bddea4ad765",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "3937ff90dfd19f0ee1525956b1f67c291c5ee4b20222b7771933555936e4ba22",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "4be8dcf95cc8f4e52d36b491d6b3338f325a36050b502d128fec1e9d16befa5d",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "4978993e0f76a5fd804de18084b3e5880a50807c42bca648a5838d7e5df6508e",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "d480fb8c3994309d8e27f5e0a0a13692a16e3ed8953a21b52830db007e13164c",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "7e8e7d32f91003220c118d7a8746822efc1f374be553df1f440eb29911f1dfc1",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "4e489836067104bac7d88bc899d65b7e0866559ccaf2368bb7584746ccca748e",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "2ef500cec336c52842ca57ba1cd0daa566bf615efd6f9b6afd10fa40fc4b3753",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "2411a4290a2cea857e04d876b1d7e36aabc02ff50ebf5d83075167dde2299623",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "36d358669038e0172a282ed5ec98ac342f275c7901925801c4f684307c66d501",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "e111371cd89155db4a462652390fc946e4be7808bc62499309a18e80fd8738e8",
+        "classification": "declaration",
+        "owner": "ShellSnapshotFormat",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "6501f589157df52303777ef5dbe2bf90202173af59895d650d4376149f21434d",
+        "classification": "non_contract",
+        "owner": "ShellEnvironment",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "0c55e16cbd36f9e250e8d90fa6b5312adddeb0c8fd99189d9e7c83ff4b6dbac2",
+        "classification": "non_contract",
+        "owner": "ShellEnvironment",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "aac6c18aa6ae53b5436f05ba13df60fc26f26fa98c0aaaccfb5cd75dfa8bf46f",
+        "classification": "declaration",
+        "owner": "ShellEnvironment",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      },
+      {
+        "id": "2925fb9061b4472b182e1a35f15507e25fa5cee79c1821820c3d4637fa92c3ec",
+        "classification": "declaration",
+        "owner": "ShellEnvironment",
+        "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ShellEnvironment / ShellSnapshotFormat",
+        "declaration": "hub/config/environment.py",
+        "consumers": [
+          "hub/hub.py",
+          "hub/ui/live.py",
+          "hub/backend/execution/environment.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/view_records.py",
+    "sha256": "12c4f49b6ac5b0ac5eef26a18fa2ec8819afcd27ad28ee11e5847f0bea5549b0",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a76d8d5c2dd437ced584f6312b8c46412811d8e7a1b50f39ca5b233ac1c26c73",
+        "classification": "non_contract",
+        "owner": "ReadingPosition",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "41d682c3243fd539e4e4a3581270e459d27d073447c2255c28901d1c83020148",
+        "classification": "non_contract",
+        "owner": "ReadingPosition",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "ffb598d93b9b6f2b6bd25d0eec9ae42d2a7903e8eecc0e40dc54c61f220cbefb",
+        "classification": "declaration",
+        "owner": "ReadingPosition",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "bcf1e295fdc9eb198d16dd86492f7ae309285d7a60ac8688c94028fcfcc1111e",
+        "classification": "declaration",
+        "owner": "ReadingPosition",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "d858f65f1ebbd47fab9008b8548ad6f9a791c4f395b26ab227c219ea92227a82",
+        "classification": "declaration",
+        "owner": "ReadingPosition",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "72c907f5d04335e33c9892245f5399ff753087fadf8df74dac769007c2a96c1f",
+        "classification": "declaration",
+        "owner": "ReadingPosition",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "7ca6a7d3fc2643a95754c91b76f38c81b07b970b3cda8d1f0f76b20fb85f9f23",
+        "classification": "declaration",
+        "owner": "ProjectReadingState",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "8e35d6e902b9812867b7956d91522efcef4ffa608e26f03c8474e9386dad698a",
+        "classification": "declaration",
+        "owner": "ProjectReadingState",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "1e3df9e24cb199631aba144c5df68da38a4588c555e707e3c1988e30526dd508",
+        "classification": "declaration",
+        "owner": "ProjectReadingState",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "ce31cd04f50039c8ca2ab04af3b7a3667aa7ef7a718d90a2ad4b6e24bb9e20df",
+        "classification": "declaration",
+        "owner": "ProjectReadingState",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "1a6d86b15f89a211e2f53a8b1a57d0599a2503e4f368c7cf36bc8997ec23aa03",
+        "classification": "declaration",
+        "owner": "ViewStateRecord",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "438611b34455b99fc91a9db777ea18e1fe785ab799fabf59a65e7de2a3e0a05f",
+        "classification": "declaration",
+        "owner": "ViewStateRecord",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "9eaaeb8fe0ff71aa9b1b2d3b1f0223a6be1662e2469b973c895098a69edcfd9b",
+        "classification": "declaration",
+        "owner": "ViewStateRecord",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "e9a212d9c23a8f21ee6c566f6afd30a8dbcd7c57addb76908efab95d35d041dd",
+        "classification": "declaration",
+        "owner": "ViewStateRecord",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      },
+      {
+        "id": "2c646037cc5e054a92e300bd465ce363eadc967ced1fc1176c8f284bd063962f",
+        "classification": "declaration",
+        "owner": "ViewStateRecord",
+        "reason": "Record fields, current version, optional observation defaults, required root fields and typed position validation have one Owner. Writer preserves the original bytes/unknown observations and never normalizes a damaged required root."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ReadingPosition / ProjectReadingState / ViewStateRecord",
+        "declaration": "hub/config/view_records.py",
+        "consumers": [
+          "hub/config/view_state.py",
+          "hub/ui/live.py",
+          "hub/widget/output/loop.py",
+          "hub/widget/transcript/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/view_state.py",
+    "sha256": "21d7b844e60e7c2657f36d59f3b0ee9eb6e1dce7a05b0fb9e95c75d93c6bf7ff",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "440306b48d8ae914e5ac279e190244c87ecc6ddd993b28f97d20c38fd2c3c152",
+        "classification": "declaration",
+        "owner": "ViewStateStore",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "440cbaf31e4fdc03ed618205b85d3d438b396946f48d297e048664f0158a918f",
+        "classification": "declaration",
+        "owner": "ViewStateWriter",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "2244378153997f898a83379dba79ef891b0a309881f7b4a455e1139c7bbe9f2b",
+        "classification": "declaration",
+        "owner": "ViewStateWriter",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "28fa138ebcbf97a6dc03bc815e25316c8016a9520326f79ed26afa10d748eac8",
+        "classification": "declaration",
+        "owner": "ViewStateWriter",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "dec6318dcc2edb94b0f5dea366b3b540966295d85134613281d9b5c4db319e6c",
+        "classification": "declaration",
+        "owner": "ViewStateWriter",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "e08e769dcb0610429b91d2059c6ff915a47520c04242f2b7a658e32eed1e5501",
+        "classification": "declaration",
+        "owner": "ViewStateWriter",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "6b1e4916ce9ce4397ec1997fc9d521561ef46e2a9c97bd0e8c30a967f5a75c39",
+        "classification": "declaration",
+        "owner": "ViewStateWriter",
+        "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
+      },
+      {
+        "id": "9bd6a0dddd9dbfd7301de96f0364f14e0839bf1778ae54901951c22311a082ea",
+        "classification": "non_contract",
+        "owner": "ViewStateWriter.save",
+        "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
+      },
+      {
+        "id": "548df9e8c79744b3d924a35b3a92720ff4ea037fc33e1e67ba3ebb2a4505d823",
+        "classification": "non_contract",
+        "owner": "ViewStateWriter.save",
+        "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
+      },
+      {
+        "id": "b26c2979b634e1c7f3c236045fa442e00464086f391d10fe0daade0ac89900cf",
+        "classification": "non_contract",
+        "owner": "ViewStateWriter.load",
+        "reason": "A Python cache-miss sentinel triggers the original store read; it does not supply a missing persisted value."
+      },
+      {
+        "id": "5ba23c87d08e3698737a036de2f61adc361b6db374b1d34162997602f7b3168a",
+        "classification": "non_contract",
+        "owner": "ViewStateWriter.load",
+        "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
+      },
+      {
+        "id": "76d47843bd3167b470cb48c5fade3c807644428bcee7ff2655cb2d4f56ae55b4",
+        "classification": "non_contract",
+        "owner": "ViewStateWriter.load",
+        "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
+      },
+      {
+        "id": "957ded54819df8fba532350c309b6415049efd6a1bf682fce09f98998fb49521",
+        "classification": "non_contract",
+        "owner": "ViewStateWriter._write",
+        "reason": "Ordinary drain-loop syntax; termination remains the locked empty-pending check."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ViewStateStore / ViewStateWriter",
+        "declaration": "hub/config/view_state.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "hub/ui/live.py",
+          "hub/widget/output/loop.py",
+          "hub/widget/transcript/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/general.py",
+    "sha256": "aee8ef7be43df0b2d58eb93676f0459571a88cfa0eb297d3ac715739dfa0c063",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6a707b9599d07fbe17db355b8c2da67284dde99c24a54f6bb09a92ff2fc73830",
+        "classification": "declaration",
+        "owner": "EditorCommand",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "1d1ff3b00c7a2958737d034a5ff58641037beed561a2aa76585e0e261b3f5fd7",
+        "classification": "declaration",
+        "owner": "EditorCommand",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "a4b9ff578693b3030561a45ed513ccbb61f30cc1738cb9c404c79a2b86ae15e1",
+        "classification": "declaration",
+        "owner": "EditorCommand",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "c406fd684542cb2b0b456bb1838bb1cf235a1c1b9460a9c0b314ab49129c55df",
+        "classification": "declaration",
+        "owner": "EditorCommand",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "92bbd51cde9ddc29dd3ab4637747f75c5f500a9e6065ac91018dc283ec626cb9",
+        "classification": "declaration",
+        "owner": "EditorCommand",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "ec135b1401cfe16cb7e59998ae9fc65edbc9eab70b58b15ba1fd10616359d347",
+        "classification": "non_contract",
+        "owner": "EditorCommand.arguments",
+        "reason": "First argv element is the executable; ordinary sequence access, not a wire field."
+      },
+      {
+        "id": "07285a992edba34fd58fe3cf185edd384af52a3d125bf59dbe96f9c1c618656a",
+        "classification": "non_contract",
+        "owner": "GeneralSettings",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "864b49bec565b887856428a9d03bcae2003a065fe689bd8f06714174bb9bb7de",
+        "classification": "non_contract",
+        "owner": "GeneralSettings",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "25e013959f54e4fddc7818fb230324a8c3e86ed0dd48e2a9ec7f7fbca22f5c69",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "c049b23aa2fdd9205f11923acafd4da3e1ecb41c1e7e55b18499d745014f1e01",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "b5d268764f8d95bac912e63df56b7a40b34d0408d663c1b07390c638d0c4774e",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "977dcf30f135ff05c1e1d0febe8bf7a46045153246b407a2e2276de8ed369f31",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "912b725f92d3ac148c42cda1291852c0f67dc38f076eb161085da166bf338a8d",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "47984ed5082f6ceec2ce6c591428443015ea8fc56a45c686f5f2da15a6a627c0",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "b33fafce748b7aa164f2508b4c3d439943398b2aca9a9193687ceca96f47dc8d",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "30becd1790872786b84cb265b1adcc25b8604bb1df22cc9dc8042770263c58dd",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "efd8f1cf0556a80fb4abbc5aaf59bfa8b51322418e092bedca33463ea02e75b4",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "5c15573fafb7c434a6a8d63c3f34620afc4ccedd978bcb5e1ee018f88174bf2c",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "6ec5133e6ff925c8143a8e675ed3c64330a26d1f325e05e7f91d11c0640039f5",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "06cb95e8af14162d7c8f4251e68c1de8031eb7ec748ff971ee516264992d3b68",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "3e207b67b78e043f72a663d09beccd889b7bd7f34bceef26924467d03a41db4e",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "8f0bbfdbc524720b72e473eadd55188572320dabb5bdc03e1362f64af1cf9c14",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "4a707bae4dec7f287ab129068ae9ac73f09590f55aa1599513a5b9b970a88ce4",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "44767f148306eaf6706c19fe980c3648f76cb3c9fe71cb30cc0b3836110de895",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "3d79c9566df0dfaea02c3b4f9ae5caaf31eb538d452a59145e7884042ac56e38",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "19defb11857aec8642a0fa4cf8d26a0521d990445eeff17eaf4e4ed088cdd4fa",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "73f411952d5cfb1a5b51b942c3a50353d5433918e42ed8def2b1bf7cb1527736",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "c147b3a2fb77d071e2d501fcb31949e6d12680c5df295eaa09500725a86fb54c",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "ee6fb311d437ddd65a94006bcc07e2aaf6af7fc130ad336236134d05834e7ae3",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "91e40be280551be6ec9dc5f7fb4355a6cacc00da79ca36e1bd88ab7414b0969e",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "e2fe837fdbae9a0e9b6775977aa082be53c10bd7065771f92f0bad1b9abeca77",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "09e91864f22a7ec17b1ecbc3bf58ef46af7f2870d1a145d051d310a8c69f4124",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "5f52f27c4896c860264630ba27d81612885876a0900a5e816efdf5e0231449ee",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "68f4f74c60450704f99caa4d3785b74f95df2138621daccebaf2df70ff091e96",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "3eb5fbf9c375c96ab0e7ddcb217deb401460a5ed4dedafdce58d68bb3a97abe8",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "1ac35b3ac2a08baa2bfe44b6bf50614fbe4576b3ea737974a081f27aed20b35e",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "030db6597efe285ae25a4ee25bc1ec056877646085095db566b460b5d9c4484b",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "dadbd658f296fd1ff75129540fdccf4145f37e88f9e17df2fcfea3f0f8c16b4c",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      },
+      {
+        "id": "8b668049c74ea0c24d9a53d02c03505ce28ef1d795978483c8e7cdaf1e2a01d8",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GeneralSettings / EditorCommand / GeneralSettingsDraft / LanguagePacksDraft",
+        "declaration": "hub/config/general.py",
+        "consumers": [
+          "hub/widget/forms/general_settings.py",
+          "hub/config/preferences.py",
+          "hub/config/preference_records.py",
+          "hub/backend/project/settings.py",
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/profile.py",
+    "sha256": "fbba038daf5e0469e9232d80817019fcf9243102755ac89bb8d3849d5be72888",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage still independently builds identity field form descriptions/types.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d6fb976831144b8ce207cb85460cb6e4ea3d692f67c922964c1acffd000e9215",
+        "classification": "non_contract",
+        "owner": "UserProfile",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "b6463c5afa948ef39422c8946f1568f6a9b4a3babad5af33a95025c95d0936f1",
+        "classification": "non_contract",
+        "owner": "UserProfile",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "0cf01aa9895fadb1bad3b7977bf5f62100f4a13886ee02538ebb912e7b5674e5",
+        "classification": "declaration",
+        "owner": "UserProfile",
+        "reason": "Identity fields/defaults and validation errors are owned here; contact validation references canonical slots and restart metadata has one declaration."
+      },
+      {
+        "id": "95b9cc720e818da4e07c8edbbd541b82cb54cf39da1a575ba48526a505da55d7",
+        "classification": "declaration",
+        "owner": "UserProfile",
+        "reason": "Identity fields/defaults and validation errors are owned here; contact validation references canonical slots and restart metadata has one declaration."
+      },
+      {
+        "id": "582fbc51509d75b2c2d444e2adf79681c677f7753066b5e626bce2a4fc059fe7",
+        "classification": "declaration",
+        "owner": "UserProfile",
+        "reason": "Identity fields/defaults and validation errors are owned here; contact validation references canonical slots and restart metadata has one declaration."
+      },
+      {
+        "id": "7922f295d5c0be77a1e01435fcc22f9686cd6149bd3d227d30e94857d545c58d",
+        "classification": "declaration",
+        "owner": "UserProfile",
+        "reason": "Identity fields/defaults and validation errors are owned here; contact validation references canonical slots and restart metadata has one declaration."
+      },
+      {
+        "id": "a4686f1c1d73b32333c96108a5ede79fbe9ea4db5d1d5a33a7b8e53ec3ddd307",
+        "classification": "declaration",
+        "owner": "UserProfile",
+        "reason": "Identity fields/defaults and validation errors are owned here; contact validation references canonical slots and restart metadata has one declaration."
+      },
+      {
+        "id": "3ecad5df02267d38ba2ccc9770f23c18417e99e657b3e592bef53605aa68227c",
+        "classification": "declaration",
+        "owner": "UserProfile",
+        "reason": "Identity fields/defaults and validation errors are owned here; contact validation references canonical slots and restart metadata has one declaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "UserProfile",
+        "declaration": "hub/config/profile.py",
+        "consumers": [
+          "hub/config/preferences.py",
+          "hub/config/preference_records.py",
+          "hub/config/restart.py",
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/metadata.py",
+    "sha256": "c419661ce6e78a6b7d3ed42c7b5d6a2c6d494a54897a1c8a7441fce042535253",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: SchemaForm SettingField still directly reads the requires_restart extension.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "30cc2da5ea1b0fda9a4a9cca2368b58c0aa3f3e1ebb05b4e6a29df910941b453",
+        "classification": "declaration",
+        "owner": "SettingMetadata",
+        "reason": "Only preference declaration metadata: current field types, optional restart flag, form constraints, initial values and display paths. No stored section defaults or execution policy are inferred."
+      },
+      {
+        "id": "6191a514986f93cc393417b8586c2be4635fcd266b341ef3238325b30972d488",
+        "classification": "declaration",
+        "owner": "SettingMetadata",
+        "reason": "Only preference declaration metadata: current field types, optional restart flag, form constraints, initial values and display paths. No stored section defaults or execution policy are inferred."
+      },
+      {
+        "id": "47f00edbdb158e8bcb3f5074b3714225b90d6b629c008676cfdcd24a1de755f0",
+        "classification": "declaration",
+        "owner": "SettingMetadata",
+        "reason": "Only preference declaration metadata: current field types, optional restart flag, form constraints, initial values and display paths. No stored section defaults or execution policy are inferred."
+      },
+      {
+        "id": "38329bf16abafee7519430067d4f21244d3fe3d2abd46879b330289c0927256b",
+        "classification": "declaration",
+        "owner": "SettingMetadata",
+        "reason": "Only preference declaration metadata: current field types, optional restart flag, form constraints, initial values and display paths. No stored section defaults or execution policy are inferred."
+      },
+      {
+        "id": "763de180a5d2f665b393200b064bfa016d50cce5ba446d2f9aaafa5578b59ac2",
+        "classification": "declaration",
+        "owner": "SettingMetadata",
+        "reason": "Only preference declaration metadata: current field types, optional restart flag, form constraints, initial values and display paths. No stored section defaults or execution policy are inferred."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SettingMetadata",
+        "declaration": "hub/config/metadata.py",
+        "consumers": [
+          "hub/config/general.py",
+          "hub/config/profile.py",
+          "hub/config/restart.py",
+          "hub/widget/forms/general_settings.py",
+          "hub/widget/forms/settings.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/notifications.py",
+    "sha256": "66d2e94ff471b6df3d25e9ad4dd4565b2a8a6c2b485318a27adf1cbec26fa491",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Theme, Icon and alert UI consumers still redeclare notification categories.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "46c441d4344489cb884bd899675812cc8113508a4e54c98fc54fff357ff4e639",
+        "classification": "declaration",
+        "owner": "NotificationKind",
+        "reason": "Presentation alert categories are independent of backend diagnostic severity; callers derive plain-string choices without redeclaration."
+      },
+      {
+        "id": "5f9dcb04f5ceae4bcdba13613fc99859a8b9a30261860502562cf565239a3045",
+        "classification": "declaration",
+        "owner": "NotificationKind",
+        "reason": "Presentation alert categories are independent of backend diagnostic severity; callers derive plain-string choices without redeclaration."
+      },
+      {
+        "id": "763ae1b4922cf1e9763382911373ea21b3fb484268ded7de3e3bcdb75b9a8df9",
+        "classification": "declaration",
+        "owner": "NotificationKind",
+        "reason": "Presentation alert categories are independent of backend diagnostic severity; callers derive plain-string choices without redeclaration."
+      },
+      {
+        "id": "90a630282a10179376636c0d84590ceb1a662225bae78c827725407fd09aa598",
+        "classification": "declaration",
+        "owner": "NotificationKind",
+        "reason": "Presentation alert categories are independent of backend diagnostic severity; callers derive plain-string choices without redeclaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "NotificationKind",
+        "declaration": "hub/config/notifications.py",
+        "consumers": [
+          "hub/config/general.py",
+          "hub/config/theme.py",
+          "hub/asset/icon.py",
+          "hub/widget/feedback/notifications.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/sections.py",
+    "sha256": "ef5e9a2ec929b974e13359fa583b1d469ffbdd084a474b6ac6a54699fff912b8",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Settings pages/drafts/navigation/service consumers still redeclare section identities.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "24870b9c7e324c45f3d7c76f8cfac073b214ed89ac9cdc22a6da550fae52f5ad",
+        "classification": "declaration",
+        "owner": "PreferenceSection",
+        "reason": "Names of independently owned global preference sections, used by current storage and presentation boundaries."
+      },
+      {
+        "id": "d1b0825a3066abcea0b92409970e552f23eca5fbbae4f5adc4ba0121e5dec82b",
+        "classification": "declaration",
+        "owner": "PreferenceSection",
+        "reason": "Names of independently owned global preference sections, used by current storage and presentation boundaries."
+      },
+      {
+        "id": "e737bde0eb339cc99b1725c8fdb069721d1d152ab4503fd0c729062223a10c10",
+        "classification": "declaration",
+        "owner": "PreferenceSection",
+        "reason": "Names of independently owned global preference sections, used by current storage and presentation boundaries."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PreferenceSection",
+        "declaration": "hub/config/sections.py",
+        "consumers": [
+          "hub/config/preference_records.py",
+          "hub/config/preferences.py",
+          "hub/backend/project/settings.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/preference_records.py",
+    "sha256": "9af132040e8f308330ced35c2f67d9a4e7898048a886731a65d251b2671fbedc",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1a93f7747e75c5405fb811617f0ed9d1e220d6a0795ef10367e23dab77762965",
+        "classification": "declaration",
+        "owner": "SidebarWidth",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "2a04ee816a842c7724472e5a4b175da0e4a88cb0a4bf13bf1cdfa11f3c334a71",
+        "classification": "declaration",
+        "owner": "SidebarWidth",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "e1c8d342ff37f70f99bcdae3927e5fdf6efc71b3f315744e4d0c0fd545a6756f",
+        "classification": "declaration",
+        "owner": "PreferenceRecord",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "8b0e79c0c1d7065b5bcb662fd0b4deb8384b78f80f55fc746abe7dd5bf612693",
+        "classification": "declaration",
+        "owner": "PreferenceRecord",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "bd9a9bdab913a5e253698209cff5c9e4c54e2d1ff0c52ac480a6a1ab0a45694d",
+        "classification": "declaration",
+        "owner": "PreferenceRecord",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "388c2259b210991455ee0befbe1ac22732f75f2e16211f95c0ba25ebeab7a061",
+        "classification": "declaration",
+        "owner": "PreferenceRecord",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "18ce38ba411c9dc2d380c8834c16427095c2a92aab5ae79a3687ecee67d27648",
+        "classification": "declaration",
+        "owner": "PreferenceRecord",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      },
+      {
+        "id": "61711f531d338cdce9b6507ad68335ed7e7e54377700542c6d5aa429e2100281",
+        "classification": "declaration",
+        "owner": "PreferenceRecord",
+        "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PreferenceRecord / PreferenceSnapshot / SidebarWidth",
+        "declaration": "hub/config/preference_records.py",
+        "consumers": [
+          "hub/config/preferences.py",
+          "hub/config/restart.py",
+          "hub/backend/bootstrap.py",
+          "hub/ui/live.py",
+          "hub/backend/project/settings.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/config/preferences.py",
+    "sha256": "1bb42d81584900ad9a18aef73cc186d360fe9454b8f3379e2de11dfef2e282f6",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "PreferencesStore / configured_workspace / configured_profile",
+        "declaration": "hub/config/preferences.py",
+        "consumers": [
+          "hub/config/presets.py",
+          "hub/backend/bootstrap.py",
+          "hub/backend/project/settings.py",
+          "hub/ui/live.py",
+          "hub/config/restart.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/restart.py",
+    "sha256": "a128744dde9ecd49a4584325ee183349a5f1dee24d86063c840e2f5b003d8851",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Preference restart projection",
+        "declaration": "hub/config/restart.py",
+        "consumers": [
+          "hub/backend/project/settings.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/restart.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/config/theme_style.py",
+    "sha256": "16695bc4c52aeaec54a0a87bd17f18ae4cb081d1841629b2db89447fbe411acd",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0dfea9b1b8e2a1ec0d282fa3596f7e296108ce96e59873e445c55e524e8ab568",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "8a41705c6c5d7ebc6208684b351e1f6a9c5e55a047a909689c06eda9e56bf749",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "465703296f264fd053594340efeb0f82d96c2cdabfa4c21099775403aa973f87",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "d7ef29152c551e42a6960115e3f03e99b641e78ceafbe26bc537f37a17acb65d",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "28511b4be818e542daef798dfe1061d1cf1830b64ea7634b2f9e1a366c41e09e",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "52fcc41061d99a0946acb37fa3b2c84341e35e3d24c09de85a4ead39b2c91425",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "aa2574aff62fc0247ee1ecb99f8f81faca729b69ff29a6f3808138d6a4db26bb",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "6e18663fd202d7d4823ce99fff2e5b64ea1fd52deb42ec8be43659b637355c88",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "07c666acf445507caa3c6d2b2ba53e91398eac2050ef8306a1fab12fe12ea8ca",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "10adde3e54e9c9e1800dee9e76f7edfa27f9e1322c7f55e475ea6ed0ffdbed9a",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "664ff9b700c8173c33a4012eef85dad758a855fe2085acd27d2c31a695c8a6f3",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "0e7dad82db778d176f4dacb93e1e6faaf4bda9e202d3265a27c37fa757808eaf",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "b130636ee9699c83cea47a34a1b7b1e750aee2cea19b9ef0fcedb7c594ed2dcd",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "6c9c3917a02e64a692eb78e64224e03e61d298f865ffed8414af21db06b57a16",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "a0acd3b6b80cbcb83d114b9b94bf3c5643e3ff081cedabf1fb097f779ca7e161",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "753762f29a02182e17f70468da5bba3119ead718f9a7c6b84fb6acc4db6cb60a",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "262999e0e60597d068ede7d7ca6ccd595b8a6648aabd2b49f83ac4d927b0dc66",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "e512a367530928a2a8a6ff03f35a5c2cf7f5d8c9dc19c362bde6db71f7f3f237",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "fca2fbaea606f47e8bfa0f1f11cca69626a7b82a9e15f30a88995e4aaa6469e0",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "4b21cc5ed96037c4a919840c074cfa4f33ed78b74ef57a66154f6fe603241f41",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "3b6b87978bcfeb7883532a222c8b95e274ac310875c27cbf8ded30824d3f6539",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "29eb1ea42738424db90fb0b00ab220991820f221f2adfcf1889b61f67e55d930",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "a83dab72f3aeb87c964dcbff72a91b014f3f3d9d9843fd87de7c41d9133ff34e",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "8c3e282fdbe379d45a455c1002fdb02b96a3f9221cbdcf452cce759130cf3493",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "83fa131fedd0747d6c1479a1b6d4c5d53ef29bf32289a7ad3f770ae628afad15",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "e6f7b5a0bd1bb51dba0db8a9db1b1d48bd23b9806ac0cc378ccff1510924fe06",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "ea6f4b6a8b7e0fa905cfe2b47669a7e2ab173e216b63acfa15433807119b2e53",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "a74bf2a7e9d56b341f62b38228373c638aa1cce2c5886e0ff9d7c681c142568b",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "1bbc8912fd50698e004cbf26a11c46fa522af058c0d4ff642834010ccda74a08",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "6c057f5e7870e446ea2ab8089838f1457b086a580ced70fdadba66a0af9500d0",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "433c5058e4cadcbcfbf29d28f05b0eb03f234f9d273880864768d8484f2d4347",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "28623387c4745ff1c8f481492dda7623e76dd7caf81f393e7d5414deda56ffef",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "4171f9ffb8f339f9711ace428bf40be73f7c5e6562d549f919397170bbf66301",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "686cbc45cb29b21fa7dfedc690fd8a5a710243dc2c497acde795fa6061110cba",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "5426724ac3798451af3a01c1ccfdcc0bc043446575832f72d4674c3cf88096f0",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "5d9e169087812b43c33cb4da6bfbfb7faf3dec2bf816fbec1acee56ce1145c7d",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "ad4eea88873ad1459e299434e1d666a1a6b0c505502ad6aff73646150b693537",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "fcfcba71d857aa1da1f5f254fbfb15da44f9dd0ffe371f96a4e9e5d00315e34b",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "d1e4f96661c68f69597253edfb964462a09caa650c436b94cce70b0b9751c417",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "e601940f0a04f583c1ca27b186fcbbed76609d224a7f19711ab5fe3a76b5c75a",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "0e299d62c27677af3790907517887fe35d0af275792627be666fb52f87f476b0",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "d1bb4fbf6f5844d80291f3d002d2586293cb8558bb654617f45871d42e2c64b0",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "1186490736dc50294cf116b2f4354ee6788c5f695b7db745e1f8a4cda6903066",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "c2333dcf67d0a53e466ecf0d9a234222531fd9ebb8acfc0b9ec82c99ab82eeea",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "0571c30557913134e1f1fa55fa1f0550fa2877333654d472e05bd03376395b83",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "190b83656afbf0649c2e3cc9c73897d8b66ecdb6e864100ab13a99a4c1f2b468",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "0f3bac239557d383d688761085d143ac8d1f16b8eaf26740a309e11998fdf86b",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "f0597d6841b2a0dbc8307ecc12471238eca5b865f54ee5e17eea11ccb029ccf1",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "f2c988dccff7fd3341d07a349710ddfdee5ad8bb5d2a5d051c3ba0be93904725",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "660a299706f98d73c9a88ac9d6c04bcbec822f02819d4a9dc141678a45934f40",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "1ef5f028500607b34d18258c3eb5e4a80b54d39e52f8ac102c05acbe9a32077b",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "162be446bc9a35f11abad6fb0491d58b8ae01497490194018712eb92d9218ed9",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "2bc7f93fd3aedce668ce34d3e207534868e6a6ffd61aa3a0e4858f3b96b793bb",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "87a5bd54ec7469440e2b6022dbdba1f64fbe57394bbff43bf583d525e80bebfc",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "9b6bbbf72b1032cbf73adf2e02a84fa813ba417be1cd96d3e766661974c34b08",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "1d2dcc3e4f5084d515e530cee55e62f5b8da6dc03dd6fc11aeb8d992a12b0066",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "f1cafe10356b3db07f000883029e3e420fbd6723356942f4233f6f02ce20b43d",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "e94e8aed6443c0bbb7847181a565528f772d1a4c352bc6bccd2e681b18eb1b34",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "6e1561c6841928f34cde988bac756d50076ab37bcb458085cc268894eeb0ea12",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "d180787fd52c8fd86a10d87d67fc382e233758948311125e7e133e5d80a60ad2",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "626437bf9657fa898f155f1d877f34309026cc9f9913032740e12539f3e8d73f",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "8e5a058aa06a200332c5e4b9c2fdd5efe30f7119e3d007501084a6d68b54ee20",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "df2ceae794da4772868e9b1229328b45ad3e9231d33571c0cb42e1f6284c5a5b",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "94c5df379fba09e49ff2bb9c8915d59f21d0d35d26c85e80efc112a9e591b978",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "7c24ed62be593a1ac931ba5b9eecb978f453f7edcebeab32932c1311887381f3",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "0d35fd1cd8c3c2ad7a1a1957183b0dc9ae1e07b14b9d8094927c23207fe3ec57",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "142ee40c4ebc20b305393de5ba303eb9f236028cc9db220456479feaa78695d9",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      },
+      {
+        "id": "7968e452d46f27eb98215b767123db05a7c3e971e5f6e22ae940052e28a3f9b3",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ThemeSelector / ThemeStyle",
+        "declaration": "hub/config/theme_style.py",
+        "consumers": [
+          "hub/config/theme.py",
+          "hub/widget/forms/general_settings.py",
+          "hub/ui/settings/pages.py",
+          "hub/widget/transcript/conversation.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/general_settings.py",
+    "sha256": "dff3c49a27fc6e710b38090cfa077a3706ada3c6530eb52022e732abf476fc67",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2e01e946045d277d88f505e73391d39d00f96d5472bfe41a6b40505e70b50160",
+        "classification": "non_contract",
+        "owner": "PackInput",
+        "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
+      },
+      {
+        "id": "09c298f4714546bf80859e71f515f2f3466472cf4a1109dd7672ad3e990d1953",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "3131072d39e7f4a36f88e0b2af6385b69fd187b8830ae9efa42988eb73391d10",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "3d94d756d3aba492230bc4b24f36a4dbf77aa6f08ea1d0cc4d09ab1bb9ff8983",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "7749e9400100b52e1d7bb95e2a7065097aa677cb58f5f033cdc36e97fa001031",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "3db09b8135e93f3787c89ddfaf86aaf3f19b71e9073bf7d91321400b8df1653d",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "e3f97639715403e88e3550f69c09b84b9a9b1e9f36366c03274483f9d9f871b6",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "62eac9b8f53f2d3ee1cdd8c373a02dc709fecdb6e3ef0ac7d7364e9f9fe837ab",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "980be72f43ac722bb8d7dc626f1774a1303943e78dffe794c114e3cc822dd4fc",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "6939f223aea805bda38fc83ff64a15da87982eedbc9d6a721c04a0b6b0f94ced",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "7a2e75c07a5fde56e19915f544d3cb7847a52f8441fbd98c3b46d7668116560a",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "679e5ee5b9ba18e737a6b8a0f85b3e26e49e1119aefcf1aa2c73ea42a4a6caac",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "108ed8dc4ee5d724171ab27e9948cd999cc144fb17dc90929c6daa2c1301e372",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "84be381921eea6c4c7f4201c7dcfad9731b289bed050875fc7b1e2a5e7a3fe89",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "9d4c82b16fae429cb4a3ee73108e43c39bf9b982444f16c1b6ebcb6242cfbafd",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "d5e0e1c7864e8c2a544f795dbc35caa638df3c22da5848122f2257b51d2570ac",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "3c89ce4829d200b6a75029873e90e4c6106a8d17837512d58f948f3fca728f99",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "1b239d5aa1ba2625c1338fa77e3ee7387f2e0c532ff758603e174e61a2ae01de",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "34a80f370e0619dcb85726b0175d6b2e51deca6bbcfd5431460cfbbd78d88f84",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      },
+      {
+        "id": "08b87e5fae838b5ef676df7a5eee55fe6ca11ca697211e52c8b4dfd62c09571b",
+        "classification": "declaration",
+        "owner": "GeneralForm",
+        "reason": "UI owns grouping/layout/example text only; fields, types, choices, numeric bounds, restart metadata and draft mutations use their actual preference Owners. PackInput preserves missing-input rejection and message-before-key read order."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "GeneralForm / PackInput",
+        "declaration": "hub/widget/forms/general_settings.py",
+        "consumers": [
+          "hub/ui/settings/pages.py"
+        ],
+        "tests": [
+          "tests/hub/test_stores.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -7420,3 +7420,86 @@ Hub 미완료와 함께 열려 있었다. 두 모듈 전체(82/322행)를 읽어
 `python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews` exit 0(16 tests/3.409초).
 최종 llm 378파일/9372후보, 미검토·미분류·위반·stale·미확인 동적 경로·감사 오류 0.
 Hub 소비 연결 5건과 Hub 미검토 177파일은 다음 단계에 남는다. 이 문서 소단계에서 제품 전체 회귀는 실행하지 않았으며 바로 Gate45에서 실행한다.
+
+
+## Gate45 — llm 전수 후 통합·정확한 SHA 원격 검증
+
+동결 SHA `14516d46768f23bcbcb8ea1ef2cf94d1cb637252`, 작업 트리 `/workspace/ish-llm-group45-validation`.
+Gate44 이후 Events/Steps·Run·Configuration/Host·Lifecycle·공개 Facade/CLI와 남은 가이드를 묶었다.
+전체 LLM 다음 전체 Hub를 하나의 변경 없는 소스·환경에서 순서대로 실행했다. 소단계 결과를 합산한 전체 실행이 아니다.
+
+- LLM: 발견/실행/pass/available 2502/2502/2502/2502, 1441.1284190099686초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group45-l3/llm.json`.
+- HUB: 발견/실행/pass/available 588/588/588/588, 1101.3686478190357초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group45-l3/hub.json`.
+
+각 suite의 failure/error/skip/xfail/xpass/누락/추가/중복은 0, 발견·실행·통과 ID가 일치한다.
+source `284b45508e6054f6bd0c54a1e108ef67d544edf8082c90cf81171e836bb06360`, input `6dce1f503ad7d0b5eef84a3664eaeb0600b705bd0a26afc52c492ec5f1418b6c`는 전체 실행 전후 동일하다.
+Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 의존성·실제 Linux/X11/Bubblewrap 환경이다.
+보조 검사 S1–S7·문서·R3 Mutation·offline Provider·LLM/Hub 환경 검사 여섯 명령도 모두 exit 0이다. 실제 argv/exit는 `group45-auxiliary/results.json`, 전체 로그/엄격 집계/manifest는 `whole-owners-group45-l3`에 보존한다.
+
+검증한 SHA만 `refactor/llm-clean`에 fast-forward Push했다. 원격 main/refactor/llm-backend와 Draft PR #1의 전후 값은 동일하다.
+원격 [40120565223](https://github.com/E1der0wL/ish-llm/actions/runs/40120565223)의 head SHA를 대조하고 2026-10-24T19:01:30Z에 두 필수 Job과 전체 필수 Step의 실제 success를 확인했다.
+- 원격 HUB: 발견/실행/pass/available 588/588/588/588, 1427.8004082480002초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+- 원격 LLM: 발견/실행/pass/available 2502/2502/2502/2502, 2056.553286451초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+
+로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
+이로써 llm 378파일의 로컬 전수 검토와 묶음 통합·원격 게이트를 완료했다. 전체 작업은 계속된다.
+남은 Hub 177파일 및 Hub 소비 연결 계약 5건을 다음으로 진행하며, 잔여가 있는 전체 DC3는 완료로 표시하지 않는다.
+
+
+## Hub 상태·전역 설정 Owner — 관련 소비자 검증 묶음
+
+기준 14516d4. llm Gate45의 로컬 전체·정확한 SHA 원격 CI 확인 후 적용했다. 상태 저장과 전역
+설정은 workspace·재시작·일반 설정 시험이 겹치므로, 제품 적용/회귀를 시작하기 전에 한 묶음으로
+정리했다. 기존 전체 검증을 중단하거나 반복하지 않았다. 준비 단계의 두 비교 보고서는 보존하며
+제품 회귀와 구분한다. 이번 소단계에서도 전체 Hub 전수 완료를 선언하지 않는다.
+
+WorkspaceJSONStore·workspace·ShellEnvironment·ViewStateStore/Writer, GeneralSettings·UserProfile·
+PreferencesStore·restart·GeneralForm 아홉 기존 파일을 전체 읽고 여섯 선언/record 모듈을 추가했다.
+고정 record를 typed Reader·속성·변경 API로 연결했다. runtime의 초기 선택 기본값 세 곳과
+Theme의 정적 selector 연결은 좁은 변경이며 두 파일의 전체 검토 상태를 바꾸지 않았다.
+
+상태 측 변경은 cwd/env wire·cwd/variables API·정렬·사본, ReadingPosition 공개 import·load tuple,
+version/projects 필수 검증과 표시 관측의 기존 필터링, 파일 바이트·원자적 교체·cleanup,
+writer coalescing·Project 순서를 보존한다. 설정 측 변경은 dataclass 필드에서 bool/int 검증과
+JSON Schema 형식/제약을 파생하고 Editor 파싱을 공유한다. UI는 그룹·표시만 소유한다.
+완전한 저장 section만 읽으며 누락을 기본값으로 복구하지 않는다. 초기 설정 생성과 저장 Reader를
+구분하고, sidebar 먼저 쓰기·부분 실패·launch anchor의 None/falsey 의미·재시작 선택 해제를 유지한다.
+
+비교 증거는 state AST 12개 동일 함수/8개 명시 변경, preferences AST 51개 동일 함수/15개 명시
+변경이다. workspace는 state 변경 이후를 두 번째 기준으로 사용했으므로 중복 합산하지 않는다.
+실제 상태 파일 138가지·fsync/replace 전후 장애 4·읽기 관측 137·셸/경로/사본·writer 순서,
+설정 값/거부 483·검증 순서 305·Editor argv 35, 설정 저장/읽기 86/18·sidebar 19·부분 쓰기 장애 4,
+실제 launch-root/재시작 36·restart 비교 352, 실제 폼/대화상자/selector 결과를 독립 비교했다.
+
+언어팩 미입력 callback 비교에서 초기 제안의 필드 거부 순서 차이를 발견했다. 기존 할당은
+messages를 먼저 읽는다. required marker와 읽기 순서를 유지하도록 수정했고, 빈 값으로
+초기화하지 않으며 원본 draft 불변과 같은 KeyError를 재검증했다. 실패 로그·실패 소스 hash와
+수정 후 증거를 모두 보존했다. 기존 제품 시험/안전성 assertion은 변경하지 않았다.
+
+Level 1은 실제 저장·shell·workspace·설정·재시작·presets·폼/위젯 직접 소비자 15모듈,
+Level 2는 질문·Graph·Tool retry·요청 기록·출력·Skill·Provider recovery·승인 8모듈이다.
+LLM 승인·사용량·효과·Checkpoint·lifecycle·transaction·실행 경계와 R3를 별도로 유지했다.
+
+- `whole-hub-settings-l1-01`: discovered/started/pass 79/79/79, exit 0, 119.685861초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-l1-01/hub.json --modules tests.hub.test_stores tests.hub.test_reading_positions tests.hub.test_shell_environment tests.hub.test_workspace_settings tests.hub.test_workspace_presence tests.hub.test_general_options tests.hub.test_settings_restart tests.hub.test_settings tests.hub.test_settings_json tests.hub.test_presets_widgets tests.hub.test_settings_usability tests.hub.test_settings_editor tests.hub.test_widget_chrome tests.hub.test_page_layout tests.hub.test_settings_project_flow`. source `0e97a5623a8d87e1075f6d518ec3d3e541588596d44dc6338f7a691699b0326a`, input `4c2cdf736b918d599a9e620ac8a6461881fa3b492772357470f43696b4c7bf10`.
+
+- `whole-hub-settings-l2-01`: discovered/started/pass 70/70/70, exit 0, 309.295652초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-settings-l2-01/hub.json --modules tests.hub.test_question_tools tests.hub.test_agent_graph tests.hub.test_tool_retry tests.hub.test_request_history tests.hub.test_engine_output tests.hub.test_coding_skill tests.hub.test_provider_recovery tests.hub.test_approval_continuation`. source `0e97a5623a8d87e1075f6d518ec3d3e541588596d44dc6338f7a691699b0326a`, input `4c2cdf736b918d599a9e620ac8a6461881fa3b492772357470f43696b4c7bf10`.
+
+- `whole-hub-settings-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.005038초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-settings-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `0e97a5623a8d87e1075f6d518ec3d3e541588596d44dc6338f7a691699b0326a`, input `4c2cdf736b918d599a9e620ac8a6461881fa3b492772357470f43696b4c7bf10`.
+
+각 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID가 일치한다.
+같은 suite의 선택은 겹치지 않으며 실행 전후와 세 실행 사이 source/input manifest가 같다.
+Python 3.12.14/Clang, Host d833790, 고정 의존성·실제 Linux/X11/Bubblewrap 환경이다.
+R3는 `python -m tests.llm.check_budget_mutation`, exit 0이다. 실제 Python 경로·argv·exit·로그는
+`hub-settings-draft/selected-results.json`과 각 focus 디렉터리에 보존한다.
+
+전체 회귀를 이 소단계에서 반복하지 않았다. 공통 쓰기 body·외부 형식·실행 정책의 동일성과
+영향받는 실제 소비자/안전성 증거에 따라 후속 Hub 설정·표시 변경을 묶을 Level 3로 유예한다.
+전체 필수 GitHub LLM/Hub Job은 유지한다. 새로운 선언만으로 외부 소비가 완료됐다고 처리하지
+않았다. 기존 llm→Hub 다섯 계약과 새 Owner의 잔여 Hub 소비 연결은 incomplete로 추적한다.
+
+소단계 마감: 정적 S1–S7·전수 감사 16개·문서 검사는 모두 exit 0이다. 정적 finding은 83개이며
+신규 미검토/유효하지 않은 검토 0이다. Owner로 이동한 두 version 비교는 exact int 확인과
+정규 버전 인자 전달을 개별 재검토했다. 기존 inline worker 1은 ViewStateWriter.MAX_WORKERS로
+이동했으며 실행 lane/효과 순서가 같다. 이 개별 정적 검토는 필수 기록 검증을 면제하지 않는다.
+제품 603파일 중 미검토 168, 미분류 8,338, 미완료 공유 계약 13이며 stale/위반/issues 0이다.
+llm/ 378파일 전수 검토는 유지되고 남은 범위는 Hub 및 명시한 Hub 소비자 연결이다.

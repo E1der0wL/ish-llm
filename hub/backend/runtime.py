@@ -19,6 +19,7 @@ from ..config.profile import UserProfile
 from .execution.engine_selection import requires_model, selected_engines
 from ..config.general import GeneralSettings
 from ..config.view_state import ViewStateStore
+from ..config.workspace import WorkspaceSelection
 from .observability.notifications import NotificationBuffer
 from .bootstrap import create_backend
 from .project.agents import DEFAULT_AGENT
@@ -37,8 +38,8 @@ class HubConfig:
     agent_definition: dict | None = None
     model: str | None = None
     api_base: str | None = None
-    project_id: str | None = None
-    session_id: str | None = None
+    project_id: str | None = WorkspaceSelection.NO_PROJECT
+    session_id: str | None = WorkspaceSelection.NO_SESSION
     language: str = LanguageCode.DEFAULT
     engine_factories: dict[str, Callable] | None = None
     component_factories: tuple[Callable, ...] | list[Callable] | None = None
@@ -48,7 +49,7 @@ class HubConfig:
     auto_title: bool = True
     user_profile: UserProfile = field(default_factory=UserProfile)
     language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
-    _workspace_anchor: str | Path | None = field(default=None, repr=False)
+    _workspace_anchor: str | Path | None = field(default=WorkspaceSelection.UNBOUND_ANCHOR, repr=False)
     tool_retry_chooser: Callable | None = None
     tool_retry_evidence: dict[str, Callable] = field(default_factory=dict)
     log_sink: Callable | None = None

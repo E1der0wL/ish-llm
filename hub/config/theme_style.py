@@ -1,0 +1,85 @@
+"""Canonical prompt_toolkit selectors for the Hub theme."""
+
+from enum import StrEnum
+
+
+class ThemeSelector(StrEnum):
+    ROOT = "hub"
+    HEADER = "hub.header"
+    HEADER_PROJECT = "hub.header.project"
+    PROFILE = "hub.profile"
+    HEADER_MODEL = "hub.header.model"
+    ACCENT = "hub.accent"
+    SYSTEM = "hub.system"
+    MUTED = "hub.muted"
+    SIDEBAR = "hub.sidebar"
+    SELECTED = "hub.selected"
+    FOCUSED = "hub.focused"
+    SETTINGS_INPUT = "hub.settings-input"
+    DIVIDER = "hub.divider"
+    TITLE = "hub.title"
+    COMPOSER = "hub.composer"
+    QUESTION = "hub.question"
+    QUESTION_HEADING = "hub.question-heading"
+    QUESTION_CHOICE = "hub.question-choice"
+    QUESTION_CHOICE_SELECTED = "hub.question-choice-selected"
+    PTK_AUTO_SUGGESTION = "hub auto-suggestion"
+    FOOTER = "hub.footer"
+    PTK_FRAME_BORDER = "hub frame.border"
+    NOTICE = "hub.notice"
+    USER = "hub.user"
+    USER_BLOCK = "hub.user-block"
+    PTK_SCROLLBAR_BACKGROUND = "hub scrollbar.background"
+    PTK_SCROLLBAR_BUTTON = "hub scrollbar.button"
+    PTK_SCROLLBAR_ARROW = "hub scrollbar.arrow"
+    PTK_SCROLLBAR_START = "hub scrollbar.start"
+    PTK_SCROLLBAR_END = "hub scrollbar.end"
+    SCROLLBAR_TRACK = "hub.scrollbar-track"
+    SCROLLBAR_THUMB = "hub.scrollbar-thumb"
+    SCROLLBAR_ARROW = "hub.scrollbar-arrow"
+    SCROLLBAR_HOVER = "hub.scrollbar-hover"
+    MOUSE_HOVER_BUTTON_TEXT = "hub.mouse-hover button.text"
+    MOUSE_HOVER = "hub.mouse-hover"
+    TEXT_SELECTION = "hub.text-selection"
+    INACTIVE = "hub.inactive"
+    TRANSPARENT = "hub.transparent"
+    PTK_DIALOG = "hub dialog"
+    PTK_DIALOG_BODY = "hub dialog.body"
+    PTK_DIALOG_BODY_TEXT_AREA = "hub dialog.body text-area"
+    PTK_DIALOG_FRAME_LABEL = "hub dialog frame.label"
+    PTK_DIALOG_SHADOW = "hub dialog shadow"
+    PTK_BUTTON = "hub button"
+    PTK_BUTTON_FOCUSED = "hub button.focused"
+    PTK_BUTTON_FOCUSED_BUTTON_TEXT = "hub button.focused button.text"
+    PTK_BUTTON_SELECTED_BUTTON_TEXT = "hub button.selected button.text"
+    AUXILIARY = "hub.auxiliary"
+    AUXILIARY_BUTTON = "hub.auxiliary button"
+    AUXILIARY_BUTTON_FOCUSED = "hub.auxiliary button.focused"
+    AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT = "hub.auxiliary button.focused button.text"
+    PTK_CHECKBOX_LIST = "hub checkbox-list"
+    CHECKLIST = "hub.checklist"
+    PTK_CHECKBOX_LIST_FOCUSED = "hub checkbox-list.focused"
+    PTK_CHECKBOX_CHECKED = "hub checkbox-checked"
+    PTK_COMPLETION_MENU = "hub completion-menu"
+    PTK_COMPLETION_MENU_COMPLETION = "hub completion-menu.completion"
+    PTK_COMPLETION_MENU_COMPLETION_CURRENT = "hub completion-menu.completion.current"
+    PTK_COMPLETION_MENU_META_COMPLETION = "hub completion-menu.meta.completion"
+    PTK_COMPLETION_MENU_META_COMPLETION_CURRENT = (
+        "hub completion-menu.meta.completion.current"
+    )
+    PTK_COMPLETION_MENU_SCROLLBAR_BACKGROUND = (
+        "hub completion-menu.scrollbar.background"
+    )
+    PTK_COMPLETION_MENU_SCROLLBAR_BUTTON = "hub completion-menu.scrollbar.button"
+    SEARCH_MATCH = "hub.search.match"
+    SEARCH_CURRENT = "hub.search.current"
+    TOAST = "hub.toast"
+    TOAST_FRAME_LABEL = "hub.toast frame.label"
+
+    @property
+    def style(self):
+        return ThemeStyle.CLASS_REFERENCE.format(selector=self.value)
+
+
+class ThemeStyle:
+    CLASS_REFERENCE = "class:{selector}"

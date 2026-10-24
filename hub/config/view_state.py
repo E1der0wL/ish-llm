@@ -1,68 +1,57 @@
 """Hub-owned reading positions; no changes to LLM domain records."""
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass
 from threading import Lock
 
 from .store import WorkspaceJSONStore
-
-
-@dataclass(frozen=True, slots=True)
-class ReadingPosition:
-    message_id: str = ""
-    offset: int = 0
-    line: int = 0
+from .view_records import ProjectReadingState, ReadingPosition, ViewStateRecord
 
 
 class ViewStateStore(WorkspaceJSONStore):
-    VERSION = 1
+    VERSION = ViewStateRecord.VERSION
+    FILE = "view-state.json"
 
     def __init__(self, workspace):
-        super().__init__(workspace, "view-state.json")
+        super().__init__(workspace, self.FILE)
 
     def _read(self):
-        data = self._read_json({"version": self.VERSION, "projects": {}})
-        if (not isinstance(data, dict) or type(data.get("version")) is not int
-                or data["version"] != self.VERSION or not isinstance(data.get("projects"), dict)):
-            raise ValueError("Invalid Hub view state")
-        return data
+        return ViewStateRecord.read(
+            self._read_json(ViewStateRecord.empty(self.VERSION)), self.VERSION
+        )
 
     def last_project(self):
-        value = self._read().get("last_project", "")
-        return value if isinstance(value, str) else ""
+        return self._read().last_project
 
     def load(self, project_id):
-        project = self._read()["projects"].get(project_id, {})
-        if not isinstance(project, dict) or not isinstance(project.get("positions", {}), dict):
-            raise ValueError("Invalid Hub project view state")
-        positions = {}
-        for session_id, value in project.get("positions", {}).items():
-            if (isinstance(value, dict) and isinstance(value.get("message_id"), str)
-                    and type(value.get("offset")) is int and value["offset"] >= 0
-                    and type(value.get("line")) is int and value["line"] >= 0):
-                positions[session_id] = ReadingPosition(value["message_id"], value["offset"], value["line"])
-        return project.get("selected", ""), positions
+        project = self._read().project(project_id)
+        positions = project.positions()
+        return project.selected, positions
 
     def save(self, project_id, selected, positions):
         data = self._read()
-        projects = data["projects"]
-        data["last_project"] = project_id
-        project = projects.setdefault(project_id, {})
-        project["selected"] = selected
-        project.setdefault("positions", {}).update({key: asdict(value) for key, value in positions.items()})
-        self._write_json(data)
+        data.save_positions(project_id, selected, positions)
+        self._write_json(data.to_dict())
 
 
 class ViewStateWriter:
     """Coalesce UI position writes outside the PTK and backend execution loops."""
 
+    MAX_WORKERS = 1
+    THREAD_NAME = "hub-view-state"
+    WAIT_ON_CLOSE = True
+    WRITER_RUNNING = True
+    WRITER_IDLE = False
+    NO_LOAD_ERROR = None
+
     def __init__(self, store, on_error):
         self.store, self.on_error = store, on_error
-        self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="hub-view-state")
+        self.executor = ThreadPoolExecutor(
+            max_workers=self.MAX_WORKERS, thread_name_prefix=self.THREAD_NAME
+        )
         self.lock = Lock()
         self.pending = {}
         self.latest = {}
-        self.running = False
+        self.running = self.WRITER_IDLE
         self.loading = set()
 
     def is_loaded(self, project_id):
@@ -75,16 +64,18 @@ class ViewStateWriter:
             if project_id in self.loading:
                 return
             self.loading.add(project_id)
+
         def read():
-            error = None
+            error = self.NO_LOAD_ERROR
             try:
                 selected, positions = self.store.load(project_id)
             except Exception as caught:
-                selected, positions, error = "", {}, caught
+                selected, positions, error = ProjectReadingState.UNSELECTED, {}, caught
             with self.lock:
                 self.latest.setdefault(project_id, (selected, positions))
                 self.loading.discard(project_id)
             ready(error)
+
         self.executor.submit(read)
 
     def save(self, project_id, selected, positions):
@@ -92,9 +83,12 @@ class ViewStateWriter:
             # Moving a project to the end preserves the latest active project.
             previous = self.pending.pop(project_id, (selected, {}))[1]
             self.pending[project_id] = (selected, {**previous, **positions})
-            self.latest[project_id] = (selected, {**self.latest.get(project_id, (selected, {}))[1], **positions})
+            self.latest[project_id] = (
+                selected,
+                {**self.latest.get(project_id, (selected, {}))[1], **positions},
+            )
             if not self.running:
-                self.running = True
+                self.running = self.WRITER_RUNNING
                 self.executor.submit(self._write)
 
     def load(self, project_id):
@@ -108,7 +102,7 @@ class ViewStateWriter:
         while True:
             with self.lock:
                 if not self.pending:
-                    self.running = False
+                    self.running = self.WRITER_IDLE
                     return
                 project_id = next(iter(self.pending))
                 selected, positions = self.pending.pop(project_id)
@@ -118,4 +112,4 @@ class ViewStateWriter:
                 self.on_error(error)
 
     def close(self):
-        self.executor.shutdown(wait=True)
+        self.executor.shutdown(wait=self.WAIT_ON_CLOSE)
