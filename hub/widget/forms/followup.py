@@ -18,7 +18,7 @@ class FollowupSuggestion(AutoSuggest):
         if source != self.source:
             self.source = source
             self.key = key
-            self.text = (split_followup(item.text)[1]
+            self.text = (split_followup(item.text).suggestion
                          if item and item.role == "assistant" and item.status == MessageStatus.COMPLETED else "")
         self.update(self.view.composer.buffer)
 

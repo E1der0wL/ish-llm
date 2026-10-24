@@ -43,6 +43,6 @@ class HubContextBuilder(ConversationContextBuilder):
         # Budget only after selecting complete logical turns. The current resume
         # lineage contains saved tool receipts, not unrelated previous requests.
         history = super().for_run(records, input_message_id, policy=ContextPolicy(mode=ContextMode.FULL.value))
-        kept = [replace(item, content=split_followup(item.content)[0])
+        kept = [replace(item, content=split_followup(item.content).content)
                 if item.role == MessageRole.ASSISTANT else item for item in history[:-1]]
         return self._select([*kept, history[-1]], policy)

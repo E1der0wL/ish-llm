@@ -80,6 +80,7 @@ class RAGDocument:
     ERROR_RAG_DOCUMENTS_REQUIRE_A_STORED_GENERATION_AND_POSITIVE_REVISION__RE_REGISTER_SOURCES_WITHOUT_THEM = 'RAG documents require a stored generation and positive revision; re-register sources without them'
 
     ABSENT = None
+    NO_DESCRIPTION = ""
     GRAPH_INCOMPLETE = False
     DIGEST_PATTERN = r"[a-f0-9]{64}"
     INITIAL_REVISION = 1
@@ -112,6 +113,10 @@ class RAGDocument:
     @property
     def title(self):
         return self._value[self.Field.TITLE]
+
+    @property
+    def description_observation(self):
+        return self._value.get(self.Field.DESCRIPTION, self.NO_DESCRIPTION)
 
     @property
     def metadata(self):

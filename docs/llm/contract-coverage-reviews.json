@@ -54549,8 +54549,8 @@
   },
   {
     "path": "llm/components/rag/retrieval_records.py",
-    "sha256": "52ef3dec3cd506871cfebfa984f509abccf1706838604aa2a472f19613cc3963",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately.",
+    "sha256": "85c45bb74fa7cb20405a929746608371009bd1f14ae261bbfc066e3d3843d48c",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -54650,31 +54650,37 @@
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c232af6563bb39bff922c443a0f3114e50c8c814b8b258fd18463144455f9a4f",
+        "id": "8018dba00b129fb53d5c7d8bc311e3e801efbdfa598dcc37657b65638774b5ef",
+        "classification": "declaration",
+        "owner": "CatalogPage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e4da15ccdc83c8a1da7ad9aa0f7ead35de6e85ca8c3278b7ef5350a03b9ac5d1",
         "classification": "declaration",
         "owner": "RAGToolResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "7bf266fc96298b3ab1b2c9dd587f2612c20e43368032dc986d7e8005f41f4d45",
+        "id": "03616b683e6e9c855c52efe18f97cb3c91eea1e70c136dc3896af19f650d565c",
         "classification": "declaration",
         "owner": "GraphReadiness",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "9b3c27aa88df122f67ce764f3a86189f14d76adc7a02618e9fac2d368319a98f",
+        "id": "389f18774133865d367baf329ee3528ef11b7bc16ef969daf129befd147ab51f",
         "classification": "declaration",
         "owner": "CombinedResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ce4a1eaaf29c1473026d97b1951660deb24897f38f9fc56e8394130ec2db7c2e",
+        "id": "48e236ae22a9d7ab431f22178d855794f3be6dd0394feb7d0ce2669ea34f3af1",
         "classification": "declaration",
         "owner": "CombinedResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "8f2b17d430e49e1ee3baf44f220e57b164fdb556c1acfc8bb4ec9040b58cfa77",
+        "id": "83f900217ef4ca50dcd65566a5a09b981ef96801d46141991813a1be47f32608",
         "classification": "declaration",
         "owner": "CombinedResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
@@ -54685,26 +54691,44 @@
         "owner": "RetrievalHit/RetrievalSource/CatalogCursor/CatalogRequest/CatalogPage/RAGToolResult",
         "declaration": "llm/components/rag/retrieval_records.py",
         "consumers": [
+          "hub/backend/execution/completion.py",
+          "hub/backend/execution/followup.py",
+          "hub/backend/execution/input_context.py",
+          "hub/backend/execution/rag_catalog.py",
+          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
-          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/data.py",
           "llm/components/rag/jobs.py",
-          "llm/components/rag/tools.py",
-          "llm/components/rag/search.py"
+          "llm/components/rag/search.py",
+          "llm/components/rag/tools.py"
         ],
         "tests": [
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
           "tests/llm/test_rag_catalog_integrity.py",
-          "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
           "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_query_evidence.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_batch_identity.py",
-          "tests/llm/test_rag_components.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/hub/test_rag_retention.py"
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -56401,8 +56425,8 @@
   },
   {
     "path": "llm/components/rag/document_records.py",
-    "sha256": "088b976a0580b86cca137e814737dccf948d1eb6d43d895c585674f4fb990ddb",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained.",
+    "sha256": "8e78ade1f689a200f691b21b5bf011355ebcf1401a593ea0c3795159cbfef733",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -56580,133 +56604,139 @@
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "e41832c3887633aac27e69c631e02c463e40e7213636c36c40eb82e09ca0b235",
+        "id": "6898d9ec7a624a3531585653b2f06ea311a5b327af8b65892f18f8c3ff995b05",
+        "classification": "declaration",
+        "owner": "RAGDocument",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "bf84ebc30085a2bb55f7ae1cb964531a5890efcbc6d80259e695fa1647d0a06d",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "7ec481421934fcf6a65637a72336baae5cfa74969a6e7fd10ca7eb39ff99d9aa",
+        "id": "409284a27a5e205254405806399fa939a0e2168b63ff3942a731429a9e6aeaac",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "60420fdd772406c15ac45dca170296e7628765904f9830849d15e86d2dcbfd37",
+        "id": "1f9a0522204fe61322e439ff063e283aac2d0909d6ef51950ccf84133177a80c",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "65768fbb7200e45114250cb9eb7b126fc00e678f71531263f2a19ab939c2218c",
+        "id": "ce0cbcdd2c9ed0ae27b500444e4abd1fe275dc9c77f6fa111fbcc8fc38c1e869",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0107b6f44b6ad595965cb420b6e7f13c766421a3bfdce5958f27e55b130d6346",
+        "id": "a4663bfca92eb3914389310c273dddb00f8944926522857213aea9b6df5598f7",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c32f361148fd17d875aacd560bddd39b720197db303d587cbd65372a5c622ea2",
+        "id": "0de683651bfcd35ba2b1985c56a51ec85b346f08e4e4b4144301eb7d7aed6711",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ab4c87ab66702419bdbfbfa1e18e0e933e517079fe23d5634845a3246af6e9b4",
+        "id": "ce41dae8563728beca297ae9bb6d31dc5ab76561446fde8062a645111fbd9bf1",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "8b72b6c0c2609e67b5231ea0fdd90c1011b167bce517747a7ce70091495f3a13",
+        "id": "ab140d6bf61764e32d20de310e8204c76f307883677e097298dc0d6cd566b316",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "fc7f948c6a9b7b04487ee98fd71a2b8a3bccf8957bfafc5547b8887ea712cbc1",
+        "id": "2a83205b719e2829cdddd2c387cd328b52b84239a25a4e6cb3867a667f815adb",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "111426f3cbf778242bd1436aef0ffb29ee829345690c1b2024f8bb647e9d1147",
+        "id": "15ae1ca6672a013e923033d82248fa64776e9ca7536a3fafe077c093389084d3",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c2651665fa2806a0b37904abaf9123bfb4edf78fd87b7bebcd50d635d9263d5e",
+        "id": "afcd16b9081bcfa5604014f360d7ea612b82ccb89275a2fbca2304f261514142",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "faa199cf6f3d1a2922ff6f3fc67d0db5a7b4c992e185c223273673142e86d92b",
+        "id": "1710eb9050c05e32103914eeeef16676bd04437aa061975b027dbd951eadd458",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "2885fe4b0d68ceac0a37cbb5979e0fd29f94697c7c6c4378aa544cdddce491ff",
+        "id": "0c8faa7b2385cd3531fe4f5985136c8aeb94484b665e98d815110b7f5fc7bda4",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "cc21197ca39a885b134092474455892aa792cc06369d388bbb6dad00c5f93c1f",
+        "id": "9f492d8bb7a32fc25e4966f6be17728e1bfe3c176138156897acfc19c4ed89b5",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "4242eebcecba36aa144316ef843f43dea2842e25370d14223b68b900b298bd1b",
+        "id": "14e8ca176318b2d59a8afa7080adc4af5caaaa5083db3fc544fbeffb2bb0c9c3",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "153ec605ec5466b0432bd601eae04f19d17e3413a7bece2ea49a339217e0e6b8",
+        "id": "f74cc9957960063564718b68fa1656315e267b81629fcc2c4d69e63163950afa",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "a06df29822ff27d4c15b374460c3c96210099d1a742c57ecccdc63629d9e6bdc",
+        "id": "d5dc3e23d4d09b49cf60f65105eb9fe6d3dd8f81300fee7326ec44f4109c8398",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "93eae73c105d7e1d55b0bcb84850c92bd0eb0a5ec7abda15c58d505f8ae0d499",
+        "id": "760e2b23e7c62036881d32451ec045031fa141ca278ffc0ebc5c4db9c605ac51",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c43847c590620f335301cec0661ca681243ccd4ba85d8407ceb84314ee004f78",
+        "id": "167de6d5e5001bc02fe0f9802c25c7682b0f12ce58122eb7b49806c103c581d4",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "362d8cb6eb6c24fab6eb1ec50e4c429b459d64b7fef749f46640964afb631594",
+        "id": "6f33166ba6e69212070ffe1543aa3322b0085513b659105700ef26dcc97c48fa",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "8eb24bd1bb7d6771abde853a62d7ea4d5450af0dfead03c6c070f0e61bffeed9",
+        "id": "31c0a23bb710df1fdd931d4d195405243d741e3ab7e34d9c315eb0b9fc54f911",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "514b55fac98d9d9c33b3a63776712a401519ee30e653ff1dcb98556865546554",
+        "id": "fd625508126c3c3135c73c684ceab441c037db288374b34e78ccd72a652cea5f",
         "classification": "declaration",
         "owner": "RAGDocumentInput.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
@@ -56717,31 +56747,49 @@
         "owner": "RAGDocument/RAGDocumentInput/ExtractionManifestEntry",
         "declaration": "llm/components/rag/document_records.py",
         "consumers": [
+          "hub/backend/execution/completion.py",
+          "hub/backend/execution/followup.py",
+          "hub/backend/execution/input_context.py",
+          "hub/backend/execution/rag_catalog.py",
+          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
-          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/data.py",
-          "llm/components/rag/jobs.py",
-          "llm/components/rag/job_storage.py",
           "llm/components/rag/document_views.py",
-          "llm/components/rag/indexing.py",
           "llm/components/rag/graph_indexing.py",
-          "llm/components/rag/retrieval_records.py",
+          "llm/components/rag/indexing.py",
+          "llm/components/rag/job_storage.py",
+          "llm/components/rag/jobs.py",
           "llm/components/rag/preparation.py",
+          "llm/components/rag/retrieval_records.py",
           "llm/components/vision/results.py"
         ],
         "tests": [
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
           "tests/llm/test_rag_catalog_integrity.py",
-          "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
           "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_query_evidence.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_batch_identity.py",
-          "tests/llm/test_rag_components.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/hub/test_rag_retention.py"
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -95944,7 +95992,7 @@
         "owner": "PathBinding / bind_paths",
         "declaration": "hub/backend/tools/paths.py",
         "consumers": [
-          "hub/backend/bootstrap.py"
+          "hub/backend/tools/builtin.py"
         ],
         "tests": [
           "tests/llm/test_retry.py",
@@ -96099,7 +96147,7 @@
         "owner": "RetryLabel / RetryLabelArguments / retry_text",
         "declaration": "hub/widget/feedback/retry_status.py",
         "consumers": [
-          "hub/widget/transcript/conversation.py"
+          "hub/widget/feedback/preparing.py"
         ],
         "tests": [
           "tests/llm/test_retry.py",
@@ -96176,6 +96224,400 @@
           "tests/hub/test_bootstrap.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_agent_graph.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/followup.py",
+    "sha256": "f1b8e94555cc4b24aec5a7dd87dec1270278f39fda7010ca88f05b54bf21cadf",
+    "reason": "Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ce44f019f1fbf52847ccca9cf61ddab711ebccc23c4ce3c579629579f34a939a",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "8a319234315b8343a969272699c8c9c764ff3e939f11323fb0150fab81fe42d7",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "0da0207170463dfff5271fe7d76350e04f0f6239db3bcd201917a82ffd0a1b02",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "a6e19a97b05b0c68bb611a26d0934f5a88c9642183646ceed88ac11436233cd6",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "243076cac6762f39ff72ed13977791a0abdb338cd02c7065c6d29f1c55c02c6f",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "ce677433692d68815cbfaaf2a870207dc038b529fcb3bca79ba4c9ab31559417",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "bda171e9ea55de9fbbe998786a91efbc38dfac5261e4afe9373234d73a1d9769",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "0a3443d8e260cfda0879c0d65bb64d84c90c13d50ded3e0a0b04cbed931a62be",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "c7a04a4c210ff10b2ae484f16e85507fec56fd9ee71ce34e7a6264d98f29762b",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "6a2853eecf822680fd781a8451cc97a17a846d3a103b962e7b1e32d3829041f1",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "82995b3b150c65cbbbea3c01b83389dbfdd1ca7037c52b19844c5389e9d6ad88",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "5e2e50f7edada4baae89a3c17a0893b91ccad91e2a72d1a330cb139215b1acbc",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "0eef9dbed5855e5cc56992fb9360a4cabe1f2deb8367a681f26da94ba4e7c0a4",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "c2253167e03b19c00c2f725acd940210388d503163f53d589a19b7a71c4ba41d",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "6f9e6e2ddb79cfbd1f6315c8b02253e07cb07d34c448c7b2da499b699eacbd65",
+        "classification": "declaration",
+        "owner": "FollowupProtocol",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "45ff3835353d3201141553f4a2fc81020f336d28fc970a559a1132a1d72736ef",
+        "classification": "non_contract",
+        "owner": "split_followup",
+        "reason": "First character of the regex-matched fence string; ordinary sequence indexing."
+      },
+      {
+        "id": "b3f74f332c41dc5b10711b251914e2e3953dd98d8af89f2b7e1cac10e469ae31",
+        "classification": "non_contract",
+        "owner": "split_followup",
+        "reason": "First character comparison against the typed fence marker; ordinary sequence indexing."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FollowupProtocol / FollowupSplit / MarkdownFence",
+        "declaration": "hub/backend/execution/followup.py",
+        "consumers": [
+          "hub/backend/execution/completion.py",
+          "hub/backend/execution/context.py",
+          "hub/ui/presentation.py",
+          "hub/widget/forms/followup.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_response_reliability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/completion.py",
+    "sha256": "da2372bd3aa9a5ba7f07f2ecc6271187366b8233e18761e4df2b5c246079ed67",
+    "reason": "Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "372cc3e427f79bb9fe1e67a636fe1f85ba799bde3ada4b504c618b1f55860363",
+        "classification": "non_contract",
+        "owner": "FollowupSession.prepare",
+        "reason": "Existing Python async-generator shape for a hook that mutates only the request and emits no event."
+      },
+      {
+        "id": "44029d087af544313d045d40ea1b6e58909a68a995eca333e42c8ef9ed932f10",
+        "classification": "declaration",
+        "owner": "FollowupProcessor",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "569063770ee435ea66c8a6cd5490b9ff47d124f0bae874b365ab41102e5873c6",
+        "classification": "declaration",
+        "owner": "FollowupProcessor",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "e45c0a016ad642599c053bbe3c58fc9b7c65fe26f4e71cddd0f344ff763678b0",
+        "classification": "declaration",
+        "owner": "FollowupProcessor",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FollowupSession / FollowupProcessor",
+        "declaration": "hub/backend/execution/completion.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_response_reliability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/input_context.py",
+    "sha256": "06c3a48fb0a0a594abfa2fc57eecb838312d628ff398f2cf6984039ffd4448fe",
+    "reason": "Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e628a278a7196939112598db13e2ad5652fb7059829ea75382da9317a06c2e4c",
+        "classification": "declaration",
+        "owner": "HubInputContext",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "229bb9da487364b0d9d9674d399bb7dd5ae790259b7328376243d54d6c2cdb36",
+        "classification": "declaration",
+        "owner": "HubInputContext",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "1ea1f188542e1f061fce657cca3cffd77825acade52b76f04159232bbc4f97e9",
+        "classification": "declaration",
+        "owner": "HubInputContext",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubInputContext",
+        "declaration": "hub/backend/execution/input_context.py",
+        "consumers": [
+          "hub/backend/execution/completion.py",
+          "hub/backend/execution/rag_catalog.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_response_reliability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/rag_catalog.py",
+    "sha256": "139aa1e3cd26c36c07a0b3a25d541621d3743efc70c7af0cee5b557fdcef4e11",
+    "reason": "Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9d3df549ccc5042258f86b44600a21ec42db46821bc47b61255d851afc470ece",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "2052470c259b6d455a285637917ab3c54f0f4b963cb8894f6c1f1d8b04396660",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "a019f542f9e86be5eab1edd40ae3a173c5bac9f383cf7501859fe63acc33680f",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "0e58f1630ad0d8421df5c24574255ea5588a42a01867b016c5f4ec3d9fc7bc04",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "8742575bb386f672de5f79db3b393868c51231ebc855175e534855c84a3774a2",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "35c18326f2ec00ff94e2e08c4fa04d7e47577e5cd2aff4d28ff46f9580432d2e",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "cb1f0c6279450bfb6919ab523647bf2da863a0586c6e1e1149cba2bb3c991e52",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "5f7db28ea5884e97d75d78d05696e938633c062e470a87b81104e3a6eb8e0ffd",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "d89ba05cc5fe79a7addd5842c113d437a7b65335e5b935a23088121c52100c06",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "2ecc95e5538a502b571cbe3f4e80279e9e7ada8c860d2708f2c62a6c9ef83955",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "faa3c8ce08d14385d689614dd11adc559b58200254405062e7a13daaaac302b9",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "0692e1e360c3bc0e7e6557dfd7f4e4f5a6ac18158d66786116931378db7d8b5b",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "0417d49b9554b0c693ae1eaf56421b9f710fcde64f4d6d9a26f4fe1a8c7986a2",
+        "classification": "declaration",
+        "owner": "RAGCatalogPreview",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "61a98eaeba6f0907f1e06d0e30bd264eab2e56d91d88552e24e90ec195a086d3",
+        "classification": "non_contract",
+        "owner": "RAGCatalogSession.prepare",
+        "reason": "Existing Python async-generator shape for a context-only hook; no execution-policy flag."
+      },
+      {
+        "id": "26b9bb9f5ecb633257afff20e646cc16f47be938b4047bd178d9212373f48264",
+        "classification": "declaration",
+        "owner": "RAGCatalogProcessor",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "ff6f975d68e511463598103fb8c29324eedffd97c83f6011909176d7ee5d036b",
+        "classification": "declaration",
+        "owner": "RAGCatalogProcessor",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      },
+      {
+        "id": "65973fa999fe41b995d134cfba2b0a16b17583280cfc503e0f147195d57a091b",
+        "classification": "declaration",
+        "owner": "RAGCatalogProcessor",
+        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGCatalogPreview / RAGCatalogSession / RAGCatalogProcessor",
+        "declaration": "hub/backend/execution/rag_catalog.py",
+        "consumers": [
+          "hub/backend/tools/resources.py"
+        ],
+        "tests": [
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_response_reliability.py"
         ],
         "complete": true
       }

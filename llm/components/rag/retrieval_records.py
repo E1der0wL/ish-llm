@@ -106,6 +106,19 @@ class CatalogPage:
         GENERATION = CatalogCursor.Field.GENERATION
         NEXT_CURSOR = "next_cursor"
 
+    NO_CURSOR = None
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def documents(self):
+        return self._value[self.Field.DOCUMENTS]
+
+    @property
+    def has_more(self):
+        return self._value[self.Field.NEXT_CURSOR] is not self.NO_CURSOR
+
     @classmethod
     def create(cls, documents, generation, cursor):
         return {cls.Field.DOCUMENTS: documents, cls.Field.GENERATION: generation, cls.Field.NEXT_CURSOR: cursor}

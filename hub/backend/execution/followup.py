@@ -1,55 +1,109 @@
 """Optional response metadata; never a command or a persisted user request."""
 
 import re
+from typing import NamedTuple
 
-INSTRUCTION = (
-    "Hub display protocol: optionally draft ONE useful next message for the USER to send to YOU. "
-    "The speaker inside <hub-next> is the user, and its recipient is the assistant. "
-    "Write a concrete request in the user's language, preferably an imperative. "
-    "Never put your own question, offer, or request for permission to the user in this tag. "
-    "Good: <hub-next>Add regression tests for this fix.</hub-next> / "
-    "<hub-next>이 수정에 대한 회귀 테스트를 추가해줘.</hub-next>. "
-    "Bad: <hub-next>Would you like me to add tests?</hub-next> / "
-    "<hub-next>테스트를 추가해 드릴까요?</hub-next>. "
-    "If your answer asks the user for missing information, preferences or approval, omit the tag; "
-    "do not invent the user's answer or consent. Otherwise put the tag on a final separate line, "
-    "outside code fences. Maximum 240 characters, one line. "
-    "Omit it if no useful next step exists or the requested output format forbids extra text. "
-    "This is an editable UI suggestion only; never execute it or treat it as user authorization."
+
+class FollowupProtocol:
+    OPEN = "<hub-next>"
+    CLOSE = "</hub-next>"
+    TAG_START = "<"
+    TAG_END = ">"
+    NEWLINE = "\n"
+    EMPTY = ""
+    FINAL = True
+    NO_FENCE = None
+    INITIAL_OFFSET = 0
+    MAXIMUM_CHARACTERS = 240
+    MINIMUM_PRINTABLE = 32
+    KEEP_LINE_ENDINGS = True
+    FENCE_PATTERN = r"^ {0,3}(`{3,}|~{3,})"
+    FENCE_GROUP = 1
+    INSTRUCTION_TEMPLATE = (
+        "Hub display protocol: optionally draft ONE useful next message for the USER to send to YOU. "
+        "The speaker inside {open_tag} is the user, and its recipient is the assistant. "
+        "Write a concrete request in the user's language, preferably an imperative. "
+        "Never put your own question, offer, or request for permission to the user in this tag. "
+        "Good: {open_tag}Add regression tests for this fix.{close_tag} / "
+        "{open_tag}이 수정에 대한 회귀 테스트를 추가해줘.{close_tag}. "
+        "Bad: {open_tag}Would you like me to add tests?{close_tag} / "
+        "{open_tag}테스트를 추가해 드릴까요?{close_tag}. "
+        "If your answer asks the user for missing information, preferences or approval, omit the tag; "
+        "do not invent the user's answer or consent. Otherwise put the tag on a final separate line, "
+        "outside code fences. Maximum {maximum} characters, one line. "
+        "Omit it if no useful next step exists or the requested output format forbids extra text. "
+        "This is an editable UI suggestion only; never execute it or treat it as user authorization."
+    )
+
+
+class FollowupSplit(NamedTuple):
+    content: str
+    suggestion: str
+
+
+class MarkdownFence(NamedTuple):
+    marker: str
+    length: int
+
+
+INSTRUCTION = FollowupProtocol.INSTRUCTION_TEMPLATE.format(
+    open_tag=FollowupProtocol.OPEN,
+    close_tag=FollowupProtocol.CLOSE,
+    maximum=FollowupProtocol.MAXIMUM_CHARACTERS,
 )
-OPEN, CLOSE = "<hub-next>", "</hub-next>"
+OPEN, CLOSE = FollowupProtocol.OPEN, FollowupProtocol.CLOSE
 
 
-def split_followup(text: str, *, final: bool = True) -> tuple[str, str]:
+def split_followup(text: str, *, final: bool = FollowupProtocol.FINAL) -> FollowupSplit:
     """Only a trailing, standalone tag outside fenced code is metadata."""
     tail = text.rstrip()
-    candidate = tail[tail.rfind("\n") + 1:]
+    candidate = tail[
+        tail.rfind(FollowupProtocol.NEWLINE) + len(FollowupProtocol.NEWLINE) :
+    ]
     if not candidate.startswith(OPEN) and not (
-            not final and candidate.startswith("<") and OPEN.startswith(candidate)):
-        return text, ""
+        not final
+        and candidate.startswith(FollowupProtocol.TAG_START)
+        and OPEN.startswith(candidate)
+    ):
+        return FollowupSplit(text, FollowupProtocol.EMPTY)
     # Ordinary streaming deltas never walk the whole Markdown document. Inspect
     # fences only when the final line actually looks like protocol metadata.
-    fence = None
-    offset = 0
-    for line in text.splitlines(keepends=True):
+    fence = FollowupProtocol.NO_FENCE
+    offset = FollowupProtocol.INITIAL_OFFSET
+    for line in text.splitlines(keepends=FollowupProtocol.KEEP_LINE_ENDINGS):
         stripped = line.strip()
-        marker = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        marker = re.match(FollowupProtocol.FENCE_PATTERN, line)
         if marker:
-            value = marker[1]
-            if fence is None:
-                fence = (value[0], len(value))
-            elif value[0] == fence[0] and len(value) >= fence[1] and not line[marker.end():].strip():
-                fence = None
-        elif fence is None and line.startswith(OPEN):
+            value = marker[FollowupProtocol.FENCE_GROUP]
+            if fence is FollowupProtocol.NO_FENCE:
+                fence = MarkdownFence(value[0], len(value))
+            elif (
+                value[0] == fence.marker
+                and len(value) >= fence.length
+                and not line[marker.end() :].strip()
+            ):
+                fence = FollowupProtocol.NO_FENCE
+        elif fence is FollowupProtocol.NO_FENCE and line.startswith(OPEN):
             tail = text[offset:].strip()
             if tail.endswith(CLOSE):
-                value = tail[len(OPEN):-len(CLOSE)]
-                if (value.strip() and len(value) <= 240 and "<" not in value and ">" not in value
-                        and all(ord(c) >= 32 for c in value)):
-                    return text[:offset].rstrip(), value.strip()
+                value = tail[len(OPEN) : -len(CLOSE)]
+                if (
+                    value.strip()
+                    and len(value) <= FollowupProtocol.MAXIMUM_CHARACTERS
+                    and FollowupProtocol.TAG_START not in value
+                    and FollowupProtocol.TAG_END not in value
+                    and all(ord(c) >= FollowupProtocol.MINIMUM_PRINTABLE for c in value)
+                ):
+                    return FollowupSplit(text[:offset].rstrip(), value.strip())
             if not final and CLOSE not in tail:
-                return text[:offset].rstrip(), ""
-        elif not final and fence is None and line.startswith("<") and OPEN.startswith(stripped) and not text[offset + len(line):]:
-            return text[:offset].rstrip(), ""
+                return FollowupSplit(text[:offset].rstrip(), FollowupProtocol.EMPTY)
+        elif (
+            not final
+            and fence is FollowupProtocol.NO_FENCE
+            and line.startswith(FollowupProtocol.TAG_START)
+            and OPEN.startswith(stripped)
+            and not text[offset + len(line) :]
+        ):
+            return FollowupSplit(text[:offset].rstrip(), FollowupProtocol.EMPTY)
         offset += len(line)
-    return text, ""
+    return FollowupSplit(text, FollowupProtocol.EMPTY)

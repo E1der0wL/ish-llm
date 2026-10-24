@@ -21,7 +21,7 @@ class Presentation:
 def present_message(item: ChatMessage, t) -> ChatMessage:
     text = item.text
     if item.role == "assistant":
-        text, _ = split_followup(text, final=item.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED))
+        text = split_followup(text, final=item.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED)).content
     if item.role == "assistant" and not text and item.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED):
         return replace(item, text="", phase=item.phase or "preparing")
     if item.role == "assistant" and item.status == MessageStatus.FAILED:
@@ -59,7 +59,7 @@ class MessagePresentationCache:
                     projected, partial = present_message(item, t), None
                     if item.role == "assistant" and item.status == MessageStatus.FAILED and item.text.strip():
                         # Keep model output separate; parse it only when changed.
-                        text, _ = split_followup(item.text, final=True)
+                        text = split_followup(item.text, final=True).content
                         partial = replace(item, text=text, failure=None)
                 cached = (item, projected, partial)
                 self.transformed += 1

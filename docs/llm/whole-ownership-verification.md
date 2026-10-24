@@ -8336,3 +8336,46 @@ R3 Mutation도 exit 0이며 원래 테스트/실제 효과 Assertion을 제거�
 Owner API/투영 이동의 범위가 실제 호출 관계와 137개 관찰로 제한됨을 확인하여 소단계는 Level 2로
 보존한다. 전체 회귀를 생략한 사실을 명시하며 전체/원격 완료로 해석하지 않는다. 오류·복구·재시도
 경계를 묶는 Gate50에서 전체 LLM/Hub·정적/문서/R3·실환경과 정확한 SHA의 원격 CI를 수행한다.
+
+
+## 응답 제안·RAG 미리보기와 일시적 입력 문맥
+
+Followup·Completion·RAGCatalog 세 기존 파일과 HubInputContext를 전수 정리했다.
+FollowupProtocol이 tag·fence·240자 상한·프롬프트를 선언하고 FollowupSplit의 content/suggestion을
+실제 Completion/Context/Presentation/입력 제안 소비자가 사용한다. 반환은 기존 tuple 동작을
+보존한다. Markdown code fence 안의 tag, 미완성 스트림·잘못된 제안은 기존처럼 실행 지시나
+승인으로 취급하지 않는다. Prompt의 tag와 상한은 선언을 참조하지만 최종 문자열은 이전과 같다.
+
+HubInputContext는 원래 두 처리기에 있던 선두 System 다음 삽입만 소유한다. 추가 문맥은
+Conversation 원본이나 저장 source ID를 만들지 않는다. CatalogPage의 기존 Writer에 빌린
+관찰 API를 연결하고 RAGDocument의 선택적 description 관찰은 기존 빈 문자열 동작만 보존한다.
+정규 저장 검증은 변경하지 않았다. RAGCatalogPreview는 실제 문서 id/title/description과 page
+선언을 참조하며 20건·제목 100자·설명 240자·도구 가용성·읽기 실패 표시·한 세션 내 캐시를 유지한다.
+RAG Tool 이름도 정규 RAGToolName 선언을 사용한다. 검색 수행이나 삭제 권한을 생성하지 않는다.
+
+독립 원본/제안 303개 관찰이 일치했다. 완성/부분 tag, 다양한 fence·길이·제어문자·다국어,
+실제 CompletionMessage의 source ID, RAG page 경계/실패/누락·가용성·캐시 및 실제 삽입 문자열을
+비교했다. 비교 도구의 첫 정상 page Assertion 인덱스를 수정하고 최초 로그를 보존했다.
+정상 제안·실제 RAG 문맥·정확한 호출 limit·캐시 횟수는 별도 Assertion으로 확인한다.
+Paths와 RetryStatus의 이전 검토 연결은 실제 직접 호출자인 Builtin과 Preparing으로 바로잡았다.
+구현·테스트·과거 실행 결과는 변경하지 않았다.
+
+- `whole-hub-response-context-core-01`: discovered/started/pass 31/31/31, exit 0, 38.629064초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-response-context-core-01/llm.json --modules tests.llm.test_completion_processing tests.llm.test_rag_catalog_integrity`. source `6380fb56b8be6810b3145d569bdef923ab44171933faabe535af8f0fb56f8240`, input `81b7a23ea8442064588543c383daf90cc35c07b223471686903749027d035647`.
+
+- `whole-hub-response-context-safety-01`: discovered/started/pass 90/90/90, exit 0, 41.142755초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-response-context-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries tests.llm.test_rag_storage`. source `6380fb56b8be6810b3145d569bdef923ab44171933faabe535af8f0fb56f8240`, input `81b7a23ea8442064588543c383daf90cc35c07b223471686903749027d035647`.
+
+- `whole-hub-response-context-l1-01`: discovered/started/pass 12/12/12, exit 0, 16.39352초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-response-context-l1-01/hub.json --modules tests.hub.test_followup tests.hub.test_rag_extensions`. source `6380fb56b8be6810b3145d569bdef923ab44171933faabe535af8f0fb56f8240`, input `81b7a23ea8442064588543c383daf90cc35c07b223471686903749027d035647`.
+
+- `whole-hub-response-context-l2-01`: discovered/started/pass 22/22/22, exit 0, 41.449197초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-response-context-l2-01/hub.json --modules tests.hub.test_context tests.hub.test_conversation tests.hub.test_usage_definitions_system tests.hub.test_response_reliability`. source `6380fb56b8be6810b3145d569bdef923ab44171933faabe535af8f0fb56f8240`, input `81b7a23ea8442064588543c383daf90cc35c07b223471686903749027d035647`.
+
+집중 실행마다 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0이다. 실행 전후·사이 source/input Hash 동일성을 확인했다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 명령/exit는
+`hub-response-context-draft/selected-results.json`, 독립 비교는 `proof-commands.json`에 보존한다.
+Core는 completion 처리와 RAG catalog integrity, Level 1은 Followup·RAG 확장, Level 2는
+Context·Conversation·설정/표시 캐시·응답 신뢰성, 공통 안전성은 기존 7개 모듈과 RAG storage다.
+R3 Mutation도 exit 0이며 원래 Assertion과 실제 파일 효과/승인/재개 검증은 유지한다.
+
+문맥 투영의 제한된 변경 범위를 원본 비교와 실제 소비자 검증으로 확인했다. 이 소단계에서 전체
+회귀는 실행하지 않았으며 전체/원격 완료로 표현하지 않는다. Gate50 이후 관련 실행/응답 소비자와
+묶은 다음 Level 3 전체 LLM/Hub·정적/문서/R3·실환경·정확한 SHA 원격 CI가 후속 게이트다.

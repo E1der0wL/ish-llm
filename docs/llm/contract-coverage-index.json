@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 617,
-    "unreviewed_files": 114,
+    "files": 618,
+    "unreviewed_files": 111,
     "stale_files": 0,
-    "unclassified": 5992,
+    "unclassified": 5917,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 114,
+    "unreviewed_dynamic_paths": 111,
     "unreadable_files": 0,
-    "candidates": 18476,
+    "candidates": 18444,
     "issues": 0
   },
   "files": [
@@ -123,15 +123,15 @@
     },
     {
       "path": "hub/backend/execution/completion.py",
-      "status": "unreviewed",
-      "sha256": "5f17b5db08825f91871b768d9745b8b5719c07483364c7aec0a65ec3267af4c4",
-      "candidates": 9
+      "status": "reviewed",
+      "sha256": "da2372bd3aa9a5ba7f07f2ecc6271187366b8233e18761e4df2b5c246079ed67",
+      "candidates": 4
     },
     {
       "path": "hub/backend/execution/context.py",
       "status": "unreviewed",
-      "sha256": "2946ef2aeb0bd0fd954956215210591de9a1484c35bd09dc353ac2b28f94ce8d",
-      "candidates": 15
+      "sha256": "de434591852d8e596718b980efb8e53e0a627370cfd334fa087a35a1c8abe97c",
+      "candidates": 14
     },
     {
       "path": "hub/backend/execution/continuations.py",
@@ -153,9 +153,15 @@
     },
     {
       "path": "hub/backend/execution/followup.py",
-      "status": "unreviewed",
-      "sha256": "770bcead1c42cad7899022efce26c83fa39272a846bb2e786dab2f19b1c4f6d5",
-      "candidates": 29
+      "status": "reviewed",
+      "sha256": "f1b8e94555cc4b24aec5a7dd87dec1270278f39fda7010ca88f05b54bf21cadf",
+      "candidates": 17
+    },
+    {
+      "path": "hub/backend/execution/input_context.py",
+      "status": "reviewed",
+      "sha256": "06c3a48fb0a0a594abfa2fc57eecb838312d628ff398f2cf6984039ffd4448fe",
+      "candidates": 3
     },
     {
       "path": "hub/backend/execution/provider_recovery.py",
@@ -165,9 +171,9 @@
     },
     {
       "path": "hub/backend/execution/rag_catalog.py",
-      "status": "unreviewed",
-      "sha256": "92386444eefee2c1f50cffa3dee94ff8177a635930e7dc621a62a6a8d9261b5d",
-      "candidates": 35
+      "status": "reviewed",
+      "sha256": "139aa1e3cd26c36c07a0b3a25d541621d3743efc70c7af0cee5b557fdcef4e11",
+      "candidates": 17
     },
     {
       "path": "hub/backend/execution/recovery_input.py",
@@ -910,7 +916,7 @@
     {
       "path": "hub/ui/presentation.py",
       "status": "unreviewed",
-      "sha256": "732f06a412bcce6ce1c0e2dac708dba5773e8a2759017da02fc8ab1537c1d133",
+      "sha256": "60f447b6b907f95e81ea2c81a492354070c0f3d784e45201862921d23fe5a728",
       "candidates": 44
     },
     {
@@ -1162,8 +1168,8 @@
     {
       "path": "hub/widget/forms/followup.py",
       "status": "unreviewed",
-      "sha256": "317eaf1a877643325338ef3f01f2b33ef433144fc34a3f8d58d1fe87be6e2455",
-      "candidates": 17
+      "sha256": "4c2ee1d743265a9c2b17824108779dfed05e5e3ff84aad5e42c1defe0ac2fc23",
+      "candidates": 16
     },
     {
       "path": "hub/widget/forms/general_settings.py",
@@ -1936,8 +1942,8 @@
     {
       "path": "llm/components/rag/document_records.py",
       "status": "reviewed",
-      "sha256": "088b976a0580b86cca137e814737dccf948d1eb6d43d895c585674f4fb990ddb",
-      "candidates": 51
+      "sha256": "8e78ade1f689a200f691b21b5bf011355ebcf1401a593ea0c3795159cbfef733",
+      "candidates": 52
     },
     {
       "path": "llm/components/rag/document_views.py",
@@ -2068,8 +2074,8 @@
     {
       "path": "llm/components/rag/retrieval_records.py",
       "status": "reviewed",
-      "sha256": "52ef3dec3cd506871cfebfa984f509abccf1706838604aa2a472f19613cc3963",
-      "candidates": 21
+      "sha256": "85c45bb74fa7cb20405a929746608371009bd1f14ae261bbfc066e3d3843d48c",
+      "candidates": 22
     },
     {
       "path": "llm/components/rag/search.py",
