@@ -139,11 +139,16 @@ PaddleOCR/EasyOCR 구현 및 자동 선택은 아직 포함하지 않습니다.
 
 | 파일 | 역할 |
 | --- | --- |
-| [component.py](component.py) | 설정·레코드·asset 저장, 복제, capability 등록 |
+| [component.py](component.py) | 공통 저장·트랜잭션을 통한 이미지 수명과 capability 등록 |
 | [data.py](data.py) | UI/Tool/RAG가 공유하는 수명 검사 API |
 | [images.py](images.py) | Pillow 검증·전처리. 저장/모델 호출 없음 |
 | [image_contracts.py](image_contracts.py) | 이미지 형식·좌표·명시적 크기 제한·순차 변환 입력과 디코딩 결과의 정규 선언 |
-| [backends.py](backends.py) | OCR 계약·Tesseract·LiteLLM 분석과 결과 검증 |
+| [backends.py](backends.py) | Tesseract 프로세스·취소 정리와 모델 호출 수명 |
+| [configuration.py](configuration.py) | 명시 설정·OCR 선택·등록·schema·설정 지문 및 관측값 |
+| [records.py](records.py) | 불변 이미지 레코드·tombstone·원본 참조·가공 출처 |
+| [assets.py](assets.py) | asset 경로와 기존 원자 파일 효과 |
+| [ocr_contracts.py](ocr_contracts.py) | OCR/모델 결과·오류·Tesseract wire·이미지 content |
+| [results.py](results.py) | 공개 결과와 RAG에 전달할 파생 문서 출처 |
 | [tools.py](tools.py) | 공통 API를 사용하는 세 Tool 어댑터 |
 | [__init__.py](__init__.py) | 공개 import |
 
@@ -155,4 +160,16 @@ PaddleOCR/EasyOCR 구현 및 자동 선택은 아직 포함하지 않습니다.
 호스트 파일/bytes 읽기와 Pillow 자원 수명·순서만 조율하며 한 번 검증한 변환 입력을 타입으로
 소비합니다. 저장 레코드 검증·변환 결과 등록과 OCR/모델 호출은 별도 기존 경계에 남습니다.
 입력 순서와 원본 보존, 손상/다중 프레임 거부, 명시적 제한, JPEG 알파 처리와 finally 정리는
-유지합니다. Component/Data/Backend/Tool 전체 Owner 전환은 후속 작업입니다.
+유지합니다. Component/Data/Backend/Tool은 이 정의와 각 전용 Owner의 속성·검증·Writer를 사용합니다.
+Component.read_parameters는 저장된 명시 설정을 기존 ParameterLayout으로 읽은 타입 관측값이며
+새 기본값이나 별도 저장본을 만들지 않습니다. Data는 준비·잠금·현재 설정/이미지 확인·등록
+순서를 조율하고 레코드/설정의 내부 딕셔너리를 해석하지 않습니다.
+
+VisionImageRecord는 기존 필수 필드·정확한 format_version·원본 digest와 크기·tombstone을
+검증합니다. 자산 효과는 VisionAssets에 있으며 원래 트랜잭션 hook/fsync/replace/정리 순서를
+유지합니다. title/metadata 외 편집 금지, 삭제 후 bytes 보존과 ID 재사용 거부도 같습니다.
+OCRBackendContract의 등록과 OCRSettings의 실행 선택은 구분합니다. 실행 인자 또는 저장한
+backend가 필요하며 Tesseract 등록만으로 선택하지 않습니다. OCRResult의 유일 Reader는 기존
+공개 validate_ocr와 같은 함수입니다. 알려지지 않은 JSON 확장 결과를 임의로 제거하지 않습니다.
+VisionResult/VisionExtraction은 공개 출력만 구성하고 새로운 실행/운영 기록을 저장하지 않습니다.
+RAG 입력은 RAGDocumentInput.content_source Writer를 사용하며 identifier를 임의로 추가하지 않습니다.

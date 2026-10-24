@@ -127,3 +127,13 @@ class ConfigurationView:
     def to_dict(self):
         return deepcopy(self._value)
 
+
+@dataclass(frozen=True, slots=True)
+class ConfigurationEnforcement:
+    """Implementation-owned enforced observations; never write stored configuration."""
+
+    enforced: dict
+
+    @classmethod
+    def apply(cls, view, value):
+        view[cls.enforced.__name__] = value

@@ -5,7 +5,7 @@ from enum import StrEnum
 import hashlib
 from jsonschema import Draft202012Validator
 from llm.core.json_data import JsonObject
-from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean
+from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean, object_schema
 
 
 class ImageEncoding:
@@ -33,6 +33,10 @@ class ImageGeometry:
     WIDTH_INDEX = 0
     HEIGHT_INDEX = 1
     BOX_LENGTH = 4
+    LEFT_INDEX = 0
+    TOP_INDEX = 1
+    RIGHT_INDEX = 2
+    BOTTOM_INDEX = 3
     QUARTER_TURN = 90
     HALF_TURN = 180
     THREE_QUARTER_TURN = 270
@@ -44,10 +48,21 @@ class ImageLimits:
     MAX_PIXELS = "max_pixels"
     NO_LIMIT = None
     OVERFLOW_PROBE = 1
+    MINIMUM_LIMIT = 1
     REQUIRED_BYTES = "Image bytes are required"
     EXCEEDED_BYTES = "Image exceeds configured max_bytes"
     INVALID_DIMENSIONS = "Image dimensions must be positive"
     EXCEEDED_PIXELS = "Image exceeds configured max_pixels"
+
+    @classmethod
+    def schema(cls):
+        return object_schema(
+            {
+                key: {SchemaKeyword.TYPE: SchemaType.INTEGER, SchemaKeyword.MINIMUM: cls.MINIMUM_LIMIT}
+                for key in (cls.MAX_BYTES, cls.MAX_PIXELS)
+            },
+            additionalProperties=SchemaBoolean.REJECT,
+        )
 
     def __init__(self, value):
         self._value = value

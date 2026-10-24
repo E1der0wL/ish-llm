@@ -318,6 +318,11 @@ class RAGDocumentInput:
 
 
     @classmethod
+    def content_source(cls, title, content, metadata):
+        """Document content before the caller selects a stored identity."""
+        return {cls.Field.TITLE: title, cls.Field.CONTENT: content, cls.Field.METADATA: metadata}
+
+    @classmethod
     def create(cls, title, content, metadata, identifier):
         return {cls.Field.TITLE: title, cls.Field.CONTENT: content,
                 cls.Field.METADATA: metadata, cls.Field.IDENTIFIER: identifier}

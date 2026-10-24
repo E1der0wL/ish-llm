@@ -6,51 +6,65 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-from llm.core.configuration import UNSET, require_config
+from llm.core.configuration import UNSET
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
-from llm.services.infrastructure.storage import revision_token
 from llm.providers.observations import observe_component_models
 from . import images
 from .backends import validate_ocr, image_part
 from llm.core.model_protocol import ContentPart
+from .records import VisionImageRecord, ImageOrigin
+from .results import VisionResult, VisionExtraction
 
 
 class VisionData(ComponentData):
+    ABSENT = None
+    BINDING_ATTRIBUTE = "_execution_binding"
+    BINDING_CHANGED = "Vision configuration/backend changed; start a new Run"
+    CONFIG_CHANGED = "Vision configuration changed during processing"
+    IMAGE_CHANGED = "Image changed during processing"
+
     def _current(self):
         project, component = super()._current()
-        expected = getattr(self, "_execution_binding", None)
-        if expected is not None and component.binding(project) != expected:
-            raise ValueError("Vision configuration/backend changed; start a new Run")
+        expected = getattr(self, self.BINDING_ATTRIBUTE, self.ABSENT)
+        if expected is not self.ABSENT and component.binding(project) != expected:
+            raise ValueError(self.BINDING_CHANGED)
         return project, component
 
     @workspace_locked
-    def _snapshot(self, image_id=None):
+    def _snapshot(self, image_id=ABSENT):
         project, component = self._current()
-        config = component._options(project)
-        record, raw = (None, None) if image_id is None else component.read_image(project, image_id)
-        return component, config, record, raw
+        config = component.read_parameters(project)
+        record, raw = (
+            (self.ABSENT, self.ABSENT) if image_id is self.ABSENT else component.read_image(project, image_id)
+        )
+        return component, config, self.ABSENT if record is self.ABSENT else VisionImageRecord(record), raw
 
     @workspace_locked
     def _finish(self, config, record):
         project, component = self._current()
-        if component._options(project) != config:
-            raise ValueError("Vision configuration changed during processing")
-        if record is not None and component.load(project, record["id"])["sha256"] != record["sha256"]:
-            raise ValueError("Image changed during processing")
+        if config.changed(component.read_parameters(project)):
+            raise ValueError(self.CONFIG_CHANGED)
+        if (
+            record is not self.ABSENT
+            and VisionImageRecord(component.load(project, record.identifier)).sha256 != record.sha256
+        ):
+            raise ValueError(self.IMAGE_CHANGED)
 
     @workspace_locked
-    def _commit(self, config, raw, info, *, title, metadata, identifier=None, source=None, operations=None):
+    def _commit(
+        self, config, raw, info, *, title, metadata, identifier=ABSENT, source=ABSENT, operations=ABSENT
+    ):
         self._finish(config, source)
         project, component = self._current()
-        origin = None if source is None else {"image_id": source["id"], "sha256": source["sha256"],
-            "operations": deepcopy(operations), "coordinate_contract": "sequential-input-pixels-ltrb"}
-        return component.import_bytes(project, raw, info, title=title, metadata=metadata,
-                                      identifier=identifier, origin=origin)
+        origin = self.ABSENT if source is self.ABSENT else ImageOrigin.create(source, operations)
+        return component.import_bytes(
+            project, raw, info, title=title, metadata=metadata, identifier=identifier, origin=origin
+        )
 
     @staticmethod
     def _reference(record):
-        return {key: deepcopy(record[key]) for key in ("id", "sha256", "mime_type", "width", "height", "origin") if key in record}
+        return record.reference()
 
     # 공개 API. 모델 호출은 비동기 전용이며 새 Run을 만들지 않는다.
     def bound(self, binding):
@@ -59,86 +73,115 @@ class VisionData(ComponentData):
         handle._execution_binding = binding
         return handle
 
-    def import_image(self, source: str | Path | bytes, *, title: str, metadata: dict | None = None, identifier: str | None = None) -> dict:
+    def import_image(
+        self,
+        source: str | Path | bytes,
+        *,
+        title: str,
+        metadata: dict | None = ABSENT,
+        identifier: str | None = ABSENT,
+    ) -> dict:
         component, config, _, _ = self._snapshot()
-        limits = config.get("limits", {})
+        limits = config.limits
         raw = images.read_source(source, limits)
         info = images.inspect_image(raw, limits)
-        return self._commit(config, raw, info, title=title, metadata={} if metadata is None else metadata, identifier=identifier)
+        return self._commit(
+            config,
+            raw,
+            info,
+            title=title,
+            metadata={} if metadata is self.ABSENT else metadata,
+            identifier=identifier,
+        )
 
-    async def aimport_image(self, source: str | Path | bytes, *, title: str, metadata: dict | None = None, identifier: str | None = None) -> dict:
+    async def aimport_image(
+        self,
+        source: str | Path | bytes,
+        *,
+        title: str,
+        metadata: dict | None = ABSENT,
+        identifier: str | None = ABSENT,
+    ) -> dict:
         _, config, _, _ = await self._async_call(self._snapshot)
-        limits = config.get("limits", {})
+        limits = config.limits
         raw = await asyncio.to_thread(images.read_source, source, limits)
         info = await asyncio.to_thread(images.inspect_image, raw, limits)
-        return await self._async_call(self._commit, config, raw, info, title=title,
-                                     metadata={} if metadata is None else metadata, identifier=identifier)
+        return await self._async_call(
+            self._commit,
+            config,
+            raw,
+            info,
+            title=title,
+            metadata={} if metadata is self.ABSENT else metadata,
+            identifier=identifier,
+        )
 
-    async def apreprocess(self, image_id: str, *, operations: list[dict], title: str | None = None) -> dict:
+    async def apreprocess(self, image_id: str, *, operations: list[dict], title: str | None = ABSENT) -> dict:
         _, config, source, raw = await self._async_call(self._snapshot, image_id)
         operations = deepcopy(operations)
-        value, info = await asyncio.to_thread(images.preprocess, raw, operations, config.get("limits", {}))
-        return await self._async_call(self._commit, config, value, info,
-            title=source["title"] if title is None else title, metadata=source["metadata"],
-            source=source, operations=operations)
+        value, info = await asyncio.to_thread(images.preprocess, raw, operations, config.limits)
+        return await self._async_call(
+            self._commit,
+            config,
+            value,
+            info,
+            title=source.title if title is self.ABSENT else title,
+            metadata=source.metadata,
+            source=source,
+            operations=operations,
+        )
 
-    async def aocr(self, image_id: str, *, backend=UNSET, options: dict | None = None) -> dict:
+    async def aocr(self, image_id: str, *, backend=UNSET, options: dict | None = ABSENT) -> dict:
         component, config, record, raw = await self._async_call(self._snapshot, image_id)
-        ocr_config = config.get("ocr", {})
-        if backend is UNSET:
-            backend = require_config(ocr_config, "backend", scope="vision.ocr")
-        if not isinstance(backend, str) or backend not in component.ocr_backends:
-            raise ValueError("Select a registered OCR backend; auto is unsupported")
+        ocr_config = config.ocr
+        backend = ocr_config.selected(backend, component.ocr_backends)
         implementation = component.ocr_backends[backend]
-        parameters = {**ocr_config.get("backends", {}).get(backend, {}), **({} if options is None else options)}
+        parameters = ocr_config.parameters(backend, options)
         Draft202012Validator(implementation.describe_config()).validate(parameters)
         component.serialize(parameters)
-        await asyncio.to_thread(images.inspect_image, raw, config.get("limits", {}))
-        async with asyncio.timeout(ocr_config.get("timeout")):
+        await asyncio.to_thread(images.inspect_image, raw, config.limits)
+        async with asyncio.timeout(ocr_config.timeout):
             result = await implementation.recognize(raw, options=deepcopy(parameters))
-        result = deepcopy(validate_ocr(result, record["width"], record["height"]))
+        result = deepcopy(validate_ocr(result, record.width, record.height))
         await self._async_call(self._finish, config, record)
-        return {**result, "kind": "ocr", "image": self._reference(record), "backend": backend,
-                "backend_revision": implementation.revision, "options": parameters,
-                "coordinate_space": "image_pixels_top_left_ltrb"}
+        return VisionResult.ocr(result, self._reference(record), backend, implementation.revision, parameters)
 
     @observe_component_models
     async def aanalyze(self, image_id: str, *, prompt: str) -> dict:
-        if not isinstance(prompt, str) or not prompt.strip():
-            raise ValueError("Image analysis prompt is required")
+        VisionResult.validate_prompt(prompt)
         component, config, record, raw = await self._async_call(self._snapshot, image_id)
         await self._async_call(self.require_model_observation, component.model)
-        await asyncio.to_thread(images.inspect_image, raw, config.get("limits", {}))
-        result = await component.model.analyze(raw, record["mime_type"], prompt,
-            parameters=config.get("completion", {}), provider=config.get("provider", {}))
+        await asyncio.to_thread(images.inspect_image, raw, config.limits)
+        result = await component.model.analyze(
+            raw, record.mime_type, prompt, parameters=config.completion, provider=config.provider
+        )
         await self._async_call(self._finish, config, record)
-        return {**result, "kind": "model_analysis", "image": self._reference(record)}
+        return VisionResult.analysis(result, self._reference(record))
 
     async def acompletion_content(self, image_id: str) -> ContentPart:
         """이미지 지원 Completion용 content block. 반환 Base64를 영속 메시지/로그에 저장하지 않는다."""
         _, config, record, raw = await self._async_call(self._snapshot, image_id)
-        await asyncio.to_thread(images.inspect_image, raw, config.get("limits", {}))
-        block = await asyncio.to_thread(image_part, raw, record["mime_type"])
+        await asyncio.to_thread(images.inspect_image, raw, config.limits)
+        block = await asyncio.to_thread(image_part, raw, record.mime_type)
         await self._async_call(self._finish, config, record)
         return block
 
-    async def aextract_document(self, image_id: str, *, mode: str, title: str, backend=UNSET, prompt=UNSET) -> dict:
+    async def aextract_document(
+        self, image_id: str, *, mode: str, title: str, backend=UNSET, prompt=UNSET
+    ) -> dict:
         """RAG.add_document에 전달할 자료를 만든다. 원본 픽셀과 OCR/모델 생성 문서를 구분한다."""
-        if not isinstance(title, str) or not title.strip():
-            raise ValueError("Extracted document title is required")
-        if mode == "ocr":
+        VisionExtraction.validate_title(title)
+        if mode == VisionExtraction.OCR:
             if prompt is not UNSET:
-                raise ValueError("OCR does not accept a VLM prompt")
+                raise ValueError(VisionExtraction.OCR_PROMPT)
             result = await self.aocr(image_id, backend=backend)
-        elif mode == "analysis":
+        elif mode == VisionExtraction.ANALYSIS:
             if backend is not UNSET or prompt is UNSET:
-                raise ValueError("Analysis requires prompt and does not select an OCR backend")
+                raise ValueError(VisionExtraction.ANALYSIS_OPTIONS)
             result = await self.aanalyze(image_id, prompt=prompt)
         else:
-            raise ValueError("Select document extraction mode: ocr or analysis")
-        if not result["text"].strip():
-            raise ValueError("Image extraction produced no document text")
-        return {"title": title, "content": result["text"], "metadata": {"vision": {
-            **{k: v for k, v in result.items() if k != "text"},
-            "text_sha256": revision_token({"text": result["text"]}),
-            "source_kind": "derived_text", "project_id": self.project.id}}}
+            raise ValueError(VisionExtraction.INVALID_MODE)
+        result = VisionResult(result)
+        if not result.text.strip():
+            raise ValueError(VisionExtraction.EMPTY_TEXT)
+        return VisionExtraction.document(title, result, lambda: self.project.id)

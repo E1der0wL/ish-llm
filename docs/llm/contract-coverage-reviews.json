@@ -1808,8 +1808,8 @@
   },
   {
     "path": "llm/core/configuration_views.py",
-    "sha256": "a2288b73e986a59e1a8810270203c1fa66439a72268b45bfa178e76ed9ec5d32",
-    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here. JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked.",
+    "sha256": "3e78aee0e5e44417546485e162f7f8a04cc93bbacecceb5a6644e00515d90454",
+    "reason": "Reviewed the whole query Owner and all common values/editable/runtime/key and dynamic resolver consumers. Common fixed shapes are typed; optional omission and opaque extension fields survive serialization, nested projections detach, and present malformed values fail. Selected implementation config/policy internals remain with their own Owners and are not classified complete here. JSON syntax ownership review: validator calls now target JsonObject. The validator body is AST-identical after expanding its canonical declarations; each consumer AST is identical after normalizing only that call/import, and every original import scope is preserved, including the isolated worker. Record-specific mandatory fields, policy, identity, version, CAS, effects and permission validation are unchanged. ProjectConfig retains a direct public delegate, never a second validator. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -1931,6 +1931,18 @@
         "classification": "declaration",
         "owner": "ConfigurationView",
         "reason": "Existing selected-definition diagnostic ID, Schema parameter-key extension, required key diagnostic or absent resolver is declared by its canonical Owner. No implicit Agent, stored setting or policy default is created."
+      },
+      {
+        "id": "59852bbdd1497c1f6f9c8eecd6d7a6009d62938a916e297b4addeb1ccc7ec59d",
+        "classification": "non_contract",
+        "owner": "ConfigurationEnforcement",
+        "reason": "Python dataclass frozen/slots type layout, not a runtime domain default or stored policy."
+      },
+      {
+        "id": "67e56b936a47acf945b555e05ffccc62e1330ffef5492e7e436d40350801c391",
+        "classification": "non_contract",
+        "owner": "ConfigurationEnforcement",
+        "reason": "Python dataclass frozen/slots type layout, not a runtime domain default or stored policy."
       }
     ],
     "contracts": [
@@ -1975,6 +1987,19 @@
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_configuration_results.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ConfigurationEnforcement",
+        "declaration": "llm/core/configuration_views.py",
+        "consumers": [
+          "llm/components/rag/configuration.py",
+          "llm/components/vision/configuration.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/hub/test_rag_extensions.py"
         ],
         "complete": true
       }
@@ -54088,8 +54113,8 @@
   },
   {
     "path": "llm/components/rag/document_records.py",
-    "sha256": "efd0b2638a798360516024a99166499269f1540b65e4897981513677d6924c0b",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately.",
+    "sha256": "088b976a0580b86cca137e814737dccf948d1eb6d43d895c585674f4fb990ddb",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -54414,7 +54439,8 @@
           "llm/components/rag/indexing.py",
           "llm/components/rag/graph_indexing.py",
           "llm/components/rag/retrieval_records.py",
-          "llm/components/rag/preparation.py"
+          "llm/components/rag/preparation.py",
+          "llm/components/vision/results.py"
         ],
         "tests": [
           "tests/llm/test_rag_catalog_integrity.py",
@@ -54650,8 +54676,8 @@
   },
   {
     "path": "llm/components/rag/configuration.py",
-    "sha256": "69f3470e61b71aa08a3358a99d3887546eb8faedfad95e69cb912ab4a972822e",
-    "reason": "Complete RAG embedding/preparation and cooperating record/graph/configuration/prompt/observation modules reviewed. Every original method remains equivalent and actual new APIs are consumed by current preparation. The selected-model and 84 effect/checkpoint/failure/reuse traces plus unchanged real storage/usage/cancellation/approval/budget/Hub assertions pass. Only two pure list-partition arithmetic literals have exact technical classifications; Component storage scope remains pending.",
+    "sha256": "a5593b4b57a1a6b547e6433e70f2374b63edb616d53f7b65bebd93ad885f34ef",
+    "reason": "Complete RAG embedding/preparation and cooperating record/graph/configuration/prompt/observation modules reviewed. Every original method remains equivalent and actual new APIs are consumed by current preparation. The selected-model and 84 effect/checkpoint/failure/reuse traces plus unchanged real storage/usage/cancellation/approval/budget/Hub assertions pass. Only two pure list-partition arithmetic literals have exact technical classifications; Component storage scope remains pending. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -54976,12 +55002,6 @@
         "id": "fef725ff5efba8fee85acb33b6a363ffc20d2ea0bbd4eec9738f225068d1a293",
         "classification": "declaration",
         "owner": "RAGConfiguration",
-        "reason": "Previously reviewed complete record/schema/observation contract remains canonical. Existing whole method bodies are unchanged; added typed properties, explicit preparation Writers and declaration values are used by the actual preparation consumer and preserve the prior required evidence, field shape and effect/evaluation order. Stored validation still refuses missing/invalid records."
-      },
-      {
-        "id": "2f23d1dd78933ecd9dfb0ce3ae17f7167e8ee2d2fea3cd569ccfd99651ad5828",
-        "classification": "declaration",
-        "owner": "RAGConfigurationView",
         "reason": "Previously reviewed complete record/schema/observation contract remains canonical. Existing whole method bodies are unchanged; added typed properties, explicit preparation Writers and declaration values are used by the actual preparation consumer and preserve the prior required evidence, field shape and effect/evaluation order. Stored validation still refuses missing/invalid records."
       },
       {
@@ -58612,8 +58632,8 @@
   },
   {
     "path": "llm/components/vision/image_contracts.py",
-    "sha256": "4bac46a1b9fad47a456d16612ae922694156f360c068090e7a75024a91fb0bc9",
-    "reason": "Whole image source/validation/preprocessing and value/schema implementations reviewed. Existing conditional checks, IO/read limits, selected formats/modes, sequential transforms, pixel decoding, bytes and close order agree with the previous whole functions and actual error/file/pixel cases. Only individually identified Python annotation/layout syntax remains. Broader Vision consumer conversion is tracked as pending.",
+    "sha256": "75615476819b814280cdb141ba10328428456a972793fe16072620bda5465a42",
+    "reason": "Whole image source/validation/preprocessing and value/schema implementations reviewed. Existing conditional checks, IO/read limits, selected formats/modes, sequential transforms, pixel decoding, bytes and close order agree with the previous whole functions and actual error/file/pixel cases. Only individually identified Python annotation/layout syntax remains. Broader Vision consumer conversion is tracked as pending. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -58755,193 +58775,223 @@
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "495cb18219796a102268bda7cd263c43d7184a757371a05b1e4304e6ee2a9af7",
+        "id": "484612216400627d8969dab5e7e379ab0f8329cafe68c31ae06e00f0ea927e9b",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical LTRB indexes and explicit positive image-limit schema minimum at the image contract Owner; runtime consumers use the same declaration."
+      },
+      {
+        "id": "5b5e267e1b40afb0fd4fd694d7fb3f82566fbd07589efde3675d1a9d55681982",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical LTRB indexes and explicit positive image-limit schema minimum at the image contract Owner; runtime consumers use the same declaration."
+      },
+      {
+        "id": "3a005bb782dcbd90df160df7fd5e690956661aa7db5f9ecea9e6ba85692ad373",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical LTRB indexes and explicit positive image-limit schema minimum at the image contract Owner; runtime consumers use the same declaration."
+      },
+      {
+        "id": "27896dbb34e6d34f29ba08d2451c83468670efb1404721b97a2d6781e05f15eb",
+        "classification": "declaration",
+        "owner": "ImageGeometry",
+        "reason": "Canonical LTRB indexes and explicit positive image-limit schema minimum at the image contract Owner; runtime consumers use the same declaration."
+      },
+      {
+        "id": "0c5dedd88c93f0e5f1c3e3a91ab377b9b4cdf3bb31be2c901c8848dd76e51233",
         "classification": "declaration",
         "owner": "ImageGeometry",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "5e388496f0bfff1cb17ca1465c953fc4966ef3f71ecd657ca65db03f4d68ff6f",
+        "id": "97bda607ce76d0a66f28ddf7f1e613abc710eda083158ac6a381060af0e7ffe5",
         "classification": "declaration",
         "owner": "ImageGeometry",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "e1f4b9206de131d05629029491763a5d84b313951cd4b074377f17304167dab4",
+        "id": "8d35f0a406b240c31c151b939c44efaa4def01cc936c3fb78aa5e6d77d66cd92",
         "classification": "declaration",
         "owner": "ImageGeometry",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "2514c9f6da86b1338f9e2214560615eb7324ca2c6120cbce6843f0d296247778",
+        "id": "46d75e46813c1866ade9b8ad760360f9bc82bf8adb6778c989563380c8fb071a",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "fe875ce34bf6baeae41753f7991a5e24e93e298236cdd0ab2408f302153eab6a",
+        "id": "072e66098b610a020d544ecb8f8c650d3f12d204e87552e53f22ce2611685b70",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "0a2b04d5a07d7c204f5c8134a08d24493dcd41c176cc8f7557e558da589ba221",
+        "id": "9d4a535600d3916f6ee40a795de67791fc15501d07cb8148e3ab65a713469e8f",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "7e24f55bb90e55d77b620a022eff226c52f4c85973e532f3c6a492e3b9caa582",
+        "id": "e3176891abcdf92fff3ab6f9c1e69d2052b89bba6e84bffcfe49c9c58b6e0f9c",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "e803cd7ab37b487b93f3b16d28e605f1cd543991286f59de68dbf771a8c0fd2e",
+        "id": "47c207a652b1984f41d8213b2f6494b0554612d6ea34be0235af542e5fb4de03",
+        "classification": "declaration",
+        "owner": "ImageLimits",
+        "reason": "Canonical LTRB indexes and explicit positive image-limit schema minimum at the image contract Owner; runtime consumers use the same declaration."
+      },
+      {
+        "id": "379387800fcffa1f68b8fa1ab2b73d092f2f55d21509621fc28cae67f15977d0",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "a38232f225f843e1d4164d58342ba4c26f109dccb535fb8a5e42553aad08c8a5",
+        "id": "8c24e6650669898162a8eda84e669748b46c524c50b13471635e1975e69628dd",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "4ff7b29bb4b8d4e230ebc474281b9dce48c72ec809b8843f4c73faf91be682b4",
+        "id": "4aff2de0cfedc30c018585af3fbb3a50ef2db39ff481f6c2c99d1c174f70665e",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "826c646b4b1ffcbad0f89ed55d7a2fc703f2afbe6d82e05ad4745029a4ee4e85",
+        "id": "bebdf8bfdf7d54fa56c220fc7f786fdd7c5c4fb434c9c0d523e58680b2bd8137",
         "classification": "declaration",
         "owner": "ImageLimits",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "aa713cb890e78b96017d2a3c7e72f9ddb1d7715bedd92b3f4726220ae3af5791",
+        "id": "feded7318b9a5354fafc0dff3ecc75851837622dd9363c0adaedcc4bbc8d797e",
         "classification": "non_contract",
         "owner": "ImageInfo",
         "reason": "Python dataclass frozen/slots type layout, not a runtime format, state or policy."
       },
       {
-        "id": "bb83136c2e2e92326c44deaac6e6e44c8e435dd3ed6cbdb0f4304a82870eb363",
+        "id": "cd94b744466d3a192acd582842cd036b46019ab148e64ac5d9aa34253a4b499e",
         "classification": "non_contract",
         "owner": "ImageInfo",
         "reason": "Python dataclass frozen/slots type layout, not a runtime format, state or policy."
       },
       {
-        "id": "8cb2c9288dda6df9466d7a5dcd6329fabfa5b4b5ba50189fad599d48293b25c2",
+        "id": "c2d0ace9c5041cfcc2501858a783c38dedd11958fdbb932a296388d2e5cb5911",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "17fcdd2de7e32ec5ae81f2c21e38a40fe8b37f617a9eff2c5b9cf2842bef4688",
+        "id": "528cae508b211d3ee7426d80cd9ca67700a904fc486d21ab60d5708a4c5835c0",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "1145f012765266d0a59970e8d75de379bcd195a44722b822aeda0429d837dbad",
+        "id": "d5073e8a9b6cca79ac3c733f6ab0b40596bab276c82f0edb98ee9c9724155840",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "2dc92e4aa3188eb05eb5143d9f80c44f6dc493e6d213faff95aa0fc226532923",
+        "id": "fb66806776963d2d78a0c1d48a0caa325030afb005bc70a08cf7e92785c45696",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "55cf2fbb85ad6326058f1b7ae02427fdf4060c214e9415db9db3681ed615a0a5",
+        "id": "137c3ac82f40df81fef916233a77d2477818ee0889c0dd202f3f47ac22937563",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "d8fe3c77a19e8197167ab209b1ea47baa415660d26178ce942377a4a0093da79",
+        "id": "becbf9ddcfd7922341df9f01c878d0954ccb57578b1af5396067158a1652d733",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "96633d5a5a76051219d394d46fa6c7ebb36cb669ee3e7e996369f072f769ea23",
+        "id": "9de6f68761a8b1b6580940d7563f8eea506c618ce046d84d52f1850430dd14fd",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "675499de80a797648bbc05fd54b988c997d6e1c57b55ee7e060678212146408a",
+        "id": "a6f7406818a9358460efa1f2abae8560924a996fadf8638f6ebc434416a74039",
         "classification": "declaration",
         "owner": "ImageOperationKind",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "c3a29e79943760b74cc941ba82bd4855475f2ff135b372f51451e4bf983ba644",
+        "id": "dafb22740230f17ce8007d3705d487eef2431560bd8a1a24bd1c05518d41f10f",
         "classification": "declaration",
         "owner": "ImageOperation",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "9aa66146545920103c5ae61a659704698ee33d2231082e387d42ed75c4dfc38d",
+        "id": "af0bc8305da84608297e6bd4849c10f0f5407d71ed121c45708f11e3b2cf87fc",
         "classification": "declaration",
         "owner": "ImageOperation",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "62fd2a5c6b005f802ad0ac2ebbdadf7daf0f4a41a254b1dca8338aa4a7babff6",
+        "id": "21c1a2a0ec34e6ef826c940b5addf1e6fbf0d326b8973fecefd9f7f7be00934c",
         "classification": "declaration",
         "owner": "ImageOperation",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "3032472bbb974e56a893b529b8681e2ee3e4d178747b74bbb88e041811d20289",
+        "id": "726db37c9a239976e9940504aa1c8dc2024de32f9227204a25cfd72f6388f5e7",
         "classification": "declaration",
         "owner": "ImageOperation",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "46fc1cb6f75f1048710e0f4b60033b93cf57ab16bb636ad880368ee94dd61ebe",
+        "id": "fcf047dc63e8f6dad73a994e9e87a4cded7c5ca1bdc9705c7540db92752b00fb",
         "classification": "declaration",
         "owner": "ImageOperation",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "be107155e9570f1c5e6f5e537207a2d4343b2ccdb6d7dd7820aea9ce1ff99a16",
+        "id": "b9013fc3be6ea639e2c39db6ec20116d48c36759083ceefde0c5fb070bd79be5",
         "classification": "declaration",
         "owner": "ImageOperation",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "1f8f08173bd359d8c963ae8c3bd10bf649d421af838922c042b989f2702ff8a5",
+        "id": "4919c63bdaed3fc40dbc0186bdd6a51067d7a53c675320e3a11d765d52d6890c",
         "classification": "declaration",
         "owner": "ImageOperation.Field",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "1262298905037e2e0696eecd5f1f5afbd911bc53f5680dc872e31828ec77399d",
+        "id": "dc13144ace10449ab2055a22c71b577951611aa2190a42e4d896cc57e7059219",
         "classification": "declaration",
         "owner": "ImageOperation.Field",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "ea638a6320b9de548820c950d99bca412961888c7c0690ff7aae86a2458623ea",
+        "id": "4ceac4fccdc963998f7ffb5f99b0ca10c8482e77a050a42b637fe61125250361",
         "classification": "declaration",
         "owner": "ImageOperation.Field",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "6a6b1f6635ff45e63c81b6c22741e34e862bfa137d08b84f6f71a02e99409e80",
+        "id": "8594426620f2580cec2879b84a8f70668663b1f934d378bdfc280592e78c0fae",
         "classification": "declaration",
         "owner": "ImageOperation.Field",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
       },
       {
-        "id": "2d4740fa2f28fc443d57b443f5d137eff7ef83af047261241208b810a6215749",
+        "id": "a4f8ffdf17373190a6c5d81d7a68012ed813ec7b2d158b5872becc7e071f70b6",
         "classification": "declaration",
         "owner": "ImageOperation.Field",
         "reason": "Canonical format/geometry/explicit-limit/operation/schema/fact definitions at their semantic Owner heads; runtime uses typed projections, validation or Writer APIs."
@@ -58969,7 +59019,1308 @@
           "tests/hub/test_rag_extensions.py",
           "tests/hub/test_defaults.py"
         ],
-        "complete": false
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/assets.py",
+    "sha256": "c0cc535d0423b55aa8c29fb928f3e99b7e68c2d0ee8e399ede694819e0d5cdf3",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c3d19330d3a21137e5805eb6079107a9d2d4aab843a0f9c5b988c03cc60cb3d6",
+        "classification": "declaration",
+        "owner": "VisionAssets",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "34702011752659278b9ac09f11fb6b3cf4eb65c6327b32d94d06cd55ceaa2612",
+        "classification": "declaration",
+        "owner": "VisionAssets",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "09d043d216b909e488e73e6987c98197e36e7860b571eee832078dce28e2960c",
+        "classification": "declaration",
+        "owner": "VisionAssets",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "91d3a19dfc17808d9eb16e9ccef5722daa2f33b09ee56ccfa97ee7ed3803c56f",
+        "classification": "declaration",
+        "owner": "VisionAssets",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionAssets",
+        "declaration": "llm/components/vision/assets.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/backends.py",
+    "sha256": "8101d13533741efc23fed24b074dbe724bea7f004d3a877b9202d48c866e5ba3",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5fb9175550994b70f88eecd3b809a2fa9c8ebfbdaef5889ded043f7bfc7fd0d0",
+        "classification": "non_contract",
+        "owner": "OCRBackend.describe_config",
+        "reason": "Python Protocol method signature stub; no runtime fallback implementation."
+      },
+      {
+        "id": "e39cd8897506bad90759dae49e20195f5ebb1ccfb187a2de6ef51bf4c2b8ee4b",
+        "classification": "non_contract",
+        "owner": "OCRBackend.recognize",
+        "reason": "Python Protocol method signature stub; no runtime fallback implementation."
+      },
+      {
+        "id": "4b0a60f5bb6547436461eac423c18d0e3ea1a87bd4094deb3396d9ec74cf667d",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "4dd13ca9be88267b6f08fd3531a73ce588e122b6e0031a78c4e5c21c51cbdd25",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "c390c04e983ca9bf67b6222b5d522731399fd8973db3a5aca55fea75d1925620",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "e0256cce2944d44922a16675f5799028111ea2c248c18c0bd85f74acfbb9ec28",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "559853e33b9c6f492704914f7a10513a9ae28d4b37301581402279d7884faecb",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "eabf7f3fb6dab66e7e87cc2c8679ced3fde6f51c8f68e147d7d2b450e2ccedbc",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "d25cc5e543b110399f211e8d46d889b598e549d087630d133381e6bbf0240bbf",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f8a6c46d5a229fae3252e2ee1f226705e658399a9a0f60b76cd045980bc0bb25",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "343d7afda7b5dc8fb618c380f83fffcc1477d20911582f80e3ddd003425d5edf",
+        "classification": "declaration",
+        "owner": "TesseractBackend",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "05b1188dd9764a28de49e7eb6af6d36550de8dd585d6b1c18d1deeebf7802efd",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f89d0712d24f839d98ea004bc340f419371fab4f098cb5cbba6da64da996a6de",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "e7de41ce969bdeab6842f566bcd39a2fba98ac5d0211b0bb34933376e91cebd0",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "0d68f514e4b8fd052bcb2f12552a2ad78f35042cf8852d2e16cc6b946a5702e7",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9840808fc59a2e69579d58f6586feda25d8cf9b5de8f7dd0ddd481664cb9dc9e",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f5a77f5d7d3307a4655cc470d1e7756d59e0b213c1ef5904d832cf90c8b56ff6",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "4890ecc83fa8b2c41b82176e793421d97b3a6a30678ed14d63636bca21a467dd",
+        "classification": "declaration",
+        "owner": "VisionModel",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OCRBackend / TesseractBackend / VisionModel",
+        "declaration": "llm/components/vision/backends.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/component.py",
+    "sha256": "eeb89f8549bd3d15e38ab76231c4cac1c0229bde80610c277f80617cbf1904fc",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b6c61e2e3ba84e9de130b333e4797fef24e7c7fc5c0e376ad66cfc34d927074f",
+        "classification": "declaration",
+        "owner": "VisionComponent",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "8e415a530d6099a6c0ff43dbef6f15c80c522bee4c10b8d1db851dc2270b4e9f",
+        "classification": "declaration",
+        "owner": "VisionComponent",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "bf2becf765acc9dae57d04ef6d4133aeace9249632c209b6552eced25e5cdb69",
+        "classification": "declaration",
+        "owner": "VisionComponent",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "a2afb7e468dda9bc1c739bc0656135de16394a28cb057cd2830ba1bd03a82343",
+        "classification": "declaration",
+        "owner": "VisionComponent",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionComponent",
+        "declaration": "llm/components/vision/component.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/configuration.py",
+    "sha256": "cb0465dd130c7b71c8628604369c52faf9569b9a6a19ae227a3be9ebfff38db7",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8163c334053b98ddf955f6332852fcda8852b4528b202db6fef34502487f05ec",
+        "classification": "declaration",
+        "owner": "OCRBackendContract",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "90e39449f28ceddb5a5e1291a2620bf580649540b55cd77fce60b7b9e0bf9ce5",
+        "classification": "declaration",
+        "owner": "OCRBackendContract",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "b9d2bd53c8ccd11c83fb24fce351c3e41665364ea1f08b92846cd268f26dc1f4",
+        "classification": "declaration",
+        "owner": "OCRBackendContract",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f2c4fde12e271cee09e687d4c2e9cc4743ee4a7243804424ab3b2f36114c4736",
+        "classification": "declaration",
+        "owner": "OCRBackendContract",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9f28c3d9e67e63e33140484b9794e734d04357c7ccd43fe66c1c87401a5f9ef2",
+        "classification": "declaration",
+        "owner": "OCRBackendContract",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ce79377344cd43fc31a20ff0302a48228fc069674f65ed46dfb0a51abb4e045e",
+        "classification": "declaration",
+        "owner": "OCRBackendContract",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "8492e0c8118d2194dd58dddbc4cb08cfd182ecae315c3d7f257e2f91f0413c0f",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "cab929b7416f075d2dbec76cdd274156585558f9e9d9a54deb867ebd2b3346c8",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "c37a6748a392219675253eacafd3d360a2b087478f400934ea5cbbf92dcceaf0",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "180b45747217ee0a7ae57435b88c385ed9c2d106da0ba05654ccc5936e37c80f",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f663dec22b12c8af454f8b78a3090454071808d8bf238e6e2d0351f360d5d689",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "5ca60de4c5348f92f759a28e0d0d5cdd1e52af38fe7484fca0538d5d7ce5fc97",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "7bcb2600ac43420e873f704eca8de3d0bb10a5d3b467bb32d1e10f1e58940a2e",
+        "classification": "declaration",
+        "owner": "OCRSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "7670678973da70eadcf35b4e610d123ad7d919bb199724e25d0ed24c5c0fdbdb",
+        "classification": "declaration",
+        "owner": "VisionSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ebddf1a05fd6e4fe8f6f17c3f4baa1ae87cf4753fbcf8bb063e07f4b1b48a48e",
+        "classification": "declaration",
+        "owner": "VisionSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ff99fc31ec1344c0a06e262eeaddaabb25d69f894ea57ba972bd2643cee7594a",
+        "classification": "declaration",
+        "owner": "VisionSettings",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "49d127bf8c29ea96e98253d4f16911dbb4a2427dcd3e57df22554d158c742312",
+        "classification": "declaration",
+        "owner": "VisionConfigurationView",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "0d90e1b9aa89be840a5d681bc30e49f00835f65d1b06a6ab7a0c466bcfd5cc6b",
+        "classification": "declaration",
+        "owner": "VisionBinding",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f7a3e5bca67dbd3a2be0fa3930f4c54f30849c5f74843c12ba901fc47ab46dce",
+        "classification": "declaration",
+        "owner": "VisionBinding",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionSettings / OCRSettings / OCRBackendContract / VisionBinding / VisionConfigurationView",
+        "declaration": "llm/components/vision/configuration.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/data.py",
+    "sha256": "2bc22676856799811c35c485e9087cdd00cd00c4983ca69cd72cda42b5a492d5",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9fe24893fe86bb8189e2ea299e8f3d98429a7004610c4b621afbe790269787f1",
+        "classification": "declaration",
+        "owner": "VisionData",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "bd6812d436fe5ba892d61b67d92228bc3bb43bc61d4a3c13a7f6c37c72fe55b1",
+        "classification": "declaration",
+        "owner": "VisionData",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "5f2ce7d79957a9a0f555d2e7965b550c612c142d729f28c0cccae74f663d0a6d",
+        "classification": "declaration",
+        "owner": "VisionData",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "a52a2392518663151313b6ba8e7ff8706b0e68ea8b5449a57edd427a21b52c10",
+        "classification": "declaration",
+        "owner": "VisionData",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "a2e2025a257b2d5e172c3e98c5072f1fb68a6b745b565b7b092829ff830750cb",
+        "classification": "declaration",
+        "owner": "VisionData",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "5010daf77dec30ce69fa33cfaa44e4420993981d3df9e51da2a246c530b6151c",
+        "classification": "non_contract",
+        "owner": "VisionData.import_image",
+        "reason": "Python union annotation for optional input type; runtime omission uses the Owner declaration."
+      },
+      {
+        "id": "41af56096f982a1941bb8025ebc5901a48e69e1bd252080f0fde2e63eb9fbe91",
+        "classification": "non_contract",
+        "owner": "VisionData.import_image",
+        "reason": "Python union annotation for optional input type; runtime omission uses the Owner declaration."
+      },
+      {
+        "id": "2474bf84afa36dfc9cef181bec97520f10568a249f19b522aa639c8b5370d2db",
+        "classification": "non_contract",
+        "owner": "VisionData.aimport_image",
+        "reason": "Python union annotation for optional input type; runtime omission uses the Owner declaration."
+      },
+      {
+        "id": "544c00c436b5e310577ccf9d3542d6693d319bc6faa1005e057ed7c80a5239f9",
+        "classification": "non_contract",
+        "owner": "VisionData.aimport_image",
+        "reason": "Python union annotation for optional input type; runtime omission uses the Owner declaration."
+      },
+      {
+        "id": "e127b2e27447fc9c8ac28a6f77b2a29099e3afe3085d4ff51d898b5a67da00fc",
+        "classification": "non_contract",
+        "owner": "VisionData.apreprocess",
+        "reason": "Python union annotation for optional input type; runtime omission uses the Owner declaration."
+      },
+      {
+        "id": "176ae7bdcd164be059a99c774994c5c999d10b243f43005aab98e4def444d6f7",
+        "classification": "non_contract",
+        "owner": "VisionData.aocr",
+        "reason": "Python union annotation for optional input type; runtime omission uses the Owner declaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionData",
+        "declaration": "llm/components/vision/data.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/ocr_contracts.py",
+    "sha256": "5fd2f6246d7962cd0be2cd90f0146b3d1ef4e131b9bf6c34d3c0cdc9f54f15e7",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "53c7688c0125f6f402178faa7f3e95aa1ae8bb5ce5d9e948ff46bb2087926468",
+        "classification": "declaration",
+        "owner": "VisionErrorCode",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "4e5726455243cbfe305f905b055afbae635e4bd04f6bc0b342673f556dd429fe",
+        "classification": "declaration",
+        "owner": "VisionErrorCode",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "06aef2ccd3769d7568c64b597a8a06ad855815108335f59750d4c25c527127b5",
+        "classification": "declaration",
+        "owner": "VisionErrorCode",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "a8c7503c19faadc2f85be98217129ffb8053dbf688c6393bac1b79f6eaad6c6f",
+        "classification": "declaration",
+        "owner": "OCRBlock",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "8467684d1027fe9642364fa3543c3457a121525e856455f2cdd1e8dc778a9f58",
+        "classification": "declaration",
+        "owner": "OCRBlock",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "cac9ffcc6cbf078bb5983c1a8fc618b32eca3c0aff99212b6ecd1dc157ae1310",
+        "classification": "declaration",
+        "owner": "OCRBlock",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ef983eee848a334c2776adcc37fb4230cf52ec31ba741761e3f49b3dab037f0e",
+        "classification": "declaration",
+        "owner": "OCRBlock",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "56d6b0bf785ee7fd8440d2e91619d3cf4249b9f537ec8bf66da2977443fcb177",
+        "classification": "declaration",
+        "owner": "OCRBlock",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "18006fe573f7dc51bdad4075768b04504132dc8723853863fc0d43642b2a61aa",
+        "classification": "declaration",
+        "owner": "OCRBlock",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "74aa6bd1844bd8e21fea02b5fbf32db54ddbc1eec70076a94100f4dfa42f74d9",
+        "classification": "declaration",
+        "owner": "OCRResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "1b0b296ce0af0af21ed34a2adecbaf83b0eea7cd0797c975626809ac55bc0ae5",
+        "classification": "declaration",
+        "owner": "OCRResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "a65c188bff07ceeae549904fa54c7990b3bf042ec133364824984970c4edb0fc",
+        "classification": "declaration",
+        "owner": "TesseractOptions",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "8a4803133c80d02dfcaccba3281822b90ae4bdba6831a19630dbb7f77115a7cd",
+        "classification": "declaration",
+        "owner": "TesseractOptions",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "4db68fb4c543737acca4ee132f1c29a60561bbe9ef4cf6c0754169701df1c1d7",
+        "classification": "declaration",
+        "owner": "TesseractOptions",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "11ac37b20da51e6f72f2bae07d0e0a36b32e63b871a65c2b0c854cb196b7a7d6",
+        "classification": "declaration",
+        "owner": "TesseractOptions",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "2254aa9ce396efcd62019682ce8701f0b0446048c8362aba3154f5ac18c7331f",
+        "classification": "declaration",
+        "owner": "TesseractOptions",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9b016d9d84ec677794e037625e338c49904cfa5edc348b0731fc81fdd3d48036",
+        "classification": "declaration",
+        "owner": "TesseractOptions",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f748b98450777d33b80ed6f433737297d7370e160be808c9974f8663cbfb8356",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f3b692d7525904993cc2f26224f2126c07725c68251f22c2903d468d79120346",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9e8c70da8f78dfb167c34e2c001509c7947bf368c378d2c87511f03fbf455515",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "4d5f86c9f6e8b8811767e71997756a3e79a8e396008aa7139a075297c285c655",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "3de85571f8f36fbe15f51a098f9e3e572a8ec75b107c6c9fac031d0c25419846",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "8738676b18ff453b7c901af48e4b433034bdd425750c9834d6e54a32cd25f853",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "d0bb64b60809c3f2dbbd6301794e7e37148ec08c8c63465ea026341dcbbdfb60",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "2d97f655d69457ee845ac55d2b401f0adcb8b0820f515b392d93c549fe9b2219",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "35c76b03a8cd347fec94247f229ddb10fd307b6dba3e38f149d8aaa9ac0b4501",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "dbccc2ee502cd4acfe5dbb1f8bdc9e7ae4bbf35b8f05d4f501ef27866e83830d",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "10c235a6f1764e9da5402b5ea839f2bf15a3c33a17e79c4b82e6180bfae90a39",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "1e556b5336eb17df68babd82b369fde3dad919d7da1dba3e740daf123f0ceb77",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "5f4efd99c9143d9b74c791ef53d6bf697b16ee2e1cda4df9b447081e29cb5ce9",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "27caab83ee863dd0dd8cbc3933e7b36e514441de1edb25a835fdaa99ae55b162",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ce384dd980d3d3f5970ff882fa85313ce8d84f5db11e1a0ba51bec8cb6708837",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "6141425f059acebec1d1eb1899721701c4ebb0a2e2ab8ff877b2077f2ba61ed5",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f2934f4832683a0e96f07b2fe2d7bca15a48d74434af23042bad77c6ec47d5d1",
+        "classification": "declaration",
+        "owner": "TesseractWire",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "457d98c819005a7cb9156c84c3483969d8ab8fa8dabb0ed6e11fa8d886399299",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "2086995ca03b065bae4762c33ea19a37aed190eaf8432459da131cecc3fa5e19",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "63b9730e3cb9744ec0cf38dd611106e6492f17d1bd62cac9662b6f348b29ed85",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9e05b21b2ce6ef0550695d77d7cf2765938912d8aee597b069e469116ed03009",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "df68febe4966e004f288dbc590b5b9bf8c1811d8e9764eb78581b1863427bcc5",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "01369199bb91cb19a0dff9a58018ed20a1a2f5d2a2557b84f52eb6a1b301c25c",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "b673c8ba9cc2208d5cc91a9c7c0b6e75d119583a4665f8773872833c28c8995d",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "5d203ad1e9d10eabca6116abb37de56dbd1a4e4f215d563b23fba37bc5d7ebf5",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "488855831e6a392f51e9df3f2515feafc788bfee78a49441ae5d79a65707a9a9",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "04c7477ee4ad477179dee1d1b680e9c099bfb9e166965de1bb32c07a1a0ea629",
+        "classification": "declaration",
+        "owner": "TesseractWire.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "fe1fe95e6673abc20d5c2318a0870b94885d4b34b20b3131994c7b108c350d87",
+        "classification": "declaration",
+        "owner": "InlineImage",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ff2008ef98a764bc6135437aa23d1c046fb22ae6302688a5754b625cca5c4eca",
+        "classification": "declaration",
+        "owner": "InlineImage",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "b579e1b3d2da9d5c39e2a5705576738d1a67f52a8dd493227486ae0ca910511d",
+        "classification": "declaration",
+        "owner": "InlineImage",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "1466b1794ea58bb6dc663aadc41599d508befff8bdc1106552bbd441d78e4e78",
+        "classification": "non_contract",
+        "owner": "VisionAnalysis",
+        "reason": "Python dataclass frozen/slots type layout; no domain default or stored format."
+      },
+      {
+        "id": "dc6dd4e0aa91ddbe77b4a10143eda101e1f938294f3bd1cee34a94324dac5dfc",
+        "classification": "non_contract",
+        "owner": "VisionAnalysis",
+        "reason": "Python dataclass frozen/slots type layout; no domain default or stored format."
+      },
+      {
+        "id": "f1411c4bae766f1d91143aebd87160f517fd471c7003fb4ba8d14c6c0a018100",
+        "classification": "declaration",
+        "owner": "VisionAnalysis",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9c683d3c72f2c121e345112c17e66588ffa0913c96e118e0889f59f312f51d5c",
+        "classification": "declaration",
+        "owner": "VisionAnalysis",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OCRBlock / OCRResult / TesseractOptions / TesseractWire / VisionAnalysis / InlineImage / VisionError",
+        "declaration": "llm/components/vision/ocr_contracts.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/records.py",
+    "sha256": "df53aac20d96a67ef3651883f5e59863f11e5228ee994af3bd8ce16d0dd78775",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6a8484680c49b0f9b6bd573d98cfd71fe29d2074473f9e248fd27f2a6c401953",
+        "classification": "declaration",
+        "owner": "VisionImageIdentity",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "b0ad304a2fd82046240b9d6ba277fa06e66f24a6c6c8ad520ae596a9d3e06321",
+        "classification": "declaration",
+        "owner": "VisionImageIdentity",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "3945fdae50abf6278f75e2349e75af195b39511d9a3c5279961c77f863b58afe",
+        "classification": "declaration",
+        "owner": "VisionImageIdentity",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "e40e25a36aba65e07504c7561d9585cf9263a5ae31321c6f75678f5d9959b894",
+        "classification": "declaration",
+        "owner": "VisionImageIdentity",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "3a110ded54571e0ebc7b9e67aeea646b6bdf0c8cc1adb009e60db8a406eeed00",
+        "classification": "declaration",
+        "owner": "VisionImageIdentity",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f6d285130b6449eab1625c0299174edfda9abf6e8a2f85336ed31eb92374d820",
+        "classification": "declaration",
+        "owner": "VisionImageIdentity",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "7bb68e7bd048f64bb3f981ecd84ee70b2827648c9bb0067463fee76573e8fcef",
+        "classification": "declaration",
+        "owner": "PreparedImage",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "56af139e53e451274672eb45c8c34ba584125a8831ff06e2400d920fff0cb488",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "378e4fc3a95505d2c00210a3eab3dbc8b7e982a2d6afc16c9c5557537b4e0f7d",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "626646f37c88363d92f42fbc0ef5082479aa501ab7f8cb95787ac2cc44f60fb2",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "3d4b04d49ec146b13d80a5ca7f881f545ab8f2a2fe2d8b617441a8da8dcd786c",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "56faf23d5c3bfc87b9d2b19afbf1c9b88c132168035bf1f1dc773c1596c6a1f8",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "444de5b8e2291e3a1bce6ed6071018c53a080849bbf2f7d7fb5db5fa6aea830f",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "3e58b87fb84a139ad16971b405edb50726cefcff0a414cee9472b9c76768bb29",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "fe923ac217a0207dc2c821ae9528b42d1338cc62ca1041388be2ace434a126fe",
+        "classification": "declaration",
+        "owner": "VisionImageRecord",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ca29888e834cd5f58bd82ea6c675b3d73092d5930fa333dd38c198e0312e8c4c",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "92d2ce250ca56321684590131dc1ad8511a2223cd47853074362360ab08afb83",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9453fc08c7981181ccb5bb6e77dbad21e2094181f9377dd94d6bc4b0e98e1509",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "91fd91be77d9d2f7f44fb3aaecb07943ab12cd6948bb90143e642f512de0a8f6",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "1f81052ea3e126b4be8fd7029a820038c1eac240d19cec9690bee4ec729e8d6d",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "54a9ee9095b110dd62ddad1751e78eeefd1596cf382957bc4c57c4c2d8af3fed",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "19d21a170fb6fe3f8fea521b9ca165b4d1e5d89cb7c129943cb0ede49f84af06",
+        "classification": "declaration",
+        "owner": "VisionImageRecord.Field",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "c107293de2277c3ed32f3f713b5d5368085ec5cced44be7614c5ae6b82b93012",
+        "classification": "declaration",
+        "owner": "ImageOrigin",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "12bcaffddb4348bec660052e8ce3027b849d3b388c2699443d13be2b0bf31ff2",
+        "classification": "declaration",
+        "owner": "ImageOrigin",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionImageIdentity / PreparedImage / VisionImageRecord / ImageOrigin",
+        "declaration": "llm/components/vision/records.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/results.py",
+    "sha256": "88c24fd4373c2fa0c6931259143e3c4681c62d4bc276053c5a8b11066d481c41",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ea1e168808e6e88c90176632cdcecd4c92b0f86428774c73c2cdc386c8281250",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "071eff3ce5466775aa786f22721737de394521523ede3de222ce954c021eca91",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "2c83849899b95395945f815cf5feac5d7548910ece6bf5e9cb08e2c4c10b0a87",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "25439080bb23cf36e5b782587655fcb906efc607ad10bdc962209b27a4242f55",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "d3480f6279aa8211dd573461014688a7a1f098bedb6bf3844f4a890f65540da4",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "146249f5f201c7f56a0401e48b0b530608b9a20578ce44e7ee672413aaceac3e",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "f89299bdb54a198adcbd0e2f1f9a3b86bafcb71e8496e0c29e51088ff9094fc2",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "b57903ac633d1f549fe189faf3cc0ebce77a7b5a2154c267106c05474a09f2f0",
+        "classification": "declaration",
+        "owner": "VisionResult",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "ae6ae08965720f02c88114377026c7ae576390c8e86e969cc36e80159f1acd9e",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "0283c26280d5607621bf0ed4e89c467d56f303fedd0cdc462719f4b327293e9c",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "38267bbda9106afe61843198e88b5c79a5243ae77ced8f7a99ba9196de430970",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "49b34883f25012ef4b2446a3a0e20504dea6b9f8a525fe598052704e1109bba6",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "30bb12239fd193c5af4003e042aa64751199711d80808ad32ae3b0bc5d1a8887",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "be411a34e49d397a3b9ec55149213dd247ff4f2c04308da8c88231aa7d84763f",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "9674b3c6893ee225c21d1021a4849bd4a61f11db6e8c88c64a7ea0feb512aab9",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "d3ab93fd8a4ae3b12dea92a5dd453d5bd7826e541cf7c34168c9a6bcf942e06f",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "c76cfc0d93e3f13c73fb3de69d2bc76491b5b5e55dbf780bd97f48c1af4092bf",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "21892fbf40cdab40cdd46b2fb19fbee32c5c8a8f9a10a11b226b2ad718302282",
+        "classification": "declaration",
+        "owner": "VisionExtraction",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionResult / VisionExtraction",
+        "declaration": "llm/components/vision/results.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/tools.py",
+    "sha256": "dc6bc1080fa4bc4b9ffcc692137af72dd4e1a516a658d0a6848693eca93e85c5",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bb2a6eda5a4baee002db05c445a257e0a63302ca5cc2a49bc9d1c0b5940e24cd",
+        "classification": "declaration",
+        "owner": "VisionToolInput",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "86890bd3ebc8fbb2ca7ff2dfdff04b7b9fe6dcbbaa0605de123c0dbf30a38f3b",
+        "classification": "declaration",
+        "owner": "VisionToolInput",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "120b55d454dd69ae736ce696f6f1fa744f0679a8c4bf724fc91b213110078869",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "5b17c186df68585909424cb8b25cb860f5bd17c82503cf89ee652f8fbf05c2b8",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "cd8ceaafc0150876d7b21407f851f33969031acf4bb9b0b6a7470aec1c2412ce",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "4ddeff453f7790c84aebe53f745208c9db133b78cdcd00d88c0dca9992f9099a",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "b01c2d4d9f2b44bea2e7fc9bf323ec5e6d08ce6c8bbef8ffda6b80d5292ee429",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "c88243b6e2ea5053736b1389bafacaeabfc1842359e76edc6ea8bf3f7f6d2998",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "a0d297bdc3076031ffb2f2b4e4c531a5ccb6ca2833a86cf54640221e2afa5773",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      },
+      {
+        "id": "541ad2c192e28a85d55f33e4556742ae2a4bc509eb94a8dc61a26736a9d8e2ef",
+        "classification": "declaration",
+        "owner": "VisionToolDefinition",
+        "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "VisionToolInput / VisionToolDefinition",
+        "declaration": "llm/components/vision/tools.py",
+        "consumers": [
+          "llm/components/vision/component.py",
+          "llm/components/vision/data.py",
+          "llm/components/vision/tools.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/vision/README.md",
+    "sha256": "001e4088f26d60cb630e02ffb12326485404eb20ae7ba706537ef90420a1f6f1",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Reviewed the full public Vision guide: examples describe the existing public JSON boundary, selected OCR/model requirements, immutable source/tombstone, cancellation and model usage; new file map and Owner responsibilities match actual implementations. Markdown examples are documentation, not alternative runtime declarations.",
+    "contracts": [
+      {
+        "owner": "Vision public documentation",
+        "declaration": "llm/components/vision/README.md",
+        "consumers": [
+          "llm/components/vision/data.py",
+          "llm/components/vision/component.py"
+        ],
+        "tests": [
+          "tests/llm/test_vision.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_component_record_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_defaults.py"
+        ],
+        "complete": true
       }
     ]
   }

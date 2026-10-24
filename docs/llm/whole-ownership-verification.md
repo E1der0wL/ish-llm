@@ -5882,3 +5882,79 @@ dependency 14건 재검토, 계약/architecture 감사 16 pass / 3.260초 / exit
 호출 한도 누락 2개를 기존 실제 효과 Assertion으로 검출했다. 전수 inventory 554개·미검토
 248(llm 71/hub 177)·미분류 15,344·미완 계약 4·issues 0. 추가 미완 계약은 새 이미지
 정의의 Component/Data 소비 전환을 추적한다. 기존 Schema 미전환 계약은 유지했다.
+
+
+## 게이트 37 원격 완료 / 게이트 38 로컬 전체 완료·Push
+
+정확한 SHA 2084bf3829a600b6ad15f822ce18c296a11f2979의
+[CI 40069564637](https://github.com/E1der0wL/ish-llm/actions/runs/40069564637)는 실제 전체
+LLM 2492/2492/2492·2080.520703초, Hub 588/588/588·1443.162126초와 필수 Job/단계 success를
+확인했다. 모든 failure/error/skip/xfail/xpass/누락/추가/중복 0이다. 이전 로컬 Hub 실패 기록은
+유지하며 이 원격 결과로 과거 실행 결과를 바꾸지 않는다.
+
+게이트 38의 정확한 b24f55d27d724a4b94d2c60bc43c6337b8cfc523은 고정 clone에서 LLM 전체
+2492/2492/2492·1429.862963초와 Hub 전체 588/588/588·1090.017468초를 순차 실행했다.
+명령은 `python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group38-l3/llm.json`,
+Hub는 같은 경로의 `--suite hub --output /workspace/llm-clean-resume/b/whole-owners-group38-l3/hub.json`이다.
+각 exit 0, 모든 bad 항목 0이며 발견/실행/통과 ID 집합과 전체 scope를 확인했다.
+source bf16ecd39b07a34038e4748cef7452f4c5bf4a33296145e13b939955c03805d9,
+input b85e03f309acba8c4c87e5ea40d99fb99b60e1955346113ef95ad2dcaef8b1c0는 전후 동일하다.
+6개 보조 검사 exit 0과 supervisor exit 0을 확인한 뒤 해당 SHA만 작업 브랜치에 Push했다.
+main/backend 보호 ref는 그대로다. [CI 40073423004](https://github.com/E1der0wL/ish-llm/actions/runs/40073423004)는
+착수를 확인했으며 이 기록에서 원격 성공을 추정하지 않는다. 이후 Vision 변경은 이 SHA에 포함되지 않는다.
+
+## llm Vision 저장·설정·OCR·Data/Tool 소비 Owner — Level 1·2
+
+기준 bb77e42. 이미지 불변 레코드/가공 출처, asset 경로/파일 효과, 명시 설정/OCR 선택,
+OCR 결과/오류/Tesseract wire, 모델 결과/문서 출처, Tool 입력과 실행 계약을 각각 Owner로
+분리했다. Component는 저장·복제 경계, Data는 준비/현재 설정·원본 검사/잠금·등록 순서,
+Backend는 프로세스 및 모델 호출 수명을 조율한다. 의미 해석·Writer는 Owner에 있으며
+외부 소비자는 타입 속성·검증·Projection·공개 API로 연결한다. 공통 enforced 관측 필드는
+ConfigurationEnforcement에 선언하고 RAG는 동일 선언을 참조한다. RAGDocumentInput은
+Vision 파생 내용의 Writer만 추가했고 기존 Reader/Writer 80개 메서드의 AST는 그대로다.
+
+제품 저장 형식/필수 필드·정확한 버전·원본 bytes·tombstone·ID 재사용 거부·불변 편집 범위를
+바꾸지 않았다. Backend 선택/옵션 누락·SDK/Backend 재시도·부분 결과·취소/kill/drain·사용량
+관찰·승인·Tool 효과 분류·Graph/Loop 재개도 그대로다. 별도 저장본/Reader나 자동 fallback이 없다.
+
+비교 명령 `PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/vision-consumers-draft/proof.py`
+및 같은 환경의 `vision-ocr-draft/proof.py` 각각 exit 0. 전체 Backend 함수 10개 전개 동일,
+기존 이미지 메서드 16개 동일, OCR 결과 58·inline image 25·실제 Backend argv/schema/TSV
+154·프로세스 실패 4·spawn/exchange/반복 취소 4·모델 전송/실패 15 경우를 비교했다.
+소비자 비교는 레코드 변형 196·설정 26·등록 속성 조회 순서 24·저장 호출 전체 8/장애 23·
+Data 전체 호출 7/장애 62·선택/override/무결성 9·Tool 정의/계약 24 경우가 일치한다.
+원래 프로세스/이미지·저장·승인·취소 실제 효과 시험도 아래에 포함한다.
+
+첫 `whole-vision-consumers-l1-01`은 20 발견/실행, 5 pass·15 failed IDs·16 error(하위 시험 포함),
+1.435688초·exit 1이었다. 옮긴 상수의 self 누락 NameError가 원인이며 원본 결과/trace를
+보존했다. self.ABSENT로 수정한 `l1-02`는 20 pass·5.022109초·exit 0이다. 이어 L2/Hub/R3도
+통과했으나 정적 S5가 새 settings 메서드의 금지 어휘를 검출했다. read_parameters로 고치고
+예외를 추가하지 않았다. 최종 소스에서 아래 전체 집중 묶음을 다시 실행했다. 과거 결과를
+수정하거나 서로 다른 소스를 한 실행으로 합산하지 않는다.
+
+- `whole-vision-consumers-l1-03`: discovered/started/pass 20/20/20, exit 0, 5.361114초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-vision-consumers-l1-03/llm.json --modules tests.llm.test_vision`. source `9da9756103c491c6151e60fa640873ba56132448132d6cbc5de369c1b70b82fd`, input `34a8edf16b69d576054bea023e4a85e4b61bd800c962346271f746e82cd3b140`.
+
+- `whole-vision-consumers-l2-02`: discovered/started/pass 110/110/110, exit 0, 43.371575초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-vision-consumers-l2-02/llm.json --modules tests.llm.test_schema_ownership tests.llm.test_parameter_values tests.llm.test_resource_references tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_data_quarantine tests.llm.test_operation_integrity tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity`. source `9da9756103c491c6151e60fa640873ba56132448132d6cbc5de369c1b70b82fd`, input `34a8edf16b69d576054bea023e4a85e4b61bd800c962346271f746e82cd3b140`.
+
+- `whole-vision-consumers-hub-02`: discovered/started/pass 12/12/12, exit 0, 37.407749초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-vision-consumers-hub-02/hub.json --modules tests.hub.test_rag_extensions tests.hub.test_defaults`. source `9da9756103c491c6151e60fa640873ba56132448132d6cbc5de369c1b70b82fd`, input `34a8edf16b69d576054bea023e4a85e4b61bd800c962346271f746e82cd3b140`.
+
+최종 실행의 failure/error/skip/xfail/xpass/누락/추가/중복은 모두 0이다. 원본 Assertion과 실제
+효과 횟수 검사를 그대로 유지했다. 같은 source/input·Python3.12.14/Clang·의존성·Host d833790·
+namespace/X11·전체 발견 목록에서 전후 동일성을 확인했고 L1/L2 실행 ID는 중복되지 않는다.
+범위는 Vision 호출 관계와 공통 Config/RAG 입력 소비, 실제 원본 파일/취소/트랜잭션 실패,
+공통 승인·예산·효과·Checkpoint·삭제/저장 무결성을 기준으로 정했다. R3 누락 한도 mutation도
+기존 실패 Assertion으로 검출한다. 테스트/Fixture/CI 필수 Job을 줄이지 않았다.
+
+이 소단계에서 전체 LLM/Hub는 수행하지 않았다. 저장·설정·OCR·이미지·소비 전환을 묶은
+게이트 39에서 현재 통합 소스의 Level 3를 수행한다. Vision의 구현 소비 연결만 닫으며,
+전체 llm/hub 및 후속 원격 CI 완료를 선언하지 않는다.
+
+Vision 소비 묶음 보조 검사: 정적 S1–S7 reviewed 102·new/stale/outstanding/review_errors 0,
+dependency 19건 재검토. 이전 선언 occurrence 2건을 보존하고 정확한 format_version Reader의
+새 S4 occurrence 1건을 원래 type 검사·손상 기록 시험에 근거해 검토했다. S5 예외는 없다.
+계약/architecture 감사 16 pass·3.352초·exit 0, 문서 168개·fence 183개·링크 1221개·anchor
+37개 오류 0이다. R3 mutation exit 0이며 의도된 한도 누락 2개를 원래 실제 효과 Assertion으로
+검출했다. 전수 inventory 559·미검토 243(llm 66/hub 177)·미분류 14939·미완 계약 3·issues 0.
+Vision 이미지 Owner의 실제 소비 연결을 확인하여 그 미완 계약만 닫았다. 공유 Owner의 기존
+모든 계약 및 완료/미완 상태를 보존했다. llm 전체와 hub 작업은 계속 남아 있다.

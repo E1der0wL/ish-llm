@@ -2,7 +2,7 @@
 
 from copy import copy, deepcopy
 from llm.core.configuration import ConfigurationSource, resolve_config
-from llm.core.configuration_views import ConfigurationView, RuntimeConfiguration
+from llm.core.configuration_views import ConfigurationView, RuntimeConfiguration, ConfigurationEnforcement
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.core.models import ProjectConfig
 from llm.core.parameters import ParameterLayout
@@ -414,7 +414,7 @@ class RAGConfiguration:
 
 
 class RAGConfigurationView:
-    ENFORCED = "enforced"
+    ENFORCED = ConfigurationEnforcement.enforced.__name__
     MODEL_PROVIDERS = "model_providers"
 
     def __init__(self, value):
