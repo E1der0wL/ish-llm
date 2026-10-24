@@ -77025,5 +77025,704 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "llm/services/runtime/events.py",
+    "sha256": "cb2c5c743ae5ae80f02aa1b523c59d3b00861147f99ae8c44deeb6830769891b",
+    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d530723c2d786dc711b034a94e4c87ab178f13a995d11533e0bdcd2bd4ce2a52",
+        "classification": "declaration",
+        "owner": "Subscription",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "14691dd41ac7831d5d92459de98f4110ece73d3f5189ed2dc80514a54a191ad7",
+        "classification": "declaration",
+        "owner": "Subscription",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "9458f6eeb72f36372afc5de8f98d13aaa826191c8a8056e97b45fb43ebcb2226",
+        "classification": "declaration",
+        "owner": "EventHandlers",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "d613abfaf6a5b2cf03ab5b69dbdb7a58b8afdd944510f89b22bb4be38ecf4624",
+        "classification": "declaration",
+        "owner": "EventHandlers",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "3cec3d098a3d2a42ef29a38a01d7d556ebe703e2432f6f208ba30ecf11f234d1",
+        "classification": "declaration",
+        "owner": "EventHandlers",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "41b4243f403a0aa1395c2021403a418bb69fe9d9c13412a4f59ba7706a2a98f9",
+        "classification": "non_contract",
+        "owner": "EventHandlers.register",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "544364bdc374b29fdcd6bcc0293c1fad67a78df0f6d1eebfcedd750d8fc46670",
+        "classification": "non_contract",
+        "owner": "EventHandlers.handle",
+        "reason": "Python None return annotation, not a runtime policy."
+      },
+      {
+        "id": "b10b8417e7a84e82c921414448720bac17698e27f0c9c67069b6f41356e0751d",
+        "classification": "non_contract",
+        "owner": "EventHandlers.handle",
+        "reason": "Python exception-chain suppression syntax; unchanged absence of displayed context."
+      },
+      {
+        "id": "07f54610c0401ebbcaa611b22f39227e1362c5247243e5e000d61d8c9ec4fe28",
+        "classification": "declaration",
+        "owner": "EventContext",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "aea961d768761d49c5efabcadce8021dbf39e53ad5ea3164acf4b4e09c04f6f1",
+        "classification": "declaration",
+        "owner": "EventContext",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "e823ca1ccc9060f90ead777ef3af597c361c6c6aeabd8cbfbfb3c87a6adcfd39",
+        "classification": "declaration",
+        "owner": "EventContext",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "572ba31b0c50100f0d40f05670e440a850afabcc986f83e5babec616196240af",
+        "classification": "non_contract",
+        "owner": "EventContext.update_metadata",
+        "reason": "Python None return annotation, not a runtime policy."
+      },
+      {
+        "id": "a7e8b566b5a2ccb36a312c0c4e4a8c10b34b22a393402635e53ea258eb0cc731",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "8fce360a432f236209db43c983705ae7f66de683f8dfb458548edb2eb10e8488",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "43538cc20ade484dd8f1ebd8b0023c8045b4a0fb6a064283929b69b2d5b66f2a",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "5fbc59333a9ef89c0012a31281b3361e28a404015e06b53f72f8bb378cd8c1ba",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "e6c3b0b1d1c7221ce8f2ba4aa2777c0ce8ded5deec170405b2b582a097a95b83",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "f69e06958d2e43f0d8d7a2f15025f4aa5d9a747634dc4c4afd8f68c02ea4f57b",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "cbc6956eaeb75670b73c0be58089858326fa464354ec7d9f5633ff8e9f38a0f1",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "0f6f43333f2ee94a9c9b4912e15c1fd349ee545c7d4392c36593bcf65c1a03ab",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "727b45ace12206230ab44c15eb7ff44c492f001b56e4c69c1ca5ab7ad95717ec",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "c14110c0ea4c506a9b43888a9aef2928c8e2672019592c67b4feba64e07b06bd",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "29f14e3241a4a2c5192785ca1221e5ecc6c12bad04671b670adc58d990bdd696",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "ec553eabd89490294e0d739194f946630a8927c6154a628a7da3ea77384f089c",
+        "classification": "declaration",
+        "owner": "EventSubscriptions",
+        "reason": "Event lifetime, delivery and protected metadata Owners declare their diagnostics and limits at the implementation head; choices and state reference their canonical Owners."
+      },
+      {
+        "id": "1f0e2b45e04aaf8b7be755e7c3f8c56089e66cef4285316926082b8759f9cc61",
+        "classification": "non_contract",
+        "owner": "EventSubscriptions._consume",
+        "reason": "Unbounded structural worker loop; owner sentinel terminates delivery, not an execution retry policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EventSubscriptions / EventHandlers / EventContext",
+        "declaration": "llm/services/runtime/events.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/api.py",
+          "llm/llm.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_domain_hardening.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_persistence.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/subscription_state.py",
+    "sha256": "032a0093fa4561f955b0ca17e70e8f54173d9530e10c430fc8ca75da4a7aaf5c",
+    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7786a1a7f107909514b8712f753220f0dba647574f621ed4e8785132dd3364c0",
+        "classification": "declaration",
+        "owner": "SubscriptionContext",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "5b31e8644951743e00cecf099306280feb6fb37c506f20aad38408033e358d5c",
+        "classification": "declaration",
+        "owner": "SubscriptionContext",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "0642d810ae09ccea7ff745b90ded457250e9f8b269e5090465447d0c3d4f424c",
+        "classification": "declaration",
+        "owner": "EventChannel",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "02602f48c261c7a62b0afe0796c1f927eca59ef5c87fc08daf7cbee45d977a50",
+        "classification": "declaration",
+        "owner": "EventChannel",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "7a75780c77a07c61ba2459d9cc828456d5b6496fa12575cd1e15af61db4adccd",
+        "classification": "declaration",
+        "owner": "EventDelivery",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "bd86a478e7d1a92d9ebd94605986edd29460b302a092ad6bbe82787e78140180",
+        "classification": "declaration",
+        "owner": "EventDelivery",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "b1b41f53e3e6e8b565cce62ce558ae3339c978aea95b3544f9462cd69fc92c70",
+        "classification": "declaration",
+        "owner": "EventOverflow",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "0520b7dd6769bd10dccdd6d1aed7516db5fc34bc1b834f8123dabd1909a68695",
+        "classification": "declaration",
+        "owner": "EventOverflow",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "069eaad831c15835c4bf41d1cb3ce8efa01059812ed2f2b3422be28916d47753",
+        "classification": "non_contract",
+        "owner": "DeliveryCounters",
+        "reason": "Python dataclass slots metadata for internal counters."
+      },
+      {
+        "id": "fa9314ce7000b6f372d060835b9a5276ea2de3a84540e440de85826232a3fa6c",
+        "classification": "declaration",
+        "owner": "DeliveryCounters",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "998cc2446384c2ef20f5645b14ec78db6a04858b1608b7f64d42002a3d176853",
+        "classification": "declaration",
+        "owner": "DeliveryCounters",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "63b84d41718d0c7d77757e3757bb61e8c26bf6b2f89204d2e3ec2143a47ec43e",
+        "classification": "non_contract",
+        "owner": "SubscriptionEntry",
+        "reason": "Python dataclass slots metadata for one live state object."
+      },
+      {
+        "id": "60d680dece69131abf4934951e067fdea2cdee9c6d57bfa81c2561c2905d2c86",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "f40a94c5b8ae748f0ad84d2c11b98cb4dff9b2e32b4d27911a3e0d35c32241ef",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "e7e169eaa77fc3bc6b488a990ca1de664ecce3ce6353155ae2bbe5e324ecb2cc",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "f68858a54b7e5ae427b33780f2ee55af7ac12183f2a4df33967c320087bd1961",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "bc955ab7c000e1b0447b1756d2b314e69e11801ba7b8c2646ce2ffbdb9ed51f4",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "b3a6b53c01466ce8124e6dad1a25af4c45112b7908cd3f4e439dcada4c2abf6a",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "e55365a9cc6ecbd05405a9d8947fa2ade58fc519de4b8b6519f8e7efee15c94c",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "6df2f35ae96d3002d9bd5c82105a5471778ad9c7eaa292d9ac64dd55eae90caf",
+        "classification": "declaration",
+        "owner": "SubscriptionEntry",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      },
+      {
+        "id": "0fdaad6f8d1182045e1cd1801640c486f2747ee621d63c9d9f32081ed4ba1b10",
+        "classification": "non_contract",
+        "owner": "SubscriptionStats",
+        "reason": "Python frozen/slots dataclass metadata for detached public numeric projection."
+      },
+      {
+        "id": "28abcc8aebc97fc6c0de15fc553dad7073caacaa0f03a93febdd3b423fbd641c",
+        "classification": "non_contract",
+        "owner": "SubscriptionStats",
+        "reason": "Python frozen/slots dataclass metadata for detached public numeric projection."
+      },
+      {
+        "id": "b7b9f12b93fd60c8c14bb0d64cf27729ae57c5c5d2e6e831bb9172d193b10b98",
+        "classification": "declaration",
+        "owner": "SubscriptionStats",
+        "reason": "Live state and detached observation types declare their own fields/options at the head; no stored execution authority."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SubscriptionEntry / DeliveryCounters / SubscriptionStats / EventChannel / EventDelivery / EventOverflow",
+        "declaration": "llm/services/runtime/subscription_state.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/api.py",
+          "llm/llm.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_domain_hardening.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_persistence.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Event subscription choices/statistics — Hub consumer pending",
+        "declaration": "llm/services/runtime/subscription_state.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_domain_hardening.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_persistence.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "llm/services/lifecycle/steps.py",
+    "sha256": "38552346898965d8431873e877628774e2b0c82bbdd4eb93fc3d69d6589963d6",
+    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "196b2321da9e6f72653eb0e64fc51692012a0923f6a916a098406b4d260b24b2",
+        "classification": "declaration",
+        "owner": "StepLogEvent",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "cee17bc9808f5799e7ed843012a45432133203ca2913de6556eaa5a7adea24f3",
+        "classification": "declaration",
+        "owner": "StepLogEvent",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "45c4f8ab847997bea506c8a2acbe93a8258a75de580eb49076b732ebe8daacbd",
+        "classification": "declaration",
+        "owner": "StepLogEvent",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "07c7dfe89aa4f3815272746e2a289ba0b68e41484606c428f6b7d4a51e45fd6a",
+        "classification": "declaration",
+        "owner": "StepLogEvent",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "78bbe71c7ad25f166271a2f124e2909d97ab761e04447744fe13ec341706b96e",
+        "classification": "declaration",
+        "owner": "StepLogEvent",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "3bc8de08c65f05a747b04b55afdb2fde7604dc2e86276442ff5baedcdc9738f3",
+        "classification": "declaration",
+        "owner": "StepLogEvent",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "253b578fe3c3b44d36c00036b1c72903bb2f3fd63a6615ce2657a5d63bdd7e17",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "9c3fbcd0493c6acb8f62e28158f74bcaeab6ebcc923aff5fafceaa118b211dc8",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "45629431660f2f9eaf1e4b452b9f8c70fa661c1887b3305c0691bbcb2bbfb5ce",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "96ade4fe04d1dc7172c4d9a2e759c2f0c66908150caa3e56e1ff807eb93162fd",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "e7b09297a88787d842b908e53ff0109207df206a49a8075ad9048375fbf2cc8e",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "cdd2e080b2d02763a597f1a3b00235e994af4ec4a109deb1160ebb7ad7044d95",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "578efcd22027930da7b08802b22bde28eb8e2849aefe12a2b5669506758c6059",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "44acc9ca5c07c3c76863d7204e6e47399d7ae17899dfc3887b2fc40315b80dc1",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "5be65824ccd07266bfeba7002d8efa0f6358f4748ae6e9abe48a3ea918ee05ce",
+        "classification": "declaration",
+        "owner": "StepRepository",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "8f5a0e7651daf9e8e70b2a7cb82f2831ffe444dacbc729c89f175eef624b9a7d",
+        "classification": "non_contract",
+        "owner": "StepRepository.create",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "b42b4045f46a8d1a884f51821b1429bad06aa489362b43232d874d74bdf22788",
+        "classification": "non_contract",
+        "owner": "StepRepository.save",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "75cfbadba57220915efaf35f71b6d25d3b88be66f20177302994c5e9ab10b6c9",
+        "classification": "non_contract",
+        "owner": "StepRepository._write",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "d43ec543c925411823ad5e78e6dfd792dc2dd8a1cb3a00593354b347f56ff6a8",
+        "classification": "declaration",
+        "owner": "StepManager",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "f64d35a2144cfc5cbcbc2e4abfa9ce7b0d60fbef70b415e485912a4cc59b4b27",
+        "classification": "declaration",
+        "owner": "StepManager",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "e84fcb5bac86e41b2f9e6399f3f684ad932b8e0bd48d8ab39a7d00bd97f2a12e",
+        "classification": "non_contract",
+        "owner": "StepManager.__init__",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "ce3b95826129f8d9933089fb3fafb1bcbc94097dc50c4f739cf0c1051ea6f06c",
+        "classification": "non_contract",
+        "owner": "StepManager._finish",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "a46ca699d93b2851913e239f08ae247ef28f30517ce1bde8f459b9caa546e13a",
+        "classification": "non_contract",
+        "owner": "StepManager.save",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "61741323418dc343f5f44b5feb4b9c5d6b8f215f24302eeb3d86dbebd616d560",
+        "classification": "non_contract",
+        "owner": "StepManager.start",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "fa62288a7c73bb9768c10d0a5521569a03016033ed3ccbe53e0a927272a0e848",
+        "classification": "non_contract",
+        "owner": "StepManager.complete",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "9b52fe66b940e2cc0095155d58918b8a54d5f1ccc62d3823e4dbe4c8e98e7309",
+        "classification": "non_contract",
+        "owner": "StepManager.fail",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "2488f31468b7c3c3f662b34a4cb9825fbc0da330214f6bb67d864d3e31cbfd15",
+        "classification": "non_contract",
+        "owner": "StepManager.interrupt",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "157ba1a12df5c22d5589b602c659c22925b1f6d850743c3d0cab0510f2779a71",
+        "classification": "non_contract",
+        "owner": "StepManager.cancel",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "3738767575745a4028f6d753ead6bc338c692ac7e5e93d0ae780ce5334d772cd",
+        "classification": "non_contract",
+        "owner": "StepManager.recover",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "4c87509a01700c01b26a229b5739523491de0ff138b0e6f88a48022872563342",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "f3c361673f881a85603d9b2060ce5de97a2bfb5dcd72921b7bd02d645677dfe9",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "1d851968d85456a74c70ebdc2a110295bc8c3880c274bf9cf519a2e2e415fa19",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "6d1f9663240fe2905b64a1d74cac75a54926998d5208032a4311f9b2fab9923c",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "f100644b09641bab037b84a195d294b780f70a67b92634dbc294ad5ebab2f1a4",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "d9f88e7b0ac18aac0c5769d357dff832ef792351e6c0e051fcc36b30b31188d0",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "d3e5c25f7f70e04ec927b9df0d551224dec50c0c2161f4f21805e008fd691d6d",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "f7da77962849c1e33a104c65b63f86baf7f842dff68b22857dfc07f80109e6bd",
+        "classification": "declaration",
+        "owner": "StepEventRecorder",
+        "reason": "Step storage/lifecycle declarations are local to their Owners; status, canonical fields, output and error contracts reference the domain/Engine Owners."
+      },
+      {
+        "id": "d1d56ea9a1b76dc215b383bc1d181f45449e818a26ea36e50ab8e4deccde7583",
+        "classification": "non_contract",
+        "owner": "StepEventRecorder.__init__",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      },
+      {
+        "id": "13adfa916a4978b2a64df7b5dce24c6ee280fb9eae81b75f1adbc3f61f5a5fe6",
+        "classification": "non_contract",
+        "owner": "StepEventRecorder.record",
+        "reason": "Python None return annotation, not a runtime default or stored policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "StepRepository / StepRecordView / StepLogEvent / StepManager / StepEventRecorder",
+        "declaration": "llm/services/lifecycle/steps.py",
+        "consumers": [
+          "llm/services/runtime/runs.py",
+          "llm/services/api.py"
+        ],
+        "tests": [
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_catalog_presence.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_contracts.py",
+          "tests/llm/test_current_contracts.py",
+          "tests/llm/test_domain_hardening.py",
+          "tests/llm/test_engine_outputs.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_lifecycle_logging.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_persistence.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_repositories.py",
+          "tests/llm/test_run_reference_integrity.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

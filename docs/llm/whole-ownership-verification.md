@@ -7111,3 +7111,62 @@ failure/error/skip/xfail/xpass/누락/추가/중복 0이다. 실제 artifact와 
 전달한 보조 스크립트 오류는 문서 행만 별도 갱신하여 해결했다. 제품과 시험은 변경하지
 않았으며 최초 실패 로그를 보존했다. 전체 591개 파일 중 미검토 199개(llm 22/Hub 177),
 미분류 10267·미완료 계약 3개를 유지한다. Tool 파일 완료를 전체 llm 완료로 표현하지 않는다.
+
+
+## llm Event 구독·Step 저장 — Level 1·2
+
+기준 22f3ec3. Event 선택 값과 live Entry·Counter·공개 stats Projection을 분리하고,
+Step identity 조회·로그·전이 소비를 기존 Owner에 연결했다. RunManager는 구독 채널 세 곳만
+연결했으며 이 변경만으로 Run 전체 검토를 완료 처리하지 않는다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/events-steps-draft/ast-proof.py`
+exit 0: 선언과 명시적 Entry 필드 투영을 전개한 함수 171개 전체 AST 동일. 표현 변경 8개는
+별도 비교했다. 같은 경로 values-proof.py exit 0: subscription_lifecycles 18, subscription_options 27, managed_metadata 40, actual_step_flows 11, step_storage_faults 72, step_refusals 112.
+실제 구독 수명·옵션 거부·보호 metadata와 같은 경로/고정 시각의 Step 파일 효과·장애·Reader
+오류를 비교했다. 최초 보조 시험의 한 글자 Step ID는 저장 ID 계약에 맞지 않아 실행 전
+실패했으며 32자리 fixture로 수정했다. 최초 로그는 보존하고 제품 계약은 변경하지 않았다.
+
+시험 변경은 private `handle._entry["worker"]` 조회 한 곳을 `handle._entry.worker`로 옮긴
+것뿐이다. 원래 Task.done·weakref·실제 해제·계수 Assertion은 그대로임을 전체 파일 비교로
+검증했다. 별도 dict 호환 상태나 이중 Reader는 추가하지 않았다.
+
+- `whole-events-steps-l1-01`: discovered/started/pass 193/193/193, exit 0, 60.531324초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-events-steps-l1-01/llm.json --modules tests.llm.test_runtime_reliability tests.llm.test_observability tests.llm.test_service_extensions tests.llm.test_domain_hardening tests.llm.test_engine_outputs tests.llm.test_lifecycle_logging tests.llm.test_current_contracts tests.llm.test_catalog_presence tests.llm.test_execution_boundaries tests.llm.test_persistence tests.llm.test_repositories tests.llm.test_contracts`. source `f2a4a5f56c793b1cb35ea1adf60e44f43673cf7146903e9b9a7f9e79990b8347`, input `8133f8f6bc18d1f96b79e71b45183363b0ee7abae5f5213edebe3ad9df9ef436`.
+
+- `whole-events-steps-l2-01`: discovered/started/pass 107/107/107, exit 0, 51.053678초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-events-steps-l2-01/llm.json --modules tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_run_reference_integrity tests.llm.test_interaction_storage tests.llm.test_loop_steering`. source `f2a4a5f56c793b1cb35ea1adf60e44f43673cf7146903e9b9a7f9e79990b8347`, input `8133f8f6bc18d1f96b79e71b45183363b0ee7abae5f5213edebe3ad9df9ef436`.
+
+- `whole-events-steps-hub-01`: discovered/started/pass 18/18/18, exit 0, 17.933215초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-events-steps-hub-01/hub.json --modules tests.hub.test_engine_output tests.hub.test_stream_output tests.hub.test_output_interaction tests.hub.test_backend_diagnostics`. source `f2a4a5f56c793b1cb35ea1adf60e44f43673cf7146903e9b9a7f9e79990b8347`, input `8133f8f6bc18d1f96b79e71b45183363b0ee7abae5f5213edebe3ad9df9ef436`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 간 중복 0, source/input은 실행 전후 및 세 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성과 격리 환경을 사용했다.
+`python -m tests.llm.check_budget_mutation` exit 0, 실제 효과 횟수의 R3 한도 누락 검출 유지.
+
+직접 구독/Step/관찰/확장 구현/출력/저장 계약과 승인·예산·Checkpoint·원장·Run 참조·삭제·
+RAG·트랜잭션·Loop steering, Hub 출력/승인/진단 소비자를 선택했다. 실행·저장 순서와
+공개 형식의 보존을 확인한 표현 정리이며 전체 회귀는 관련 Run 작업과 묶어 Gate45에서
+수행한다. Gate44 frozen 소스 결과에는 이 미커밋 변경이 포함되지 않는다.
+Hub 제품 전수 정리는 llm 이후 계속하며 이 소단계는 전체 완료·원격 CI 완료가 아니다.
+
+
+## Gate44 로컬 전체 완료·정확한 SHA Push
+
+Interaction·Operation·Tool의 통합 소스 `22f3ec38b1000d9f49739cb69570bc1e503b507e`를
+별도 고정 worktree에서 검증했다. `python -m tests.llm.run_regression --suite llm`은
+2502/2502/2502(1442.426066초), 이어서 `--suite hub`는 588/588/588(1099.074880초),
+각 exit 0, full scope·전체 발견 목록 일치, 실패/오류/Skip/xfail/xpass/누락/추가/중복 0이다.
+정적 S1–S7·문서·R3 mutation·실제 SDK offline transport·LLM/Hub 환경 검사도 각각 exit 0이다.
+
+source `c1c8881ef8e08d78a9a6e9a100687d858d1086ecbb9441034ee604eb5493ddd6`,
+input `810c759b00b5ea4a2c40f285947ebf2c78ecbaaf30d03a5e9420cf63f1336b45`가
+전체 실행 전후 동일하다. Python3.12.14/Clang, Host d833790의 실제 실행이며
+위 새 Event/Step 소단계는 이 고정 소스에 포함하지 않는다.
+
+전체 성공 후 해당 SHA만 `refactor/llm-clean`에 Push했다. main·refactor/llm-backend·Draft PR #1의
+전후 상태가 같다. [CI 40110481534](https://github.com/E1der0wL/ish-llm/actions/runs/40110481534)는
+2026-10-24 16:12:34 UTC에 headSha 일치·queued/in_progress를 확인했으며 아직 원격 통과로
+선언하지 않는다. 원격의 실제 전체 결과를 후속 확인해 기록한다.
+
+Event/Step 마감 검사: 정적 S1–S7 exit 0(82개 검토, 미검토·오래된 근거 0),
+감사 자체 시험 16개/3.472초 통과, 문서 검사 exit 0. 전체 592개 파일 중 미검토
+197개(llm 20/Hub 177), 미분류 10022·미완료 계약 4개다. 추가된 미완료 계약은
+Hub 구독 선택·stats 소비 연결이며 llm 이후 작업 순서로 유지한다. 전체 완료는 아니다.

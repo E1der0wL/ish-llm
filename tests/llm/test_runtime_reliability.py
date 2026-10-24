@@ -417,7 +417,7 @@ class SubscriptionLifetimeTests(unittest.IsolatedAsyncioTestCase):
             handles.append(handle)
             await self.events.publish("engine", "value")
             await self.events.flush()
-            workers.append(handle._entry["worker"])
+            workers.append(handle._entry.worker)
             handle()
             await self.events.flush()
             self.assertTrue(workers[-1].done())

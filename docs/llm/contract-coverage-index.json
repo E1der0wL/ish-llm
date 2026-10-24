@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 591,
-    "unreviewed_files": 199,
+    "files": 592,
+    "unreviewed_files": 197,
     "stale_files": 0,
-    "unclassified": 10267,
+    "unclassified": 10022,
     "violations": 0,
-    "incomplete_contracts": 3,
-    "unreviewed_dynamic_paths": 201,
+    "incomplete_contracts": 4,
+    "unreviewed_dynamic_paths": 199,
     "unreadable_files": 0,
-    "candidates": 20851,
+    "candidates": 20693,
     "issues": 0
   },
   "files": [
@@ -3381,9 +3381,9 @@
     },
     {
       "path": "llm/services/lifecycle/steps.py",
-      "status": "unreviewed",
-      "sha256": "4c152d324386d2b2c3f741cf76c4b38e1e2810a26fe4c6a8bffdaec0593a34d6",
-      "candidates": 59
+      "status": "reviewed",
+      "sha256": "38552346898965d8431873e877628774e2b0c82bbdd4eb93fc3d69d6589963d6",
+      "candidates": 39
     },
     {
       "path": "llm/services/query.py",
@@ -3429,9 +3429,9 @@
     },
     {
       "path": "llm/services/runtime/events.py",
-      "status": "unreviewed",
-      "sha256": "fbb4e733a29336267dad13123ef83c940d6253b52050346346f5a173ddd55d04",
-      "candidates": 183
+      "status": "reviewed",
+      "sha256": "cb2c5c743ae5ae80f02aa1b523c59d3b00861147f99ae8c44deeb6830769891b",
+      "candidates": 25
     },
     {
       "path": "llm/services/runtime/interaction_records.py",
@@ -3490,14 +3490,20 @@
     {
       "path": "llm/services/runtime/runs.py",
       "status": "unreviewed",
-      "sha256": "f201cffd1b8769b346f14eb5cc45da8ed649e98b14d23d5bd6c2abb27e441de4",
-      "candidates": 472
+      "sha256": "7dde5d2f16b5198de62f749b74735befcc0cc9f9c741391d4bfb2ebd7d898114",
+      "candidates": 469
     },
     {
       "path": "llm/services/runtime/steering.py",
       "status": "reviewed",
       "sha256": "5499f73f40d2c655b2f6f71422133b1c119669f1d8947ef92b4ecd07b4fc6157",
       "candidates": 25
+    },
+    {
+      "path": "llm/services/runtime/subscription_state.py",
+      "status": "reviewed",
+      "sha256": "032a0093fa4561f955b0ca17e70e8f54173d9530e10c430fc8ca75da4a7aaf5c",
+      "candidates": 23
     },
     {
       "path": "llm/services/runtime/tool_approval_records.py",

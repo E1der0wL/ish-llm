@@ -1,5 +1,7 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.services.runtime.subscription_state import EventChannel
+
 from llm.core.execution_observations import ExecutionObservations
 from llm.core.steering_channel import SteeringChannel
 from llm.core.instruction_records import InstructionMessageRecord, InstructionReceipt
@@ -836,7 +838,7 @@ class RunManager:
         event = EngineEvent(EngineEventType.STEERING_CHANGED,
                            metadata=SteeringNotification(instructions=values,
                                targets=SteeringChannel.require(run).targets.values()).to_dict())
-        await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
+        await self.subscriptions.publish(EventChannel.ENGINE.value, run, event, on_error=lambda: self._observer_failed(run))
 
     def _accept_instruction(self, run_id, content, targets, reserved=False):
         _, session = self._prepare()
@@ -889,7 +891,7 @@ class RunManager:
         self._notify_requests()
         event = RunEvent(RunEventType(run.status.value if run.status != RunStatus.RUNNING else "started"),
                          deepcopy(run))
-        await self.subscriptions.publish("run", event, on_error=lambda: self._observer_failed(run))
+        await self.subscriptions.publish(EventChannel.RUN.value, event, on_error=lambda: self._observer_failed(run))
 
     def _store(self, session: Session) -> Conversation:
         if (session.project_id, session.id) != (self._session.project_id, self._session.id):
@@ -1675,7 +1677,7 @@ class RunManager:
             if pending_outputs:
                 await drain_on_cancel(self._io.run(self._record_deltas, run, store, pending_outputs, pending_deltas))
             for event in notifications:
-                await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
+                await self.subscriptions.publish(EventChannel.ENGINE.value, run, event, on_error=lambda: self._observer_failed(run))
 
         try:
             output_buffer = self.output_buffer.for_policies(RunPolicySnapshot.read(run.metadata))

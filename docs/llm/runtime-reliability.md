@@ -187,3 +187,22 @@ JSONL fsync 및 UI 통지 전 저장 순서는 유지한다. 첫 대용량 파�
 Session 전송은 [전송 계약](session-transfers.md)의 양쪽 필수 원장/접수를 한 트랜잭션으로 저장한다.
 fan-out 후 미시작 Run 취소는 `pending_cancel: PENDING → CANCELLED`를 사용한다.
 Dispatcher 등록과 같은 scheduling lock에서 실행 증거를 검사하며 Engine을 시작하지 않는다.
+
+
+## 구독 상태와 Step 저장의 Owner 연결
+
+EventChannel/EventDelivery/EventOverflow가 공개 구독 선택 값을 선언한다. 내부 구독은
+SubscriptionEntry 하나를 handle·worker·ContextVar가 공유한다. callback·Task·Queue·Event는
+살아 있는 객체이며 직렬화하거나 deepcopy하지 않는다. DeliveryCounters와 SubscriptionStats는
+숫자 관찰치를 투영하고 기존 공개 stats dict를 유지한다. 이 관찰치는 실행 권한이 아니다.
+
+unsubscribe는 pending 전달을 정리하고 이미 실행 중인 callback의 종료를 기다린다.
+기존 worker 종료·callback 해제·backpressure·자기 구독 aclose 거부 계약과 오류 계수는 유지한다.
+EventContext는 전체 JSON 검증 후 보호 metadata 충돌을 거부하고, 기존 StorageIO 트랜잭션
+안에서 사본을 저장한다. EventHandlers 실패는 실행 실패이며 구독자 실패는 관찰 실패다.
+
+StepRecordView는 정규 Step 필드 선언을 사용하는 필수 identity 투영이다. 파일 소유자 확인
+이후 Step.from_record 전체 Reader가 검증하며 누락·손상 기록을 기본값으로 복원하지 않는다.
+StepManager는 기존 전이 검증과 변경 전 watch를 유지하고 저장은 StepRepository에 위임한다.
+StepLogEvent가 Step 수명주기 로그 이름을 소유한다. StepEventRecorder의 실행 소유자·최종
+출력 검사와 오류 전이는 그대로다. Hub 구독 선택·stats 소비의 전수 연결은 llm 이후 남아 있다.
