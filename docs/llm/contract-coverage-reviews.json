@@ -65540,8 +65540,8 @@
   },
   {
     "path": "llm/providers/request_values.py",
-    "sha256": "ade2a3fa85c87929187092c72f4a4d3f5ab7d348e58a94f049b545de2ca98576",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete.",
+    "sha256": "bb96dd9a658b3db783b0661ce50cf778a3e2343173577488d1321a404c5de5b2",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -65743,13 +65743,85 @@
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "63268a00aaa44b5e364a39582d40fcb9bd6bf2ea9615ee0f027c30a1f995dd9e",
+        "id": "f62f12c380d0e5a23fdd6132701b0af13f2efa3984295e84cb1560624f9aebad",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a9a2fc7802164e7a6331ea341088aca739cc6784a344e1ceafbbcd61f3c6db79",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d8ec85bff6f994ee55daf92b0ff13fc8afbdb9da3d920afc571ad96a8d371abc",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "672f0037edb2333c29b63ca19ca8020a480e7a711a0cd57253b7ae4a37900c6e",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "cc9b3ef96bb46dc7852f1cb76aa71e0d7bfc580666c606a0b783e5f911c91d34",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "2173df8ea037870bdc0ac1c78e92996cca2516e0d53aa1cc47404be8d9b67e2a",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3bfaae8d039064ac8b8b15009045badbe3a73c2c973aa136a5099ce19f4af6e4",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "551fb3d3e9327a99ccbe5b5e9a4453ada37370a342546e2ac6456aa32947a1c6",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "4ee48c6cbb4001b975a864011820d52e8100b1d20351128e5dde5528cb940e53",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f4d4af9db999ee8d655e85689d2898cc0dc4bbf66a7e106826fc2dfe50578bc2",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "6f96435472307525294b594060c062caa9e492f557aa858092aee2d2caa11c1d",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b68b975a1ec9bb562785cdaa4b28110d8e38ca2b4e9b82d45fd01e1bc6638444",
+        "classification": "declaration",
+        "owner": "LiteLLMParameters",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "357de7b5edddd75211347c8490c1ae41e0311688965a44762293a853780e5263",
         "classification": "declaration",
         "owner": "LiteLLMParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "cb1ea688889209c529f64c468054d8f6810245b200c57812458da56e6e8fd0cb",
+        "id": "41ce93d6442b9e578f00abcd50274cab10175b26a08ae2e0f5f7e4039dd3e8b2",
         "classification": "declaration",
         "owner": "EmbeddingParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -65768,9 +65840,11 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_stream_output.py",
           "tests/llm/test_base_engine.py",
@@ -65790,10 +65864,12 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_usage_ownership.py"
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       },
@@ -65808,9 +65884,11 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_stream_output.py",
           "tests/llm/test_base_engine.py",
@@ -65830,10 +65908,12 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_usage_ownership.py"
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": false
       }
@@ -65942,51 +66022,141 @@
   },
   {
     "path": "llm/providers/response_values.py",
-    "sha256": "2036dd769882528dd3e3541ee2bcd7161e6c875a614419b965c68f0e09a54b66",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete.",
+    "sha256": "a79de869747c323a918ce921378744dc6addc3451c7d62f7112da0cc84702d82",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "00187e6cbeab441efe7b3ad1d41fb8d3ec9d619847c6d34608479498e3a05b68",
+        "id": "c010fcfaf5db6a82d9695f6e39fc5f994a747b2c7045941513a47c38a4291326",
         "classification": "declaration",
         "owner": "SDKMessage",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9569e6c2fd90054b301e674242e7566c2370a68edeb1403703782df4da86b380",
+        "id": "260ec4884dc3b5f32c75b5710f0f34b67f7411652809f4727a34dab841194eee",
         "classification": "declaration",
         "owner": "SDKMessage",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "23279e8a7abf4cce057bb961bd3699d9eff35fe71eb72e8daf94af0dfd5c70cf",
+        "id": "366abf09660582e6197807b5157116bbf39231ce8596360a1447f392d05899b1",
         "classification": "declaration",
         "owner": "SDKMessage",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ed67cb2072cdab07ba69c227934e86ef6401f27ffb5179e998fe18cc9a4420ba",
+        "id": "37f07ae945619df6fc8b0b1bdbe61bad0e607e636fa50258e3cb565e35b45c2a",
         "classification": "declaration",
         "owner": "SDKMessage",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e54650ba9479377dc7db71a67f19ecd39eec7687cf6c151a627eb9fed078f01a",
+        "id": "fc599d7a9e3a8894244587d42c34b9cb8591739d01a837d89ae08260d9f7eb86",
         "classification": "declaration",
         "owner": "SDKMessage",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "232eec775d2e943bb903b661993270a0fa2d21a69d634a3d55f5dee65be34744",
+        "id": "07d9ee2f0ffe4d01bb08cbe11cd53f67e3d40af04a065cbea372bda6c0afcd63",
+        "classification": "declaration",
+        "owner": "SDKMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "35cc042087e28b7c8d3c1b8bb5e0ed808e0e9c8a0093b8668acbb803df37c3ed",
+        "classification": "declaration",
+        "owner": "SDKOperationResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "0a77867b60bf042ba7994a1043694145386cfc32f28c33b8465a8a07e5e40d80",
+        "classification": "declaration",
+        "owner": "SDKOperationResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8dc66d8b1e548ac1bc5b902007fad0e5784b3fd4d78874a0e50b1664a162314f",
+        "classification": "declaration",
+        "owner": "SDKOperationResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8894ab48cafc143de44d6575ffc3ca05c7210a86df7799ae8abf2c86a7f226a4",
+        "classification": "declaration",
+        "owner": "SDKOperationResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f95290e2ed8118543bd5b4908570710b6c4e1eb7ac5600ff0e961b42ebb72474",
+        "classification": "declaration",
+        "owner": "SDKOperationResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8a1ba93121efffeca8a3ffd2f9eefbbf5681313d1ae6e800203b44bc7157eb51",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
       },
       {
-        "id": "3c7a4d2407674761263b6986f42344692bf9ae6022b909cdc55fcc30e94bd8e1",
+        "id": "217cfc1702f23451543cc5151459c57b87896f8041c6411c0582b097824a5784",
         "classification": "declaration",
         "owner": "SDKCompletionResponse",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
+      },
+      {
+        "id": "22f0904183bcb99760318eda67012d60533b6122d0d1f9724203cca16b98a30b",
+        "classification": "declaration",
+        "owner": "SDKCompletionResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b171470006a6facd94e1fe0bd82b98b4ecfdff04106ea21a11a2b24aca290dcd",
+        "classification": "declaration",
+        "owner": "SDKCompletionResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "04fcac9bca338518a011ffeef3827fa87305802f28792155ed6bcde8b31ad5db",
+        "classification": "declaration",
+        "owner": "SDKCompletionResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fa097f7b3b1cd25b7ae756d402d57ce7f304d1e0640de0c60bb2e8db0ddcaf72",
+        "classification": "non_contract",
+        "owner": "SDKCompletionResponse.to_model_response",
+        "reason": "First element after requiring exactly one SDK completion choice; pure ordered-list projection, not default evidence or a configured limit."
+      },
+      {
+        "id": "6212052b47c2004955fef3a2515855c18c28ab9ea151f255b54199c3adaba07a",
+        "classification": "declaration",
+        "owner": "SDKRerankResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "07299f69d11320bc3e88ea8b3ee01e5f0da1b985bda7f53a821b278a5488af92",
+        "classification": "declaration",
+        "owner": "SDKRerankResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8b30b036dcf49b5883dc3563e4399bce60de33c86e32c9be05ba39e614292925",
+        "classification": "declaration",
+        "owner": "SDKRerankResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "895e7c4155ea2dc736b8297bcb607604ae5dc4fc62a0a29fd2ac69334afdc75d",
+        "classification": "declaration",
+        "owner": "SDKRerankResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "130de4f3bff824bae92a4b2bb097faf0a9630ac542da00a68cbd44ff2e71e176",
+        "classification": "declaration",
+        "owner": "SDKRerankResponse",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -66002,9 +66172,11 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_stream_output.py",
           "tests/llm/test_base_engine.py",
@@ -66024,10 +66196,12 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_usage_ownership.py"
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       },
@@ -66041,9 +66215,11 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_stream_output.py",
           "tests/llm/test_base_engine.py",
@@ -66063,10 +66239,12 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_usage_ownership.py"
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": false
       }
@@ -66074,25 +66252,28 @@
   },
   {
     "path": "llm/providers/README.md",
-    "sha256": "59e953b455c1e070298c3494ceff7fc8ff4a63f1919bf40abebc0c54ef87b2fd",
+    "sha256": "b567a0910703e6eb35f0cfb5a18d37d495d1671ca37739e07f50640459eb10dd",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit. Codec Owner map and public single-implementation wrappers were checked; remaining Adapter consumers stay incomplete.",
+    "reason": "Whole guide checked against current typed model/Adapter boundaries, real SDK retry behavior, explicit diagnostics, embeddings and canonical Owner map. Original protocol examples remain independent; unfinished consumer connections are explicit. Codec Owner map and public single-implementation wrappers were checked; remaining Adapter consumers stay incomplete. Nonstreaming operation Owner/API and actual response normalization responsibilities were checked; remaining direct SDK consumers are explicit.",
     "contracts": [
       {
         "owner": "Provider contract guide",
         "declaration": "llm/providers/README.md",
         "consumers": [
           "llm/providers/litellm.py",
+          "llm/providers/operations.py",
           "llm/providers/requests.py",
           "llm/providers/runtime.py",
           "llm/providers/wire_codec.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_provider_activity.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_stream_output.py",
           "tests/llm/test_base_engine.py",
@@ -66112,10 +66293,12 @@
           "tests/llm/test_provider_transport.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_usage_ownership.py"
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }
@@ -66605,6 +66788,171 @@
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_retry_presence.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/providers/operations.py",
+    "sha256": "c3ec19ac0f7b3180b2dd7c18cb446a19799ac3ea653f08a4dcea794f0efb98c0",
+    "reason": "Whole OperationAdapter review covers public common result types, operation selection, explicit transport identity, input/exchange ownership, single nonstreaming semantics, format intent, embedding cache and vector integrity, ranking bounds, usage unknown, opaque fields and request/source copying. Every fixed dictionary is now in its designated request/response Owner; only Python Protocol syntax remains outside declarations.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1d98dafa991b8c553f658abbf3a6ee0b1de38061c704b92889840d0c7c155267",
+        "classification": "declaration",
+        "owner": "CompletionFormat",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "d5c8a78233880f529bda854d2612624d5cb7752662cec2518446f2943ddf77f8",
+        "classification": "declaration",
+        "owner": "CompletionFormat",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "77845d928748b20a291dfee6dcf8265c69ea846a56302a3719ab3664afe612a5",
+        "classification": "declaration",
+        "owner": "CompletionFormat",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "3a18178dbf78dbcea5ccfc8e94bd219dae04538f65b49526b461d4e2e36e53b3",
+        "classification": "declaration",
+        "owner": "OperationAdapterContract",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "cbb84161e8910a0094ba43c5917536a85964c068354fec1cfd81672198ce1114",
+        "classification": "declaration",
+        "owner": "OperationAdapterContract",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "49b6be7d466676f519e60e87cc58c24f160a53068194d3ce733d6978aebe0282",
+        "classification": "declaration",
+        "owner": "OperationAdapterContract",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "490b605eaf8c5554d8fcfb12a52caae3a77c9a7559aa187dcb1e78e9476a67ae",
+        "classification": "declaration",
+        "owner": "OperationAdapterContract",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "7e65cc56ce75e36980ce28fa558f14fc243302b7cd1af5d314108c910af85963",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.describe_config",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "12e54cee9397377e9d293baa24cfb2291aabcde5242d36614bcb41d696cbe7c8",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.validate_options",
+        "reason": "Python return type annotation only."
+      },
+      {
+        "id": "697783d30f8f473eeefda0ddf7fc9a81ed34aa47b9ee27d62cbebbb392aced9a",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.validate_options",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "7d5b1adecf88bf58b3b4bbfd04827779c47e6600b89ae43dbf44ff39bfaa39f3",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.validate_vision",
+        "reason": "Python return type annotation only."
+      },
+      {
+        "id": "d662420886ca491d4ff8f0af725a8337d40c92caceafa96258055830577dd9dd",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.validate_vision",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "87506c44219e695f305dfa42f2538eedb538cefa74af78af6f6483bd3d677586",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.cache_identity",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "faa7076ec53da6c2fe72b9134a086b34af336fb15ffb2516d6f4db057605bb3f",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.complete",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "423c50de3968f17afad2f6bbe3362713b60f4d5f6e401d460520c3f63b3a01d9",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.embed",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "ad829b3ddfc4256d815c138952272a4fcdf9ddf7c7b20e8d41e16bdccc446d61",
+        "classification": "non_contract",
+        "owner": "OperationAdapter.rerank",
+        "reason": "Python Protocol abstract method body; no execution value."
+      },
+      {
+        "id": "43c50c4776fe13ee4929a156161848743d90b17e9fa6e58b073ff78467657caa",
+        "classification": "declaration",
+        "owner": "LiteLLMOperations",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "d3972538f458176515b9551f53873edaa0a2fb216de19f1e95e2f423af723cd2",
+        "classification": "declaration",
+        "owner": "LiteLLMOperations",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "60077a567a9e8ae0e13b069bb15673ad96d8e2af3d7ab9313a065dfa4ad7f4ea",
+        "classification": "declaration",
+        "owner": "LiteLLMOperations",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "41bb39b012fb1544503e7f05570c1e2f66149a849f0baf6bd4da4b5d754b1d02",
+        "classification": "declaration",
+        "owner": "LiteLLMOperations",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      },
+      {
+        "id": "4c294443f5863747b216d0a231f8ae56116140de08ca17a6f1c36fd5cca6580c",
+        "classification": "declaration",
+        "owner": "LiteLLMOperations",
+        "reason": "Canonical operation intent/transport/validation declarations. Provider request builders and result projections own wire fields; common callers retain typed model contracts."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OperationAdapter / OperationAdapterContract / LiteLLMOperations / CompletionFormat",
+        "declaration": "llm/providers/operations.py",
+        "consumers": [
+          "llm/providers/diagnostic_values.py",
+          "llm/components/rag/_client.py",
+          "llm/components/vision/backends.py"
+        ],
+        "tests": [
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_model_protocol.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_transport.py",
+          "tests/llm/test_rag_models.py",
+          "tests/llm/test_rag_retry_presence.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }

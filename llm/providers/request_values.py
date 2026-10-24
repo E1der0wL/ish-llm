@@ -111,6 +111,18 @@ class LiteLLMParameters(SDKRetryParameters):
     FUNCTION_CALL = "function_call"
     CACHING = "caching"
     CACHE = "cache"
+    INPUT = "input"
+    QUERY = "query"
+    DOCUMENTS = "documents"
+    CACHE_NO_READ = "no-cache"
+    CACHE_NO_WRITE = "no-store"
+    FORMAT_TYPE = "type"
+    JSON_OBJECT = "json_object"
+    NONSTREAMING = False
+    SINGLE_CHOICE = 1
+    EMBEDDING_ENFORCED = {CACHING: False, CACHE: {CACHE_NO_READ: True, CACHE_NO_WRITE: True}}
+    VISION_ENFORCED = {STREAM: NONSTREAMING, N: SINGLE_CHOICE}
+    RETRY_CHANGEABLE = (TIMEOUT,)
     RETRY_PROTECTED = (
         STREAM,
         N,
@@ -146,6 +158,28 @@ class LiteLLMParameters(SDKRetryParameters):
                 )
             ):
                 raise ValueError(self.INVALID_RETRY.format(key=key))
+
+    @property
+    def invalid_nonstreaming_single(self):
+        return (
+            self._value.get(self.STREAM, self.NONSTREAMING) is not self.NONSTREAMING
+            or self._value.get(self.N, self.SINGLE_CHOICE) != self.SINGLE_CHOICE
+        )
+
+    def select_nonstreaming(self):
+        self._value[self.STREAM] = self.NONSTREAMING
+
+    def select_json_format(self):
+        self._value[self.RESPONSE_FORMAT] = {self.FORMAT_TYPE: self.JSON_OBJECT}
+
+    def clear_response_format(self):
+        self._value.pop(self.RESPONSE_FORMAT, self.UNSPECIFIED)
+
+    def embedding_request(self, inputs):
+        return {**copy_model(self._value), self.INPUT: copy_model(inputs)}
+
+    def rerank_request(self, query, documents):
+        return {**copy_model(self._value), self.QUERY: query, self.DOCUMENTS: copy_model(documents)}
 
 
 class EmbeddingParameters(ModelParameters):

@@ -22,6 +22,7 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [error_values.py](error_values.py) | SDK 예외의 상태·header 관찰을 읽습니다. 실행 허가나 retry 결정을 만들지 않습니다. |
 | [response_values.py](response_values.py) | SDK completion envelope와 message 내용의 조회 Projection입니다. 필수 응답 검증은 호출 경계에서 유지합니다. |
 | [wire_codec.py](wire_codec.py) | SDKWire·SDKFinishReason·SDKToolCodec·SDKContentPartCodec·SDKMessageCodec·SDKRequestCodec의 단일 Reader/Writer입니다. |
+| [operations.py](operations.py) | OperationAdapter의 공통 입출력·transport 선택·실제 SDK 호출을 연결합니다. 요청 Writer·응답 Projection은 각 Provider Owner에 위임합니다. |
 
 | [codes.py](codes.py) | SDK/runtime에 의존하지 않는 정규 Provider 오류 코드 선언입니다. |
 | [options.py](options.py) | Provider의 명시적 재시도·기한 설정 Schema/Reader입니다. 생략을 보존하고 실제 시도 횟수 계산은 RetryPolicy에 위임합니다. |
@@ -301,3 +302,14 @@ messages/tools/tool_choice는 SDKRequestCodec의 전송 Writer에서만 조립�
 소비자는 공통 ModelRequest/ModelMessage/ToolDefinition 타입을 사용한다. 저장 형식이나
 추가 승인·Tool 호출 권한을 만들지 않는다. 정상/손상 입력 모두 기존 Reader와 같은 결과·
 오류 순서를 유지한다. 다른 Adapter 소비자(litellm/operations/runtime) 전환은 계속 남아 있다.
+
+
+비스트리밍 LiteLLMOperations는 요청의 공통 exchange를 검증하고 호출을 조율한다.
+LiteLLMParameters가 single/nonstreaming 판정, 명시 JSON 출력 의도, embedding/rerank 인자와
+RAG cache-off/vision 고정 인자의 선언을 소유한다. 이 Writer는 이미 복사된 전송 인자만
+변경하며 원본 ModelRequest와 사용자 설정에는 기본값을 저장하지 않는다.
+SDKOperationResponse는 SDK 객체의 opaque 확장을 투영하고, SDKCompletionResponse/
+SDKEmbeddingResponse/SDKRerankResponse는 각 응답을 공통 결과 타입으로 변환한다.
+단일 choice·벡터 무결성·ranking index·사용량 unknown 규칙과 오류 순서는 기존과 같다.
+명시 client/transport의 identity·retry·timeout 선택은 유지하며 새 호출이나 retry를 만들지 않는다.
+남은 직접 SDK 소비자 전환은 litellm과 runtime이다.

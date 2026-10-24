@@ -6290,3 +6290,50 @@ Codec 종료 감사: S1–S7 exit 0, 현행 finding 88개·new/stale 0, dependen
 13100개이며 기존 미완 계약 6개를 보존했다. Codec 구현부 후보는 0, 전수 감사의
 stale/violation/issue 0이다. 이 수치는 원래 본문·실제 소비 경로 검증을 보조하며 단독 완료
 증거로 사용하지 않는다. 후속 Gate41 전체 검증과 남은 Adapter 소비자 전환은 계속 필요하다.
+
+
+## llm 비스트리밍 Provider operation 조율·요청·응답 Owner — Level 1·2
+
+기준 24c4d97. LiteLLMOperations는 공통 exchange 검증·선택 transport·SDK 호출 조율을 유지하고
+고정 인자 조립은 LiteLLMParameters, 응답 해석은 SDKOperationResponse/SDKCompletionResponse/
+SDKEmbeddingResponse/SDKRerankResponse로 연결했다. 기존 completion fallback role·알려지지
+않은 사용량·opaque 확장·단일 벡터와 ranking 경계 검증은 같은 순서로 실행한다.
+SDKCompletionResponse의 공통 생성자는 base Owner로 일원화했다. OperationAdapterContract는
+기존 함수 인자 생략/JSON 검증 flag만 선언하며 새 Protocol 요구 속성이나 실행 기본값은 없다.
+RAG embedding cache-off와 vision single/nonstreaming 선언도 기존 값만 공유한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/provider-operations-draft/ast-proof.py`
+및 같은 경로 `values-proof.py` 각각 exit 0. 기존 operation/공유 Owner의 전체 함수 33개를
+실제 정규 Writer/Projection으로 전개해 비교했다. 작업 Schema 3·embedding/vision 강제 인자
+각 1, Vision 검증 90, transport 검증 8, completion 응답 112·choice 6·요청 인자 55,
+embedding 응답 128·rerank 응답 36·opaque Projection 6이 이전 구현과 일치했다.
+공통 결과·오류뿐 아니라 실제 호출 순서/인자와 원본 변경 없음도 확인했다. n 판정의 원래
+`!=` 연산자와 stream의 exact-False 판정, None/명시 출력 형식·사용량을 그대로 유지한다.
+
+- `whole-provider-operations-l1-01`: discovered/started/pass 60/60/60, exit 0, 12.823929초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-operations-l1-01/llm.json --modules tests.llm.test_common_provider_acceptance tests.llm.test_rag_models tests.llm.test_model_protocol tests.llm.test_schema_ownership tests.llm.test_vision`. source `1ce5dc8f3df86271cddabcdf1ee4b72060fd3bcafe9064db43c7da05b03b3ad3`, input `eca6652d8f3c1ee0257f8cd3ac0b8f68d86c07a8b9956c65a12bd2d3bbdb1195`.
+
+- `whole-provider-operations-l2-01`: discovered/started/pass 94/94/94, exit 0, 43.165984초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-provider-operations-l2-01/llm.json --modules tests.llm.test_provider_runtime tests.llm.test_provider_transport tests.llm.test_rag_retry_presence tests.llm.test_usage_ownership tests.llm.test_usage_deletion tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage`. source `1ce5dc8f3df86271cddabcdf1ee4b72060fd3bcafe9064db43c7da05b03b3ad3`, input `eca6652d8f3c1ee0257f8cd3ac0b8f68d86c07a8b9956c65a12bd2d3bbdb1195`.
+
+- `whole-provider-operations-hub-01`: discovered/started/pass 12/12/12, exit 0, 37.497088초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-provider-operations-hub-01/hub.json --modules tests.hub.test_rag_extensions tests.hub.test_defaults`. source `1ce5dc8f3df86271cddabcdf1ee4b72060fd3bcafe9064db43c7da05b03b3ad3`, input `eca6652d8f3c1ee0257f8cd3ac0b8f68d86c07a8b9956c65a12bd2d3bbdb1195`.
+
+각 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치.
+각 전후와 실행 사이 source/input, Python3.12.14/Clang·의존성·Fixture·전체 발견 목록·
+Host d833790·namespace/X11 실행 환경은 같고 L1/L2 LLM ID는 중복되지 않는다.
+R3 `python -m tests.llm.check_budget_mutation` exit 0이며 기존 실제 효과 Assertion으로 호출
+한도 누락을 검출했다. 기존 기능·안전성 테스트와 Assertion은 변경하지 않았다.
+
+직접 영향 범위는 공통 모델·RAG·Vision·SDK/HTTP 전송과 Hub 이미지/RAG 구성 소비자다.
+승인·예산·외부 효과·Checkpoint·사용량 삭제·RAG 원본 보존·저장 무결성을 같은 소스에서
+확인했다. Native client/retry 선택과 원본 요청은 보존하며 제품 실행 정책과 저장 형식을
+변경하지 않았다. 이 제한된 Owner 이식의 본문·실제 소비 경로가 증명되어 L1·2를 완료하고
+관련 Loop·Provider 묶음의 **Gate41 전체 Level 3**에서 통합 검증한다. 이 소단계에서 전체
+LLM/Hub를 반복하지 않았으며 상위 또는 원격 완료를 뜻하지 않는다. 남은 litellm/runtime
+소비자와 llm 전수 작업을 계속하며 Hub 제품 리팩터링은 llm 이후에 진행한다.
+
+비스트리밍 operation 종료 감사: S1–S7 exit 0, 현행 finding 88개·new/stale 0, dependency 6건
+재검토. 감사 시험 16개/3.465초 통과, 문서 168·Python fence 183·상대 링크 1241·anchor 37·
+오류 0, `git diff --check` exit 0. 전체 목록 576개 중 미검토 226개(llm 49/hub 177),
+미분류 후보 12985개, 미완 계약 6개이며 stale/violation/issue 0이다. 기존 공유 Owner의 모든
+계약을 보존했고 단일 choice의 첫 원소 조회를 정확한 occurrence의 순수 list 연산으로 분류했다.
+나머지 Protocol의 Ellipsis/반환형 None 외에는 구현부 리터럴이 없다. 이 분류와 집중 검증은
+Gate41 또는 전체 llm 완료를 대체하지 않는다.
