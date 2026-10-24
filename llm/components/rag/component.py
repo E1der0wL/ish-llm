@@ -42,7 +42,9 @@ from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
 from llm.core.model_protocol import EmbeddingResult
 from llm.providers.runtime import diagnostic, diagnostic_scope
-from .ingestion import VectorCache, prepare_vectors, vector_key, validate_chunk_checkpoint
+from .ingestion import VectorCache, prepare_vectors
+from .ingestion_records import (BatchCheckpointName, EmbeddingCheckpoint, EmbeddingEvidence,
+                                EmbeddingProfile, IngestionObservation)
 from .job_storage import JobStorage
 
 
@@ -53,6 +55,8 @@ class RAGConflictError(RuntimeError):
 class RAGComponent(DefinitionComponent):
     """Application 메모 CRUD와 문서 색인 API를 분리하고 모델 인자는 선택 구현체에 위임한다."""
 
+    CACHE_NAMESPACE_ATTRIBUTE = "_cache_namespace"
+    EMBEDDING_DIMENSIONS_ATTRIBUTE = "_embedding_dimensions"
     IDENTITY_FILE = "identity.json"
     ACTIVE_FILE = "active.json"
     CONTROL_FILE = "corpus.manifest.json"
@@ -67,7 +71,7 @@ class RAGComponent(DefinitionComponent):
     GRAPH_SCHEMA_VERSION = 1
     INPUT_FIELDS = frozenset(("identifier", "title", "content", "metadata"))
     DOCUMENT_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
-        "sections", "chunks", "sha256", "vectors", "embedding_fingerprint", "ingestion", "profile",
+        "sections", "chunks", "sha256", EmbeddingEvidence.Field.VECTORS, EmbeddingEvidence.Field.FINGERPRINT, EmbeddingEvidence.Field.INGESTION, EmbeddingEvidence.Field.PROFILE,
         "graph_complete", "graph_diagnostics", "graph", "extraction_manifest",
         "preparation_configuration", "preparation_fingerprint"))
 
@@ -156,7 +160,7 @@ class RAGComponent(DefinitionComponent):
     @classmethod
     def validate_batch_checkpoint(cls, job, key, receipt, payload):
         name = key.removeprefix(JobStorage.BATCHES + "/").removesuffix(".json")
-        batch = re.fullmatch(r"(?:d(0|[1-9][0-9]*)_)?(embedding|graph)_(0|[1-9][0-9]*)", name)
+        batch = BatchCheckpointName.parse(name)
         if batch is None:
             return
         if "document_ids" in job:
@@ -166,9 +170,9 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("Single-document Job cannot have a batch document checkpoint")
         source = payload["documents"][int(batch[1])] if batch[1] is not None else payload
         value = receipt["value"]
-        if batch[2] == "embedding":
-            validate_chunk_checkpoint(value, receipt["signature"])
-            actual = [value["chunk"]]
+        if batch[2] == BatchCheckpointName.EMBEDDING:
+            EmbeddingCheckpoint.validate(value, receipt["signature"])
+            actual = [EmbeddingCheckpoint(value).chunk]
         else:
             validate_extraction_checkpoint(value, receipt["signature"])
             actual = value["chunks"]
@@ -194,12 +198,12 @@ class RAGComponent(DefinitionComponent):
         if (not isinstance(document["title"], str) or not document["title"].strip()
                 or not isinstance(document["content"], str) or not document["content"].strip()
                 or not isinstance(document["metadata"], dict)
-                or not isinstance(document["ingestion"], dict)
+                or not isinstance(EmbeddingEvidence(document).observations, dict)
                 or ("description" in document and not isinstance(document["description"], str))):
             raise ValueError("Invalid prepared RAG document source or observations")
         if document["sha256"] != sha256(document["content"].encode("utf-8")).hexdigest():
             raise ValueError("Prepared RAG content digest changed")
-        for key in ("embedding_fingerprint", "preparation_fingerprint", "preparation_configuration"):
+        for key in (EmbeddingEvidence.Field.FINGERPRINT, "preparation_fingerprint", "preparation_configuration"):
             value = document[key]
             if key == "preparation_configuration" and value is None:
                 continue  # Standalone preparation has no bound Project configuration.
@@ -214,13 +218,10 @@ class RAGComponent(DefinitionComponent):
             RAGSection.validate_source(section, key, SplitDocument(document).content)
         for position, chunk in enumerate(chunks, RAGChunk.FIRST_ORDINAL):
             RAGChunk.validate_source(chunk, document_id=identifier, ordinal=position, sections=sections)
-        profile = document["profile"]
-        if (not isinstance(profile, dict) or profile.keys() != {"model", "dimensions"}
-                or not isinstance(profile["model"], str) or not profile["model"]
-                or type(profile["dimensions"]) is not int or profile["dimensions"] < 1):
-            raise ValueError("Invalid prepared RAG embedding profile")
+        profile = document[EmbeddingEvidence.Field.PROFILE]
+        EmbeddingProfile.validate(profile)
         from llm.core.embeddings import validate_vectors
-        vectors = validate_vectors(document["vectors"], dimensions=profile["dimensions"])
+        vectors = validate_vectors(document[EmbeddingEvidence.Field.VECTORS], dimensions=EmbeddingProfile(profile).dimensions)
         if len(vectors) != len(chunks):
             raise ValueError("Prepared RAG chunk/vector count mismatch")
         validate_stored_graph(document["graph"], chunks, identifier)
@@ -274,16 +275,16 @@ class RAGComponent(DefinitionComponent):
         if (not isinstance(value, dict) or type(value.get("graph_schema_version")) is not int
                 or value["graph_schema_version"] != cls.GRAPH_SCHEMA_VERSION):
             raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
-        if value.keys() != {"graph_schema_version", "documents", "profile"} or not isinstance(value["documents"], dict):
+        if value.keys() != {"graph_schema_version", "documents", EmbeddingEvidence.Field.PROFILE} or not isinstance(value["documents"], dict):
             raise ValueError("Invalid RAG corpus fields")
         documents = value["documents"]
         for identifier, document in documents.items():
             cls.validate_document(document)
             if document["id"] != identifier:
                 raise ValueError("RAG corpus document identity changed")
-            if document["profile"] != value["profile"]:
+            if document[EmbeddingEvidence.Field.PROFILE] != value[EmbeddingEvidence.Field.PROFILE]:
                 raise ValueError("RAG corpus and document embedding profiles disagree")
-        if not documents and value["profile"] is not None:
+        if not documents and value[EmbeddingEvidence.Field.PROFILE] is not None:
             raise ValueError("Empty RAG corpus requires an explicit null profile")
         return value
 
@@ -576,7 +577,7 @@ class RAGComponent(DefinitionComponent):
     def snapshot(self, project):
         identity, generation, control = self._corpus_control(project)
         if generation is None:
-            return {"identity": identity, "generation": None, "documents": {}, "profile": None}
+            return {"identity": identity, "generation": None, "documents": {}, EmbeddingEvidence.Field.PROFILE: None}
         path = self._generation_path(project, generation)
         source = self._checked(path / self.CORPUS_FILE)
         info = source.stat()  # Deletion/replacement must never be hidden by a cached generation.
@@ -634,7 +635,7 @@ class RAGComponent(DefinitionComponent):
             raise TypeError("Embedding model must return EmbeddingResult")
         vector = extract(response, **kwargs) if extract else response.vector
         from llm.core.embeddings import validate_vectors
-        return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
+        return validate_vectors([vector], dimensions=getattr(self, self.EMBEDDING_DIMENSIONS_ATTRIBUTE, None))
 
     async def embed_query(self, query):
         """Cache only validated query vectors, never retrieval results or SDK responses."""
@@ -650,8 +651,8 @@ class RAGComponent(DefinitionComponent):
             "params": getattr(self.embedding, "params", {}), "query_kwargs": self.query_kwargs,
             "document_kwargs": self.document_kwargs, "client": type(self.embedding).__qualname__,
             "implementation": str(client_identity() if client_identity else id(self.embedding)),
-            "project": getattr(self, "_cache_namespace", None)})
-        key = vector_key(fingerprint, query)
+            "project": getattr(self, self.CACHE_NAMESPACE_ATTRIBUTE, None)})
+        key = VectorCache.key(fingerprint, query)
         vector = self.query_cache.get(key, maximum)
         cached = vector is not None
         if vector is None:
@@ -660,7 +661,7 @@ class RAGComponent(DefinitionComponent):
         if validate is not None:
             vector = validate([vector], **self.query_kwargs)[0]
         from llm.core.embeddings import validate_vectors
-        vector = validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))[0]
+        vector = validate_vectors([vector], dimensions=getattr(self, self.EMBEDDING_DIMENSIONS_ATTRIBUTE, None))[0]
         self.query_cache.put(key, vector, maximum)
         diagnostic("rag_query_embedding", cached=cached)
         return vector
@@ -686,12 +687,12 @@ class RAGComponent(DefinitionComponent):
                 and previous.get("preparation_fingerprint") == fingerprint
                 and (previous["graph_complete"] or policy == ExtractionFailurePolicy.DISABLED.value)):
             from llm.core.embeddings import validate_vectors
-            vectors = previous["vectors"]
+            vectors = previous[EmbeddingEvidence.Field.VECTORS]
             validate = getattr(self.embedding, "validate_vectors", None)
             if validate is not None:
                 vectors = validate(vectors, **self.document_kwargs)
-            dimensions = getattr(self, "_embedding_dimensions", None)
-            vectors = validate_vectors(vectors, dimensions=previous["profile"]["dimensions"] if dimensions is None else dimensions)
+            dimensions = getattr(self, self.EMBEDDING_DIMENSIONS_ATTRIBUTE, None)
+            vectors = validate_vectors(vectors, dimensions=EmbeddingEvidence(previous).profile.dimensions if dimensions is None else dimensions)
             if len(vectors) != len(SplitDocument(previous).chunks):
                 raise ValueError("Stored chunk/vector count mismatch")
             validate_graph(previous["graph"], SplitDocument(previous).chunks,
@@ -699,10 +700,7 @@ class RAGComponent(DefinitionComponent):
             document = deepcopy(previous)
             document.update(title=title, metadata=metadata, revision=revision,
                             preparation_configuration=getattr(self, "_configuration_version", None))
-            document["ingestion"] = {"chunks_total": len(vectors), "chunks_completed": len(vectors),
-                "chunks_reused": len(vectors), "chunks_cached": 0, "chunks_requested": 0,
-                "embedding_seconds": 0.0, "extraction_seconds": 0.0, "extraction_batches": 0,
-                "provider_retries": 0, "checkpoint_reuse": 0, "metadata_only": True}
+            document[EmbeddingEvidence.Field.INGESTION] = IngestionObservation.metadata_only(len(vectors))
             return document
         if telemetry:
             await telemetry({"phase": "splitting"})
@@ -710,9 +708,9 @@ class RAGComponent(DefinitionComponent):
         document.update(id=identifier, title=title, metadata=metadata, revision=revision,
                         generation=previous["generation"] if previous is not None else uuid4().hex)
         await prepare_vectors(self, document, previous=previous, progress=progress, telemetry=telemetry)
-        document["profile"] = {"model": self._identity(), "dimensions": len(document["vectors"][0])}
+        document[EmbeddingEvidence.Field.PROFILE] = EmbeddingProfile.create(self._identity(), len(EmbeddingEvidence(document).vectors[0]))
         document.update(graph_complete=policy != ExtractionFailurePolicy.DISABLED.value, graph_diagnostics=[])
-        document["ingestion"].update(extraction_batches=0, extraction_seconds=0.0, extraction_batches_reused=0)
+        IngestionObservation.start_extraction(EmbeddingEvidence(document).observations)
         if policy == ExtractionFailurePolicy.DISABLED.value:
             document["graph_diagnostics"].append(diagnostic("graph_extraction_disabled").to_dict())
         entities, relations = {}, []
@@ -724,13 +722,12 @@ class RAGComponent(DefinitionComponent):
         extraction_done = 0
         async def extraction_progress():
             if telemetry:
-                await telemetry({**document["ingestion"], "phase": "extracting", "completed": extraction_done,
-                                 "total": extraction_total, "unit": "batch"})
+                await telemetry(IngestionObservation.extraction_progress(EmbeddingEvidence(document).observations, extraction_done, extraction_total))
         if policy != ExtractionFailurePolicy.DISABLED.value:
             await extraction_progress()
         def observe_extraction(event):
             if event.code == ProviderRetryObservation.RETRY:
-                document["ingestion"]["provider_retries"] += 1
+                EmbeddingEvidence(document).observations[IngestionObservation.Field.RETRIES] += 1
         for offset in (range(0, len(SplitDocument(document).chunks), self.extraction_batch_size) if policy != ExtractionFailurePolicy.DISABLED.value else ()):
             batch = SplitDocument(document).chunks[offset:offset + self.extraction_batch_size]
             # Keep the existing Job checkpoint binding unchanged. Cross-update reuse has
@@ -740,7 +737,7 @@ class RAGComponent(DefinitionComponent):
                                         "extraction": self.extraction_options, "prompt": self.extraction_prompt})
             reuse_signature = revision_token({"request": signature,
                 "implementation": type(self.extractor).__module__ + "." + type(self.extractor).__qualname__})
-            key = f"graph_{offset}"
+            key = BatchCheckpointName.graph(offset)
             saved = await progress(key, signature) if progress else None
             graph = validate_extraction_checkpoint(saved, signature) if saved is not None else None
             if graph is None and reuse_signature in previous_batches:
@@ -750,7 +747,7 @@ class RAGComponent(DefinitionComponent):
                 if revision_token(graph) != entry["digest"]:
                     raise GraphValidationError("Stored extraction batch integrity mismatch")
                 reused_sources.update(RAGChunk(chunk).identifier for chunk in batch)
-                document["ingestion"]["extraction_batches_reused"] += 1
+                EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_REUSED] += 1
                 if progress:
                     await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
             if graph is None:
@@ -772,9 +769,9 @@ class RAGComponent(DefinitionComponent):
                     continue
                 finally:
                     extraction_done += 1
-                    document["ingestion"]["extraction_batches"] += 1
-                    document["ingestion"]["extraction_seconds"] += time.monotonic() - started
-                    diagnostic("rag_extraction_progress", **document["ingestion"])
+                    EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_BATCHES] += 1
+                    EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_SECONDS] += time.monotonic() - started
+                    diagnostic(IngestionObservation.EXTRACTION_EVENT, **EmbeddingEvidence(document).observations)
                     await extraction_progress()
                 if progress:
                     await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
@@ -821,11 +818,11 @@ class RAGComponent(DefinitionComponent):
         profile = None
         if documents:
             first = next(iter(documents.values()))
-            if not isinstance(first, dict) or "profile" not in first:
+            if not isinstance(first, dict) or EmbeddingEvidence.Field.PROFILE not in first:
                 raise ValueError("RAG document requires its embedding profile")
-            profile = first["profile"]
+            profile = first[EmbeddingEvidence.Field.PROFILE]
         corpus = self.validate_corpus({"graph_schema_version": self.GRAPH_SCHEMA_VERSION,
-            "documents": documents, "profile": profile})
+            "documents": documents, EmbeddingEvidence.Field.PROFILE: profile})
         generation = uuid4().hex
         path = self._generation_path(project, generation)
         from llm.services.infrastructure.storage import make_directory

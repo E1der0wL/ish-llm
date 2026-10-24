@@ -302,6 +302,13 @@ chunk의 원문 인용과 기존 signature/configuration을 검증한다.
 완료·취소 Job은 포기를 생략한다. 살아 있는 worker lease는 삭제를 막으며 공개 문서·색인은 유지한다.
 각 API는 `a` 접두사의 비동기 버전도 제공한다. [공통 계약과 예제](../../../docs/llm/checkpoints.md)를 참고한다.
 
+`ingestion_records.py`의 EmbeddingCheckpoint는 단일 청크 영수증의 필드·서명·검증을,
+EmbeddingProfile/EmbeddingEvidence는 저장된 모델·차원·벡터 조회를 소유한다.
+BatchCheckpointName은 임베딩/그래프 배치 이름을 소유하며, 실제 원본 청크와의 대조는
+Component가 계속 수행한다. 누락된 영수증 필드는 채우지 않는다.
+IngestionObservation은 통계·진행 Projection을 소유한다. 메타데이터만 변경하는 준비 결과는
+기존의 별도 필드 집합을 유지하며 일반 임베딩 통계를 기본값으로 추가하지 않는다.
+
 `job()["ingestion"]`, 문서 ingestion, diagnostic_scope로 다음을 관찰한다:
 chunks_total/completed/reused/cached/requested, embedding_concurrency, embedding_seconds,
 provider_retries, checkpoint_reuse, active_embedding_requests, peak_embedding_requests.

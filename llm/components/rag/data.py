@@ -1,5 +1,7 @@
 """UI/Tool에서 사용하는 문서 API. 모델 준비는 잠금 밖, 공개/조회는 잠금 안에서 수행한다."""
 
+from .ingestion_records import EmbeddingEvidence
+
 from .status import RAGJobStatus
 from copy import deepcopy
 from .search import SearchMethod, validate_search_options
@@ -16,7 +18,7 @@ from llm.providers.observations import observe_component_models
 def document_view(document: dict) -> dict:
     """벡터 같은 내부 색인 데이터를 공개 문서 응답에서 제외한다."""
     return deepcopy({key: value for key, value in document.items() if key not in (
-        "vectors", "graph", "profile", "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
+        EmbeddingEvidence.Field.VECTORS, "graph", EmbeddingEvidence.Field.PROFILE, "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
 
 
 def validate_documents(documents):
@@ -62,7 +64,7 @@ class RAGData(ComponentData):
     def _snapshot(self):
         project, component = self._current()
         snapshot = component.snapshot(project)
-        component._embedding_dimensions = (snapshot.get("profile") or {}).get("dimensions")
+        component._embedding_dimensions = EmbeddingEvidence(snapshot).optional_dimensions
         return component, {**snapshot, "configuration_version": component._configuration_version,
                            "source_version": component.source_version(project),
                            "search_options": deepcopy(component.search_options)}
@@ -151,10 +153,10 @@ class RAGData(ComponentData):
         vector = None
         if snapshot["documents"] and method != SearchMethod.BM25:
             await self._async_call(self.require_model_observation, component.embedding)
-            if component._identity() != snapshot["profile"]["model"]:
+            if component._identity() != EmbeddingEvidence(snapshot).profile.model:
                 raise ValueError("Query embedding model differs from indexed model")
             vector = await component.embed_query(query)
-            if len(vector) != snapshot["profile"]["dimensions"]:
+            if len(vector) != EmbeddingEvidence(snapshot).profile.dimensions:
                 raise ValueError("Query embedding dimensions differ from index")
         if rerank and component.reranker is None:
             raise ValueError("Configure a reranker first")
@@ -298,7 +300,7 @@ class RAGData(ComponentData):
             document = await component.prepare(item["identifier"], item["title"], item["content"], item["metadata"], 1)
             if item.get("description") is not None:
                 document["description"] = item["description"]
-            component._embedding_dimensions = document["profile"]["dimensions"]
+            component._embedding_dimensions = EmbeddingEvidence(document).profile.dimensions
             prepared.append(document)
         return await self._async_call(self._commit_documents, snapshot, prepared)
 

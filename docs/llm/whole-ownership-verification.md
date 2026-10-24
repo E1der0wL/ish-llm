@@ -4700,3 +4700,59 @@ a03a2bbee04f62b66b3a3ce67172d90384f22091:refs/heads/refactor/llm-clean` exit 0,
 전체 inventory 529개, 미검토 270개(llm 93/hub 177), 미분류 18,943개,
 미완료 계약 4개·stale/분류 오류 0. 결과 경로는
 `/workspace/llm-clean-resume/whole-ownership/rag-model-client-draft/`이다.
+
+
+## llm RAG 임베딩 영수증·실행·관찰 — Level 1·2
+
+기준 79e0f8c. EmbeddingCheckpoint로 단일 청크 영수증의 정확한 필드 집합·서명·검증·
+identity 대조를 모으고 이전 독립 validator를 제거했다. BatchCheckpointName은 임베딩/
+그래프 배치 이름을 소유한다. Component의 실제 원본 분할 결과 대조는 그대로 유지한다.
+EmbeddingProfile/EmbeddingEvidence로 저장된 모델·차원·벡터를 조회하며, 기존에 선택적
+차원 조회를 허용한 최초 query 경계만 같은 생략 의미를 유지한다. 필수 Reader에 새 fallback을
+추가하지 않았다. fingerprint의 입력 순서·타입·원본 params와 공개 세대 형식도 같다.
+
+IngestionObservation은 일반 임베딩과 메타데이터 변경의 서로 다른 통계 필드 집합 및
+진행 Projection을 소유한다. 공통 진행 키는 OperationProgress의 실제 필드 선언을 참조한다.
+VectorCache는 기존 메모리 계산·LRU 순서·사본·키 형식을, EmbeddingExecution은 병렬 worker의
+제어 값을 소유한다. 새 SDK retry·정책·기본 설정은 없다. worker의 요청·완료·실패 중단·
+취소 후 회수와 공개 시점은 그대로다. ingestion.py와 새 영수증 Owner만 이번 전수 검토를
+완료했다. 직접 연결한 Component/Data/Jobs/Indexing의 다른 계약은 계속 미완료 범위다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-ingestion-draft/ast-proof.py`
+(한 셸 명령), exit 0. 실제 Owner의 선언·getter·Projection·validator를 확장한 전체 함수
+동등성: ingestion 8·Component 41·Data 40·Jobs 29·Indexing 4·ModelClient 8개.
+같은 환경의 `proof.py` exit 0: 누락/손상 영수증·원본 보존 258개, 배치 이름 문법 90개·
+출력 키 40개, 선택적 profile 7개, fingerprint 9개, 독립 영수증/서명/통계/metadata 생략
+wire 검사, 캐시 1,000회 상태/순서·497회 읽기, 전체 worker 99개 시나리오가 일치했다.
+실제 callback의 읽기/쓰기·중복 청크·캐시·이전 문서·재시도 관찰·손상·실패·취소를 포함한다.
+기존 안전성 Assertion과 테스트는 변경하지 않았다.
+
+최초 L2/Hub 선택 명령은 존재하지 않는 모듈명을 포함하여 runner가 실행 전에 exit 2로
+거부했다(`whole-rag-ingestion-l2-01`, `whole-rag-ingestion-hub-01`, incomplete).
+그 로그는 보존했고 성공 증거로 사용하지 않는다. 앞선 검증 기록의 실제 모듈 목록을 가져와
+파일 존재를 확인한 뒤 L1 중복을 제외하여 아래 별도 실행으로 바로잡았다.
+
+- `whole-rag-ingestion-l1-01`: discovered/started/pass 64/64/64, exit 0, 65.074277초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-ingestion-l1-01/llm.json --modules tests.llm.test_rag_resilience tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_optimization tests.llm.test_rag_prepared_integrity`. source `21e06ce57b0fa6db447928945b9aabbf13ae22b304c97330af9056f747bcae25`, input `97a29777a5a07798eb15cd14666f17a91b0b159a01e4496db7a9c5ad9aab03b3`.
+
+- `whole-rag-ingestion-l2-02`: discovered/started/pass 191/191/191, exit 0, 166.745276초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-ingestion-l2-02/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_job_integrity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_corpus_integrity tests.llm.test_rag_catalog_integrity tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_retention_policy tests.llm.test_rag_input_integrity tests.llm.test_rag_storage tests.llm.test_rag_job_state_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_models tests.llm.test_rag_query_evidence tests.llm.test_rag_components tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `21e06ce57b0fa6db447928945b9aabbf13ae22b304c97330af9056f747bcae25`, input `97a29777a5a07798eb15cd14666f17a91b0b159a01e4496db7a9c5ad9aab03b3`.
+
+- `whole-rag-ingestion-hub-02`: discovered/started/pass 32/32/32, exit 0, 143.364643초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-ingestion-hub-02/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools`. source `21e06ce57b0fa6db447928945b9aabbf13ae22b304c97330af9056f747bcae25`, input `97a29777a5a07798eb15cd14666f17a91b0b159a01e4496db7a9c5ad9aab03b3`.
+
+각 성공 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+L1 64개는 동일 제품·시험·Fixture·의존성·환경에서 재사용했다. 추가 L2와 test ID가 겹치지
+않으며 여러 실행을 한 번의 전체 회귀로 합치지 않는다. 발견 목록 LLM 2,492·Hub 588 유지.
+Python 3.12.14/Clang·Host d833790·고정 의존성과 실제 namespace/X11 환경이다.
+관련 RAG 전체 모듈, 원본 바인딩/영수증/저장 장애·재개·삭제·quota, 공통 승인·외부 효과·
+Checkpoint·무결성, Hub Job/retention/설정/resource 소비자를 검증했다.
+저장·검증·worker 전체 함수와 실제 영향 범위가 같음을 입증했으므로 소단계 전체 L3를
+반복하지 않는다. 앞선 청크·모델 클라이언트와 후속 RAG 변경을 다음 통합 게이트로 묶는다.
+
+이번 소단계 최종 감사 `python -m unittest tests.llm.test_contract_coverage
+ tests.llm.test_architecture_reviews`: 16/16 pass, 3.833초, exit 0.
+정적 S1–S7 exit 0, finding 112개·new/stale/미검토 0; 실제 동등성과 소비자 검증을
+근거로 변경된 소스 및 README 의존 증거 18개를 갱신했다. 문서 검사 exit 0.
+R3 Mutation exit 0, 원래 두 실제 효과 Assertion에서 의도적 호출 한도 누락을 검출했다.
+전체 inventory 530개, 미검토 269개(llm 92/hub 177), 미분류 18,710개,
+미완료 계약 4개·stale/분류 오류 0. 결과는
+`/workspace/llm-clean-resume/whole-ownership/rag-ingestion-draft/`에 보존했다.

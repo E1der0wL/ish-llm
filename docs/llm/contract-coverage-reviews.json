@@ -49960,75 +49960,81 @@
   },
   {
     "path": "llm/components/rag/_client.py",
-    "sha256": "ee6dc2546a2169f642b02e29c3d59064290ea596bf991fe9c7898ff9d3363c1f",
-    "reason": "Complete model client and embedding implementations and all direct callers reviewed. Falsey injected Adapter identity, original parameters/omission/null, merge/copy behavior, caller-selected retry, instance method cache identity and common normalized response checks retain existing semantics. All old method bodies and schema wire compare equal after actual Owner expansion; current disjoint L1/L2, real HTTP and core safety tests preserve assertions. Provider schema remains a separate pending whole-file scope.",
+    "sha256": "d72a6067f6497c56f7c528e5f21324e26d8619b9112a12638c6f16aa0a04eb9b",
+    "reason": "Full implementations and dynamic/direct consumer paths reviewed. All existing method bodies, wire/omission contracts and ordered worker/cache traces are equivalent; selected strict current L1/L2 and actual file-effect/fault/restart/cancellation tests pass without assertion changes. Remaining Component/Data/Jobs/Indexing contracts are not declared complete by these consumer edits.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
         "id": "fdbc47bd4aa9eab1e30cf4c0d4fa7b604b5c55cd7291277b924dec9de1d4860c",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
         "id": "3cf70906fdc8e303dc0e4d51c6b4298800a8a5dfc9519982073a44cb16045511",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
         "id": "9720e40855d162b70f9f5694b5302d29c8fbd11cadd75eca754f85ff57580352",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
         "id": "c3c28db5bf0c2ba6d08a97d5f1632893554be2931db6fe61f7135d4269aeb238",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
         "id": "3c80bbbb38d33a6ce0d2398140ed7a033afa6cae6a479b9fed1f669b83dbb41d",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
         "id": "0db8ab3db33231215cae9d560d001068c4acdf5ed5c886c809e71d25ceb10f39",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
-        "id": "c13aafe6964daa5cf979c8290f89077ddcebead1937e3dde93d05893102e095f",
+        "id": "270f18ac5e1a7bf433e323f91c6e6417484b938b3116cad3bfefb8788db6c963",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
-        "id": "c8428edc9e3b523d677c0890de9afa47a5ec563c7ba5f9b6b69f6dd389d83053",
+        "id": "433c958dea457e0a52780fa9defb0abd0b92d8b94f6e2b78c2160a78241a4c34",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
-        "id": "816a71290b2d0bec96c2ffc2d95a1c5f4cc1a3e93a02ff48f33d7976a1b7149d",
+        "id": "c0e78e8905baf724e957f87e5dbf1c4466735e12b63197d70df340beabae9e21",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
-        "id": "0ca26c90b9f83dc622d6396eb02718768c81baf54eb76748f13c0a5c51f4032f",
+        "id": "5eeab419175b4a7e78999b2bcd1fcf40e06366a64a5fe4fcfe5f3fd938796ce3",
         "classification": "declaration",
         "owner": "ModelClient",
-        "reason": "Read the full runtime client: API absence, unsupported callback names, cache-observation key, result type diagnostics and vector position are declared at their owning class; actual calls use those declarations or the Provider-owned model/dimension projection."
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
       },
       {
-        "id": "49a82a8098f2c17b3309410f758692f7fde68ed462c93486972a65c1defc4899",
+        "id": "07a3460802cb6148207ce03c4c68a072b3cf93763564de3b1a51db6c379d8696",
+        "classification": "declaration",
+        "owner": "ModelClient",
+        "reason": "Shared client injection, original parameter access, callback rejection, retry selector and cache observation names are at the owning class head. The new optional fingerprint projection uses the original params attribute without modifying the injected client."
+      },
+      {
+        "id": "7427dad3d5bca814a94cebbbada4a993c9b680b78502df8b6576492508269fdb",
         "classification": "non_contract",
         "owner": "ModelClient.__init__",
-        "reason": "Python constructor return type annotation only; not an API fallback, execution policy or stored value."
+        "reason": "Python constructor return annotation only; no runtime or wire policy."
       }
     ],
     "contracts": [
@@ -50038,18 +50044,20 @@
         "consumers": [
           "llm/components/rag/embedding.py",
           "llm/components/rag/rerank.py",
-          "llm/components/rag/extraction.py"
+          "llm/components/rag/extraction.py",
+          "llm/components/rag/ingestion.py"
         ],
         "tests": [
-          "tests/llm/test_rag_models.py",
-          "tests/llm/test_operations_schema.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_provider_transport.py",
-          "tests/llm/test_adapter_boundaries.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_prepared_integrity.py",
           "tests/llm/test_rag_optimization.py",
-          "tests/llm/test_rag_retry_presence.py",
-          "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_rag_jobs.py"
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }
@@ -50098,6 +50106,533 @@
           "tests/llm/test_rag_retry_presence.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_rag_jobs.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/ingestion.py",
+    "sha256": "70f84b973271637376a648583dd07b555e6f5d9b64c68e4876d01f1c8383b119",
+    "reason": "Full implementations and dynamic/direct consumer paths reviewed. All existing method bodies, wire/omission contracts and ordered worker/cache traces are equivalent; selected strict current L1/L2 and actual file-effect/fault/restart/cancellation tests pass without assertion changes. Remaining Component/Data/Jobs/Indexing contracts are not declared complete by these consumer edits.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "664a38e03de54a45404b67e05648451305761110ce06d5bdd02f2e736d335397",
+        "classification": "declaration",
+        "owner": "VectorCache",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "5ffe925f9d7517d9c3b76759f9fe26fb52bfeb5174a635f212f03c5c39777dc7",
+        "classification": "declaration",
+        "owner": "VectorCache",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "07b544aa4003b3b329cd11563ae8a92860fdd5f3b70920913d5d00eeac8a9c95",
+        "classification": "declaration",
+        "owner": "VectorCache",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "f41fefe3f8538bc6589a71e592a06e836243b12ff468f7e509a68870872ed9c7",
+        "classification": "declaration",
+        "owner": "VectorCache",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "afd7fb7fc76457403c7228ec5ddd2c75a325fde91a8e94693f13f668ca509bf2",
+        "classification": "declaration",
+        "owner": "VectorCache",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "5180a4260022adb0376501b23605bf24d828e9b0cf41eb8da8be4598706790c4",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "5b489087134b7d69be0902af2cdb4887a9e7e5aed7a2591c3eff7f425dd027ea",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "003530bc5e15c62651025c167506d5edb60349a60bd272985385e7d17fc024dd",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "58ce69189f8510654e44803595d8ded7e781bc805921f149ddeaa7861da51f5c",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "0b1baeba02c4663b34e69582e58a5da591cbb645ab77000d1651c6bd68047c66",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "3b5062153d13c28b45eef89384d9ab30fb79553745f6a3ae0e74d6b54ff75506",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "ad03de2507fdb551ef1595002b3aac3d05ae6786282b8d38ff0eddd416619799",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "cc54b3389ef004707b3c7e44ae20ee66f30f04330278baa671aaf7df84c8bad9",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "ac03021bbd10bad63f425c33ff36fbbf7df581ce2f4e83763beb7cdd2674b11b",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "de3ef75867c59639089791414745a0079f4d46907bad29f288e15fb801eefd4b",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "56bdd8a5265ce1ab4a8db79a45e313fefe21e01280ce2cec5182ba88e5083943",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "2a185af68e419ea267ae223c611df717a467e6433b08f3ba39d81bc6f521d6cc",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "abf4105c68487c97c692e93629424436f838d5d0e26b6c399357e5e1884e7d92",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "a30802b7aee97fda8eba3f3ac37ffb4e5fe481c9712b7d184b76ef1d219eda4e",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "1d6863979b7090675538cd29f887aafe664de97cf6cd22b48c7440de50405fae",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      },
+      {
+        "id": "3bf9d687ee8cb9fd1187b05efc9864542b4536e49388f1d73772ccbb7f66049f",
+        "classification": "declaration",
+        "owner": "EmbeddingExecution",
+        "reason": "Full worker and cache reviewed: control counts, optional cache absence, error diagnostics, worker name and memory/key format are declared at their owning implementation head. Receipt/profile/statistics reads use the canonical records and public model-client method declarations; no runtime literal remains."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EmbeddingExecution/VectorCache",
+        "declaration": "llm/components/rag/ingestion.py",
+        "consumers": [
+          "llm/components/rag/component.py",
+          "llm/components/rag/jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/rag/ingestion_records.py",
+    "sha256": "bdcda5252eed7c67121c22eac4f637e39b29f5fa87dafd2eaf8acc90a803c15e",
+    "reason": "Full implementations and dynamic/direct consumer paths reviewed. All existing method bodies, wire/omission contracts and ordered worker/cache traces are equivalent; selected strict current L1/L2 and actual file-effect/fault/restart/cancellation tests pass without assertion changes. Remaining Component/Data/Jobs/Indexing contracts are not declared complete by these consumer edits.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3101a70d3161675a9463c5fca8c5c4ac95788bf6829967d470e34688c6ec54c7",
+        "classification": "declaration",
+        "owner": "BatchCheckpointName",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "d3f068459725102a560651f025ea17da94815f55cdae0a7689d75899a1b73fa0",
+        "classification": "declaration",
+        "owner": "BatchCheckpointName",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "0e41bc255e3f4f8ee0221d223c825bf1d72e29fcb353217b77d77445b1eaaa64",
+        "classification": "declaration",
+        "owner": "BatchCheckpointName",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "5565ad721d654f8cdeddaa027d8596c7813adda9d4f14cbb5edcdf6f2e1048cf",
+        "classification": "declaration",
+        "owner": "BatchCheckpointName",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "dc2a388ea1570eaa9aa132345d0c8b074fbfd0bf956086a394255c6c00277145",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "b09e449bea0fef4f7cad80f52945df053e0444b4f13c8395be247d8233f58eed",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "a051eae3e49e21afd9f0e539d36a6a0f81b66594ca8d97afa2d2e459cdfef135",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "1ff3c876e12fba1ed79896765a1728fef98e8144be9edebd9f1f5d03b75df222",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "adeac79c21abc44267cac4873e93c835603b91ef964406a510a499dcadbbbef0",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "d4377611472a9f5dcc7b45bbab5b0fd4c95e6870f98fe15db6c4bb42c229e020",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "79da2c174cdb8f79143553fbb962b46d5ce5ba40b321a65be3278dfbe814a521",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "55b0a66acf780c70bbc5af01fd6c8bab77781e959963b736b6c0353f26a47ebe",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "8e860e8515d34df356f68092f3517fc488da88cada7b0334b9ab467a05e5e244",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "7e8f3100ad310ad5ff6cf1ef94d5e2e7719fd7ceda5281bcc0c159de7b5b5fbe",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "e6c609c83dbd4ea820a922dc737f2ce93d0f3e5c2961b0a11fd131483bbbe5e4",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "4495ab77b30fff3e1f86e35f513640b1d5e073de8ab5ee60afc42866f51303d4",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "25dabd59198c703e5a4fc82a10aca4a2f15c37ef832842cb2da987621a13ca87",
+        "classification": "declaration",
+        "owner": "EmbeddingCheckpoint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "d9ce145252836067a1fd64eba457fe1b35e5eb248e907021d02c37a26cc3af54",
+        "classification": "declaration",
+        "owner": "EmbeddingProfile",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "ecaa1403c0a78df11c9ae30e180f3a027cb5b810500816665cc32a63ddbe7aab",
+        "classification": "declaration",
+        "owner": "EmbeddingProfile",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "1f1347f583517aebffaf138cc3e1d9bcf9464d1f843c3afc813ea511ccfb3be5",
+        "classification": "declaration",
+        "owner": "EmbeddingProfile.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "39cdcee0dbb8d1596f0e2ba3f30dcf38eebc51bd9fc4b5c1dabda1dedb80d551",
+        "classification": "declaration",
+        "owner": "EmbeddingProfile.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "e6459336eeb13752f521b22256151d75570428da54d0aa546ca06f1e09f4fa0b",
+        "classification": "declaration",
+        "owner": "EmbeddingEvidence.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "75e6df298cff55832a9f3dee686085e06169aff436add6365d3ed3982ceafc01",
+        "classification": "declaration",
+        "owner": "EmbeddingEvidence.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "7e95ff28289643f59c985e22bfd8ca42708cf9aad6947451815d481feef0bfb6",
+        "classification": "declaration",
+        "owner": "EmbeddingEvidence.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "d75f95fa323d56f49648a582743b137d366170240ce73715153c74e48f104ca2",
+        "classification": "declaration",
+        "owner": "EmbeddingEvidence.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "7b6b280d976ee59704ca88c0d48b36b22d395bda664afdb046903e0f77a9654c",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "2575239102eb9eba30e728b85d324d0fbd8e4618f9c3e9856c02adb0e351c473",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "727df94aa3bc103bb66d0dc16a9af01cf3019d97a74346c0d3b312551ec4909e",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "b2899f8b1985022f9f0a4bee0ebb245ccfa40a329f1c2b5747dfe39dec72c192",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "6cb9147cc9477b98815d43c3e00093fd72f68ce7a36500910b3c4e4c98b07563",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "f980c1890a9a2dae2bc0ef7e1325a32bcd6d64a2890503764db8678b916c315e",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "938a200c88811cc5f3c719ab5705c21b9dade891730ceb8b4efc562ebfd0e1fa",
+        "classification": "declaration",
+        "owner": "EmbeddingFingerprint.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "ff9c153ab7ef2022247e56012c7c23722628aa18896a78e3fa5d6f1a27662203",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "51b02ffa0ec2c695092cb74760c003f0b7867d6d747a12c302a3ee08045119a7",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "51a5e11666f37ae2a40dc2b3a476f4aa29584fc54816c4d8a4186b2dbf362ab0",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "829d0ba3a4d95247324931c8bfe004a17b2343e3f368c0f60a70dbfe06645dae",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "01edad4d85b3325468e4d32785a0152fb64c5fe7d4e8fa2a99f478cf93e99eb5",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "302ee4d4775acd4bf25138038b623974e63ff7188331b82bfc1c540b96b89604",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "5d4e9e749061b8773acf3a2bad7cd092a593a4f1024ff372cb86114522479c60",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "30e7ab74e1dda44bc1732173ae79acede0779383d0caf60db9f41568257691bb",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "de9772cc379703d9d46c82d7b92bf91c67589ef8cbaac74be8a8c5478551e1e0",
+        "classification": "declaration",
+        "owner": "IngestionObservation",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "3418e36d66b13e6acbd2119c178d5b1520c5a8c12c6965fe108dc2c0857addc2",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "7fea35e354d8c29aea319870ca328a500492660410d327dc0b43eb784b319d64",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "f27d25dda513cfe824606531686367d4391971e833b0ad1bdef049b356c3d71c",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "8887dc792abddd91c82a76ee0500caf549648500ddf831027601d5eac4e731c9",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "eda377f6a806e2984078eed9b6504bb26b515c00512845bfdb460420b077ae33",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "6ed783ad4ef19eafa0c3959d887f346e3d04e535610f10eb23c6a97244ae2d2b",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "bd7e97d831de06b192663edd52809596f6c71aa6a7381d7b24f75f8f2fa40d81",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "e94489085d4faf2263969e6e6be99f6ff5db533028e0404b9c7322cf9fb0e8a4",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "4f740ba2f6ab89326e785001dbe0babb7c7bcb6251a5e8d190f4f3a3751c4b84",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "93af635c6e7d9145ef03b92d1e3d74e552ec55a95afe0db21174cf8d6ebd95ed",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "5f207a97c2c14c9fd4df8141882e5e1f040fc446245e1d6fad670d82d898cd9f",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "14010bfbb0a501e6fee4572928aaed581894e3285472392d4af73b52122a3cc9",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "b01e9dbeffb58c0d57ebe2a84d3d4b5833fc3b8b1a6e75639575ba42543b7375",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "f1bf0ec832ba553c5778cdaefa6a87a8a159de3873e667dc4e52ad3a92586dc3",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      },
+      {
+        "id": "4b89d21e66ddb083c17c7a70ff185892941552ce659751cb410cede363818be8",
+        "classification": "declaration",
+        "owner": "IngestionObservation.Field",
+        "reason": "Each exact stored or observation shape, identity, version, checkpoint grammar, diagnostic and initialization value is declared before that Owner implementation. General progress projection names derive from OperationProgress fields. The two observation shapes and required versus optional evidence reads retain distinct contracts."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EmbeddingCheckpoint/EmbeddingProfile/EmbeddingEvidence/EmbeddingFingerprint/IngestionObservation/BatchCheckpointName",
+        "declaration": "llm/components/rag/ingestion_records.py",
+        "consumers": [
+          "llm/components/rag/ingestion.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/data.py",
+          "llm/components/rag/jobs.py",
+          "llm/components/rag/indexing.py"
+        ],
+        "tests": [
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_embedding_checkpoint.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/llm/test_rag_optimization.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_resource_tools.py"
         ],
         "complete": true
       }

@@ -1,5 +1,7 @@
 """재시작 가능한 문서 색인 작업. 입력·준비 결과·공개 영수증을 별도로 저장한다."""
 
+from .ingestion_records import EmbeddingEvidence
+
 from llm.core.plans import PlanBlockerCode
 
 from llm.core.checkpoints import CheckpointErrorCode
@@ -323,11 +325,11 @@ class RAGJobs:
         for item in prepared:
             if item.get("preparation_configuration") != component._configuration_version:
                 raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "RAG configuration changed since preparation; enqueue a new job")
-            if item["profile"]["model"] != component._identity():
+            if EmbeddingEvidence(item).profile.model != component._identity():
                 raise CheckpointError(CheckpointErrorCode.CONFIGURATION, "Embedding model changed since the job was prepared")
             from llm.core.embeddings import validate_vectors
             from .extraction import validate_graph
-            vectors = validate_vectors(item["vectors"], dimensions=item["profile"]["dimensions"])
+            vectors = validate_vectors(EmbeddingEvidence(item).vectors, dimensions=EmbeddingEvidence(item).profile.dimensions)
             if len(vectors) != len(item["chunks"]):
                 raise ValueError("Prepared chunk/vector count mismatch")
             validate_graph(item["graph"], item["chunks"], relation_types=component.extraction_options.get("relation_types", ()))
@@ -423,7 +425,7 @@ class RAGJobs:
                 await self.data._async_call(self._batch, identifier, key, signature, document)
             if document["id"] != item["identifier"] or document.get("preparation_configuration") != component._configuration_version:
                 raise ValueError("Prepared document identity/configuration mismatch")
-            component._embedding_dimensions = document["profile"]["dimensions"]
+            component._embedding_dimensions = EmbeddingEvidence(document).profile.dimensions
             prepared.append(document)
         await self.data._async_call(self._telemetry, identifier, {"phase": "preparing_documents",
             "completed": len(inputs), "total": len(inputs), "unit": "document",

@@ -15,6 +15,7 @@ class ModelClient:
     ABSENT = None
     RUNTIME_OPTIONS = False
     UNSUPPORTED_CALLBACK_FIELDS = frozenset(("completion_fn", "embedding_fn", "rerank_fn"))
+    PARAMETERS_ATTRIBUTE = "params"
     INSTANCE_EMBED_METHOD = "embed"
     REQUIRE_ADAPTER = "Model clients require an operation adapter"
     INVALID_RETRY_SELECTOR = "Retry selector must be callable"
@@ -29,6 +30,11 @@ class ModelClient:
         self.adapter.validate_options(self.params, operation=self.operation, json_contract=self.RUNTIME_OPTIONS)
         self.provider_options = {}
         self._retry_decider = self.ABSENT
+
+    @classmethod
+    def fingerprint_parameters(cls, client):
+        """Optional custom-client parameters participate without filling its definition."""
+        return getattr(client, cls.PARAMETERS_ATTRIBUTE, {})
 
     def describe_config(self):
         return self.adapter.describe_config(self.operation)

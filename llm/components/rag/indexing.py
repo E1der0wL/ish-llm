@@ -1,5 +1,7 @@
 """불변 세대별 Chroma 색인. 연결은 작업 단위로 열고 닫아 복제·삭제를 허용한다."""
 
+from .ingestion_records import EmbeddingEvidence
+
 from .chunk_records import RAGChunk, SplitDocument
 
 from contextlib import contextmanager
@@ -37,7 +39,7 @@ def build_index(path, documents: dict, *, batch_size=None) -> None:
             for offset in range(0, len(chunks), size):
                 batch = chunks[offset:offset + size]
                 index.add(ids=[RAGChunk(c).identifier for c in batch], documents=[RAGChunk(c).text for c in batch],
-                          embeddings=document["vectors"][offset:offset + size],
+                          embeddings=EmbeddingEvidence(document).vectors[offset:offset + size],
                           metadatas=[ChunkIndexMetadata.project(document["id"], c)
                                      for c in batch])
 
@@ -46,7 +48,7 @@ def update_index(path, before, documents, *, batch_size=None):
     """복사한 불변 세대에서 바뀐 문서만 갱신한다. 기존 검색 세대는 수정하지 않는다."""
     changed = {key for key in before.keys() | documents.keys()
                if key not in before or key not in documents or any(
-                   before[key][field] != documents[key][field] for field in (SplitDocument.Field.CHUNKS, "vectors"))}
+                   before[key][field] != documents[key][field] for field in (SplitDocument.Field.CHUNKS, EmbeddingEvidence.Field.VECTORS))}
     if not changed:
         return
     with collection(path) as index:
@@ -60,5 +62,5 @@ def update_index(path, before, documents, *, batch_size=None):
             for offset in range(0, len(SplitDocument(document).chunks), size):
                 batch = SplitDocument(document).chunks[offset:offset + size]
                 index.add(ids=[RAGChunk(c).identifier for c in batch], documents=[RAGChunk(c).text for c in batch],
-                    embeddings=document["vectors"][offset:offset + size],
+                    embeddings=EmbeddingEvidence(document).vectors[offset:offset + size],
                     metadatas=[ChunkIndexMetadata.project(identifier, c) for c in batch])
