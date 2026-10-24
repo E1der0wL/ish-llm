@@ -19,7 +19,7 @@ class ToolStepMetadata:
     EFFECT = "effect"
     RETRY_ERROR = "retry_error"
     RETRY_FAILURES = "retry_failures"
-    REUSED = "reused"
+    REUSED = StepEventMetadata.REUSED
 
     @classmethod
     def call_id(cls, metadata):

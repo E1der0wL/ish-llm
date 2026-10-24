@@ -154,7 +154,7 @@ class LoopStepMetadata:
     CHECKPOINT_SCOPE = "checkpoint_scope"
     CALL_ID = ToolStepMetadata.CALL_ID
     REUSED = ToolStepMetadata.REUSED
-    REUSED_VALUE = True
+    REUSED_VALUE = StepEventMetadata.REUSED_VALUE
     SOURCE_RUN_ID = "source_run_id"
     SOURCE_STEP_ID = "source_step_id"
 

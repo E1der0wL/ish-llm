@@ -243,8 +243,8 @@ class GraphStepMetadata:
     CHECKPOINT_KEY = "checkpoint_key"
     REUSED_FROM_RUN = "reused_from_run"
     REUSED_STEP_ID = "reused_step_id"
-    REUSED = "reused"
-    REUSED_VALUE = True
+    REUSED = StepEventMetadata.REUSED
+    REUSED_VALUE = StepEventMetadata.REUSED_VALUE
     NODE_ID = GraphNodeRecord.NODE_ID
     NODE_TYPE = GraphNodeRecord.NODE_TYPE
     DEFINITION = "definition"
@@ -258,6 +258,14 @@ class GraphStepMetadata:
 
     def __init__(self, value):
         self._value = value
+
+    @property
+    def reused_step_id(self):
+        return self._value.get(self.REUSED_STEP_ID)
+
+    @property
+    def node_checkpoint_key(self):
+        return self._value.get(self.NODE_CHECKPOINT_KEY)
 
     @classmethod
     def add_port(cls, detail, port):

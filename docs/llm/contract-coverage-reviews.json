@@ -43661,8 +43661,8 @@
   },
   {
     "path": "llm/engines/events.py",
-    "sha256": "b6b756dc27ce6c03f4c5ef0669dacfd2a392be7c2806a7bbe2ef175e6cddae08",
-    "reason": "All event declarations and attached-checkpoint, diagnostic, progress and failure-code validation reviewed. Progress phases and optional error-code observations use StepEventMetadata; invalid/missing display hints retain the original fallback and never repair persisted evidence. Slot-derived assignment references the sole field declaration. The exact public class identity is exported through base, with one implementation. Narrow public Facade consumers use the Run-owned resumable candidate states, EngineEvent factory, live RunManager gauges and uncommitted operation preview. All required safety checks and original read/effect order remain. Recovery uses canonical typed analysis/summary requests and response validation, and original Engine/Provider streaming option and reception observations. Actual helper payloads/prompts, cancellation/acknowledgement, budget/admission and effect invariants are preserved; no additional retry or replay path.",
+    "sha256": "fbfac6ff72e0ec0349cf596593aabef9d9873e0f2cd4fbacf706f63894a39028",
+    "reason": "All event declarations and attached-checkpoint, diagnostic, progress and failure-code validation reviewed. Progress phases and optional error-code observations use StepEventMetadata; invalid/missing display hints retain the original fallback and never repair persisted evidence. Slot-derived assignment references the sole field declaration. The exact public class identity is exported through base, with one implementation. Narrow public Facade consumers use the Run-owned resumable candidate states, EngineEvent factory, live RunManager gauges and uncommitted operation preview. All required safety checks and original read/effect order remain. Recovery uses canonical typed analysis/summary requests and response validation, and original Engine/Provider streaming option and reception observations. Actual helper payloads/prompts, cancellation/acknowledgement, budget/admission and effect invariants are preserved; no additional retry or replay path. Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -43828,103 +43828,109 @@
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "de64f9f322f25d88b51caac0e555602dd90373b082ee6bb3d84d32a0d44e5767",
+        "id": "ff101f9f2ec2703489d4b3835f8425daa0ee4fe0a64e5df100f25d1b214410ce",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "2dee04ea1d18cf704393f1750e4ce6f6db0308f040c6b4c9085328ad98547dde",
+        "id": "3b264144bbddde6cc0ac11a8433a5e2cd2926480fe5059584291b781db5392f0",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "2a9d50b9625a6b45139f88f9270e4e15be5e7dcbd167fbde929f1f275b0f34d1",
+        "id": "340758b0e0be0c820dc9854e5307c5ed5672fff534954232a99849fd4431777a",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "85caae55a3ec7252b9064743f82dd9abb420e3d213fded7ca54914853213e6d7",
+        "id": "8a7a55025f5f785273056c0d27db028d6bd1e8f3e152780bda93f07c691243f5",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "eccd98c9a4da851916c4fc6e35e1770dee6b9cafd59931485c2f89a4e4859cb4",
+        "id": "d2ca2bbf8253f0edc9673eecaf863671bfec3703e88f612c48daa72de3107cb9",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a1a36d3a9a27fdec43f1392757cd05d0233ace7aa5ec6c0cf7edde589fdbc196",
+        "id": "3c187543b9a836d7268b7eec26011287d096b03f513c44568901ded792ce20fb",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "b201f720168256347f0d144070d504d7ac28d796c4b78a199f9d5a01b3c26d72",
+        "id": "9fe044dd7a55254fd165ace9cc9f58fd95ff50a352679038f1fef13c42d4a1f5",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "921bae00ec5ff2a2b8927adcdf94535131a224dd4051518aeed87677136c31b5",
+        "id": "20ff7159506391d6f59d62bb566dab1f5b6e7babb23214d187bd8da29bbfbd64",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "b2fd22ba45afc237aa2d61283f19402b3805df69bd371f39dfbb57e54ead6a97",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "a494b5cae80a6711ceb69d818974faa0c5d14f7dc27bf8f8c3e4f0ae38af016d",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "23a2a617911d91f6656a754b8cca977c2b1e2fc744b4919d0042dba285047a7e",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "a2458372d023e6e533f37a99b7364fa8c792939637a0e167135ed00ea794adf3",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "101a404c5e50de17a3702ab511be7bd21b88ba14d5e59098ef2f89d658d6fb05",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "efd5c5e8d0d954332f3f5de09ce50a00748f7ef019dcffd3de3334287d2e317e",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "939ae8d1b3bab2b74ae3bc82caa2948bd78818145ab509dc080d2db2e9f1398c",
-        "classification": "declaration",
-        "owner": "EngineEvent",
-        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
-      },
-      {
-        "id": "c0c378ce25a546fdd88862e9981e03b1007600bb6e370985eb79fb1721b568cb",
+        "id": "903e17005204f116c55be0f656a18b41367d4a25116bce359069be3093c4b54b",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "db27e9a7d3bda257c93e553d894352a1f0c6585d3af9b6bd1eaa9c81ab412465",
+        "id": "77fc2ad67265fd82f51119a63d92070e153f2ed5dc2d4d5b162db842f85c7b3b",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "058e224d9f0988c16759b3091aa242aedf987a6012736590f0048e0e84f68b14",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "f2d69d970b0419ade3072ea37b2927c81906feffb0338d0e3cf443b0f4b1a725",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "daac987690f9dda4e5c501d2b040b3cc29cd3372ce23cfe8f164d86f3cb8ad8c",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "3985337ed46121ced9bac8639b6ccb8d7e50ec97ac300e93322cd75ef1807b5b",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "da1864e0c4a5c174208ae982178b17266b2dffacd782107798877268c0284946",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "e0c7b0b73ee726208a1000b5a19cd8a31629a941fe59b880af4cdd0935a376c9",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
+      },
+      {
+        "id": "1ffe7839f59d5ec69170c448f2b2d42eb695a7b77db2918a361d45091ae3786a",
+        "classification": "declaration",
+        "owner": "EngineEvent",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3984e62ffd7de970d74dc93d939d91db51c1d28af108a1c0bb11ba88e7672eec",
         "classification": "declaration",
         "owner": "EngineEvent",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
@@ -43937,6 +43943,8 @@
         "consumers": [
           "hub/backend/execution/provider_recovery.py",
           "hub/backend/execution/recovery_model.py",
+          "hub/backend/execution/steps.py",
+          "hub/backend/execution/thinking.py",
           "llm/engines/agents.py",
           "llm/engines/base.py",
           "llm/llm.py",
@@ -43945,9 +43953,12 @@
           "llm/services/runtime/tools.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
           "tests/hub/test_http_backend.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_live.py",
@@ -43957,6 +43968,8 @@
           "tests/hub/test_provider_stabilization.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
           "tests/llm/test_backend.py",
           "tests/llm/test_backend_contracts.py",
@@ -43974,10 +43987,12 @@
           "tests/llm/test_extension_contracts.py",
           "tests/llm/test_facade_requests.py",
           "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_engine.py",
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_linux_platform.py",
+          "tests/llm/test_loop.py",
           "tests/llm/test_observability.py",
           "tests/llm/test_observation_values.py",
           "tests/llm/test_operation_integrity.py",
@@ -44273,8 +44288,8 @@
   },
   {
     "path": "llm/core/step_event_metadata.py",
-    "sha256": "f2cf4660fa6d7a47a0feaeb4c6e937aa400f156f498f5fd81aaf875e089ecff5",
-    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved.",
+    "sha256": "75dcb65825da5000f827fea36a95409733bee37123838e21f690a8ca74cfe235",
+    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -44314,25 +44329,37 @@
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "279688ceed737218eaa81a33d1e7077eafe2aa0f573e8a44aa8aa5f7fc3db4a2",
-        "classification": "declaration",
-        "owner": "StepEventMetadata",
-        "reason": "Canonical shared Owner-head declaration; added Graph consumers preserve the established wire value and interpretation."
-      },
-      {
-        "id": "51c485ba663681363d4f401b0ce537f7ebe8ac96551e8c2c0d0c68bda5637a0a",
+        "id": "9fdfcb12765f2d0c7022e51de0676571a337dd144136db3ea73b3207376de3c1",
         "classification": "declaration",
         "owner": "StepEventMetadata",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ff6075da84df7119a90be437f8f135d02b5bcf74d464ad99c98039ae9b96f677",
+        "id": "1ad037bba346475de002ab3b9be957f96a57b001beb930973903cc4149bd754d",
+        "classification": "declaration",
+        "owner": "StepEventMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b056a0d76cd330ed83ab85ddb0fcf7b69ede9d556ce970dcb9db39d84e6a2ac4",
+        "classification": "declaration",
+        "owner": "StepEventMetadata",
+        "reason": "Canonical shared Owner-head declaration; added Graph consumers preserve the established wire value and interpretation."
+      },
+      {
+        "id": "301b24edd20441b4c79b26056f702a92454975c642dc48917c8fe61dfb889789",
+        "classification": "declaration",
+        "owner": "StepEventMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "734d0239e5c59efe6f0a2cde2ff54e447cea7925f14b719b11b1f2c86efd439c",
         "classification": "declaration",
         "owner": "StepEventMetadata.Field",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "e2b4c2ea060f7997f66a6caed60565be2b2f960142678f3f32ca6c4fc5c841dc",
+        "id": "c8fc61df8d60e5d88bf511c5b34dbd93b292719744b07d47e5dcd497eed20302",
         "classification": "declaration",
         "owner": "StepEventMetadata.Field",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
@@ -44346,6 +44373,8 @@
           "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/retries.py",
           "hub/backend/execution/retry_values.py",
+          "hub/backend/execution/steps.py",
+          "hub/backend/execution/thinking.py",
           "hub/backend/tools/paths.py",
           "hub/backend/tools/retry.py",
           "hub/backend/tools/retry_evidence.py",
@@ -44366,13 +44395,16 @@
           "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_bootstrap.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_execution.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
@@ -44386,6 +44418,7 @@
           "tests/llm/test_builtin_process_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
@@ -61064,8 +61097,8 @@
   },
   {
     "path": "llm/core/step_tool_metadata.py",
-    "sha256": "f20dc074de523f135ffae8acd76994d52d31ef109a6dbb564c22f0896b05cb50",
-    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending. Added canonical derived six-field Step operation receipt and required projection after original Run/Step reads; no execution authority is stored in the projection. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved.",
+    "sha256": "9a2c9a230e27aad1e9414cbea509f1e58bf251f9ef119d2263b23adc2cf126b2",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending. Added canonical derived six-field Step operation receipt and required projection after original Run/Step reads; no execution authority is stored in the projection. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -61135,12 +61168,6 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fe0ce420814826875d0a4a7bccd74eed27558414a9f06317f2c8e2e1ab271ac9",
-        "classification": "declaration",
-        "owner": "ToolStepMetadata",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
         "id": "c687f0ef0c35d4c8794db7241eb6aa965006569c2cc4069b35c99ba3b737dbb7",
         "classification": "non_contract",
         "owner": "StepOperationReceipt",
@@ -61185,6 +61212,8 @@
           "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/retries.py",
           "hub/backend/execution/retry_values.py",
+          "hub/backend/execution/steps.py",
+          "hub/backend/execution/thinking.py",
           "hub/backend/tools/paths.py",
           "hub/backend/tools/retry.py",
           "hub/backend/tools/retry_evidence.py",
@@ -61206,13 +61235,16 @@
           "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_bootstrap.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_execution.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
@@ -61222,6 +61254,7 @@
           "tests/llm/test_builtin_file_values.py",
           "tests/llm/test_builtin_process_values.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_current_contracts.py",
@@ -61229,6 +61262,7 @@
           "tests/llm/test_execution_contexts.py",
           "tests/llm/test_execution_observations.py",
           "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_graph_engine.py",
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_interaction_presence.py",
@@ -61263,33 +61297,45 @@
         "owner": "ToolRetryProgress",
         "declaration": "llm/core/step_tool_metadata.py",
         "consumers": [
-          "hub/backend/execution/retries.py"
+          "hub/backend/execution/retries.py",
+          "hub/backend/execution/steps.py",
+          "hub/backend/execution/thinking.py"
         ],
         "tests": [
-          "tests/llm/test_retry.py",
-          "tests/llm/test_builtin_file_values.py",
-          "tests/llm/test_builtin_process_values.py",
-          "tests/llm/test_builtin_catalog_values.py",
-          "tests/llm/test_execution_observations.py",
-          "tests/llm/test_completion_processing.py",
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_provider_recovery.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
-          "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_agent_selection.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_bootstrap.py",
           "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_agent_graph.py"
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -65203,8 +65249,8 @@
   },
   {
     "path": "llm/engines/graph/node_records.py",
-    "sha256": "f52a6906fe26ac1d1435ebbc88b77436dbdfdb5dd894d8a623f21ac952cdd8f3",
-    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
+    "sha256": "6dc208aba59dc71b1aeeb9eff6cc1ec88424758f0cbbccbcf4786c7e458da82a",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed. Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -65364,18 +65410,6 @@
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "7423920392576b123775d3433b36e0768062497fc25af2e541389db3c7f57649",
-        "classification": "declaration",
-        "owner": "GraphStepMetadata",
-        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
-      },
-      {
-        "id": "fae34edf3cdf8ba8348ac41ee487830f8dd0a1f04dd5845938a262670dabd00c",
-        "classification": "declaration",
-        "owner": "GraphStepMetadata",
-        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
-      },
-      {
         "id": "bd653d980428960995b52f7d0d94e3e34468113e503d5bfbb9c63cdb5df82e46",
         "classification": "declaration",
         "owner": "GraphStepMetadata",
@@ -65412,49 +65446,49 @@
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "103377511a13a17e9cb01f961155a0cecb3e2c44e5047700bf90467e3b1bc3fc",
+        "id": "a1a36cfed53991e62fa69b321898d3f58ac76237b9c5a4ea46d31df5667d5a3c",
         "classification": "declaration",
         "owner": "GraphInput",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "c7febc60b05ca6ccdea9055552e49f928df3bad1e235549d593f338442799cf3",
+        "id": "f444b5706e46654184ecc43d8970e09a43b1a6d7db4c9df12da352b28542385c",
         "classification": "declaration",
         "owner": "GraphInput",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "e842cf4f48118b1c172f6ab1f1c6e039ef6c2b66755936425ebe93656efef8bb",
+        "id": "c3b891a3b0764978e7f234532038e461eb1bb9799f4bf9f2b05f61557313092f",
         "classification": "declaration",
         "owner": "GraphConfirmation",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "c0ee0cdd4e61254156ad27cb20a1f80acfdb3bf718ba6e120ace45e09d709732",
+        "id": "130c1f47386e6e61ecafc31bea134da9fa4d4afc02bed9861aa2764cdf01ab93",
         "classification": "declaration",
         "owner": "GraphConfirmation",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "3ae287e6326123509c7291bd65a4b68fdb17bf4e5bd2907f4c00065c6a5781d9",
+        "id": "a5df7d422d2beefbabd8235b4dae3fd978965fbd80fa2246f4a25889494faeb9",
         "classification": "declaration",
         "owner": "GraphConfirmation",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "e7409aeb50d628a6887a08c4ec7077644120426536b374cecced28b6c0b6edd4",
+        "id": "e417a9fbe3e89e6fe6c2ff59b978d662010119de64483472e1b94626849809b7",
         "classification": "declaration",
         "owner": "GraphConfirmation",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "d70f6c98f3bec8d7e91983ac5c8c58f70a9eeea5a9f9d16d86accfecdba62a2f",
+        "id": "6cb5394459fee56c4fe184f996efb1fe262454b8621c606d7a6d670b69824b64",
         "classification": "declaration",
         "owner": "GraphConfirmation",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "3cd0e22c3e36f0efa792d885f0f5ef8db1216bf480234fa3eac354026e32ab6a",
+        "id": "a8ae65c6a72e56e7734b42c3dc72de8c6f7c84c11454c4d66bfd33ca46276404",
         "classification": "declaration",
         "owner": "GraphConfirmation",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
@@ -65465,6 +65499,8 @@
         "owner": "GraphNodeRecord / GraphDecision / GraphCheckpointHeader / GraphStepMetadata / GraphInput / GraphConfirmation",
         "declaration": "llm/engines/graph/node_records.py",
         "consumers": [
+          "hub/backend/execution/steps.py",
+          "hub/backend/execution/thinking.py",
           "llm/components/tools/process.py",
           "llm/engines/agents.py",
           "llm/engines/graph/engine.py",
@@ -65476,10 +65512,13 @@
         "tests": [
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_execution.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
@@ -65489,10 +65528,13 @@
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
+          "tests/llm/test_completion_integrity.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_execution_observations.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_graph_decisions.py",
@@ -66730,8 +66772,8 @@
   },
   {
     "path": "llm/engines/loop/records.py",
-    "sha256": "6cebb4ba3da5f80982aeae9d445b660b0f473e951f1cef6c82ef72d137a8afe5",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
+    "sha256": "7a46d0b7f764d08f71ac340aa8d4c9f208c49ef3c3acf3f0e29c1966ade57406",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed. Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -66825,12 +66867,6 @@
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "ed8b0cfe2c1be062728abb765809703d851e07f88198e4e89ca50390b87cad81",
-        "classification": "declaration",
-        "owner": "LoopStepMetadata",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
         "id": "39805ecbc342bf6875ca826543d51b207e9881dc426455cdd34420e22f55fe22",
         "classification": "declaration",
         "owner": "LoopStepMetadata",
@@ -66896,6 +66932,8 @@
         "owner": "LoopCheckpointRecord / LoopToolRecord / LoopCheckpointHeader / LoopStepMetadata / LoopPriorOutput / LoopInstructionBoundary",
         "declaration": "llm/engines/loop/records.py",
         "consumers": [
+          "hub/backend/execution/steps.py",
+          "hub/backend/execution/thinking.py",
           "llm/components/tools/process.py",
           "llm/engines/agents.py",
           "llm/engines/graph/engine.py",
@@ -66904,11 +66942,15 @@
           "llm/services/runtime/tools.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
@@ -66921,7 +66963,9 @@
           "tests/llm/test_completion_review_crash.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_execution_observations.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_graph_engine.py",
@@ -96618,6 +96662,212 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_response_reliability.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/thinking.py",
+    "sha256": "3138d510d6f27cd7529df9f8cc034b6b03df807e36cfe919fd0bdf901461cec4",
+    "reason": "Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8be795ea8caf45da559b523c9c01a6d8a18d2b603e6027d2468f2d1ac5f5d8b7",
+        "classification": "non_contract",
+        "owner": "ThinkingState",
+        "reason": "Python slots declaration for transient in-memory state."
+      },
+      {
+        "id": "a4fbbda2932b8f60b7fbdef61a6cab96506dc13445e4b805c611f18f246a5576",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "5d5df76582c9cf39cf6e4ea91dfda19b164e57ed05de335be4be8edbb7eca64a",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "d60e73c561424b39d2afa3e74e23e223d89bf015c887fc0e98aa501e0e4ed86a",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "9891c269af638dc433e6f104bf957049a57580d177f26154f00cfda84c0c917f",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "97eed320180bfe94a95c47474a67e68a057e6b4319e5fabe5631e79776c74b06",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "004cf3a282f110f552ca6605bdf94658526e48eebc883d998ec48a3456de6db1",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "11b353e20d215c1b6f515ae96f656e8c7c7ceb1c2d17b2199f40695b3b827cea",
+        "classification": "declaration",
+        "owner": "ThinkingState",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "c9e81f6ab5d98b0ee2dc530e0e2c2f0cfac97cb1fc42311ad4bd7215d8e1f270",
+        "classification": "declaration",
+        "owner": "ThinkingPhases",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "fa4a396b7b4735ac3214bea7b5b3a3c8c9477a5933ff55bef7e6ba924b9bdee2",
+        "classification": "declaration",
+        "owner": "ThinkingPhases",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "6f6b475c1f475fb4752fdc4adc0f34fa813d2a73fda5dafe4b3ed140637a3bdd",
+        "classification": "declaration",
+        "owner": "ThinkingPhases",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "f1d03384d61421922f2af8201b5936b926608628d385489606aac7d31dc07094",
+        "classification": "declaration",
+        "owner": "ThinkingPhases",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "d40d8f0a2cb2994e7ea28e5c2accb3ede6a04474bb8263eb02357d56284399bc",
+        "classification": "declaration",
+        "owner": "ThinkingPhases",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "2a4beee981ca344bb2f38c48a62fe5c4be2dd6e8ba6067e10c93973df48eb771",
+        "classification": "declaration",
+        "owner": "ThinkingPhases",
+        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
+      },
+      {
+        "id": "0f2c62deffc89d42c6d2fc22d15298de5993cc43104a417e55c18cdf92490129",
+        "classification": "non_contract",
+        "owner": "ThinkingPhases.activity",
+        "reason": "Last element of the validated completion sequence (-1); ordinary sequence indexing."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ThinkingState / ThinkingPhases",
+        "declaration": "hub/backend/execution/thinking.py",
+        "consumers": [
+          "hub/backend/observability/snapshot.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_snapshot_projection.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/steps.py",
+    "sha256": "395e54139f62e54bea93103b7f69df5fba1ee4d5d88433bb5638775e64f9ae42",
+    "reason": "Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b3314db355347e87232a305808f2e91b7f6ee15a712276c8bb10d7361937811e",
+        "classification": "declaration",
+        "owner": "StepDisplay",
+        "reason": "Display-only identity encoding and phase mapping; storage and execution declarations are borrowed from their Owners."
+      },
+      {
+        "id": "6457d6c9dea7b2dda70dd8e6596042f07d7455e63e744e25e882e7fc5b2eddd2",
+        "classification": "declaration",
+        "owner": "StepDisplay",
+        "reason": "Display-only identity encoding and phase mapping; storage and execution declarations are borrowed from their Owners."
+      },
+      {
+        "id": "9f618e0836e8dce1595c1e9fba1c503dd9b624cdf4a86e2c5c574b3974904335",
+        "classification": "declaration",
+        "owner": "StepDisplay",
+        "reason": "Display-only identity encoding and phase mapping; storage and execution declarations are borrowed from their Owners."
+      },
+      {
+        "id": "ac8fc44c2f7316c0fa0539e014a44452583b2774817104fc58f715b242f60af0",
+        "classification": "declaration",
+        "owner": "StepDisplay",
+        "reason": "Display-only identity encoding and phase mapping; storage and execution declarations are borrowed from their Owners."
+      },
+      {
+        "id": "d5fea577633058a262e7a1f88d271517f98c1c1d0a726c329a2754e1304dbf04",
+        "classification": "declaration",
+        "owner": "StepDisplay",
+        "reason": "Display-only identity encoding and phase mapping; storage and execution declarations are borrowed from their Owners."
+      },
+      {
+        "id": "0070f61982e41090e0b5dfe77ebc905f5dc2461925878d1d1c54ca3b8df0d917",
+        "classification": "non_contract",
+        "owner": "display_steps",
+        "reason": "Python variadic tuple return annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "StepDisplay / display_steps",
+        "declaration": "hub/backend/execution/steps.py",
+        "consumers": [
+          "hub/backend/observability/snapshot.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_snapshot_projection.py"
         ],
         "complete": true
       }

@@ -38,6 +38,7 @@ class EngineEvent:
     NO_COMPLETION: ClassVar[None] = None
     NO_TYPE: ClassVar[None] = None
     NO_OUTPUT: ClassVar[None] = None
+    NO_DELTA: ClassVar[None] = None
     NO_DIAGNOSTIC: ClassVar[None] = None
     NO_PROGRESS: ClassVar[None] = None
     NO_FAILURE_CODE: ClassVar[None] = None
@@ -57,7 +58,7 @@ class EngineEvent:
     }
 
     type: Union[EngineEventType, str]
-    delta: Optional[EngineDelta] = None
+    delta: Optional[EngineDelta] = NO_DELTA
     step_id: Optional[str] = NO_STEP
     kind: str = StepKind.LLM.value
     name: str = ""
@@ -82,6 +83,14 @@ class EngineEvent:
     @classmethod
     def observed_completion(cls, event):
         return getattr(event, cls.completion.__name__, cls.NO_COMPLETION)
+
+    @classmethod
+    def observed_delta(cls, event):
+        return getattr(event, cls.delta.__name__, cls.NO_DELTA)
+
+    @classmethod
+    def observed_output(cls, event):
+        return getattr(event, cls.output.__name__, cls.NO_OUTPUT)
 
     @classmethod
     def changed_interactions(cls, values):

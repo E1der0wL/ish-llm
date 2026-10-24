@@ -1,5 +1,7 @@
 """Immediate local submission feedback, separate from durable chat history."""
 
+from hub.model import ResponseActivity
+
 from hub.locales.keys import MessageKey
 
 from llm.core.models import MessageStatus
@@ -83,7 +85,7 @@ class PreparingResponse:
                             continue
                         message = replace(message, role="assistant", id=assistant or message.id, text="")
                     if message.role == "assistant" and message.run_id == run_id:
-                        message = replace(message, status=ChatMessage.PREPARING, phase="preparing", activity="")
+                        message = replace(message, status=ChatMessage.PREPARING, phase=ResponseActivity.PREPARING, activity="")
                     prepared.append(message)
                 messages = tuple(prepared)
             else:

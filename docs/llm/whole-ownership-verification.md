@@ -8379,3 +8379,45 @@ R3 Mutation도 exit 0이며 원래 Assertion과 실제 파일 효과/승인/재�
 문맥 투영의 제한된 변경 범위를 원본 비교와 실제 소비자 검증으로 확인했다. 이 소단계에서 전체
 회귀는 실행하지 않았으며 전체/원격 완료로 표현하지 않는다. Gate50 이후 관련 실행/응답 소비자와
 묶은 다음 Level 3 전체 LLM/Hub·정적/문서/R3·실환경·정확한 SHA 원격 CI가 후속 게이트다.
+
+
+## 추론·Step 실행 관찰의 선언과 상태
+
+Thinking·Steps 두 파일을 전수 정리했다. ThinkingState가 기존 seen/text/phase/completion/activity/
+trace 상태를 속성으로 소유하고, 128개 Run 보관·최근 관찰 순서·prefix 증분/교체·저장 trace와의
+병합을 보존한다. ResponseActivity가 일시적인 표시 phase를 선언하고 실제 Thinking·Presentation·
+Preparing 소비자가 참조한다. 이 표시 상태는 Run 실행 상태를 바꾸지 않는다. EngineEvent의 선택적
+completion/delta/output 관찰과 Run/CompletionResult의 정규 필드 선언을 사용하며 구조적 관찰의
+기존 누락 처리만 유지한다. 저장 Reader나 필수 영수증 검증을 약화하지 않는다.
+
+StepDisplay는 기존 Tool identity 입력 순서·JSON encoding·sha256·prefix와 승인 대기/재시도 표시를
+유지한다. Loop·Graph·Tool metadata는 각 Owner의 공개 관찰로 읽으며 재사용된 Step을 새 실행처럼
+표시하지 않는다. 발견된 동일 Step reused 선언은 StepEventMetadata에 일원화하고 실제 Tool·Loop·
+Graph Writer가 참조하도록 연결했다. 값과 저장 필드가 그대로이며 재실행·Checkpoint 허용 여부를
+표시 계층에서 결정하지 않는다. narrow 소비자의 다른 미완료 범위는 완료 처리하지 않았다.
+
+독립 원본/제안 107개 관찰이 일치했다. Step 종류·상태·reuse True와 정수 1·Graph 원본 ID·Tool
+호출/iteration/node 범위의 실제 해시, reasoning 증분·교체·완료·출력 visibility·trace 병합·eviction,
+실제 Tool/Loop/Graph metadata Writer를 포함한다. 원본의 정상 표시·reuse 제외·보관 개수와 실제
+streaming 전환을 별도 Assertion으로 확인했다.
+
+- `whole-hub-runtime-observations-core-01`: discovered/started/pass 77/77/77, exit 0, 42.605728초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-runtime-observations-core-01/llm.json --modules tests.llm.test_loop tests.llm.test_graph_engine tests.llm.test_graph_checkpoints tests.llm.test_execution_observations tests.llm.test_completion_integrity`. source `9e78e880e1d65dcd1d463227bfbf8cb6fc48c390965490995a3a2c916fb760ed`, input `b49751dd3675b26220fcadc1ab144fddb97745328f2b3074e19153f14bd4e7bb`.
+
+- `whole-hub-runtime-observations-safety-01`: discovered/started/pass 84/84/84, exit 0, 39.104903초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-runtime-observations-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `9e78e880e1d65dcd1d463227bfbf8cb6fc48c390965490995a3a2c916fb760ed`, input `b49751dd3675b26220fcadc1ab144fddb97745328f2b3074e19153f14bd4e7bb`.
+
+- `whole-hub-runtime-observations-l1-01`: discovered/started/pass 18/18/18, exit 0, 35.273189초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-runtime-observations-l1-01/hub.json --modules tests.hub.test_completion_display tests.hub.test_tool_history tests.hub.test_interaction_updates tests.hub.test_retry_observations`. source `9e78e880e1d65dcd1d463227bfbf8cb6fc48c390965490995a3a2c916fb760ed`, input `b49751dd3675b26220fcadc1ab144fddb97745328f2b3074e19153f14bd4e7bb`.
+
+- `whole-hub-runtime-observations-l2-01`: discovered/started/pass 14/14/14, exit 0, 24.832663초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-runtime-observations-l2-01/hub.json --modules tests.hub.test_agent_graph tests.hub.test_execution tests.hub.test_approval_continuation tests.hub.test_snapshot_projection`. source `9e78e880e1d65dcd1d463227bfbf8cb6fc48c390965490995a3a2c916fb760ed`, input `b49751dd3675b26220fcadc1ab144fddb97745328f2b3074e19153f14bd4e7bb`.
+
+각 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+같은 suite 선택 ID 중복 0과 실행 전후·사이 source/input 동일성을 확인했다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux/X11 환경이다. 명령/exit는
+`hub-runtime-observations-draft/selected-results.json`, 원본 비교는 `proof-commands.json`에 보존한다.
+Core는 실제 Loop/Graph·Graph Checkpoint·실행 관찰·completion integrity, Level 1은 Completion
+표시·Tool history·Interaction 갱신·retry 관찰, Level 2는 Agent Graph·Execution·승인 연속 실행·
+Snapshot이다. 공통 안전성 84개와 R3 Mutation도 통과했다. 기존 테스트/Assertion은 유지한다.
+
+동일 저장 값과 관찰 범위를 실제 Writer/Reader 및 직접 소비자 결과로 확인하여 소단계는 Level 2로
+보존한다. 이 소단계에서 전체 회귀는 실행하지 않았다. Gate50에는 이 후속 변경이 포함되지 않으며
+ResponseContext와 후속 관련 실행 소비자를 묶는 다음 Level 3 전체·정적/문서/R3·실환경 및 정확한
+SHA의 원격 CI가 후속 게이트다. 전체 미검토/미완료 계약 0 조건을 낮추지 않는다.

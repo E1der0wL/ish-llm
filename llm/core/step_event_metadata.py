@@ -13,12 +13,19 @@ class StepEventPhase(StrEnum):
 
 
 class StepEventMetadata:
+    REUSED = "reused"
+    REUSED_VALUE = True
+
     PARENT_STEP_ID = "parent_step_id"
     CHECKPOINT_NAME = "checkpoint_name"
 
     class Field:
         PHASE = "phase"
         ERROR_CODE = "error_code"
+
+    @classmethod
+    def was_reused(cls, metadata):
+        return metadata.get(cls.REUSED) is cls.REUSED_VALUE
 
     @classmethod
     def observed_phase(cls, metadata):

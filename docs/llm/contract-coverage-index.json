@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 618,
-    "unreviewed_files": 111,
+    "unreviewed_files": 109,
     "stale_files": 0,
-    "unclassified": 5917,
+    "unclassified": 5836,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 111,
+    "unreviewed_dynamic_paths": 109,
     "unreadable_files": 0,
-    "candidates": 18444,
+    "candidates": 18383,
     "issues": 0
   },
   "files": [
@@ -207,9 +207,9 @@
     },
     {
       "path": "hub/backend/execution/steps.py",
-      "status": "unreviewed",
-      "sha256": "6db1fb58307b872fc5aca5d644281e354894b681aad33623ae8ea7c2e78b4594",
-      "candidates": 23
+      "status": "reviewed",
+      "sha256": "395e54139f62e54bea93103b7f69df5fba1ee4d5d88433bb5638775e64f9ae42",
+      "candidates": 6
     },
     {
       "path": "hub/backend/execution/stopping.py",
@@ -219,9 +219,9 @@
     },
     {
       "path": "hub/backend/execution/thinking.py",
-      "status": "unreviewed",
-      "sha256": "9e5adcda168a1d9cb11d53f801ddb3f74d2e5bf282595839b9051a85121b51b1",
-      "candidates": 62
+      "status": "reviewed",
+      "sha256": "3138d510d6f27cd7529df9f8cc034b6b03df807e36cfe919fd0bdf901461cec4",
+      "candidates": 15
     },
     {
       "path": "hub/backend/execution/tool_recovery.py",
@@ -700,8 +700,8 @@
     {
       "path": "hub/model.py",
       "status": "unreviewed",
-      "sha256": "637394f73708d9ad41d5ec7bac84a240ad728513683517a102e7c6c9f48e4710",
-      "candidates": 110
+      "sha256": "d84356944238955bf72414c41710b7211d6c120c0b2b5e0841d05e4080e9156b",
+      "candidates": 116
     },
     {
       "path": "hub/ui/__init__.py",
@@ -916,8 +916,8 @@
     {
       "path": "hub/ui/presentation.py",
       "status": "unreviewed",
-      "sha256": "60f447b6b907f95e81ea2c81a492354070c0f3d784e45201862921d23fe5a728",
-      "candidates": 44
+      "sha256": "1e8a3b8d8ff5d592569df00de962ad2fc19592481c2f37061ecb0cd4ab975edc",
+      "candidates": 43
     },
     {
       "path": "hub/ui/requests.py",
@@ -1108,8 +1108,8 @@
     {
       "path": "hub/widget/feedback/preparing.py",
       "status": "unreviewed",
-      "sha256": "6c21e543ee97a6e6b17cc1a8b211eaf5490e0ae8eddc399d673a5719f0d39159",
-      "candidates": 71
+      "sha256": "570ac8a3dde0e249d547e6f64fcfeb526a70ed8b200664f8774d6fa9230f1dab",
+      "candidates": 70
     },
     {
       "path": "hub/widget/feedback/progress.py",
@@ -2776,14 +2776,14 @@
     {
       "path": "llm/core/step_event_metadata.py",
       "status": "reviewed",
-      "sha256": "f2cf4660fa6d7a47a0feaeb4c6e937aa400f156f498f5fd81aaf875e089ecff5",
-      "candidates": 10
+      "sha256": "75dcb65825da5000f827fea36a95409733bee37123838e21f690a8ca74cfe235",
+      "candidates": 12
     },
     {
       "path": "llm/core/step_tool_metadata.py",
       "status": "reviewed",
-      "sha256": "f20dc074de523f135ffae8acd76994d52d31ef109a6dbb564c22f0896b05cb50",
-      "candidates": 18
+      "sha256": "9a2c9a230e27aad1e9414cbea509f1e58bf251f9ef119d2263b23adc2cf126b2",
+      "candidates": 17
     },
     {
       "path": "llm/core/tool_codes.py",
@@ -2908,8 +2908,8 @@
     {
       "path": "llm/engines/events.py",
       "status": "reviewed",
-      "sha256": "b6b756dc27ce6c03f4c5ef0669dacfd2a392be7c2806a7bbe2ef175e6cddae08",
-      "candidates": 44
+      "sha256": "fbfac6ff72e0ec0349cf596593aabef9d9873e0f2cd4fbacf706f63894a39028",
+      "candidates": 45
     },
     {
       "path": "llm/engines/graph/README.md",
@@ -2980,8 +2980,8 @@
     {
       "path": "llm/engines/graph/node_records.py",
       "status": "reviewed",
-      "sha256": "f52a6906fe26ac1d1435ebbc88b77436dbdfdb5dd894d8a623f21ac952cdd8f3",
-      "candidates": 42
+      "sha256": "6dc208aba59dc71b1aeeb9eff6cc1ec88424758f0cbbccbcf4786c7e458da82a",
+      "candidates": 40
     },
     {
       "path": "llm/engines/graph/runtime_values.py",
@@ -3040,8 +3040,8 @@
     {
       "path": "llm/engines/loop/records.py",
       "status": "reviewed",
-      "sha256": "6cebb4ba3da5f80982aeae9d445b660b0f473e951f1cef6c82ef72d137a8afe5",
-      "candidates": 26
+      "sha256": "7a46d0b7f764d08f71ac340aa8d4c9f208c49ef3c3acf3f0e29c1966ade57406",
+      "candidates": 25
     },
     {
       "path": "llm/engines/loop/review.py",

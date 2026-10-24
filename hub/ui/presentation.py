@@ -1,5 +1,7 @@
 """Pure localized display transformations, executed on the UI thread."""
 
+from hub.model import ResponseActivity
+
 from hub.locales.keys import MessageKey, MessagePattern
 
 from llm.core.models import MessageStatus, RunStatus
@@ -23,7 +25,7 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
     if item.role == "assistant":
         text = split_followup(text, final=item.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED)).content
     if item.role == "assistant" and not text and item.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED):
-        return replace(item, text="", phase=item.phase or "preparing")
+        return replace(item, text="", phase=item.phase or ResponseActivity.PREPARING)
     if item.role == "assistant" and item.status == MessageStatus.FAILED:
         text = t(MessageKey.RESPONSE_FAILED)
         if item.failure is not None:

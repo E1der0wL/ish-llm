@@ -10,6 +10,15 @@ from typing import ClassVar
 from .errors.contracts import ErrorInfo
 
 
+class ResponseActivity:
+    EMPTY = ""
+    THINKING = "thinking"
+    RUNNING = "running"
+    STREAMING = "streaming"
+    RESUMING = "resuming"
+    PREPARING = "preparing"
+
+
 class QuestionSource(StrEnum):
     """Hub live-question presentation fields, shared by Tool input and widgets."""
 
