@@ -5,6 +5,7 @@ from llm.core.checkpoint_records import CheckpointStep, CheckpointPause
 from llm.core.checkpoints import CheckpointLifecycle
 from llm.core.interactions import InteractionRequest
 from llm.core.step_tool_metadata import ToolStepMetadata
+from llm.core.step_event_metadata import StepEventMetadata
 
 
 class LoopCheckpointRecord:
@@ -149,10 +150,10 @@ class LoopStepMetadata:
     """Iteration observations shared by output selection and Step Writers."""
 
     ITERATION = "iteration"
-    CHECKPOINT_NAME = "checkpoint_name"
+    CHECKPOINT_NAME = StepEventMetadata.CHECKPOINT_NAME
     CHECKPOINT_SCOPE = "checkpoint_scope"
     CALL_ID = ToolStepMetadata.CALL_ID
-    REUSED = "reused"
+    REUSED = ToolStepMetadata.REUSED
     REUSED_VALUE = True
     SOURCE_RUN_ID = "source_run_id"
     SOURCE_STEP_ID = "source_step_id"

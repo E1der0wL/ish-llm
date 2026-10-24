@@ -5,6 +5,8 @@ from enum import StrEnum
 
 class ToolErrorCode(StrEnum):
     FAILED = "tool_failed"
+    SCOPE_CLOSED = "tool_scope_closed"
+    INTERRUPTED = "tool_interrupted"
     INVOCATION_INVALID = "tool_invocation_invalid"
     USAGE_CORRUPT = "tool_usage_corrupt"
     APPROVAL_REQUIRED = "tool_approval_required"

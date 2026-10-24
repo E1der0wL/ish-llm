@@ -51,6 +51,7 @@ class ToolHandlerBindings:
 
     BIND_ARGUMENTS = "bind_arguments"
     VALIDATE_SELECTION = "validate_selection"
+    EXECUTE_EVENTS = "execute_events"
     ABSENT = None
 
     @classmethod
@@ -60,6 +61,10 @@ class ToolHandlerBindings:
     @classmethod
     def binder(cls, handler):
         return getattr(handler, cls.BIND_ARGUMENTS, cls.ABSENT)
+
+    @classmethod
+    def events(cls, handler):
+        return getattr(handler, cls.EXECUTE_EVENTS, cls.ABSENT)
 
     @classmethod
     def declared_binder(cls, handler):

@@ -7056,3 +7056,58 @@ runtime/주입 서비스 및 Hub Tool 이력/재시도/관찰을 선택했다. �
 `static-closing-02` S1–S7 exit 0(85개 검토·미검토/오래된 근거 0)을 확인했다. 제품/시험은
 변경하지 않았다. 감사 자체 시험 16개/3.373초, 문서 검사 exit 0. 전체 587개 파일 중
 미검토 200개(llm 23/Hub 177), 미분류 10695·미완료 계약 4개를 계속 추적한다.
+
+
+## llm Tool 실행·재시도·승인 Owner — Level 1·2
+
+기준 39a2a90. tools.py 전체를 검토하여 Host runtime/Scope 오류·옵션 선언을 각 Owner로
+연결하고 Tool 오류 신호, 호출 identity, retry Record, approval projection을 분리했다.
+공개 Tool 오류 import는 같은 클래스의 직접 재수출이고 내부 typed 재시도 상태만 기존
+payload로 직렬화한다. OperationClaim 소비자를 연결했다. Step metadata와 Loop/Graph의
+checkpoint/reused 필드 및 Host event hook은 기존 공통 Owner를 참조한다.
+
+`PYTHONPATH=. .venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/tool-scope-draft/ast-proof.py`
+exit 0: 선언/순수 identity helper 전개 후 기존 함수 141개 전체 AST 동일. 승인 예약·부모
+한도 합성·취소·R3 child max_calls 경계가 이 비교에 포함된다. ToolExecutor의 typed 표현을
+바꾼 5개 함수는 전체 AST 동일 주장에 포함하지 않았다. 같은 경로 `values-proof.py`
+exit 0: retry_readers 125, request_keys 8, retry_events 24, approval_bindings 585, execution_traces 34.
+이전/현재 실행의 이벤트·승인·분류·재시도 선택·원장 호출 순서, 실제 효과 파일 bytes,
+취소/오류·scope 사용량·반환 결과를 비교했다. 명시적 null·완료 원장 재사용, 기술적 승인
+거부/정확한 True, 무효과와 불확실 실패, 수정/재승인, timeout·결과 검증을 포함한다.
+승인 fixture의 초기 ID가 비정규 문자열이어서 비교 시작 전 거부된 기록과, 두 실행의
+무작위 ID/시각을 고정하지 않아 달라진 최초 비교 로그를 보존했다. 실제 factory 출력의
+ID/시각만 동일하게 주입한 뒤 재검증했으며 결과를 사후 정규화하거나 제품을 바꾸지 않았다.
+
+- `whole-tool-runtime-l1-01`: discovered/started/pass 106/106/106, exit 0, 66.996768초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-runtime-l1-01/llm.json --modules tests.llm.test_tool_constraints tests.llm.test_retry tests.llm.test_operation_integrity tests.llm.test_isolated_tools tests.llm.test_execution_contexts tests.llm.test_interaction_decisions tests.llm.test_tool_selection_records tests.llm.test_tool_workers tests.llm.test_tool_worker_protocol`. source `c1c8881ef8e08d78a9a6e9a100687d858d1086ecbb9441034ee604eb5493ddd6`, input `cd82db1e7504cf29736c13e7deac35d3d90d8cbda908e413b4642eecfeabe6fe`.
+
+- `whole-tool-runtime-l2-01`: discovered/started/pass 169/169/169, exit 0, 73.668121초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-tool-runtime-l2-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_checkpoint_integrity tests.llm.test_usage_deletion tests.llm.test_lifecycle_integrity tests.llm.test_rag_storage tests.llm.test_transactions tests.llm.test_runtime_reliability tests.llm.test_loop tests.llm.test_graph_engine tests.llm.test_graph_agent_contract tests.llm.test_agent_delegation tests.llm.test_policy_consumers tests.llm.test_interaction_presence tests.llm.test_tool_registration_bindings`. source `c1c8881ef8e08d78a9a6e9a100687d858d1086ecbb9441034ee604eb5493ddd6`, input `cd82db1e7504cf29736c13e7deac35d3d90d8cbda908e413b4642eecfeabe6fe`.
+
+- `whole-tool-runtime-hub-01`: discovered/started/pass 42/42/42, exit 0, 111.789416초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-tool-runtime-hub-01/hub.json --modules tests.hub.test_tool_history tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_retry_ui tests.hub.test_interaction_updates tests.hub.test_approval_continuation`. source `c1c8881ef8e08d78a9a6e9a100687d858d1086ecbb9441034ee604eb5493ddd6`, input `cd82db1e7504cf29736c13e7deac35d3d90d8cbda908e413b4642eecfeabe6fe`.
+
+각 실행 exit 0, failure/error/skip/xfail/xpass/누락/추가/중복 0. 발견/실행/통과 ID 일치,
+LLM 선택 집합 간 중복 0, source/input은 실행 전후 및 세 실행 간 동일하다.
+Python3.12.14/Clang·Host d833790·동일 의존성/격리 환경. R3 mutation exit 0이며
+실제 효과 횟수 Assertion과 Agent 호출 한도 누락 검출을 그대로 유지했다.
+
+집중 검증은 Tool 제약·재시도·원장·실제 격리 Worker·호출 문맥·승인 선택·durable binding이다.
+관련 범위는 승인 저장·Checkpoint·예산/삭제·lifecycle·RAG·트랜잭션·runtime,
+Loop/Graph/Agent 위임과 정책, Hub Tool 이력/재시도/관찰/승인이다. 효과/예약 순서를
+바꾸지 않은 Owner 투영임을 이 범위에서 확인했다. 원장과 Interaction까지 묶는 다음
+Gate44에서 전체 Level 3를 실행하고 정확한 SHA를 Push한다. 이 선택 실행을 전체 회귀로
+합산하지 않는다. Hub 제품 전수 정리는 llm 완료 후에 계속한다.
+
+
+## Gate43 원격 CI 확인 완료
+
+2026-10-24 15:18:30 UTC에 [CI 40102793528](https://github.com/E1der0wL/ish-llm/actions/runs/40102793528)의
+headSha가 `799516708521bf3f08669c51ba88cecb76af8484`이고 두 필수 Job이 success임을 확인했다.
+원격 LLM 2502/2502/2502(2044.921330초), Hub 588/588/588(1461.642112초), 모두 full scope,
+failure/error/skip/xfail/xpass/누락/추가/중복 0이다. 실제 artifact와 Job 결과를 확인했다.
+원격 Python3.12.14/GCC 환경의 결과이며 로컬 Clang 실행과 별도 증거로 기록한다.
+이후 Interaction·Operation·Tool 변경은 Gate43 완료에 포함하지 않고 Gate44에서 검증한다.
+
+마감 검사: 정적 S1–S7 exit 0(82개 검토·미검토/오래된 근거 0), 감사 자체 시험
+16개/3.433초 통과, 문서 검사 exit 0. 문서 현황 갱신 중 Markdown을 Python AST 도우미에
+전달한 보조 스크립트 오류는 문서 행만 별도 갱신하여 해결했다. 제품과 시험은 변경하지
+않았으며 최초 실패 로그를 보존했다. 전체 591개 파일 중 미검토 199개(llm 22/Hub 177),
+미분류 10267·미완료 계약 3개를 유지한다. Tool 파일 완료를 전체 llm 완료로 표현하지 않는다.

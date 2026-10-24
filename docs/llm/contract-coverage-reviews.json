@@ -4040,8 +4040,8 @@
   },
   {
     "path": "llm/core/tool_codes.py",
-    "sha256": "f241426436d0a2c4bd4e78447572d6785ea4a69817004d55967fdfea12e87551",
-    "reason": "Read every enum declaration and searched all matching production literals/references. Tool execution/runtime/worker failure codes have one declaration; the protocol counter references it. ErrorReason.TOOL_FAILED is a separate diagnostic observation vocabulary, and the Markdown example is independent documentation, neither an alternate execution-code declaration. The surrounding runtime and observability implementations remain separately unreviewed.",
+    "sha256": "db2b46ea9d92b1d77240934b4faadf685d8400e5f6f37e8e18f1222f22b00a59",
+    "reason": "Read every enum declaration and searched all matching production literals/references. Tool execution/runtime/worker failure codes have one declaration; the protocol counter references it. ErrorReason.TOOL_FAILED is a separate diagnostic observation vocabulary, and the Markdown example is independent documentation, neither an alternate execution-code declaration. The surrounding runtime and observability implementations remain separately unreviewed. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -4051,37 +4051,49 @@
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "f8d1acece075dcd6722fd1e4c942f9aef782bd770524bd01e95e7b919465113f",
+        "id": "0f4bd6077c387c2e5e15b16b530cbf14af21c096368e045aa50e51393bfe3192",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f58ccc579bcd035b9f7ae9aaeb91e49e6603711cba013f137e587ca8b74996b5",
+        "classification": "declaration",
+        "owner": "ToolErrorCode",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fe97702c746142c7bca1a48776cdcfb3cf73e4dba0314e0e6b5404f73cc68d61",
         "classification": "declaration",
         "owner": "ToolErrorCode",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "e28549acafc5d5c9765aafc8a94dde72ddd7d3b90a982ff82fd9e208c47c099b",
+        "id": "ea8afdc7bab87cc03f333d6bdd63f55d510b1e6ebf50e2fe8c8d05843aff8e6f",
         "classification": "declaration",
         "owner": "ToolErrorCode",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "c089c6dc98dfd003034094b2e2322e8b0730a5087b935cb06e440da3732bdd77",
+        "id": "600d90f1caae354af5cc5f67d0cac7f440f5bca9a57692e88456e3b68564d7c4",
         "classification": "declaration",
         "owner": "ToolErrorCode",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "ee20e630417ae6fee1c77b5cbdf5c6d6b5c4c99820509f5e95b3ffe9a442eadb",
+        "id": "42cfff8a21ae28bd34efe97f95d75aa0c53891140ce7f041ebfdb3e2c8b99b13",
         "classification": "declaration",
         "owner": "ToolErrorCode",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "6ec4c2fd9c5a3aae856098ff90b9377c869ec3ee216454fc3eb07863650b9ba0",
+        "id": "16c030539e1f9246ac5e9c57e91b6006f4e08535d95442611f7ca5f7946c0e4a",
         "classification": "declaration",
         "owner": "ToolErrorCode",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
       },
       {
-        "id": "cd7de3adf5b4568dc5e32fff199d1959647fe9a97e750b061aecf18d31520c6f",
+        "id": "7af5d07a5068667386526d74f7507abeee436b2a1b76c49761f89e5c9234132f",
         "classification": "declaration",
         "owner": "ToolErrorCode",
         "reason": "Owner type field, protocol value, bound, error vocabulary or bootstrap declaration before implementation."
@@ -4092,15 +4104,46 @@
         "owner": "ToolErrorCode",
         "declaration": "llm/core/tool_codes.py",
         "consumers": [
-          "llm/services/runtime/tools.py",
           "llm/components/tools/process.py",
+          "llm/core/contracts.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
           "llm/services/infrastructure/observability.py",
-          "llm/core/contracts.py"
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_observability.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
           "tests/llm/test_tool_worker_protocol.py",
           "tests/llm/test_tool_workers.py",
-          "tests/llm/test_observability.py"
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -5948,8 +5991,8 @@
   },
   {
     "path": "llm/components/tools/bindings.py",
-    "sha256": "12e513a0c821db53a52c9e0f0154aa33454b6bedba3bb1a6026948d0ed7f7164",
-    "reason": "Reviewed all field declarations, optional omission, metadata wire mapping, detached serialization and hook lookups. No policy is recomputed or default introduced. Trusted execution extension retains existing JSON encoder acceptance and Python shape. Generic field projection is confined to this Owner; dynamic hook names each have one declaration and preserve prior lookup timing.",
+    "sha256": "59d51f462dabb255a5d2716417bbee333500e1f317f4c03a553c0423f3915944",
+    "reason": "Reviewed all field declarations, optional omission, metadata wire mapping, detached serialization and hook lookups. No policy is recomputed or default introduced. Trusted execution extension retains existing JSON encoder acceptance and Python shape. Generic field projection is confined to this Owner; dynamic hook names each have one declaration and preserve prior lookup timing. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -6043,7 +6086,13 @@
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
       },
       {
-        "id": "239257e4005e83ec534ae6554a44026d41e0718423079db63df1cf2a43869154",
+        "id": "69be2da07787102fa7443022bb8afed3964990bfc46b5a42f8b9955fef435c1c",
+        "classification": "declaration",
+        "owner": "ToolHandlerBindings",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9101bc702794920885e367f7f679a4ab288b75b376c0ad931f741ed49cd3bac6",
         "classification": "declaration",
         "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
         "reason": "Owning field/metadata declaration, optional absence, registration name restriction, handler hook vocabulary or diagnostic declared before methods."
@@ -6054,14 +6103,44 @@
         "owner": "ToolRegistrationBinding, ToolExecutionBinding and ToolHandlerBindings",
         "declaration": "llm/components/tools/bindings.py",
         "consumers": [
+          "llm/components/tools/process.py",
           "llm/components/tools/registry.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py",
           "llm/services/runtime/tools.py"
         ],
         "tests": [
-          "tests/llm/test_tool_registration_bindings.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
           "tests/llm/test_tool_selection_records.py",
-          "tests/llm/test_agent_delegation.py"
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -42677,8 +42756,8 @@
   },
   {
     "path": "llm/core/step_event_metadata.py",
-    "sha256": "90fbdfa8e0ae4fc7212bb3b5afe50e88b0679cd1d17bb4bd1d34a4cb240c3138",
-    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained.",
+    "sha256": "34361e274e4e337dbb309ef870a061164c1a00a369409ed66eb0f495784bdab3",
+    "reason": "Common event display metadata has its single field/phase declarations and Writer/Reader. Valid nonblank host observations remain verbatim; absent/null/false/blank hints retain the previous display fallback. Ordered phase/error-code projections preserve event payload and unrelated opaque metadata. Tool-specific phases stay with ToolExecutionPhase. These observations grant no transition or execution authority. Graph delta: added raw projections/Writers preserve required/optional/null semantics; same structural path encoder and Step parent declaration are reused. Prior whole-file evidence remains valid for unchanged methods and all prior contracts are retained. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -42724,13 +42803,19 @@
         "reason": "Canonical shared Owner-head declaration; added Graph consumers preserve the established wire value and interpretation."
       },
       {
-        "id": "ac16f7067ca75662a6e72620638a2ef95cdff3e432be28b93a069bd6e39cf554",
+        "id": "51c485ba663681363d4f401b0ce537f7ebe8ac96551e8c2c0d0c68bda5637a0a",
+        "classification": "declaration",
+        "owner": "StepEventMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ff6075da84df7119a90be437f8f135d02b5bcf74d464ad99c98039ae9b96f677",
         "classification": "declaration",
         "owner": "StepEventMetadata.Field",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
       },
       {
-        "id": "0287cfe4811d353b7ff4e233e13a9d6ba1ea4f49c71fd12c8d8d4ad7176862f4",
+        "id": "e2b4c2ea060f7997f66a6caed60565be2b2f960142678f3f32ca6c4fc5c841dc",
         "classification": "declaration",
         "owner": "StepEventMetadata.Field",
         "reason": "Canonical event/context/phase/metadata field, fixed diagnostic or original optional/default declaration before implementation; no runtime configuration default is added."
@@ -42741,15 +42826,24 @@
         "owner": "StepEventMetadata / StepEventPhase",
         "declaration": "llm/core/step_event_metadata.py",
         "consumers": [
+          "llm/components/tools/process.py",
+          "llm/engines/agents.py",
           "llm/engines/events.py",
           "llm/engines/graph/engine.py",
           "llm/engines/graph/tool.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py",
           "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_defaults.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_resource_integrity.py",
@@ -42762,6 +42856,7 @@
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_outputs.py",
           "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_contexts.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_graph_decisions.py",
@@ -42769,16 +42864,28 @@
           "tests/llm/test_graph_rag_example.py",
           "tests/llm/test_instruction_reservations.py",
           "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
           "tests/llm/test_langgraph_engine.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_resource_references.py",
           "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_steering_values.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_workflow_format.py"
@@ -59143,54 +59250,114 @@
   },
   {
     "path": "llm/core/step_tool_metadata.py",
-    "sha256": "6e81c420d835c5c296ee168b9fe71889f9f66bb7c67cf934fd759e205b7410df",
-    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending. Added canonical derived six-field Step operation receipt and required projection after original Run/Step reads; no execution authority is stored in the projection.",
+    "sha256": "7d5e2d5307bd3ec529ed558cc468a82e25fce4fa3abeab19ed009e4938e7e0c8",
+    "reason": "Whole Refinement record/input/policy/evidence, orchestration, target and Tool implementations reviewed, including lazy evidence validation, optional versus required fields, source copy/read timing, explicit edit authority, dynamic target dispatch and original transaction/effect order. Agent previous whole-file review and unchanged methods reused; only the new typed Skill edit Writer was added. No second stored Reader, silent fallback, implicit retry, missing-evidence default or weakened assertion. Broader Engine/common handle files remain pending. Added canonical derived six-field Step operation receipt and required projection after original Run/Step reads; no execution authority is stored in the projection. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "a20396068422c9bd14f0b858c62bc0bf44e72f6a8a75aec350307abaf7ec3e09",
+        "id": "da2851bd2b5e85ba25f100e177365cc8348bfddec9dbba830219b9932678acb4",
         "classification": "declaration",
         "owner": "ToolStepMetadata",
         "reason": "Canonical Owner-head fields, schema, explicit policy/operation/state and diagnostics; typed projections and change APIs connect existing validated reads to consumers and serialization. No implementation literal candidate remains."
       },
       {
-        "id": "4b24b68fe8c72633a860e9c881644bf059d8f78d9236c0c2ab1a2a0ced0a5ff7",
+        "id": "e8423d77c9c59f21a1f0b4200c4013fb890d6ea3daec4c8fca2b2efbb4b0772c",
         "classification": "declaration",
         "owner": "ToolStepMetadata",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1ccdc5def3ca9ab375e44535baa6c367532ee40743c86f918c370a6c387004f1",
+        "id": "e2c3c113d3fad16772933247969fee722ec618d4c3785a6a322375e354ee6a99",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9b2a80af73510642f6d17a8102f82a16a2428e7f60ee9aa5b3a46ebbe90242e5",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "c451c0b3274b9c574cdbcdd9444c7aec8c46c58b124a2e019a303cc3cbc777e5",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7d992183b30caa97c542d915d3826e2000cae287ff94ca63ff8ff28a22b06924",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "026f045eaf4d735bbcdc624b6cc4cf979b582d8e4f1ed3ace6741fc74c08b114",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "6fba857f5066297da644e987ded5ca5068a86727e79cef00bc22f8ea36098f99",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b05caf44f3e949033fe29d6c01be11b5158ddac0abed384d719b6226c3962d3c",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "02d12dc9b80afa35bc1e83ef5713163ce6ea15df61bf4c5dae02e3545752b9d8",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fd9514f5bb110b7e618e980eaf67d2513cc122b9babe240279ba0a791c396adb",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "fe0ce420814826875d0a4a7bccd74eed27558414a9f06317f2c8e2e1ab271ac9",
+        "classification": "declaration",
+        "owner": "ToolStepMetadata",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "45fbc57df56e32d6b0ffc7ba4df4ddeb0fb11e309b1799dd7dcc794c37150118",
         "classification": "non_contract",
         "owner": "StepOperationReceipt",
         "reason": "Python frozen/slots dataclass declaration metadata for the new derived projection, not a persisted execution policy."
       },
       {
-        "id": "7493ef61e84349282323aa5dc0e5cf84f64caec70178fa20d0597dc05f9ec9c9",
+        "id": "8673941a8db29ce163e5f8116aab677f16c809c67be0d10ca9006506e0daee47",
         "classification": "non_contract",
         "owner": "StepOperationReceipt",
         "reason": "Python frozen/slots dataclass declaration metadata for the new derived projection, not a persisted execution policy."
       },
       {
-        "id": "fc246c271d1e9bb376c47f4f17cd29387f10d60f715c47a4d90a1ff36f003b4c",
+        "id": "2e7f4dd42614db3803bc08d23d7527d90c3e16ffdc02c1fdd58fa8061d966cc9",
         "classification": "declaration",
         "owner": "StepOperationReceipt",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8736b19bc7b22980254cc39f4471386b39405f88e1cb27164a3bd64c6feb79f0",
+        "id": "b40502f1b477c27cf764badedff91eb9c3389a558025ce6da856e20d42b4f9f9",
         "classification": "declaration",
         "owner": "StepOperationReceipt",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "461c25b2c885eaa23908dc1401cc559cc5e0099a3c7e60e19b9651a4b05b19c6",
+        "id": "9016600884733b5947dcf6f71830637f58ca50e3cc2fb482d88d9b669dc25413",
         "classification": "declaration",
         "owner": "StepOperationReceipt",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d4b040a98ec8bdb67ff3aa02101674b5a4c31352dad11b0bf44c65b3fbf51355",
+        "id": "b57223ae36f68a1842c702be4933b5353bfd548e52628d3c62c2bd18c9094e9e",
         "classification": "declaration",
         "owner": "StepOperationReceipt",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -59201,28 +59368,41 @@
         "owner": "ToolStepMetadata",
         "declaration": "llm/core/step_tool_metadata.py",
         "consumers": [
+          "llm/components/tools/process.py",
           "llm/core/component_reference.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
           "llm/engines/loop/engine.py",
           "llm/services/api.py",
           "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py",
           "llm/services/runtime/tools.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_interaction_updates.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_resource_integrity.py",
           "tests/llm/test_architecture_boundaries.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_current_contracts.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_isolated_tools.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_loop.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
+          "tests/llm/test_policy_consumers.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_refinement.py",
           "tests/llm/test_resource_references.py",
@@ -59232,6 +59412,11 @@
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_service_extensions.py",
           "tests/llm/test_skill_packages.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -63126,8 +63311,8 @@
   },
   {
     "path": "llm/engines/graph/node_records.py",
-    "sha256": "834cf2860621e421ade6bd1b89c819d55d2867ac4bc64b4b26fb409bf57e06bb",
-    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "sha256": "f52a6906fe26ac1d1435ebbc88b77436dbdfdb5dd894d8a623f21ac952cdd8f3",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -63335,12 +63520,6 @@
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "66cc4c470c82453a3243b2ddf1bc17b07e6cc509671688f4929103c1d7149c0f",
-        "classification": "declaration",
-        "owner": "GraphStepMetadata",
-        "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
-      },
-      {
         "id": "103377511a13a17e9cb01f961155a0cecb3e2c44e5047700bf90467e3b1bc3fc",
         "classification": "declaration",
         "owner": "GraphInput",
@@ -63394,15 +63573,23 @@
         "owner": "GraphNodeRecord / GraphDecision / GraphCheckpointHeader / GraphStepMetadata / GraphInput / GraphConfirmation",
         "declaration": "llm/engines/graph/node_records.py",
         "consumers": [
+          "llm/components/tools/process.py",
+          "llm/engines/agents.py",
           "llm/engines/graph/engine.py",
           "llm/engines/graph/tool.py",
-          "llm/engines/agents.py",
-          "llm/services/runtime/runs.py"
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_defaults.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_resource_integrity.py",
@@ -63413,6 +63600,7 @@
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_contexts.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_graph_decisions.py",
@@ -63420,15 +63608,28 @@
           "tests/llm/test_graph_rag_example.py",
           "tests/llm/test_instruction_reservations.py",
           "tests/llm/test_instruction_values.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
           "tests/llm/test_langgraph_engine.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_resource_references.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_steering_values.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_workflow_format.py"
@@ -64610,174 +64811,162 @@
   },
   {
     "path": "llm/engines/loop/records.py",
-    "sha256": "95202acd2a92fac5357b24bce60d5cc88a03f9c6848e412c7d3f32f9a50f2435",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "sha256": "6cebb4ba3da5f80982aeae9d445b660b0f473e951f1cef6c82ef72d137a8afe5",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Tool consumer delta connects canonical errors, Step metadata Writers, Loop/Graph shared fields and optional Host event access. Existing metadata values, live result channel, absence semantics, public hooks and authoritative policy/receipts remain unchanged; added typed Writer/Reader bodies are fully reviewed.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "522ee5533a9e1ebf73ed36c157bd27764c7aa957588a1e8ef87f8243cbc91cd4",
+        "id": "a4180f45bf6f8f1ac28e1ecf002b37ec2c405ba0b668ccc14af365910358bc79",
         "classification": "declaration",
         "owner": "LoopCheckpointRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "d132169140afd7909e307f9179c94044fec8ce663009cd2ba9db675cf451f6e8",
+        "id": "441cebebef7a5df597a3b997a6d528db679d27d2d9b32d75d3c69c7f022e17c8",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "901bc64334a11bcf94190cc0e356e158a857dd0e7a25f559344329ad3768e0d6",
+        "id": "2ba4ad16fe667ea8f60a2ab01a40e10b8d95cdcf26e6637ad65444d7cd9283e2",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "e5f3b53378302c1e0cb7d0818919b93925918f2b10b382dd8ea896f4b4f1eec0",
+        "id": "2e1ae6c814133708760964bc56af9a307b1ae35b6852374bd3bba6f8c8fa00b2",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "cf2793cd150aeb115284a1684393ac9905b156f82565a0375b6be1604db4d9ed",
+        "id": "d677601e8b173196d066ba990c211a2de7f5646417ac84fe6610aed4cf4f309d",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "9fd13fb486d16f757a76d1597e2e2ab6a2afb3564f08a44cc152e015035a6af1",
+        "id": "0476a4cb902eba104c8747bd8e66c04324a0fffd131ddf263ae8ba098b6de72d",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "02ece81e3529f1962a70708f782cfe2806a0150d39ef44b9e52c43c2e8c477af",
+        "id": "eb67be37c9c3008bd0de1d186f14db7eeb47bff2ebae87de025c2bc6224014ea",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "32a818c7f4c9b0260e4a61b58b740d83fe4dc49b10fe221c9ebf2d45f7640936",
+        "id": "a7fd71972f43883c0b8b4fd685b5aa81fcab486d92a433bfc079cc4452b414b5",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "38012c9a81dbe1278e4f6e249d59632139a286e81642aa9d343f52c22eafe9d1",
+        "id": "d589de56a6bf2d50bcca2ba224d4a6a3b1266d8cf5df2036b5f0725be2281950",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "032484c3d9ea80bd995bbe08376af7c82a400581593e2d94fbd811abed92dcd4",
+        "id": "c55c78375dd1d15d5d5f5f5b91a64bdc620fea268b7b641f492a2361a9d89df2",
         "classification": "declaration",
         "owner": "LoopToolRecord",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "34f05e1a3aa85059e76fb24a65c02f243f1cc2fc2c8496f37627401c7c16646c",
+        "id": "cf1b66979fac1108615d8638d2b6439a3c4e24c6d766e882a76f55c75d4df82c",
         "classification": "declaration",
         "owner": "LoopCheckpointHeader",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "bf06483fdcfaa123f825d4b9fb4c9a2a49bdabbe692632575c3268f4a31da18f",
+        "id": "5c1ca438d21f67c1237a801f6b838d09f558949a7c9ab61a84a4a76a6ae0e4d7",
         "classification": "declaration",
         "owner": "LoopCheckpointHeader",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "70d41b62bb2e31a4a46e528acdcafec3db8bcc0e117f0f6ef0ef7e2cc1f96f23",
+        "id": "ab57674188614127f1f668ec8c8f5c2c1c856d43e5d71216967fa4f0639a8e3b",
         "classification": "declaration",
         "owner": "LoopCheckpointHeader",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "43af63508b610582c7d6a1925f7394a1f34492016e71896deb758a2ef16592ae",
+        "id": "503a6738c72aecc889a2bc85872d5dc593cc385818a6a4fb76223b60d82220d0",
         "classification": "declaration",
         "owner": "LoopStepMetadata",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "87df6b13a5907ba9b3e74efe6760bf4f9e2ac6c618456f8c5ca5025c6b567577",
+        "id": "b976bd9959ad399f351b69de9c4e9a255c5b52ab58d5d0762488c80497622782",
         "classification": "declaration",
         "owner": "LoopStepMetadata",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "75cdade6801cbc26db83d3daeaba97767cf79392dcd7987e8e257417c5a4eb61",
+        "id": "ed8b0cfe2c1be062728abb765809703d851e07f88198e4e89ca50390b87cad81",
         "classification": "declaration",
         "owner": "LoopStepMetadata",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "6f47c5e26c6285135a56ec67e58b11af66b991c4afaa40c73e388d50e3e16f85",
+        "id": "39805ecbc342bf6875ca826543d51b207e9881dc426455cdd34420e22f55fe22",
         "classification": "declaration",
         "owner": "LoopStepMetadata",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "9ceb17b92749c92761afda5e465134a29572b2606e2641fdc8bd5da59921998d",
+        "id": "3e5042648f74edf1d40c95f39d3853b13e35916718f83b194d62cc80aac917b3",
         "classification": "declaration",
         "owner": "LoopStepMetadata",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "f0bf12bd3e8e45373e7cdec802a8919b498b951b118a279bd7a54b18b8226f16",
-        "classification": "declaration",
-        "owner": "LoopStepMetadata",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "69be052600d77cdc17503ef5d5a734417413e2d60c55ab02f109618aea2e1b22",
-        "classification": "declaration",
-        "owner": "LoopStepMetadata",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "772e21c88e6f46ffbfc83fc33a6a3b8376ed1c93385e51415471ea598fbb150b",
+        "id": "d6ed5e72ad86348b43a21f67c23466b3205a5fcb4a629313f22090eb2492f09f",
         "classification": "declaration",
         "owner": "LoopPriorOutput",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "1c00bf897998e017821f5eed88e57caf84555c81ed42bda3a24796e9f0c3a3e6",
+        "id": "c374fc56b75855ea6bd914b06933fce9d9cec265d24e575cbe2da7b3dcd3dc86",
         "classification": "declaration",
         "owner": "LoopPriorOutput",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "05bf7ec3d35f9248d811b6dd1adb48c9e7f6d5adcd9465c0ea11d15fbb1f8472",
+        "id": "34d5bd6751e43894d6b01c2c41e8038505d9678e6435a7d04fd271ca04f73648",
         "classification": "declaration",
         "owner": "LoopPriorOutput",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "9c02cb3165f4269f907a21355dca469994eea8e06434ede4376305bd40f09e02",
+        "id": "50f2de0e8bd93012225780725435180338ee06cdf028707336647a47f251effa",
         "classification": "declaration",
         "owner": "LoopPriorOutput",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "0efade526ada0f7cb22430de9dff95f5ba67e130711fed3efc0fdf15e85de05c",
+        "id": "a4127a5f5e0283dc561fb170605b815c19e7a9d745d9952f33bdfa535650ad90",
         "classification": "declaration",
         "owner": "LoopPriorOutput",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "ef5bacc187c0225c9f78414b0504f8af2a5a8b3855966de9fa5c482f0aa086cb",
+        "id": "2c2b225edc5173d23caffb5b85b0eddcc99fcbff7482a0a2591ac8096ce0ae2b",
         "classification": "declaration",
         "owner": "LoopInstructionBoundary",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "5d1f09fdb9c3dbed38fe227773ef47fb5c17230b95db331a4cbd37b76e685ccd",
+        "id": "e77e19c8f5f9266f46a5510960e01db4f15369c3179f6168ccdd4d781de506e3",
         "classification": "declaration",
         "owner": "LoopInstructionBoundary",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "9433f04e06fdf43bd12832f73cf6c9376c64f6ec11f6ca3dcc9f101b502d6f62",
+        "id": "7a16d833e49e305015806749230e9e685a612bd1117674157e03061d994f4290",
         "classification": "declaration",
         "owner": "LoopInstructionBoundary",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
@@ -64788,15 +64977,22 @@
         "owner": "LoopCheckpointRecord / LoopToolRecord / LoopCheckpointHeader / LoopStepMetadata / LoopPriorOutput / LoopInstructionBoundary",
         "declaration": "llm/engines/loop/records.py",
         "consumers": [
-          "llm/engines/loop/engine.py",
-          "llm/engines/graph/engine.py",
+          "llm/components/tools/process.py",
           "llm/engines/agents.py",
-          "llm/services/runtime/runs.py"
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
+          "llm/services/runtime/runs.py",
+          "llm/services/runtime/tools.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_checkpoint_integrity.py",
@@ -64806,18 +65002,34 @@
           "tests/llm/test_completion_review_crash.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_engine.py",
           "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_loop.py",
           "tests/llm/test_loop_steering.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_steering_values.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
@@ -75072,18 +75284,22 @@
   },
   {
     "path": "llm/services/runtime/README.md",
-    "sha256": "6d50714daaf9de053e7d242cda327cff6d2e31b5b2bbeed0a26c528301d0d6be",
+    "sha256": "0ca7bc53e0f069429839999e2e93b625ff3804b1419db27f255dbb8b4ab3c591",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Read the complete guide against current submit/restart/event/interaction contracts. Corrected obsolete engine_options request wording to recipients/request_context with Agent binding; preserved the separate Agent definition options and current protected-metadata boundary. Added complete Reader vs projection ownership. This guide review does not assert whole Run/Tool/Event implementation completion.",
+    "reason": "Read the complete guide against current submit/restart/event/interaction contracts. Corrected obsolete engine_options request wording to recipients/request_context with Agent binding; preserved the separate Agent definition options and current protected-metadata boundary. Added complete Reader vs projection ownership. This guide review does not assert whole Run/Tool/Event implementation completion. Added current Tool error/identity/retry/approval Owner module rows; existing runtime/authority contracts are unchanged.",
     "contracts": [
       {
         "owner": "Runtime service overview",
         "declaration": "llm/services/runtime/README.md",
         "consumers": [
-          "llm/services/runtime/runs.py",
-          "llm/services/runtime/interactions.py",
+          "llm/components/tools/process.py",
+          "llm/engines/agents.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/engine.py",
           "llm/services/api.py",
+          "llm/services/runtime/interactions.py",
+          "llm/services/runtime/runs.py",
           "llm/services/runtime/tools.py"
         ],
         "tests": [
@@ -75091,19 +75307,35 @@
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_current_contracts.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_interactions.py",
+          "tests/llm/test_isolated_tools.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_policy_consumers.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -75262,7 +75494,7 @@
   {
     "path": "llm/services/runtime/operation_records.py",
     "sha256": "60babf6609424d74734f1c9d0420bbd95c60d44210c781aba5a2bf3fb7defb9d",
-    "reason": "Full source and dynamic boundary review covers required Reader fields, nested evidence chronology, current version/identity/digest, exact manifest inventory, load/atomic_json injection, uncertainty/no-effect/reuse transitions, detached observations, CAS, actual fault/rollback behavior and derived Step receipt ordering. No dual Reader, fallback, schema or execution-policy change.",
+    "reason": "Full source and dynamic boundary review covers required Reader fields, nested evidence chronology, current version/identity/digest, exact manifest inventory, load/atomic_json injection, uncertainty/no-effect/reuse transitions, detached observations, CAS, actual fault/rollback behavior and derived Step receipt ordering. No dual Reader, fallback, schema or execution-policy change. ToolExecutor now uses the same claim projection; required/optional result and reused evidence preserve the original raw response contract.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -75712,32 +75944,1085 @@
         "complete": true
       },
       {
-        "owner": "OperationClaim — ToolExecutor consumers pending",
+        "owner": "OperationClaim — ToolExecutor consumers connected",
         "declaration": "llm/services/runtime/operation_records.py",
         "consumers": [
           "llm/services/runtime/tools.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_current_contracts.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_isolated_tools.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
+          "tests/llm/test_policy_consumers.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_retry.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_runtime_reliability.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/tools.py",
+    "sha256": "ff6d29607daf1bf280c44b21c501b4fc7f5bdc19d7c68a67ca19fe2a09324c8e",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e3163a5c4122478f9eef5bead0c5d713264c2e38f2030cf8cc9e48d0fe02ffcf",
+        "classification": "declaration",
+        "owner": "ToolExecutionPhase",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "4fc8030e4efa519d8d1d396e596dbb3afdc34c0d0e3fc52c7ddb6c6fab88a6d2",
+        "classification": "declaration",
+        "owner": "ToolExecutionPhase",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "bce4dc5c81ba5b95def2e71f42276b70dcbdcc240890c6efb6ea109fef301f0d",
+        "classification": "declaration",
+        "owner": "ToolExecutionPhase",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "aa38eb77ebf55bb9b1980342b3c922c414e62348c3c277e815c48ed7f3a8230b",
+        "classification": "declaration",
+        "owner": "ToolExecutionPhase",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "2664c259bac0f3337183c2438c24904e034c96c9db4520647a6f10c1a4fcea60",
+        "classification": "declaration",
+        "owner": "ToolExecutionPhase",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "974a2b496e85bd1145c93200fc606b93e26f247d45a5892000a6f371bb0b80bd",
+        "classification": "non_contract",
+        "owner": "ToolCall",
+        "reason": "Existing Python frozen/slots dataclass metadata, not a product default."
+      },
+      {
+        "id": "7113eca3720de560921caa64ccd75724eabc69df25aff10cd75e42ba4a15e0a5",
+        "classification": "non_contract",
+        "owner": "ToolCall",
+        "reason": "Existing Python frozen/slots dataclass metadata, not a product default."
+      },
+      {
+        "id": "2dca6da30a48d8138ea8bd78a6631d7ef6c7f48bc3384effefdbe4a275da0a0e",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "6e935f8eadf7b1c1625fbaab9262d4ff656723a76dd33497694c63444787d4ab",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "89c3c6b187e88bfa9bcd079406313af6c6cd8681a99cf9b9e35f804a18352164",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "bba2412a67b71a8e7a5c634475aa2f16c157c092a6ef6e80591c9a94a03353f8",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "41044fd3aa1314a069af98e8ee0fc79be2c16045439adeec6a12378b1259c408",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "21a7054b3fc59ec1cf9d4febf5f973ab48bbbaaee5283f8b34e8b87628319cfa",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "3bda624382af6a984f88da558e6b47629ab57d5c657dfc5bd2d79b4a66a09150",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "ad18d0731ce5bbb2316bbf5320f2e11e2a38e1bc5ccc4ee5b15b7c77226a9324",
+        "classification": "declaration",
+        "owner": "ToolCall",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "54463cafa580e4fda589ea47ae0e5ed5055f9ca4f3398ed4dec2377392c76401",
+        "classification": "non_contract",
+        "owner": "ToolRuntime",
+        "reason": "Existing Python frozen/slots metadata; Host callback and revision field layout remains unchanged."
+      },
+      {
+        "id": "cf68504f8a41b774ea99250ff2d99740d6814c94a818c30477af3cb72eb6ff23",
+        "classification": "non_contract",
+        "owner": "ToolRuntime",
+        "reason": "Existing Python frozen/slots metadata; Host callback and revision field layout remains unchanged."
+      },
+      {
+        "id": "c6cb06796e6ce3d05fd6ac13dc9bf7829323508f8cb43a06362bceaa9cc55465",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "97bfc0086354e1a2c8145065b3d89b148080e6ebe1b562827b8797b5c6c2d3a3",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "1769346d111d7520fd9651481ba1e5e98adb433c4789b629d32c511f57c3bb89",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "82ec1a787a6711492b4f98f2706d3373ffeb1f6afce18c6363818a956215d316",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "62c810b9b45c83b9bd904eea9fc51dff7442819613de973b3ee3522a74283fbc",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "dcf672583767ed795dd5eca004d994e510bb74995c08a3c276773d119775c73b",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "2059c4ca1c3c56d3bf0fd50202c7cd876ab337dd1eec8a740a7272a7aa68f8c0",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "98a0febba51f1fdd0006892681d0756d0d89c223b4f2d6a37ce41865118c2a78",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "d13cac5a6d79ee9fa6f6bb38abf93220065ddebaefa95a483838cf187517e5dc",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "ea3e1a581ec950e1652dcec8378933c6e10dd5a89651833bc39121a01c1924a4",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "0f4d3a206c999b54126737ff97451156c269bb2410f515f46b881de8f800258d",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "554c37248db8000f5f37756143903781c4c4646328f1b91f17abe86f610da637",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "fe45a4f70f87a748cfb537466b0458e453344648c5c17fe30ae8dd1f97cff3f8",
+        "classification": "declaration",
+        "owner": "ToolRuntime",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "ce8c4e7222451c07c1da327055847e74cd041d171f2c7e1774ae7cf063357e5d",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "03ecc4a5863361866c6ba403297863a65eb0d7346f8f20c8e47e70f76097f9da",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "06dc5fbc3c350c2e89607e346b137b964d8967ee95e2c92bdee876eb5110c726",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "69c7fa699c2a2b6a5faa3328dc1497b6806c02387959f6fcfced1bba99ba0419",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "4b62331983d30def3772c03cd53cd3e8ecd813323ad1a152637c19af2595fa6f",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "b2b90c7ac3ee599e2df5b54026f21b5c8581371d3dd7dca3792c30a43a9eabc8",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "1a811e664af9e82844b663f71178f56dffcb56249206bea0b7ead09e61a22021",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "3e068be60aa2451130e67671080d80d434685aeba26670d374218439b8abb671",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e2220ec45c572e92be1536285115b06f7b7d9e0e04fd6faaa12a1af979912e99",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "9f1786683d6b6fa75b2b26ad3d74d6124fa62928f5bdd57f0c8c82d4cc7eb11a",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "1619c6b7b0823e5e364f3223990c27c3f839d9a2a2aa58d1858c18195a6108d2",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "4746d4d1e02a8dffdcd82d7f1135c2c1010502678bf0c8d2cc3b3635655a3840",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "658448abc004b0c2ee05a3b3f88c539bac3867a5ac96ae91a7bcf35400a532b3",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "eeb4589270b07a79589735832729cd40a219e663466b95c2e86a5c3cc3ac80d5",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "fe8b661283fcb6874711ab7ead64e3aeadd39cc6897df5d9b750b69a29cc3271",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "027e0404cb6ce3d0a7fbc6e96d28ec2409596fa21b985cdbd89301f804a2b325",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "9bb74f9bcbd5bdc7f67e12d7de4d83a8f680d1f116e7324d9a56f0749c107b70",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "837acd9b5ff70f99771e7a3c176ef0b9b2568b15d6c19d8b98bc1fe394144568",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "7a5d6b18e99c7c3c4c833263ae706e40792f377037ceabcfab844542b183d5ed",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "cbad9c60974ebd36aa2f1854493aafa39da893680d73fe7a5c65d07a1db5e607",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "f084538f47181b96b0dfc592d3fe957463c48611bd0902be2f0108d9c5157d3d",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "bd5df61385e9e54877fb376e5848c5f258f6952c3cf65e0e2c56080e598a6468",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "4f1e4b530195275ad4c67585e73219aade4c4798d2bcc594c94d625e1b65f067",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "d2504d3f6e0bcc9305f37454590a0e91bc74ed010ebdc3c15c6fa611cd4c823e",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "dd0adb186879e60c672b7cc4ebcab3f42304efd4ad6ae2a0a4c9f0a5091e815d",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e0c4196c01c51a8aa43258f1ba709c100e3ff501866781d9d5f2da92c51c79d0",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "827f5dcc738984ef1966f69310fe6c210a0f704cca4dcd51d500e5306ba06970",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "c80d32b743e09a3a64bbd654cdda6b598a8d3fc6ec7a0181edcf7ce6e4a5775b",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "dfb7e63d7057cb360b7317e7f8441901617e86d4b16c488eb364b5005771adf3",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "01ff7d9145b9c4fd6638e055b43912e0f507fb747f27e7c305b5547d4ff4a74a",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "59a129ab1629c7c077480ed4f09e304d29f58fe040ebf2068de6af8b7aee0f94",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "efe57dec7c31c3557dee02286667603f375bb4d686032d858cecbc477d895152",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "f6b70f103a64fc516ec31158a2b8d87f7e6354f5dcc1e60dd87aaeecbf0bd301",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "3ad3a32a8eb29cd4594fa89849d6d01faf4a7ecedd4fc6c1dc43af3dbbb7da8e",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "dacf30c759573a84cd6a17186f62566278538fd4335d920102393d7050bc8ec9",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "6a6a331a598454066a959f3d20b9f5a91ba3edfd99a70eff1e6f6bfca17f713c",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "6d21b41402e404efa95a58dd101cc661329f32b449b8c7fe59da8a6df9621184",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "5705036e91afc811fe67019f2657652096b95a2b813f5ccffaa3764a14138d55",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "0e0b1dc2f99ec356c1d2ca26df864df77f35119c5ff76c3a15501dfadf667bb3",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "93d91b15298a2c5c0d6d8804b36ec78535eed710ce6f7252509e1b7792620844",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "2b6353d7c9a46c1542fd285dfdce90dcb4fd082f10fc77d5d5a9ea44e5438423",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "33676e995db3fb7aec9ed0e52de8390fb6d6c904e3234286f5a5e2122689a61b",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "52f4914e779bfd600bfc3dd860d4a65dd3623884d43733d5a428583967c90751",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "351c5377fb7c4a1854d5991e31517c898c2cde077fbd907ace8c9d372fddedb1",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e868fa273deb2eb35c517c00d82faf5664d1205ba838a34347826c2e763706c9",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "6b6c7fe05e48b6b73bfc12ed397d077d912adc89de1d1455b2206b090dda9a94",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "5d3e3ad7ae7e23159de66a4dcf421eac31288a4e3b2e7038ce4209317a2e38ea",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "612eadaf38114e92552f2263b503b1b4f17b80cbcd191515e37ef158bf90bbdf",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "cf1c94c9b3a44ec3edbb15d9cb5603199b042bb83e184b5b83004f518b35719c",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "fee3b3ad7ce086f5f678ef359f46a1e86effe3cde00d624a396342860fcab1d4",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "bc4c2dfcb59f044ad35c39e9b2c410b3f1d0e0c0180c65c1fd78d89cfba035b8",
+        "classification": "declaration",
+        "owner": "ToolExecutor",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "2044eb3771b23a353b7db88ac2799a8fbaa0310c3b49804ec902c6a75595bace",
+        "classification": "non_contract",
+        "owner": "ToolExecutor._execute",
+        "reason": "Unbounded iteration over the Host async event stream until StopAsyncIteration; no product retry/iteration limit is implied."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolCall / ToolRuntime / ToolExecutionScope / ToolExecutor",
+        "declaration": "llm/services/runtime/tools.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/components/tools/process.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/tool_errors.py",
+    "sha256": "c7360092c29d0f86996486a5170dca5919b6fc9aef9acfe86a16de00a94ed2f2",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1f6af75b6a02c09328350650b097169be533551e1085f24b8ad829e1428ab23b",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "d139ac812891705db7fc28e2ae2cf9b4383faa294d8ac73f4d9c200b45953ba9",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "ce5daf506d5af7357eb3c0f19d84903f81cd37d93b6260438fb02a6199586504",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "fa47f095bb9b04af434b9c378da64539fb963034a42deacc073ee9e6e947ff81",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "c626486674bade2eac31f30f93893c002127d5ea5d3900c9881347bedb54c5a3",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "436149363a27d8781b0f61b2259170adcc7e876563c6e5f04b31c70e53607adf",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "a3c588e657349d86305d4b29d69c66c1b8c2fe07dc86849a4ad8526370044180",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "ad7033b75a2e556626a5a6302f5e06148c1b6f2167b865a2997ecf2723e2826a",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e0c3299410d301bde878853d53dabcfbee9829a588e12d5ed9f9e2742b40bbe8",
+        "classification": "declaration",
+        "owner": "ToolExecutionError",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "f653a7e432a2027eb76411876a9096fb8afd779724415c3979100dbb3e41cd34",
+        "classification": "declaration",
+        "owner": "ToolApprovalRequired",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "c66b1dcecd0ea2dd9ef0c7a2c6941a846ccff054f7f49f2b2e79700269210354",
+        "classification": "declaration",
+        "owner": "ToolApprovalRequired",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "03fdc6015998810c5b6784c29ad0ba6b17f035e24fb780c69a576b2fef559d39",
+        "classification": "declaration",
+        "owner": "ToolApprovalRequired",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "9e53a00021f01da4b41a93962181c2515c563d58611e1042d172688721031925",
+        "classification": "declaration",
+        "owner": "ToolApprovalRequired",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "8737fe756c1e16d7bb27b94f6f9504b552e2e685901307e4d180011551289f58",
+        "classification": "declaration",
+        "owner": "ToolApprovalRequired",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "f36ab2f33eed3c4f1b0bd839744fceb3d5553b2d2dd584c18613aa1df0786b07",
+        "classification": "declaration",
+        "owner": "ToolApprovalRequired",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolExecutionError / ToolApprovalRequired / ToolInvocationError",
+        "declaration": "llm/services/runtime/tool_errors.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/components/tools/process.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/tool_identity.py",
+    "sha256": "c65d24ea3d0587599ba3243822fae9d58c33c3b2e701aa59b96f311e7c0fcbd8",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "793752eb4df3d21ff4f486488bd8124b7f973dd77d695122dfbbe5580d3c9898",
+        "classification": "declaration",
+        "owner": "ToolInvocationIdentity",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "da688f8bab49efd74d5ec64ec2bec8c3ea1a53ccf291ae6c0f4a964883cdb371",
+        "classification": "declaration",
+        "owner": "ToolInvocationIdentity",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolInvocationIdentity",
+        "declaration": "llm/services/runtime/tool_identity.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/components/tools/process.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/tool_retry_records.py",
+    "sha256": "51f7756739e66bc539554595c4ea1c25ddde7d54c4b04d0b8caf6306048d4990",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8b7fd10f28bc6d907bd27ef122f4a52891701b86c9fbf4679ef91f5c1c56b370",
+        "classification": "declaration",
+        "owner": "ToolAttemptFailure",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "bcf87cbf4f7eceafe418c568a15bf16115468941e3027a9fb503b8cc158b6359",
+        "classification": "declaration",
+        "owner": "ToolAttemptFailure",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "783118d42845707c58a45f00727dab8e1c6967a5c8c7f2da0ba821cc816ae324",
+        "classification": "declaration",
+        "owner": "ToolAttemptFailure",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "7c27e5ea78f3288213dd1b2bc490f2ac154808c2b8961bbd929ef7235e7e4c10",
+        "classification": "declaration",
+        "owner": "ToolAttemptFailure",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "1a5ba19e0439536a230a289cefba60abbd781c20edbe51d0be98f1bc07b680e6",
+        "classification": "declaration",
+        "owner": "ToolAttemptFailure",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "67411ab9bfaf3e5564e8392b55e9d3378d9b11450def0b676fd4a61e2e846949",
+        "classification": "non_contract",
+        "owner": "ToolRetryState",
+        "reason": "Python slots declaration for internal state; no persisted default."
+      },
+      {
+        "id": "2d0bd4d6ef3f99f53abaf923bbc95fd3139b9f66741c2ead3dc825a56e809d8a",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "44109f237eab99dfa355bf460c28dc65936fdf4c6bf945060bd683df969d7e75",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "ecfb94e0985b18f2d2ca36ea8b9093271319ab7ab365de456e443ccf2be1b204",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "a28840e7b067c302385e7f2820817322061ed292dd90d8a0ef050af67e281b3e",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "0844b03ed10ba711d0f072ad3ff7a156d1a0557bd0fef0c5950f9086d808a30f",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "aa6642de7e5ae42aa0f61b148daa79dffd81f979d64bb5b99ef7d8bf3f9d031f",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "96beb423b83d58ad32bf1ab98be522b722d5149535e194adb39c243f680a2ed6",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "3c7fa96240eaa1a68483c2f91b7d9e31e90e02aacb7b93cd8111af86ce74f61f",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "c2570c020c2bae9a8ae834e058d40b75d7bb69ed5e4e0d1211a715a83c317eba",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e8f7f3d693f5e59ce33f60fcad31b9535326e7ae7b903ad5ec90c5f0ab7f050e",
+        "classification": "declaration",
+        "owner": "ToolRetryState",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e8206d348ef58a9e46af5fdf4a9fe360af3a3741dae6540c73937bb690c42224",
+        "classification": "non_contract",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Python frozen/slots metadata for the current retry Writer shape."
+      },
+      {
+        "id": "20d0d5baa033822a72fc865f9da256de193a4b9d4999463ce757b6db047d0b64",
+        "classification": "non_contract",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Python frozen/slots metadata for the current retry Writer shape."
+      },
+      {
+        "id": "b3f4ac1ee12ce42a40cc9a804c2d862831ced509290009319dcbaa4603e03d84",
+        "classification": "declaration",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "d76703665f436524c601ad91a1d983869987113655e756e345cbc585f42ff885",
+        "classification": "declaration",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "e0441de70e7210567579ef0a3d790d67dd1b59e038d7c878f3d938c93d6238e7",
+        "classification": "declaration",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "5961b6c7a1107be3e1379c73e479ecdfaa250c66fd8010c35b51c0f205188794",
+        "classification": "declaration",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "2f67b2858e3af05c9203d4445102b246d16f8c7a08bb309cf58d3f11feabd2da",
+        "classification": "declaration",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      },
+      {
+        "id": "2a1ed2467980e8e0f051afd55b40af2449c81750b0da746d24b6875570399e2b",
+        "classification": "declaration",
+        "owner": "ToolRetryCheckpoint",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolRetryCheckpoint / ToolRetryState / ToolAttemptFailure",
+        "declaration": "llm/services/runtime/tool_retry_records.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/components/tools/process.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/services/runtime/tool_approval_records.py",
+    "sha256": "bb71c575af30eade19cf0acffd14539a838f306ac620e86cb7188a0858943221",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "097b127397cadc11e60f37f04e1f819356bf83083078f91ab2b0f302ca9b1b05",
+        "classification": "non_contract",
+        "owner": "ToolApprovalSource",
+        "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
+      },
+      {
+        "id": "2d5f20ef6f52925c8f13543c738bdd1804e4a02a341a8ebd04cc86de6004b19d",
+        "classification": "non_contract",
+        "owner": "ToolApprovalSource",
+        "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
+      },
+      {
+        "id": "b603ff0f635c05182ae9d71f54cf5d1cd70f34f1539a650ae8ca6a409690ce9f",
+        "classification": "non_contract",
+        "owner": "ToolApprovalAction",
+        "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
+      },
+      {
+        "id": "64221645ba3d383bcd5154ba4bda7b2733112cf087e3e7984e4c99c63f69a05c",
+        "classification": "non_contract",
+        "owner": "ToolApprovalAction",
+        "reason": "Python frozen/slots metadata for the derived approval action/source Writer."
+      },
+      {
+        "id": "652ad385927efef6a6fb85bde75bc66cd2c31607855236a9dc33dfcd0e722728",
+        "classification": "declaration",
+        "owner": "ToolApprovalRecord",
+        "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolApprovalRecord / ToolApprovalAction / ToolApprovalSource",
+        "declaration": "llm/services/runtime/tool_approval_records.py",
+        "consumers": [
+          "llm/services/runtime/tools.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/components/tools/process.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_isolated_tools.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_runtime_reliability.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_tool_worker_protocol.py",
+          "tests/llm/test_tool_workers.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
       }
     ]
   }

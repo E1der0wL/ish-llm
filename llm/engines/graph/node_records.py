@@ -254,7 +254,7 @@ class GraphStepMetadata:
     ITERATIONS = "iterations"
     INPUT = "input"
     RESULT = "result"
-    CHECKPOINT_NAME = "checkpoint_name"
+    CHECKPOINT_NAME = StepEventMetadata.CHECKPOINT_NAME
 
     def __init__(self, value):
         self._value = value

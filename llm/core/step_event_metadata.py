@@ -14,6 +14,7 @@ class StepEventPhase(StrEnum):
 
 class StepEventMetadata:
     PARENT_STEP_ID = "parent_step_id"
+    CHECKPOINT_NAME = "checkpoint_name"
 
     class Field:
         PHASE = "phase"
@@ -32,6 +33,10 @@ class StepEventMetadata:
     @classmethod
     def phase(cls, value):
         return {cls.Field.PHASE: value}
+
+    @classmethod
+    def checkpoint_name(cls, metadata):
+        return (metadata or {}).get(cls.CHECKPOINT_NAME)
 
     @classmethod
     def failure(cls, phase, code):

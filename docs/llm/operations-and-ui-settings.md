@@ -239,8 +239,38 @@ NOT_APPLIED의 기존 증거를 보존한 다음 시도만 기존 규칙대로 �
 Repository의 공개 load/claim 반환 형식과 주입 경계는 유지한다. 내부 typed Record와
 상태 Writer는 같은 Reader/검증 구현을 사용하며 별도 호환 Reader를 두지 않는다.
 원장→manifest 쓰기 순서와 workspace 트랜잭션, 검증 CAS를 유지한다.
-OperationClaim은 공개 claim 응답을 소유한다. ToolExecutor 소비자 연결은 다음 소단계다.
+OperationClaim은 공개 claim 응답을 소유하며 ToolExecutor도 그 projection으로 재사용 여부와
+결과를 읽는다. 원장 공개 응답은 기존 dictionary 형식을 유지한다.
 
 StepOperationReceipt는 여섯 필드의 파생 감사 투영이다. Run→Step 조회 뒤 저장하며
 Session 원장을 대신하는 실행 권한이나 두 번째 영수증 원본이 아니다. Step 상태는 계속
 Engine 이벤트가 소유한다. 원장 기록·조회 경로는 OperationStorage의 선언을 따른다.
+
+
+## Tool 실행 값·재시도·승인 projection
+
+ToolRuntime은 신뢰한 Host callback과 revision, ToolExecutionScope는 정책 합성과 실제
+예약·승인·사용량을 계속 소유한다. 예외·실패 분류는 tool_errors에 있으며 tools의 기존
+공개 import를 직접 재수출한다. ToolInvocationIdentity는 승인 대기와 재개에서 같은
+논리 호출 identity를 생성한다. pending과 checkpoint invocation의 기존 JSON 인코딩은
+서로 다른 계약으로 보존한다.
+
+ToolRetryCheckpoint/ToolRetryState는 기존 Engine 보조 기록만 읽고 쓴다. 새 호출의 초기
+상태와 기존 retry 기록의 전체 필드 검증을 구분하며 원본 인자·시도/수정 횟수·실패 개수·
+불확실성·pending을 보존한다. 중단된 실행을 명시적으로 재개해도 소비한 시도 횟수는
+증가하며 한도가 초기화되지 않는다. 내부 typed 상태는 기존 dictionary와 같은 payload로
+저장한다. 이 정리는 추가 재시도, fallback Reader, 별도 운영 저장소를 만들지 않는다.
+
+ToolApprovalRecord는 여러 Engine 기록 중 Tool 대기를 식별하는 얕은 projection이다.
+일반 Workflow continuation을 Tool 승인으로 해석하지 않는다. 실제 선택은 기존
+InteractionRequest Reader와 선택 검증을 사용하고 key·인자·분류·계약·정책·제약을 모두
+비교한다. 새 인자로 수정한 시도는 재분류·새 업무 키·재승인을 거친다.
+ToolApprovalAction/Source는 실행 Owner의 사실로 요청을 생성한다. Host의 표시용 요청에
+임의 source/action이 있어도 실행 대상의 사실을 대신할 수 없다.
+
+StepEventMetadata와 ToolStepMetadata가 표시용 checkpoint 이름·단계·인자·재시도·재사용
+투영을 소유하며 Loop/Graph도 같은 선언을 참조한다. 표시 데이터는 실행 허가가 아니다.
+Host 이벤트 handler는 ToolHandlerBindings와 ResumableHandlerContract의 기존 공개 hook을
+사용한다. Result channel은 계속 live dictionary이고 취소/자식 이벤트 종료 시 정리 순서를
+유지한다. 예약은 await 이전, no-effect 영수증은 재시도 선택 이전, 완료 원장은 성공 결과
+전달 이전에 저장한다.

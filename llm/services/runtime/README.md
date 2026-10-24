@@ -19,6 +19,8 @@ engine_options와 요청별 request_context는 서로 다른 계약입니다.
 | [interaction_records.py](interaction_records.py) | 단일 control Record Reader, 조회 projection, retry 요청 Writer와 저장 경로를 소유합니다. |
 | [interactions.py](interactions.py) | 승인·확인 요청과 사용자 응답의 영속 검증·저장입니다. |
 | [steering.py](steering.py) | 추가 지시의 대상 등록·마감, 메시지·중첩 체크포인트 참조, 대상별 반영 기록을 연결합니다. |
+| [tool_errors.py](tool_errors.py) · [tool_identity.py](tool_identity.py) | 기존 Tool 오류/승인 신호와 논리 호출 identity의 단일 정의입니다. |
+| [tool_retry_records.py](tool_retry_records.py) · [tool_approval_records.py](tool_approval_records.py) | 재시도 상태 Reader/Writer와 승인 action/source projection입니다. 추가 재시도나 실행 허가를 만들지 않습니다. |
 | [tools.py](tools.py) | ToolExecutor와 Tool 실행 범위. 승인, 실행, 재시도, 결과·Step 이벤트를 담당합니다. |
 | [operations.py](operations.py) | Session 범위 Tool operation 원장과 완료 결과 재사용·불확실 효과 조정입니다. |
 | [processes.py](processes.py) | 명시적으로 선택한 ProcessToolRunner의 입장·실행·출력·취소 수명을 관리하며 격리 인자는 LinuxSandbox에 위임합니다. |
