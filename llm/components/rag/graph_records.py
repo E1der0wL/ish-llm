@@ -14,6 +14,13 @@ class GraphEntity:
 
     FIELDS = frozenset((Field.ID, Field.NAME))
 
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def stored_id(self):
+        return self._value[self.Field.ID]
+
     @classmethod
     def identifier(cls, name):
         return RAGContent.digest(name.casefold())
@@ -42,6 +49,21 @@ class GraphRelation:
     ENRICHMENT_FIELDS = frozenset((Field.DOCUMENT_ID, Field.EXTRACTED_AT, Field.WEIGHT))
     EVIDENCE_KEY_FIELDS = (Field.SOURCE, Field.TYPE, Field.TARGET, Field.SOURCE_ID, Field.EVIDENCE)
 
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def source_id(self):
+        return self._value[self.Field.SOURCE_ID]
+
+    @property
+    def extracted_at(self):
+        return self._value[self.Field.EXTRACTED_AT]
+
+    @classmethod
+    def restore_extracted_at(cls, edge, timestamp):
+        edge[cls.Field.EXTRACTED_AT] = timestamp
+
     @classmethod
     def triple(cls, edge):
         return edge[cls.Field.SOURCE], edge[cls.Field.TYPE], edge[cls.Field.TARGET]
@@ -58,6 +80,17 @@ class GraphRecord:
         GRAPH = "graph"
 
     FIELDS = frozenset((Field.ENTITIES, Field.RELATIONS))
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def entities(self):
+        return self._value[self.Field.ENTITIES]
+
+    @property
+    def relations(self):
+        return self._value[self.Field.RELATIONS]
 
     @classmethod
     def create(cls, entities, relations):
@@ -93,6 +126,10 @@ class ExtractionCheckpoint:
     FIELDS = frozenset((Field.CHUNKS, Field.CHUNK_SIZE, Field.GRAPH))
     MINIMUM_CHUNK_SIZE = 1
     SIGNATURE_PATTERN = r"[a-f0-9]{64}"
+
+    @classmethod
+    def create(cls, chunks, chunk_size, graph):
+        return {cls.Field.CHUNKS: chunks, cls.Field.CHUNK_SIZE: chunk_size, cls.Field.GRAPH: graph}
 
 
 class GraphEncoding:

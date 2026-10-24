@@ -166,6 +166,14 @@ class EmbeddingEvidence:
     def observations(self):
         return self._value[self.Field.INGESTION]
 
+    @classmethod
+    def record_observations(cls, document, observations):
+        document[cls.Field.INGESTION] = observations
+
+    @classmethod
+    def record_profile(cls, document, profile):
+        document[cls.Field.PROFILE] = profile
+
 
 class EmbeddingFingerprint:
     CONTRACT = "single-chunk-v1"
@@ -187,10 +195,13 @@ class EmbeddingFingerprint:
 
 class IngestionObservation:
     ZERO = 0
+    COUNT_INCREMENT = 1
     ZERO_SECONDS = 0.0
     METADATA_ONLY = True
     EMBEDDING_EVENT = "rag_ingestion_progress"
     EXTRACTION_EVENT = "rag_extraction_progress"
+    VALIDATING_INPUT_PHASE = "validating_input"
+    SPLITTING_PHASE = "splitting"
     EMBEDDING_PHASE = "embedding"
     EXTRACTION_PHASE = "extracting"
     CHUNK_UNIT = "chunk"
@@ -212,6 +223,26 @@ class IngestionObservation:
         EXTRACTION_BATCHES = "extraction_batches"
         EXTRACTION_REUSED = "extraction_batches_reused"
         METADATA_ONLY = "metadata_only"
+
+    @classmethod
+    def phase(cls, phase):
+        return {OperationProgress.phase.__name__: phase}
+
+    @classmethod
+    def record_retry(cls, stats):
+        stats[cls.Field.RETRIES] += cls.COUNT_INCREMENT
+
+    @classmethod
+    def record_reused_extraction(cls, stats):
+        stats[cls.Field.EXTRACTION_REUSED] += cls.COUNT_INCREMENT
+
+    @classmethod
+    def record_extraction_batch(cls, stats):
+        stats[cls.Field.EXTRACTION_BATCHES] += cls.COUNT_INCREMENT
+
+    @classmethod
+    def record_extraction_seconds(cls, stats, seconds):
+        stats[cls.Field.EXTRACTION_SECONDS] += seconds
 
     @classmethod
     def embedding(cls, total, concurrency):

@@ -2,6 +2,7 @@
 
 from .prompts import ExtractionOptions
 from .configuration import RAGConfiguration
+from .preparation import RAGEmbedding, RAGPreparation, PreparationFingerprint
 
 from llm.providers.diagnostic_values import ProviderRetryObservation
 
@@ -170,24 +171,10 @@ class RAGComponent(DefinitionComponent):
         return RAGDocument.check_revision(document, expected_revision, expected_generation, RAGConflictError)
 
     def _identity(self):
-        if self.embedding is None:
-            raise ValueError("Configure RAGComponent(embedding=EmbeddingModel(...)) first")
-        identity = getattr(self.embedding, "identity", None)
-        identifier = self.embedding_id or (identity(**self.document_kwargs) if identity else None)
-        if not isinstance(identifier, str) or not identifier:
-            raise ValueError("Custom embedding clients require embedding_id")
-        return identifier
+        return RAGEmbedding.identity(self)
 
     def _preparation_fingerprint(self):
-        """Only preparation inputs; cache/search tuning does not change document semantics."""
-        return revision_token({"chunk_size": self.chunk_size, "model": self._identity(),
-            "embedding": type(self.embedding).__module__ + "." + type(self.embedding).__qualname__,
-            "embedding_params": getattr(self.embedding, "params", {}),
-            "document_kwargs": self.document_kwargs, "query_kwargs": self.query_kwargs,
-            "extractor": type(self.extractor).__module__ + "." + type(self.extractor).__qualname__,
-            "extraction_params": getattr(self.extractor, "params", {}),
-            "extraction": self.extraction_options, "prompt": self.extraction_prompt,
-            "extraction_batch_size": self.extraction_batch_size})
+        return PreparationFingerprint.create(self)
 
     # 공개 API: 직접 호출 시 workspace 소유권은 호출자가 보장해야 한다.
     def resolve_config(self, project):
@@ -337,189 +324,13 @@ class RAGComponent(DefinitionComponent):
             if more else CatalogRequest.ABSENT)
 
     async def embed(self, texts: list, *, query=False) -> list:
-        if not isinstance(texts, list) or len(texts) != 1:
-            raise ValueError("RAG embedding requires one chunk per request")
-        self._identity()
-        identity = getattr(self.embedding, "identity", None)
-        if query and identity is not None and identity(**self.query_kwargs) != identity(**self.document_kwargs):
-            raise ValueError("Query embedding model differs from indexed model")
-        kwargs = self.query_kwargs if query else self.document_kwargs
-        response = await self.embedding.embed(texts, **kwargs)
-        extract = getattr(self.embedding, "extract_vector", None)
-        if not isinstance(response, EmbeddingResult):
-            raise TypeError("Embedding model must return EmbeddingResult")
-        vector = extract(response, **kwargs) if extract else response.vector
-        from llm.core.embeddings import validate_vectors
-        return validate_vectors([vector], dimensions=getattr(self, self.EMBEDDING_DIMENSIONS_ATTRIBUTE, None))
+        return await RAGEmbedding.embed(self, texts, query=query)
 
     async def embed_query(self, query):
-        """Cache only validated query vectors, never retrieval results or SDK responses."""
-        maximum = self.query_cache_max_bytes
-        if not maximum:
-            self.query_cache.get("", 0)
-            return (await self.embed([query], query=True))[0]
-        identity = getattr(self.embedding, "identity", None)
-        if identity is not None and identity(**self.query_kwargs) != identity(**self.document_kwargs):
-            raise ValueError("Query embedding model differs from indexed model")
-        client_identity = getattr(self.embedding, "cache_identity", None)
-        fingerprint = revision_token({"model": self._identity(),
-            "params": getattr(self.embedding, "params", {}), "query_kwargs": self.query_kwargs,
-            "document_kwargs": self.document_kwargs, "client": type(self.embedding).__qualname__,
-            "implementation": str(client_identity() if client_identity else id(self.embedding)),
-            "project": getattr(self, self.CACHE_NAMESPACE_ATTRIBUTE, None)})
-        key = VectorCache.key(fingerprint, query)
-        vector = self.query_cache.get(key, maximum)
-        cached = vector is not None
-        if vector is None:
-            vector = (await self.embed([query], query=True))[0]
-        validate = getattr(self.embedding, "validate_vectors", None)
-        if validate is not None:
-            vector = validate([vector], **self.query_kwargs)[0]
-        from llm.core.embeddings import validate_vectors
-        vector = validate_vectors([vector], dimensions=getattr(self, self.EMBEDDING_DIMENSIONS_ATTRIBUTE, None))[0]
-        self.query_cache.put(key, vector, maximum)
-        diagnostic("rag_query_embedding", cached=cached)
-        return vector
+        return await RAGEmbedding.embed_query(self, query)
 
     async def prepare(self, identifier, title, content, metadata, revision, *, progress=None, previous=None, telemetry=None):
-        if telemetry:
-            await telemetry({"phase": "validating_input"})
-        policy = require_config(self.extraction_options, ExtractionOptions.Field.FAILURE_POLICY, scope="rag.extraction")
-        if self.chunk_size is None:
-            raise ValueError("Missing required setting: rag.chunk_size")
-        if policy != ExtractionFailurePolicy.DISABLED.value and self.extraction_batch_size is None:
-            raise ValueError("Missing required setting: rag.extraction_batch_size")
-        if policy != ExtractionFailurePolicy.DISABLED.value and getattr(self, "_extraction_error", None) is not None:
-            raise self._extraction_error
-        if policy != ExtractionFailurePolicy.DISABLED.value and self.extractor is None:
-            raise ValueError("Configure RAGComponent(extractor=TripleExtractor(...)) before writing documents")
-        validate_name(identifier)
-        if not isinstance(title, str) or not title.strip():
-            raise ValueError("Document title must be nonempty text")
-        metadata = self.deserialize(self.serialize(metadata))
-        fingerprint = self._preparation_fingerprint()
-        if (previous is not None and previous["content"] == content
-                and previous.get(RAGDocument.Field.PREPARATION_FINGERPRINT) == fingerprint
-                and (previous[RAGDocument.Field.GRAPH_COMPLETE] or policy == ExtractionFailurePolicy.DISABLED.value)):
-            from llm.core.embeddings import validate_vectors
-            vectors = previous[EmbeddingEvidence.Field.VECTORS]
-            validate = getattr(self.embedding, "validate_vectors", None)
-            if validate is not None:
-                vectors = validate(vectors, **self.document_kwargs)
-            dimensions = getattr(self, self.EMBEDDING_DIMENSIONS_ATTRIBUTE, None)
-            vectors = validate_vectors(vectors, dimensions=EmbeddingEvidence(previous).profile.dimensions if dimensions is None else dimensions)
-            if len(vectors) != len(SplitDocument(previous).chunks):
-                raise ValueError("Stored chunk/vector count mismatch")
-            validate_graph(previous[GraphRecord.Field.GRAPH], SplitDocument(previous).chunks,
-                           relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
-            document = deepcopy(previous)
-            document.update(title=title, metadata=metadata, revision=revision,
-                            preparation_configuration=getattr(self, "_configuration_version", None))
-            document[EmbeddingEvidence.Field.INGESTION] = IngestionObservation.metadata_only(len(vectors))
-            return document
-        if telemetry:
-            await telemetry({"phase": "splitting"})
-        document = split_markdown(content, identifier, chunk_size=self.chunk_size)
-        document.update(id=identifier, title=title, metadata=metadata, revision=revision,
-                        generation=previous["generation"] if previous is not None else uuid4().hex)
-        await prepare_vectors(self, document, previous=previous, progress=progress, telemetry=telemetry)
-        document[EmbeddingEvidence.Field.PROFILE] = EmbeddingProfile.create(self._identity(), len(EmbeddingEvidence(document).vectors[0]))
-        document.update(graph_complete=policy != ExtractionFailurePolicy.DISABLED.value, graph_diagnostics=[])
-        IngestionObservation.start_extraction(EmbeddingEvidence(document).observations)
-        if policy == ExtractionFailurePolicy.DISABLED.value:
-            document[RAGDocument.Field.GRAPH_DIAGNOSTICS].append(diagnostic("graph_extraction_disabled").to_dict())
-        entities, relations = {}, []
-        manifest, reused_sources = [], set()
-        previous_batches = {entry[ExtractionManifestEntry.Field.SIGNATURE]: entry for entry in previous.get(RAGDocument.Field.EXTRACTION_MANIFEST, [])} if previous else {}
-        previous_graph = group_evidence(previous[GraphRecord.Field.GRAPH]) if previous_batches else None
-        extraction_total = ((len(SplitDocument(document).chunks) + self.extraction_batch_size - 1) // self.extraction_batch_size
-                            if policy != ExtractionFailurePolicy.DISABLED.value else 0)
-        extraction_done = 0
-        async def extraction_progress():
-            if telemetry:
-                await telemetry(IngestionObservation.extraction_progress(EmbeddingEvidence(document).observations, extraction_done, extraction_total))
-        if policy != ExtractionFailurePolicy.DISABLED.value:
-            await extraction_progress()
-        def observe_extraction(event):
-            if event.code == ProviderRetryObservation.RETRY:
-                EmbeddingEvidence(document).observations[IngestionObservation.Field.RETRIES] += 1
-        for offset in (range(0, len(SplitDocument(document).chunks), self.extraction_batch_size) if policy != ExtractionFailurePolicy.DISABLED.value else ()):
-            batch = SplitDocument(document).chunks[offset:offset + self.extraction_batch_size]
-            # Keep the existing Job checkpoint binding unchanged. Cross-update reuse has
-            # its own implementation identity; it is not a replacement checkpoint format.
-            signature = revision_token({"chunks": batch, "extractor": type(self.extractor).__qualname__,
-                                        "params": getattr(self.extractor, "params", {}),
-                                        "extraction": self.extraction_options, "prompt": self.extraction_prompt})
-            reuse_signature = revision_token({"request": signature,
-                "implementation": type(self.extractor).__module__ + "." + type(self.extractor).__qualname__})
-            key = BatchCheckpointName.graph(offset)
-            saved = await progress(key, signature) if progress else None
-            graph = validate_extraction_checkpoint(saved, signature) if saved is not None else None
-            if graph is None and reuse_signature in previous_batches:
-                entry = previous_batches[reuse_signature]
-                graph = select_graph(previous_graph, entry[ExtractionManifestEntry.Field.ENTITY_IDS], batch,
-                                     relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
-                if revision_token(graph) != entry[ExtractionManifestEntry.Field.DIGEST]:
-                    raise GraphValidationError("Stored extraction batch integrity mismatch")
-                reused_sources.update(RAGChunk(chunk).identifier for chunk in batch)
-                EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_REUSED] += 1
-                if progress:
-                    await progress(key, signature, {ExtractionCheckpoint.Field.CHUNKS: batch, ExtractionCheckpoint.Field.CHUNK_SIZE: self.chunk_size, ExtractionCheckpoint.Field.GRAPH: graph})
-            if graph is None:
-                started = time.monotonic()
-                try:
-                    with diagnostic_scope(observe_extraction):
-                        graph = validate_graph(await self.extractor.extract(batch), batch,
-                                               relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
-                except Exception as error:
-                    code = error_code(error)
-                    # 저장/한도/프로그래밍 오류는 best_effort로 숨기지 않는다.
-                    if policy != ExtractionFailurePolicy.BEST_EFFORT.value or not (isinstance(error, GraphValidationError) or code in (
-                            ProviderErrorCode.TIMEOUT.value, ProviderErrorCode.CONNECTION.value, ProviderErrorCode.UNAVAILABLE.value,
-                            ProviderErrorCode.RATE_LIMIT.value, ProviderErrorCode.EMPTY_RESPONSE.value, ProviderErrorCode.INVALID_RESPONSE.value)):
-                        raise
-                    document[RAGDocument.Field.GRAPH_COMPLETE] = False
-                    document[RAGDocument.Field.GRAPH_DIAGNOSTICS].append(diagnostic("graph_incomplete", severity=DiagnosticSeverity.WARNING.value,
-                        batch_offset=offset, cause=code if code != ProviderErrorCode.FAILED.value else GraphValidationError.code).to_dict())
-                    continue
-                finally:
-                    extraction_done += 1
-                    EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_BATCHES] += 1
-                    EmbeddingEvidence(document).observations[IngestionObservation.Field.EXTRACTION_SECONDS] += time.monotonic() - started
-                    diagnostic(IngestionObservation.EXTRACTION_EVENT, **EmbeddingEvidence(document).observations)
-                    await extraction_progress()
-                if progress:
-                    await progress(key, signature, {ExtractionCheckpoint.Field.CHUNKS: batch, ExtractionCheckpoint.Field.CHUNK_SIZE: self.chunk_size, ExtractionCheckpoint.Field.GRAPH: graph})
-            else:
-                graph = validate_graph(graph, batch,
-                                       relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
-                extraction_done += 1
-                await extraction_progress()
-            entities.update({e[GraphEntity.Field.ID]: e for e in graph[GraphRecord.Field.ENTITIES]})
-            relations.extend(graph[GraphRecord.Field.RELATIONS])
-            manifest.append(ExtractionManifestEntry.create(reuse_signature,
-                [e[GraphEntity.Field.ID] for e in graph[GraphRecord.Field.ENTITIES]], offset, len(batch)))
-        document[GraphRecord.Field.GRAPH] = enrich_graph(validate_graph(
-            GraphRecord.create(list(entities.values()), relations), SplitDocument(document).chunks,
-            relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ())), identifier)
-        # Manifest stores identities/digests, not a second copy of the graph.
-        grouped = group_evidence(document[GraphRecord.Field.GRAPH])
-        for entry in manifest:
-            batch = SplitDocument(document).chunks[entry[ExtractionManifestEntry.Field.OFFSET]:entry[ExtractionManifestEntry.Field.OFFSET] + entry[ExtractionManifestEntry.Field.COUNT]]
-            entry[ExtractionManifestEntry.Field.DIGEST] = revision_token(select_graph(grouped, entry[ExtractionManifestEntry.Field.ENTITY_IDS], batch,
-                relation_types=self.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ())))
-        if reused_sources:
-            def edge_key(edge):
-                return GraphRelation.evidence_key(edge)
-            stamps = {edge_key(edge): edge[GraphRelation.Field.EXTRACTED_AT] for edge in previous[GraphRecord.Field.GRAPH][GraphRecord.Field.RELATIONS]
-                      if edge[GraphRelation.Field.SOURCE_ID] in reused_sources}
-            for edge in document[GraphRecord.Field.GRAPH][GraphRecord.Field.RELATIONS]:
-                if edge_key(edge) in stamps:
-                    edge[GraphRelation.Field.EXTRACTED_AT] = stamps[edge_key(edge)]
-        document[RAGDocument.Field.EXTRACTION_MANIFEST] = manifest
-        document[RAGDocument.Field.PREPARATION_CONFIGURATION] = getattr(self, "_configuration_version", None)
-        document[RAGDocument.Field.PREPARATION_FINGERPRINT] = fingerprint
-        return document
+        return await RAGPreparation.prepare(self, identifier, title, content, metadata, revision, progress=progress, previous=previous, telemetry=telemetry)
 
     def publish(self, project, previous, documents, *, progress=None):
         """DB를 닫고 포인터·필수 증거를 같은 workspace transaction으로 확정한다."""

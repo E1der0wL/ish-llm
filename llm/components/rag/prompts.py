@@ -1,6 +1,7 @@
 """추출 프로토콜과 명시적으로 선택할 수 있는 예제 프롬프트. 예제는 자동 적용하지 않는다."""
 
 from enum import StrEnum
+from .identity import RAGIdentity
 import json
 from llm.core.model_protocol import ModelRole
 from llm.core.schema import SchemaType, SchemaKeyword, SchemaBoolean
@@ -51,6 +52,7 @@ class ExtractionJSONMode(StrEnum):
 
 class ExtractionOptions:
     KEY = "extraction"
+    SCOPE = RAGIdentity.CAPABILITY + "." + KEY
     NO_REPAIRS = 0
     MINIMUM_TYPE_LENGTH = 1
     REPAIR_DESCRIPTION = "검증 오류 수정 요청 횟수. 0이면 비활성화"

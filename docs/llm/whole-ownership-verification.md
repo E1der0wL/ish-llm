@@ -5312,3 +5312,68 @@ exit 0. main/backend/Draft PR #1은 변경하지 않았다. 정확한 SHA의 원
 
 2026-10-24T03:42:49Z 조회: [CI 40059398324](https://github.com/E1der0wL/ish-llm/actions/runs/40059398324)
 headSha가 위 SHA와 일치하며 두 필수 Job이 진행 중이다. 아직 원격 검증 성공이 아니다.
+
+
+## llm RAG 임베딩·문서 준비 Owner — Level 1·2
+
+기준 279ef18. RAGEmbedding은 선택 모델 identity/벡터 검증·쿼리 캐시를, RAGPreparation은
+문서 분할·벡터/그래프 준비·명시적 실패 정책·Checkpoint/직전 문서 재사용의 기존 흐름을
+소유한다. Preparation/Query/ExtractionBatch fingerprint의 실제 기존 입력은 각 Owner
+Writer에 모았다. Component의 _identity/_preparation_fingerprint/embed/embed_query/prepare는
+위임하며 기존 선택된 Component의 호출/확장 지점과 Job/입력/모델 경계를 보존한다.
+
+RAGDocument·EmbeddingEvidence·ExtractionManifestEntry·GraphRecord/Entity/Relation에 실제
+준비 소비자가 사용하는 속성/변경 API를 연결했다. IngestionObservation은 단계·카운터·
+측정값 변경을 소유하며, ExtractionCheckpoint는 기존 3개 필드 Writer를 소유한다.
+준비 진단과 상태 변경, Checkpoint·모델 호출·재사용·최종 기록의 순서를 유지했다.
+manifest/configuration/fingerprint는 원래 순서대로 각각 기록하여 설정 속성 평가보다 먼저
+manifest를 쓰던 동작을 바꾸지 않았다. 직전 메모리 준비 입력의 기존 optional 조회를
+이름에 명시했으며 엄격한 저장 Reader의 필수 증거를 복구하거나 선택 필드로 바꾸지 않았다.
+
+새 기본값·암묵 retry·승인/예산/외부 효과 허가는 추가하지 않았다. 카탈로그/원자적 공개·
+삭제·백업 조율은 아직 Component에 남아 있어 전체 Component 완료로 표시하지 않는다.
+제품 테스트/Fixture/Assertion은 변경하지 않았다. 실제 테스트와 장애 주입의 monkeypatch
+소비 경로도 확인했으며 공개 callback 경로가 유지되어 시험 대상을 옮길 필요가 없었다.
+
+초기 전체 함수 비교에서 코드 생성기의 문자열 치환이 두 그래프 관계 조회를 잘못 구성한
+것을 검출했다. 제품 테스트 시작 전에 두 소비자를 정확한 GraphRecord 속성으로 수정하고
+이전 전체 함수와 다시 비교했다. 첫 집중/관련 실행(whole-rag-preparation-*-01)은
+LLM 120/157·Hub 33 모두 통과했다. 최종 Owner 검토에서 남은 벡터 직접 필드 조회 한 곳을
+기존 EmbeddingEvidence.vectors 속성으로 연결한 뒤, -01 결과와 source hash를 보존하고
+현재 소스에서 동일 집중·관련 범위를 -02로 재실행했다. 서로 다른 소스를 합산하지 않는다.
+
+`PYTHONPATH=. LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+.venv-linux312/bin/python /workspace/llm-clean-resume/whole-ownership/rag-preparation-draft/proof.py`
+(한 셸 명령), 최종 소스 exit 0. Component 40·Document 13·Graph 14·Configuration 13·
+Prompt 2·Ingestion 기록 32·Chunk 22개 전체 기존 함수(136개)가 실제 Owner 위임/Writer/
+속성 확장 후 동등하다. 임베딩/쿼리 캐시/선택 모델 callback 16개 및 완전한 prepare 진입의
+모델 효과·Checkpoint·telemetry·실패/취소·metadata/부분 재사용 84개 trace 비교도 통과했다.
+원본 문서 불변, metadata/완료 Checkpoint의 모델 효과 0회를 독립적으로 확인했다.
+실제 파일·프로세스 중단·사용량/취소 보장은 아래 원래 회귀 Assertion으로 검증한다.
+
+- `whole-rag-preparation-l1-02`: discovered/started/pass 120/120/120, exit 0, 91.144929초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-preparation-l1-02/llm.json --modules tests.llm.test_rag_models tests.llm.test_rag_resilience tests.llm.test_rag_optimization tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_prepared_integrity tests.llm.test_rag_components tests.llm.test_operations_schema`. source `25e153920fc622c19519ab672d29480682ae57e0e9050c82260b91f8496d24be`, input `bfb8ef865724d523110f2e2604a1e1ce248d965a606191b4807ab87a82b183e9`.
+
+- `whole-rag-preparation-l2-02`: discovered/started/pass 157/157/157, exit 0, 160.03797초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-rag-preparation-l2-02/llm.json --modules tests.llm.test_rag_catalog_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_rag_storage tests.llm.test_rag_query_evidence tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_batch_identity tests.llm.test_rag_extraction_repair tests.llm.test_rag_job_retention tests.llm.test_rag_retention_policy tests.llm.test_rag_job_state_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_retry_presence tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity`. source `25e153920fc622c19519ab672d29480682ae57e0e9050c82260b91f8496d24be`, input `bfb8ef865724d523110f2e2604a1e1ce248d965a606191b4807ab87a82b183e9`.
+
+- `whole-rag-preparation-hub-02`: discovered/started/pass 33/33/33, exit 0, 147.377354초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-rag-preparation-hub-02/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_rag_extensions tests.hub.test_resource_tools tests.hub.test_rag_defaults`. source `25e153920fc622c19519ab672d29480682ae57e0e9050c82260b91f8496d24be`, input `bfb8ef865724d523110f2e2604a1e1ce248d965a606191b4807ab87a82b183e9`.
+
+현재 모든 실행 failure/error/skip/xfail/xpass/누락/추가/중복 0, source/input 전후 및 실행 간 동일.
+L1/L2 ID는 중복하지 않는다. 전체 발견 LLM 2,492·Hub 588, 고정 제품·시험·Fixture·의존성·
+Python 3.12.14/Clang·Host d833790·실제 namespace/X11 환경을 확인했다. 원본 손상/보존·
+필수 기록·모델 사용량/호출 횟수·재시도/재개·Checkpoint·삭제/공개·승인/예산/Tool 효과와
+직접 Hub Job/검색/가져오기 소비자 검증을 포함한다.
+
+영향 범위는 RAG 준비와 그 결과의 기존 Job/검색 소비자로 한정하며 공통 허가·예산·
+Provider retry·transaction 구현은 변경하지 않았다. 실제 함수/상태·callback/effect trace와
+필수 안전성 시험으로 범위를 확인했고 전체 회귀는 남은 RAG 저장 조율 정리와 묶은 다음
+Level 3에서 실행한다. 이전 83b1614 게이트 결과는 이 변경의 전체 검증 증거로 승계하지 않는다.
+
+문서 준비 소단계 최종 보조 검사: 정적 S1–S7 reviewed 110·new/stale/outstanding 0,
+문서 168개·Python fence 183개·링크 1,203개·anchor 37개 오류 0.
+`python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews`
+16 pass/3.237초·exit 0. 최종 source에서 `python -m tests.llm.check_budget_mutation` exit 0,
+원래 실제 효과 Assertion으로 의도된 R3 한도 누락 2개를 검출했다. 정확한 기존 S2 재사용
+조건 0720ac9c…를 새 Owner의 1678becd…로 연결했고 정적 dependency 20건을 재검토했다.
+파일 542·미검토 259(llm 82/hub 177)·미분류 16,696·미완 계약 3·issues 0이다.
+선언 밖 두 수치 리터럴은 선택된 청크 배열의 ceiling-division과 첫 range index로 개별
+분류했으며 정책/한도/상태의 예외로 허용하지 않았다.

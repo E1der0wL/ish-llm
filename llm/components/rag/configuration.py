@@ -19,6 +19,8 @@ from .job_policy import JobAdmission
 class RAGConfiguration:
     ABSENT = None
     SOURCE_ATTRIBUTE = "_configuration_source"
+    VERSION_ATTRIBUTE = "_configuration_version"
+    EXTRACTION_ERROR_ATTRIBUTE = "_extraction_error"
     OPTIONS_SUFFIX = "kwargs"
     CLIENT_PROVIDER_ATTRIBUTE = "provider_options"
     CLIENT_ENFORCED_ATTRIBUTE = "enforced_configuration"

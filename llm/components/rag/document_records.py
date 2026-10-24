@@ -28,6 +28,28 @@ class ExtractionManifestEntry:
     FIELDS = frozenset((Field.SIGNATURE, Field.ENTITY_IDS, Field.OFFSET, Field.COUNT, Field.DIGEST))
     DIGEST_FIELDS = (Field.SIGNATURE, Field.DIGEST)
 
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def signature(self):
+        return self._value[self.Field.SIGNATURE]
+
+    @property
+    def entity_ids(self):
+        return self._value[self.Field.ENTITY_IDS]
+
+    @property
+    def digest(self):
+        return self._value[self.Field.DIGEST]
+
+    def chunks(self, chunks):
+        return chunks[self._value[self.Field.OFFSET]:self._value[self.Field.OFFSET] + self._value[self.Field.COUNT]]
+
+    @classmethod
+    def record_digest(cls, entry, digest):
+        entry[cls.Field.DIGEST] = digest
+
     @classmethod
     def create(cls, signature, entity_ids, offset, count):
         return {cls.Field.SIGNATURE: signature, cls.Field.ENTITY_IDS: entity_ids,
@@ -58,6 +80,7 @@ class RAGDocument:
     ERROR_RAG_DOCUMENTS_REQUIRE_A_STORED_GENERATION_AND_POSITIVE_REVISION__RE_REGISTER_SOURCES_WITHOUT_THEM = 'RAG documents require a stored generation and positive revision; re-register sources without them'
 
     ABSENT = None
+    GRAPH_INCOMPLETE = False
     DIGEST_PATTERN = r"[a-f0-9]{64}"
     INITIAL_REVISION = 1
     REVISION_INCREMENT = 1
@@ -101,6 +124,62 @@ class RAGDocument:
     @property
     def revision(self):
         return self._value[self.Field.REVISION]
+
+    @property
+    def graph(self):
+        return self._value[GraphRecord.Field.GRAPH]
+
+    @property
+    def graph_complete(self):
+        return self._value[self.Field.GRAPH_COMPLETE]
+
+    @property
+    def prior_preparation_fingerprint(self):
+        """Optional direct preparation input; stored documents still require the field."""
+        return self._value.get(self.Field.PREPARATION_FINGERPRINT)
+
+    @property
+    def prior_extraction_manifest(self):
+        """Optional direct preparation input; never repairs a stored document."""
+        return self._value.get(self.Field.EXTRACTION_MANIFEST, [])
+
+    @classmethod
+    def update_preparation_metadata(cls, document, title, metadata, revision, configuration):
+        document.update({cls.Field.TITLE: title, cls.Field.METADATA: metadata,
+                         cls.Field.REVISION: revision, cls.Field.PREPARATION_CONFIGURATION: configuration})
+
+    @classmethod
+    def identify_preparation(cls, document, identifier, title, metadata, revision, generation):
+        document.update({cls.Field.ID: identifier, cls.Field.TITLE: title, cls.Field.METADATA: metadata,
+                         cls.Field.REVISION: revision, cls.Field.GENERATION: generation})
+
+    @classmethod
+    def begin_graph(cls, document, complete):
+        document.update({cls.Field.GRAPH_COMPLETE: complete, cls.Field.GRAPH_DIAGNOSTICS: []})
+
+    @classmethod
+    def mark_graph_incomplete(cls, document):
+        document[cls.Field.GRAPH_COMPLETE] = cls.GRAPH_INCOMPLETE
+
+    @classmethod
+    def add_graph_diagnostic(cls, document, diagnostic):
+        document[cls.Field.GRAPH_DIAGNOSTICS].append(diagnostic)
+
+    @classmethod
+    def record_graph(cls, document, graph):
+        document[GraphRecord.Field.GRAPH] = graph
+
+    @classmethod
+    def record_extraction_manifest(cls, document, manifest):
+        document[cls.Field.EXTRACTION_MANIFEST] = manifest
+
+    @classmethod
+    def record_preparation_configuration(cls, document, configuration):
+        document[cls.Field.PREPARATION_CONFIGURATION] = configuration
+
+    @classmethod
+    def record_preparation_fingerprint(cls, document, fingerprint):
+        document[cls.Field.PREPARATION_FINGERPRINT] = fingerprint
 
     @classmethod
     def validate(cls, document):
