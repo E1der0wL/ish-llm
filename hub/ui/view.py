@@ -167,7 +167,7 @@ class HubView:
         from ..widget.forms.file_attachment import attach_file
         self.auxiliary = AuxiliaryBar([
             ("history", lambda: self.on_history() if self.on_history else self._not_connected()),
-            ("tags", lambda: self.output.invoke("tags")), ("find", lambda: self.output.invoke("find")),
+            ("tags", lambda: self.output.invoke(EngineOutput.TAGS)), ("find", lambda: self.output.invoke(EngineOutput.FIND)),
             ("attach", lambda: attach_file(self)),
             ("logs", lambda: self.on_activity() if self.on_activity else self._not_connected()),
             ("settings", lambda: self.settings.open_engine(HubEngineIdentity.LOOP)),
@@ -277,7 +277,7 @@ class HubView:
         self.select(next(i for i in range(len(self.sessions)) if self._draft_key(i) == key))
 
     def toggle_details(self):
-        self.output.invoke("details")
+        self.output.invoke(EngineOutput.DETAILS)
 
     def set_output(self, output: EngineOutput) -> None:
         """Replace only the engine-owned output, retaining Home controls and drafts."""

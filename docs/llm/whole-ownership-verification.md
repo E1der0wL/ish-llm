@@ -9308,3 +9308,45 @@ proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Cla
 기존 UI clipboard process 경계 내부의 동일 이동으로 Level 1·2를 적용했다. 후속 관련 Hub
 소단계와 묶은 Level 3 및 정확한 SHA의 원격 CI가 상위 완료 조건이다. Gate53의 소스에 포함되지
 않은 변경이며 그 결과를 승계하지 않는다. 남은 Hub 전수 작업과 공유 계약은 계속 추적한다.
+
+
+## Hub 출력 프레임·태그·대화 anchor 식별자
+
+TagBar·EngineOutput·LoopOutput과 TranscriptIdentity 네 파일을 전수 정리했다. 태그의 geometry/
+선택·tracking·modal·shortcut·표시 기본값, 공통 프레임의 lifecycle·optional interaction과
+실제 Hub tags/details/find 호출이 해당 Owner를 사용한다. KeyName/ShortcutAction/ShortcutLabel,
+ThemeSelector/ThemeStyle 및 LLM MessageRole을 재사용한다.
+
+대화 render·cache·Loop tag가 TranscriptIdentity의 index fallback과 block suffix를 함께 쓴다.
+기존 `index:{index}`·`{message}:block:{offset}`와 명시/falsey id, 저장 ReadingPosition의 의미를
+유지한다. Loop는 ConversationControl.anchor_positions()의 독립 사본을 통해 현재 anchor map을
+읽는다. conversation/message_cache/view는 이 소비 경로만 전환했으며 파일 전체 완료로 기록하지
+않는다. 공통 Key 계약의 미완료 표시도 유지한다.
+
+실제 TagBar/PTK 탐색·폭·선택·Conversation 렌더 anchor/Loop tag·식별자·대체 Engine 명령 46개
+관측이 원본과 일치했다. 새 선언/Identity/anchor projection을 확장하면 기존 7개 소비 파일의
+실행 AST가 같다. 초기 비교 도구는 nested import도 원본에서 유지하도록 수정한 뒤 고정 비교를
+통과했다. 첫 Level 2는 52개 중 51 pass/1 error였다. 작은 터미널 resize에서 transcript 창이
+사라졌고, EngineOutput.MIN_HEIGHT=3을 self로 읽으며 LoopOutput.MIN_HEIGHT=1에 가려진
+회귀를 확인했다. 프레임 세 구현의 고정 상수는 명시 Owner 참조로 수정했다. 기존 코드와
+실제 Loop 프레임 min=3/transcript min=1 및 같은 이름의 상수를 가진 확장 구현도 비교했다.
+기존 화면 겹침 Assertion은 유지했다. 첫 시도의 명령/소스/로그/실패 결과는 attempt1 및
+whole-hub-output-frame-*-01에 보존하며, 변경 후 전체 선택 집합은 *-02에서 다시 검증했다. 아래 기존 테스트가 실제 resize·태그/Inspector 전환·저장 위치·Engine 교체를 검증한다.
+
+- `whole-hub-output-frame-safety-02`: discovered/started/pass 84/84/84, exit 0, 36.89408초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-output-frame-safety-02/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `448a840dbfbce8ca7cf887d733dd903ad506f5d059765ca434c4ba03099d4cce`, input `b8f1eb74d48813d6fed1b2d848e8e52c289d15b6179e163911ec72ab70588be6`.
+
+- `whole-hub-output-frame-l1-02`: discovered/started/pass 19/19/19, exit 0, 8.322924초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-output-frame-l1-02/hub.json --modules tests.hub.test_engine_output tests.hub.test_output_interaction tests.hub.test_auxiliary`. source `448a840dbfbce8ca7cf887d733dd903ad506f5d059765ca434c4ba03099d4cce`, input `b8f1eb74d48813d6fed1b2d848e8e52c289d15b6179e163911ec72ab70588be6`.
+
+- `whole-hub-output-frame-l2-02`: discovered/started/pass 52/52/52, exit 0, 20.78068초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-output-frame-l2-02/hub.json --modules tests.hub.test_mouse_widgets tests.hub.test_reading_positions tests.hub.test_home_navigation tests.hub.test_render_pipeline tests.hub.test_output`. source `448a840dbfbce8ca7cf887d733dd903ad506f5d059765ca434c4ba03099d4cce`, input `b8f1eb74d48813d6fed1b2d848e8e52c289d15b6179e163911ec72ab70588be6`.
+
+공통 안전성 84개·R3 Mutation과 engine output·output interaction·auxiliary, mouse·reading positions·
+home navigation·render pipeline·output을 검증했다. 발견/실행/통과 ID가 일치하며 failure/error/
+skip/xfail/xpass/누락/추가/중복 0, 동일 suite 선택 ID 중복 0이다. source/input 전후·실행 사이
+동일성을 확인했다. 실제 argv/exit·hash·비교 근거는 `hub-output-frame-draft`의
+selected-results-fixed.json, proof-commands.json, values-equivalence.json에 보존한다.
+Python 3.12.14/Clang·Host d833790·고정 의존성·실제 Linux 환경이다. 정적 S1–S7 63개 ID·감사·
+문서 검사를 유지했고 기존 테스트와 안전성 Assertion은 변경하지 않았다.
+
+표시/읽기 위치 식별자의 동일 이동으로 Level 1·2를 적용했다. Gate53에 포함되지 않은 변경으로,
+후속 관련 Hub 단계와 묶은 Level 3 및 정확한 SHA 원격 CI가 상위 완료 조건이다. 남은 Hub 전수
+범위와 공유 계약의 미완료를 계속 추적한다.

@@ -64,6 +64,7 @@ class KeyName:
 
 
 class ShortcutAction:
+    EXPAND = "expand"
     ACTIVATE = "activate"
     DELETE = "delete"
     RETRY = "retry"
@@ -104,6 +105,7 @@ class ShortcutAction:
 
 
 class ShortcutLabel:
+    TAB_SPACE_ENTER = "Tab/Space/Enter"
     ENTER_SPACE = "Enter/Space"
     HIDDEN = ""
     MOVEMENT = "movement"

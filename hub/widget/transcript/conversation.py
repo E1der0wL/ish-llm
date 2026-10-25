@@ -1,4 +1,6 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
+from .identity import TranscriptIdentity
+
 from hub.ui.output.worker import RenderSlot
 
 
@@ -54,7 +56,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", ReasoningMessage.ROLE):
             lines.extend([[('', '')], [('', '')]])
         if anchors is not None and section != "body":
-            anchors.append((message.id or f"index:{index}", len(lines)))
+            anchors.append((TranscriptIdentity.message(message, index), len(lines)))
         user = message.role == "user"
         inset = 1 if inner >= 3 else 0
         message_width = max(1, int(inner * 0.78) - 2 * inset) if user else inner
@@ -93,7 +95,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
             context = RenderContext(message_width, theme, t, Path(root or Path.cwd()), invalidate or get_app().invalidate)
             body = []
             for block in parsed:
-                identifier = f"{message.id or f'index:{index}'}:block:{block.start}"
+                identifier = TranscriptIdentity.block(message, index, block.start)
                 if anchors is not None and message.id:
                     anchors.append((identifier, len(lines) + len(body)))
                 rendered = (render_block or renderers.render)(block, context)
@@ -350,6 +352,10 @@ class ConversationControl(SelectableControl):
     @property
     def restoring(self):
         return self._pending_position is not None
+
+    def anchor_positions(self):
+        """Return the current presentation anchor map as an independent projection."""
+        return dict(self._anchors)
 
     def reading_position(self):
         if self._pending_position is not None:

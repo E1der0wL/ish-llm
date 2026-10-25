@@ -1,4 +1,6 @@
 """Worker-owned caches and immutable prefix/tail display frames."""
+from .identity import TranscriptIdentity
+
 
 from hub.model import ReasoningMessage
 
@@ -84,7 +86,7 @@ class MessageRenderCache:
             return Frame(rows, (), (), max(map(fragment_list_width, rows), default=0))
         entries, retained = [], {}
         for index, message in enumerate(messages):
-            identifier = message.id or f"index:{index}"
+            identifier = TranscriptIdentity.message(message, index)
             previous = self.items.get(identifier, {})
             body_key = (message.role, "" if message.trace else message.text,
                         message.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED), index if not message.id else None, bool(message.trace))

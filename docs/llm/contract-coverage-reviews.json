@@ -88495,8 +88495,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "2a27afe42f7d94efcd73aea9b137eb3a552a3310cbecfae51e9bb86d0ccf52ab",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
+    "sha256": "882ba90e94bf9d9faad0cfd82032327dfc4dcd4298590fad0085c09d926e09d0",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88584,355 +88584,367 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cac906d1c334632ff51d2ae62d13fcc88b1ea9824b511f6c19e5b61a0923c872",
+        "id": "4acd4f0608e2646171ace1d2c932ed478bb9a99411f9b0cf8029937a5639d841",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e80dbf236e5038714c8442d0e189d7d8a5ff9c870ac1f490a9ab04246968bc8d",
+        "id": "1d0cdd2fab023062b717f641752ebb991d8db73d6ad0238614f54128100e0475",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8e639f3b72c6e59f5c813912dc6037277896afb1a2fe45278cdcfc71a582e7a2",
+        "id": "ccaa2ec0265bf3718d0cc1c45ca2437c965f37a9200d3e747eee5cf3eca3b336",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4b2070a240e92a8406c9756ae5b540467b66aa4451ce26b7ba65eb16e07bcc4b",
+        "id": "08929ec946da50734842ac37a66d1ee68a6b5c438b37bdb1fe24b4aa95ef400d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9397a97081fe8ff9bdfc53a2608d533b844dd6bce44f13264c2ed10ea03e91e2",
+        "id": "59cacf41be340740ee479ac79024d3ca88df475776abdc88c7f980d1d279830b",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f45da41501a2e827ad1306d85761b3e1020a7aacd76477310f9e0f090e3ae1ae",
+        "id": "4bf79779a87e61a4c74b3c1837d9ea9384b3093ad508b720e695de5f94c5bfd4",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6b72b8f9fb16c5330fa86face9cb9543b9fabd1c3c88a811b3c19055fde0cfd6",
+        "id": "4ced1530a9d85ed618feac8a8b9450dd9cfda027d77e292d873db57c0b7b03ed",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2794fea71eba1b0d912245983d5ed347d5cdaf32f9f1ae418d3239cfd5c87e0b",
+        "id": "f310fc8b239b5e2dc829576d84ddf0fe8704b9b72cfef15e73859516beb1fa69",
         "classification": "declaration",
         "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "974de9359888350c4f7720fa494123ddfb12e52e5c6ca170cba759d7a25d0a71",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "b40bf13f6645a802d559c73a4b168fd70efa2f6c22afb1eb3e7bec489d368a6a",
+        "id": "9c704abf2d3829abacdf2c23590123b2a6736649350b60e3b4866422b38e3a3a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "f146cc4d8c82a42b4697320d1f6824c5362d21faaf431086d11e9026f19d463c",
+        "id": "22e5e942b5f474c1dec82994e261c741473c19b6efa3db84a51d66ca2ff54c4c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "1d119fcb563824fea28aa5b5e72ba431d3103d0f7c753dfa91f9840b582ce251",
+        "id": "71a64f8b22315377a861bd8b52ab3dee9a6626a5ce0fc705883d78e5058748da",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "b4e3b2e2423bedc9892a3164755ca70c019ae5529670505fefcebd7e4f040a9a",
+        "id": "94e67783f5397da694dc1d8198887953f7f16524209de4776812f7c2578a7afe",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "32a16f29f83d4abf4535f5728ffea945ff2f1b8a1ab19d64041e0127f67269a9",
+        "id": "1ce4855042cd95426699be23ce6fc4dd123dc3107b3f97b33d597eaad7100f1d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "3443d0a662f18ba1cedcb170c58a5f7249eba23cc86a7de3082dca92943f99af",
+        "id": "9c30aed36a72fa4894ea2e2811c1e560d776f8dfc8966f5da93361d645fcb7a2",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "22497b9712fa2fe543138a071903cb101738fee69e5aa9c8b96433a9da4fb27c",
+        "id": "868f2a7e662d955a86c3a44bc808e543c1a681fb3f1192f033bfb585eff60d84",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "da7563cca9530874f8c5a3d27153dfb4f3dadcdd478f19bffb2c010a3fdce106",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "afa27abc72e18f21823f01ce49bfe9bf99b73c344cc918b6b1df7e6287a8983e",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cde95d794ed0fe6403443f6ba5059a877b72059c7af7ace69c039ce60b059170",
+        "id": "aa90235e4602de100e2a694881a94a26e85eaaef1d5f194b6e5ff17bedaa8120",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d2ef852d31d5109f185d644f2e30d7e7d8d8fc193168cd2d05b8fe783818d058",
+        "id": "691bbf9f9813518ee46cbd7c9c10cd606c81b840147164a8ff11b9f547ec46b5",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2c7f16a9bf3ff127a466bd1a19067c8b7cf59bdb2a9db020ea7b769c2cfc0d90",
+        "id": "519d0c816d698fb8aa3b608775f9539dd260c22b4919bf7ad1e20cc13ffd167d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d56e3900360ffce94ef4e335a310b769bd2a8fadf11e653ca7eda5621205be4a",
+        "id": "258e7e7b999386013d1085fda74cdbf65311b0ad5bdd2be9189392612df83097",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "59b2c44435dc5900afaaf58109fa848de6cbd566d0c6ed2e52b18eea072603d8",
+        "id": "4a6ec717b28dcb056711f26e6dd583ed021991f866f312bb57215f90f6c65a6e",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bdd09e95ce4a06e1aa921fd969b91b83500300de9d822964d491baba083ca369",
+        "id": "a5fcc0f5895c459fc32a91618ac82056e45254706a00ac6cecb44a4d53fe9513",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0e37bb5c2e8c77c1d6535cc40628810dc1267aebbef0a2741421bfe7e897f584",
+        "id": "d6c09341c50ffb3771d3331e48f2d7fc426d726e512a08a59112baf95350d006",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "786d7876dfd719022f02b0ba64d6b51728f94375ba2b4f34b11ecdb96d9c7d56",
+        "id": "5875f881714d391f1058eb44607e23ed7e0472b882de2b8ab3ea4c8cde0c12a0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3097f685c32e6d55bee2d03c7fc8d8d961e96d27ef410694846d37c8541cb235",
+        "id": "e610b5e3ec3672fd449cc17f1654dc12be96be047d1aa5e88d977bdba6107771",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e786a700746aee7c65bc0b365d6c7fbaabf0b8d5f684c49239a6ccd7119669f6",
+        "id": "d74562b5cabf3685fc68f130e00e505fa551e32bfb367e5ab910152c4a028411",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "33aaf0a5adea42543ef2735178e8ee4bda48d9aaa4c60d31cb1fc239423ec000",
+        "id": "8c10853534a4a2dedf9e4b59fb7a46dea86487ca482e576426c4ebdbe4cd70ba",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1c06a2617f72851d3e00a9582d487b15c60fcae3e90bfddf44d2dd3fcd567856",
+        "id": "94f1a3a062ddc2ae3e683348afebd75af09c0c42d69ac6e522829e9321421d02",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0a0f2356d298449faa7d4953d16388da1c4be8b4df9c665ed09c02c26a845533",
+        "id": "e8361cb34aed017cf018aea128814462189ec9c39eaab0fa4898e2556ed584a8",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "075918ce8d3bdf6c4db8369d37205c66e576b3110ae3fd45340cd103ea7ce38f",
+        "id": "d8af363aaf5a3b0972f29ef7248e04ce8682c55fd1c8d6b4acfac51a3566f913",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "654b96a7f07621e238ef113e5f576eaa87c9ebc1611eeafc74539ba633fc0356",
+        "id": "dcc5221afb78b811215095205abc92a637ecab3302676b8a52e557b33305c6cb",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5acaa968f33ccb5888cdaf299e00424741fe6c5211337f1987d0e09fe1537e73",
+        "id": "d211c1aafd1564f656c714b6cca2fedbb7c350453ef942407e32955645c30bc0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "eb1a529b676629af2cfb77966d7d452a5edbd63cfec0a53e34ebb2b4d6247960",
+        "id": "917119aa4054c7b1f90985ea0ebcae713470748f628ca384a6ba429a4ac3d18f",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "aec6ce74056e958ac009ec44f2db482291ca5bab572c5b59f91eb1354973b645",
+        "id": "1f6c9457203fe5d5c43142a6077922ad018d82ac760aeab8daee74728df42ccb",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "14c895b39e21747066c0adb7d4c5d541268fe9680d3619c185870ef3d9502b7b",
+        "id": "dace295487e85947a0c0dfb5594ba3ddbc1b324fee6980ff8c820a32435e24bb",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0772d76f8b7c43bb349d1b4b60b631d9eaebe7346df8db1d2ed9d19ffcb981d3",
+        "id": "19b905cb3b7d13d4d26065bfa9c5a29f9eceb07186ade577d7aa3826699d7e71",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ad8c9b4f86ccba8e8363d1f73d82ffd2a3a608c411ccdfe60b8e2ad80e219f3c",
+        "id": "7049bf1054d328a47334a5d7de1526138e54cfd05f84d263aaa9ebf75fbb9663",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e51e0dbbad48307447d219233ccc1793d968c0522be7ff5ff2004007b4544d2b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "03ed42751f008a4cb8af7f3bbec59a8492c7c215490318e062c980fed2b5bd9c",
+        "id": "519b0a2d8d7593f4031d957e1693dceece90e72d1669bb9856bf2991a040b25e",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "7f3a339ca9c6b9d40bb33ef39acf3a496f4d367dc69e69d73d03819f7b20b55a",
+        "id": "fff3cb541ceccba6525380eac731259fff41bdd9b3260dbd4ce80d20085fca77",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "8b98a0dade5203b2e6bbe3b0635bf753989c85d507ad869423ef6e113900f575",
+        "id": "cf95d9a3f946fa476864802542ba6f580b4afd8310b2df54648c27e5ad27e89f",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "34292960d2fc8d5785e83fe42240c68b94911fb118f12e784ed1d1f2b263c4df",
+        "id": "8d7c614553e1e2ddac4bc4e536bc7b5a972716ba8ad167b789b2af2004d2ac3e",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "73ced34f8882d09aae5986e8c1f3ec1dd1803e64d5669e21e16afc5184bbc560",
+        "id": "6f8abbc4c47182ffcb4414d0b1d85c8cf2918ea6bd6eeb03a1b3f83e26f98082",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "48b837e69861febcf5f88425201f5c71f94baac06eeb6e17eecad33b73665654",
+        "id": "6e2cc333397f9eb4c8320109f8c9ad78f3f6688f5cd253e6829b20181ecc3242",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2fa4c773c7a69b6fa242135656c2aa56ec24f512dbd4ea04b877a61279456d48",
+        "id": "2da41c6f9e2c5777898c80ad7e0417408353e093adb822cc333984804a117590",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "21ec132a14e984d4d6a78344abdad88a5c061c6eee8c70306e393b0cc0ab91fa",
+        "id": "f3fafe3ec84f4f4cbb14fea04375feccbda7dae7e1d5a48791784613d6154acd",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6b7d60007968fe3ff2612e79b1153d27bc2da641f488776d3702ad4c5fb18a5c",
+        "id": "df72323badef3d3e76f1656a1d743f6ee1e8fe6147aedb64d5228d5d59768ec7",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "07b5cd2323937288688f76d9c2812752a4ff88182d9b50bab4bf123ecaaecf5d",
+        "id": "9defbee843df59b3048da3d5ef252cc531269ead8d6edb791ae4c710ac00a40e",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a4354c7e036a4f7e8d5154ace4a6d109bb6c5378a3cefab6f60befb1cc565fa4",
+        "id": "e09f4a30f14a4d6a49d240dd2bb7d7f6fb5dd4b36331895940d0004646c06986",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e38b72291f5c120685db6a2bf4ef489a3e269150fd68692a8632b0e4a40fcc06",
+        "id": "b13c3986d107a5383c7aba3a272179aa5d3c7dd33c87feb1736807d99a53913c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a42974302d3512f85732e0f50342208cfed0fd30a0544179b720ea52b4312e3c",
+        "id": "9836a7df7dda9359398714863232952aad93fa38912c6355a5601203233b1961",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "11495593ea553fa850378cce74688f91ea344245abad2eda4d412a823615bb8e",
+        "id": "2890b528e61e02616068e486f3d678b614f1ce7e4b4c8aa821edf652133be34a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4063d53b720ad78b6ea801756c8585e668ca6e90a31b6c1b55af5b5d6a14832a",
+        "id": "5c569d130c653a301000b253ffc1600c071e5583d3662c31f072b231e661e9a3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "af323658c22272fdaba1533bc96153b52eb0917d435f990efd4b087eb1816904",
+        "id": "e877a32d094dabac86457f5960f11ede4dc94b01a3cda8c8fb1778f8515dcef5",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7dbe74a3b754e7b893ec7746c9088ed85be61c434ebc4be3ba06868bade4f4ee",
+        "id": "cc40cacc2fc3d6105b3b98e91c2e69b47a97adb53753a3fd0b19e4107f7a2a30",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "59f0092435808d900c2f09bfa2ce8e068537f2ec762746ed2d6a7734acdc705b",
+        "id": "81eb512fe65eb7c12f79146fd8afb89bda31d5e4db7caa130b33148a496b3d97",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b28707694e29ad3724f9787177ea7ec22c9353f892049665726b0c89f39721ed",
+        "id": "0e783d4d358adb17edbc6c59ba17420a18acb115569233e4979257abecb2d27d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f8f3ddc32ec516a6ce44e4bb7801a628c0c81d7502f05ae720183925cae795fd",
+        "id": "c06f223af7804371b82997696f746f0071f64ae734832a2f3080cd19cb082f6f",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2ca527913a73ef4b3e87ac2842f9caf6cf4d29928000fc1e968a44ea00d2b6f6",
+        "id": "4c0d12bdf486521bc68101b5dba24fc06ba35dcfa0db15bf8b506842245c89da",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bc5b2c649f5115b0f6eb54b8d90cd45b18b92e1000546480ff517a08ef7e4dd0",
+        "id": "d6bdfd77d673e987db8e941daf5dfab3db8454fcc80d3980bb873c94da9c9b15",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -88970,6 +88982,7 @@
           "hub/widget/header.py",
           "hub/widget/mouse_contract.py",
           "hub/widget/output/reader.py",
+          "hub/widget/output/tag_bar.py",
           "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
           "hub/widget/section.py",
@@ -89002,6 +89015,7 @@
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
+          "tests/hub/test_output.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_overlays.py",
           "tests/hub/test_page_layout.py",
@@ -89010,6 +89024,8 @@
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_preview.py",
           "tests/hub/test_question_card.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_pipeline.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
@@ -108755,6 +108771,676 @@
           "tests/hub/test_input_contract.py",
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_ish_integration.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/transcript/identity.py",
+    "sha256": "5747998a6c53d621b963d67f57a5dd2cf9ab444a24cebdaeda38e6111d0eb39c",
+    "reason": "TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "237ab391542f7f20909962fd6ca6ed6431c14ca568c4e532ce85fd43f19a3a90",
+        "classification": "declaration",
+        "owner": "TranscriptIdentity",
+        "reason": "The existing index fallback and block suffix template; actual producer/cache/tag consumers share one formatting API and preserve explicit/falsey message identity behavior."
+      },
+      {
+        "id": "979165c9a58d756a151a7f0365c4dc9a31675b068c02a2df853006b7efd1659c",
+        "classification": "declaration",
+        "owner": "TranscriptIdentity",
+        "reason": "The existing index fallback and block suffix template; actual producer/cache/tag consumers share one formatting API and preserve explicit/falsey message identity behavior."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TranscriptIdentity",
+        "declaration": "hub/widget/transcript/identity.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py",
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/tag_bar.py",
+    "sha256": "2fc756a47116f4ced2928f1cb3e003de694c0c1c5d272ad80dd77dbceb1501b7",
+    "reason": "TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "df9f457ec89a5095e49047119b3263a13ddef15f2703c6908dcbd928b8651322",
+        "classification": "non_contract",
+        "owner": "OutputTag",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "5e2ed4c312ff7b48349befaa9df8cb29f1a3797d73828ae68748a5c678e6563b",
+        "classification": "non_contract",
+        "owner": "OutputTag",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "e882ec57089344a7983b7afc6e5ebb27fc48121d59f5fbcb148e571e16b5bf8e",
+        "classification": "declaration",
+        "owner": "OutputTag",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "63b866b66aee0cab32d00b7c646a1a236e3a277bfb8b1e9f9b937238b212b2a4",
+        "classification": "declaration",
+        "owner": "OutputTag",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "aef4b25d8cd5941f9b793dcceccbd75c3abf9e5cd67ed426f8da7766d8a2e82e",
+        "classification": "declaration",
+        "owner": "OutputTag",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "e052be2646ebb06b1ad886a5245aacceba804d64b496731eb060d82bdc42b4dd",
+        "classification": "declaration",
+        "owner": "OutputTag",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "43fc429d36d5858602246b6e692d25fe8406363b3cf13441bf231138a7d8c28e",
+        "classification": "declaration",
+        "owner": "OutputTag",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "97a49b36ff9151d80e909b3314afb8505d61fed119357e47ab49154dff87a4a5",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "863e374d327659b8770b50290ae9cf36bafff81b668cb8f5de80cf4e4ce085bb",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "b12b36625f0befbf0164e67c0c0570420eafc9b64c12f45ca4be0d40c1ccc39e",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "decc59b55a60863c452bce290d82fc8fd36218fa55aac6fbc1398d00ff1d1fb8",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "613c935a313f8b76b17362c8e3e24126320a83315892b4ac4dc5d8a1bbacd8e1",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "6ec50d98cbd0e5ee794a749a0a527c4f735b676766600d27b1469483ea48194a",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "feacbde12982b949ee744c0b0412f31395fd8879217641b93d22ad9ae4937cd4",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "738898d85900cbbd5e16cd85e37cf9aa38daed9d76231fa47a7474122c13cf59",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "93220463cae9af5c264e6c31e0a7259d60df34f7800ed05b510d1e5e05afb010",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "4c40457f3376735355c31983fd375141ee159318a3c4cb20dd4ed0aad88007a9",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "d3fb9ffc1dd4cf299ef1467318a15d7d234142a8681e4ea11c1b9c1513c70573",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "7d0ec9de46f184175e93db2b8bdbb336a7a66e2a543bdf7f1182cc3005825cc4",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "8145587d8f20485298617c35e6de96c3670b6fdbbb93aa3f9da19793f68cac1c",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "aac373178446eb7834b8f5959ef6abef1ff77a41e8ca628c91cd6250c301b008",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "f24b21ef5ee0a178a7bf57a964a78e4d877ad79729656285080c3ede47afd973",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "7c005a5e3f92f0dc8fa1fd42ac8c431d83e937cdbddb441df1cbb6734874cb7b",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "448cd533b982662859a2dbf81956b73f44fc628d4b636be40b7a6ceba4c9fdd7",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "55e173eb673ff98e8443803ca595e48a0a2f4ae71294bc1a4a51c99cd7d2741e",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "6506a2bf3071a64f1fb1b2819262ed6abe7b67f71c5875c9b34c55dcafd6e07c",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "2dd59221fa34999b85a8bfd9da20fb643083a8b2125fa9bf0fd5f803c764dfe7",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "41edf5e5e3432fecc0f59589aea93387782193233fd8bce0c4860a658f2decbf",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "a8238b68d563088c608e64273679bdec36203357124e040136b37241819559e3",
+        "classification": "declaration",
+        "owner": "TagBar",
+        "reason": "Typed tag projection and original navigation/selection/tracking/modal/geometry/style defaults; shared shortcut and theme Owners supply actual UI boundaries."
+      },
+      {
+        "id": "2cfec6aa9b5448660fcdf6a31c7e597e281a77fb7d9bbc04ca2bbdfd2e18bf31",
+        "classification": "non_contract",
+        "owner": "TagBar.__init__",
+        "reason": "Python -1 reads the last key event."
+      },
+      {
+        "id": "c103a5383ae9349698d9fd771fbe7fd4a0b13164b9e5f306b377728097476275",
+        "classification": "non_contract",
+        "owner": "TagBar.move",
+        "reason": "Convert the item count to its final inclusive index."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputTag / TagBar",
+        "declaration": "hub/widget/output/tag_bar.py",
+        "consumers": [
+          "hub/widget/output/engine.py",
+          "hub/widget/output/loop.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/engine.py",
+    "sha256": "dc4280803cec1ee0c5738abad51997018b1bdde53fb8a0f4c2cf650b5731707e",
+    "reason": "TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "297e69666c220634812e7066baaf38b11a4abd2eb9a4df67ca90537e41fa0915",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "09ddd2a25effcf90e782e54e889f231080db1cabb0a62c67e77b1af1388ab178",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "a42a7d9a79e5c8b431aa6c35144046d769dd16e4316239aaf9e992e5afa667b2",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "44d5966b98ffc16908e4db4358df2fdc64e900c816f235f7cd6da2f311f3dfab",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "786b7447eac9cc587efbc04a560f3f2a491e495117a8bba90c70c2deab6de13b",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "338d7c6e42dfb0d42930ba5b6cc88434d3206d051ce27d14d095dcd840b3c864",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "a84f3703cb280ee31afc09c0d2bf41ab79ce5e9bd4a209debc2dc7d6ee87fcee",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "4614263bca952f13c795c6a9a05bb320dfc22b381cfe88842f6518cff5d92416",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "6e48be0710554d6bc86189c1d701943955ce1cd68aee791c7f61c6da70b74dfa",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "ab5757774b1849cb99256708b19f051c8f9fd45fb38be7b118b67d27fc5bf121",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "836bd2254c2517a559859a553e6ec882c36387b64f8a22c7143c90fb018c5b46",
+        "classification": "declaration",
+        "owner": "EngineOutput",
+        "reason": "Shared output frame geometry/lifetime/optional interaction and tags/details/find command contract. Actual Hub invokes this Owner; alternative Engine output keeps the same public protocol."
+      },
+      {
+        "id": "0eb0fa3b35c32f0129df4a01978b289e4b584c7d5fc051c0ea1e6d0df639cf50",
+        "classification": "non_contract",
+        "owner": "EngineOutput.floating_dialog",
+        "reason": "Optional container type annotation."
+      },
+      {
+        "id": "f82dd29be1f9e825fbe3f1bf47365ec2b7778f9bb643ac62a10864acafb21ead",
+        "classification": "non_contract",
+        "owner": "EngineOutput.tag_entries",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "c3f86e88e5733548e9fe67d82f80cc77215627f515175f8317e09eb430ff8b97",
+        "classification": "non_contract",
+        "owner": "EngineOutput.tag_entries",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "ea03d771bc41f9072eee46768b696c48eca4556973e69523af3150d916aafb25",
+        "classification": "non_contract",
+        "owner": "EngineOutput.select_tag",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "1647cdca585ca5e6a93d3f0dd0813d12bf1f38f80f588d08bb04181ee588263a",
+        "classification": "non_contract",
+        "owner": "EngineOutput.select_tag",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "014832e9c94181f1a9165806778013d829c7312d3e085ec08d1c2c8311d3d583",
+        "classification": "non_contract",
+        "owner": "EngineOutput.expand_tag",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "2be9d33f658cd03bcb84da641d26258cd28f58f156d93ce79e64d5c0663ce83a",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_messages",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "ea7fad83cdbf466cdc25831a21ef326d74430b6e23971aa740a167c873791ff6",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_messages",
+        "reason": "Optional parameter type annotation; the actual default is the Owner declaration."
+      },
+      {
+        "id": "0cacf0055f198b5a42fb321099fd7ca31b5e1cd5b3d95005cd33df050a2d6a6d",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_messages",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "d7bd816fa77c7979456d406173da2454e1a8114e61df03a94b13611146313a55",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_messages",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "aba747abf3b49bdf9203a3703190abb7fecd72234955cf813e10c7943acbf855",
+        "classification": "non_contract",
+        "owner": "EngineOutput.update_messages",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "2ec1c318ed9a5f51b93ac5df5c5a9c1a1f2fdd217f462acdc03c4a6957d3e46a",
+        "classification": "non_contract",
+        "owner": "EngineOutput.update_messages",
+        "reason": "Optional parameter type annotation; the actual default is the Owner declaration."
+      },
+      {
+        "id": "1bf8b2cc20c6d1b9655126dd5146d374e77cca9cbd47bd4091196456a5323aa6",
+        "classification": "non_contract",
+        "owner": "EngineOutput.update_messages",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "b44b97542c3f2a36648e861aa7a20395eb743ad4bfcc54539c320f65bd9072cf",
+        "classification": "non_contract",
+        "owner": "EngineOutput.update_messages",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "6d8ac0c7690d8d384aee40d0b0bbc1e96e802d1b349cbaac793e0cd637cc4a76",
+        "classification": "non_contract",
+        "owner": "EngineOutput.reading_position",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "3a1d37d75de4c8fbb509c1c529742468d0a5e1beb14fde8ccfbac8d323078f7d",
+        "classification": "non_contract",
+        "owner": "EngineOutput.restore_position",
+        "reason": "Optional parameter type annotation; the actual default is the Owner declaration."
+      },
+      {
+        "id": "a68f10e166fd36016ff813f6887b9bb34386f9f07d2f44625df62d62fd16dfb6",
+        "classification": "non_contract",
+        "owner": "EngineOutput.restore_position",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "9ae91976e494954fcd3f0b8b9e04a81f4b741fe2d498bbd7ed154403b6e2229a",
+        "classification": "non_contract",
+        "owner": "EngineOutput.restore_position",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "a74e5d20bb9080e1ae1f419f9d4fa7b73f5a589dae2369ce6388dda2f3fde0b2",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_follow_tail",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "0284de2977aab99b361d3ca59247dc90a7a82506002cb9cee580ca8813a7426e",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_follow_tail",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "25e2ac672d5b143c6175c14202d3b4bde15384a223a3b3d59d3883ef146f77e4",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_theme",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "303f7b5df404633e44a88ed94237604546e19e96917a77f66e3f2b56ffe7b4a3",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_theme",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "fda2e2937da02e24c5fa30277c7d9ca0e15a3a7ba9fbae74ac9e9f1effc75a7d",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_file_root",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "b9641d4150f9f5006bbaa84a812777f044ea0fdbad543b78e073b7df0964053a",
+        "classification": "non_contract",
+        "owner": "EngineOutput.set_file_root",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "683d676b0ca6c4b44e95fc5a603e0a747172de01a06136ee21aeb5cd6fe8c710",
+        "classification": "non_contract",
+        "owner": "EngineOutput.scroll",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "0bd056647e8f9d170d5133b249914307ffd036ca1d6013fe1ffe3418100ba092",
+        "classification": "non_contract",
+        "owner": "EngineOutput.scroll",
+        "reason": "Abstract protocol body."
+      },
+      {
+        "id": "54e137a6879774cd7b7bc2f48f6b51b3acb4b34a12d84c9cdfe53aedad4a9b95",
+        "classification": "non_contract",
+        "owner": "EngineOutput.find",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "bce7c61f909a91d94fd2286570ab0bcb3f99d5a810ef4c113a0639a145695b3e",
+        "classification": "non_contract",
+        "owner": "EngineOutput.clear_search",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "64c36d698bb36d88def43d90fbda04e66a31effd157dab350b4c7eb1e01ad712",
+        "classification": "non_contract",
+        "owner": "EngineOutput.invoke",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "ba63f50d5f4df9c782dc2a488c335aaee1f7aca2a31ae4bcaa85ec5323833661",
+        "classification": "non_contract",
+        "owner": "EngineOutput.deactivate",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "cb1452284ca2d6cf85d1e8e63943ba1f42b355f59291fdee32dabb29b4a09f68",
+        "classification": "non_contract",
+        "owner": "EngineOutput.close",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "2df0c52306521178de1d201c3e3d1af20ca28f79211d9477ab2f39839124ce5b",
+        "classification": "non_contract",
+        "owner": "EngineOutput.release",
+        "reason": "Return annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EngineOutput",
+        "declaration": "hub/widget/output/engine.py",
+        "consumers": [
+          "hub/widget/output/loop.py",
+          "hub/ui/view.py",
+          "tests/hub/test_engine_output.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/loop.py",
+    "sha256": "da6ac0a6c847b714bd82283b10b0d199f01507a87a28f5053b22d052f1320983",
+    "reason": "TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "28025a58d6a21f5450a300f79e5778a2b46f2bea550088251652af4685bb9b44",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "ff9486ba52c70132884d71e3b785c074e07d03e94c57814a3e42cf0b3642f76a",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "8bc0ab07b83ce052153fb328a3ee381835492c7b65ef516ad59a1bc915769e9e",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "fd25f343bfe745ee24f89ac5bf40480db37f3e6e7a9abf2600194bfe2906d170",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "0c051fd9bfe2ac5b145a724821e356db5e9a464063d5944b16108e0135c8bb99",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "9879a1b501e002f5fd2972fe3207697adddda72e242e74b84e099808db441149",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "85c1f21567448cb7fd2ae4e63297c495ab05eea0f8d691373db705368b012af4",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "d7a7a6cf24b5ac4c79b928a96dbf5cf058d717a0f75137cc633a1cb8824c9386",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "d821cf2b7c4afcd8dbff05434ee704fca0b92b11029d2d75f7103a6ca778ea0c",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "3f8228e8360f4243f81cbc6cf3bddc304bb13f0ffc24d903454b832568524a3e",
+        "classification": "declaration",
+        "owner": "LoopOutput",
+        "reason": "Loop heading/tag display/anchor offsets and follow-tail/cleanup state; TranscriptIdentity, MessageRole, ReadingPosition and RenderSlot supply canonical contracts."
+      },
+      {
+        "id": "dedb5ffa2c684dafd81fec6e932ffc340d6a42cb359afc1668eaf2890a651fa3",
+        "classification": "non_contract",
+        "owner": "LoopOutput.update_messages",
+        "reason": "Convert rendered row count to last inclusive row."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LoopOutput",
+        "declaration": "hub/widget/output/loop.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/widget/output/tag_bar.py",
+          "hub/widget/output_inspector.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output.py"
         ],
         "complete": true
       }

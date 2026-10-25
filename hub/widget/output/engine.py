@@ -15,37 +15,62 @@ from ...config.theme import HubTheme
 from ...config.view_state import ReadingPosition
 from ...model import ChatMessage
 from ...ui.input.registry import ShortcutRegistry
+from ...config.theme_style import ThemeSelector
 
 
 class EngineOutput(HSplit, ABC):
     """Every engine supplies its content and tags inside the same output frame."""
 
-    def __init__(self, view, content: AnyContainer, *, heading, shortcuts=None):
+    ABSENT = None
+    OPEN = False
+    CLOSED = True
+    MIN_WIDTH = 1
+    RIGHT_INSET = 1
+    HEADER_HEIGHT = 1
+    MIN_HEIGHT = 3
+    FLEX_WEIGHT = 1
+    TAGS = "tags"
+    DETAILS = "details"
+    FIND = "find"
+
+    def __init__(self, view, content: AnyContainer, *, heading, shortcuts=ABSENT):
         self.view = view
-        self._closed = False
-        self.available_width = max(1, view._columns() - 1)
+        self._closed = EngineOutput.OPEN
+        self.available_width = max(EngineOutput.MIN_WIDTH, view._columns() - EngineOutput.RIGHT_INSET)
         self.shortcuts = shortcuts or ShortcutRegistry()
-        self.inspector = None
+        self.inspector = EngineOutput.ABSENT
         self.tags = TagBar(self, view)
-        self.header = Window(FormattedTextControl(heading), height=1, style="class:hub.title")
+        self.header = Window(
+            FormattedTextControl(heading),
+            height=EngineOutput.HEADER_HEIGHT,
+            style=ThemeSelector.TITLE.style,
+        )
         self.body = VSplit([content, self.tags.container])
-        super().__init__([ContentInset(HSplit([self.header, self.body]))],
-                         height=Dimension(min=3, weight=1))
+        super().__init__(
+            [ContentInset(HSplit([self.header, self.body]))],
+            height=Dimension(min=EngineOutput.MIN_HEIGHT, weight=EngineOutput.FLEX_WEIGHT),
+        )
 
     def __pt_container__(self):
         return self
 
-    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
-        self.available_width = max(1, write_position.width - 1)
-        super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
+    def write_to_screen(
+        self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index
+    ):
+        self.available_width = max(
+            EngineOutput.MIN_WIDTH, write_position.width - EngineOutput.RIGHT_INSET
+        )
+        super().write_to_screen(
+            screen, mouse_handlers, write_position, parent_style, erase_bg, z_index
+        )
 
     @property
     def modal_container(self):
-        return self.tags.container if self.tags.visible else None
+        return self.tags.container if self.tags.visible else EngineOutput.ABSENT
 
     @property
     def floating_dialog(self) -> AnyContainer | None:
-        return None
+        return EngineOutput.ABSENT
 
     @abstractmethod
     def tag_entries(self) -> tuple[OutputTag, ...]: ...
@@ -66,10 +91,16 @@ class EngineOutput(HSplit, ABC):
             self.view.on_output_position_changed()
 
     @abstractmethod
-    def set_messages(self, messages: tuple[ChatMessage, ...], position: ReadingPosition | None = None) -> None: ...
+    def set_messages(
+        self,
+        messages: tuple[ChatMessage, ...],
+        position: ReadingPosition | None = ABSENT,
+    ) -> None: ...
 
     @abstractmethod
-    def update_messages(self, messages: tuple[ChatMessage, ...], *, auto_scroll: bool | None = None) -> None: ...
+    def update_messages(
+        self, messages: tuple[ChatMessage, ...], *, auto_scroll: bool | None = ABSENT
+    ) -> None: ...
 
     @abstractmethod
     def reading_position(self) -> ReadingPosition: ...
@@ -96,27 +127,33 @@ class EngineOutput(HSplit, ABC):
         """Release any engine-specific search highlights."""
 
     def invoke(self, action: str) -> None:
-        if action == "tags":
+        if action == EngineOutput.TAGS:
             self.tags.open()
-        elif action == "details":
+        elif action == EngineOutput.DETAILS:
             self.tags.close() if self.tags.visible else self.tags.open()
-        elif action == "find":
+        elif action == EngineOutput.FIND:
             self.find()
 
     def deactivate(self) -> None:
         app = get_app()
-        focused_tag = app.layout.current_control in (self.tags.control, self.tags.collapse.control)
-        if self.view._dialog is not None and self.view._dialog in (self.floating_dialog, self.inspector):
+        focused_tag = app.layout.current_control in (
+            self.tags.control,
+            self.tags.collapse.control,
+        )
+        if self.view._dialog is not EngineOutput.ABSENT and self.view._dialog in (
+            self.floating_dialog,
+            self.inspector,
+        ):
             self.view.dialogs.close(restore_focus=app.is_running)
-        self.tags.visible = False
+        self.tags.visible = TagBar.HIDDEN
         self.clear_search()
-        self.inspector = None
+        self.inspector = EngineOutput.ABSENT
         if app.is_running and focused_tag:
             self.view._focus_composer()
 
     def close(self) -> None:
         if not self._closed:
-            self._closed = True
+            self._closed = EngineOutput.CLOSED
             self.deactivate()
             self.release()
 
