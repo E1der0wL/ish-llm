@@ -8793,3 +8793,45 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 114파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## Hub Backend 구성·등록·주입 경계
+
+backend/bootstrap.py를 전수 정리했다. BackendComposition은 기존 Graph handler 등록 이름과
+Provider 진단 표시 선택·명시적 ToolRuntime revision·TestWorkspaces 하위 경로만 소유한다.
+HubEngineIdentity의 Graph/internal 식별자, PreferenceSnapshot.general, GeneralSettings의 언어
+선택, GraphRegistration의 공개 handler 관측, HubBuiltinTools/FileReadArguments 이름을 참조한다.
+공통 Hub workspace 경로는 WorkspaceJSONStore.directory를 사용한다.
+
+None과 명시적 빈/falsey factory collection 구분, Loop/Graph/Title 등록 순서, Component 덮어쓰기,
+내부 Engine을 제외한 EnvironmentEngine 래핑, 동일 RetryMonitor/ProviderRecovery 공유,
+파일 효과·승인·예산·retry 경계의 기존 ToolRuntime 주입과 revision 값을 유지했다.
+기존 권한이나 회복 정책을 이 구성 계층에서 재계산하거나 새 기본값을 만들지 않았다.
+
+원본/변경안 33개 관측이 일치했다. 실제 구성 객체와 최종 Application 생성 인자 capture를 통해
+3개 언어 × 기본/빈/falsey/Graph/internal/대체 Builtin/미등록 Engine의 21개 조합을 비교했다.
+미등록 Engine 3개는 같은 ValueError를 내며 다른 18개는 같은 등록·래핑·진단·주입·factory 호출을
+제공했다. handler의 누락/Null/빈/false/참조 identity, 언어 fallback과 상대·홈·절대 경로도 같다.
+최종 Application capture 비교와 실제 아래 factory/Graph/Tool/Workspace 실행 테스트를 구분한다.
+
+- `whole-hub-backend-composition-core-01`: discovered/started/pass 21/21/21, exit 0, 11.984584초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-backend-composition-core-01/llm.json --modules tests.llm.test_graph_engine tests.llm.test_configuration_values`. source `ec60a3f9ae0e9ce0b18c2d49838650791bd448db5279d10aeac4d19c0372c290`, input `8ef90d28f690a78bd8fbde71c06b456e65949911dc2affe3f8fed6c886deb734`.
+
+- `whole-hub-backend-composition-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.927013초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-backend-composition-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `ec60a3f9ae0e9ce0b18c2d49838650791bd448db5279d10aeac4d19c0372c290`, input `8ef90d28f690a78bd8fbde71c06b456e65949911dc2affe3f8fed6c886deb734`.
+
+- `whole-hub-backend-composition-l1-01`: discovered/started/pass 17/17/17, exit 0, 26.399165초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-backend-composition-l1-01/hub.json --modules tests.hub.test_factory_presence tests.hub.test_agent_graph tests.hub.test_general_options tests.hub.test_file_root_presence`. source `ec60a3f9ae0e9ce0b18c2d49838650791bd448db5279d10aeac4d19c0372c290`, input `8ef90d28f690a78bd8fbde71c06b456e65949911dc2affe3f8fed6c886deb734`.
+
+- `whole-hub-backend-composition-l2-01`: discovered/started/pass 20/20/20, exit 0, 150.183823초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-backend-composition-l2-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_resource_tools tests.hub.test_workspace_settings`. source `ec60a3f9ae0e9ce0b18c2d49838650791bd448db5279d10aeac4d19c0372c290`, input `8ef90d28f690a78bd8fbde71c06b456e65949911dc2affe3f8fed6c886deb734`.
+
+모든 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 argv/exit는
+`hub-backend-composition-draft/selected-results.json`, 비교 명령은 `proof-commands.json`에 보존한다.
+공통 안전성 84개·R3 Mutation·정적 S1–S7·감사·문서 검사와 실제 명시 factory 호출/파일 효과,
+Agent Graph·Tool retry·resource tools·file root·workspace 소비자를 검증했다.
+기존 승인·예산·효과 횟수·Checkpoint·Resume·원본 보존 Assertion을 유지했다.
+
+Hub 집중 실행은 진행 중이던 동결 Gate51 Hub 전체 회귀와 중복 자원 경쟁을 피하도록 그 로컬
+전체 검증 완료 후 시작했다. 이 소단계의 전체 회귀는 ProviderActivity/ProjectCreation/TitleLifecycle
+관련 후속 변경 묶음의 다음 Level 3와 정확한 SHA 원격 CI에서 수행한다. Gate51 결과를 이 변경의
+통합 완료로 승계하지 않는다. 공유 GeneralSettings 등의 아직 미전환 Hub 소비자는 기존 미완료
+표시를 유지한다.

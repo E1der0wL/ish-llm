@@ -30,6 +30,10 @@ class GraphRegistration:
     RUNTIME_FIELDS = (HANDLERS, REVISION, CONFIG_KEYS)
 
     @classmethod
+    def handler_registry(cls, engine):
+        return getattr(engine, cls.HANDLERS, {})
+
+    @classmethod
     def validate_parameter_key(cls, value):
         if value is not cls.ABSENT and (not isinstance(value, str) or not value.strip()):
             raise ValueError(cls.INVALID_PARAMETER_KEY)

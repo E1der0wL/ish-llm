@@ -9,6 +9,7 @@ from llm.providers.request_values import ModelParameters
 
 class HubEngineIdentity:
     LOOP = "loop"
+    GRAPH = "graph"
     INTERNAL_PREFIX = "_hub_"
 
 

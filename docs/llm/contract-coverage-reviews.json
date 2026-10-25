@@ -64775,8 +64775,8 @@
   },
   {
     "path": "llm/engines/graph/configuration.py",
-    "sha256": "e27e3e3a425d379637c3cc954eba314ecbdf6ffb0bc1046c8c423b1ef62744bb",
-    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "sha256": "f8865c1bb09a979191525f0c364e532ff1c15b9e656471b461559685220dd13d",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -64834,85 +64834,85 @@
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "c6c75d6af0b369b78b18f5723a211ff025f1d2c79d7042450ed04823785f3258",
+        "id": "65c513a3a5357d90125255e6b25371cdadb5daee7b3bda4f840232bb69cc38b9",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "5d8c863ea4718384b688dab5d81926d5b9f5ff1053e050c28ad1d8cd04cfd50f",
+        "id": "e379bf9088bd4c74fecfe8efb852d20954bde2b1c4033d21af04e53459e7be13",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "da3546ff1ce32e0c1dd52f42b9ac50efebd53c7747b5f854811c6ce05d6a130e",
+        "id": "90ec68598d0fdf1d608a961281c358ee909e0df4257997000336a8b593abf52b",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "30eeecca0e1847a71ba5cb6cde2f3b9bd73ef4383baa80b4af3228dc731a8bef",
+        "id": "8e9aa5d02ed8df2a56ac6c4b2582c214447f2293c1126ace308fed63b7d941db",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "4bc3f535fa02ed045f8fc11c8ed486148824a27512f3a09d17248598f3e316c1",
+        "id": "df0522a3d7984cd29ebf05e29956134c93636fd66e6e6a0779dc4d228623219c",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "38e08532d4a81cc8d59b479da01b7637e38d4e464c8034af87097bfbcd5175a9",
+        "id": "e73b515135e552cbc97c68baac2b4b223149ed0e1e8be72f4790b46cfefa3142",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "f746e398a7b5082fe0634113811ab239e7cbaf1df0a8efa81f2f746870624e96",
+        "id": "dd9577b0a33835a634c26ca922652d9e3c65869535172daffc7eae446177e066",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "038353682c1d741cbc16d63ca94d5c571f46528d0263a84218aeab900da47fe9",
+        "id": "c6abc98cbdc27404ce9467ce8640249ca122ceafaf97cf4a59d2dfe011c0439e",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "0f35fc41a351560ddab326d29d3cd8b0acf410c91b7743c92106f92b6979439b",
+        "id": "3d6a79d395081c8c4bf89c5f538e9cb98235fe09f090e4ae6c61178c8b8feb6b",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "d5c6202471199c2ae24a3208236ac397017fafec8e18978a91fa12c3d4e26a64",
+        "id": "c87a8a74f5e7ccd2efd5cb3fa98fae5d55b1f0e44967fc6b31dc76bbce215223",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "b83b6de96523ac496d7963e95e318d5e6728fcc5d7df8efda7c41def4d71d8b8",
+        "id": "3f2bb2b95683f31d99ac1293463fb6f39f59d5f6ed35415dc79d2e28de803021",
         "classification": "declaration",
         "owner": "GraphParameters",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "83bdc3d3b65b2ea3e399ae34878933da0e5fe0ec21f292cc1276f3840655855f",
+        "id": "9f055002f9016d209aed0cd0e639fb6ec29259ca7523db0e05a65322672cdd81",
         "classification": "declaration",
         "owner": "GraphAgentOptions",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "bfcf98912684609a8bd71e64619af316abb4da2d5accae8f68bf802cb46b1efc",
+        "id": "8ea4dc6a1b7be15ade25cdacf5b55e09ff11df948346752e4516cf9f3a9756a8",
         "classification": "declaration",
         "owner": "GraphAgentOptions",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
       },
       {
-        "id": "bca191d6a19d0dc12f76b7c607ecc933971195838f00a35d1720aa842c4084d1",
+        "id": "536256774b2ee86b6e09c1c30efeba868fece3457d966be5bb9b140f1906d8bf",
         "classification": "declaration",
         "owner": "GraphAgentOptions",
         "reason": "Canonical Owner-head field/flag/schema/diagnostic/value declarations and typed records. Consumers use Writers/properties/validated public APIs; dynamic user dictionaries and selected handler extensions retain their original opaque meaning."
@@ -64923,15 +64923,22 @@
         "owner": "GraphRegistration / GraphParameters / GraphAgentOptions",
         "declaration": "llm/engines/graph/configuration.py",
         "consumers": [
+          "hub/backend/bootstrap.py",
+          "llm/engines/agents.py",
           "llm/engines/graph/engine.py",
           "llm/engines/graph/tool.py",
-          "llm/engines/agents.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_file_root_presence.py",
+          "tests/hub/test_general_options.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_resource_integrity.py",
@@ -64942,6 +64949,7 @@
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_graph_decisions.py",
@@ -64958,6 +64966,7 @@
           "tests/llm/test_resource_references.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_steering_values.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_workflow_format.py"
@@ -86039,8 +86048,8 @@
   },
   {
     "path": "hub/config/general.py",
-    "sha256": "b23e52db67da14b523dbb03514baadb960c0a2c32485e632a6850f55326e09f0",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "sha256": "3110405209a390c840c7d89a853e833f282525fd89f326d0d31b18dc007286d0",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86283,6 +86292,7 @@
         "owner": "GeneralSettings / EditorCommand / GeneralSettingsDraft / LanguagePacksDraft",
         "declaration": "hub/config/general.py",
         "consumers": [
+          "hub/backend/bootstrap.py",
           "hub/backend/project/presets.py",
           "hub/backend/project/settings.py",
           "hub/config/preference_records.py",
@@ -86300,6 +86310,8 @@
           "tests/hub/test_coding_skill.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_file_root_presence.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_naming.py",
@@ -86310,6 +86322,7 @@
           "tests/hub/test_question_tools.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_resource_tools.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -86329,7 +86342,9 @@
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_graph_engine.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_observation_values.py",
@@ -96077,8 +96092,8 @@
   },
   {
     "path": "hub/backend/execution/engine_selection.py",
-    "sha256": "fcfd821f30229a8a57037a835989c81b8c4a332acb9f9de639f500015633dc32",
-    "reason": "Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved.",
+    "sha256": "819179a72b1356c104212623d55d5bdfcd077601f13bc0326a67d861f984fd07",
+    "reason": "Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -96088,31 +96103,37 @@
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "51ef133f77bbc7273ba23902942115ef285c49de9cb107b2e0f090cee13ccec9",
+        "id": "a3493d73f9aac55bbd6ced63dbaf1a65249a7b9b9e8f54772746305803275112",
+        "classification": "declaration",
+        "owner": "HubEngineIdentity",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ca978a986953fe26f6455b4b4d25795eb857086ab403c06fca54e5d4e3f282d2",
         "classification": "declaration",
         "owner": "HubEngineIdentity",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "716435ac0feec0dc71bfcde79d72013727a6c55ba91f7a64e529d295fe46719d",
+        "id": "afe16235530a352eeeb71bfce071e729e766c25a06ece49b37d52bb5f58b89d4",
         "classification": "declaration",
         "owner": "EngineSelection",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "703f7c2778da2117de8923d81040513846d88026a1fb34e145858ec3025e10b4",
+        "id": "a978c840574f1f41bd799a3ffa22e496393c8135229ee9fa40598e8605c1d34a",
         "classification": "declaration",
         "owner": "EngineSelection",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "fd9915a6013a770bfaa8962eb4c7c22d46d08c71b1d7c627e2ebe6a5511aa5bc",
+        "id": "202affa0c1efbbc2ac52b28c783fa77829735a4ad74aac08c0e8c0e7d5aae61b",
         "classification": "declaration",
         "owner": "EngineSelection",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "b14dda1f5244f5e2dbf2c4e71d68dc88b935dbb7ea9e25c52e2feaa175c7d90c",
+        "id": "3299f894dfce9dfb09435ab37c8a791cc8789f407777eb2e2040c5d7e18ff868",
         "classification": "non_contract",
         "owner": "selected_engines",
         "reason": "Python variadic tuple return annotation."
@@ -96124,37 +96145,43 @@
         "declaration": "hub/backend/execution/engine_selection.py",
         "consumers": [
           "hub/backend/bootstrap.py",
-          "hub/backend/runtime.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/runtime.py",
           "hub/backend/tools/retry.py",
           "hub/ui/view.py",
           "hub/widget/forms/definition_manager.py"
         ],
         "tests": [
-          "tests/llm/test_retry.py",
-          "tests/llm/test_builtin_file_values.py",
-          "tests/llm/test_builtin_process_values.py",
-          "tests/llm/test_builtin_catalog_values.py",
-          "tests/llm/test_execution_observations.py",
-          "tests/llm/test_completion_processing.py",
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_file_root_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_resource_tools.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
-          "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_agent_selection.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_bootstrap.py",
           "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_agent_graph.py"
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_workspace_settings.py",
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -101116,6 +101143,90 @@
           "tests/hub/test_context.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/bootstrap.py",
+    "sha256": "c2e873cd78fb4ecbde539963099c01b598e8ca2b08ce107abcfd5207dd295ce1",
+    "reason": "Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3e8555cca9898a441f104bbedae04d88b3f3e32e6134c0b11fd0c396c8e9d018",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "bd0ac1dfef0e8ca2e40cab0b44cb68638ee1b45a9bcfbdde75521216607d4936",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "ed9fdee3c5513be9f25dbf04d5e01a84f678a2ca31ade35c3798e42db49d16ad",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "4429a0ec02baa962c99d56c6d3401d47d0fe05c2c5cb299790212f64edd831b1",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "e6e1a98b9f8ac3b3011313b5e3310a54d03501e4dfed286623bd3aa0843acb00",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "96293d915aeaf2ba0dde30f3adea063157baa44f439283c25b5b0e6828e8156d",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "ab4c4a0696f9b014ec5e42518aca5e2525ca055216b5c4a27a6b144346389dbb",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
+      },
+      {
+        "id": "b9b99af9fa8a8a140c66e355ad90ead57cdcafc2e7a1784906c7ea22dd41c2c1",
+        "classification": "non_contract",
+        "owner": "create_backend",
+        "reason": "Forward-reference type annotation for the TYPE_CHECKING-only HubConfig import; not a domain runtime literal."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BackendComposition / create_backend",
+        "declaration": "hub/backend/bootstrap.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_file_root_presence.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_workspace_settings.py"
         ],
         "complete": true
       }

@@ -149,6 +149,10 @@ class GeneralSettings:
         },
     )
 
+    def resolved_language(self, fallback):
+        return fallback if self.language == self.AUTO_LANGUAGE else self.language
+
+
     def __post_init__(self):
         from .workspace import workspace_path
 
