@@ -1,4 +1,6 @@
 """Shared sidebar identity and page navigation, independent of backend handles."""
+from hub.widget.mouse_contract import MouseBinding
+
 from hub.ui.input.registry import ShortcutRegistry
 
 
@@ -62,7 +64,7 @@ class ProfileBar(HSplit):
         )
         padding = [Window(height=self.LINE_HEIGHT), Window(height=self.LINE_HEIGHT)]
         for window in (heading, *padding):
-            window.hub_click_focus = self.focus
+            MouseBinding.set_focus(window, self.focus)
         content = HSplit(
             [
                 heading,

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 625,
-    "unreviewed_files": 68,
+    "files": 626,
+    "unreviewed_files": 66,
     "stale_files": 0,
-    "unclassified": 4252,
+    "unclassified": 4117,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 68,
+    "unreviewed_dynamic_paths": 66,
     "unreadable_files": 0,
-    "candidates": 17509,
+    "candidates": 17431,
     "issues": 0
   },
   "files": [
@@ -850,8 +850,8 @@
     {
       "path": "hub/ui/input/keys.py",
       "status": "reviewed",
-      "sha256": "4bae8dca48fd56fa1ee9aeb7e7b270c834c86005ed9118a7439351d4f8ef64eb",
-      "candidates": 72
+      "sha256": "2a27afe42f7d94efcd73aea9b137eb3a552a3310cbecfae51e9bb86d0ccf52ab",
+      "candidates": 73
     },
     {
       "path": "hub/ui/input/registry.py",
@@ -1101,9 +1101,9 @@
     },
     {
       "path": "hub/widget/controls.py",
-      "status": "unreviewed",
-      "sha256": "991411bb61fac7a200a5a6e4c0105dae500316ef8a50ee803b4ff631b61a9439",
-      "candidates": 78
+      "status": "reviewed",
+      "sha256": "01092239d027609d92900f2c729f60dd98e853ab1fe4c34262d5afb1e0ee297d",
+      "candidates": 27
     },
     {
       "path": "hub/widget/dialog.py",
@@ -1173,9 +1173,9 @@
     },
     {
       "path": "hub/widget/focus_region.py",
-      "status": "unreviewed",
-      "sha256": "11787fd56e9ff2a52629a2d32f4d856079eb657e91bfd5a6a10b6aeb4ad3b078",
-      "candidates": 39
+      "status": "reviewed",
+      "sha256": "7ebbcd3d54e8265fa35c8bab3d99f8d8b16fe18a3b9f780f733644137089ecf0",
+      "candidates": 16
     },
     {
       "path": "hub/widget/forms/__init__.py",
@@ -1306,8 +1306,14 @@
     {
       "path": "hub/widget/mouse.py",
       "status": "unreviewed",
-      "sha256": "32f0319d5741d9e80490ffe7fd01829127b408e47b70e5c599678be5703cbb3e",
-      "candidates": 151
+      "sha256": "e3c99917e264cb844d7a9311c8eea9b5e59cc25526e855af1a3a7f0a6f07728b",
+      "candidates": 133
+    },
+    {
+      "path": "hub/widget/mouse_contract.py",
+      "status": "reviewed",
+      "sha256": "f9250585f15a20a616f76a59a86c6c85457e00bf66f997eea4141c6b83a80591",
+      "candidates": 13
     },
     {
       "path": "hub/widget/output/__init__.py",
@@ -1330,7 +1336,7 @@
     {
       "path": "hub/widget/output/loop.py",
       "status": "unreviewed",
-      "sha256": "a75e89758049a4164ec985986a1f51d5b067ec35039dc0c06f974eb8ea1d4fde",
+      "sha256": "f9c30b6982578630dccb232ea927e00c6fdca6355375adab0209f8675ed3445a",
       "candidates": 21
     },
     {
@@ -1390,7 +1396,7 @@
     {
       "path": "hub/widget/profile.py",
       "status": "reviewed",
-      "sha256": "9494f5e4868f857ab635b568d35e283b4fefd16305055ae868706aa4f945f482",
+      "sha256": "e7262e92b519ab2dbf4a4ef890a13d3ea557eb582cf4e9c448646de8f8af2a98",
       "candidates": 13
     },
     {

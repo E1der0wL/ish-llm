@@ -10,6 +10,7 @@ from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.containers import to_container
 from prompt_toolkit.utils import get_cwidth
 from .input_contract import EditableControl
+from .mouse_contract import MouseBinding
 
 
 @dataclass(slots=True)
@@ -102,16 +103,17 @@ class WindowScroll:
 
 
 def window_scroll(window):
-    binding = getattr(window, "hub_mouse_scroll", None)
+    binding = MouseBinding.scroll(window)
     if binding is None:
-        binding = window.hub_mouse_scroll = WindowScroll(window)
+        binding = WindowScroll(window)
+        MouseBinding.set_scroll(window, binding)
     return binding
 
 
 def hover_style(window):
     original = window.style
     window.style = lambda: (original() if callable(original) else original) + (
-        " class:hub.mouse-hover" if getattr(window, "hub_mouse_hover", False) else "")
+        " class:hub.mouse-hover" if MouseBinding.hovered(window) else "")
 
 
 def contains(rect, point):
@@ -155,7 +157,7 @@ class MouseController:
         self.app = app
         app.before_render += self._before_render
         app.after_render += self._after_render
-        app.hub_mouse = self
+        MouseBinding.set_controller(app, self)
 
     def detach(self):
         if self.app is None:
@@ -169,8 +171,8 @@ class MouseController:
         grid = app.renderer.mouse_handlers.mouse_handlers
         if isinstance(grid, _MouseGrid) and grid.owner is self:
             app.renderer.mouse_handlers.mouse_handlers = grid.rows
-        if getattr(app, "hub_mouse", None) is self:
-            del app.hub_mouse
+        if MouseBinding.controller(app) is self:
+            MouseBinding.remove_controller(app)
         self.app, self.drag = None, None
         self._cancelled_drag = False
         self.windows, self.panes = [], []
@@ -220,18 +222,18 @@ class MouseController:
         if self.hovered is target:
             return False
         if self.hovered is not None:
-            self.hovered.hub_mouse_hover = False
+            MouseBinding.set_hovered(self.hovered, False)
         self.hovered = target
         if target is not None:
-            target.hub_mouse_hover = True
+            MouseBinding.set_hovered(target, True)
         if self.app is not None:
             self.app.invalidate()
         return True
 
     def _hit(self, point):
         for window, rect in reversed(self.windows):
-            clip = getattr(window, "hub_mouse_clip", None)
-            if not any(pane is getattr(window, "hub_mouse_pane", None) for pane, _ in self.panes):
+            clip = MouseBinding.clip(window)
+            if not any(pane is MouseBinding.pane(window) for pane, _ in self.panes):
                 clip = None
             if contains(rect, point) and (clip is None or contains(clip, point)):
                 return window, rect
@@ -242,7 +244,7 @@ class MouseController:
         for margin in reversed(window.right_margins):
             width = window._get_margin_width(margin)
             offset -= width
-            if getattr(margin, "hub_interactive", False) and offset <= point.x < offset + width:
+            if MouseBinding.interactive(margin) and offset <= point.x < offset + width:
                 return window_scroll(window), rect, margin.display_arrows()
         return None
 
@@ -304,7 +306,7 @@ class MouseController:
             if not self._present(window) or window.content.buffer.read_only():
                 return
             rect = next(rect for item, rect in self.windows if item is window)
-            clip = getattr(window, "hub_mouse_clip", None) or rect
+            clip = MouseBinding.clip(window) or rect
             top, bottom = max(rect.ypos, clip.ypos), min(rect.ypos + rect.height, clip.ypos + clip.height) - 1
             left = rect.xpos + sum(window._get_margin_width(m) for m in window.left_margins)
             right = rect.xpos + rect.width - sum(window._get_margin_width(m) for m in window.right_margins) - 1
@@ -366,7 +368,7 @@ class MouseController:
             return None
         pane_hit = next(((pane, area) for pane, area in reversed(self.panes)
                          if pane in modal and contains(area, event.position)
-                         and getattr(window, "hub_mouse_pane", None) is pane), None)
+                         and MouseBinding.pane(window) is pane), None)
         # The pane's scrollbar has no native Window of its own.
         bar = (pane_bar[0], pane_bar[1], True) if pane_bar else self._bar(window, rect, event.position)
         target = pane_bar[0] if pane_bar else window
@@ -401,7 +403,7 @@ class MouseController:
                 self.app.invalidate()
             return None if moved or event.event_type != M.MOUSE_MOVE else NotImplemented
         if event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT:
-            focus = getattr(window, "hub_click_focus", None)
+            focus = MouseBinding.focus(window)
             if focus is not None:
                 focus()
                 self.app.invalidate()

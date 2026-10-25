@@ -88435,8 +88435,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "4bae8dca48fd56fa1ee9aeb7e7b270c834c86005ed9118a7439351d4f8ef64eb",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "sha256": "2a27afe42f7d94efcd73aea9b137eb3a552a3310cbecfae51e9bb86d0ccf52ab",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88524,349 +88524,355 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "391c6c8172d0c8653e30cc1037574c4b5829aa306dc371075255be1ca4408b29",
+        "id": "cac906d1c334632ff51d2ae62d13fcc88b1ea9824b511f6c19e5b61a0923c872",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5cb1a800d64e85b3c4c283d891f8dbd470c35c797753f6d68a728592759a7dce",
+        "id": "e80dbf236e5038714c8442d0e189d7d8a5ff9c870ac1f490a9ab04246968bc8d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c19f79c00dd3d835bc080e6eebece4f672623b20192c1643cfb1154860fe8b1d",
+        "id": "8e639f3b72c6e59f5c813912dc6037277896afb1a2fe45278cdcfc71a582e7a2",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a860f89f7895d286fe836afb33d2457438c7f5a2068e5257397976faefcab266",
+        "id": "4b2070a240e92a8406c9756ae5b540467b66aa4451ce26b7ba65eb16e07bcc4b",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "32cae811476425ead94cd1848a6c78f4861c5b0255097a9442e890ef395e9b13",
+        "id": "9397a97081fe8ff9bdfc53a2608d533b844dd6bce44f13264c2ed10ea03e91e2",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d3eff8fb7bf90d2562fe93c34430d24befe0256ce3397aecf713b6ce30a71847",
+        "id": "f45da41501a2e827ad1306d85761b3e1020a7aacd76477310f9e0f090e3ae1ae",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "213bd6999b59939f86ab41d6d186016412fc61f6c604a89637e79a43ac52b9d8",
+        "id": "6b72b8f9fb16c5330fa86face9cb9543b9fabd1c3c88a811b3c19055fde0cfd6",
         "classification": "declaration",
         "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "66264dc0e61e38180269c7f7e1ec846f2d15342295073cd64fe7a27d0dfe7a68",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "6f11e05e4792636cf05f7f1c6abb07fb8717d397cfe0f17f8d14acbb67ea9ea1",
+        "id": "2794fea71eba1b0d912245983d5ed347d5cdaf32f9f1ae418d3239cfd5c87e0b",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "9f58cb119b50f56b331deaac6d77a3ea3998b2562e1e7a4907e2790b496daf13",
+        "id": "974de9359888350c4f7720fa494123ddfb12e52e5c6ca170cba759d7a25d0a71",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "e5dc73c0adaa0afdd69fbe96805b3ae7b74dabe1d89467a0b99606ed7dbb1cf4",
+        "id": "b40bf13f6645a802d559c73a4b168fd70efa2f6c22afb1eb3e7bec489d368a6a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "1a200146dc8bf012f790bbd4558bb27d1c04782846bc9ab293816e48a8ccb554",
+        "id": "f146cc4d8c82a42b4697320d1f6824c5362d21faaf431086d11e9026f19d463c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "ec84316946e1caf8ff17b5f16a9b6987430d0050a3300276f51cdb04d530a5bc",
+        "id": "1d119fcb563824fea28aa5b5e72ba431d3103d0f7c753dfa91f9840b582ce251",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "3f778607c19452fb50e71e941b39dcaa3d7cf49fdde09a13bdd684b8167fa304",
+        "id": "b4e3b2e2423bedc9892a3164755ca70c019ae5529670505fefcebd7e4f040a9a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "1baa8043f73f0f10b9e99decb31cb1e7bb8ec52b82d626face85f1baee2492ef",
+        "id": "32a16f29f83d4abf4535f5728ffea945ff2f1b8a1ab19d64041e0127f67269a9",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "3443d0a662f18ba1cedcb170c58a5f7249eba23cc86a7de3082dca92943f99af",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "22497b9712fa2fe543138a071903cb101738fee69e5aa9c8b96433a9da4fb27c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6c35c34803f22ec11ac040dbc74d25488282132a1f47778753dc15de8fc8d5b8",
+        "id": "cde95d794ed0fe6403443f6ba5059a877b72059c7af7ace69c039ce60b059170",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "da91329e5f5b9e37a4f6cb1bc165c9152251300da8a954302ba29a91b77c3d48",
+        "id": "d2ef852d31d5109f185d644f2e30d7e7d8d8fc193168cd2d05b8fe783818d058",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a657adba185b26b63e5b515b04e6e4da41f6723bc74727ceb202b65b15ef9277",
+        "id": "2c7f16a9bf3ff127a466bd1a19067c8b7cf59bdb2a9db020ea7b769c2cfc0d90",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "eab98609a517abf71cefcba85cde3f7ec2de5eb1bbac651a86b0cd0c5ab58d7c",
+        "id": "d56e3900360ffce94ef4e335a310b769bd2a8fadf11e653ca7eda5621205be4a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "14154051ecb95e56edcc474c4cc5bfbed06d8e3e8fde54813c18f8c7509d4c07",
+        "id": "59b2c44435dc5900afaaf58109fa848de6cbd566d0c6ed2e52b18eea072603d8",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "968c64feac485b889745fb2e788c712b8b18116d3b75d81c3771c3e08fa0b0ec",
+        "id": "bdd09e95ce4a06e1aa921fd969b91b83500300de9d822964d491baba083ca369",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "81f9f451ffa5baf6ad9800bdf7953a4d692494d7390333abba65e32af5f0a96a",
+        "id": "0e37bb5c2e8c77c1d6535cc40628810dc1267aebbef0a2741421bfe7e897f584",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2718c6abea4c62378fa09e79f8882193f3c2c0b34a0b60647a5a25dea18ac3e7",
+        "id": "786d7876dfd719022f02b0ba64d6b51728f94375ba2b4f34b11ecdb96d9c7d56",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "825c4f6c1b3813130b91052921c3bc1f94c3f32915e21e1b2bdfe399ac59e141",
+        "id": "3097f685c32e6d55bee2d03c7fc8d8d961e96d27ef410694846d37c8541cb235",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "62970bfb87af43b43690dbadf3794fd719bbb6ad949ea0bb3daf7b1e1fad4d8b",
+        "id": "e786a700746aee7c65bc0b365d6c7fbaabf0b8d5f684c49239a6ccd7119669f6",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f3e7738c6091fe0e2996485bf90fb223bf0cb5e11f58ce19490d4427bd151626",
+        "id": "33aaf0a5adea42543ef2735178e8ee4bda48d9aaa4c60d31cb1fc239423ec000",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f3b51d8c9e40b1e226de1763ea8c722f55c8ab6cdb2d5af4fb57c9fe9520fb43",
+        "id": "1c06a2617f72851d3e00a9582d487b15c60fcae3e90bfddf44d2dd3fcd567856",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b4fd58055eb3fe03905c09de470d3a3592b811efb3ad17dfdf17fdce55d1f7fd",
+        "id": "0a0f2356d298449faa7d4953d16388da1c4be8b4df9c665ed09c02c26a845533",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "817eac62c8e802186ad9f64abc8f98c850340f3eee464843b1a0c0e226a62b2b",
+        "id": "075918ce8d3bdf6c4db8369d37205c66e576b3110ae3fd45340cd103ea7ce38f",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "aeea8b3b6d98ef86bb86bf48fa4414e0b17aa28ed7db46c4983fb622792aded6",
+        "id": "654b96a7f07621e238ef113e5f576eaa87c9ebc1611eeafc74539ba633fc0356",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8f325ee830583c432d3e696e27344a0547b7c6b8782b082b464ca349ea8c4977",
+        "id": "5acaa968f33ccb5888cdaf299e00424741fe6c5211337f1987d0e09fe1537e73",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "750cc6ddfde4a4dff373e861cd0af979bd179b2c4c6f381e860d618db227e761",
+        "id": "eb1a529b676629af2cfb77966d7d452a5edbd63cfec0a53e34ebb2b4d6247960",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0ec1dbcc249302269e9dd41aa92777d6b912a8451185f7e7dc8b47a4f3ab2bab",
+        "id": "aec6ce74056e958ac009ec44f2db482291ca5bab572c5b59f91eb1354973b645",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "62acdd974ba973101e28109e2bcde3315552d995408235cccd15d8e0509438bb",
+        "id": "14c895b39e21747066c0adb7d4c5d541268fe9680d3619c185870ef3d9502b7b",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3037f8c6f7c932d57d21638102d626446489b6633e9abbf7751bb1e1a2d1a54c",
+        "id": "0772d76f8b7c43bb349d1b4b60b631d9eaebe7346df8db1d2ed9d19ffcb981d3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "59148cc107e08ef5bd7f62fc3734eb26b098fcea15c22d708ac1922b0fcf44e5",
+        "id": "ad8c9b4f86ccba8e8363d1f73d82ffd2a3a608c411ccdfe60b8e2ad80e219f3c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "95b5895739d0cfc8ed488c5aef668dbf919f3dec2b8b1ae273716255e0e2ddc7",
+        "id": "03ed42751f008a4cb8af7f3bbec59a8492c7c215490318e062c980fed2b5bd9c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "b7a7eb542fdcea119d04e402f0a24540c42c971ad069f14dfc0e053996749ae6",
+        "id": "7f3a339ca9c6b9d40bb33ef39acf3a496f4d367dc69e69d73d03819f7b20b55a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "61142b2159a61d26945ee1d4f7805ff9edabbf1ba541429309163801dd829218",
+        "id": "8b98a0dade5203b2e6bbe3b0635bf753989c85d507ad869423ef6e113900f575",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "387c8eadb041a82a2fc635e2e74384b06f9e1bc1be5c8f261175b96cd83d363d",
+        "id": "34292960d2fc8d5785e83fe42240c68b94911fb118f12e784ed1d1f2b263c4df",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "d5a0c4b4611fa27174af9f6e16d9bc9fb333e2122c4719cb28687d3d63b1446c",
+        "id": "73ced34f8882d09aae5986e8c1f3ec1dd1803e64d5669e21e16afc5184bbc560",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "80fe083f1ffaa5b02e25e2d158e8da8902296ac3190ed723e85aea1023e970c6",
+        "id": "48b837e69861febcf5f88425201f5c71f94baac06eeb6e17eecad33b73665654",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9559fc39367f00d0e7815842c46ca7fde0be2f7c9719a0237b25c405ffd250d0",
+        "id": "2fa4c773c7a69b6fa242135656c2aa56ec24f512dbd4ea04b877a61279456d48",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a977d207f9a6f395c6de750a7b015a55df4d5a6e280a8923802a2b9286ffd29c",
+        "id": "21ec132a14e984d4d6a78344abdad88a5c061c6eee8c70306e393b0cc0ab91fa",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0f4f9cc0a774c65b3fe92d500ff91f209f40d6ed8ddf9bfeb9c632313bf68403",
+        "id": "6b7d60007968fe3ff2612e79b1153d27bc2da641f488776d3702ad4c5fb18a5c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "46eef0a1c9966474e9941297bb515f2142c1abb28b24d7ef43594e2e6db6a53c",
+        "id": "07b5cd2323937288688f76d9c2812752a4ff88182d9b50bab4bf123ecaaecf5d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8c2f036a3a47e69fe4a435400ec3e5b28f2d882e949d751899b030694a0ab845",
+        "id": "a4354c7e036a4f7e8d5154ace4a6d109bb6c5378a3cefab6f60befb1cc565fa4",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ded0dbb2b22945f435f4506693e5536469e9ccc8ea49d31ced759649c6fb9ae4",
+        "id": "e38b72291f5c120685db6a2bf4ef489a3e269150fd68692a8632b0e4a40fcc06",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ecca08f9e9c6ca364fce8938d3effe9c36ce5f3e5cbc049c88bd5b06c5b07168",
+        "id": "a42974302d3512f85732e0f50342208cfed0fd30a0544179b720ea52b4312e3c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1a2f838464f32eeb47e27072d2fe7cb89466fc1357dfc5e22985ba2992a4ce65",
+        "id": "11495593ea553fa850378cce74688f91ea344245abad2eda4d412a823615bb8e",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "48141821a0fd76e5713b370fa16610a10bb1595a8c6d0e5d5d86765d513fb1df",
+        "id": "4063d53b720ad78b6ea801756c8585e668ca6e90a31b6c1b55af5b5d6a14832a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "418008a0b63d1a750b043f9b6b55f84702e81e0ab03d25fff3ccc7dbe6faa411",
+        "id": "af323658c22272fdaba1533bc96153b52eb0917d435f990efd4b087eb1816904",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "022705cf2165562c7f2e3bfc89d2c2c238cff26879884bfe41d1923ef9c2de06",
+        "id": "7dbe74a3b754e7b893ec7746c9088ed85be61c434ebc4be3ba06868bade4f4ee",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "daecfff03015db005a738c56b2859b901ee988a848dc3635b258a8e2a6f77942",
+        "id": "59f0092435808d900c2f09bfa2ce8e068537f2ec762746ed2d6a7734acdc705b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "51c5c666f82720ab97bc29de64ef0f424aa4da21578341b63078cb7db1fec41f",
+        "id": "b28707694e29ad3724f9787177ea7ec22c9353f892049665726b0c89f39721ed",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4c8867b7fc4e4930b0c835fda43729624add6f0d62509d4eb5b59aac43b9637b",
+        "id": "f8f3ddc32ec516a6ce44e4bb7801a628c0c81d7502f05ae720183925cae795fd",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f400fe07380af7254f82d6e8a8267becf52c75ad1111585c69966269d0f47a9c",
+        "id": "2ca527913a73ef4b3e87ac2842f9caf6cf4d29928000fc1e968a44ea00d2b6f6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2fb9ac79ef603861573a122a1461445225465338fd61b36b16e74412ce7973c1",
+        "id": "bc5b2c649f5115b0f6eb54b8d90cd45b18b92e1000546480ff517a08ef7e4dd0",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -88894,12 +88900,15 @@
           "hub/widget/actions.py",
           "hub/widget/auxiliary.py",
           "hub/widget/content_inset.py",
+          "hub/widget/controls.py",
           "hub/widget/dialog.py",
           "hub/widget/feedback/notifications.py",
+          "hub/widget/focus_region.py",
           "hub/widget/forms/path_input.py",
           "hub/widget/forms/request_history.py",
           "hub/widget/forms/settings.py",
           "hub/widget/header.py",
+          "hub/widget/mouse_contract.py",
           "hub/widget/output/reader.py",
           "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
@@ -88919,6 +88928,7 @@
           "tests/hub/test_component_managers.py",
           "tests/hub/test_composer_history.py",
           "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
@@ -88932,6 +88942,7 @@
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
+          "tests/hub/test_output_interaction.py",
           "tests/hub/test_overlays.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_popup_completion.py",
@@ -89535,84 +89546,84 @@
   },
   {
     "path": "hub/widget/profile.py",
-    "sha256": "9494f5e4868f857ab635b568d35e283b4fefd16305055ae868706aa4f945f482",
-    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "sha256": "e7262e92b519ab2dbf4a4ef890a13d3ea557eb582cf4e9c448646de8f8af2a98",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "d6269823d8b2be3581282a4491e6096a3dfb505010ec7828d4dc503d98f35555",
+        "id": "cc7d7fd3c6b40f9951890fef581a55b6b33a6d9cb47322dfb6faa4bc5ff1337b",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "7fa86772ccfde1248ba3b78ac6b88b687d80f4d82430fbcc7661b0c2937a1750",
+        "id": "f31463e7cebe392e18052cf5c0ff7e99698bfb6ecedcf630ca3f6bdb85fe3e51",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "37bf890712d49877d5a33602a6aeafba124885483cb1e003bff8a0255601b90a",
+        "id": "6d1e2fb0b9e637a4f9797e6bfb16355362dfc2bb7f2dfd024f638f97912ea582",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "92817f238bb99ad62fe88dfbb950da62bbd2d08f4d10ad0c7486deb399d4f060",
+        "id": "bc0a2e357085366cca231b2c07ec5bf03ae82e40194c35c8ef1789c2f0b7f88a",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "bc16d90dbe9f56e5a0326f9f354abf449db11c01dceb06a1dab8e5697063f88b",
+        "id": "c3d479cb9f4ad8a93451fc6f72fcd0cbe0eed250d10345f54fbac0586ddaa99e",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "84b39c427044053dbe63e35446adc9a435828f27a033cf6cbad0d83ea7c27558",
+        "id": "c46614d233c9399f7038d55fe7676034109df2c2c857398ac3362a93dedb5089",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "c4cf5e8bdd43e26ab4b8c0125fcab68ceea80851c0249ac78c7d051ef8ce2fd7",
+        "id": "4efaca787a450db2f2cd668a96c63c5fd2199a56aa9dbd3b1557881069d77ab3",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "c32f8015e402cf7d391dfedefc9106e1843d694d2eab1a9159c9fa59de4b9723",
+        "id": "cb25b0abbb573fac21e0ff4c748cb35b733ef77d4fef4a9d1932881c1424f4e8",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "0ca807a8a3f261f247eee8017b9ef57bb450ec09c03fabd7e8eaee4d3c876163",
+        "id": "d831be732927dfb314dae443738e914f8751e3eaaa71a0c5b4c08d76f7aeecb7",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "885031da16c3b5aa81ffbb031602b0953d6af0967369dfa7473412b7fa16bd4c",
+        "id": "229735b0455a9752e1acf88d36e4916c8de716e7f050b2aae22911c9493cc380",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "b0f66065bb8c94393cea71b54b62f115a0ba9d9db52c391a28c3a5cc4e37535e",
+        "id": "e75294236fab7116772e214a2b66da72f48bdc1fd80a5bd5165f34261426c947",
         "classification": "non_contract",
         "owner": "ProfileBar.__init__",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "603314ce4460458ba491cfd00b13c13acc41f8a532e576d6869c0b2b494ba54d",
+        "id": "9b226dd3a16d820a551afed8fbe2d3e6bd5259e62ed6d8a1bb0760886d0ce0d6",
         "classification": "non_contract",
         "owner": "ProfileBar.__init__",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "d1bad3a22c7c21383c16f939e87c2089fbe761d7b9b499fa97bda9c3d044ba99",
+        "id": "60e993b214d53076f117ffa7bb4c6b788e19a0833305571cd0accdd30cc1cdb5",
         "classification": "non_contract",
         "owner": "ProfileBar.__init__",
         "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
@@ -89629,8 +89640,11 @@
           "hub/ui/input/submission.py",
           "hub/ui/settings/pages.py",
           "hub/ui/view.py",
+          "hub/widget/controls.py",
           "hub/widget/dialog.py",
+          "hub/widget/focus_region.py",
           "hub/widget/forms/path_input.py",
+          "hub/widget/mouse_contract.py",
           "hub/widget/output/reader.py"
         ],
         "tests": [
@@ -89639,9 +89653,12 @@
           "tests/hub/test_clipboard.py",
           "tests/hub/test_component_managers.py",
           "tests/hub/test_composer_history.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
+          "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_notifications.py",
+          "tests/hub/test_output_interaction.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_popup_completion.py",
           "tests/hub/test_popup_settings_updates.py",
@@ -89650,6 +89667,7 @@
           "tests/hub/test_request_history.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_slash_commands.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_submission_latency.py",
@@ -103626,6 +103644,458 @@
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/controls.py",
+    "sha256": "01092239d027609d92900f2c729f60dd98e853ab1fe4c34262d5afb1e0ee297d",
+    "reason": "Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6e9442a51bcf62471903fb4f498a01fabfb7fec79d439d84a80f902799491537",
+        "classification": "non_contract",
+        "owner": "_arrows",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "c9b0c4387c7e6de1cf45d8f95c9ea152db99886f8f4e7cda6e9a0c089c2fb88e",
+        "classification": "declaration",
+        "owner": "ScrollbarMargin",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "af32b5e54bc9caeb8f365511f211b1ab31297f1be9a279be9a8a94cc07b82f6b",
+        "classification": "declaration",
+        "owner": "ScrollbarMargin",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "56f95a84f85f72a2a04911961b3fee61707728ea6918cea7f148b5b1146d4d3a",
+        "classification": "declaration",
+        "owner": "ScrollbarMargin",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "5d5a0a9bdfb6593c0afba44a523b02d47f92b5595eb7cfbf18ff695392799f04",
+        "classification": "declaration",
+        "owner": "ScrollbarMargin",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "8282d47faa010ae4412f4d6d39ca42ae8db4f3f1e77cf2c6cc5e4d952835b9bc",
+        "classification": "declaration",
+        "owner": "ScrollbarMargin",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "1ab006170c23e6a86268a007d0a6309b292cc3b1caa31212007ba64a2a969882",
+        "classification": "non_contract",
+        "owner": "ScrollbarMargin.create_margin",
+        "reason": "Convert Python row count to the last row index before inserting separators."
+      },
+      {
+        "id": "f3d92d95d94e68dd6b360f6c321f13fd330990374b58c9a556274bc2a43a0e06",
+        "classification": "non_contract",
+        "owner": "scrollbar_rows",
+        "reason": "Convert scrollbar height to the last row coordinate."
+      },
+      {
+        "id": "f93ae8d3ba5923bd44d5608b9d2c1f7fea54e17d00f611d29ddf32f1266b82bd",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "0bec5d89e30f74599d77b22328b351bf66ad05f03df807f6b16dff7a552c7504",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "0d48db97995cab858cafba7eb4a77dd625ab253353901ecd4f75180d67ef12dd",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "07c58efa6f937a14c1f8283df27e36ced5808c03857b0e933665af9d67c80f80",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "5e3814e5a6430bacce3e495826c29d331925b774b57ba38e2ea4966c2eb7aade",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "58127c42e784888819c4f404ad48cf6f9c96579b6d666c310ba03f2cae2c14ce",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "59d250fb2f31449ffb56da6ab21a5b2f5f6fbc6f8db7ed3511328543f5a15e14",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "8b7968c81f83e2816bedf0d5d224e007ed105e98299bde48a52018786abc1473",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "7a2b692761c8d680555864a43e265907624088332a7ded6e47ab24dfd6790899",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "c48fa986142a4902ce326490bc056a095b6b5ab6f7cca2fd9fe2d7f4f23ccd3d",
+        "classification": "declaration",
+        "owner": "ScrollablePane",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "a2cb15f90296fb8ce25885baf56195f0d9a3e15491d77151820656a306722c9a",
+        "classification": "non_contract",
+        "owner": "ScrollablePane._draw_scrollbar",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "e447e4f1c9b34d65e5cef3d0490f67c863e5e9465c23a556a309585633abd4f8",
+        "classification": "non_contract",
+        "owner": "ScrollablePane._draw_scrollbar",
+        "reason": "Convert the right exclusive rectangle edge to its last column coordinate."
+      },
+      {
+        "id": "1fb20a90af692b42853d58df93c4877be0803ca198e30ac961f0f8773552d24d",
+        "classification": "declaration",
+        "owner": "Button",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "2736d7819cf4131feacd06883b9283e5fcd8da4d66c137e78872aa5823628f57",
+        "classification": "declaration",
+        "owner": "Button",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "fcd8ced55d7a53ed8ab5a857f910524b9a9af42093a62c6f621f59002ccc3c4d",
+        "classification": "declaration",
+        "owner": "Button",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "e2f0a43484cd0b8416331397936c675fe442f0ac472d70a4b73da990c20c180d",
+        "classification": "declaration",
+        "owner": "Button",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "971c41879bbfa2c438cae486154f1a73e79c846d6a516fbe99974b1374b127d6",
+        "classification": "declaration",
+        "owner": "ChoiceBinding",
+        "reason": "Original scrollbar rendering, scroll geometry/page movement, optional focus anchor and PTK Button kwargs; canonical ThemeSelector, KeyName and shortcut Owners are reused. MouseBinding/ControlRole own foreign-object registration."
+      },
+      {
+        "id": "d0371609e1845a30a0c1a7f6bfe5f2c08aae0fc3488ffb031961f3fa3249a095",
+        "classification": "non_contract",
+        "owner": "_bind_choices.invoke",
+        "reason": "Python -1 selects the final key in the delivered sequence."
+      },
+      {
+        "id": "823181806a95725ee5f1d1d68d520d0c5f367baddbbbfd4c76878a7cd193ee22",
+        "classification": "non_contract",
+        "owner": "CheckboxList.highlighted",
+        "reason": "Python pair projection selects the key from the highlighted (key, label) row."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ScrollbarMargin / ScrollablePane / Button / ChoiceBinding",
+        "declaration": "hub/widget/controls.py",
+        "consumers": [
+          "hub/widget/mouse.py",
+          "hub/widget/forms/settings.py",
+          "hub/widget/output/reader.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/focus_region.py",
+    "sha256": "7ebbcd3d54e8265fa35c8bab3d99f8d8b16fe18a3b9f780f733644137089ecf0",
+    "reason": "Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0954e1cf0f1df660672c9f2c0bd70fd7e9df7b585b8afe0c0fca7f4a43477589",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "06e84fe56ba667d1304c4d1c7f815be0bdd13e9f9d88f508339a0ce0ca44aad1",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "698438da91fdf788fae11a56fbb522b067978fb5247e5eacdec0fc3a09256a7e",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "2a4619d03b1648c2de2a294cc4b9a9306ca9c2aa8a38eb8822f1ee788e5d2c50",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "61d62926e57605378448ba009c1ce72260eef4c1ef57ae295825425234b7dd5e",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "8285c3080b7d983646ccdca1c5425def8140c1c8fd324c362bad1240813195d2",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "d4ad3fd3093a54f86b6b6b318e98006cc7ce3680ef6f38bcaf41adf8224893c4",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "cf44389ab89190c115f779fcf1a735f3ac537bd8c90dd91e539b2e3fbebcb2c2",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "fa86732b8123d9ace56ccb061ee71a46f05f3495e7eb312c2fc20263aef4ccb6",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "a0e90ceda13d1652c60a3b5b30733c84b720234da76ea58ef40ce0cb2bf56d83",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "041bda40fbacd78e73d11ffcb6827b6806826e210f58516a54ce28681f48d1e3",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "9491d9e6a65a4e95d1de9af754da46e26f39d2e2f1a8d910c3a5b0f0fd72f945",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "5a7f1becc263d6ee7d20a975cc7116dd7619a8d825126042fb5201e079f5d5ef",
+        "classification": "declaration",
+        "owner": "RegionTint",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "c672c74536f46afd8251ce92cc9485ede610f3709243531583db2f33996755a2",
+        "classification": "declaration",
+        "owner": "FocusRegion",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "abf2991096a888fb835b281a310f7eb33a4f74a81e3f8db7aae41edb2170d43f",
+        "classification": "declaration",
+        "owner": "FocusRegion",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      },
+      {
+        "id": "385eb441d867653b02ef0cefb6196f5b3728bfd10da60e464ee0f46483a4e5ce",
+        "classification": "declaration",
+        "owner": "FocusRegion",
+        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RegionTint / FocusRegion",
+        "declaration": "hub/widget/focus_region.py",
+        "consumers": [
+          "hub/widget/profile.py",
+          "hub/widget/forms/settings.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/mouse_contract.py",
+    "sha256": "f9250585f15a20a616f76a59a86c6c85457e00bf66f997eea4141c6b83a80591",
+    "reason": "Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cf4f97b5a2c1f8f5fd69b4627197f223b23d52624867d91677b850495d442146",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "96cbab0a3b2850ef7e672528435b63fd3269c556792e3bb98c73458646f13105",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "4d806094f919123e68c5fda43d56be1f885b41b40ccc407ae5b8a45319c815bf",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "509dee5d01f04729b6ce39b6142083e02c35fc5d2f6826390d845f4cc118a99d",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "7c20f4a0d53ba82b75e93f17db30424046a71941427a2aa3cc9627eedfa995e7",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "2f93d6e3fc3b23a17cfe970e8e271ac985047a9b08df5963151851f2f3386389",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "17dd7971b7c74d3b03699f6db5976e38a42f3c222b5676ab837c60abe0e90ba9",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "3be05e4cce6174247fb6cc3cd5f0ead39f089b052fd2e7f6ec4d05d2779dbf6e",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "bdfae2eb3dcd73a027293b086adc5e48ab804599c79748e415ff49a2ce584371",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "142273c055d788a8bcf49c91d2d56c378f77bf817048984ef43b1287cec09a00",
+        "classification": "declaration",
+        "owner": "MouseBinding",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "7a8a15a4f6e4f0c86ce9b36c16c2306a6135864828164bc06169fb0a8eb63aa3",
+        "classification": "declaration",
+        "owner": "ControlRole",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "96f33c6bac3899ec319182968daf758ac77656cc739a9123d324ef951b5455d3",
+        "classification": "declaration",
+        "owner": "ControlRole",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      },
+      {
+        "id": "c42d833441bf249ca7139d888714a2ef533dfba27589e2a0ac8ae33c000b4878",
+        "classification": "declaration",
+        "owner": "ControlRole",
+        "reason": "Hub-owned foreign PTK controller/hover/clip/pane/scroll/focus/interactive metadata and Button/choice roles. Optional values, explicit None/falsey, required deletion, aliases and existing class registration are preserved."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MouseBinding / ControlRole",
+        "declaration": "hub/widget/mouse_contract.py",
+        "consumers": [
+          "hub/widget/mouse.py",
+          "hub/widget/controls.py",
+          "hub/widget/focus_region.py",
+          "hub/widget/profile.py",
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py"
         ],
         "complete": true
       }

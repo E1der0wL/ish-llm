@@ -1,4 +1,6 @@
 """Loop transcript and output objects inside the common engine output frame."""
+from hub.widget.mouse_contract import MouseBinding
+
 
 from prompt_toolkit.layout import DynamicContainer
 from prompt_toolkit.layout.dimension import Dimension
@@ -17,7 +19,7 @@ class LoopOutput(EngineOutput):
     def __init__(self, view):
         self.view = view
         self.transcript = ConversationView(view.sessions[view.selected].messages, view.theme, language=view.t)
-        self.transcript.window.hub_click_focus = view._focus_composer
+        MouseBinding.set_focus(self.transcript.window, view._focus_composer)
         self.transcript.window.height = Dimension(min=1, weight=1)
         control = self.transcript.control
         control.render_worker = view.render_worker

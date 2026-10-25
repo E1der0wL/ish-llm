@@ -8987,3 +8987,42 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 94파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## Hub 마우스 메타데이터·스크롤 위젯·비활성 표시
+
+controls.py·focus_region.py와 새 mouse_contract.py를 전수 정리했다. MouseBinding이 실제 PTK
+Application/Window/Pane의 controller·hover·clip·pane·scroll·focus·interactive 메타데이터를
+생산·관측한다. MouseController·Scrollbar·ScrollablePane·FocusRegion·ProfileBar·LoopOutput의
+기존 Writer/Reader를 함께 연결했다. ControlRole은 Button/choice의 기존 표시 역할을 소유한다.
+이는 관측·UI callback 연결이며 Backend 권한·실행 정책을 부여하지 않는다.
+
+ScrollbarMargin/ScrollablePane/Button/ChoiceBinding이 원래 표시와 이동·PTK 옵션을 선언하고,
+ThemeSelector·ThemeStyle·KeyName·ShortcutAction·ShortcutLabel을 재사용한다. RegionTint는
+HubTheme의 RGB 채널·휘도 가중치·기본색을 재사용하여 PTK의 접두사 없는 해석 색상을 처리한다.
+ANSI/default/손상 색상의 기존 처리, 동일 style/cell 재사용과 child 뒤·popup 앞 tint 순서를 유지한다.
+
+실제 PTK scrollbar/scroll/Button/choices·grayscale·tint·controller 56개, 메타데이터의 누락·명시
+NULL/falsey·참조 identity·삭제 예외·역할 49개 관측이 원본/변경안에서 같았다. 다섯 기존 소비
+파일은 새 Owner API를 원래 표현으로 펼치면 전체 실행 AST가 동일하다. scroll binding의 기존
+연쇄 대입은 로컬 대입 뒤 같은 객체를 window에 대입하는 순서를 유지한다. 비교 도구의 최초
+Registry 속성 오인·기존 선언 확장 오류는 제품 적용 전에 수정했고 실패 로그도 보존했다.
+비교 결과·명령·고정 소스는 `hub-mouse-widgets-draft`의 proof/consumer-equivalence에 보존한다.
+MouseController 등 부분 연결만 한 파일의 잔여 책임은 전수 완료로 처리하지 않는다.
+
+- `whole-hub-mouse-widgets-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.258458초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-mouse-widgets-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `bcc24d35c44bbdda6a431cd70ac62369bcc7aef96516131ea3a6ac211753a66f`, input `dda0957cb6c1a60ec3a568e934bfce7b5e3ae04bbfdb8fb265ce144d0139e35e`.
+
+- `whole-hub-mouse-widgets-l1-01`: discovered/started/pass 32/32/32, exit 0, 24.06881초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-mouse-widgets-l1-01/hub.json --modules tests.hub.test_mouse_widgets tests.hub.test_input_contract tests.hub.test_auxiliary`. source `bcc24d35c44bbdda6a431cd70ac62369bcc7aef96516131ea3a6ac211753a66f`, input `dda0957cb6c1a60ec3a568e934bfce7b5e3ae04bbfdb8fb265ce144d0139e35e`.
+
+- `whole-hub-mouse-widgets-l2-01`: discovered/started/pass 34/34/34, exit 0, 47.727168초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-mouse-widgets-l2-01/hub.json --modules tests.hub.test_presets_widgets tests.hub.test_component_managers tests.hub.test_page_layout tests.hub.test_settings_viewport tests.hub.test_engine_output tests.hub.test_output_interaction`. source `bcc24d35c44bbdda6a431cd70ac62369bcc7aef96516131ea3a6ac211753a66f`, input `dda0957cb6c1a60ec3a568e934bfce7b5e3ae04bbfdb8fb265ce144d0139e35e`.
+
+공통 안전성 84개·R3 Mutation과 실제 mouse/input/auxiliary, preset/Component manager·page layout·
+settings viewport·engine output·output interaction 소비자를 검증했다. 기존 실제 드래그·포커스·
+선택·팝업·외부 효과/승인/예산/Checkpoint Assertion과 테스트 파일을 그대로 유지했다.
+모든 suite의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 범위 중복 0, source/input 전후·사이 동일성을 확인했다.
+실제 argv/exit는 `hub-mouse-widgets-draft/selected-results.json`, Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux UI 환경이다. 정적 S1–S7의 68개 발견/검토 ID와 감사·문서
+검사를 유지했다. 제품 실행 정책·저장 형식을 바꾸지 않는 UI 동일 이동으로 Level 1·2를 적용했다.
+동결 Gate52에 포함되지 않으며 InputWidgets와 후속 관련 Hub 변경을 묶은 Level 3·정확한 SHA
+원격 CI에서 통합 검증한다. 기존 미완료 공유 계약 표시는 유지하며 전체 완료를 선언하지 않는다.

@@ -64,6 +64,7 @@ class KeyName:
 
 
 class ShortcutAction:
+    ACTIVATE = "activate"
     DELETE = "delete"
     RETRY = "retry"
     CLOSE = "close"

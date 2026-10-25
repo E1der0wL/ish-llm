@@ -4,13 +4,20 @@ from prompt_toolkit.layout import ScrollablePane as PTKScrollablePane
 from prompt_toolkit.layout.margins import ScrollbarMargin as PTKScrollbarMargin
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.widgets import Button as PTKButton
-from prompt_toolkit.widgets import RadioList as PTKRadioList, TextArea as PTKTextArea, CheckboxList as PTKCheckboxList
+from prompt_toolkit.widgets import (
+    RadioList as PTKRadioList,
+    TextArea as PTKTextArea,
+    CheckboxList as PTKCheckboxList,
+)
 from ..asset import icon
 from ..ui.input.registry import ShortcutRegistry
 from prompt_toolkit.key_binding import merge_key_bindings
 from prompt_toolkit.application.current import get_app
 from .mouse import ScrollbarGeometry, hover_style
 from .input_contract import EditableControl
+from .mouse_contract import MouseBinding, ControlRole
+from ..config.theme_style import ThemeSelector, ThemeStyle
+from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 
 
 def _arrows(window) -> None:
@@ -20,86 +27,167 @@ def _arrows(window) -> None:
                 margins[index] = ScrollbarMargin(display_arrows=margin.display_arrows)
 
 
+@MouseBinding.register_interactive
 class ScrollbarMargin(PTKScrollbarMargin):
-    hub_interactive = True
+    MIN_HEIGHT = 1
+    EMPTY_STYLE = ""
+    NEWLINE = "\n"
+    FIRST_ROW = 0
+    NO_HOVER = False
+
     def __init__(self, **kwargs):
-        super().__init__(up_arrow_symbol=icon.SCROLL_UP, down_arrow_symbol=icon.SCROLL_DOWN, **kwargs)
+        super().__init__(
+            up_arrow_symbol=icon.SCROLL_UP, down_arrow_symbol=icon.SCROLL_DOWN, **kwargs
+        )
 
     def create_margin(self, window_render_info, width, height):
-        if not width or height < 1:
+        if not width or height < self.MIN_HEIGHT:
             return []
-        geometry = ScrollbarGeometry(height, window_render_info.content_height,
-            window_render_info.window_height, window_render_info.vertical_scroll, self.display_arrows())
-        rows = scrollbar_rows(geometry, getattr(window_render_info.window, "hub_mouse_hover", False))
-        return [fragment for i, row in enumerate(rows)
-                for fragment in ([row, ("", "\n")] if i < len(rows) - 1 else [row])]
+        geometry = ScrollbarGeometry(
+            height,
+            window_render_info.content_height,
+            window_render_info.window_height,
+            window_render_info.vertical_scroll,
+            self.display_arrows(),
+        )
+        rows = scrollbar_rows(geometry, MouseBinding.hovered(window_render_info.window))
+        return [
+            fragment
+            for i, row in enumerate(rows)
+            for fragment in (
+                [row, (self.EMPTY_STYLE, self.NEWLINE)] if i < len(rows) - 1 else [row]
+            )
+        ]
 
 
-def scrollbar_rows(geometry, hovered=False):
+def scrollbar_rows(geometry, hovered=ScrollbarMargin.NO_HOVER):
     rows = []
     for row in range(geometry.height):
-        if geometry.edge and row in (0, geometry.height - 1):
-            rows.append(("class:hub.scrollbar-arrow", icon.SCROLL_UP if row == 0 else icon.SCROLL_DOWN))
+        if geometry.edge and row in (ScrollbarMargin.FIRST_ROW, geometry.height - 1):
+            rows.append(
+                (
+                    ThemeSelector.SCROLLBAR_ARROW.style,
+                    (
+                        icon.SCROLL_UP
+                        if row == ScrollbarMargin.FIRST_ROW
+                        else icon.SCROLL_DOWN
+                    ),
+                )
+            )
         elif geometry.top <= row < geometry.top + geometry.thumb:
-            rows.append(("class:hub.scrollbar-thumb" + (" class:hub.scrollbar-hover" if hovered else ""), icon.SCROLL_THUMB))
+            rows.append(
+                (
+                    ThemeSelector.SCROLLBAR_THUMB.style
+                    + (
+                        ThemeStyle.MODIFIER_SEPARATOR
+                        + ThemeSelector.SCROLLBAR_HOVER.style
+                        if hovered
+                        else ScrollbarMargin.EMPTY_STYLE
+                    ),
+                    icon.SCROLL_THUMB,
+                )
+            )
         else:
-            rows.append(("class:hub.scrollbar-track", icon.SCROLL_TRACK))
+            rows.append((ThemeSelector.SCROLLBAR_TRACK.style, icon.SCROLL_TRACK))
     return rows
 
 
 class ScrollablePane(PTKScrollablePane):
-    def __init__(self, content, **kwargs):
-        super().__init__(content, up_arrow_symbol=icon.SCROLL_UP, down_arrow_symbol=icon.SCROLL_DOWN, **kwargs)
-        self._mouse_metrics = (1, 1)
-        self._mouse_anchor = None
+    INITIAL_METRICS = (1, 1)
+    ABSENT = None
+    ARROWS = True
+    BUFFER_ATTRIBUTE = "buffer"
+    TOP = 0
+    MIN_PAGE = 1
+    PAGE_OVERLAP = 2
+    LINE_UP = -1
+    LINE_DOWN = 1
 
-    def geometry(self, height=None, arrows=True):
+    def __init__(self, content, **kwargs):
+        super().__init__(
+            content,
+            up_arrow_symbol=icon.SCROLL_UP,
+            down_arrow_symbol=icon.SCROLL_DOWN,
+            **kwargs
+        )
+        self._mouse_metrics = self.INITIAL_METRICS
+        self._mouse_anchor = self.ABSENT
+
+    def geometry(self, height=ABSENT, arrows=ARROWS):
         total, visible = self._mouse_metrics
-        return ScrollbarGeometry(height or visible, total, visible, self.vertical_scroll, arrows)
+        return ScrollbarGeometry(
+            height or visible, total, visible, self.vertical_scroll, arrows
+        )
 
     def scroll_to(self, position):
         self._mouse_anchor = self._focus_anchor()
-        self.vertical_scroll = max(0, min(self.geometry().limit, position))
+        self.vertical_scroll = max(self.TOP, min(self.geometry().limit, position))
 
     def scroll(self, key):
         geometry = self.geometry()
-        if key in ("home", "end"):
-            self.scroll_to(0 if key == "home" else geometry.limit)
-        elif key in ("up", "down", "pageup", "pagedown"):
-            page = max(1, geometry.visible - 2)
-            self.scroll_to(geometry.offset + {"up": -1, "down": 1, "pageup": -page, "pagedown": page}[key])
+        if key in (KeyName.HOME, KeyName.END):
+            self.scroll_to(self.TOP if key == KeyName.HOME else geometry.limit)
+        elif key in (KeyName.UP, KeyName.DOWN, KeyName.PAGE_UP, KeyName.PAGE_DOWN):
+            page = max(self.MIN_PAGE, geometry.visible - self.PAGE_OVERLAP)
+            self.scroll_to(
+                geometry.offset
+                + {
+                    KeyName.UP: self.LINE_UP,
+                    KeyName.DOWN: self.LINE_DOWN,
+                    KeyName.PAGE_UP: -page,
+                    KeyName.PAGE_DOWN: page,
+                }[key]
+            )
         # Fields wrap to the available width; there is no horizontal overflow.
 
     def _focus_anchor(self):
         app = get_app()
         control = app.layout.current_control
-        buffer = getattr(control, "buffer", None)
-        return control, buffer.cursor_position if buffer else None
+        buffer = getattr(control, self.BUFFER_ATTRIBUTE, self.ABSENT)
+        return control, buffer.cursor_position if buffer else self.ABSENT
 
-    def _make_window_visible(self, visible_height, virtual_height, visible_win_write_pos, cursor_position):
-        if self._mouse_anchor is not None and self._mouse_anchor == self._focus_anchor():
-            self.vertical_scroll = max(0, min(virtual_height - visible_height, self.vertical_scroll))
+    def _make_window_visible(
+        self, visible_height, virtual_height, visible_win_write_pos, cursor_position
+    ):
+        if (
+            self._mouse_anchor is not self.ABSENT
+            and self._mouse_anchor == self._focus_anchor()
+        ):
+            self.vertical_scroll = max(
+                self.TOP, min(virtual_height - visible_height, self.vertical_scroll)
+            )
             return
-        self._mouse_anchor = None
-        super()._make_window_visible(visible_height, virtual_height, visible_win_write_pos, cursor_position)
+        self._mouse_anchor = self.ABSENT
+        super()._make_window_visible(
+            visible_height, virtual_height, visible_win_write_pos, cursor_position
+        )
 
     def _copy_over_write_positions(self, screen, temp_screen, write_position):
         super()._copy_over_write_positions(screen, temp_screen, write_position)
         for window in temp_screen.visible_windows_to_write_positions:
-            window.hub_mouse_clip = write_position
-            window.hub_mouse_pane = self
+            MouseBinding.set_clip(window, write_position)
+            MouseBinding.set_pane(window, self)
 
     def _draw_scrollbar(self, write_position, content_height, screen) -> None:
         self._mouse_metrics = (content_height, write_position.height)
-        mouse = getattr(get_app(), "hub_mouse", None)
-        if mouse is not None:
+        mouse = MouseBinding.controller(get_app())
+        if mouse is not self.ABSENT:
             mouse.record_pane(self, write_position, screen)
         xpos = write_position.xpos + write_position.width - 1
-        for row, (style, char) in enumerate(scrollbar_rows(self.geometry(), getattr(self, "hub_mouse_hover", False))):
-            screen.data_buffer[write_position.ypos + row][xpos] = Char(char, "class:hub " + style)
+        for row, (style, char) in enumerate(
+            scrollbar_rows(self.geometry(), MouseBinding.hovered(self))
+        ):
+            screen.data_buffer[write_position.ypos + row][xpos] = Char(
+                char, ThemeStyle.joined(ThemeSelector.ROOT.style, style)
+            )
 
 
 class Button(PTKButton):
+    LEFT_SYMBOL = "left_symbol"
+    RIGHT_SYMBOL = "right_symbol"
+    NO_SYMBOL = ""
+    SHOW_CURSOR = False
+
     @property
     def text(self):
         return self._text() if callable(self._text) else self._text
@@ -121,36 +209,59 @@ class Button(PTKButton):
             self._text = provider
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("left_symbol", "")
-        kwargs.setdefault("right_symbol", "")
+        kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)
+        kwargs.setdefault(self.RIGHT_SYMBOL, self.NO_SYMBOL)
         super().__init__(*args, **kwargs)
 
-        self.control.show_cursor = False
-        self.control.hub_role = "button"
+        self.control.show_cursor = self.SHOW_CURSOR
+        ControlRole.register(self.control, ControlRole.BUTTON)
         hover_style(self.window)
         registry = ShortcutRegistry()
-        registry.add(["enter", " "], "Enter/Space", "activate", lambda e: self.handler and self.handler())
+        registry.add(
+            [KeyName.ENTER, KeyName.SPACE],
+            ShortcutLabel.ENTER_SPACE,
+            ShortcutAction.ACTIVATE,
+            lambda e: self.handler and self.handler(),
+        )
         registry.attach(self.control)
-        self.control.key_bindings = merge_key_bindings([self.control.key_bindings, registry.bindings])
+        self.control.key_bindings = merge_key_bindings(
+            [self.control.key_bindings, registry.bindings]
+        )
 
 
-def _bind_choices(widget, *, on_move=None):
+class ChoiceBinding:
+    NO_CALLBACK = None
+
+
+def _bind_choices(widget, *, on_move=ChoiceBinding.NO_CALLBACK):
     _arrows(widget.window)
     hover_style(widget.window)
-    widget.control.hub_role = "choices"
+    ControlRole.register(widget.control, ControlRole.CHOICES)
     native = widget.control.key_bindings
     registry = ShortcutRegistry()
+
     def invoke(event):
         keys = tuple(item.key for item in event.key_sequence)
         for binding in reversed(native.get_bindings_for_keys(keys)):
             if binding.filter():
                 result = binding.handler(event)
                 # Enter/Space and mouse clicks notify through _handle_enter.
-                if on_move and keys[-1] in ("up", "down"):
+                if on_move and keys[-1] in (KeyName.UP, KeyName.DOWN):
                     on_move()
                 return result
-    registry.add(["up", "down"], "↑↓", "select", invoke)
-    registry.add(["enter", " "], "Enter/Space", "confirm", invoke)
+
+    registry.add(
+        [KeyName.UP, KeyName.DOWN],
+        ShortcutLabel.VERTICAL,
+        ShortcutAction.SELECT,
+        invoke,
+    )
+    registry.add(
+        [KeyName.ENTER, KeyName.SPACE],
+        ShortcutLabel.ENTER_SPACE,
+        ShortcutAction.CONFIRM,
+        invoke,
+    )
     registry.attach(widget.control)
     widget.control.key_bindings = merge_key_bindings([native, registry.bindings])
 
@@ -164,7 +275,7 @@ class RadioList(PTKRadioList):
 class CheckboxList(PTKCheckboxList):
     """Shared multi-selection control with a separate highlighted-row callback."""
 
-    def __init__(self, *args, on_select=None, **kwargs):
+    def __init__(self, *args, on_select=ChoiceBinding.NO_CALLBACK, **kwargs):
         self.on_select = on_select
         super().__init__(*args, **kwargs)
         _bind_choices(self, on_move=self.notify)
@@ -191,11 +302,13 @@ class TextArea(PTKTextArea):
         if not self.buffer.read_only():
             self.buffer.cursor_position = len(self.buffer.text)
         native_mouse = self.control.mouse_handler
+
         def mouse(event):
             result = native_mouse(event)
             if self.buffer.selection_state and not self.buffer.read_only():
                 self.buffer.selection_state.enter_shift_mode()
             return result
+
         self.control.mouse_handler = mouse
 
     def insert_text(self, text):
