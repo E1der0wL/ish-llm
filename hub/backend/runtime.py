@@ -238,6 +238,7 @@ class HubRuntime:
             await source.run.shutdown()
             try:
                 from .execution.turns import TurnIndex, edit_source
+                from llm.services.history.turns import ConversationTurns
                 records = await source.aconversation()
                 revised = any(edit_source(m) or ResumeRecord.from_metadata(m.metadata) for m in records)
                 index = TurnIndex(records)
@@ -250,7 +251,7 @@ class HubRuntime:
                     # freshly created inactive clone through public deletion.
                     groups = await session.aturns()
                     for group in reversed(groups[boundary + 1:]):
-                        await session.adelete_turn(group[0].id)
+                        await session.adelete_turn(ConversationTurns.request(group).id)
             finally:
                 await source.run.start()
         elif mode == "new":

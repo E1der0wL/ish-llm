@@ -72971,8 +72971,8 @@
   },
   {
     "path": "llm/services/history/retention_records.py",
-    "sha256": "8e740d1f1f96311d853065c7f01d7ef15bec2c9556cc22db96ccbad39c41514e",
-    "reason": "Complete file and dynamic path review covers runtime/manual recovery, diagnostics, sparse public rows, target collection and identity, revision fingerprints excluding token estimates, references/quotas/receipts, injected counter behavior and all deletion/recovery effect ordering. No new policy, missing-record fallback, legacy Reader or stored format. L1/L2 and independent differential evidence complete; bundled Level 3 and its exact-SHA CI remain required. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked.",
+    "sha256": "b08d2db3c1b629ff5d91a298d25d951807bd4d75f00bb751c613de8926ab2ecf",
+    "reason": "Complete file and dynamic path review covers runtime/manual recovery, diagnostics, sparse public rows, target collection and identity, revision fingerprints excluding token estimates, references/quotas/receipts, injected counter behavior and all deletion/recovery effect ordering. No new policy, missing-record fallback, legacy Reader or stored format. L1/L2 and independent differential evidence complete; bundled Level 3 and its exact-SHA CI remain required. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -73132,43 +73132,43 @@
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "58d1206ec2a3e83082ddd76eda42ba6db597a848944c25be24e4902969ae12b7",
+        "id": "e8ee6c6c87b61293e58d729a0bded388169e9bbae95b8752ae118ceaf033c8e3",
         "classification": "declaration",
         "owner": "RetentionTarget",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "a7721c1737ce7769c07a2f0e4dc038fbcdd4da258717938322bc97e8b2656ac5",
+        "id": "ae15372d87100182954eb0a82c0cd63e69b25ed1a5540054b515dd5684da7fa8",
         "classification": "declaration",
         "owner": "RetentionTarget",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "1be7ed9c08beb03b9f9ff329029e75bbbc8a88b0fdfbecb28dcda6a3bc8757e0",
+        "id": "c8a9f2b3d72c5931d39a9322a371ea730421f1e620a83f93b6004ad5c35403f5",
         "classification": "declaration",
         "owner": "RetentionTarget",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "284afeefa4b3f5a86799dfc0bc064975706a6c5bcc25859e2e110f38414827fb",
+        "id": "e7e952a40605dc1fc1591c6971274300edde50e76d0c82fbdb70466ffe364a38",
         "classification": "declaration",
         "owner": "RetentionIntent",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "55d7a2eb5ab88164de52f9fb2e99fef18c586dda10bd26062844667204b3009c",
+        "id": "e83999de10b71d19284a2ce64e8c4a001b27b4453085c47a7914dbce5e8c50d9",
         "classification": "declaration",
         "owner": "RetentionIntent",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "5b3e141df4efcfb0b71cdb6a22b4602841101c5f4947900cf502f0d1c1ed6083",
+        "id": "a5e5270adc73c807772c3ad6037d1cd6f204b8d40e2b6a9aa1196085fa9ef9dc",
         "classification": "declaration",
         "owner": "RetentionIntent",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
       },
       {
-        "id": "ac2aad7896e91303c5a14661e5a0653661f81fb4a97aa05116336129042dc56a",
+        "id": "1296833633dbb164fdf36a046a320d9b22258c310387589fb06f5e46bc1d06fe",
         "classification": "declaration",
         "owner": "RetentionIntent",
         "reason": "Canonical maintenance record/path/code, explicit target/proof/projection and counter declarations stay at their Owner head; shared domain fields/statuses and Model message input reference existing declarations."
@@ -73179,6 +73179,12 @@
         "owner": "RetentionRow / RetentionTarget / RetentionIntent / RetentionCounter / HistoryMeasurement",
         "declaration": "llm/services/history/retention_records.py",
         "consumers": [
+          "hub/backend/history.py",
+          "hub/backend/history_deletion.py",
+          "hub/backend/history_values.py",
+          "hub/backend/project/history_retention.py",
+          "hub/widget/forms/request_history.py",
+          "hub/widget/summary.py",
           "llm/llm.py",
           "llm/services/api.py",
           "llm/services/history/recovery.py",
@@ -73187,14 +73193,18 @@
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_overlays.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_turn_deletion.py",
@@ -82803,8 +82813,8 @@
   },
   {
     "path": "llm/services/lifecycle/sessions.py",
-    "sha256": "2b23282c26b488ca4d65ba7dfeb66466d862704622ba5c8818b1415846cece24",
-    "reason": "Full ComponentData, Project/Session Repository/Manager and live runtime classes reviewed, including public and optional injected hooks, storage/layout ownership, lifecycle/configuration/Agent/reference validation, backup/clone/delete/retention, active quota and resume protections, rollback callbacks and after-commit cleanup. Original effect/order and full domain Readers remain; source-matched actual safety tests and differential values/callbacks pass.",
+    "sha256": "aae8d84d8977d54b193c99485eb6e76998484b91ed9ccae1f11693920330d035",
+    "reason": "Full ComponentData, Project/Session Repository/Manager and live runtime classes reviewed, including public and optional injected hooks, storage/layout ownership, lifecycle/configuration/Agent/reference validation, backup/clone/delete/retention, active quota and resume protections, rollback callbacks and after-commit cleanup. Original effect/order and full domain Readers remain; source-matched actual safety tests and differential values/callbacks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -83168,12 +83178,6 @@
         "reason": "Python None return annotation, not a runtime policy or default."
       },
       {
-        "id": "32c04f0857764c8078c85d24199e665dee5a3bb966ce97552f7fabdd85999e2f",
-        "classification": "non_contract",
-        "owner": "SessionManager._turn_deletion",
-        "reason": "First Message in the ordered conversation group; structural sequence index."
-      },
-      {
         "id": "9417ddf91954e02a88415b36d1653bd067384ef71fb0493961e484bc1ddcbd02",
         "classification": "non_contract",
         "owner": "SessionManager._save_runtime",
@@ -83263,16 +83267,28 @@
         "owner": "SessionRepository / SessionManager / RunRuntime / SessionRuntime",
         "declaration": "llm/services/lifecycle/sessions.py",
         "consumers": [
-          "llm/services/api.py",
+          "hub/backend/history.py",
+          "hub/backend/history_deletion.py",
+          "hub/backend/history_values.py",
+          "hub/backend/project/history_retention.py",
+          "hub/widget/forms/request_history.py",
+          "hub/widget/summary.py",
           "llm/llm.py",
-          "llm/services/runtime/runs.py",
+          "llm/services/api.py",
           "llm/services/history/recovery.py",
-          "llm/services/history/retention.py"
+          "llm/services/history/retention.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_component_managers.py",
           "tests/hub/test_components.py",
           "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_turn_deletion.py",
           "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_backup_owner_integrity.py",
@@ -83282,6 +83298,8 @@
           "tests/llm/test_components.py",
           "tests/llm/test_cross_session_crash.py",
           "tests/llm/test_domain_hardening.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
@@ -88095,8 +88113,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "d4ba896d96e46daeda5bed1a5530fdd84ce21a5b606314b6da756771c65db777",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "sha256": "1c080271a5db88d0b5d444e393bc776d8d72f0c988d1bb3d3175b0d091224b94",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88184,127 +88202,145 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4d69d69cc520fecefe79bec35a8ee7631c9c2344a537751c3f5da09e94991f99",
+        "id": "9494fb9b93b823bd67a1599725f786bbca6ab3125c59117e3cf6b61586c6ad70",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "98e05afca6469a2ee5470d9c02a294d12e8058c802a45dae556c76e60fdef566",
+        "id": "f0f6b6cbb8fad3d649bc4dd5c19757c0086a4bff92fc3652f28e95200f159759",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ae59cfd3b29ee6df14caa64f800811e1506631c995e30ed0660b9f2440263af6",
+        "id": "3c14d613a23f1cf906f0fcd916b7c801f025b1418c51a34aa99ab57cd5a95816",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "13b2af61be81fe31cd05b00e0c8fbeddbec6c036aa5a2d98f91c8137549ac7f7",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "1ac1fd9ee7b0e01648865d1fd44b3e1a98daec96c34a113dcc4288a53f6464cc",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "cf5b276a38b3edfeb7d9943f04b87b76628ea00043473e2401effa3ee537c2ae",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "1f8f91b2b2ba858c52ec7ed1ed0cee5e3f3ddb4c1068182d01e6efae54670ca6",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "314f617af47653d09155be1f95d33f310f98ec778e4acb1ace5e64a896c47b34",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "e0c73423a10278a8848ca8b2f0e8368ad1ff19cff6c0a9c79dbdae318623b73a",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "23279ba048e55c85de1bf27099d44f5ffb77f52fd27a1575063567e641227b09",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "4b13339719feb7ceb21b64140c142697c89dc40053c73e6db70e3055f333d915",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "80fbf15ed09b26f0092a503780a7f52806c3bb08b8d23b8b5876719d09a617f4",
+        "id": "38c2dce45a66562ffddd79a484576cff24e3ed4ec54c70102627ace1328f1724",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a69829a0cf1b73d313df9e3cb4cdd9844cfaeb96886a021e910f17c89b2e6940",
+        "id": "2bc2464225e24dc49d7bc617a51adf565fde8c69beb49823aa97c1fc5f86b6cb",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "632d40da1e64e880465564a4ccbbdafa8be768c74bd28eccf0952fcd4995d586",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "6ac758eb45bc0b06d4fc446eb6ffc557e507c4d4520d40005b17af3764e8c101",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "01ec614c76542b0992ccad1429b40866ccbdc9fd73c3059c422bafbbc289c206",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "f8ca26841a27317d20f38bcb3cc5c76ba5680c16d87a463c858e0571e0801516",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "05162e8f0d096993f69f2228fe3e9cece470c2d9ef51be61da51ba75787d5ce3",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "abb5e46fafde0c61b3d4ea66ee8df05dfb47459805b9a468c3ec8584240e6543",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "92671c441c52a71b7875976c28313f886e99378452ffce1807f93d17a804eb3f",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "18e120126d15cf2111e9788ad99d28e7e5eca99efee651ba8a9a84f02ebabbe0",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "616ad344fa33513160be1901926e9ef9e10ff7c6645e6d7f94ba2845698c82c9",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "b22bd216dc2aee90ddb08cb1e52d27df5eda9db0a135c917429a87db00ac1161",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "49b5bf1b29868b8f2fb02272d58e9be2fd10b05bd23bf69625ec39d5053348a1",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c3799a131e77b7f6a48428c9ff28ca97f97520e475848ccbd2a11ac82ac31e12",
+        "id": "4aa9d3045e06dd517ba9eac4c315d86340ea25a43d5179af2df63f7b45159bd8",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "33f2b5f706a246b6c5517b17633a70362c9e2f321e3a5bd48d6b4ff44c04d9ff",
+        "id": "0ad2e3fc74cc1359952d9ac66e79af7f0b8efa0bd2d405a661247649aebafaa6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "7385f13235a425d93cc4b06ec62510764cd9faa770964faa7b43bd16d51621cb",
+        "id": "e39d7b17585ca8e8dfc855d66c73fa188fad03aa08516bb49a45e3d2ee755555",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "89bc508275aba4d888a34e566ece2de1ef9ec3514c0a60bf05ebb65a40c8c33b",
+        "id": "527ff45d9c6e45062cb1b7a554ebc6b8050a5f720fcd54324f0e019f2054cd8b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "5c5a094c8dc36f25876bc9cd60d339618c34145d11075aa1d0cbcaa6fa0cae51",
+        "id": "a21e69ed7554bda21c393774e4f0bb0f64da6c509af1db2d2d758c4b9d249597",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "c1e1b634012fbbb35eb00ece5d12f30c16a06d744655569efc1d801c288fff84",
+        "id": "c3559918a64e216a576c84ebcde62006b5068efbcd8331edf825ce132e2fde3d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "82e929f5d0845f2deb539e187f68ae63642a551a14f7d40f476d46c4e3cf975c",
+        "id": "32e43c007b8143b1a97770552c4e3f016627cdeca62dc023c4268aaab2bb610f",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "498a07ee00f50b0ed3c3da3c08f88a5934cd22200cc6b3b8be86045ca0e076e9",
+        "id": "556f0bf50511b7ab3e4fe2a1ec2af115c600cffb5119f9549f451a6a221309cd",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -88315,6 +88351,10 @@
         "owner": "KeyName / ShortcutAction / ShortcutLabel",
         "declaration": "hub/ui/input/keys.py",
         "consumers": [
+          "hub/backend/history.py",
+          "hub/backend/history_deletion.py",
+          "hub/backend/history_values.py",
+          "hub/backend/project/history_retention.py",
           "hub/ui/chat/projects.py",
           "hub/ui/input/bindings.py",
           "hub/ui/input/registry.py",
@@ -88326,6 +88366,7 @@
           "hub/widget/auxiliary.py",
           "hub/widget/content_inset.py",
           "hub/widget/feedback/notifications.py",
+          "hub/widget/forms/request_history.py",
           "hub/widget/forms/settings.py",
           "hub/widget/header.py",
           "hub/widget/panel_edge.py",
@@ -88333,30 +88374,38 @@
           "hub/widget/section.py",
           "hub/widget/shortcuts.py",
           "hub/widget/sidebar.py",
+          "hub/widget/summary.py",
           "hub/widget/tab_page.py",
           "hub/widget/text_editing.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_chrome.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_header_actions.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
           "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
+          "tests/hub/test_overlays.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_popup_completion.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_preview.py",
           "tests/hub/test_question_card.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -88368,18 +88417,21 @@
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_turn_deletion.py",
           "tests/hub/test_widget_chrome.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_settings_consistency.py",
           "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
           "tests/llm/test_usage_deletion.py"
         ],
         "complete": false
@@ -97543,6 +97595,808 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/history_values.py",
+    "sha256": "15c81354fc75565d00db3412f418324aa93aeb276e9bde8c611a848e5cda0ea8",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "329604ec9402b701bad07fa7f00d6c090cc538e17b359e7098e1ce9fe913a06d",
+        "classification": "declaration",
+        "owner": "HistoryCommand",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "c1eb7f9087677cf6d39578fa2dc314f81d333d376d5851c6e843543a36c75d54",
+        "classification": "declaration",
+        "owner": "HistoryCommand",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "7a38dc651c50143c786f935693b3ae380920dc7cc43c328f712477058d34f0ab",
+        "classification": "declaration",
+        "owner": "HistoryCommand",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "76800c70e083002ae90fd18d37779c5e8e692e0c57b9708f8ace82af302c26d7",
+        "classification": "declaration",
+        "owner": "HistoryCommand",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "91152cd04e8ac8253cbaf65469906b6bb12b86851e7839a1a90fbf53201a4614",
+        "classification": "declaration",
+        "owner": "HistoryCommand",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "5ef051b369930c248bdd7726c363bd864dde092e0d761797a1127966c422b559",
+        "classification": "declaration",
+        "owner": "HistoryCommand",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "1c9df50d04564e9a10160d6d5c536decb91bcc2969feb2e84b6e968b32bb2126",
+        "classification": "declaration",
+        "owner": "HistoryRun",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "45472f3b68691aa20187e342c380369c763353f87935bae81c90179f09780b16",
+        "classification": "declaration",
+        "owner": "HistoryRun",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "73c8fb037e14920eca00e7a9626d0d6b7d23c5e7b5e9bf02f682bc186dd57674",
+        "classification": "declaration",
+        "owner": "HistoryRun",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "75cf53e0957ff6ce51b0d32c4c399cda8d0d35d1ee2fc98fefbb1359ac488039",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "83d056fff25f4050e389cd74ee0c12f3a6a9c438d80d74a2368fe6e107116fc6",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "febcddaca9d325cb343bfda9e1737fec14444fc61388ee9d65523575b6320736",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "d8f8ea85f1a6ae6452675e08dec89ddfdf0e7516d7108d76b9831b686c1cabcb",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "1421e3c3dcc62aab0eb6458e3c15955a30fdf00a307adf713defb33c588e3a5c",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "1e6c17fef2f484180284ccefbe4d7e7e553d71101e9a2b823c32a92bbb3021c8",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "1dd2db09220d0a0aed1f8c1a644a7c433c228b4359fb56694a6645c28d5e4010",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "2bde3dbff4cf048a48fb697f771ac6c4faac0c814380f66889bb2204dfef3d0f",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "015b14b5a2ff53d3362509309bbba34270aea1338518e185e4027513ae545362",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "88cdf8e0765a6fed2842d7824717c10614c014f8c7a854aad48fc75eab244703",
+        "classification": "declaration",
+        "owner": "HistoryRow",
+        "reason": "Canonical current history wire fields, source references, display joins/status priority and existing public commands."
+      },
+      {
+        "id": "75e6bb08ee96c932b6038ec15d94741187d949dd7ae46d8b195bdfad4d9b2c0e",
+        "classification": "non_contract",
+        "owner": "HistoryRow.create",
+        "reason": "Negative index chooses the last Assistant in the ordered active history."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HistoryCommand / HistoryRun / HistoryRow",
+        "declaration": "hub/backend/history_values.py",
+        "consumers": [
+          "hub/backend/history.py",
+          "hub/ui/chat/history_ui.py",
+          "hub/widget/forms/request_history.py",
+          "hub/widget/summary.py"
+        ],
+        "tests": [
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/history_deletion.py",
+    "sha256": "6d195c9cc73287d87e86b748ce2e6fb8aa4f7d4a2b0d8a53d6dd325348ff8d8d",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9eb1105e0d5c05a800e562ddbff276336434771226cc4ec2aacdbdd51a6cbb29",
+        "classification": "declaration",
+        "owner": "TurnDeletionItem",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "53353f86398eba736fb7ed9d9b7fca36df5fa2e82606486a6cf68a80a97768c1",
+        "classification": "declaration",
+        "owner": "TurnDeletionItem",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "8186da9dfcea94d5cf8fb4c6baefcdf4bd38f7b25f10d807bf91bb2eda408859",
+        "classification": "declaration",
+        "owner": "TurnDeletionItem",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "57d551f854d67163e1a1ded3bca9a2ff43720ac5cea933bfffb1c08870bd34e0",
+        "classification": "declaration",
+        "owner": "TurnDeletionItem",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "834d5a80528083ace8477ac16f4be7f97a6d5855867324cb1d0c6b5d6a4ffa78",
+        "classification": "declaration",
+        "owner": "TurnDeletionItem",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "363029f56260073427f4ee71f1d6eecd4911db58ca37696145cf5dc29284531e",
+        "classification": "declaration",
+        "owner": "TurnDeletionItem",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "0e0c31b865bcb10e967112701dea525eda5ecfaea626db95c4c3b474b1dfde95",
+        "classification": "declaration",
+        "owner": "TurnDeletionReview",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "e2f68a599d4aa13b590fd1175d059cca2d8d7937d1f3f0155ea66e31640bcb60",
+        "classification": "declaration",
+        "owner": "TurnDeletionReview",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "26a3d1e461ed6f5028ff0bc3643c75ed21c853c8971c98f64998f12cadfdbe69",
+        "classification": "declaration",
+        "owner": "TurnDeletionReview",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "d58034200877aed8c0b8568c06a663c8d369438f5512d6442d60790a8331f5fd",
+        "classification": "declaration",
+        "owner": "TurnDeletionResult",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      },
+      {
+        "id": "984994c42feebb2a247a8f580ceb0292cc694ab921e46dfecbbc9b4a2d6e00a8",
+        "classification": "declaration",
+        "owner": "TurnDeletionResult",
+        "reason": "Existing cancellation/deferred/planned item shapes, aggregate review digest encoding, result fields and canonical Backend plan/Diagnostic field references."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TurnDeletionItem / TurnDeletionReview / TurnDeletionResult",
+        "declaration": "hub/backend/history_deletion.py",
+        "consumers": [
+          "hub/backend/history.py",
+          "hub/ui/chat/history_ui.py"
+        ],
+        "tests": [
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/history.py",
+    "sha256": "b883c31f93dd7dc0f857faed89177f936170188639da6abe9e820d7d7b3b7982",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "25e74f90bc9dc6cd4ab0b396a88da0c4b9c66041bede220aa03952863cd8b55e",
+        "classification": "declaration",
+        "owner": "TurnHistory",
+        "reason": "Original bounded admission-conflict replanning, partial-output request, absence and progress declarations; all record construction belongs to history projection Owners."
+      },
+      {
+        "id": "7b63a215e38a8342ceef88451e84d1ce99b499c29e16aeeeb5c1a5cc58ccc29e",
+        "classification": "declaration",
+        "owner": "TurnHistory",
+        "reason": "Original bounded admission-conflict replanning, partial-output request, absence and progress declarations; all record construction belongs to history projection Owners."
+      },
+      {
+        "id": "0582f5923242ce4618325f8c1788975f52427f525eaa65ec7cd2b4f327e2ae0c",
+        "classification": "declaration",
+        "owner": "TurnHistory",
+        "reason": "Original bounded admission-conflict replanning, partial-output request, absence and progress declarations; all record construction belongs to history projection Owners."
+      },
+      {
+        "id": "1057e32e6158963589dbbc03303be3865a172cf0a7fd36d841cfe5963ac03e36",
+        "classification": "declaration",
+        "owner": "TurnHistory",
+        "reason": "Original bounded admission-conflict replanning, partial-output request, absence and progress declarations; all record construction belongs to history projection Owners."
+      },
+      {
+        "id": "66320226035f52b02f965e0ebfa39431f7a52df7d500dece6635fee100801bb0",
+        "classification": "declaration",
+        "owner": "TurnHistory",
+        "reason": "Original bounded admission-conflict replanning, partial-output request, absence and progress declarations; all record construction belongs to history projection Owners."
+      },
+      {
+        "id": "4b82276df4f2e06482b124e242f67871066163554068d5b7a97e42bad542b1e7",
+        "classification": "declaration",
+        "owner": "TurnHistory",
+        "reason": "Original bounded admission-conflict replanning, partial-output request, absence and progress declarations; all record construction belongs to history projection Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TurnHistory",
+        "declaration": "hub/backend/history.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/summary.py",
+    "sha256": "f814ff22215a508a76925f38510942441e031595b03e837f213fd05fda197b46",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "16cdef5d7b9c15c58c6cba44427ab63be808188a848b6e4cb26d1a1033ad0e0e",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      },
+      {
+        "id": "07fd3e0b17b515d6dd7c6b7b40d17279a09dfbbcba5041ea286c39db28345b3d",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      },
+      {
+        "id": "070a213a596acf9405af738550bb27f362557e0d26f4721dee32aaf61c9b723b",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      },
+      {
+        "id": "4a20431d1931a43084bb36f7dfe9eb9237bf57abeab57f2c1c599dcfc37660e9",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      },
+      {
+        "id": "eaaad42570ff3cf4b2344959be38d2a0270795cf4a8633a7374db48a6a07bb7f",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      },
+      {
+        "id": "983e48678087840fe5b63f925624efd38abbc21d07b2a0c66c423c4758947eaf",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      },
+      {
+        "id": "15b33adf0b62477c2a6c82c31b161e03bcee171777695500bdb7ca8cd38bba13",
+        "classification": "declaration",
+        "owner": "SummaryText",
+        "reason": "Original whitespace normalization, terminal-cell ellipsis and bounded history label format."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SummaryText / turn_label / clipped_summary",
+        "declaration": "hub/widget/summary.py",
+        "consumers": [
+          "hub/widget/forms/request_history.py"
+        ],
+        "tests": [
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/request_history.py",
+    "sha256": "b7b07c3eb61ac3c1f15bbfe0172b3a184f1d831568b1139ea303905ff35de8fc",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2703bd5d2c5409df6b2990835edb56e0cf752cbf07f3fd77f2b9f0c042101a0b",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "46b2f06aa174a7d870adac67ce745ad4860fd8e3394c30069da0101e9502d6b3",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "044303570f8f83c342264e15af26ebc40ab85e2e54b04d5a6bd23859a3d80bbc",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "d59d20588860db6f37892e2ac19e129667d04dbc5c7c4c6505475a85c701279b",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "ea41158c073cac957159f13ddf29aec633623d27168f7733e4bf501bc6350b24",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "c5f73ac95ad34196fb0eecef75073b5c50a615e9e5183f56160ca7620664bb76",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "9a6604223ecdcd9aa56d6a2807f40a7ba99c310f404c44c82007611de57a5555",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "94c50adf7eafe1b6bf05fa756f2186ffb1da9b8f165e729abee7f2b2fe947f11",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "8a034e60755ed75c1e70e634057d554ce4dfd2629faf5df201eb08b5c65accf9",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "7664afa86facbeb2b654abcbe363ed82740a8f936f4e52d7bf6f0a813cbd0755",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "e2430df28a10963a0f6308c103e318e9609b9571ba62abea922f5fb6f3e989e9",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "6800079d27422879ede06785fe0ba1af6e5a8bca1cc37865cebea077af5390e0",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "8a1d9e422cec72f74150cb3d31c8d746b848c0eb17b2bcd1a8b238c17b7ca671",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "2560bc1d3745510813795ebb6cb571fea4c2d12e150088defa802d51443d4b5e",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "d459b016ef9b104dd32ebae9db1c67367a56bc10fad061d98ceb74ef8d43a236",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "028da49f4b0f33bc4b84f014f877277b148515c7f2bb749c51afeb759c9e8fe8",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "78951ba33db06622aae6d48cfd126b47ef3bc3681060585e433283a7999a18b1",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "95c46ffd69611a5cc78171c6d036df748b15eb0a9ec94f836d96e642f8dc79d4",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "60fec639f0f35cf3d9026dd2048e1ed7308b135f7139575ba27362797443f3ce",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "4a871d2f0bcf6cd0bf005bda95d3c2739ea287e50590c59c0ed0ea7b6dd26634",
+        "classification": "non_contract",
+        "owner": "RequestHistoryDialog.__init__",
+        "reason": "First row establishes the initial selection."
+      },
+      {
+        "id": "00972dfdf8bc722e9bc329dc24f9b34b68eb2397f6f3ef5ac388cace36e1017a",
+        "classification": "non_contract",
+        "owner": "RequestHistoryDialog.__init__",
+        "reason": "First row supplies the initial edit text."
+      },
+      {
+        "id": "919cdda42034d98bb8896bab1b2882d405b1fd2db59f4545f23d716ff3ba1b65",
+        "classification": "non_contract",
+        "owner": "RequestHistoryDialog.__init__",
+        "reason": "First row supplies the initial response preview."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RequestHistoryDialog",
+        "declaration": "hub/widget/forms/request_history.py",
+        "consumers": [
+          "hub/ui/chat/history_ui.py"
+        ],
+        "tests": [
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/history_retention.py",
+    "sha256": "625050b5384c4a373953b96b8b72fcf7389ebafcd323111abcc9226eff9472d9",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a3760bd49786cf2edf4a2c0641941e9f6d08d8c785c0268fc59c3a90a93f47b7",
+        "classification": "non_contract",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "d9e0d2af3f41a1d507ce6e018565197d55065f0de868a9c08d29f98c9a9ca9b9",
+        "classification": "non_contract",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "0cead98d7283b5f2567f4d056d5bba75a21f62304f736bda8dc181b2f8a6b989",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "fde05ed499aea5c3d56d4519336c5cd58bccadbf1b9379403236864f204ff725",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "bd5ea5b36f0b4b086cb93f5556a4211eaf425acf2dc2d99f60eaaa0e4bd94c00",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "9d9e3e1d44365504da0cac59642b7a9b0e0926cba0b57fbdfdb22b428fd997dc",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "e6cb787c51453aea1a535207d6c19d08ebde74bdc235ae6859fd7ad158da466a",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "b6a3912377159d782c4aaa64e3d4f9764a7e3d7bb851aa099bd45d9e94e1da73",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "94a8ba7859a85f281fa5145082469bb1c1823e5092beacfa4c9bc565859e193c",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "8dd426a90ca0e5f95c600a66f0cb9283c3ae41288e0ccddf62c3794bcf6e7b2f",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "5d0970ba70e3a5060518e59f5dc7fb561f5cae28f1aef390a5a489163cc5488a",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "0e492513bca94f6e3e81f1692cfd92387e780d34a4069d430f43bea996efd234",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "f6362004213d874c47c78ed1f60b0dcea9b8d6b03789ee21b6946fe6cdcc825f",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "2c225838a712e4f91cc14cf75067cef908d826e9bf58a42582167d08b9361baf",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "83215c59df496f78a7619c0259cafa290fa1ad5e1df9972af1781079d2c39e0c",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "278fe734ac9bc1fc676c503f24fc075eba1a01136754da7bfc80b382b4b8294d",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "6a79c11a15922135c697bb7bf92180d793d9de38bd12eac566de5414ce4e27c5",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "bcee55e354b07b301f5547d86fce18fb40d939d7710f919f8d2321f4f362ff23",
+        "classification": "declaration",
+        "owner": "HistoryRetentionPolicy",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "ae5178663f9f1287dda5078116b40e6bb299d9dd31b6f14a00f0f1fa963b695c",
+        "classification": "non_contract",
+        "owner": "HistoryRetentionReview",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "75d5162a065233acbc1a8c16f31e63c793ee2ad25ff88aca50fa8bfba09798f0",
+        "classification": "non_contract",
+        "owner": "HistoryRetentionReview",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "5ebbfeb42215e425c36aa2edfe30286816271ab11814489c5be572027a79609b",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "821b7b6d21d2ade861fe5f300b3681c5c7a6d4af12e939aed9f981606a1bed09",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "ad198266be6bce2a8c8e443704fc920db757c20308e1f0b767b26d1fb74b0866",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "2d7fe21038854697db938b998c0bb48e3e6908f8b44fc4046552c051329cb52a",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "b6887cc31a8951d3744e678b05590837531b0d906fa04aca01918cac0b344a98",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "58e8eb806415630c23c13372e27e79a1d123bb6855f6cdf704400ebd09c75053",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "6fc5a17cf7d692e14a514dcfb31016fa360ddbf9ecb1e62fa2c563d32678795a",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "9604b8b71d4994f53d7280297f15571b6c1699b9aaa843e1d7b024ea2577f632",
+        "classification": "declaration",
+        "owner": "HistoryRetention",
+        "reason": "Existing explicit Application retention limits, messages, keep reason, ordering and absence declarations; stored row/target fields and counter grammar remain with Backend Owners."
+      },
+      {
+        "id": "40581879e78cee8011fe9b3547a99737fcdc246170e55ae95f0454d5efe2e749",
+        "classification": "non_contract",
+        "owner": "HistoryRetention.preview",
+        "reason": "First row supplies the ordered group Session tie breaker."
+      },
+      {
+        "id": "3177b2ed7f7f215b7e39692cfaca62868e655473d74ad234e4b674cdb6926ea0",
+        "classification": "non_contract",
+        "owner": "HistoryRetention.preview",
+        "reason": "First row supplies the ordered group optional Run tie breaker."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HistoryRetentionPolicy / HistoryRetentionReview / HistoryRetention",
+        "declaration": "hub/backend/project/history_retention.py",
+        "consumers": [
+          "tests/hub/test_history_retention.py"
+        ],
+        "tests": [
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
         ],
         "complete": true
       }

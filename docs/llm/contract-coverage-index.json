@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 619,
-    "unreviewed_files": 103,
+    "files": 621,
+    "unreviewed_files": 99,
     "stale_files": 0,
-    "unclassified": 5704,
+    "unclassified": 5443,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 103,
+    "unreviewed_dynamic_paths": 99,
     "unreadable_files": 0,
-    "candidates": 18293,
+    "candidates": 18130,
     "issues": 0
   },
   "files": [
@@ -249,9 +249,21 @@
     },
     {
       "path": "hub/backend/history.py",
-      "status": "unreviewed",
-      "sha256": "68e0f5c74bd88a6a466db641ad704ce6d133ef79e23a159bb3fcce8c20741b5b",
-      "candidates": 89
+      "status": "reviewed",
+      "sha256": "b883c31f93dd7dc0f857faed89177f936170188639da6abe9e820d7d7b3b7982",
+      "candidates": 6
+    },
+    {
+      "path": "hub/backend/history_deletion.py",
+      "status": "reviewed",
+      "sha256": "6d195c9cc73287d87e86b748ce2e6fb8aa4f7d4a2b0d8a53d6dd325348ff8d8d",
+      "candidates": 11
+    },
+    {
+      "path": "hub/backend/history_values.py",
+      "status": "reviewed",
+      "sha256": "15c81354fc75565d00db3412f418324aa93aeb276e9bde8c611a848e5cda0ea8",
+      "candidates": 20
     },
     {
       "path": "hub/backend/interactions/__init__.py",
@@ -345,9 +357,9 @@
     },
     {
       "path": "hub/backend/project/history_retention.py",
-      "status": "unreviewed",
-      "sha256": "04117b9980dd4da256631713aaf6ee9867ff8de4fbc2247649843252f9d1d596",
-      "candidates": 59
+      "status": "reviewed",
+      "sha256": "625050b5384c4a373953b96b8b72fcf7389ebafcd323111abcc9226eff9472d9",
+      "candidates": 30
     },
     {
       "path": "hub/backend/project/memory_management.py",
@@ -424,8 +436,8 @@
     {
       "path": "hub/backend/runtime.py",
       "status": "unreviewed",
-      "sha256": "5787427abdfc29e16c52d68c6457fca208a7667ee1871c4a0740fe9729ebf7aa",
-      "candidates": 181
+      "sha256": "d41e4e0fe990626f8bfdf2bad6fa546c78caa08483ae3721098fa8553fbb9acd",
+      "candidates": 180
     },
     {
       "path": "hub/backend/tools/__init__.py",
@@ -742,8 +754,8 @@
     {
       "path": "hub/ui/chat/history_ui.py",
       "status": "unreviewed",
-      "sha256": "e9eb335acec70cd9da0947356ba6a876c7b6643fa2418d014fc0c07053171cf9",
-      "candidates": 144
+      "sha256": "f5bf66e5d42a07b5c44a955ca44504f82e5b7317a61ac46ec5c36ca8a377cda5",
+      "candidates": 114
     },
     {
       "path": "hub/ui/chat/projects.py",
@@ -820,8 +832,8 @@
     {
       "path": "hub/ui/input/keys.py",
       "status": "reviewed",
-      "sha256": "d4ba896d96e46daeda5bed1a5530fdd84ce21a5b606314b6da756771c65db777",
-      "candidates": 35
+      "sha256": "1c080271a5db88d0b5d444e393bc776d8d72f0c988d1bb3d3175b0d091224b94",
+      "candidates": 38
     },
     {
       "path": "hub/ui/input/registry.py",
@@ -1215,9 +1227,9 @@
     },
     {
       "path": "hub/widget/forms/request_history.py",
-      "status": "unreviewed",
-      "sha256": "3429bed4203dbb20382729e73c9521b110384a39153af35711b9ab1e428ed0a5",
-      "candidates": 67
+      "status": "reviewed",
+      "sha256": "b7b07c3eb61ac3c1f15bbfe0172b3a184f1d831568b1139ea303905ff35de8fc",
+      "candidates": 22
     },
     {
       "path": "hub/widget/forms/session_form.py",
@@ -1383,9 +1395,9 @@
     },
     {
       "path": "hub/widget/summary.py",
-      "status": "unreviewed",
-      "sha256": "7b6b2cdd8ea48d0bcbc30ae7d84f3db9874d7483ec8c145e738c157ecaf648d6",
-      "candidates": 15
+      "status": "reviewed",
+      "sha256": "f814ff22215a508a76925f38510942441e031595b03e837f213fd05fda197b46",
+      "candidates": 7
     },
     {
       "path": "hub/widget/tab_page.py",
@@ -3340,7 +3352,7 @@
     {
       "path": "llm/services/history/retention_records.py",
       "status": "reviewed",
-      "sha256": "8e740d1f1f96311d853065c7f01d7ef15bec2c9556cc22db96ccbad39c41514e",
+      "sha256": "b08d2db3c1b629ff5d91a298d25d951807bd4d75f00bb751c613de8926ab2ecf",
       "candidates": 33
     },
     {
@@ -3532,8 +3544,8 @@
     {
       "path": "llm/services/lifecycle/sessions.py",
       "status": "reviewed",
-      "sha256": "2b23282c26b488ca4d65ba7dfeb66466d862704622ba5c8818b1415846cece24",
-      "candidates": 75
+      "sha256": "aae8d84d8977d54b193c99485eb6e76998484b91ed9ccae1f11693920330d035",
+      "candidates": 74
     },
     {
       "path": "llm/services/lifecycle/steps.py",

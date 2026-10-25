@@ -2,7 +2,9 @@
 
 from hub.locales.keys import MessageKey, MessagePattern
 
-from llm.core.models import RunStatus
+from llm.core.models import RunStatus, MessageRole
+from ...backend.history_values import HistoryCommand, HistoryRow, HistoryRun
+from ...backend.history_deletion import TurnDeletionItem, TurnDeletionReview, TurnDeletionResult
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
@@ -69,7 +71,7 @@ def format_activity(rows, t):
 
 class HistoryUI:
 
-    RETRY_TURN = "retry_turn"
+    RETRY_TURN = HistoryCommand.RETRY
 
     def __init__(self, controller):
         self.controller = controller
@@ -88,7 +90,7 @@ class HistoryUI:
             if rows is None or view.project_id != project_id or view.sessions[view.selected].id != session_id:
                 return
             self.show(session_id, rows)
-        self.controller._call("turns", session_id, completed=ready)
+        self.controller._call(HistoryCommand.TURNS, session_id, completed=ready)
 
     def show(self, session_id, rows):
         from ...widget.dialog import Dialog
@@ -113,26 +115,26 @@ class HistoryUI:
             identifier = identifiers[0]
             row = popup.rows[identifier]
             text = popup.drafts[identifier]
-            if operation == "edit_turn" and not text.strip():
+            if operation == HistoryCommand.EDIT and not text.strip():
                 view.notice = t(MessageKey.EMPTY_MESSAGE)
                 return
             view.close_dialog()
             if operation == HistoryUI.RETRY_TURN:
                 from .resume import resume_turn
-                candidates = [run for run in row["runs"] if run["run_id"]
-                              and run["status"] in (RunStatus.INTERRUPTED, RunStatus.FAILED)]
+                candidates = [run for run in HistoryRow(row).runs if HistoryRun(run).run_id
+                              and HistoryRun(run).status in (RunStatus.INTERRUPTED, RunStatus.FAILED)]
                 if not candidates:
                     view.notice = t(MessageKey.HISTORY_RETRY_UNAVAILABLE)
                 elif len(candidates) == 1:
-                    resume_turn(self.controller, session_id, candidates[0]["run_id"], identifier)
+                    resume_turn(self.controller, session_id, HistoryRun(candidates[0]).run_id, identifier)
                 else:
                     from ...widget.controls import RadioList
-                    choices = RadioList([(run["run_id"], run["agent_id"] + " · " + t.status(run["status"]))
+                    choices = RadioList([(HistoryRun(run).run_id, HistoryRun(run).agent_id + " · " + t.status(HistoryRun(run).status))
                                          for run in candidates], select_on_focus=True)
                     view.open_dialog(t(MessageKey.CHOOSE_TARGET), choices,
                         lambda: resume_turn(self.controller, session_id, choices.current_value, identifier), choices)
                 return
-            args = (session_id, identifier, text, row.get("request_id", identifier))
+            args = (session_id, identifier, text, HistoryRow(row).request_id(identifier))
             self.controller._call(operation, *args, completed=lambda result:
                 result is not None and self.controller._call("snapshot", completed=self.controller._snapshot))
 
@@ -156,7 +158,7 @@ class HistoryUI:
                     key = (project_id, session_id)
                     if key in view.deleting.pending:
                         return
-                    request = view.deleting.start(key, len(plan.get("items", ())))
+                    request = view.deleting.start(key, len(TurnDeletionReview(plan).optional_items()))
                     def removed(result):
                         if result is None:
                             def failed_refresh(snapshot):
@@ -165,13 +167,13 @@ class HistoryUI:
                             self.controller._call("snapshot", completed=failed_refresh)
                             return
                         from dataclasses import replace
-                        deleted = set(result["removed"])
+                        deleted = set(TurnDeletionResult(result).removed)
                         submitted = getattr(view, "_submitted_messages", {}).get(key, {})
                         for identifier in deleted:
                             submitted.pop(identifier, None)
                         if view.project_id == project_id:
-                            texts = {row["text"] for row in rows
-                                     if row["id"] in deleted or row.get("request_id") in deleted}
+                            texts = {HistoryRow(row).text for row in rows
+                                     if HistoryRow(row).id in deleted or HistoryRow(row).request_id() in deleted}
                             view.input_history.discard(session_id, texts)
                             # Forget locally bridged receipts and cached turns before
                             # the next authoritative snapshot, including after errors.
@@ -180,7 +182,7 @@ class HistoryUI:
                                     continue
                                 kept, removing = [], False
                                 for message in session.messages:
-                                    if message.role == "user":
+                                    if message.role == MessageRole.USER:
                                         removing = message.id in deleted
                                     if not removing:
                                         kept.append(message)
@@ -191,29 +193,29 @@ class HistoryUI:
                             if current():
                                 if view.visible and view._dialog is None:
                                     self.open()
-                                if result["errors"]:
-                                    for error in result["errors"]:
+                                if TurnDeletionResult(result).errors:
+                                    for error in TurnDeletionResult(result).errors:
                                         view.operation_diagnostics.record(project_id, error)
                                     view.notice = "\n".join(dict.fromkeys(
-                                        operation_notice(error, t) for error in result["errors"]))
+                                        operation_notice(error, t) for error in TurnDeletionResult(result).errors))
                         self.controller._call("snapshot", completed=refreshed)
-                    self.controller._call("delete_turns", session_id, identifiers, plan["revision"], completed=removed,
+                    self.controller._call(HistoryCommand.DELETE_MANY, session_id, identifiers, TurnDeletionReview(plan).revision, completed=removed,
                         progress=lambda done, total: view.deleting.update(request, done, total))
                 summary = t(MessageKey.HISTORY_DELETE_SELECTED, count=len(identifiers))
-                if any(not item["queued"] for item in plan.get("items", ())):
+                if any(not TurnDeletionItem(item).queued for item in TurnDeletionReview(plan).optional_items()):
                     summary += "\n" + t(MessageKey.HISTORY_DELETE_CONFIRM)
-                if plan["blockers"]:
-                    summary += "\n" + t(MessageKey.HISTORY_ABANDON_CONFIRM, count=len(plan["blockers"]))
+                if TurnDeletionReview(plan).blockers:
+                    summary += "\n" + t(MessageKey.HISTORY_ABANDON_CONFIRM, count=len(TurnDeletionReview(plan).blockers))
                     summary += "\n" + "\n".join(
                         f"{item['source']['run_id']} · {item['details']['engine']} · {t.status(item['details']['status'])}"
-                        for item in plan["blockers"])
+                        for item in TurnDeletionReview(plan).blockers)
                 body = TextArea(text=summary, read_only=True, scrollbar=True, wrap_lines=True,
                                 height=Dimension(min=1, max=8))
                 view.open_dialog(t(MessageKey.HISTORY_DELETE), body, confirmed,
-                    accept_text=t(MessageKey.HISTORY_ABANDON_DELETE) if plan["blockers"] else t(MessageKey.HISTORY_DELETE))
-            self.controller._call("delete_turns_plan", session_id, identifiers, completed=ready)
+                    accept_text=t(MessageKey.HISTORY_ABANDON_DELETE) if TurnDeletionReview(plan).blockers else t(MessageKey.HISTORY_DELETE))
+            self.controller._call(HistoryCommand.DELETE_PLAN, session_id, identifiers, completed=ready)
 
-        popup = RequestHistoryDialog(view, rows, delete=delete, edit=lambda: execute("edit_turn"),
+        popup = RequestHistoryDialog(view, rows, delete=delete, edit=lambda: execute(HistoryCommand.EDIT),
                                      retry=lambda: execute(HistoryUI.RETRY_TURN), close=view.close_dialog)
         view.dialogs.show(popup, popup.choices)
 

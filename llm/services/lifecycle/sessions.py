@@ -354,7 +354,7 @@ class SessionManager:
         if any(m.status in Message.PENDING_STATES for m in messages):
             raise ValueError(SessionManager.PENDING_TURN)
         group = next(
-            (g for g in conversation_turns(messages) if g[0].id == request_id), SessionManager.UNSPECIFIED
+            (g for g in conversation_turns(messages) if ConversationTurns.request(g).id == request_id), SessionManager.UNSPECIFIED
         )
         if group is SessionManager.UNSPECIFIED:
             raise ValueError(ConversationTurns.MISSING_TURN)

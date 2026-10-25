@@ -52,6 +52,9 @@ class KeyName:
 
 
 class ShortcutAction:
+    DELETE = "delete"
+    RETRY = "retry"
+    CLOSE = "close"
     RETURN = "return"
     TABS = "tabs"
     MAIN = "main"

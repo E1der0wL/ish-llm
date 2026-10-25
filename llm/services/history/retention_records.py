@@ -61,9 +61,9 @@ class RetentionCounter:
     INVALID_COUNT = "Retention counter requires nonnegative integer tokens"
 
     @classmethod
-    def validate_parameters(cls, parameters):
+    def validate_parameters(cls, parameters, *, error_message=INVALID_PARAMETERS):
         if not isinstance(parameters, dict) or cls.MESSAGES in parameters:
-            raise ValueError(cls.INVALID_PARAMETERS)
+            raise ValueError(error_message)
 
     @classmethod
     def validate_selection(cls, counter, parameters):
@@ -167,6 +167,28 @@ class RetentionRow:
         return self._value[self.RUN_ID]
 
     @property
+    def status(self):
+        return self._value[self.STATUS]
+
+    @property
+    def last_activity(self):
+        return self._value[self.LAST_ACTIVITY]
+
+    @property
+    def bytes(self):
+        return self._value[self.BYTES]
+
+    @property
+    def tokens(self):
+        return self._value[self.TOKENS]
+
+    def optional_run_id(self, default):
+        return self._value.get(self.RUN_ID, default)
+
+    def target(self, unit):
+        return RetentionTarget.project(self._value, unit)
+
+    @property
     def group_run_ids(self):
         return self._value[self.GROUP_RUN_IDS]
 
@@ -215,6 +237,8 @@ class RetentionEvidence:
 class RetentionTarget:
     SESSION_ID = RetentionRow.SESSION_ID
     RUN_ID = RetentionRow.RUN_ID
+    RUN_FIELDS = (SESSION_ID, RUN_ID)
+    SESSION_FIELDS = (SESSION_ID,)
     INVALID_COLLECTION = "History pruning requires explicit targets"
     INVALID_FIELDS = "History target fields do not match the explicit unit"
     INVALID_IDENTIFIERS = "History targets require owned identifiers"
@@ -229,7 +253,12 @@ class RetentionTarget:
 
     @classmethod
     def fields(cls, unit):
-        return {cls.SESSION_ID, cls.RUN_ID} if unit == RetentionUnit.RUN else {cls.SESSION_ID}
+        return set(cls.RUN_FIELDS if unit == RetentionUnit.RUN else cls.SESSION_FIELDS)
+
+    @classmethod
+    def project(cls, row, unit):
+        fields = cls.RUN_FIELDS if unit == RetentionUnit.RUN else cls.SESSION_FIELDS
+        return {name: row[name] for name in fields}
 
     @classmethod
     def read(cls, value, fields):

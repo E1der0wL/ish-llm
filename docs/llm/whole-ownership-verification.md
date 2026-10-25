@@ -8533,3 +8533,50 @@ Retry observations·History retention이다. 공통 안전성 84개 및 R3 Mutat
 유예했으며 상위/원격 완료로 표현하지 않는다. Gate50에는 이 변경이 없으며 ResponseContext·
 RuntimeObservation·StopIntent 및 후속 관련 이력 변경을 묶는 Level 3·정적/문서/R3·실환경·정확한
 SHA 원격 CI가 다음 게이트다. 기존 승인·예산·실제 Tool 효과·Checkpoint·삭제 Assertion은 유지한다.
+
+
+## 요청 이력 행·삭제 검토·Application 보존 정책의 Owner 연결
+
+HistoryValues·HistoryDeletion·TurnHistory·Summary·RequestHistoryDialog·HistoryRetention 여섯
+파일을 전수 정리했다. HistoryRun/HistoryRow가 기존 공개 dictionary의 Writer와 빌린 관찰을
+소유하며 Backend·실제 화면·요약/편집 폼이 같은 API를 사용한다. dict 반환 형식·필드·상태 우선순위·
+대기 교체 요청·elapsed·응답/오류 병합·초기 선택/편집 draft·단축키·터미널 셀 잘라내기를 유지한다.
+HistoryUI 전체에는 별도 activity 계약 정리가 남아 있어 이 좁은 소비자 변경으로 완료 처리하지 않는다.
+
+TurnDeletionItem/Review/Result는 기존 queued/deferred/plan 구조와 정렬 JSON의 SHA-256,
+removed/errors를 소유한다. 삭제 실행은 원래와 같은 revision 비교→대기 요청 취소 우선→각 현재
+Backend plan 재조회→검토했던 blocker 집합을 벗어나면 거부→공개 delete_turn 호출 순서다.
+동일 그룹의 요청 선택을 수행하는 LLM SessionManager 및 Hub의 clone 경계 소비자도 ConversationTurns.request로
+연결했다. 추가 두 소비자는 Owner의 단일 group[0] 접근으로 펼치면 원본 AST와 동일하다.
+해당 기존 turn-deletion·clone 및 원본 보존·안전성 테스트를 함께 실행했다. 독립 118개 비교 관찰은 다중 상태·대기 교체·elapsed·대화 원본 보존, busy/새 blocker/오래된 revision,
+취소/삭제 실패·작업 취소의 진행/중단과 progress 순서, 한국어/영어 편집 폼·Unicode 요약을 포함했다.
+비교용 facade는 실제 파일 효과 검증으로 표현하지 않으며 실제 효과는 아래 기존 회귀가 검증한다.
+
+RetentionRow의 관찰·target 투영과 RetentionCounter의 원래 grammar 검증을 재사용해 Application의
+중복 필드/파라미터 해석을 제거했다. Application은 계속 자신의 명시적 keep/age/bytes/tokens
+선택과 오류 문구를 소유한다. 현재 자동 UI 소비자는 없고 명시적 Application API를 기존
+HistoryRetention 테스트가 직접 호출한다. Backend의 적격성·보호·재검증·실제 삭제 권한은 그대로다. 독립
+66개 보존 정책 비교가 일치했고 원본 plan/설정 복사, 그룹 보호·정렬·엄격 경과 시간, 출력 target
+필드/순서, stale selection 거부와 invalid 값의 원래 오류를 검증했다.
+
+- `whole-hub-history-records-core-01`: discovered/started/pass 19/19/19, exit 0, 19.930054초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-history-records-core-01/llm.json --modules tests.llm.test_history_retention_integrity tests.llm.test_turn_deletion`. source `bd5165b7a96dd96a5d136ca3569390de00ec8ba959adde63eddc95cc0da90f55`, input `0174d1b0c0eb7804efaeea7dd942d9df652f7d1c843db1eb03b367e6ac68a9f1`.
+
+- `whole-hub-history-records-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.474272초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-history-records-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `bd5165b7a96dd96a5d136ca3569390de00ec8ba959adde63eddc95cc0da90f55`, input `0174d1b0c0eb7804efaeea7dd942d9df652f7d1c843db1eb03b367e6ac68a9f1`.
+
+- `whole-hub-history-records-l1-01`: discovered/started/pass 24/24/24, exit 0, 58.486298초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-history-records-l1-01/hub.json --modules tests.hub.test_request_history tests.hub.test_history_retention tests.hub.test_history_alerts`. source `bd5165b7a96dd96a5d136ca3569390de00ec8ba959adde63eddc95cc0da90f55`, input `0174d1b0c0eb7804efaeea7dd942d9df652f7d1c843db1eb03b367e6ac68a9f1`.
+
+- `whole-hub-history-records-l2-01`: discovered/started/pass 15/15/15, exit 0, 26.374957초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-history-records-l2-01/hub.json --modules tests.hub.test_turn_deletion tests.hub.test_multi_agent tests.hub.test_overlays tests.hub.test_deletion_feedback tests.hub.test_approval_continuation`. source `bd5165b7a96dd96a5d136ca3569390de00ec8ba959adde63eddc95cc0da90f55`, input `0174d1b0c0eb7804efaeea7dd942d9df652f7d1c843db1eb03b367e6ac68a9f1`.
+
+각 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 만족했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 argv/exit는
+`hub-history-records-draft/selected-results.json`, 비교는 `proof-commands.json`에 보존한다.
+LLM의 실제 History retention integrity·Turn deletion과 공통 안전성 84개·R3 Mutation,
+Hub Request history·History retention·실제 History alerts 화면, Turn deletion·Multi Agent·
+Overlays·Deletion feedback·Approval continuation 소비자를 검증했다. 기존 원본 보존·실제 효과
+횟수·승인·예산·Checkpoint·Resume Assertion은 변경하지 않았다.
+
+저장/실행 정책 변경 없이 Owner 관찰·투영과 동일 검증을 이동한 것으로 영향 범위를 확인했다.
+이 소단계의 전체 회귀는 유예했으며 전체/원격 완료로 기록하지 않는다. ResponseContext·Runtime
+Observation·StopIntent·ConversationLineage와 묶은 다음 Level 3 전체·정적/문서/R3·실환경·정확한
+SHA 원격 CI가 상위 게이트다. Gate50에는 이 변경이 포함되지 않는다.
