@@ -45,14 +45,14 @@ class CacheTests(unittest.TestCase):
         thought = ChatMessage("reasoning", "combined fallback", id="a:reasoning", trace=trace)
         answer = ChatMessage("assistant", "Answer", id="a", status="streaming")
         self.prepare((thought, answer))
-        response = self.cache.items["a"]["frame"]
-        previous = self.cache.items["a:reasoning"]["trace_cache"]
+        response = self.cache.items["a"].frame
+        previous = self.cache.items["a:reasoning"].trace_cache
         bodies, headers = self.cache.body_renders, self.cache.header_renders
         for index in range(10):
             thought = replace(thought, text=f"fallback {index}", trace=(*trace[:-1], replace(trace[-1], text=f"Second {index}")))
             frame = self.prepare((thought, answer))
-            self.assertIs(self.cache.items["a"]["frame"], response)
-            self.assertIs(self.cache.items["a:reasoning"]["trace_cache"][trace[0]], previous[trace[0]])
+            self.assertIs(self.cache.items["a"].frame, response)
+            self.assertIs(self.cache.items["a:reasoning"].trace_cache[trace[0]], previous[trace[0]])
         self.assertEqual(self.cache.trace_renders, 13)
         self.assertEqual(self.cache.body_renders, bodies)
         self.assertEqual(self.cache.header_renders, headers)
@@ -71,12 +71,12 @@ class CacheTests(unittest.TestCase):
         queued = ChatMessage("user", "Next request", id="queued", status="queued")
         frame = self.prepare((*history, thought, answer, queued))
         prefix = frame.lines.parts[0]
-        response = self.cache.items["a"]["frame"]
+        response = self.cache.items["a"].frame
         parsed, headers, bodies = self.cache.parser.parsed_bytes, self.cache.header_renders, self.cache.body_renders
         for index in range(50):
             thought = replace(thought, text=f"Thinking {index}")
             frame = self.prepare((*history, thought, answer, queued))
-            self.assertIs(self.cache.items["a"]["frame"], response)
+            self.assertIs(self.cache.items["a"].frame, response)
             self.assertIs(frame.lines.parts[0], prefix)
         self.assertEqual(self.cache.body_renders, bodies + 50)
         self.assertEqual(self.cache.parser.parsed_bytes, parsed)
@@ -88,7 +88,7 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(self.cache.body_renders, bodies)
         self.assertEqual(self.cache.header_renders, headers)
         self.assertEqual(self.cache.tool_renders, 2)
-        self.assertIs(self.cache.items["a"]["frame"], response)
+        self.assertIs(self.cache.items["a"].frame, response)
         expected = render_messages((*history, thought, answer, queued), 80, self.theme, self.language,
                                    renderers=self.registry, root=Path.cwd())
         self.assertEqual(tuple(frame.lines), frozen_rows(expected))

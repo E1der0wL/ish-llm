@@ -3,6 +3,7 @@ from ..output.search_index import SearchKey, SearchHighlight, IndexedLines
 from ..input_contract import ControlFragment
 
 from .identity import TranscriptIdentity
+from .render_contract import RenderSection, TranscriptLayout, ToolCaption
 
 from hub.ui.output.worker import RenderSlot
 
@@ -43,22 +44,22 @@ from ..output.selection import SelectableControl
 
 def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubTheme, language=None, *, anchors=None,
                     renderers=None, root=None, invalidate=None, objects=None, index_offset=0,
-                    section="all", blocks=None, render_block=None):
+                    section=RenderSection.ALL, blocks=None, render_block=None):
     """Return already-wrapped fragment lines using terminal-cell widths."""
-    inner = max(1, width - 4)
+    inner = TranscriptLayout.inner_width(width)
     t = language or Language(icons=for_style(theme.icon_style))
     console = make_console(inner, theme)
     lines = []
     account_name = UserProfile().display_name
     for local_index, message in enumerate(messages):
-        if section == "tools":
+        if section == RenderSection.TOOLS:
             if not message.trace:
                 lines.extend(render_tool_history(message.tools, width, theme, t))
             continue
         index = local_index + index_offset
         if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", ReasoningMessage.ROLE):
             lines.extend([[('', '')], [('', '')]])
-        if anchors is not None and section != "body":
+        if anchors is not None and section != RenderSection.BODY:
             anchors.append((TranscriptIdentity.message(message, index), len(lines)))
         user = message.role == "user"
         inset = 1 if inner >= 3 else 0
@@ -74,17 +75,17 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         elif message.time:
             label += (" • " if message.role == "system" else " · ") + message.time
         label = Text(label, overflow="fold")
-        header_lines = ([] if message.role == "draft" or section == "body" else
+        header_lines = ([] if message.role == "draft" or section == RenderSection.BODY else
                         console.render_lines(label, console.options.update(width=inner), pad=False))
         for segments in header_lines:
             text = "".join(segment.text for segment in segments)
             pad = max(0, inner - get_cwidth(text)) if user else 0
             lines.append([("", "  " + " " * pad),
                           ("class:hub.user bold" if user else "class:hub.system bold" if message.role == "system" else "class:hub.accent bold", text)])
-        if section == "header":
+        if section == RenderSection.HEADER:
             continue
         if message.trace:
-            if section == "all":
+            if section == RenderSection.ALL:
                 from .thought_trace import render_trace_item
                 for item in message.trace:
                     lines.extend(render_trace_item(item, width, theme, t))
@@ -130,17 +131,17 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         else:
             lines.extend([("", "  "), *fragments] for fragments in body)
         lines.extend([[('', '')], [('', '')]])
-        if section == "all" and message.tools:
+        if section == RenderSection.ALL and message.tools:
             lines.extend(render_tool_history(message.tools, width, theme, t))
-    return lines if section in ("header", "tools") or any(m.trace for m in messages) else lines or [[("", "")]]
+    return lines if section in (RenderSection.HEADER, RenderSection.TOOLS) or any(m.trace for m in messages) else lines or [[("", "")]]
 
 
 def render_tool_history(steps, width, theme, language):
     """Only names and states; arguments and Tool payloads never enter Markdown."""
     if not steps:
         return []
-    console = make_console(max(1, width - 4), theme)
-    text = [f"{language.icons.tool} {' '.join(step.name.split())[:64]} · {language.status(step.status)}" for step in steps]
+    console = make_console(TranscriptLayout.inner_width(width), theme)
+    text = [ToolCaption.render(step.name, step.status, language) for step in steps]
     rows = console.render_lines(Text("\n".join(text)), console.options, pad=False)
     return [[("class:hub.muted", "  " + "".join(segment.text for segment in row))] for row in rows] + [[("", "")]]
 
@@ -362,7 +363,7 @@ class ConversationControl(SelectableControl):
         """Paint local stop acknowledgement independently of the Markdown lane."""
         headers, extra = {}, []
         for message in self._urgent_messages:
-            rows = render_messages((message,), self._width, self.theme, self.language, section="header")
+            rows = render_messages((message,), self._width, self.theme, self.language, section=RenderSection.HEADER)
             start = self._anchor_starts.get(message.id)
             if start is None:
                 extra.extend(rows)

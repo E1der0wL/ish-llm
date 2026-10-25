@@ -110445,5 +110445,384 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/widget/transcript/message_cache.py",
+    "sha256": "aaeebb0ad51aee9dbdd687afc071026acce45e2a276245d960aed2fe00bcca2a",
+    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "00ee34eef3ab5557c69edf12a5a8a565b651da1a71675538fcfad77b8e87a410",
+        "classification": "non_contract",
+        "owner": "Joined.__init__",
+        "reason": "Arithmetic sequence length accumulator."
+      },
+      {
+        "id": "6c0678a35bf7daef09998791b7fd13905a51fec54b8171fbfaaf4ac808813526",
+        "classification": "non_contract",
+        "owner": "Joined.__len__",
+        "reason": "Python -1 indexes the last cumulative length."
+      },
+      {
+        "id": "ebd8b14f791ab291b6fbca799b6a51eabcf9cf52166fa7bf97379a50d3da12bf",
+        "classification": "non_contract",
+        "owner": "Joined.__len__",
+        "reason": "The empty sequence has mathematical length zero."
+      },
+      {
+        "id": "ea6fe3560a1a051216f51469ebf01e517ebab7f7d1c6de6a230188622a345a40",
+        "classification": "non_contract",
+        "owner": "Joined.__getitem__",
+        "reason": "Python negative index normalization."
+      },
+      {
+        "id": "5a4ca637657a262247efeaa66af22a1f4b8c39bdaf26c8f9d4897fc82f3aaa86",
+        "classification": "non_contract",
+        "owner": "Joined.__getitem__",
+        "reason": "Python sequence lower index bound."
+      },
+      {
+        "id": "4832e3ba00d8b5d4dca85cd328fd39b2d65f808c6bc606c9c09662f6e8443f20",
+        "classification": "non_contract",
+        "owner": "Joined.__getitem__",
+        "reason": "Previous cumulative sequence end."
+      },
+      {
+        "id": "be9147163d753f2fb5e75f4d2071bc88c2cf8d8d16952fb56dd9535635b20505",
+        "classification": "non_contract",
+        "owner": "Joined.__getitem__",
+        "reason": "No prefix contributes zero elements."
+      },
+      {
+        "id": "b2dbc6dd4d7633f298f33323249b2bacab60e91c0ccb0957c499036248d94c85",
+        "classification": "non_contract",
+        "owner": "Frame",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "d62165202e131cd75d2604ed3aafbdb917d319aacc51ac21941bab6cc67cac55",
+        "classification": "non_contract",
+        "owner": "Frame",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "7a733490af0a4086c00650a6de5a09df4219e97ce0dda0cbb1fccd4caad8ee2d",
+        "classification": "declaration",
+        "owner": "Frame",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "ba5774539e5b0ffa0d30149f32e6f68077c3de0a7183752aa20a71be49c77953",
+        "classification": "declaration",
+        "owner": "Frame",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "5fd0f575e311784892411fc456c7a75e20e881f76d45ee03f6fac5ccbb0039d8",
+        "classification": "non_contract",
+        "owner": "CachedMessage",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "5566b02c478d69d08b4aa8044fa61fcb895dc8bda7349241137b8ce0be5aaae4",
+        "classification": "non_contract",
+        "owner": "CachedMessage",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "e6c44b175b87c85ddea88038502cac6bd68bad5a9cf84abebb22fe764c99b78a",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "4d59061393600cad223bfa94d868dc4ecafb2f4e501214a2f9ca7e2bd95b2fe9",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "6ee26c015f255243a1633f11baf8016bc8fab8853a2b0fa8f44893fee653737f",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "1ddac72e62ec9bcf2f3e58073727b33b338de034d27dbfe1f1346843e231d122",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "ad1efbadfc2478f6b600f4a3e868f4d5062ce38c0cbb34449f0ab0af8d77a116",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "0dfe3a1948fd495b3d0479f4a626177296d08ff812de7acabd6888c9f5f8ccb7",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "c13df730f2b02b4408cbe5bb1089ec8614036747b6fc50f59bb78401aa59b6fb",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "129c888dd3c72c61fb527f2e79dc52679a281f8514a305256b39ed14da9d69bc",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "2eee95b429644d2cfc97cd03d6eb141fdeecd105a6c611f4a35202f0c197f977",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "656a8b7fb27a83b4c2021e85cb8cea2c8c49305ab7e0b6b65decbdc619fde03f",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "bebd10d8e1d3a8a223713024e26ae195fdc0e0b8439ffe9c3158555cfddfeb27",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "c0cd9690aa6143d2e692ae96909d1adfd02c1a1e2d1f43e14b9837a6046cfa8e",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "2d25fe38a23341d6b9f90d64e0253d14ca5cdc4f2d257d2cf418d961621873b7",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "1cbf56c0c5eaa54329e9d265a972a731bc95bd83cfd4cc6175b528e109248eba",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "6b89a7315007628f689b8023dd21e189a54b0cbdfeabdc29789eb4763d06b373",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "31ff61701e65594b490e97f57da0a70b605d17ae6c4933affdd164d09af10cdc",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "c3ebf5f57ff31a01ddcc2d38a554be81ebff688d791baf7fc8747bf3d7e5ed38",
+        "classification": "declaration",
+        "owner": "MessageRenderCache",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "e16bc7107df37de79cf25799e98cca0913a4efaf47342a27bbe3387036850e1d",
+        "classification": "non_contract",
+        "owner": "MessageRenderCache.prepare",
+        "reason": "Convert entry count to last inclusive index."
+      },
+      {
+        "id": "90b13e4ba2201166c75c7dc2d14c339c1a90ae9c83674239304688714f77cac4",
+        "classification": "non_contract",
+        "owner": "MessageRenderCache._assemble",
+        "reason": "Previous message in the sequence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Frame / CachedMessage / MessageRenderCache",
+        "declaration": "hub/widget/transcript/message_cache.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_interrupt_feedback.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/transcript/render_contract.py",
+    "sha256": "0f76d98f8e423a51a70b6741f4c00642b6be63bf766be812bff2c7c332f60683",
+    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bac96d811fc9daf1efffa5fbc868edb710a67919f0bda535002126dbfab6afa3",
+        "classification": "declaration",
+        "owner": "RenderSection",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "5f58f94daced7c34c1b14d221d738d68ffdb857f1bfb014c7465d07ee0bafe4d",
+        "classification": "declaration",
+        "owner": "RenderSection",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "d709416e3f568a506bb6b3538b6d8141721b5e61253a56b0894e3a1a80155a4b",
+        "classification": "declaration",
+        "owner": "RenderSection",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "fc7e216c9dd1e4c3e12197183aea1cb7ce09cfce5a596471ed5a1a5d6ba70ae8",
+        "classification": "declaration",
+        "owner": "RenderSection",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "8752b8946735dfb8bd9f5c912512b41c6cc146819af49e9d95394335df52fd1f",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "618b5a889f3fe1f7e667344df87c93f216d654e2ae71036f9d294d6a7d8041b6",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "7677e332fceec828d4f33582629b89a1bfc58362d4b8de2e561602f19c7034fc",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "09c25bc66c757617b0295cd1a013efdde033e5b7aa253f0eaacf301daad6d491",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "80c7bd9319572aa9616c7589dabaf3678321fb1b2dfc05c791f2d58a7684d1f4",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "882dcd0a8a4de83a7b0089118bcc51823c70e13f4fe42e58ca4c16b4a3984d55",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "66d696702812c6c16581daad5ff64caa3f7ec29ce734d1318d8e487793293bd9",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "9cf3f653a7c3a420692962770679ed2eebb9a2c62a86bb55257ccfd8c0c18826",
+        "classification": "declaration",
+        "owner": "ToolCaption",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "4452b3eb664a3dc6c2de6de47b6e33c3d1ae0b601ee653f369e4a8ff0f63b773",
+        "classification": "declaration",
+        "owner": "ToolCaption",
+        "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RenderSection / TranscriptLayout / ToolCaption",
+        "declaration": "hub/widget/transcript/render_contract.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py",
+          "hub/widget/transcript/thought_trace.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/transcript/thought_trace.py",
+    "sha256": "ad00b82352b6e8f404c0fcd9d918a3dcff73cc9d70dda0f412d65292122fb328",
+    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "render_trace_item",
+        "declaration": "hub/widget/transcript/thought_trace.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

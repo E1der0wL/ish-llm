@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 630,
-    "unreviewed_files": 38,
+    "files": 631,
+    "unreviewed_files": 36,
     "stale_files": 0,
-    "unclassified": 2568,
+    "unclassified": 2453,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 38,
+    "unreviewed_dynamic_paths": 36,
     "unreadable_files": 0,
-    "candidates": 16723,
+    "candidates": 16653,
     "issues": 0
   },
   "files": [
@@ -1468,8 +1468,8 @@
     {
       "path": "hub/widget/transcript/conversation.py",
       "status": "unreviewed",
-      "sha256": "6f5c11370887100bee4847bfe8ce6968b5d59d3cb991d256c2505f23dafad25e",
-      "candidates": 275
+      "sha256": "e856e3b03021574674ffd0a5f4f3b6a68bd4dd39961c2ab566cbcc7aca5ffb26",
+      "candidates": 257
     },
     {
       "path": "hub/widget/transcript/identity.py",
@@ -1479,9 +1479,15 @@
     },
     {
       "path": "hub/widget/transcript/message_cache.py",
-      "status": "unreviewed",
-      "sha256": "504bba6983967ae9488ae99923120f06f8d2ea014e61d10c33c4484332577824",
-      "candidates": 80
+      "status": "reviewed",
+      "sha256": "aaeebb0ad51aee9dbdd687afc071026acce45e2a276245d960aed2fe00bcca2a",
+      "candidates": 32
+    },
+    {
+      "path": "hub/widget/transcript/render_contract.py",
+      "status": "reviewed",
+      "sha256": "0f76d98f8e423a51a70b6741f4c00642b6be63bf766be812bff2c7c332f60683",
+      "candidates": 13
     },
     {
       "path": "hub/widget/transcript/search.py",
@@ -1491,9 +1497,9 @@
     },
     {
       "path": "hub/widget/transcript/thought_trace.py",
-      "status": "unreviewed",
-      "sha256": "89ca2f3d18f672bf57593b7dc748f26799edfc1c36322e0af01191529bd5a7ab",
-      "candidates": 17
+      "status": "reviewed",
+      "sha256": "ad00b82352b6e8f404c0fcd9d918a3dcff73cc9d70dda0f412d65292122fb328",
+      "candidates": 0
     },
     {
       "path": "hub/widget/usage_chart.py",

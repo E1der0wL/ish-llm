@@ -283,13 +283,13 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         control = self.view.output.transcript.control
         control.create_content(100, 20)
         cache = control._message_cache
-        body = cache.items["a"]["body"]
-        thought = cache.items["a:reasoning"]["frame"]
+        body = cache.items["a"].body
+        thought = cache.items["a:reasoning"].frame
         count = cache.body_renders
         self.controller.interrupt("s")
         control.create_content(100, 20)
-        self.assertIs(cache.items["a"]["body"], body)
-        self.assertIs(cache.items["a:reasoning"]["frame"], thought)
+        self.assertIs(cache.items["a"].body, body)
+        self.assertIs(cache.items["a:reasoning"].frame, thought)
         self.assertEqual(cache.body_renders, count)
 
 

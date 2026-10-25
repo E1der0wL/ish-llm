@@ -9452,3 +9452,40 @@ values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·고
 현재 Owner를 사용하는 표시 계약 정리이므로 Level 1·2를 적용했고 전체 회귀는 이 소단계에서
 수행하지 않았다. Gate53 이후 관련 Hub 변경을 묶은 Level 3와 정확한 SHA 원격 CI가 후속
 통합 게이트다. 공통 계약의 미완료 표시는 유지한다.
+
+
+## Hub 대화 렌더 캐시·thought/Tool 표시 계약
+
+message_cache·thought_trace와 새 render_contract를 전수 정리했다. CachedMessage가 내부 필드를,
+CacheContext/BodyKey/HeaderKey/TraceRows가 의미 있는 tuple 위치를 소유한다. 캐시의 문자열 필드
+반복과 positional 해석을 제거했으며 JSON 저장/이중 Reader를 추가하지 않았다. Frame의 starts
+projection은 실제 slots 필드 선언을 쓴다. 원래 prefix/tail·block/trace identity와 작업 횟수,
+변경한 body/header만 다시 그리는 조건을 유지한다. MessageRole/MessageStatus를 재사용한다.
+
+RenderSection·TranscriptLayout·ToolCaption을 실제 conversation/cache/thought 경로가 소비한다.
+Tool 표시는 기존처럼 이름의 공백 정규화·64문자 제한과 상태만 사용한다. Tool 인자/결과 본문을
+표시하지 않는다. conversation은 공유 section/geometry/caption 소비만 바꿨고 전체 완료로
+기록하지 않는다. 새로운 Backend 재시도/실행/저장 정책은 없다.
+
+원본과 Joined 경계·실제 렌더 rows/anchors/objects·Frame 불변성·cache/parse/trace 작업 횟수·
+객체 재사용·완료/streaming/queued/elapsed 전이·다국어/좁은 폭 표시 97개 관측이 일치했다.
+conversation의 새 Owner API를 확장한 실행 AST가 원본과 같았다. 기존 두 테스트 모듈의 cache
+필드 접근만 typed 속성으로 바꿨고 역확장한 전체 AST가 원본과 같아 기존 identity/작업 횟수/
+화면·중단 Assertion 및 테스트 수를 보존했다. 제품 전체 AST 동등성을 주장하지 않는다.
+
+- `whole-hub-transcript-cache-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.637188초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-transcript-cache-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `759382f0acadd9d1ebeaa6b7d077f937caa1b6e7bda12d0d6f58a670a0bc40bf`, input `58ea0f216377b4b8155e9d6d0c4c2ded5ebc0de719dc1ad78d56f3afdaa57c25`.
+
+- `whole-hub-transcript-cache-l1-01`: discovered/started/pass 34/34/34, exit 0, 3.906952초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-transcript-cache-l1-01/hub.json --modules tests.hub.test_render_pipeline tests.hub.test_interrupt_feedback`. source `759382f0acadd9d1ebeaa6b7d077f937caa1b6e7bda12d0d6f58a670a0bc40bf`, input `58ea0f216377b4b8155e9d6d0c4c2ded5ebc0de719dc1ad78d56f3afdaa57c25`.
+
+- `whole-hub-transcript-cache-l2-01`: discovered/started/pass 32/32/32, exit 0, 7.751607초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-transcript-cache-l2-01/hub.json --modules tests.hub.test_conversation tests.hub.test_completion_display tests.hub.test_responsiveness tests.hub.test_reading_positions tests.hub.test_output tests.hub.test_output_interaction`. source `759382f0acadd9d1ebeaa6b7d077f937caa1b6e7bda12d0d6f58a670a0bc40bf`, input `58ea0f216377b4b8155e9d6d0c4c2ded5ebc0de719dc1ad78d56f3afdaa57c25`.
+
+공통 안전성 84개·R3 Mutation, 실제 render pipeline·interrupt feedback·conversation·completion
+표시·responsiveness·reading position·output/interaction을 검증했다. 발견/실행/pass ID 일치,
+failure/error/skip/xfail/xpass/누락/추가/중복 0, 동일 suite 선택 ID 중복 0, source/input 전후 및
+실행 간 동일성을 확인했다. 실제 argv/exit/hash와 비교 근거는 `hub-transcript-cache-draft`의
+selected-results.json/proof-commands.json/values-equivalence.json에 보존한다. Python 3.12.14/
+Clang·Host d833790·고정 의존성·실제 Linux 환경에서 정적 S1–S7·감사·문서 검사도 통과했다.
+
+표시 전용 cache/실제 소비자 계약 정리로 Level 1·2를 적용했고 소단계 전체 회귀는 수행하지
+않았다. Gate53 이후 관련 Hub 변경의 Level 3 및 정확한 SHA 원격 CI에서 통합 검증한다.
+Backend 실행/승인/예산/효과/Checkpoint/Resume 계약은 유지한다.
