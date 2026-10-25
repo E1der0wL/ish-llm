@@ -53073,8 +53073,8 @@
   },
   {
     "path": "llm/components/rag/ingestion_records.py",
-    "sha256": "925f5d1eba7ef28182507aeb1ede77f000bc3e274d8edc069a82bd798397ff4f",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately.",
+    "sha256": "5d32492ee617ebe22ccd9b2c94856809f4f1dc089793d116db09d1d38c6f8421",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -53132,349 +53132,349 @@
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "05028ab5e0d9984487a445d9282147060e2b6dd9b0027612377f45c9523fce74",
+        "id": "ccac606ca4560d8e34aefad82059f38519fbfbc6f2318544faea5a97d43a4497",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f8f812e4deb19641d69a38775e19fd7b781e327554e50af7276297725eb44388",
+        "id": "b3403dba01d0fd52367152e9c489bbfc60c6a9fb649f2100878c25b6997f7709",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "182d2c6ad8c4ad44488e0b723d2be44d7dbe1b0260a0b052d55e0a6ad0872567",
+        "id": "8a8434c5dddea828af730fcb3bb37990ac663d17c0aa3737f98e6aa1d83b66e0",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c116948583f3415bf09639c627b1861e4161fafe2e7311110e5e2268515a1ef3",
+        "id": "f2a07eded559dd083ccba71cbd3a90c208be6b08e5145ec0fea8b0cd498b145c",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "fd8e1ad9c9db2be3590c6b2fcce97f05dc73fb0ddd0c14d936905e8d5fb302f5",
+        "id": "6a367c2703035091ba2f7418fe44221ec2009458928fd50eb2e2e449270bf1f0",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "e9a8c569da839a4da6c0c9f1594749f773c55e73bce1a27d6d9c1e884649eef8",
+        "id": "15a9205ef21d2da94d4ee870ce46c8c739f4c37477e7013fe7db51935c26ca32",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "a0c3e0d3e14ddf67cc4667f52270bfd7f45712e575e7b5be1c95e43bea44ed2b",
+        "id": "aca13347735980589c9fddd02d4af0ea0286c26f65f7cd3f6267026f1924359b",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0cd93c87219d613bd3b702ea4dbe668402670f351909d0edba7c82ce08b785b2",
+        "id": "13affa947009624c7a11c1d608683588f9f35b4dac6e578c8f512d95df3d693a",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "27091d57eb535c9285196709826f46ecabdbf8c7720816fc2b43594831d229d9",
+        "id": "9683815c5590dea014907d2fb29f3f27bec81bbe55addf25fe267cbb0e7c5c82",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "46eb9d33bd8f8f69931aec42972de66753b411900c647ee6c760bee289d34958",
+        "id": "366cba40249c2dec9d07b5c0d962eed3463408365a015cbb9f8ea8e6f3ee0924",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "3e9a44cf3a3d68c0e0a5c5ab85a167894786fe155b70d36c8e1fa334f55b58a4",
+        "id": "62bc241bc86e0b3c17be55cffbf7c8701c20e082fecc7a12188d168213dbb617",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "2528e532b1506d524497402e85a0cdde7ceee323595ac68b6869794a34466a6a",
+        "id": "1115f9b6b0c297916330805099dc123cb588b726bbd8d9c6c41f69288267d9ae",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "5364f8bba8a8fff72d9231d518a2ff4a9253c97dc78a3b6c3618a5c0140dc0ab",
+        "id": "edf54f10ea4db34c72b34fa62f9f732d351eaf12f6b5bee8a226e4f3918f65d4",
         "classification": "declaration",
         "owner": "EmbeddingCheckpoint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "783986a72a3b212c3574643595ff376dddf0f63ada5cf8cbe91ed2d399392340",
+        "id": "b11ae0577195857ae9b57520baab56f0cd9e470e59a5a38490019d64dcf22dc3",
         "classification": "declaration",
         "owner": "EmbeddingProfile",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "31f8e79cc41182e3da12be9c085aa382c8cbb00b216d16dd19851eda66f5fc85",
+        "id": "3c8f7c15c7b9b1f368b24fd215cb46899950e1c346135ec93602455b0a697cfa",
         "classification": "declaration",
         "owner": "EmbeddingProfile",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "21abae58c85c0fcc0a3b4f94d1a5b34d36a4e52ce6b0413affcae0db33d2a431",
+        "id": "9fd5769438263033111070c901acec1cf02f3dc8527654f926baf9f0df5f88e5",
         "classification": "declaration",
         "owner": "EmbeddingProfile.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c9ee09f5a7419a926072887a8a160665dde1a903e81ca08e8986361aff9e2be1",
+        "id": "e0a439ded17678c88d2f9b51167798ed3234a531eefdf9a423f7ae98f7310d23",
         "classification": "declaration",
         "owner": "EmbeddingProfile.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "844a82580deda0db81299dacad1f7b6ecad1a09fd2b30fbec3b0df4c03afdf02",
+        "id": "ff57dae8f70267c9300881aa0125b0e034781915cb701717bf110c01e0c7a479",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "d481faf92a09b54caf4d276597a16746299a174a70ddd4601a428eab8cfe48f3",
+        "id": "b447945182b351efcf5f66dd2107e0e2f55a49b15e91d412e1bf0b18aa06b514",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ed743bc6d1a6a3343b05036fdaa3f6310b6cb0191e8ad8a90b8abbc4128d4d33",
+        "id": "28ed0957fdb83f9373681d544e45a4af2018ebfe6ea33eac9a5ee00cd11bb2d1",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "1dc8ad275323e81ef6f7446f6800181dcceac1b2ceafe8f4d08bac6163fdd9ed",
+        "id": "ba2590ba30fbdce0aaa0c90fca5025bebbe1659ca63b5470932daebfbfb99c1b",
         "classification": "declaration",
         "owner": "EmbeddingEvidence.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "7351e2d07866720649f9615640ac13e7027ce6ffc73ebf901e6b01f11ec8741f",
+        "id": "ce31c023769850e7ef1089544e75dba3df2c4731c21a1b587032ae5774151f72",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "8bee3a982c4ac514cdbd299fb1d5eaf977d3a823545c340063f38c72ce966c0b",
+        "id": "ba9a93be98437c76f04ba672021afe29ca43b4a91841980ad3fcdd3f04646969",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "eb10f13c5d4e1f1133678aec924139ea091876880859ce99e284417451f670d9",
+        "id": "4b142a0d7dac0a8b51088cd6b70d85082c529df0cd05a7b99a35be7d9fe030e7",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "2873ffd0c5aec7cc0f2c8ef43c896371925b629783b6853f889fdb9109cb2c49",
+        "id": "bb7d17536208637203b0e3e4d40543b2422b4196370a5953434dd6b9f1365189",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "653bb181b5a97b7c336ac12d947407395e7805ec3e078f966ed9ac1a0969abc7",
+        "id": "fc313f90bb74e4ba2e5fa19674e72ee4779f66ceeb4618788c34f47911ef0a7e",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f8490070a95047b5e6f6f620505fb0f91e167c0a44102c2e6ae7f366699221d4",
+        "id": "c67379430adff74014638a09fc91bf4e0319104116053a3484c9999a47579f94",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "019ce5595060057c351911ba2afc83febded83add3ddcc4df4368d641db4f8c1",
+        "id": "57cebbbb717fd01fde248896730629ae10dc9eace06b0bdba347ed5c3eeb697d",
         "classification": "declaration",
         "owner": "EmbeddingFingerprint.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "eb5b72995c11576d0b296f00e948ec86fee4bf54e3dedb73eec5073c545e016f",
+        "id": "1c2759e1127d8e561a3403c774415e994c90b1a9f933446140df7edc18dd5a09",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "d8b3175d48d960b0475291b46d60c6c98535d07bc2fccb58ef2f7b90894418c8",
+        "id": "91c9befc5a0aab3af3e13b9240f3b3895c7bb9be5a006f30a0d0edfe9670bf99",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "8d2fc409ce0eacb6bb2fc3f8b6c209a731c7ca850e1f25acf5e3c940a3044d05",
+        "id": "b8ba6305b03acc913e79d9ca051f2dc8cccaba1a9a34a128f3e1a8a3ee3765d2",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c9efe083f78efaa91c9e59d9faa8430814b1b3bc73fe3aedc43e4b48c3280756",
+        "id": "02771c975cbf951ad9d1359eb3298b2c7b9d74abd8f0e9c70a6a9cd3fe2c3705",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "1dc5818a7f64159763056dc30a38d6235da9500f4595fe00bbf432f9b65f9d47",
+        "id": "01a05323db3171d51ab1dc3c43e9d39f835cf9d2913d6d1a093a4b7861df4e33",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "291c839b3a6933d902de2f28c587611078ea3e070470bccc0f22fdc793de75fa",
+        "id": "c7e858a9e10491a4caa0b27764a682b061ff672f46101e78123307bf344fb525",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "bb5ee63f59fc10b34c6b5ab98c9d3058375dc5e018a5ffc1a9afb379faed9c96",
+        "id": "408045e2d89ca7bc87da1fdb8202097663247d4a7ad2e7bf5beb3ef929a03d24",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "20fde0390db59e5dd334146c1cb8345c2fc73c9bca13f02fcaf27ed293ba7504",
+        "id": "e3d6f5aded6ca6e46ac82800d374f381ad27baa0bc93aa936759315d0289cc9e",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "7fcacf410964189fb71d19514a5702ed40c54befe447eb93d70c86ad8078afac",
+        "id": "141489b17120c458d95e7c8f7b98df627b06977b6234cfe5a55075845dfaf66e",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "385b7b5ebb1c5f8efe9a06a7a51693c39432d86d450c8291f8648b295bdf8d4f",
+        "id": "dffaa2d6d4af0425deff97914a4348ccf88f722510d790729717e82420ac93d6",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "1b259bf1b8c45340926078de45d1700fba6dca5f3197641fc39f3daf555f23f6",
+        "id": "c6978149d0c8e08078247e707ac5763dd3d7a361ec54ea474ea4b95788bdf9e6",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "afd1d8fa7009bf4de0937e8b55cff05a8d900bb5efca0e558d43b3ca7530e91d",
+        "id": "4a8560ff407bdc64bf6e16bd14f9b9651ba056ccea600f19b2e33a80d15fa4d2",
         "classification": "declaration",
         "owner": "IngestionObservation",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "86ff2183b58dffe66ce1b13aa5da854058d867060bc1aca54c81b129e6162895",
+        "id": "b32b98035d1d853a0ce5d44cb49f494ac5307a4876c259aa015af3eacfa182a7",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "13a03a0c170fc651de51972c07685129662eb5b4bd3a21b6146b83b91c3b3491",
+        "id": "6cfb4d2fa93a1261261c2715f966a92f96cd0433a55ef44fab696c3574bfc8d6",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "d1faad794d01e0e355fe9c405edea7b58e1a938f78c8bfae0474a7f16d3363d8",
+        "id": "3880d7143f558d1d2f04e2a04e6b6a74aebb9be350d30f273da157ee6b8389c3",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "332e563e1ff7cc1748b9a9c066227ee415848c905679910dd608d688470c2825",
+        "id": "e3150b425743961aa12090043fe5c832b93fa1b698f8a4e67360ddcc2a7cdaee",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "db83164601883f4808bd709ad6a0b6e6ad50780ac31c9c36640b7d1594bf4e1c",
+        "id": "61017f6d803528bf0df7f61d9e8f0961d61530d1cc261399f7b281efaa2eb631",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "cecfbdf7070ad166e60305f8509966dac08ee0e856769237a95df7eff5811fda",
+        "id": "5a186327dbbecd7e7909e6272be4da2d6def91423bc1d563cc5f43ba0db1a116",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "223eadccef214a4a8ed77e28d58ec42b00903f9cc84be8929329cbd17729408a",
+        "id": "a6a597c28c5be4114c8386efeb8b624e749a0272a99bbe399a8c77498aa6ddfd",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "d8db7b776ad390ee2afc331947868acd2767a3bb8bab62696a36d6f53f02a445",
+        "id": "3794bb3d55c4731d3d069ef5bdcbeefe6d7b5a0a57d0b3e21ab1b925b66989cc",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "72a6e63363ea631e9575fd0edb07e61c5374cb48eeb9c1e63ba6514f03e0ca08",
+        "id": "b350eefacde525ebfdbdd090fb8bc6f9b7401a1b52815267820bafbbe6667817",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "9af96db42d6e3e28d8ea314c18a8930bd866cbf34e272acad79afda5735bfa8d",
+        "id": "1d335533551ed5d834d66abc2e684c3ea33beccb593df94047bbb9ba3a813af0",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "44c95131adb1db037b8211afee3f1b8a16d8bdd78c3aa0eb496ed9d74dbf4350",
+        "id": "ded8b6af6c3967391fa88faa491c367a56c39725762ffbfd05b57e9be61ec108",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c4eebb6237fb4539b8f8e1b057513bdc997a36fa1161322054913904796c87e3",
+        "id": "4a52ba9577ddf4ee17ceed4a7a1999aabab931dbd9f7c5b02ef75543295cf2b7",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "832d24a753e33efdff4a7afb4103c6eede093c25f3abc11ef431d9cd1549faa7",
+        "id": "9328e769f1ef9e0681bf5101ceb662a12a584a34e3f0be0d45f37f7cbb0620a6",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "53990ef0cd1d2676a63f44c44ce4690148d1e27926aa80e941b7d3c286930960",
+        "id": "2e9b46db9cef5c959e5fdb7695728871cfe3d289afa7ab7d88e13cc015a8b899",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "5244715b215b7bdce684aac81e298dd191ac6cb13753dddfa52c3247cb93af8c",
+        "id": "bd4ad3032a1cad2efd0af8ca0c0c35d715aea5b2f043bff888369f61480f99c9",
         "classification": "declaration",
         "owner": "IngestionObservation.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "e843dc5ae8ad513db593e704ec43458ca212d6796849bf71585797dc999e493c",
+        "id": "8b094ae9d58a7dcebe27d1818d57cab9933a2ed69616881657ba33cca3676bb4",
         "classification": "declaration",
         "owner": "PreparationCallbacks",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "78da40ed8c1c659d42ce6accaad1743a08508622ed4820d3370550a70da0b9db",
+        "id": "30a58c94192a1a5990186cf81a4ece5b1f8b9ac7f9b61b0d22a238f21682ae8f",
         "classification": "declaration",
         "owner": "PreparationCallbacks",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ac7eb0ae936f3db348b5661fec60bc903a3558450919e1bac2b9957c1c6571b5",
+        "id": "77dfc7a3839dc135583039b2fdafdbd97afdbe3d25265acab436872e7a05da91",
         "classification": "declaration",
         "owner": "PreparationCallbacks",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
@@ -53485,26 +53485,47 @@
         "owner": "BatchCheckpointName/EmbeddingCheckpoint/EmbeddingProfile/EmbeddingEvidence/EmbeddingFingerprint/IngestionObservation/PreparationCallbacks",
         "declaration": "llm/components/rag/ingestion_records.py",
         "consumers": [
+          "hub/backend/project/rag_import.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
+          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
-          "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/data.py",
-          "llm/components/rag/jobs.py",
           "llm/components/rag/ingestion.py",
+          "llm/components/rag/jobs.py",
           "llm/components/rag/preparation.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
           "tests/llm/test_rag_catalog_integrity.py",
-          "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
           "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_query_evidence.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_batch_identity.py",
-          "tests/llm/test_rag_components.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/hub/test_rag_retention.py"
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }
@@ -56403,87 +56424,99 @@
   },
   {
     "path": "llm/components/rag/job_views.py",
-    "sha256": "1d580eca6e2c5e61f070173ecd551403c0af14828ce68a5a3277487a5d8b113b",
-    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes.",
+    "sha256": "9101fe384f61c6147b763de4f469bf50fed1b711532a2a9eae11b96f6b10f7d7",
+    "reason": "Complete RAG Job execution, planning projections and policy declaration files reviewed with direct/dynamic consumers. Previously reviewed record/source/ingestion files updated only for canonical lifecycle/projection/name Writers. Exact old/new methods and independent wire/full execution traces match; original real file/fault/safety assertions pass. Component/Data/common storage remain later whole-file scopes. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "098286682edbafb382b4aaadaa9481f249f48d15e3b59cf4f89ae4b81324d187",
+        "id": "17a859c848c263ef2c8e32e4da1fe295910fb2acf316b0ea4d5b34e6f7ccfaf5",
         "classification": "declaration",
         "owner": "JobPlanEvidence",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "d04c726a7a16c4849de89a4a79d52c53b8ffd87d4c82e8ba08d3aff2ee8d32c3",
+        "id": "a4c89fb6d210c0255e673d1b21629211c0c61b3fe974bca6256c7f897292da16",
         "classification": "declaration",
         "owner": "JobPlanEvidence",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "0c3c363a61e1ac6d0578d27f804aafb01bc008f57921333cd576bb16d1d03f51",
+        "id": "60908c921638f14c22ed78f508bae69b539e5554f3d230a18668035ce4023b24",
         "classification": "declaration",
         "owner": "JobPlanEvidence",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "cef9401e14e033940b1bba361f0acd767e0519f1ec01084ddb1f2bd390ac5d1e",
+        "id": "da9001d1367f51fad9bd0123fe234f0652cc44e1050b4d490bff9a24b4acfb04",
         "classification": "declaration",
         "owner": "JobPlanEvidence",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "238ffa5ca7ae0fd8ee9ea5ddb1a2830d149a81f4b8017377ccadae501cb42633",
+        "id": "f0d336537315630755dbc8b0c074253fef69ed072ef4b391d4c5dda0e1da2d56",
         "classification": "declaration",
         "owner": "JobPlanEvidence",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "f016437fe7b3a2a624ced33ae058c896bda58c63e521a2c26b7232919ea7528a",
+        "id": "1a111445609eced031f5edae8bc26435c7ebd45c53f0a957e9f64f2396bc4836",
         "classification": "declaration",
         "owner": "JobCleanupRow",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "fa74d9937b2e35893931f711656bce33d0a04f497684c0f28107cdb3f7cd4579",
+        "id": "738317fdcb3758855b007237e6189e0b4862842d9460c372afe6cb0d55a6cf87",
         "classification": "declaration",
         "owner": "JobCleanupRow",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "f5a89ce1565f8d403210b1563748e521a66837f47caf25c6bde3219d8e3640b9",
+        "id": "6d1fd87a53258022e365ee792eff579adbe05a62e3185b2ede7983da98c2f212",
         "classification": "declaration",
         "owner": "JobCleanupRow",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "234dd86131104d839e5039502c412b4ec12e9006503641123f6540edc2eba4d4",
+        "id": "a17db3029ca8a20c1ab66b44eab3088715e799a9d8edcd4a3a1a8c7aceef2306",
         "classification": "declaration",
         "owner": "JobCleanupPlan",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "ba681a8c9db4f46bfe5b850d736e7946250eb85f7edd706033d44546ea7e323b",
+        "id": "63f379cf4214aee771a5ca0ee210555b4cd6796100aa7b38e423e9648c79feaf",
         "classification": "declaration",
         "owner": "JobCleanupPlan",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "5356f413b84c9cec8ac726d4d3cd2b627da42eb2e59e55d353d9a2a7d8696af3",
+        "id": "8872346e603d481a59ac7e4ae9aca29a271bd9f8ca30f5cf8f425273e2ec7891",
         "classification": "declaration",
         "owner": "JobCleanupPlan",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "6c0fb49094e4cc706ce7b5083c80aaca8114e5955f968ec613e100b43b9e4970",
+        "id": "39390d02a82c58dd05ed101cfecee55a9e39aa9b298ef9587e4be9758fcebf71",
         "classification": "declaration",
         "owner": "JobCleanupPlan",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
       },
       {
-        "id": "9d8abf043aee8dd76208bc23f08fdd141154e71a25ce6e2eb7128843c6cf71a1",
+        "id": "8b97f18b8471f9d15393a08ba8531e5f83a427be6d59d9a165b53c54fe8a6846",
         "classification": "declaration",
         "owner": "JobCleanupPlan",
         "reason": "Exact existing version-input and response field declarations live at each projection head. Factories preserve required lookups, merge order and revision inputs; no authorization or selection policy is inferred."
+      },
+      {
+        "id": "06f2c26caad4d7709f3fd3e8a6f2fd47396e7ed7897afa029679b4d49e5d9a47",
+        "classification": "declaration",
+        "owner": "JobObservation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7e7f5c01558fbec78c40dc7c0bc223135ba413152a192d803d01043ec59542f7",
+        "classification": "declaration",
+        "owner": "ProgressCounts",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -56491,19 +56524,39 @@
         "owner": "JobPlanEvidence/JobCleanupRow/JobCleanupPlan",
         "declaration": "llm/components/rag/job_views.py",
         "consumers": [
+          "hub/backend/project/rag_import.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
           "llm/components/rag/jobs.py"
         ],
         "tests": [
-          "tests/llm/test_rag_job_state_integrity.py",
-          "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_checkpoint_integrity.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_resilience.py",
-          "tests/llm/test_rag_job_retention.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_settings_contract.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_progress.py",
-          "tests/hub/test_rag_jobs.py"
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_checkpoint_integrity.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_resilience.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_settings_contract.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }
@@ -56970,8 +57023,8 @@
   },
   {
     "path": "llm/components/rag/document_records.py",
-    "sha256": "c8daf005e1e2162e2e2f663316777d1b9541bc6681edfb0a4bcade0a3dacd779",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
+    "sha256": "d401dfc1d60a340f8afec64d73b13a5d4f88b5ea2eaee3b47f27b191ee5beb72",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -57296,6 +57349,9 @@
           "hub/backend/execution/followup.py",
           "hub/backend/execution/input_context.py",
           "hub/backend/execution/rag_catalog.py",
+          "hub/backend/project/rag_import.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
           "hub/backend/tools/resources.py",
           "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
@@ -57341,6 +57397,10 @@
           "tests/llm/test_rag_catalog_integrity.py",
           "tests/llm/test_rag_checkpoint_integrity.py",
           "tests/llm/test_rag_components.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
           "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_query_evidence.py",
           "tests/llm/test_rag_retention_policy.py",
@@ -57349,6 +57409,7 @@
           "tests/llm/test_skill_tools.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py",
           "tests/llm/test_workflow_format.py"
         ],
         "complete": true
@@ -57357,8 +57418,8 @@
   },
   {
     "path": "llm/components/rag/publication_records.py",
-    "sha256": "87a8fd0f64379b596b235014649141d4b44dfee697e2941c9a684506004433f7",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Only existing snapshot byte summation delegates to SnapshotFile.total_bytes. Complete prior domain contracts/decisions stay intact; the previous/current whole function is identical after projection expansion.",
+    "sha256": "1d4ff6fc53fa6342b1acdb5fa4b83af6bd91915d5f1d05409dd9ae9a22c308b3",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Only existing snapshot byte summation delegates to SnapshotFile.total_bytes. Complete prior domain contracts/decisions stay intact; the previous/current whole function is identical after projection expansion. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -57476,67 +57537,67 @@
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f0e3e9f3c63531949260e498749098b44a88e0405351b10fb4edcdef73f089ea",
+        "id": "1652b371420cc8a96fae9593b0c751acca11bef56b93d46c6837e3d20a398ac7",
         "classification": "declaration",
         "owner": "CorpusCatalog",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "da305e55b6c2d81c6820956a01ee90a503c792dcfbc16d85798da60170a49380",
+        "id": "38c559ddb8793bfa35fa9a5a459571d39ca7d63b3ef8506008f54448497f3f5b",
         "classification": "declaration",
         "owner": "CorpusCatalog",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "a165062e9174655d80c1d22a082d9a7bda4ec226cf83db05b4c6b416a44d3990",
+        "id": "b48187c52c886b3d452889152fef0c7579d3d314a97f10e7d104be409051fc07",
         "classification": "declaration",
         "owner": "CorpusCatalog",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f77a9dd2be8fbe56e3f309f8235a4c137228dea6ace7a2c44a3c7d1c4e0d13b6",
+        "id": "f285a9367292c7f01639cefff28a9727b909453ee0f9a205f820bafb94ab3666",
         "classification": "declaration",
         "owner": "CorpusCatalog",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "cce86baf04b2f4d1772a5baa9d3f3c6176d0f4e8db0eaec692267abf6ea31495",
+        "id": "36eee9148517cf09164afaa6a150331b7901170328e97ae778e884be4837ddaa",
         "classification": "declaration",
         "owner": "CorpusCatalog",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "3252a66534ad3606de071a54762998d560c95d6fbae2c191657b256d9e49d991",
+        "id": "7d8fdff4c5cbd675f6d7722c7ab14117485f9a0ac817467c743e944891db3746",
         "classification": "declaration",
         "owner": "CorpusCatalog",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "35dfe5092608a1f30dade37b4450997b896bcc73f6e14b5dd6664993d17da2bd",
+        "id": "1728173b18a8d7d704ff333bc6911454e828966c42f857a1d2bc6bdc9d14bfdf",
         "classification": "declaration",
         "owner": "GenerationRow",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "5da4d41d997df0bfac409d5b3f43ba2d6bc9880153234568b4e9eaa7856c0ea9",
+        "id": "cf41364dd6c5402ee2f25698d9183e9fb4268c652fc6f182cc6e9d02950b7800",
         "classification": "declaration",
         "owner": "GenerationCompactionPlan",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "3bdf887204343693d4fa8d8450fce1fc5c913bd6e9c438d2b770ec82306ed195",
+        "id": "410cd2e09ff7478cc3bc2c13c1d4df0309f163d0b355e65fba01ecf7e6c03670",
         "classification": "declaration",
         "owner": "GenerationCompactionPlan",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "7ef35c934a2f7c82f5be9003ae4d6eec16dc1a367ac646636429ef7a4cc19263",
+        "id": "890884f7ba11da26a134ab376c0311943a1879b8719d4e5a30c717d5932d40d0",
         "classification": "declaration",
         "owner": "GenerationCompactionPlan",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "54046e3fcf82e4fcc0674004b2453ac9c185604fededd49ca2eb279250517796",
+        "id": "bdba404c55d7b7dbd06bad23651eb921e52831f2439fcdcc44efd141b2fe48fb",
         "classification": "declaration",
         "owner": "GenerationCompactionPlan",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
@@ -57547,6 +57608,9 @@
         "owner": "CorpusIdentity/CorpusPointer/CorpusControl/CorpusCatalog",
         "declaration": "llm/components/rag/publication_records.py",
         "consumers": [
+          "hub/backend/project/rag_import.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
           "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
@@ -57559,14 +57623,20 @@
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_history_retention.py",
+          "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
           "tests/llm/test_backup_owner_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_component_record_integrity.py",
           "tests/llm/test_component_storage_integrity.py",
           "tests/llm/test_current_contracts.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
@@ -57580,13 +57650,17 @@
           "tests/llm/test_rag_checkpoint_integrity.py",
           "tests/llm/test_rag_components.py",
           "tests/llm/test_rag_corpus_integrity.py",
+          "tests/llm/test_rag_input_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
           "tests/llm/test_rag_optimization.py",
           "tests/llm/test_rag_query_evidence.py",
           "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_usage_deletion.py"
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }
@@ -62602,120 +62676,120 @@
   },
   {
     "path": "llm/components/vision/configuration.py",
-    "sha256": "cb0465dd130c7b71c8628604369c52faf9569b9a6a19ae227a3be9ebfff38db7",
-    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths.",
+    "sha256": "bb3212dda561e2afb2caa2ce7570c4059beae54a00feaa3ae6fcc0d1b2d02f63",
+    "reason": "Whole Vision storage/configuration/backend/Data/Tool implementations reviewed, including dynamic backend hooks/attribute absence, explicit config/policy placement, input and metadata projections, immutable record/tombstone/asset and transactional callbacks, process and async cancellation, model usage observation and Tool approval/effect declaration. All previous whole-flow trace/error variants and original safety tests pass. Only enumerated Python type/layout/stub syntax remains outside declarations; no blanket exceptions or compatibility paths. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "8163c334053b98ddf955f6332852fcda8852b4528b202db6fef34502487f05ec",
+        "id": "f770fa42ca3f9f9243575c52b73458efc9d00225406fac26799dedb0bfbe4337",
         "classification": "declaration",
         "owner": "OCRBackendContract",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "90e39449f28ceddb5a5e1291a2620bf580649540b55cd77fce60b7b9e0bf9ce5",
+        "id": "5bb103039f79b62609beff598af57c2e10a0eb55e311f734d1f8f63124d3ff7f",
         "classification": "declaration",
         "owner": "OCRBackendContract",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "b9d2bd53c8ccd11c83fb24fce351c3e41665364ea1f08b92846cd268f26dc1f4",
+        "id": "aefd2251350af9551cb062f98318d75447ef8059b38169b26781226e184c85d1",
         "classification": "declaration",
         "owner": "OCRBackendContract",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "f2c4fde12e271cee09e687d4c2e9cc4743ee4a7243804424ab3b2f36114c4736",
+        "id": "eefafc5ba9893c57a9ed7cc586e3c25e3902be0180982c8feb1c57293b56e3f1",
         "classification": "declaration",
         "owner": "OCRBackendContract",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "9f28c3d9e67e63e33140484b9794e734d04357c7ccd43fe66c1c87401a5f9ef2",
+        "id": "dc0a8ab6c618389ca06c0b24175f520cef4077c5272d5262472a1ffab588e2e4",
         "classification": "declaration",
         "owner": "OCRBackendContract",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "ce79377344cd43fc31a20ff0302a48228fc069674f65ed46dfb0a51abb4e045e",
+        "id": "499a55c1c7834d79b74760cb37f85220e72daf35d69576475d6fbdaa1c65add9",
         "classification": "declaration",
         "owner": "OCRBackendContract",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "8492e0c8118d2194dd58dddbc4cb08cfd182ecae315c3d7f257e2f91f0413c0f",
+        "id": "5cefa765c0cf0a0afcaab594be7ccbe191517d161159f8206f05c8ad710344b4",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "cab929b7416f075d2dbec76cdd274156585558f9e9d9a54deb867ebd2b3346c8",
+        "id": "0c5b64bcd559813253d03b147b54e9eefb1b541f253b349b0f4b8f0f48107995",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "c37a6748a392219675253eacafd3d360a2b087478f400934ea5cbbf92dcceaf0",
+        "id": "3233971044c97f6565d3965a54c456fa58dca8a2a6cfa606e5c467926efcd7ed",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "180b45747217ee0a7ae57435b88c385ed9c2d106da0ba05654ccc5936e37c80f",
+        "id": "20dbb8b10b1cc64828d2a96a5fa0015e9c81b35a743d579bfe943e55796e1c91",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "f663dec22b12c8af454f8b78a3090454071808d8bf238e6e2d0351f360d5d689",
+        "id": "a51655262a0475528b6ebd9de2bcb52e5f1fcc062bcdf4a128729845dc0e9698",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "5ca60de4c5348f92f759a28e0d0d5cdd1e52af38fe7484fca0538d5d7ce5fc97",
+        "id": "20a89213a78b5d5608340b2a0f57a0c057371b2413e1477a62aea778b799b3d6",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "7bcb2600ac43420e873f704eca8de3d0bb10a5d3b467bb32d1e10f1e58940a2e",
+        "id": "c119234448c75151c7cec6bef719ef8155a9a00be06f8365b16ea859f8923374",
         "classification": "declaration",
         "owner": "OCRSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "7670678973da70eadcf35b4e610d123ad7d919bb199724e25d0ed24c5c0fdbdb",
+        "id": "3aaccfcae2decef8101faf0b5ef658a8122a2746b58879e841386d87f1ea09df",
         "classification": "declaration",
         "owner": "VisionSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "ebddf1a05fd6e4fe8f6f17c3f4baa1ae87cf4753fbcf8bb063e07f4b1b48a48e",
+        "id": "cadc1e220e6ee086fdba816e7dc9fd0680113eac64f67fbc668c341f3b59f7aa",
         "classification": "declaration",
         "owner": "VisionSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "ff99fc31ec1344c0a06e262eeaddaabb25d69f894ea57ba972bd2643cee7594a",
+        "id": "a75fc3db79ced8921cba330b5bdecb48193c3758655367a419c48bba7187487b",
         "classification": "declaration",
         "owner": "VisionSettings",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "49d127bf8c29ea96e98253d4f16911dbb4a2427dcd3e57df22554d158c742312",
+        "id": "1676162577aa0a258027be772de9cd4f2ddf54b7766048cd843720b6c93cdb7c",
         "classification": "declaration",
         "owner": "VisionConfigurationView",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "0d90e1b9aa89be840a5d681bc30e49f00835f65d1b06a6ab7a0c466bcfd5cc6b",
+        "id": "9d6b6508f250bf87f459282f85cf9a10780d70b8e5a190e550527a238cc29b66",
         "classification": "declaration",
         "owner": "VisionBinding",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
       },
       {
-        "id": "f7a3e5bca67dbd3a2be0fa3930f4c54f30849c5f74843c12ba901fc47ab46dce",
+        "id": "8d00276f15805fb5cc13f5292ea1055b03c471f04b9a13cdc8e60123c430aa98",
         "classification": "declaration",
         "owner": "VisionBinding",
         "reason": "Single semantic Owner-head declaration of existing field/schema/kind/path/diagnostic/process flags; typed properties, validation and Writers connect all actual Vision consumers."
@@ -62726,24 +62800,42 @@
         "owner": "VisionSettings / OCRSettings / OCRBackendContract / VisionBinding / VisionConfigurationView",
         "declaration": "llm/components/vision/configuration.py",
         "consumers": [
+          "hub/backend/project/rag_import.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
+          "llm/components/vision/backends.py",
           "llm/components/vision/component.py",
           "llm/components/vision/data.py",
-          "llm/components/vision/tools.py",
-          "llm/components/vision/backends.py"
+          "llm/components/vision/tools.py"
         ],
         "tests": [
-          "tests/llm/test_vision.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_resource_references.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_component_record_integrity.py",
           "tests/llm/test_component_storage_integrity.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_usage_deletion.py",
           "tests/llm/test_lifecycle_integrity.py",
-          "tests/hub/test_rag_extensions.py",
-          "tests/hub/test_defaults.py"
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py"
         ],
         "complete": true
       }
@@ -117004,8 +117096,8 @@
   },
   {
     "path": "hub/backend/project/management_values.py",
-    "sha256": "1131a526b9a180c9a3afcf5a4c56cd047df6c5ec554d0e47067044acb279b892",
-    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
+    "sha256": "94a1ae41912be911ccf7cc60f0186bf433ca33c92be56839dd3eed199728e8d4",
+    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -117201,79 +117293,79 @@
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "4af1c51514e33d9a87b1f0836389d21a1471030b284ff50ad24a0cc2983d586e",
+        "id": "6a6069ab3504fddfaf7b5c07eeeaf55a602d26a656e7798ddbdea2ec6c84c52b",
         "classification": "declaration",
         "owner": "DefinitionSummary",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "279867d044e62e00c5a949961c8ccc0e00529389f88a8c65b55a7c1f78afcfca",
+        "id": "8ff2ee62b280f924002cdb901f722e74ccda77a09e143190b4443e4c4f355cad",
         "classification": "declaration",
         "owner": "DefinitionSummary",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "1dddd9c7850ac25e1d961d87662cb11a2adbf13efec28470c48a5018ee5133bb",
+        "id": "beae4ad3253dfe0f3ce0839e3c3623a650840560d19b55f6da76e79077c2621f",
         "classification": "declaration",
         "owner": "DefinitionSummary",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "39725de0e0e3b5b7a06139f2a6e22b82c5591f4970a51d9df3808080393dca8d",
+        "id": "942dff145d7f9f976578ee924f74a91d4611c35c1a8415625705ebd74a1e2f2e",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "d1019effd9aee29f0b27f93c4e3e882f7dbfd3752d47d8c7e6acc3e6b40a19c5",
+        "id": "b73e30001a11c9ffe46f132c5228746afd30849f444440f2b849f193b9fedae1",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "4e3fdfe43360a13c38a9a7c7ec09c5a0ef3016b509ea4744b0b52812c317acc3",
+        "id": "49f90cda5f647c7f04b0b2e94bcbbb9316d203731f3856c0ea508f094b41197c",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "a91e4aab66547395d93117b0fd1ebbccdd3f5d3666f8765182243dbd7c66f3e4",
+        "id": "6090c875a796b17c609081c50c8b723c0622fe1344b5fcf3c1d49e7f53e9c8e2",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "488c02743dd1f8b0153f61b909188aeae52961693bfe9725b36a344e8413d7e4",
+        "id": "67fced4a768c6f76eb681e84fa5c10229f5c9753854fa9b7e756c001bd49c0b0",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "0176dcdb5ddc332b45980e7cfd1afa3259f41844d1c8db9951afb8722f309df3",
+        "id": "ae76d90ad716201e7d5c2d08a38186072a01d4fb1ff41d929c8cdd60a112e62c",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "e3172dca1993e455ffc64207157da3b5140d652261e5d520d2db1b9a7fe79a28",
+        "id": "06d5803f6cf40156a21990c8901493d0ad419999a7de872de64c2cc0923f4210",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "223b34a99991fb844e7768f7b4f74eceeb70d85f651297327325440800a2d6a7",
+        "id": "92c33254e3168283007629dfe03acd869295ef941fbffc5f4a109e93e62410c7",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "3a7d536fc0a0b43cd41111bff774422e34763cd627f3fb5008c3b9ca3c69f0b5",
+        "id": "f83758b806fc77f9214905e51102c66af4e8afa1f48f9c2aae8b8b7d50def68b",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
       },
       {
-        "id": "512f5b47c96dbbbd2247584943bb53fb4c465a71f5b92bca71236f9f64eff189",
+        "id": "b409d0e7e98cca5f5635f7bd9395fc7d37bc43ae82a855a8f694914c88a71f00",
         "classification": "declaration",
         "owner": "SelectedFileImport",
         "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
@@ -117284,13 +117376,123 @@
         "owner": "ManagementAction / ManagementOperation / EditorRecord / ManagementEntry / ImportProvenance / DefinitionSummary / SelectedFileImport",
         "declaration": "hub/backend/project/management_values.py",
         "consumers": [
-          "hub/backend/project/record_management.py",
           "hub/backend/project/memory_management.py",
+          "hub/backend/project/rag_import.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
+          "hub/backend/project/record_management.py",
           "hub/backend/tools/management.py",
           "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/definition_manager.py",
           "hub/widget/forms/record_manager.py",
-          "hub/widget/forms/tool_manager.py",
-          "hub/widget/forms/definition_manager.py"
+          "hub/widget/forms/tool_manager.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py"
+        ],
+        "complete": false
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/rag_management.py",
+    "sha256": "4bc4d6e37593e55795a1db449166509094847a0e733c73856de5b12815277a2b",
+    "reason": "Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1433cc44ee3ad095c4351ed445980f9fc636db6c6d1dff567d0d96cdb88d3099",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "9380ae59fde8e1546546ceca3ccad2235f94d4d42e205b3a496f2664311d1630",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "4f28df52a54430fcb36bc2f5e7a5b156d40898ea2d1dc68f89d13c69ccfe7e37",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "2c4cb83f4bbabbe0c2f8f29e2b0cc1b1b42d74bec9adc0a4084a17a015d662c7",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "4da457db71c2a3b741f8d390235af8b656b83c35558bc4299a95e9376aafe5c9",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "c626834df6b5f4c7302f9095e9e03a09878f6f10dec58abf0b8d12ce01d86c23",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "81f1156a52da044ab3db325e234d7ea40b0f6a1c0c7c633d0a3aabff7c736585",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "1de80f4f18b84326c315888483b6e967c0b6f6ebbfbc22c6f0a0c960b66f77df",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "1f005b301e1932590220b16f5d39b7f9d8fc92f367feba87c3760c31bc22c0ed",
+        "classification": "declaration",
+        "owner": "RAGManagement",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGManagement",
+        "declaration": "hub/backend/project/rag_management.py",
+        "consumers": [
+          "hub/backend/project/record_management.py",
+          "hub/backend/runtime.py"
         ],
         "tests": [
           "tests/llm/test_interaction_storage.py",
@@ -117300,23 +117502,494 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py",
-          "tests/llm/test_memory_component.py",
-          "tests/llm/test_memory_history_integrity.py",
-          "tests/llm/test_tool_packages.py",
-          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_rag_storage.py",
-          "tests/llm/test_agent_skills.py",
-          "tests/llm/test_skill_packages.py",
-          "tests/hub/test_component_managers.py",
-          "tests/hub/test_memory_manager.py",
-          "tests/hub/test_usage_definitions_system.py",
-          "tests/hub/test_components.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_retention.py",
-          "tests/hub/test_creation_contracts.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/rag_progress.py",
+    "sha256": "b7bee971429fd19ae474976c02b649ac244551832741a92bf1bc3bd30d389aac",
+    "reason": "Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "af887333aaa78d1eac354856d8ca31eac6118885787739c5b39e90b017b55551",
+        "classification": "non_contract",
+        "owner": "RegistrationProgress",
+        "reason": "Dataclass slots language declaration; no domain default or runtime branch."
+      },
+      {
+        "id": "12bf605d23a64327ef1cbd0821b0ceeddc0f383aecb9a37aa5792e981961325b",
+        "classification": "declaration",
+        "owner": "RegistrationProgress",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "1be87c3aed0a4c1b5a363fa0ca57b23e18af985185d649e498eb2660987a6c8c",
+        "classification": "declaration",
+        "owner": "RegistrationProgress",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "83935f57e591488a94b53079589fdffcdfeb88e6af4307a38f313b676b61b891",
+        "classification": "declaration",
+        "owner": "RegistrationProgress",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RegistrationProgress / job_entry / document_ids",
+        "declaration": "hub/backend/project/rag_progress.py",
+        "consumers": [
+          "hub/backend/project/rag_management.py",
+          "tests/hub/test_rag_jobs.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/rag_import.py",
+    "sha256": "df8294b5aea448aca0c9417bb3b31353910841e3172e6359ab69e366c368e648",
+    "reason": "Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "read_document / document_description",
+        "declaration": "hub/backend/project/rag_import.py",
+        "consumers": [
+          "hub/backend/project/rag_management.py",
+          "hub/backend/tools/resources.py",
+          "tests/hub/test_rag_extensions.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/rag_views.py",
+    "sha256": "d7098cdd21cf87bfd2765064e8bc28e49f42330d0f8217cf3061b57c31c3c767",
+    "reason": "Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e77e0c571557bf569fa08a94a5272ae8f3adc18499125b183a82e7681e61e290",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "440a90568c886310ca7adc0575ebbf9ee8ff0ca4f506971503879740dcb1816d",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "5461a39ed8a4a0447288f4ac30ea3125c2cfc9b67a668fe15d97c5fe872079c7",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "24014076c2609ccaff790d1c716835f5f8c187f1773313618c8233d70f5dec73",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "d2ade746a9b0dcdab000ef7b4495de1293b7daa29aed175fd1c2639caa3cb3f3",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "a89a4b4392da8657855f8c1942178bfed19b1ed6a9c0769d8a00dd5c63334b67",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "4aaf4778f8d366e4461781123d5cf1a147b7809641dad1e04fb959d2e965c375",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "a4e3b67431de752d15055d2d2dc113c6f6152a4ccc41aabc1481322848ad0ded",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "ec9c3d12575d5f283dd5467f95d9ec400e2a0d4c4312edc503e7f894a5565566",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "ec5afdb79a06db2b03bb5fed5522c1289d953c3dec06f713d781d13aaf6f876d",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "f83e1f01d708a44dc7ae8bd0a9c73a9993a155ac2e08d5a50b88ca3a91aa0dcc",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "7bbb7cf8ea5c5ff4673909182f481ae5b18afed6fd280f7a1db6f8f153259f1c",
+        "classification": "declaration",
+        "owner": "RAGOperation",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "0cb7aa7ee31b3be2fe3507a876ddb45188775c771864f0820c945a8cbd0eb668",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "c7877d3675da1ec7397994c58c84634f8699cb2cc68832a8c559974c8884abe8",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "c7a3b5ea6c7cacc90b8dc1e86d7db8b78d084aff32e118bb5a39c71d1f6c79b2",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "e9926de7860e1cbefaa6c31bdf36f59f0d469177eb95308f79e97140590bc792",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "98d1c491f30910a13a76ddc452dcaf2ceac56a3ee9f87980a1a5da2bac9c19ff",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "238c220c73e3509a4c48837ffc8f4a05f88e4ce20ad42801a559c0a9baaf3c17",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "8f1eea6d8a98f5dbb3868354b6ce1f386711dc34874abbf1c8e5d41abf802040",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "e7aa8db23277ae49cab67dc1041443efb25366162e669fc5885a128d56a14914",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "c21e47efd82d2a57f0ac593678f49cb76f7604ae311c6a876ff8d03ec9e23195",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "7f7df9745af7848550202ed2705730d855624335a30fe042a7b4666ff2b6479a",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "68933df342be9d3623dd2d1d8012f7e2b8b3b2e65ee8712853a83a6f7de16954",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "fe05d1ea3f74e0cadcb654fb2f8d4e2a56873ddee966b361ca208d7aa6066bcb",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "6e0fde2fd4ae2f3afacbe9ba3ab5a9e99e050d1165d77ccaac04a56b3aaf21c3",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "ee1daed3295392521ade7e12e5ac2ce9e0261bef2f75fcbb33544ba36b262c72",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "f23e7120d825d591e3c0b953e7ca92c83357b9e989d91c647b53fbcfb6b8f13a",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "14e226e9378097b071159ec33c81a011f1b61234e19944e7d28d4268b7935764",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "da3a2ff7f2b144f399d36f7c2f1366cde53632b1758d43cd7b0b5452ecc3d1a1",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "d8d080d1c8f88a5e1e70794cfb7ca2976252d3361f68a13733877e4886cdb4c4",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "3bfa73def0d5d6f50b3b2c13463aedf48594f1acee72776ef57af0e9b5195f73",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "933bd2e0cb0df6af1dd12b2495560654ba069cd1924c62766f8892f3fbb63136",
+        "classification": "declaration",
+        "owner": "RAGEntry",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "00dddfae169a0a34032ec367bcb012fec222e6c21288e459d2f156ac926719f4",
+        "classification": "declaration",
+        "owner": "JobDeleteReview",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "fa0df97d044b9e924d5fdb3a69fa6d38228ddf9e37b14ce0f85e48d5dba96b9f",
+        "classification": "declaration",
+        "owner": "JobRetentionReview",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "4a8bd1a73791914fcdcc4f083ff888fa97a157fcc6d19b1b91fe94abbb94b7e4",
+        "classification": "declaration",
+        "owner": "JobRetentionReview",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "467a68dbd13bdbb24f5aed8541d3c68da7c66c2994c2f01031392d4e6e43c60f",
+        "classification": "declaration",
+        "owner": "JobRetentionReview",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "82f8acb8d7a26b53e1c5919ece2c970156a6b95038be135620eec63bc46bd193",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "6a3e38917eec3b97e0e36c1f1dd22fe3cc8d7f94c45e846828f8243aa9ca033f",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "66c2f3c3c2abbb09b5a36871cc4ea72220beca3be6cc65ff85e761562192c85b",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "f019355e6bb2d6d336b5fb5340572ff5adcebfbdbc59faa1c5d2bdeab9baae68",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "a60766bb95c5e674cb0db8b58cb214ed1b285b6a1334e6d3349ebc595165e361",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "9c15f8fcdda8c34fa9216635f1bb16bc7d9d7b2d8ceb8aae5f1028adda3282f1",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "d32e8edc5971a403e1bbd101a92f9f449e95d9bd1f7bd13a2987bf0d93a0b2ab",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "9545e7505244edf6c4a4a9a03341c6f366a9feaa977bd15a84bd0556de5c7a8e",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "691a48198148d21c845ff845eb7175e70197684838c1f67c35442aa564a5f627",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "23f00d77ce77a496307493125d579b7bc0f9ca3f0b9ec13140214e4387cc6115",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "0ec296bac0de5a6390f58ceeefacbdacc08b994d0d7bc34583ffc03ddbea3a25",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "96cfc7162a0c3defa640e60187427f291d179df1d1f2daae21fa9bc4ce4b2716",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "579b151a70d03794d9d56a722dfe489a7e98c0a3668c8da74fe0f6a6cee54c2f",
+        "classification": "declaration",
+        "owner": "ImageImport",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "73e6b7a25d8517b5051452e22aacbece4668cceb69c3a4db1250ef6123161c58",
+        "classification": "declaration",
+        "owner": "DocumentExcerpt",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "7f71bc7abd616b932f5282a13c7ed85290409504845e53dff9d10f4edaf949ba",
+        "classification": "declaration",
+        "owner": "DocumentExcerpt",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "bc841066ec486069c46d481a02e8289e3c7ccccdc966c5152b4e1b79f6f982d5",
+        "classification": "declaration",
+        "owner": "DocumentExcerpt",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      },
+      {
+        "id": "5cff3f680febd41a37f6714321187bb34a5c54983e81029b5e895c84f4371c72",
+        "classification": "declaration",
+        "owner": "DocumentExcerpt",
+        "reason": "Host management operation/observation/presentation declarations. Persistent facts, configuration, model fields, state values and source identity come from their canonical Owners; explicit Application choices remain local."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RAGOperation / RAGEntry / JobDeleteReview / JobRetentionReview / ImageImport / DocumentExcerpt",
+        "declaration": "hub/backend/project/rag_views.py",
+        "consumers": [
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/rag_progress.py",
+          "hub/backend/project/rag_import.py",
+          "hub/widget/forms/rag_manager.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_approval_continuation.py"
         ],
         "complete": false
       }

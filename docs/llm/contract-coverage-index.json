@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 637,
-    "unreviewed_files": 9,
+    "files": 638,
+    "unreviewed_files": 6,
     "stale_files": 0,
-    "unclassified": 542,
+    "unclassified": 341,
     "violations": 0,
-    "incomplete_contracts": 19,
-    "unreviewed_dynamic_paths": 9,
+    "incomplete_contracts": 20,
+    "unreviewed_dynamic_paths": 6,
     "unreadable_files": 0,
-    "candidates": 15519,
+    "candidates": 15386,
     "issues": 0
   },
   "files": [
@@ -376,7 +376,7 @@
     {
       "path": "hub/backend/project/management_values.py",
       "status": "reviewed",
-      "sha256": "1131a526b9a180c9a3afcf5a4c56cd047df6c5ec554d0e47067044acb279b892",
+      "sha256": "94a1ae41912be911ccf7cc60f0186bf433ca33c92be56839dd3eed199728e8d4",
       "candidates": 45
     },
     {
@@ -399,21 +399,27 @@
     },
     {
       "path": "hub/backend/project/rag_import.py",
-      "status": "unreviewed",
-      "sha256": "495e6dda72753271f63cd3a85758c863ac465e946a49852d8be2901e71f167e8",
-      "candidates": 45
+      "status": "reviewed",
+      "sha256": "df8294b5aea448aca0c9417bb3b31353910841e3172e6359ab69e366c368e648",
+      "candidates": 0
     },
     {
       "path": "hub/backend/project/rag_management.py",
-      "status": "unreviewed",
-      "sha256": "bd27b2daf8a95dcbca65d41249cff9a7154e90a9a24661c49e41c94695de0289",
-      "candidates": 67
+      "status": "reviewed",
+      "sha256": "4bc4d6e37593e55795a1db449166509094847a0e733c73856de5b12815277a2b",
+      "candidates": 9
     },
     {
       "path": "hub/backend/project/rag_progress.py",
-      "status": "unreviewed",
-      "sha256": "4adb5272b98ef5b7b38e66faa45d9a628dc7cb98f1abf24c7d8cacb3597f87e3",
-      "candidates": 89
+      "status": "reviewed",
+      "sha256": "b7bee971429fd19ae474976c02b649ac244551832741a92bf1bc3bd30d389aac",
+      "candidates": 4
+    },
+    {
+      "path": "hub/backend/project/rag_views.py",
+      "status": "reviewed",
+      "sha256": "d7098cdd21cf87bfd2765064e8bc28e49f42330d0f8217cf3061b57c31c3c767",
+      "candidates": 53
     },
     {
       "path": "hub/backend/project/record_management.py",
@@ -2056,7 +2062,7 @@
     {
       "path": "llm/components/rag/document_records.py",
       "status": "reviewed",
-      "sha256": "c8daf005e1e2162e2e2f663316777d1b9541bc6681edfb0a4bcade0a3dacd779",
+      "sha256": "d401dfc1d60a340f8afec64d73b13a5d4f88b5ea2eaee3b47f27b191ee5beb72",
       "candidates": 52
     },
     {
@@ -2128,7 +2134,7 @@
     {
       "path": "llm/components/rag/ingestion_records.py",
       "status": "reviewed",
-      "sha256": "925f5d1eba7ef28182507aeb1ede77f000bc3e274d8edc069a82bd798397ff4f",
+      "sha256": "5d32492ee617ebe22ccd9b2c94856809f4f1dc089793d116db09d1d38c6f8421",
       "candidates": 67
     },
     {
@@ -2152,8 +2158,8 @@
     {
       "path": "llm/components/rag/job_views.py",
       "status": "reviewed",
-      "sha256": "1d580eca6e2c5e61f070173ecd551403c0af14828ce68a5a3277487a5d8b113b",
-      "candidates": 13
+      "sha256": "9101fe384f61c6147b763de4f469bf50fed1b711532a2a9eae11b96f6b10f7d7",
+      "candidates": 15
     },
     {
       "path": "llm/components/rag/jobs.py",
@@ -2176,7 +2182,7 @@
     {
       "path": "llm/components/rag/publication_records.py",
       "status": "reviewed",
-      "sha256": "87a8fd0f64379b596b235014649141d4b44dfee697e2941c9a684506004433f7",
+      "sha256": "1d4ff6fc53fa6342b1acdb5fa4b83af6bd91915d5f1d05409dd9ae9a22c308b3",
       "candidates": 30
     },
     {
@@ -2584,7 +2590,7 @@
     {
       "path": "llm/components/vision/configuration.py",
       "status": "reviewed",
-      "sha256": "cb0465dd130c7b71c8628604369c52faf9569b9a6a19ae227a3be9ebfff38db7",
+      "sha256": "bb3212dda561e2afb2caa2ce7570c4059beae54a00feaa3ae6fcc0d1b2d02f63",
       "candidates": 19
     },
     {

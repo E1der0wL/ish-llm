@@ -8,7 +8,13 @@ from llm.core.implementation_parameters import ImplementationParameters, Paramet
 from llm.core.json_data import JsonObject
 from llm.core.model_protocol import ModelOperation
 from llm.core.parameters import ParameterLayout
-from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean, object_schema, checked_schema
+from llm.core.schema import (
+    SchemaKeyword,
+    SchemaType,
+    SchemaBoolean,
+    object_schema,
+    checked_schema,
+)
 from llm.providers.requests import provider_schema, resolve_provider_options
 from llm.services.infrastructure.storage import revision_token
 from .image_contracts import ImageLimits
@@ -65,6 +71,10 @@ class OCRSettings:
     def __init__(self, value):
         self._value = value
 
+    @property
+    def optional_backend(self):
+        return self._value.get(self.BACKEND)
+
     def selected(self, backend, registered):
         if backend is UNSET:
             backend = require_config(self._value, self.BACKEND, scope=self.SCOPE)
@@ -84,7 +94,11 @@ class OCRSettings:
 
     @classmethod
     def schema(cls, backends):
-        selected = {SchemaKeyword.ENUM: list(backends)} if backends else {SchemaKeyword.NOT: {}}
+        selected = (
+            {SchemaKeyword.ENUM: list(backends)}
+            if backends
+            else {SchemaKeyword.NOT: {}}
+        )
         return object_schema(
             {
                 cls.BACKEND: {SchemaKeyword.TYPE: SchemaType.STRING, **selected},
@@ -148,7 +162,9 @@ class VisionSettings:
                 {
                     cls.LIMITS: ImageLimits.schema(),
                     cls.OCR: OCRSettings.schema(component.ocr_backends),
-                    cls.COMPLETION: component.model.adapter.describe_config(ModelOperation.COMPLETION),
+                    cls.COMPLETION: component.model.adapter.describe_config(
+                        ModelOperation.COMPLETION
+                    ),
                     cls.PROVIDER: provider_schema(),
                 }
             )
@@ -160,14 +176,17 @@ class VisionSettings:
         value = cls(component.parameter_layout.unpack(values))
         resolve_provider_options(value.provider)
         params = value.completion
-        component.model.adapter.validate_options(params, operation=ModelOperation.COMPLETION)
+        component.model.adapter.validate_options(
+            params, operation=ModelOperation.COMPLETION
+        )
         component.model.adapter.validate_vision(params)
 
     @classmethod
     def required_backend(cls, config):
         return (
             []
-            if OCRSettings.BACKEND in ImplementationParameters.read(config).config.get(cls.OCR, {})
+            if OCRSettings.BACKEND
+            in ImplementationParameters.read(config).config.get(cls.OCR, {})
             else [OCRSettings.BACKEND]
         )
 
@@ -181,7 +200,9 @@ class VisionConfigurationView:
             view,
             {
                 ImplementationParameters.CONFIG: {
-                    VisionSettings.COMPLETION: deepcopy(component.model.adapter.vision_enforced)
+                    VisionSettings.COMPLETION: deepcopy(
+                        component.model.adapter.vision_enforced
+                    )
                 },
                 cls.ASSET_FORMAT: component.FORMAT_VERSION,
             },
@@ -199,6 +220,8 @@ class VisionBinding:
             {
                 cls.CONFIGURATION: component.get_config(project),
                 cls.REVISION: component.revision,
-                cls.BACKENDS: {key: value.revision for key, value in component.ocr_backends.items()},
+                cls.BACKENDS: {
+                    key: value.revision for key, value in component.ocr_backends.items()
+                },
             }
         )

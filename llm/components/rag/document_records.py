@@ -552,6 +552,16 @@ class RAGDocumentInput:
     def identifier(self):
         return self._value[self.Field.IDENTIFIER]
 
+    @property
+    def metadata(self):
+        return self._value[self.Field.METADATA]
+
+    @classmethod
+    def ensure_description(cls, value, describe):
+        value[cls.Field.DESCRIPTION] = value.get(cls.Field.DESCRIPTION) or describe(
+            value[cls.Field.CONTENT]
+        )
+
     @classmethod
     def set_description_if_absent(cls, value, description):
         value.setdefault(cls.Field.DESCRIPTION, description)

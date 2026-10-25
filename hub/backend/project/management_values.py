@@ -154,6 +154,10 @@ class ImportProvenance:
     def create(cls, path):
         return {cls.SOURCE: str(path)}
 
+    @classmethod
+    def stamp_document(cls, values, path):
+        RAGDocumentInput(values).metadata[cls.SOURCE] = str(path)
+
 
 class DefinitionSummary:
     """Optional presentation fields of current public snapshots, not a stored Reader."""

@@ -68,9 +68,17 @@ class CorpusControl:
         CORPUS_REVISION = "corpus_revision"
         CATALOG_REVISION = "catalog_revision"
 
-    FIELDS = frozenset((Field.SCHEMA_VERSION, Field.PROJECT_ID, Field.COMPONENT,
-                       Field.IDENTITY_REVISION, Field.ACTIVE_REVISION,
-                       Field.CORPUS_REVISION, Field.CATALOG_REVISION))
+    FIELDS = frozenset(
+        (
+            Field.SCHEMA_VERSION,
+            Field.PROJECT_ID,
+            Field.COMPONENT,
+            Field.IDENTITY_REVISION,
+            Field.ACTIVE_REVISION,
+            Field.CORPUS_REVISION,
+            Field.CATALOG_REVISION,
+        )
+    )
     PUBLICATION_REVISIONS = (Field.CORPUS_REVISION, Field.CATALOG_REVISION)
 
     def __init__(self, value):
@@ -86,23 +94,39 @@ class CorpusControl:
 
     @classmethod
     def create(cls, project_id, component, identity, generation, corpus, catalog):
-        return {cls.Field.SCHEMA_VERSION: cls.SCHEMA_VERSION,
-                cls.Field.PROJECT_ID: project_id, cls.Field.COMPONENT: component,
-                cls.Field.IDENTITY_REVISION: revision_token(CorpusIdentity.create(identity)),
-                cls.Field.ACTIVE_REVISION: revision_token(CorpusPointer.create(generation)),
-                cls.Field.CORPUS_REVISION: cls.ABSENT if corpus is cls.ABSENT else revision_token(corpus),
-                cls.Field.CATALOG_REVISION: cls.ABSENT if catalog is cls.ABSENT else revision_token(catalog)}
+        return {
+            cls.Field.SCHEMA_VERSION: cls.SCHEMA_VERSION,
+            cls.Field.PROJECT_ID: project_id,
+            cls.Field.COMPONENT: component,
+            cls.Field.IDENTITY_REVISION: revision_token(
+                CorpusIdentity.create(identity)
+            ),
+            cls.Field.ACTIVE_REVISION: revision_token(CorpusPointer.create(generation)),
+            cls.Field.CORPUS_REVISION: (
+                cls.ABSENT if corpus is cls.ABSENT else revision_token(corpus)
+            ),
+            cls.Field.CATALOG_REVISION: (
+                cls.ABSENT if catalog is cls.ABSENT else revision_token(catalog)
+            ),
+        }
 
     @classmethod
     def validate(cls, control, project_id, component, identity, active):
         if not isinstance(control, dict) or control.keys() != cls.FIELDS:
             raise ValueError(cls.INVALID_FIELDS)
-        if type(control[cls.Field.SCHEMA_VERSION]) is not int or control[cls.Field.SCHEMA_VERSION] != cls.SCHEMA_VERSION:
+        if (
+            type(control[cls.Field.SCHEMA_VERSION]) is not int
+            or control[cls.Field.SCHEMA_VERSION] != cls.SCHEMA_VERSION
+        ):
             raise ValueError(cls.INVALID_VERSION)
-        if control[cls.Field.PROJECT_ID] != project_id or control[cls.Field.COMPONENT] != component:
+        if (
+            control[cls.Field.PROJECT_ID] != project_id
+            or control[cls.Field.COMPONENT] != component
+        ):
             raise ValueError(cls.WRONG_OWNER)
-        if (control[cls.Field.IDENTITY_REVISION] != revision_token(identity)
-                or control[cls.Field.ACTIVE_REVISION] != revision_token(active)):
+        if control[cls.Field.IDENTITY_REVISION] != revision_token(identity) or control[
+            cls.Field.ACTIVE_REVISION
+        ] != revision_token(active):
             raise ValueError(cls.CHANGED_POINTER)
 
     @classmethod
@@ -112,13 +136,22 @@ class CorpusControl:
             if generation is cls.ABSENT:
                 if value is not cls.ABSENT:
                     raise ValueError(cls.UNEXPECTED_PUBLICATION)
-            elif not isinstance(value, str) or re.fullmatch(cls.DIGEST_PATTERN, value) is cls.ABSENT:
+            elif (
+                not isinstance(value, str)
+                or re.fullmatch(cls.DIGEST_PATTERN, value) is cls.ABSENT
+            ):
                 raise ValueError(cls.MISSING_REVISIONS)
 
 
 class CorpusCatalog:
-    REQUIRED = frozenset((RAGDocument.Field.ID, RAGDocument.Field.TITLE,
-                          RAGDocument.Field.GENERATION, RAGDocument.Field.REVISION))
+    REQUIRED = frozenset(
+        (
+            RAGDocument.Field.ID,
+            RAGDocument.Field.TITLE,
+            RAGDocument.Field.GENERATION,
+            RAGDocument.Field.REVISION,
+        )
+    )
     INVALID_LIST = "RAG catalog must be a list"
     INVALID_FIELDS = "RAG catalog requires complete current document fields"
     INVALID_TITLE = "RAG catalog title must be non-empty text"
@@ -128,8 +161,14 @@ class CorpusCatalog:
 
     @classmethod
     def rows(cls, documents):
-        return [{key: doc[key] for key in (*sorted(cls.REQUIRED), RAGDocument.Field.DESCRIPTION) if key in doc}
-                for _, doc in sorted(documents.items())]
+        return [
+            {
+                key: doc[key]
+                for key in (*sorted(cls.REQUIRED), RAGDocument.Field.DESCRIPTION)
+                if key in doc
+            }
+            for _, doc in sorted(documents.items())
+        ]
 
     @classmethod
     def validate(cls, rows, control):
@@ -137,14 +176,22 @@ class CorpusCatalog:
             raise ValueError(cls.INVALID_LIST)
         identifiers = []
         for row in rows:
-            if (not isinstance(row, dict) or not cls.REQUIRED <= row.keys()
-                    or row.keys() - cls.REQUIRED - {RAGDocument.Field.DESCRIPTION}):
+            if (
+                not isinstance(row, dict)
+                or not cls.REQUIRED <= row.keys()
+                or row.keys() - cls.REQUIRED - {RAGDocument.Field.DESCRIPTION}
+            ):
                 raise ValueError(cls.INVALID_FIELDS)
             identifier = validate_name(RAGDocument(row).identifier)
             RAGDocument.validate_versions({identifier: row})
-            if not isinstance(RAGDocument(row).title, str) or not RAGDocument(row).title.strip():
+            if (
+                not isinstance(RAGDocument(row).title, str)
+                or not RAGDocument(row).title.strip()
+            ):
                 raise ValueError(cls.INVALID_TITLE)
-            if RAGDocument.Field.DESCRIPTION in row and not isinstance(row[RAGDocument.Field.DESCRIPTION], str):
+            if RAGDocument.Field.DESCRIPTION in row and not isinstance(
+                row[RAGDocument.Field.DESCRIPTION], str
+            ):
                 raise ValueError(cls.INVALID_DESCRIPTION)
             identifiers.append(identifier)
         if identifiers != sorted(set(identifiers)):
@@ -168,8 +215,11 @@ class GenerationRow:
 
     @classmethod
     def create(cls, generation, files):
-        return {cls.GENERATION: generation, cls.BYTES: SnapshotFile.total_bytes(files),
-                cls.REVISION: revision_token(files)}
+        return {
+            cls.GENERATION: generation,
+            cls.BYTES: SnapshotFile.total_bytes(files),
+            cls.REVISION: revision_token(files),
+        }
 
 
 class GenerationCompactionPlan:
@@ -182,10 +232,22 @@ class GenerationCompactionPlan:
     def __init__(self, value):
         self._value = value
 
+    @property
+    def candidates(self):
+        return self._value[self.CANDIDATES]
+
+    @property
+    def version(self):
+        return self._value[self.VERSION]
+
     @classmethod
     def create(cls, identity, active_generation, candidates, protected):
-        result = {cls.IDENTITY: identity, cls.ACTIVE_GENERATION: active_generation,
-                  cls.CANDIDATES: candidates, cls.PROTECTED: protected}
+        result = {
+            cls.IDENTITY: identity,
+            cls.ACTIVE_GENERATION: active_generation,
+            cls.CANDIDATES: candidates,
+            cls.PROTECTED: protected,
+        }
         return {**result, cls.VERSION: revision_token(result)}
 
     @property

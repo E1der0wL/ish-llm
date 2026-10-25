@@ -10065,3 +10065,41 @@ Level 1·2 로컬 완료다. 관리 응답 Owner의 UI 소비자는 아직 남�
 미완료로 등록했다. 관련 RAG/관리 화면 전환 후 통합 Level 3를 실행하고 검증한 SHA만 Push한다.
 앞선 전체 결과를 현재 변경의 전체 검증으로 재사용하지 않는다. 원본 보존·CAS·승인·예산·효과·
 Checkpoint·Resume 안전성은 현재 계약과 기존 Assertion을 그대로 유지한다.
+
+
+## Hub RAG Job 관측·명시 관리·이미지 import Projection
+
+JobObservation·JobCleanupRow/Plan·GenerationCompactionPlan의 공개 관측과 ProgressCounts·
+IngestionCounts를 통해 현재 RAG Owner 선언을 소비한다. 저장 Reader나 무결성 검증을 대체하지
+않고 기존 공개 API 결과의 필수/선택적 읽기를 그대로 노출한다. RAGEntry·JobDeleteReview·
+JobRetentionReview·ImageImport는 Host 응답/명령을 한 곳에서 직렬화한다. Backend 계획의
+can_resume/can_delete/can_abandon, revision과 blocker를 그대로 사용하며 Hub의 기간 선택이나
+현재 eligible generation 선택을 Backend 정책으로 옮기지 않았다.
+
+원본/제안의 독립 프로세스 192개 관측과 실제 Owner를 확장한 9개 구현 AST가 일치했다.
+모든 Job 상태·live/관측 상태·중단/취소/포기·single/batch 문서·손상/누락 응답·elapsed와 단계
+진행률·재개 계획·실제 삭제/포기/압축 호출 순서·보존 기간 경계/낡은 검토·OCR/analysis 명시
+선택·설정 누락/None·추출 실패/취소 뒤 원본 이미지의 공개 tombstone 정리를 비교했다.
+metadata source 대입은 원래 RHS 문자열 변환 뒤 LHS 접근 순서도 보존한다. 외부 AST 확장의
+Store context와 중첩 속성 확장을 보강했으며 초기 비교 실패를 보존했다. 제품 테스트나 기존
+Assertion은 변경하지 않았다. 원본 파일·Job 영수증·코퍼스·누적 사용량 저장 규칙은 그대로다.
+
+- `whole-hub-rag-management-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.671308초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-rag-management-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `791c66f29e8c6d9c9c93994e867cd057645ea322f564cdde01cef120e5cc5bda`, input `06ea30f71083060ccf00db4605ce77ce5520790552e0454fb1611acb5fc4e339`.
+
+- `whole-hub-rag-management-l1-llm-01`: discovered/started/pass 84/84/84, exit 0, 74.445751초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-rag-management-l1-llm-01/llm.json --modules tests.llm.test_rag_job_state_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_job_retention tests.llm.test_rag_retention_policy tests.llm.test_rag_storage tests.llm.test_vision tests.llm.test_rag_input_integrity tests.llm.test_rag_batch_identity`. source `791c66f29e8c6d9c9c93994e867cd057645ea322f564cdde01cef120e5cc5bda`, input `06ea30f71083060ccf00db4605ce77ce5520790552e0454fb1611acb5fc4e339`.
+
+- `whole-hub-rag-management-l1-01`: discovered/started/pass 26/26/26, exit 0, 54.643724초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-rag-management-l1-01/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_extensions tests.hub.test_rag_retention`. source `791c66f29e8c6d9c9c93994e867cd057645ea322f564cdde01cef120e5cc5bda`, input `06ea30f71083060ccf00db4605ce77ce5520790552e0454fb1611acb5fc4e339`.
+
+- `whole-hub-rag-management-l2-01`: discovered/started/pass 21/21/21, exit 0, 135.275786초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-rag-management-l2-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_components tests.hub.test_resource_tools tests.hub.test_approval_continuation`. source `791c66f29e8c6d9c9c93994e867cd057645ea322f564cdde01cef120e5cc5bda`, input `06ea30f71083060ccf00db4605ce77ce5520790552e0454fb1611acb5fc4e339`.
+
+R3 Mutation exit 0. 발견/실행/pass ID 일치, failure/error/Skip/xfail/xpass/누락/추가/중복 0,
+source/input 전후 및 실행 간 동일, suite별 선택 ID 중복 0을 확인했다. 공통 안전성 외 RAG Job
+상태/무결성/보존·코퍼스 저장·원본 입력·batch identity·Vision, Hub RAG Job/확장/보존·Component
+관리/활성화·resource Tool·승인 연속 실행을 포함한다. Python 3.12.14/Clang, Host d833790,
+고정 의존성, 정상 namespace(NoNewPrivs=0). 실제 argv/exit/hash와 동등성 자료는
+`hub-rag-management-draft`에 보존한다. S1–S7·감사·문서 검사를 통과했다.
+
+Level 1·2 로컬 완료다. 아직 전환하지 않은 RAG 관리 화면 소비자는 공유 계약의 미완료로
+기록했다. 관련 관리 화면까지 전환한 현재 통합 상태에서 Level 3를 실행하고 검증한 SHA만
+Push한다. 앞선 Gate56 결과는 이 변경의 전체 검증이 아니다. 관측 오류가 Job을 취소하지 않는
+계약, 새 외부 효과 전 중복 등록 검사, 실제 삭제/재개 revision 검사는 그대로 유지한다.
