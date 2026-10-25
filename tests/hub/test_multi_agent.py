@@ -33,6 +33,13 @@ class HubMultiAgentTests(unittest.IsolatedAsyncioTestCase):
         await self.runtime.start()
         await self.runtime.project.agents.acreate({"engine": "host"}, identifier="b")
 
+    async def invited_session(self):
+        sid = await self.runtime.new_session()
+        for identifier in await self.runtime.project.agents.alist():
+            if not identifier.startswith('_'):
+                await self.runtime.invite_agent(self.runtime.project.id, sid, identifier)
+        return sid
+
     async def test_parallel_snapshot_and_submission_state_keep_each_agent_identity(self):
         entered = {name: asyncio.Event() for name in ("a", "b")}
         release = asyncio.Event()
@@ -42,7 +49,7 @@ class HubMultiAgentTests(unittest.IsolatedAsyncioTestCase):
             self.effect(context.run.agent_id)
             yield context.run.agent_id
         await self.setup_runtime(action)
-        sid = await self.runtime.new_session()
+        sid = await self.invited_session()
         session = self.runtime.sessions[sid]
         self.assertEqual(session.data.agent_ids, ["a", "b"])
         request = await session.run.submit("shared", recipients="all")
@@ -72,7 +79,7 @@ class HubMultiAgentTests(unittest.IsolatedAsyncioTestCase):
                 raise RuntimeError("review original failure")
             yield text
         await self.setup_runtime(action)
-        sid = await self.runtime.new_session()
+        sid = await self.invited_session()
         session = self.runtime.sessions[sid]
         request = await session.run.submit("original", recipients="all")
         original = await request.wait(timeout=10)
@@ -102,7 +109,7 @@ class HubMultiAgentTests(unittest.IsolatedAsyncioTestCase):
         await self.runtime.project.components.workflows.acreate(flow.to_dict(), identifier="review")
         for name in ("review-a", "review-b"):
             await self.runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}}, identifier=name)
-        sid = await self.runtime.new_session()
+        sid = await self.invited_session()
         session = self.runtime.sessions[sid]
         request = await session.run.submit("review both", recipients=["review-a", "review-b"])
         runs = await request.wait(timeout=15)

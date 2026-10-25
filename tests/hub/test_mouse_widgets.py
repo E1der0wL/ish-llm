@@ -20,6 +20,29 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
+    async def test_participants_lock_focus_and_click_only_highlights(self):
+        self.view.participant_ids = self.view.agents = ('a', 'b')
+        self.view.agent_titles = {'a': 'Coder', 'b': 'Reviewer'}
+        await auxiliary(self.app, self.pipe, self.view, 'participants')
+        bar = self.view.output.participants
+        await eventually(lambda: bar.visible)
+        await self.paint()
+        for window in (self.view.composer.window, self.view.output.transcript.window):
+            await self.mouse(0, *self.at(window))
+            await self.mouse(0, *self.at(window), release=True)
+            self.assertIs(self.app.layout.current_control, bar.control)
+        x, y = self.at(bar.window)
+        await self.mouse(0, x, y + 1)
+        await self.mouse(0, x, y + 1, release=True)
+        self.assertEqual(bar.selected, 'b')
+        self.assertEqual(self.view.recipient_id, '')
+        self.pipe.send_text(' ')
+        await eventually(lambda: self.view.recipient_id == 'b')
+        await self.mouse(0, x, y + 4)
+        await self.mouse(0, x, y + 4, release=True)
+        self.assertEqual(bar.selected, 'b')
+        self.assertEqual(self.view.recipient_id, 'b')
+
     async def test_custom_background_reaches_checklist_tracks_and_inactive_headings(self):
         from dataclasses import replace
         from hub.widget.controls import CheckboxList

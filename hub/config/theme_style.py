@@ -10,6 +10,10 @@ class ThemeSelector(StrEnum):
     DIALOG = "dialog"
     ROOT = "hub"
     HEADER = "hub.header"
+    HEADER_BUTTON = "hub.header button"
+    HEADER_BUTTON_FOCUSED = "hub.header button.focused"
+    HEADER_BUTTON_TEXT = "hub.header button.text"
+    HEADER_BUTTON_FOCUSED_TEXT = "hub.header button.focused button.text"
     HEADER_PROJECT = "hub.header.project"
     PROFILE = "hub.profile"
     HEADER_MODEL = "hub.header.model"
@@ -153,6 +157,10 @@ class ThemeStyle:
             ThemeSelector.PTK_DIALOG_FRAME_LABEL.value: "fg:{theme.accent} bg:{theme.background}",
             ThemeSelector.PTK_DIALOG_SHADOW.value: "fg:{theme.muted} bg:{theme.background}",
             ThemeSelector.PTK_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON.value: "fg:{theme.bar_foreground} bg:{theme.header_background} nobold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON_FOCUSED.value: "fg:{theme.bar_foreground} bg:{theme.header_background} bold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON_TEXT.value: "fg:{theme.bar_foreground} bg:{theme.header_background}",
+            ThemeSelector.HEADER_BUTTON_FOCUSED_TEXT.value: "fg:{theme.accent} bg:{theme.header_background} bold",
             ThemeSelector.PTK_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
             ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent} bold",
             ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT.value: "fg:{theme.accent} bold",

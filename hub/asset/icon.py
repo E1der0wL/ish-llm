@@ -13,6 +13,7 @@ from ..model import ChatMessage, SessionSummary
 class AuxiliaryIcon(StrEnum):
     HISTORY = "history"
     TAGS = "tags"
+    PARTICIPANTS = "participants"
     FIND = "find"
     ATTACH = "attach"
     LOGS = "logs"
@@ -137,6 +138,7 @@ class IconGlyphs:
         {
             AuxiliaryIcon.HISTORY.value: "☷",
             AuxiliaryIcon.TAGS.value: "▤",
+            AuxiliaryIcon.PARTICIPANTS.value: "👥",
             AuxiliaryIcon.FIND.value: "⌕",
             AuxiliaryIcon.ATTACH.value: "📎",
             AuxiliaryIcon.LOGS.value: "≡",
@@ -191,6 +193,7 @@ class IconSet:
     restart: str = "↻"
     minimize: str = "⊘"
     dropdown: str = "▾"
+    recipient: str = "✓"
     auxiliary: Mapping[str, str] = field(
         default_factory=lambda: MappingProxyType(dict(IconGlyphs.AUXILIARY_UNICODE))
     )
@@ -245,6 +248,7 @@ class IconPalettes:
             {
                 AuxiliaryIcon.HISTORY.value: "",
                 AuxiliaryIcon.TAGS.value: "",
+                AuxiliaryIcon.PARTICIPANTS.value: "",
                 AuxiliaryIcon.FIND.value: "",
                 AuxiliaryIcon.ATTACH.value: "",
                 AuxiliaryIcon.LOGS.value: "",

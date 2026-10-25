@@ -22,7 +22,7 @@ from prompt_toolkit.layout import (
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.menus import CompletionsMenu
 from ..widget.shortcuts import ShortcutBar
-from ..widget.header import HeaderBar, HeaderActions
+from ..widget.header import HeaderBar
 
 from .chat.completion import HubCompleter
 from ..widget.output.engine import EngineOutput
@@ -177,6 +177,11 @@ class HubView:
         self._agent_choices = {}
         self._default_agent_id = DEFAULT_AGENT
         self.agents = (DEFAULT_AGENT,)
+        self._participant_sets = {}
+        self._default_participants = (DEFAULT_AGENT,)
+        self.agent_titles = {}
+        self._recipients = {}
+        self.on_invite_agent = HubView.ABSENT
         self.agent_engines = {DEFAULT_AGENT: HubEngineIdentity.LOOP}
         self.engines = (HubEngineIdentity.LOOP,)
         self.file_root = Path.cwd()
@@ -221,7 +226,7 @@ class HubView:
 
         self.toasts = SessionToasts(self)
         completer = HubCompleter(
-            lambda: self.agents,
+            lambda: self.participant_ids,
             lambda: self.file_root,
             self.t,
             components=lambda: self.component_commands,
@@ -329,7 +334,7 @@ class HubView:
                 ]
             ),
             title=lambda: self._focus_heading(
-                self.composer.control, self.t(MessageKey.MODEL_LINE, model=self.model)
+                self.composer.control, self.recipient_title()
             ),
             hint=lambda: self.t(MessageKey.INPUT_HINT)
             + (
@@ -357,6 +362,7 @@ class HubView:
                     AuxiliaryIcon.TAGS.value,
                     lambda: self.output.invoke(EngineOutput.TAGS),
                 ),
+                (AuxiliaryIcon.PARTICIPANTS.value, lambda: self.output.participants.open()),
                 (
                     AuxiliaryIcon.FIND.value,
                     lambda: self.output.invoke(EngineOutput.FIND),
@@ -386,10 +392,11 @@ class HubView:
             ]
         )
         self.header = HeaderBar(
-            lambda: self.t(MessageKey.PROFILE_HOME), icons=lambda: self.icons
+            lambda: self.t(MessageKey.PROFILE_HOME), icons=lambda: self.icons,
+            restart=self.restart, minimize=self.minimize,
         )
         self.chat_page = TwoPanelPage(
-            header=HeaderActions(self.header, self),
+            header=self.header,
             footer=self.shortcut_bar(),
             sidebar=self._sidebar,
             main=conversation,
@@ -610,13 +617,39 @@ class HubView:
         self.dialogs.help()
 
     def choose_agent(self, name=NO_AGENT):
-        if name in self.agents:
+        if name in self.participant_ids:
             self.agent_id = name
+            self.recipient_id = name
         else:
             self.notice = self.t(
                 MessageKey.AGENT_COMMAND_USAGE,
-                agents=HubView.AGENT_SEPARATOR.join(self.agents),
+                agents=HubView.AGENT_SEPARATOR.join(self.participant_ids),
             )
+
+    @property
+    def participant_ids(self):
+        return self._participant_sets.get(self._draft_key(self.selected), self._default_participants)
+
+    @participant_ids.setter
+    def participant_ids(self, identifiers):
+        self._participant_sets[self._draft_key(self.selected)] = tuple(identifiers)
+
+    @property
+    def recipient_id(self):
+        return self._recipients.get(self._draft_key(self.selected), self.NO_AGENT)
+
+    @recipient_id.setter
+    def recipient_id(self, identifier):
+        self._recipients[self._draft_key(self.selected)] = identifier
+
+    @property
+    def recipients(self):
+        return (self.recipient_id,) if self.recipient_id else self.participant_ids
+
+    def recipient_title(self):
+        target = (self.agent_titles.get(self.recipient_id, self.recipient_id)
+                  if self.recipient_id else self.t(MessageKey.PARTICIPANTS_ALL))
+        return self.t(MessageKey.RECIPIENT_TITLE, target=target)
 
     @property
     def agent_id(self):

@@ -51,6 +51,18 @@ These extractions preserve the existing bounds and do not change the rendering p
 
 ## Cache boundaries
 
+`SnapshotReader` retains settled Run metadata, authors and Graph/Tool observations
+for the conversation currently displayed. Deleting turns prunes those entries;
+switching sessions clears them. This bound follows retained history rather than a
+fixed FIFO of 1,024 items, which previously evicted the next item needed during
+every full history traversal. The submission timestamp cache remains separately
+bounded. Active Runs still consume fresh Step evidence, while settled Loop history
+does not issue Step reads merely to discover whether a graph exists. The latest
+selected terminal Run also reuses its Step snapshot. Pending, running and paused
+Runs bypass that cache so interactions continue to reflect new evidence. This removes
+repeated storage reads; it does not make traversal of a long conversation constant
+time or bound transcript memory independently of retained history.
+
 `MessageRenderCache` separates header metadata from body content. Elapsed time,
 time labels and status labels do not reparse an unchanged body. The streaming
 versus final distinction remains a parsing input, so unfinished XML is handled

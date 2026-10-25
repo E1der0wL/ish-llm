@@ -192,6 +192,8 @@ class ToolManagement:
         argument: str = ToolManagementContract.EMPTY,
         expected_version: str | None = ToolManagementContract.ABSENT,
     ):
+        from ..progress import OperationProgress
+        OperationProgress.report(OperationProgress.management(action))
         if argument.startswith(ManagementEntry.BUILTIN_PREFIX):
             if action != ManagementAction.TOGGLE:
                 raise ValueError(ToolManagementContract.ONLY_TOGGLE)

@@ -146,12 +146,16 @@ class RecordManagement:
         argument=ManagementOperation.EMPTY_ARGUMENT,
         expected_version=ManagementOperation.ABSENT,
     ):
+        from ..progress import OperationProgress
+        from ...locales.keys import MessageKey
+        OperationProgress.report(OperationProgress.management(action))
         if action == ManagementAction.LIST:
             return await self.list()
         if action == ManagementAction.READ:
             return await self.read(argument)
         if action == ManagementAction.IMPORT:
             identifier, values = await asyncio.to_thread(self._read_import, argument)
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_WRITE)
             await self.create(identifier, values)
         elif (
             action == ManagementAction.CREATE
@@ -174,6 +178,7 @@ class RecordManagement:
             await self.delete(argument, expected_version)
         else:
             raise ValueError(ManagementOperation.UNKNOWN)
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_READ)
         return await self.list()
 
 
@@ -233,6 +238,15 @@ class SkillManagement(RecordManagement):
 
 
 class AgentManagement(RecordManagement):
+    async def list(self):
+        from ..execution.engine_selection import HubEngineIdentity
+        entries = []
+        for identifier in await self.data.alist():
+            if not HubEngineIdentity.internal(identifier):
+                snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+                entries.append(self._entry(identifier, snapshot.data, snapshot.version))
+        return entries
+
     async def snapshot(self, identifier):
         snapshot = AgentSnapshot.read(await self.data.asnapshot(identifier))
         return EditableSnapshot(snapshot.definition, snapshot.revision).to_dict()

@@ -80,6 +80,16 @@ class CurrentPreferencesTests(unittest.TestCase):
                 current = asdict(owner())
                 candidates = [{}, None, [], {**current, "unknown_option": True}]
                 for key in current:
+                    if section == "appearance" and key == "comment2":
+                        # New optional color in the current schema; old required
+                        # fields and removed aliases must remain strict below.
+                        value = {name: item for name, item in current.items() if name != key}
+                        store._write_json({"version": store.VERSION, section: value})
+                        before = store.path.read_bytes()
+                        self.assertEqual(store.load()[section], current)
+                        self.assertEqual(HubTheme(**store.load()[section]).comment2, "#3A3A3A")
+                        self.assertEqual(store.path.read_bytes(), before)
+                        continue
                     candidates.append({name: value for name, value in current.items() if name != key})
                 old = ({"accent": "#112233"}, {"user": "#112233"}, {"muted": "#112233"})
                 if section == "appearance":

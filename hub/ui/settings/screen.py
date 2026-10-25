@@ -30,7 +30,7 @@ from ...asset.icon import AuxiliaryIcon
 from .drafts import SettingsDrafts
 from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
-from ...widget.header import HeaderBar, HeaderActions
+from ...widget.header import HeaderBar
 from ...widget.actions import ActionFrame
 from ...widget.content_inset import ContentInset
 
@@ -153,11 +153,9 @@ class SettingsScreen:
             lambda: self.navigation.focus_zone(SettingsZone.ACTIONS),
         )
         self.layout = TwoPanelPage(
-            header=HeaderActions(
-                HeaderBar(
-                    lambda: self.t(MessageKey.SETTINGS_TITLE), icons=lambda: view.icons
-                ),
-                view,
+            header=HeaderBar(
+                lambda: self.t(MessageKey.SETTINGS_TITLE), icons=lambda: view.icons,
+                restart=view.restart, minimize=view.minimize,
             ),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit(
@@ -482,7 +480,7 @@ class SettingsScreen:
             get_app().invalidate()
 
         try:
-            self.request(operation, args, done)
+            self.request(operation, args, self.view.progress.callback(progress, done))
         except Exception as error:
             done(self.NO_RESULT, error)
 

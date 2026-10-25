@@ -40,6 +40,7 @@ from ..config.preferences import PreferencesStore
 from ..backend.project.component_commands import component_commands
 from .chat.component_ui import ComponentCommands
 from .submitted import SubmittedMessages
+from ..widget.feedback.progress import ProgressCompletion
 
 
 class RunningSubmissionChoice:
@@ -58,6 +59,7 @@ class LiveHubView(HubView):
         self, theme=ABSENT, language=LanguageCode.DEFAULT, language_packs=ABSENT
     ):
         super().__init__(theme=theme, language=language, language_packs=language_packs)
+        self._default_participants = ()
         self.sessions = [SessionView(self.t(MessageKey.CONNECTING))]
         self.output.set_messages(())
         self.project_title = self.t(MessageKey.CONNECTING)
@@ -186,6 +188,12 @@ class LiveHubView(HubView):
         self.engines = snapshot.engines
         self.agents = tuple(agent.id for agent in snapshot.agents)
         self.agent_engines = {agent.id: agent.engine for agent in snapshot.agents}
+        self.agent_titles = {agent.id: agent.title or agent.id for agent in snapshot.agents}
+        self._participant_sets.update({item.id: item.participant_ids for item in snapshot.sessions})
+        if self.sessions[self.selected].id == snapshot.selected_id:
+            self.participant_ids = snapshot.participant_ids
+        if self.recipient_id not in self.participant_ids:
+            self.recipient_id = self.NO_AGENT
         if self.agent_id not in self.agents:
             self.agent_id = next(iter(self.agents), HubView.NO_AGENT)
         if snapshot.file_root:
@@ -231,6 +239,16 @@ class LiveController:
     NO_NOTICE = ""
     CLOSE_ALREADY_PREPARED = False
     CLOSE_PREPARED = True
+    FOREGROUND_OPERATIONS = frozenset({
+        HubRuntime.select.__name__, HubRuntime.new_session.__name__,
+        HubRuntime.delete_session.__name__, HubRuntime.rename_session.__name__,
+        HubRuntime.turns.__name__, HubRuntime.delete_turn_plan.__name__,
+        HubRuntime.delete_turns_plan.__name__, HubRuntime.delete_turn.__name__,
+        HubRuntime.cancel_request.__name__, HubRuntime.project_activity.__name__,
+        HubRuntime.execution_catalog.__name__, HubRuntime.approval_details.__name__,
+        HubRuntime.snapshot.__name__,
+        HubRuntime.invite_agent.__name__,
+    })
 
     def __init__(
         self, view: LiveHubView, config: HubConfig, *, worker_factory=BackendWorker
@@ -257,6 +275,7 @@ class LiveController:
         self.app = LiveController.ABSENT
         self.loop = LiveController.ABSENT
         self.closed = LiveController.OPEN
+        self._startup_task = None
         self.requests = UIRequests(
             lambda: self.worker,
             self._dispatch,
@@ -289,6 +308,7 @@ class LiveController:
         self.view.on_rename = self.rename_session
         self.component_commands = ComponentCommands(self)
         self.view.on_component = self.component_commands.open
+        self.view.on_invite_agent = self.invite_agent
         self.view.on_interrupt = self.interrupt
         from .chat.history_ui import HistoryUI
 
@@ -395,6 +415,7 @@ class LiveController:
                 self._error(error)
         target = self._select_new
         self.view.apply_snapshot(snapshot, select_id=target)
+        self._finish_startup()
         presets = self.view.profile_bar.preset_ui
         if not presets.loaded and not presets.loading and not self.view.settings.busy:
             presets.refresh()
@@ -453,7 +474,8 @@ class LiveController:
             operation,
             *args,
             completed=received,
-            allow_disconnected=operation == SettingsOperation.CATALOG.value
+            allow_disconnected=operation == SettingsOperation.CATALOG.value,
+            stage=completed.stage if isinstance(completed, ProgressCompletion) else None,
         )
 
     def _diagnose(self, snapshot):
@@ -523,9 +545,18 @@ class LiveController:
             )
 
     def _call(
-        self, operation, *args, completed=ABSENT, acknowledged=ABSENT, progress=ABSENT
+        self, operation, *args, completed=ABSENT, acknowledged=ABSENT, progress=ABSENT,
+        allow_disconnected=UIRequests.REQUIRE_CONNECTION,
     ):
+        stage = completed.stage if isinstance(completed, ProgressCompletion) else None
+        token = None
+        if stage is None and operation in self.FOREGROUND_OPERATIONS:
+            token = self.view.progress.start(self.view.t(MessageKey.PROGRESS_BACKEND_READ))
+            stage = lambda update: self.view.progress.observe(token, update)
+
         def received(result):
+            if token is not None:
+                self.view.progress.finish(token)
             if result.error is not LiveController.ABSENT:
                 self._error(result.error)
             if completed:
@@ -536,8 +567,23 @@ class LiveController:
             *args,
             completed=received,
             acknowledged=acknowledged,
-            progress=progress
+            progress=progress,
+            stage=stage,
+            allow_disconnected=allow_disconnected,
         )
+
+    def _startup_stage(self, update):
+        if not self.closed and self._startup_task is not None:
+            self.view.progress.observe(self._startup_task, update)
+
+    def _worker_error(self, error):
+        self._finish_startup()
+        self._error(error)
+
+    def _finish_startup(self):
+        if self._startup_task is not None:
+            self.view.progress.finish(self._startup_task)
+            self._startup_task = None
 
     def _set_output_interval(self, seconds):
         if self.worker:
@@ -555,11 +601,13 @@ class LiveController:
         self.view.toasts.app = app
         self.loop = asyncio.get_running_loop()
         if self.worker is LiveController.ABSENT:
+            self._startup_task = self.view.progress.start(self.view.t(MessageKey.PROGRESS_BACKEND_PREPARE))
             self.worker = self.worker_factory(
                 self.config,
                 self._publish,
-                lambda error: self._dispatch(self._error, error),
+                lambda error: self._dispatch(self._worker_error, error),
             )
+            self.worker.observe_startup(lambda update: self._dispatch(self._startup_stage, update))
             self._set_output_interval(self.view.theme.output_refresh_interval)
             if self._sidebar_width_pending is not LiveController.ABSENT:
                 self._save_sidebar_width(self._sidebar_width_pending)
@@ -577,7 +625,8 @@ class LiveController:
             self._snapshot_inbox.rebind()
             self.view.toasts.app = app
             if self.worker:
-                self._call(HubRuntime.snapshot.__name__, completed=self._snapshot)
+                self._call(HubRuntime.snapshot.__name__, completed=self._snapshot,
+                           allow_disconnected=UIRequests.ALLOW_DISCONNECTED)
 
     def refresh_shell_root(self):
         if self.environment_provider is not LiveController.ABSENT:
@@ -708,7 +757,7 @@ class LiveController:
             return
         view = self.view
         identity = (view.project_id, session_id)
-        agent_id, options = view.agent_id, {}
+        agent_id, options = view.recipients, {}
         if self.environment_provider is not LiveController.ABSENT:
             from ..config.environment import ENVIRONMENT_OPTION
 
@@ -769,10 +818,13 @@ class LiveController:
                 )
 
             from ..widget.controls import RadioList
+            from prompt_toolkit.layout import HSplit
+            from prompt_toolkit.widgets import Label
 
             choices = RadioList(
-                [
+                ([
                     (RunningSubmissionChoice.STEER, view.t(MessageKey.SEND_STEERING)),
+                ] if len(agent_id) == self.SINGLE_TARGET else []) + [
                     (
                         RunningSubmissionChoice.FOLLOW_UP,
                         view.t(MessageKey.SEND_FOLLOW_UP),
@@ -792,7 +844,9 @@ class LiveController:
 
             view.open_dialog(
                 view.t(MessageKey.SEND_WHILE_RUNNING),
-                choices,
+                choices if len(agent_id) == self.SINGLE_TARGET else HSplit([
+                    Label(view.t(MessageKey.PARTICIPANTS_STEERING_HINT)), choices,
+                ]),
                 accept,
                 choices,
                 on_cancel=lambda: draft.restore(view),
@@ -880,7 +934,20 @@ class LiveController:
 
     def select(self, session_id: str):
         if session_id:
-            self._call(HubRuntime.select.__name__, session_id)
+            self._call(HubRuntime.select.__name__, session_id,
+                       completed=lambda _: self._call(HubRuntime.snapshot.__name__, completed=self._snapshot))
+
+    def invite_agent(self, identifier, completed):
+        view = self.view
+        project_id, session_id = view.project_id, view.sessions[view.selected].id
+        def invited(result):
+            if result is not None:
+                if (view.project_id, view.sessions[view.selected].id) == (project_id, session_id):
+                    view.participant_ids = tuple(result)
+                self._call(HubRuntime.snapshot.__name__, completed=self._snapshot)
+            completed(result)
+        self._call(HubRuntime.invite_agent.__name__, project_id, session_id, identifier,
+                   completed=invited)
 
     def new_session(
         self,
@@ -920,6 +987,7 @@ class LiveController:
             and snapshot.selected_id == session_id
             and snapshot.run
             and not snapshot.run.active
+            and not snapshot.active_run_ids
             and snapshot.run.status == RunStatus.INTERRUPTED
             and not snapshot.queued_count
             and key not in self.view.preparing.pending

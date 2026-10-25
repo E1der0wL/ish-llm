@@ -19,6 +19,9 @@ class TranscriptLayout:
     PAD = False
     BLANK_LINE = ((EMPTY, EMPTY),)
     MESSAGE_GAP = (BLANK_LINE, BLANK_LINE)
+    GRAPH_CODE_INSET = 4
+    TEXT_FENCE_OPEN = "```text\n"
+    TEXT_FENCE_CLOSE = "\n```"
 
     @classmethod
     def inner_width(cls, width):

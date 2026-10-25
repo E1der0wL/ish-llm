@@ -64,6 +64,7 @@ class HubTheme:
     accent2: str = "#67a9dd"
     accent3: str = "#bc9850"
     comment: str = "#8595a5"
+    comment2: str = "#3A3A3A"
 
     # Semantic rendering roles are derived, never stored or edited separately.
     base_background = property(

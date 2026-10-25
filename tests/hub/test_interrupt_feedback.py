@@ -42,7 +42,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.controller.app = NS(invalidate=Mock())
         self.controller.loop = asyncio.get_running_loop()
         self.calls = []
-        def call(operation, *args):
+        def call(operation, *args, **kwargs):
             future = Future()
             self.calls.append((operation, args, future))
             return future
@@ -59,6 +59,28 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         plain = Language(icons=UNICODE)
         self.assertEqual(plain.status("preparing"), "⚙ 준비 중")
         self.assertEqual(plain.status("thinking"), "◌ 생각 중")
+
+    async def test_parallel_runs_stop_together_even_when_latest_run_is_already_interrupted(self):
+        messages = (
+            ChatMessage('assistant', 'one', id='a1', run_id='r1', status='streaming'),
+            ChatMessage('assistant', 'two', id='a2', run_id='r2', status='streaming'),
+            ChatMessage('assistant', 'stopped', id='a3', run_id='r3', status='interrupted'),
+        )
+        snapshot = replace(self.base, messages=messages, active_run_ids=('r1', 'r2'),
+                           run=replace(self.base.run, id='r3', status='interrupted', active=False))
+        self.view.apply_snapshot(snapshot)
+        self.controller.interrupt('s')
+        self.assertEqual(self.calls[0][0], 'interrupt')
+        shown = self.view.output.transcript.control.messages
+        self.assertEqual([m.phase for m in shown[:2]], ['interrupting', 'interrupting'])
+        self.assertEqual(shown[2].status, 'interrupted')
+        partial = replace(snapshot, active_run_ids=('r2',), messages=(
+            replace(messages[0], status='interrupted'), messages[1], messages[2]))
+        self.view.apply_snapshot(partial)
+        self.assertIn(('p', 's'), self.view.interrupting.pending)
+        self.view.apply_snapshot(replace(partial, active_run_ids=(),
+            messages=tuple(replace(m, status='interrupted') for m in messages)))
+        self.assertFalse(self.view.interrupting.pending)
 
     async def test_resume_prepares_existing_response_until_durable_continuation_arrives(self):
         message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r")

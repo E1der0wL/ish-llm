@@ -14,6 +14,8 @@
 |---|---|
 | [README.md](README.md) | 개발 문서 |
 | [hub/README.md](hub/README.md) | Hub 설계 문서 |
+| [hub/application-defaults.md](hub/application-defaults.md) | Hub application creation profile and Agent APIs |
+| [hub/backend-progress.md](hub/backend-progress.md) | 초기 연결과 백엔드 단계 표시 |
 | [hub/coding-workflow.md](hub/coding-workflow.md) | 코딩 스킬과 응답 UX |
 | [hub/completion-display.md](hub/completion-display.md) | Completion 상태와 스트리밍 진단 |
 | [hub/component-managers.md](hub/component-managers.md) | 컴포넌트 관리 팝업 |
@@ -24,6 +26,7 @@
 | [hub/operation-recovery.md](hub/operation-recovery.md) | Hub operation recovery and guidance |
 | [hub/output-objects.md](hub/output-objects.md) | 출력 객체와 컴포넌트 관리 |
 | [hub/panel-ux.md](hub/panel-ux.md) | 패널·설정 탐색과 오류 안내 |
+| [hub/participants.md](hub/participants.md) | Agent 초대와 대화 상대 |
 | [hub/presets-and-resume.md](hub/presets-and-resume.md) | 설정 프리셋과 중단된 응답 재개 |
 | [hub/provider-recovery.md](hub/provider-recovery.md) | Hub provider error analysis and input recovery |
 | [hub/questions-tools.md](hub/questions-tools.md) | 입력창 질문과 내장 도구 |
@@ -114,6 +117,7 @@
 | [hub/backend-contract-handoff.md](hub/backend-contract-handoff.md) | llm 오류 처리와 체크포인트 공통 계약 작업 지침서 |
 | [hub/history.md](hub/history.md) | > **과거 문서 보존본 — main `94229cb865374d99f20ec48c5e48269488041a4e`.** |
 | [hub/structure-audit.md](hub/structure-audit.md) | Hub 구조 감사 — 2026-10-13 |
+| [hub/observation-contract-review.md](hub/observation-contract-review.md) | 초대·관측 캐시·진행 단계 계약 보강 |
 | [llm/agent-refactor-verification.md](llm/agent-refactor-verification.md) | B/C Agent 전환 검증 기록 |
 | [llm/agent-skills-verification.md](llm/agent-skills-verification.md) | Agent Skills 전환 검증 기록 |
 | [llm/architecture-reviews.md](llm/architecture-reviews.md) | 개별 정적 후보의 분류와 무효화 |

@@ -217,7 +217,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: not controller.view.no_sessions and controller.view._dialog is None)
                 # Snapshots select an available Agent; force an invalid choice at admission.
                 controller.view.composer.text = "keep this"
-                controller.view.agent_id = "missing"
+                controller.view.recipient_id = "missing"
                 controller.submit(controller.view.sessions[controller.view.selected].id, "keep this")
                 await until(lambda: controller.view.notice.startswith("오류:"))
                 self.assertEqual(controller.view.composer.text, "keep this")

@@ -73,8 +73,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                         for x in range(columns):
                             style = screen.data_buffer[y][x].style
                             attrs = app._merged_style.get_attrs_for_style_str(style)
-                            background = theme.button_background if y == 0 and "class:button" in style else expected
-                            self.assertEqual(attrs.bgcolor, background[1:], (columns, rows, x, y))
+                            self.assertEqual(attrs.bgcolor, expected[1:], (columns, rows, x, y))
                     positions = screen.visible_windows_to_write_positions
                     windows = [view.composer.window]
                     for window in windows:

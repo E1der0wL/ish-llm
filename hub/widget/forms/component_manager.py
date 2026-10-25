@@ -278,7 +278,7 @@ class ComponentManager(Dialog):
             get_app().invalidate()
 
         options = ManagerCallbacks.options(observe, progress)
-        self.request(action, argument, version, done, **options)
+        self.request(action, argument, version, self.view.progress.callback(progress, done), **options)
 
     def reload(self):
         self.call(ManagementAction.LIST)

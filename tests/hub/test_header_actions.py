@@ -6,11 +6,11 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 from examples.hub.preview import create_preview
 from hub.widget.controls import TextArea
-from hub.widget.header import HeaderActions
+from hub.widget.header import HeaderBar
 from tests.hub.support import SizedOutput, eventually
 
 
-class HeaderActionsTests(unittest.IsolatedAsyncioTestCase):
+class HeaderBarTests(unittest.IsolatedAsyncioTestCase):
     async def test_restart_everywhere_stop_only_composer_and_icon_buttons(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
@@ -53,7 +53,7 @@ class HeaderActionsTests(unittest.IsolatedAsyncioTestCase):
                         if settings:
                             view.toggle_settings()
                     await asyncio.sleep(.05)
-                    header = next(node for node in app.layout.walk() if isinstance(node, HeaderActions))
+                    header = next(node for node in app.layout.walk() if isinstance(node, HeaderBar))
                     self.assertEqual((header.restart.text, header.minimize.text), ("", ""))
                     count = len(restarted)
                     rect = app.renderer._last_screen.visible_windows_to_write_positions[header.restart.window]

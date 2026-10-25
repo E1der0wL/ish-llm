@@ -69,7 +69,7 @@ class PreviewGraph(NamedTuple):
         return cls(nodes, edges, value.get(WorkflowDocument.ENTRY))
 
 
-def workflow_diagram(text, width=Diagram.DEFAULT_WIDTH):
+def workflow_diagram(text, width=Diagram.DEFAULT_WIDTH, *, states=None):
     graph = PreviewGraph.read(json.loads(text))
     nodes, edges, entry = graph
     names = list(nodes)
@@ -134,6 +134,8 @@ def workflow_diagram(text, width=Diagram.DEFAULT_WIDTH):
             + Diagram.CAPTION_SEPARATOR
             + str(node.get(WorkflowNode.TYPE, Diagram.UNKNOWN_KIND))
         )
+        if states and name in states:
+            caption = states[name] + Diagram.SPACE + caption
         # Rich/PTK own cell-width clipping; pad by terminal width, not bytes.
         caption = ellipsize(caption, box_width - Diagram.BORDER_WIDTH)
         put(

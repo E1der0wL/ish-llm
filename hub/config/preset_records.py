@@ -4,12 +4,10 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass
 
 from llm.core.models import ConversationStorage, ProjectConfig
+from llm.core.agents import AgentDefinition
 from llm.services.configuration_records import ProjectConfigForm
 from ..backend.project.title_contract import TitleEngineIdentity
-from .sections import PreferenceSection
-from .general import GeneralSettings
-from .profile import UserProfile
-from .theme import HubTheme
+from ..backend.execution.engine_selection import HubEngineIdentity
 
 
 class PresetGlobals:
@@ -17,16 +15,18 @@ class PresetGlobals:
 
     @classmethod
     def snapshot(cls, profile, load):
-        return {PreferenceSection.PROFILE.value: asdict(
-                    UserProfile() if profile is cls.DEFAULT_PROFILE else profile),
-                PreferenceSection.APPEARANCE.value: asdict(HubTheme()),
-                PreferenceSection.GENERAL.value: asdict(GeneralSettings()), **load()}
+        from .defaults import HubDefaults
+        values = HubDefaults.globals(profile)
+        for section, saved in load().items():
+            values[section].update(saved)
+        return values
 
 
 class PresetProject:
     CONFIG = ProjectConfigForm.config.__name__
     COMPONENTS = ProjectConfigForm.components.__name__
     STORAGE = ProjectConfigForm.conversation_storage.__name__
+    AGENTS = "agents"
     FIELDS = {CONFIG, COMPONENTS, STORAGE}
     STORAGE_NULLABLE = False
     INVALID_FIELDS = (
@@ -35,13 +35,14 @@ class PresetProject:
     INVALID_SETTINGS = "Invalid project settings"
     INVALID_COMPONENTS = "Preset components must be distinct names"
     MANAGED_ENGINE = "_hub_title is managed by Hub"
+    INVALID_AGENTS = "Preset agents must be a definition map"
 
     def __init__(self, value):
         self._value = value
 
     @classmethod
     def validate(cls, value):
-        if not isinstance(value, dict) or set(value) != cls.FIELDS:
+        if not isinstance(value, dict) or not cls.FIELDS <= value.keys() <= cls.FIELDS | {cls.AGENTS}:
             raise ValueError(cls.INVALID_FIELDS)
         if not isinstance(value[cls.CONFIG], dict) or not isinstance(
             value[cls.COMPONENTS], list
@@ -56,6 +57,13 @@ class PresetProject:
         ConversationStorage.validate(value[cls.STORAGE], nullable=cls.STORAGE_NULLABLE)
         if config.parameter_targets.has_engine(TitleEngineIdentity.NAME):
             raise ValueError(cls.MANAGED_ENGINE)
+        agents = value.get(cls.AGENTS, {})
+        if not isinstance(agents, dict):
+            raise ValueError(cls.INVALID_AGENTS)
+        for identifier, definition in agents.items():
+            if HubEngineIdentity.internal(identifier):
+                raise ValueError(cls.MANAGED_ENGINE)
+            AgentDefinition.validate(identifier, definition)
 
     @classmethod
     def export(cls, form):
@@ -79,10 +87,18 @@ class PresetProject:
         return self._value[self.STORAGE]
 
     def validation_values(self, title):
-        return {ProjectConfigForm.title.__name__: title, **self._value}
+        return {ProjectConfigForm.title.__name__: title,
+                **{key: self._value[key] for key in self.FIELDS}}
 
     def overlay(self, form):
-        return {**form.to_dict(), **deepcopy(self._value)}
+        return {**form.to_dict(), **{key: deepcopy(self._value[key]) for key in self.FIELDS}}
+
+    @property
+    def agents(self):
+        return deepcopy(self._value.get(self.AGENTS, {}))
+
+    def with_agents(self, agents):
+        return type(self)({**self.to_dict(), self.AGENTS: deepcopy(agents)})
 
     def application_values(self, form):
         candidate = self.overlay(form)
@@ -233,6 +249,10 @@ class PresetIndex:
 class PresetName:
     MAX_CHARS = 80
     PRINTABLE_START = 32
+    FORBIDDEN = frozenset('/\\<>:"|?*')
+    RESERVED = frozenset(('CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1, 10)), *(f'LPT{i}' for i in range(1, 10))))
+    EXTENSION_SEPARATOR = '.'
+    STEM_POSITION = 0
     INVALID = "Preset name must contain 1–{maximum} printable characters"
 
     @classmethod
@@ -243,5 +263,8 @@ class PresetName:
             or name != name.strip()
             or len(name) > maximum
             or any(ord(char) < cls.PRINTABLE_START for char in name)
+            or any(char in cls.FORBIDDEN for char in name)
+            or name.endswith(cls.EXTENSION_SEPARATOR)
+            or name.split(cls.EXTENSION_SEPARATOR)[cls.STEM_POSITION].upper() in cls.RESERVED
         ):
             raise ValueError(cls.INVALID.format(maximum=maximum))

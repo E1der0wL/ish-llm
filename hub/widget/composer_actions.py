@@ -67,6 +67,7 @@ class ComposerActions(VSplit):
                 AuxiliaryIcon.RESUME.value
                 if run
                 and not run.active
+                and not snapshot.active_run_ids
                 and run.status == RunStatus.INTERRUPTED
                 and not snapshot.queued_count
                 else AuxiliaryIcon.STOP.value

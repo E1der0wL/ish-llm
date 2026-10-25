@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from hub.backend.project.bootstrap import select_or_create
 from hub.backend.runtime import HubConfig, HubRuntime, create_backend
+from hub.config.defaults import HubDefaults
 from hub.asset.guides import SYSTEM_PROMPT
 from hub.backend.project.defaults import provider_defaults
 
@@ -56,7 +57,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.sessions[session.id].run.wait_idle()
                 self.assertEqual(provider.requests[0]["model"], "test/session")
                 self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}, 'policy': {'provider': provider_defaults()}}})
+                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}, 'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
             finally:
                 await runtime.close()
 
@@ -89,7 +90,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(await app.projects.alist(), [])
                 project = await select_or_create(app, config)
                 self.assertEqual((await project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}, 'policy': {'provider': provider_defaults()}}})
+                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}, 'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
                 self.assertEqual(await project.sessions.alist(), [])
 
     async def test_cancelled_lock_wait_does_not_create_and_future_start_works(self):

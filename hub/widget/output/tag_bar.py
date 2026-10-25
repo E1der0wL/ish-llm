@@ -111,6 +111,7 @@ class TagBar:
             style=ThemeStyle.joined(ThemeSelector.ACCENT.style, ThemeStyle.BOLD),
         )
         self.header = VSplit([self.heading, self.collapse], height=TagBar.HEADER_HEIGHT)
+        self.contents = HSplit([self.header, self.window])
         self.container = ConditionalContainer(
             VSplit(
                 [
@@ -119,7 +120,7 @@ class TagBar:
                         char=TagBar.DIVIDER,
                         style=ThemeSelector.DIVIDER.style,
                     ),
-                    HSplit([self.header, self.window]),
+                    self.contents,
                 ],
                 width=self.width,
             ),
@@ -180,6 +181,7 @@ class TagBar:
 
     def open(self):
         self.view.composer.buffer.cancel_completion()
+        self.output.show_sidebar(self)
         self.visible = TagBar.VISIBLE
         self.track_position()
         get_app().layout.focus(self.control)

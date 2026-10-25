@@ -9,7 +9,6 @@ from hub.config.store import WorkspaceJSONStore
 from hub.config.preset_records import PresetProject
 from llm.providers.request_values import LiteLLMParameters
 from llm.engines.loop.configuration import LoopParameters
-from llm.services.schema import ProjectSchemaDescription
 
 from llm.core.models import ProjectConfig
 from .defaults import CONVERSATION_STORAGE, create_project
@@ -81,16 +80,14 @@ async def select_or_create(backend, config):
             project_config.set_engine_parameters(
                 HubEngineIdentity.LOOP, parameters.with_config(values).to_dict()
             )
-        return await create_project(
+        project = await create_project(
             backend,
             ProjectStartup.TITLE,
             config=project_config,
             components=(
                 PresetProject(preset).components
                 if preset
-                else ProjectSchemaDescription.component_names(
-                    backend.describe_project_config()
-                )
+                else list(backend.project_manager.components.names())
             ),
             conversation_storage=(
                 PresetProject(preset).conversation_storage
@@ -100,5 +97,16 @@ async def select_or_create(backend, config):
             agent_id=config.agent_id,
             agent_definition=config.agent_definition,
         )
+        if preset:
+            from .agents import apply_agents
+            try:
+                definitions = PresetProject(preset).agents
+                if config.agent_definition is not None:
+                    definitions.pop(config.agent_id, None)
+                await apply_agents(project, definitions)
+            except BaseException:
+                await asyncio.shield(project.adelete())
+                raise
+        return project
     finally:
         os.close(descriptor)

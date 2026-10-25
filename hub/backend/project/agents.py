@@ -5,11 +5,31 @@ from hub.backend.execution.engine_selection import HubEngineIdentity
 import asyncio
 from copy import deepcopy
 from llm.core.agents import AgentDefinition
+from llm.core.agent_views import AgentSnapshot
 
 
 DEFAULT_AGENT = "assistant"
 TITLE_AGENT = "_hub_title"
 UNSPECIFIED_DEFINITION = None
+
+
+async def preset_agents(project):
+    records = await project.agents.alist()
+    return {name: definition for name, definition in records.items()
+            if not HubEngineIdentity.internal(name)}
+
+
+async def apply_agents(project, definitions):
+    """Explicit preset operation; retain unrelated existing definitions."""
+    for identifier, definition in definitions.items():
+        try:
+            current = AgentSnapshot.read(await project.agents.asnapshot(identifier))
+        except FileNotFoundError:
+            await project.agents.acreate(definition, identifier=identifier)
+        else:
+            if current.definition != definition:
+                await project.agents.arevise(identifier, definition,
+                                            expected_revision=current.revision)
 
 
 async def initialize(

@@ -78,7 +78,7 @@ class ProgressControl(UIControl):
                 line_count=self.ROWS,
                 show_cursor=self.SHOW_CURSOR,
             )
-        owner.bar.style = theme.muted
+        owner.bar.style = theme.comment2
         owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = (
             theme.accent
         )
@@ -200,11 +200,14 @@ class TaskProgress:
         self,
         task: int,
         *,
-        completed: float,
+        completed: float = INITIAL_COMPLETED,
         total: float | None = ABSENT,
         description: str | None = ABSENT,
         indeterminate: bool = INDETERMINATE
     ) -> None:
+        if task not in self.progress.task_ids:
+            return
+        self._render_cache.clear()
         self.progress.update(task, completed=completed, total=total)
         current = self.progress.tasks[self.progress.task_ids.index(task)]
         if description is not self.ABSENT:
@@ -223,6 +226,13 @@ class TaskProgress:
         )
         self.schedule_refresh()
 
+    def observe(self, task, update):
+        self.update(task, description=self.view.t(update.key), completed=update.completed,
+                    total=update.total, indeterminate=update.total is None)
+
+    def callback(self, task, completed):
+        return ProgressCompletion(self, task, completed)
+
     def finish(self, task: int) -> None:
         self._render_cache.clear()
         if task in self.progress.task_ids:
@@ -236,3 +246,17 @@ class TaskProgress:
         if self._timer is not self.ABSENT:
             self._timer.cancel()
             self._timer = self.ABSENT
+
+
+@dataclass(slots=True)
+class ProgressCompletion:
+    """Keep a request's stage receiver attached to its own completion callback."""
+    owner: TaskProgress
+    task: int
+    completed: object
+
+    def __call__(self, *args, **kwargs):
+        return self.completed(*args, **kwargs)
+
+    def stage(self, update):
+        self.owner.observe(self.task, update)

@@ -24,6 +24,7 @@ from .settings_contracts import (
 )
 from ...errors.adapters import from_exception
 from ...errors.contracts import ErrorOrigin
+from ..progress import OperationProgress
 
 
 class SettingsService:
@@ -36,6 +37,7 @@ class SettingsService:
         self.preferences = PreferencesStore(runtime.config.launch_workspace)
 
     def _schema(self):
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_SCHEMA)
         schema = self.runtime.backend.describe_project_config()
         schema[SchemaKeyword.PROPERTIES][
             ProjectConfigForm.conversation_storage.__name__
@@ -51,6 +53,7 @@ class SettingsService:
         return schema
 
     def validate_values(self, values):
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_VALIDATE)
         from jsonschema import Draft202012Validator
         from llm.core.models import ProjectConfig
         from llm.core.json_data import JsonObject
@@ -86,7 +89,9 @@ class SettingsService:
     async def catalog(self):
         projects = []
         usage = []
-        for project in await self.runtime.backend.projects.alist():
+        available = await self.runtime.backend.projects.alist()
+        for index, project in enumerate(available):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_USAGE, index, len(available))
             data = await project.aget_data()
             projects.append(ProjectSummary.from_data(data).to_dict())
             try:
@@ -128,6 +133,7 @@ class SettingsService:
         return rows
 
     async def load_project(self, identifier):
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_READ)
         project = await self.project(identifier)
         result = await project.adescribe_config()
         # Keep the full registered catalog available for activation controls.
@@ -147,6 +153,7 @@ class SettingsService:
         if list(current.components) != previous:
             raise ValueError(self.runtime.t(MessageKey.SETTINGS_COMPONENTS_CHANGED))
         candidate = deepcopy(form.config)
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_WRITE)
         await project.asave(
             title=form.title,
             config=candidate,
@@ -251,7 +258,8 @@ class SettingsService:
     async def save_all(self, requests):
         # Validate every draft before the first write. Public Project APIs keep
         # their own concurrency checks; report any partial success explicitly.
-        for operation, args in requests:
+        for index, (operation, args) in enumerate(requests):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_VALIDATE, index, len(requests))
             if operation == SettingsOperation.SAVE_GLOBAL:
                 section, values = args
                 PreferencesStore.input_record(section, values)
@@ -273,7 +281,8 @@ class SettingsService:
             else:
                 raise ValueError(SettingsDispatch.UNSUPPORTED_SAVE)
         results = []
-        for operation, args in requests:
+        for index, (operation, args) in enumerate(requests):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_WRITE, index, len(requests))
             try:
                 results.append(await getattr(self, operation)(*args))
             except Exception as error:
@@ -289,6 +298,7 @@ class SettingsService:
         return SettingsBatch(results).to_dict()
 
     async def execute(self, operation, *args):
+        OperationProgress.report(OperationProgress.settings(operation))
         if operation in SettingsDispatch.PRESETS:
             from .presets import PresetService
 

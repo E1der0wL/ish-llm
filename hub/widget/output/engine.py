@@ -40,12 +40,14 @@ class EngineOutput(HSplit, ABC):
         self.shortcuts = shortcuts or ShortcutRegistry()
         self.inspector = EngineOutput.ABSENT
         self.tags = TagBar(self, view)
+        from .participants import ParticipantBar
+        self.participants = ParticipantBar(self, view)
         self.header = Window(
             FormattedTextControl(heading),
             height=EngineOutput.HEADER_HEIGHT,
             style=ThemeSelector.TITLE.style,
         )
-        self.body = VSplit([content, self.tags.container])
+        self.body = VSplit([content, self.tags.container, self.participants.container])
         super().__init__(
             [ContentInset(HSplit([self.header, self.body]))],
             height=Dimension(min=EngineOutput.MIN_HEIGHT, weight=EngineOutput.FLEX_WEIGHT),
@@ -66,7 +68,13 @@ class EngineOutput(HSplit, ABC):
 
     @property
     def modal_container(self):
+        if self.participants.visible:
+            return self.participants.container
         return self.tags.container if self.tags.visible else EngineOutput.ABSENT
+
+    def show_sidebar(self, sidebar):
+        for item in (self.tags, self.participants):
+            item.visible = item is sidebar
 
     @property
     def floating_dialog(self) -> AnyContainer | None:
@@ -139,6 +147,9 @@ class EngineOutput(HSplit, ABC):
         focused_tag = app.layout.current_control in (
             self.tags.control,
             self.tags.collapse.control,
+            self.participants.control,
+            self.participants.collapse.control,
+            self.participants.add_button.control,
         )
         if self.view._dialog is not EngineOutput.ABSENT and self.view._dialog in (
             self.floating_dialog,
@@ -146,6 +157,7 @@ class EngineOutput(HSplit, ABC):
         ):
             self.view.dialogs.close(restore_focus=app.is_running)
         self.tags.visible = TagBar.HIDDEN
+        self.participants.visible = TagBar.HIDDEN
         self.clear_search()
         self.inspector = EngineOutput.ABSENT
         if app.is_running and focused_tag:

@@ -63,6 +63,27 @@ class CacheTests(unittest.TestCase):
         self.assertLess(text.index("file_read"), text.index("Second 9"))
         self.assertNotIn("fallback", text)
 
+    def test_graph_progress_reuses_other_agent_response_and_fits_output_width(self):
+        import json
+        from llm.components.workflows import WorkflowGraph
+        from prompt_toolkit.utils import get_cwidth
+        graph = WorkflowGraph(entry='working').node('working', 'hold').node('done', 'end').connect('working', 'done')
+        trace = TraceItem('graph', TraceItem.WORKFLOW, json.dumps(graph.to_dict()),
+                          workflow_states=(('working', 'running'),))
+        thought = ChatMessage('reasoning', '', id='graph:reasoning', author='Planner', trace=(trace,))
+        answer = ChatMessage('assistant', 'Another agent answer', id='other', author='Reviewer')
+        self.prepare((thought, answer), width=42)
+        response = self.cache.items['other'].frame
+        bodies, headers, traces = self.cache.body_renders, self.cache.header_renders, self.cache.trace_renders
+        thought = replace(thought, trace=(replace(trace, workflow_states=(('working', 'completed'), ('done', 'running'))),))
+        frame = self.prepare((thought, answer), width=42)
+        self.assertIs(self.cache.items['other'].frame, response)
+        self.assertEqual((self.cache.body_renders, self.cache.header_renders), (bodies, headers))
+        self.assertEqual(self.cache.trace_renders, traces + 1)
+        rows = [''.join(text for _, text in row) for row in frame.lines]
+        self.assertTrue(all(get_cwidth(row) <= 42 for row in rows))
+        self.assertEqual(sum('┌' in row and '┐' in row for row in rows), 2)
+
     def test_thought_and_tool_changes_reuse_response_header_body_and_history(self):
         history = tuple(ChatMessage("assistant", f"history {i}", id=f"old{i}") for i in range(100))
         tool = StepSummary("file_read", "running", "tool", "step")

@@ -85,7 +85,7 @@ class ChatProjects:
                 self.select(target)
             get_app().invalidate()
 
-        self.view.settings.request(operation, args, done)
+        self.view.settings.request(operation, args, self.view.progress.callback(token, done))
 
     def refresh(self):
         def loaded(items):

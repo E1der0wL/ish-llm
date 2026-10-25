@@ -4,7 +4,9 @@ from hub.model import ReasoningMessage
 
 from llm.core.steering import RunInstruction, is_instruction
 from llm.core.models import MessageRole, SessionStatus
-from llm.core.agents import AgentDefinition
+from llm.core.agents import AgentDefinition, AgentBinding
+from ..project.participants import AgentProfile
+from .workflow import WorkflowObservation
 from ..execution.engine_selection import HubEngineIdentity
 
 from llm.core.models import StepKind
@@ -61,6 +63,7 @@ class SnapshotReader:
     PENDING_ONLY = True
     NO_QUEUED_REQUESTS = 0
     NO_MODEL_REQUIRED = False
+    MUTABLE_RUN_STATES = frozenset((RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED))
 
     def record_submission(self, identifier, timestamp):
         self.submissions[identifier] = timestamp
@@ -78,6 +81,10 @@ class SnapshotReader:
         self.tool_history = {}
         self.trace_history = {}
         self.ended_times = {}
+        self.workflows = {}
+        self.authors = {}
+        self.run_engines = {}
+        self.step_observations = {}
         from ..execution.thinking import ThinkingPhases
 
         self.thinking = ThinkingPhases()
@@ -88,6 +95,29 @@ class SnapshotReader:
         self.tool_history.clear()
         self.trace_history.clear()
         self.ended_times.clear()
+        self.workflows.clear()
+        self.authors.clear()
+        self.run_engines.clear()
+        self.step_observations.clear()
+
+    def retain_messages(self, messages):
+        """Bound projection caches to the displayed conversation, avoiding
+        eviction/reload loops when history exceeds a fixed-size cache.
+        """
+        identifiers = {item.run_id for item in messages if item.run_id}
+        self.cache = {key: value for key, value in self.cache.items() if key[0] in identifiers}
+        for cache in (self.tool_history, self.trace_history, self.ended_times,
+                      self.workflows, self.authors, self.run_engines, self.step_observations):
+            for identifier in cache.keys() - identifiers:
+                del cache[identifier]
+
+    async def read_steps(self, handle, run):
+        if run.status in self.MUTABLE_RUN_STATES:
+            self.step_observations.pop(run.id, self.ABSENT)
+            return await handle.steps.alist()
+        if run.id not in self.step_observations:
+            self.step_observations[run.id] = tuple(await handle.steps.alist())
+        return self.step_observations[run.id]
 
     def invalidate(self, session_id):
         self.observations.pop(session_id, self.ABSENT)
@@ -108,6 +138,10 @@ class SnapshotReader:
                 self.ABSENT,
             )  # Retention can remove old execution history.
         completions = CompletionRecords.results(run.metadata)
+        self.run_engines[run_id] = run.engine
+        if AgentBinding.METADATA_FIELD in run.metadata:
+            binding = AgentBinding.from_metadata(run.metadata)
+            self.authors[run_id] = AgentProfile.title(binding.agent_id, binding.definition)
         reasoning = self.PARAGRAPH.join(
             text for item in completions if (text := item.reasoning_content)
         )
@@ -116,8 +150,6 @@ class SnapshotReader:
             for item in completions
             if (text := item.reasoning_content)
         )
-        if len(self.trace_history) > self.CACHE_LIMIT:
-            self.trace_history.pop(next(iter(self.trace_history)))
         elapsed = self.ABSENT
         active = str(run.status) in (RunStatus.PENDING, RunStatus.RUNNING)
         started_at = requested_at or run.started_at
@@ -134,11 +166,7 @@ class SnapshotReader:
         result = reasoning, elapsed
         if not active:
             self.ended_times[run_id] = run.ended_at or self.EMPTY_TEXT
-            if len(self.ended_times) > self.CACHE_LIMIT:
-                self.ended_times.pop(next(iter(self.ended_times)))
             self.cache[key] = result
-            if len(self.cache) > self.CACHE_LIMIT:
-                self.cache.pop(next(iter(self.cache)))
         return result
 
     async def messages(
@@ -150,7 +178,12 @@ class SnapshotReader:
         latest=ABSENT,
         latest_steps=(),
         stopped_runs=(),
+        run_records=None,
+        run_steps=None,
+        graph_engines=(),
     ):
+        self.retain_messages(messages)
+        run_records, run_steps = run_records or {}, run_steps or {}
         visible = []
         requests = {
             run_id: self.submissions.get(message.id, message.created_at)
@@ -172,6 +205,11 @@ class SnapshotReader:
             if role not in (MessageRole.USER, MessageRole.ASSISTANT):
                 continue
             elapsed = self.ABSENT
+            current_run = run_records.get(message.run_id)
+            if current_run is None and latest is not None and latest.id == message.run_id:
+                current_run = latest
+            steps_for_run = run_steps.get(message.run_id, latest_steps if current_run is latest else ())
+            workflow, workflow_states = self.EMPTY_TEXT, ()
             if role == MessageRole.ASSISTANT and message.run_id:
                 active = str(message.status) in (
                     MessageStatus.STREAMING,
@@ -181,11 +219,7 @@ class SnapshotReader:
                 reasoning, elapsed = await self.run_display(
                     session,
                     message.run_id,
-                    run=(
-                        latest
-                        if latest is not self.ABSENT and latest.id == message.run_id
-                        else self.ABSENT
-                    ),
+                    run=current_run,
                     requested_at=requests.get(message.run_id),
                 )
                 reasoning = self.thinking.visible(
@@ -193,13 +227,13 @@ class SnapshotReader:
                 )
                 tools = ()
                 if active:
-                    if latest is not self.ABSENT and latest.id == message.run_id:
+                    if current_run is not self.ABSENT:
                         tools = tuple(
                             step
-                            for step in display_steps(latest_steps)
+                            for step in display_steps(steps_for_run)
                             if step.kind == StepKind.TOOL
                         )
-                        if str(latest.status) == RunStatus.PAUSED:
+                        if str(current_run.status) == RunStatus.PAUSED:
                             self.tool_history[message.run_id] = tools
                     elif message.run_id in self.tool_history:
                         tools = self.tool_history[message.run_id]
@@ -208,6 +242,7 @@ class SnapshotReader:
                             steps = await (
                                 await session.run.aload(message.run_id)
                             ).steps.alist()
+                            steps_for_run = steps
                             tools = tuple(
                                 step
                                 for step in display_steps(steps)
@@ -217,9 +252,28 @@ class SnapshotReader:
                                 self.tool_history[message.run_id] = tools
                         except FileNotFoundError:
                             pass
-                    if len(self.tool_history) > self.CACHE_LIMIT:
-                        self.tool_history.pop(next(iter(self.tool_history)))
-                if reasoning or tools:
+                if not active and message.run_id in self.workflows:
+                    observation = self.workflows[message.run_id]
+                elif steps_for_run or (current_run is not None and str(current_run.status) in self.MUTABLE_RUN_STATES):
+                    observation = WorkflowObservation.read(steps_for_run)
+                elif message.run_id in self.workflows:
+                    observation = self.workflows[message.run_id]
+                else:
+                    observation = WorkflowObservation()
+                if (not active and message.run_id not in self.workflows
+                        and self.run_engines.get(message.run_id) in graph_engines
+                        and session is not None):
+                    try:
+                        history_steps = steps_for_run or await (await session.run.aload(message.run_id)).steps.alist()
+                        observation = WorkflowObservation.read(history_steps)
+                    except FileNotFoundError:
+                        pass
+                if not active or message.status == MessageStatus.PAUSED:
+                    self.workflows[message.run_id] = observation
+                workflow, workflow_states = observation.text, observation.states
+                if message.run_id in self.authors:
+                    authors[message.run_id] = self.authors[message.run_id]
+                if reasoning or tools or workflow:
                     trace = merge_trace(
                         self.thinking.trace(
                             message.run_id, self.trace_history.get(message.run_id, ())
@@ -228,7 +282,9 @@ class SnapshotReader:
                     )
                     visible.append(
                         ReasoningMessage.create(
-                            message.id, reasoning, tools=tools, trace=trace
+                            message.id, reasoning, tools=tools, trace=trace,
+                            author=authors.get(message.run_id, self.EMPTY_TEXT), workflow=workflow,
+                            workflow_states=workflow_states,
                         )
                     )
             status = str(
@@ -239,10 +295,9 @@ class SnapshotReader:
             if status == MessageStatus.PAUSED and message.run_id in stopped_runs:
                 status = MessageStatus.INTERRUPTED.value
             phase = (
-                self.thinking.activity(latest)
+                self.thinking.activity(current_run)
                 if role == MessageRole.ASSISTANT
-                and latest is not self.ABSENT
-                and latest.id == message.run_id
+                and current_run is not self.ABSENT
                 and status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)
                 else self.EMPTY_TEXT
             )
@@ -363,7 +418,8 @@ class SnapshotReader:
                 status = str(item.run.status)
             summaries.append(
                 SessionSummary(
-                    identifier, item.record.title, status, item.runtime.queued_count
+                    identifier, item.record.title, status, item.runtime.queued_count,
+                    tuple(item.record.agent_ids),
                 )
             )
         selected = next(
@@ -374,7 +430,18 @@ class SnapshotReader:
         session_config = selected.record.config if selected else self.ABSENT
         if selected:
             session = sessions[selected_id]
-            steps = await selected.handle.steps.alist() if selected.run else ()
+            steps = await self.read_steps(selected.handle, selected.run) if selected.run else ()
+            run_records = {selected.run.id: selected.run} if selected.run else {}
+            run_steps = {selected.run.id: steps} if selected.run else {}
+            for active in selected.runtime.active_runs:
+                if active.run_id not in run_records:
+                    handle = await session.run.aload(active.run_id)
+                    run_records[active.run_id] = display_run(selected.record, await handle.aget_data())
+                    run_steps[active.run_id] = await self.read_steps(handle, run_records[active.run_id])
+            from llm.core.agents import AgentMode
+            from llm.engines.base import agent_mode
+            from ..execution.environment import underlying_engine
+
             messages = await self.messages(
                 session,
                 await session.aconversation(),
@@ -382,6 +449,9 @@ class SnapshotReader:
                 latest=selected.run,
                 latest_steps=steps,
                 stopped_runs=StopIntent(selected.record.metadata).stopped_runs,
+                run_records=run_records, run_steps=run_steps,
+                graph_engines=tuple(name for name in engines.names()
+                    if agent_mode(underlying_engine(engines.get(name))) == AgentMode.WORKFLOW),
             )
             if selected.run:
                 run = selected.run
@@ -443,8 +513,11 @@ class SnapshotReader:
                     identifier,
                     AgentDefinition.engine(definition),
                     AgentDefinition.purpose(definition),
+                    AgentProfile.title(identifier, definition),
                 )
                 for identifier, definition in definitions.items()
             ),
+            participant_ids=tuple(selected.record.agent_ids) if selected else (),
+            active_run_ids=tuple(item.run_id for item in selected.runtime.active_runs) if selected else (),
         )
         return snapshot, tuple(observations)

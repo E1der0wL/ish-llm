@@ -88,7 +88,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("appearance")
                     screen.layout.focus_main()
                 self.assertEqual(set(screen.page.form.fields), {(key,) for key in
-                    ("background", "foreground", "accent1", "accent2", "accent3", "comment", "sidebar_width", "icon_style",
+                    ("background", "foreground", "accent1", "accent2", "accent3", "comment", "comment2", "sidebar_width", "icon_style",
                      "output_refresh_interval", "progress_refresh_interval", "mode")})
                 screen.page.form.fields[("accent1",)].input.text = "invalid"
                 settings_button(app, pipe, view)

@@ -117,6 +117,12 @@ class DefinitionEditor(Dialog):
             wrap_lines=DefinitionView.WRAP_LINES,
             read_only=Condition(lambda: self.busy),
         )
+        from ...backend.project.participants import AgentProfile
+        self.display_name = (TextArea(
+            text=AgentProfile.title(name, json.loads(text)),
+            multiline=DefinitionView.SINGLE_LINE, height=DefinitionView.IDENTIFIER_HEIGHT,
+            read_only=Condition(lambda: self.busy),
+        ) if manager.name == ManagedComponents.AGENTS.name else None)
         self.preview = TextArea(
             read_only=DefinitionView.READ_ONLY,
             scrollbar=DefinitionView.SCROLLBAR,
@@ -141,6 +147,8 @@ class DefinitionEditor(Dialog):
                 [
                     Label(self.view.t(MessageKey.DEFINITION_NAME)),
                     self.identifier,
+                    *([Label(self.view.t(MessageKey.AGENT_DISPLAY_NAME)), self.display_name]
+                      if self.display_name is not None else []),
                     content,
                     Label(lambda: self.status),
                 ],
@@ -197,7 +205,11 @@ class DefinitionEditor(Dialog):
         try:
             DefinitionDraft.require_size(self.input.text, self.view.t)
             DefinitionDraft.require_name(name, self.view.t)
-            DefinitionDraft.parse_object(self.input.text, self.view.t)
+            definition = DefinitionDraft.parse_object(self.input.text, self.view.t)
+            if self.display_name is not None:
+                from ...backend.project.participants import AgentProfile
+                definition = AgentProfile.rename(definition, self.display_name.text or name)
+                self.input.text = JsonDocument.render(definition, allow_non_finite=JsonDocument.STRICT_NON_FINITE)
         except ValueError as error:
             self.status = self.view.t(MessageKey.ERROR, error=error)
             return
@@ -220,7 +232,7 @@ class DefinitionEditor(Dialog):
             ManagementAction.SAVE if self.original_name else ManagementAction.CREATE,
             EditorRecord.change(name, self.input.text),
             self.version,
-            done,
+            self.view.progress.callback(token, done),
         )
 
     def close(self):

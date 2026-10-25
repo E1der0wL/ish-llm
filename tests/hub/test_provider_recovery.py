@@ -91,7 +91,10 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         runtime = HubRuntime(HubConfig(temp.name, model="test/model", auto_title=False,
             engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
             component_factories=(lambda: source, *components),
-            project_config={"parameters": {"engines": {"loop": {"policy": {"provider": {"max_attempts": attempts}}}}}}))
+            # Exercise provider partial-output/recovery semantics independently of
+            # final-review candidate buffering (covered by application_defaults).
+            project_config={"parameters": {"engines": {"loop": {"policy": {
+                "provider": {"max_attempts": attempts}, "final_review": None}}}}}))
         self.addAsyncCleanup(runtime.close)
         await runtime.start()
         sid = await runtime.new_session()

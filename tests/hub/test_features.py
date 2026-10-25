@@ -171,6 +171,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
             view.file_root = root
             view.agents = ("loop", "review")
+            view.participant_ids = ("loop", "review")
             view.agent_engines = {"loop": "loop", "review": "review"}
             calls = []
             view.on_submit = lambda *args: calls.append(args)
@@ -269,6 +270,10 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("/new\r\r")
                 await until(lambda: not view.no_sessions and view._dialog is None
                             and view.sessions[view.selected].id != previous)
+                await asyncio.wrap_future(controller.worker.call(
+                    "invite_agent", view.project_id, view.sessions[view.selected].id, "review"))
+                await until(lambda: "review" in view.participant_ids)
+                view.choose_agent("assistant")
                 pipe.send_text("start\r")
                 await until(lambda: any(m.role == "reasoning" for m in view.output.transcript.control.messages))
                 pipe.send_text("redirect\r")
@@ -390,6 +395,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls[-1][:2], ("new", "Named session"))
                 self.assertEqual(view.composer.text, "**draft**")
                 view.agents = ("loop", "review")
+                view.participant_ids = ("loop", "review")
                 view.agent_engines = {"loop": "loop", "review": "review"}
                 pipe.send_text("\x05")  # No engine popup shortcut.
                 await asyncio.sleep(.05)

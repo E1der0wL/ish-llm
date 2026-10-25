@@ -80,6 +80,12 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                     "agents", "create", {"name": "settings-graph", "text":
                         '{"engine":"graph","engine_options":{"workflow":"settings-only"}}'}))
                 await until(lambda: "settings-graph" in view.agents)
+                if view.no_sessions:
+                    pipe.send_text("/new\r\r")
+                    await until(lambda: not view.no_sessions and view._dialog is None)
+                await asyncio.wrap_future(controller.worker.call(
+                    "invite_agent", view.project_id, view.sessions[view.selected].id, "settings-graph"))
+                await until(lambda: "settings-graph" in view.participant_ids)
                 for identifier, engine in (("assistant", "loop"), ("settings-graph", "graph")):
                     view.choose_agent(identifier)
                     with set_app(app):

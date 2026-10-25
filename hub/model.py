@@ -64,6 +64,8 @@ class ChatMessage:
     activity: str = ""
     run_id: str = ""
     failure: ErrorInfo | None = None
+    workflow: str = ""
+    workflow_states: tuple[tuple[str, str], ...] = ()
 
 
 class ReasoningMessage:
@@ -93,12 +95,14 @@ class TraceItem:
     NO_TIME: ClassVar[str] = ""
     TOOL: ClassVar[str] = "tool"
     REASONING: ClassVar[str] = "reasoning"
+    WORKFLOW: ClassVar[str] = "workflow"
 
     id: str
     kind: str
     text: str
     status: str = ""
     started_at: str = NO_TIME
+    workflow_states: tuple[tuple[str, str], ...] = ()
 
     @classmethod
     def thought(cls, identifier, text, *, started_at=NO_TIME):
@@ -141,6 +145,7 @@ class SessionSummary:
     title: str
     status: str
     queued_count: int = 0
+    participant_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -196,6 +201,7 @@ class AgentSummary:
     id: str
     engine: str
     purpose: str = ""
+    title: str = ""
 
     def catalog_entry(self):
         cls = type(self)
@@ -238,6 +244,8 @@ class HubSnapshot:
     components: tuple[str, ...] = ()
     questions: tuple[dict, ...] = ()
     agents: tuple[AgentSummary, ...] = ()
+    participant_ids: tuple[str, ...] = ()
+    active_run_ids: tuple[str, ...] = ()
 
     @classmethod
     def project_identifier(cls, view):

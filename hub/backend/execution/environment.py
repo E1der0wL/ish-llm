@@ -115,6 +115,8 @@ class EnvironmentEngine:
     def for_context(self, request_context):
         options = dict(request_context)
         HubTurnContext.take(options)
+        from ..tools.application import AgentMessageContext
+        AgentMessageContext.take(options)
         environment = (
             ShellEnvironment.from_dict(options.pop(ENVIRONMENT_OPTION))
             if ENVIRONMENT_OPTION in options

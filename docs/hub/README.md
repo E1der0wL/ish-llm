@@ -6,6 +6,9 @@
 
 ## 책임과 계약
 
+[기본 설정·프리셋·Agent API](application-defaults.md)는 생성 프로필, 이름별 JSON
+내보내기, 세션 내 Agent 메시지와 완료 조건 검토의 현재 계약을 설명한다.
+
 Hub는 모델·prompt·실행 제한·검색 전략 등 제품 선택을 새 Project의 명시 설정에 기록한다.
 Backend는 그 계약을 검증·집행한다. Host ceiling으로 저장된 Project 권한을 덮어쓰지 않으며
 UI effective values를 새 설정 기본값으로 저장하지 않는다.
@@ -16,7 +19,7 @@ UI effective values를 새 설정 기본값으로 저장하지 않는다.
 | 소유자 | 책임 | 정규 문서 |
 |---|---|---|
 | bootstrap/config/Project 서비스 | 구현 주입, 앱 생성 preset, 설정·선택·CAS | [구조](structure.md), [설정/재개](presets-and-resume.md) |
-| backend worker | 이벤트 루프, 공개 llm API와 실행 수명 | [렌더링 파이프라인](rendering-performance.md), [유지보수 경계](maintenance.md) |
+| backend worker | 이벤트 루프, 공개 llm API와 실행 수명 | [초기 연결·단계 표시](backend-progress.md), [렌더링 파이프라인](rendering-performance.md), [유지보수 경계](maintenance.md) |
 | 요청 환경 | Enter 시점 cwd/env 사본, Tool·path revision binding | [셸 환경](shell-environment.md) |
 | backend 오류 계약 소비 | Diagnostic 보존·backend admission·앱 선택 | [오류](error-handling.md), [Provider 복구](provider-recovery.md), [작업 복구](operation-recovery.md) |
 | Tool UI/선택기 | 승인·질문 표시, 허용된 인자 수정 제안 | [질문과 Tool](questions-tools.md), [Tool retry](tool-retry.md) |
@@ -35,15 +38,19 @@ Provider retry loop, 오류 classifier를 만들지 않는다. UI 질문·모델
 
 ## 정규 API 전환
 
-현재 Hub는 명시 Engine 요청과 AgentComponent를 사용한다. B/C 단계에서 독립 Project Agent와
-단일 Run→Agent→Engine API로 직접 이관한다. 제목 생성·일반 대화·Graph 위임·자원 편집·환경 캡처를
-같이 검증하며 호환 wrapper를 추가하지 않는다. D의 다중 Run에서도 UI 상태는 backend 원본의 투영이다.
+Hub는 독립 Project Agent를 정의하고 `Session.agent_ids`에 대화 상대를 저장한다.
+요청마다 명시한 수신 Agent를 통해 Engine을 실행하며, 전체 수신 시 Agent별 Run이 응답한다.
+제목 생성·일반 대화·Graph 위임·자원 편집·환경 캡처도 같은 공개 Agent 계약을 사용한다.
+다중 Run의 이름·진행 상태·출력은 backend 원본의 투영이며 호환 wrapper를 추가하지 않는다.
 
 P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 section은 현재 필드 전체를
 가져야 하며 Reader는 누락 필드·옛 키를 거부하고 원본을 보존한다. 생성·편집 시 owner의 초기값을
 적용한 완전한 section을 저장한다. 환경 없는 구 Run fallback은 C의 실행 binding 전환 대상이다.
 
 ## 사용법·검증 기록
+
+- [Agent와 대화 상대](participants.md): 이름·초대·수신 대상·동시 응답·실시간 Workflow 표시.
+- [초대·관측 계약 검증](observation-contract-review.md): canonical 초대, 반복 조회 제거, 단계 전달 Owner와 검증 증거.
 
 - [Hub README](../../hub/README.md): 설치·실행·현재 설정.
 - [요청 이력](request-history.md), [Completion 표시](completion-display.md),

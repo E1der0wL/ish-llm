@@ -26,7 +26,7 @@ def headers(messages, language):
 class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
     async def test_thoughts_and_all_tools_are_interleaved_from_durable_timestamps(self):
         start = "2026-10-12T00:00:"
-        run = NS(id="r", status="running", started_at=start + "00+00:00", ended_at=None,
+        run = NS(id="r", engine="loop", status="running", started_at=start + "00+00:00", ended_at=None,
             metadata={"completions": [
                 asdict(CompletionResult(id="c1", started_at=start + "01+00:00", reasoning_content="Inspect files")),
                 asdict(CompletionResult(id="c2", started_at=start + "09+00:00", reasoning_content="Now verify"))]})
@@ -37,7 +37,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([item.text for item in messages[0].trace], ["Inspect files", *(s.name for s in steps), "Now verify"])
 
     async def test_reconciliation_restores_all_rounds_above_partial_answer(self):
-        run = NS(id="r", status="running", started_at=None, ended_at=None,
+        run = NS(id="r", engine="loop", status="running", started_at=None, ended_at=None,
                  metadata={"completions": [asdict(CompletionResult(reasoning_content="First")),
                      asdict(CompletionResult(reasoning_content="Second"))]})
         record = Message(id="a", role="assistant", content="Partial answer", status="streaming",
@@ -56,7 +56,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_read_only_snapshot_has_no_localized_display_and_reuses_observations(self):
         config = NS(agent_id="assistant", model=None, file_root=None, user_profile=NS(display_name="Account"))
-        record = NS(id="s", title="Session", config={}, metadata={"hub_auto_title": True})
+        record = NS(id="s", title="Session", agent_ids=["assistant"], config={}, metadata={"hub_auto_title": True})
         run = NS(id="r", session_id="s", status="running", engine="loop", started_at="2026-10-01T00:00:00+00:00",
                  ended_at=None, error=None, metadata={"completions": [asdict(CompletionResult(reasoning_content="Summary", model="test/model"))]})
         handle = NS(id="r", aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running", kind="llm")])))
@@ -66,7 +66,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
                      run=NS(astatus=AsyncMock(return_value=status), alist=AsyncMock(side_effect=lambda *, query: [] if query.status == "paused" else [handle]), aload=AsyncMock()))
         project = NS(aget_data=AsyncMock(return_value=NS(id="p", title="Project", config={}, components=["tools"], conversation_storage="file")),
                      paths=NS(root="/workspace"), agents=NS(alist=AsyncMock(return_value={"assistant": {"engine": "loop"}})))
-        engines = NS(names=lambda: ("loop",), resolve_agent=lambda _: NS(resolve_config=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))
+        engines = NS(names=lambda: ("loop",), get=lambda _: NS(), resolve_agent=lambda _: NS(resolve_config=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))
         reader = SnapshotReader()
         snapshot, observations = await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
         json.dumps(asdict(snapshot))  # No handles, tasks or UI controls cross threads.
@@ -104,6 +104,21 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(shown, headers(present(snapshot, view.t).messages, view.t))
         self.assertIn(UNICODE.reasoning, shown)
         view.close()
+        # The selected latest Run also stops rereading settled Steps. Paused
+        # interactions remain mutable and must not reuse that terminal cache.
+        run.status, message.status = "completed", "completed"
+        status.active_runs = ()
+        await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
+        scans = handle.steps.alist.await_count
+        await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
+        self.assertEqual(handle.steps.alist.await_count, scans)
+        run.status, message.status = "paused", "paused"
+        # Read the Step boundary directly: interaction UI setup is independent.
+        await reader.read_steps(handle, run)
+        await reader.read_steps(handle, run)
+        self.assertEqual(handle.steps.alist.await_count, scans + 2)
+        reader.clear()
+        self.assertFalse(reader.step_observations)
 
     async def test_snapshot_rejects_missing_or_malformed_completion_evidence(self):
         reader = SnapshotReader()

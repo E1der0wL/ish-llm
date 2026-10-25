@@ -31,6 +31,12 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
             'agents', 'create', {'name': 'settings-graph', 'text': json.dumps({
                 'engine': 'graph', 'engine_options': {'workflow': 'settings-only'}})}))
         await until(lambda: 'settings-graph' in self.view.agents)
+        if self.view.no_sessions:
+            self.pipe.send_text('/new\rSettings\r')
+            await until(lambda: not self.view.no_sessions and self.view._dialog is None)
+        await asyncio.wrap_future(self.controller.worker.call('invite_agent', self.view.project_id,
+            self.view.sessions[self.view.selected].id, 'settings-graph'))
+        await until(lambda: 'settings-graph' in self.view.participant_ids)
         self.view.choose_agent('settings-graph')
         await auxiliary(self.app, self.pipe, self.view, 'settings')
         await until(lambda: not self.screen.busy and self.screen.page is not None and self.view.settings_open)

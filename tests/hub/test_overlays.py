@@ -28,6 +28,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
             installation = install_preview(prompt)
             view, app = installation.view, prompt.app
             view.agents = ("loop", "review-overlay")
+            view.participant_ids = ("loop", "review-overlay")
             task = asyncio.create_task(prompt.prompt_async())
             try:
                 await eventually(lambda: app.is_running)

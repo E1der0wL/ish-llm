@@ -79,6 +79,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
             view.agents = ("assistant", "alpha")
+            view.participant_ids = ("assistant", "alpha")
             view.agent_engines = {"assistant": "loop", "alpha": "graph"}
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:

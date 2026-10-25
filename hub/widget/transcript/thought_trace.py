@@ -3,6 +3,7 @@
 from ...model import TraceItem
 from .render_contract import TranscriptLayout, ToolCaption
 from ...config.theme_style import ThemeSelector
+from ...locales.keys import MessageKey
 
 from rich.text import Text
 
@@ -26,8 +27,21 @@ def render_trace_item(item, width, theme, language):
             )
             for row in rows
         ) + (TranscriptLayout.BLANK_LINE,)
+    content = item.text
+    if item.kind == TraceItem.WORKFLOW:
+        from ..workflow_graph import workflow_diagram
+        try:
+            # Code block insets are inside the transcript width. Layout work
+            # belongs in the render worker, and its cache includes node states.
+            diagram = workflow_diagram(item.text, width=max(TranscriptLayout.MIN_WIDTH, console.width - TranscriptLayout.GRAPH_CODE_INSET), states={
+                node: language.icons.statuses.get(status, status)
+                for node, status in item.workflow_states
+            })
+            content = TranscriptLayout.TEXT_FENCE_OPEN + diagram + TranscriptLayout.TEXT_FENCE_CLOSE
+        except (ValueError, TypeError) as error:
+            content = language(MessageKey.WORKFLOW_DISPLAY_UNAVAILABLE, reason=str(error))
     rows = console.render_lines(
-        HubMarkdown(item.text, theme), console.options, pad=TranscriptLayout.PAD
+        HubMarkdown(content, theme), console.options, pad=TranscriptLayout.PAD
     )
     return tuple(
         (

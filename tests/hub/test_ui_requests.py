@@ -66,6 +66,18 @@ class UIRequestTests(unittest.TestCase):
         self.drain()
         self.assertEqual(self.events, [update])
 
+    def test_stages_are_separate_from_domain_progress_and_delivered_before_result(self):
+        from hub.backend.progress import BackendProgress
+        update = BackendProgress('phase')
+        self.requests.call('settings', 'catalog', completed=lambda result: self.events.append(result.value),
+                           stage=self.events.append)
+        self.assertNotIn('progress', self.options)
+        self.options['stage'](update)
+        self.future.set_result('loaded')
+        self.assertEqual(self.events, [])
+        self.drain()
+        self.assertEqual(self.events, [update, 'loaded'])
+
     def test_dispatch_failure_and_disconnected_catalog(self):
         self.connected = False
         self.requests.call("load", completed=self.events.append)

@@ -118,6 +118,8 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
             return "converted"
         provider = ScriptedCompletion(
             [chunk(calls=[call('{"format":"old","count":1}', name="convert")], finish="tool_calls")],
+            [chunk(calls=[call('{"outcome":"completed","summary":"Converted", "evidence":["call_1"]}',
+                               name="hub_task_result", call_id="report")], finish="tool_calls")],
             [chunk("Done", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,

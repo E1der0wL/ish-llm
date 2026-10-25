@@ -57,11 +57,13 @@ def continued_messages(
             hidden.add(record.id)
         elif str(record.role) == MessageRole.ASSISTANT:
             sources[record.id] = assistants[parent]
-    result, positions, reasoning, tools, traces = [], {}, {}, {}, {}
+    result, positions, reasoning, tools, traces, graphs = [], {}, {}, {}, {}, {}
     for message in messages:
         if ReasoningMessage.owns(message):
             assistant = ReasoningMessage.assistant_id(message.id)
             root = sources.get(assistant, assistant)
+            if message.workflow:
+                graphs[root] = (message.workflow, message.workflow_states)
             traces[root] = merge_trace(traces.get(root, ()), message.trace)
             history = tools.setdefault(root, {})
             for index, step in enumerate(message.tools):
@@ -106,15 +108,20 @@ def continued_messages(
             result.append(message)
     visible = []
     for message in result:
-        if (
+        show_reasoning = (
             message.id in reasoning or message.id in tools
-        ) and message.status in ContinuationDisplay.VISIBLE_REASONING:
+        ) and message.status in ContinuationDisplay.VISIBLE_REASONING
+        if show_reasoning or message.id in graphs:
+            workflow, states = graphs.get(message.id, (ContinuationDisplay.EMPTY, ()))
             visible.append(
                 ReasoningMessage.create(
                     message.id,
-                    reasoning.get(message.id, ContinuationDisplay.EMPTY),
-                    tools=tuple(tools.get(message.id, {}).values()),
-                    trace=traces.get(message.id, ()),
+                    reasoning.get(message.id, ContinuationDisplay.EMPTY) if show_reasoning else ContinuationDisplay.EMPTY,
+                    tools=tuple(tools.get(message.id, {}).values()) if show_reasoning else (),
+                    trace=traces.get(message.id, ()) if show_reasoning else (),
+                    author=message.author,
+                    workflow=workflow,
+                    workflow_states=states,
                 )
             )
         visible.append(message)

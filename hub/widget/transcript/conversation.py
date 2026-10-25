@@ -129,6 +129,9 @@ def render_messages(
                 )
             )
         )
+        if not user and message.author and message.role in (MessageRole.ASSISTANT, ReasoningMessage.ROLE):
+            label = (message.author if message.role == MessageRole.ASSISTANT
+                     else message.author + TranscriptPresentation.LABEL_SEPARATOR + t(MessageKey.REASONING))
         if message.role != MessageRole.SYSTEM and (
             message.activity or message.phase or message.status
         ):

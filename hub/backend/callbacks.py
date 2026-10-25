@@ -8,6 +8,7 @@ class CommandCallbacks:
     ABSENT = None
     acknowledged: object = ABSENT
     progress: object = ABSENT
+    stage: object = ABSENT
 
     def to_kwargs(self):
         return {

@@ -32,7 +32,7 @@ def admitted_user(created_at, *, content="Q", run_id=None):
 class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
     async def test_failure_uses_run_end_without_changing_request_timestamp(self):
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
-        run = SimpleNamespace(id="1" * 32, status="failed", started_at="2026-10-18T00:00:02+00:00",
+        run = SimpleNamespace(id="1" * 32, engine="test", status="failed", started_at="2026-10-18T00:00:02+00:00",
                               ended_at="2026-10-18T00:00:08+00:00", metadata={"completions": []})
         request = admitted_user("2026-10-18T00:00:00+00:00", run_id="1" * 32)
         response = Message(id="a", role="assistant", content="", status="failed", run_id="1" * 32,
@@ -44,7 +44,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_response_duration_includes_submission_and_admission_time(self):
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
-        run = SimpleNamespace(id="1" * 32, status="completed", started_at="2026-10-11T00:00:04+00:00",
+        run = SimpleNamespace(id="1" * 32, engine="test", status="completed", started_at="2026-10-11T00:00:04+00:00",
             ended_at="2026-10-11T00:00:06+00:00", metadata={"completions": []})
         request = admitted_user("2026-10-11T00:00:00+00:00", run_id="1" * 32)
         response = Message(id="a", role="assistant", content="A", status="completed", run_id="1" * 32, metadata={})
@@ -55,7 +55,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_live_elapsed_and_terminal_duration_exclude_queue_time(self):
         runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
-        run = SimpleNamespace(id="run", status="running", started_at="2026-10-04T00:01:00+00:00",
+        run = SimpleNamespace(id="run", engine="test", status="running", started_at="2026-10-04T00:01:00+00:00",
                               ended_at=None, metadata={"completions": [asdict(CompletionResult(
                                   reasoning_content="Reason", started_at="2026-10-04T00:01:00+00:00"))]})
         read = AsyncMock(return_value=run)
@@ -86,7 +86,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
         for status in ("interrupted", "failed", "cancelled", "paused"):
             with self.subTest(status=status):
                 runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
-                run = SimpleNamespace(status=status, started_at="2026-10-04T00:00:00+00:00",
+                run = SimpleNamespace(engine="test", status=status, started_at="2026-10-04T00:00:00+00:00",
                                       ended_at="2026-10-04T00:00:12.500000+00:00", metadata={"completions": []})
                 read = AsyncMock(return_value=run)
                 session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(

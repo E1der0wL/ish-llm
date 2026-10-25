@@ -53,6 +53,8 @@ class HubBuiltinTools(BuiltinToolComponent):
             else HubBuiltinTools.ABSENT
         )
         self.questions = QuestionBroker()
+        from .application import HubApplicationTools
+        self.application = HubApplicationTools()
         self.toolkits = {}
         self._resolved = {}
         self._toolkit_lock = Lock()
@@ -146,6 +148,10 @@ class HubBuiltinTools(BuiltinToolComponent):
             )
         )
         toolkit.registry.register(QuestionTool.create(self.questions.ask))
+        from ..execution.completion_review import TaskCompletion
+        toolkit.registry.register(TaskCompletion.tool())
+        for item in self.application.tools():
+            toolkit.registry.register(item)
         from .paths import bind_paths
 
         bind_paths(toolkit)
@@ -264,6 +270,7 @@ class HubBuiltinTools(BuiltinToolComponent):
 
     async def close(self):
         self.questions.close()
+        self.application.runtime = None
         self._resolved.clear()
         for toolkit in (self.toolkit, *self.toolkits.values()):
             await toolkit.close()

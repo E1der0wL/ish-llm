@@ -29,6 +29,7 @@ class GlobalSettingsSchema:
         HubTheme.accent2.__name__,
         HubTheme.accent3.__name__,
         HubTheme.comment.__name__,
+        HubTheme.comment2.__name__,
     )
     REFRESH_FIELDS = (
         HubTheme.output_refresh_interval,

@@ -5,7 +5,6 @@ from llm.llm import LargeLanguageModel
 from llm.core.agents import AgentDefinition
 from llm.core.models import MessageRole
 from llm.core.steering import SteeringMode
-from llm.components.tools import ToolRegistry
 from llm.components.rag.identity import RAGIdentity
 from llm.services.composition import BackendServices
 from llm.services.lifecycle.sessions import SessionManager
@@ -32,6 +31,7 @@ from llm.core.continuations import ResumeRecord
 from llm.core.models import MessageStatus, RunStatus
 from llm.core.configuration import UNSET
 import asyncio
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
@@ -196,6 +196,7 @@ class HubRuntime:
     CHECK_RUNNING = True
     NO_QUEUED_IDS = 0
     UNIQUE_CANDIDATE_COUNT = 1
+    INITIAL_PARTICIPANT_COUNT = 1
     SOLE_CANDIDATE_POSITION = 0
     PENDING_ONLY = True
     PARTIAL_OUTPUT = True
@@ -277,7 +278,9 @@ class HubRuntime:
 
     async def start(self) -> None:
         from .project.bootstrap import select_or_create
+        from .progress import OperationProgress
 
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_PREPARE)
         self.backend = self._factory(self.config)
         from .tools.builtin import HubBuiltinTools
 
@@ -287,7 +290,9 @@ class HubRuntime:
             )
             if isinstance(component, HubBuiltinTools):
                 self.builtin_tools = component
+                component.application.runtime = self
                 component.questions.changed = self._questions_changed
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_STORAGE)
         await self.backend.__aenter__()
         for channel, callback in (
             (EventChannel.ENGINE.value, self._engine_event),
@@ -302,6 +307,7 @@ class HubRuntime:
                     overflow=EventOverflow.DROP_OLDEST.value,
                 )
             )
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_PROJECT)
         if self.config.project_id:
             self.project = await self.backend.projects.aload(self.config.project_id)
         elif self.general.restore_last_project:
@@ -323,21 +329,20 @@ class HubRuntime:
         return await self.settings_service.execute(operation, *args)
 
     async def activate_project(self, project, *, session_id=ABSENT):
-        data = await project.aget_data()
-        if (
-            self.builtin_tools is not HubRuntime.ABSENT
-            and self.builtin_tools.name in data.components
-        ):
-            # Prepare only the saved selection. Opening a Project never edits
-            # its components or supplies a new enabled-Tool preset.
-            await asyncio.to_thread(
-                self.builtin_tools.resolve, data, ToolRegistry.CAPABILITY
-            )
+        from .progress import OperationProgress
+
+        # Tool capabilities are resolved by the backend when execution needs them.
+        # Merely opening history must not build an unused per-project toolkit.
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_SESSIONS)
         sessions = []
-        for session in await project.sessions.alist():
+        titles = {}
+        available = await project.sessions.alist()
+        for index, session in enumerate(available):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_SESSIONS, index, len(available))
             record = await session.aget_data()
             if not TitleSessionMetadata(record.metadata).internal:
                 sessions.append(session)
+                titles[session.id] = record.title
         candidates = {session.id: session for session in sessions}
         previous = (
             self._saved_selection(project.id)
@@ -358,21 +363,24 @@ class HubRuntime:
         # Session start owns stale-state recovery and durable queued-request recovery.
         # Opening history alone does not start every Session in the Project.
         if selected:
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_RECOVER)
             await candidates[selected].run.start()
         self.project, self.sessions, self.selected_id = project, candidates, selected
         self.snapshot_reader.clear()
         for session in sessions:
             self.notifications.register_session(
-                project.id, session.id, (await session.aget_data()).title
+                project.id, session.id, titles[session.id]
             )
         if selected:
             self._opened_sessions.add(selected)
         self.dirty.set()
 
     async def select(self, session_id: str) -> None:
+        from .progress import OperationProgress
         if not session_id and not self.sessions:
             return
         session = self.sessions[session_id]
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_RECOVER)
         await session.run.start()
         self._opened_sessions.add(session_id)
         self.selected_id = session_id
@@ -436,6 +444,8 @@ class HubRuntime:
                 for identifier in await self.project.agents.alist()
                 if not HubEngineIdentity.internal(identifier)
             )
+            participants = ([self.config.agent_id] if self.config.agent_id in participants
+                            else participants[:self.INITIAL_PARTICIPANT_COUNT])
             session = await self.project.sessions.acreate(
                 title or self.t(MessageKey.NEW_SESSION), agent_ids=participants
             )
@@ -632,7 +642,9 @@ class HubRuntime:
         progress=ABSENT
     ):
         from .project.record_management import RecordManagement
+        from .progress import OperationProgress
 
+        OperationProgress.report(OperationProgress.management(action))
         project = await self.backend.projects.aload(project_id)
         manager = await RecordManagement.for_project(
             project, name, root=self.config.file_root, rag_jobs=self._rag_jobs
@@ -647,13 +659,16 @@ class HubRuntime:
         self,
         session_id: str,
         text: str,
-        agent_id: str | None = ABSENT,
+        agent_id: str | Sequence[str] | None = ABSENT,
         request_context=UNSET,
     ) -> str:
         selected = self.config.agent_id if agent_id is HubRuntime.ABSENT else agent_id
-        return await self._submit_recipients(
-            session_id, text, [selected], request_context
-        )
+        recipients = [selected] if isinstance(selected, str) else list(selected)
+        return await self._submit_recipients(session_id, text, recipients, request_context)
+
+    async def invite_agent(self, project_id, session_id, agent_id):
+        from .project.participants import invite
+        return await invite(self, project_id, session_id, agent_id)
 
     async def _submit_recipients(self, session_id, text, recipients, request_context):
         """Application-selected recipients share one durable Backend admission."""
@@ -661,6 +676,8 @@ class HubRuntime:
             raise ValueError(self.t(MessageKey.EMPTY_MESSAGE))
         if session_id not in self.sessions:
             raise ValueError(self.t(MessageKey.SESSION_REQUIRED))
+        if not recipients:
+            raise ValueError(self.t(MessageKey.PARTICIPANTS_REQUIRED))
         session = self.sessions[session_id]
         project = await session.project.aget_data()
         config = (await session.aget_data()).config
@@ -685,7 +702,7 @@ class HubRuntime:
         self,
         session_id: str,
         text: str,
-        agent_id: str,
+        agent_id: str | Sequence[str],
         request_context=UNSET,
         check_running: bool = CHECK_RUNNING,
     ) -> SubmissionResult:
@@ -713,15 +730,16 @@ class HubRuntime:
         )
 
     async def submission_state(
-        self, session_id: str, agent_id: str | None = ABSENT
+        self, session_id: str, agent_id: str | Sequence[str] | None = ABSENT
     ) -> dict:
         status = await self.sessions[session_id].run.astatus(
             queued_limit=HubRuntime.NO_QUEUED_IDS
         )
         selected = self.config.agent_id if agent_id is HubRuntime.ABSENT else agent_id
+        recipients = (selected,) if isinstance(selected, str) else selected
         return SubmissionResult.state_record(
             next(
-                (run.run_id for run in status.active_runs if run.agent_id == selected),
+                (run.run_id for run in status.active_runs if run.agent_id in recipients),
                 HubRuntime.ABSENT,
             )
         )
@@ -887,6 +905,8 @@ class HubRuntime:
                     )
 
     async def snapshot(self) -> HubSnapshot:
+        from .progress import OperationProgress
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_HISTORY)
         dropped = sum(
             SubscriptionStats.dropped_count(subscription.stats)
             for subscription in self._subscriptions

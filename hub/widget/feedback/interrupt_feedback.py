@@ -11,6 +11,7 @@ class PendingInterrupt:
     key: tuple[str, str]
     run_id: str
     previous_run_id: str = ""
+    run_ids: tuple[str, ...] = ()
 
 
 class InterruptFeedback:
@@ -40,7 +41,8 @@ class InterruptFeedback:
             if snapshot and key == (snapshot.project_id, snapshot.selected_id)
             else self.NO_RUN
         )
-        running = run and run.status in self.WAITING_STATES
+        active = snapshot.active_run_ids if run else ()
+        running = bool(active) or run and run.status in self.WAITING_STATES
         if not running and key not in self.view.preparing.pending:
             return self.NO_REQUEST
         # The submit receipt and first Run snapshot may still be in flight.
@@ -50,6 +52,7 @@ class InterruptFeedback:
             key,
             run.id if running else self.NO_RUN_ID,
             run.id if run else self.NO_RUN_ID,
+            active,
         )
         self.pending[key] = request
         self.view.preparing.paint()
@@ -75,6 +78,13 @@ class InterruptFeedback:
         run = snapshot.run
         if not request:
             return
+        if request.run_ids:
+            if not set(request.run_ids).intersection(snapshot.active_run_ids) and not any(
+                message.run_id in request.run_ids and message.status in self.PROJECTABLE
+                for message in snapshot.messages if message.role == MessageRole.ASSISTANT
+            ):
+                self.pending.pop(key)
+            return
         if not request.run_id:
             if not run or run.id == request.previous_run_id:
                 return
@@ -92,6 +102,16 @@ class InterruptFeedback:
         request = self.pending.get(key)
         if not request:
             return messages
+        if request.run_ids and any(
+            item.run_id in request.run_ids and item.status in self.PROJECTABLE
+            for item in messages if item.role == MessageRole.ASSISTANT
+        ):
+            return tuple(
+                replace(item, phase=self.PHASE, activity=self.NO_ACTIVITY)
+                if item.role == MessageRole.ASSISTANT and item.run_id in request.run_ids
+                and item.status in self.PROJECTABLE else item
+                for item in messages
+            )
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
             if (

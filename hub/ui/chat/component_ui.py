@@ -12,11 +12,12 @@ from ..input.commands import CommandSyntax
 class ComponentCommands:
     HELP_TITLE = "{command} {action}"
     NO_PROGRESS = None
+    CONSUME_COMMAND = True
 
     def __init__(self, controller):
         self.controller, self.view = controller, controller.view
 
-    def open(self, command: str, argument: str):
+    def open(self, command: str, argument: str, *, consume_input=CONSUME_COMMAND):
         view = self.view
         try:
             action = parse_arguments(argument, view.t)
@@ -26,7 +27,8 @@ class ComponentCommands:
         name = view.component_commands[command]
         spec = component_spec(name)
         project_id = view.project_id
-        view.composer.text = CommandSyntax.EMPTY
+        if consume_input:
+            view.composer.text = CommandSyntax.EMPTY
         if action == ComponentAction.HELP:
             popup = ReadOnlyDialog(
                 self.HELP_TITLE.format(

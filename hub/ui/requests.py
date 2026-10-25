@@ -29,6 +29,7 @@ class UIRequests:
 
     ABSENT = None
     REQUIRE_CONNECTION = False
+    ALLOW_DISCONNECTED = True
     CANCELLED = True
 
     def __init__(
@@ -54,6 +55,7 @@ class UIRequests:
         completed: Callable[[RequestResult], None],
         acknowledged: Callable | None = ABSENT,
         progress: Callable | None = ABSENT,
+        stage: Callable | None = ABSENT,
         allow_disconnected: bool = REQUIRE_CONNECTION
     ) -> None:
         if not self.active():
@@ -86,6 +88,11 @@ class UIRequests:
             (
                 (lambda *values: self.dispatch(self._deliver, progress, *values))
                 if progress is not UIRequests.ABSENT
+                else UIRequests.ABSENT
+            ),
+            (
+                (lambda update: self.dispatch(self._deliver, stage, update))
+                if stage is not UIRequests.ABSENT
                 else UIRequests.ABSENT
             ),
         ).to_kwargs()

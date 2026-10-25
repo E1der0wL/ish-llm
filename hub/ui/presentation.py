@@ -19,6 +19,7 @@ class PresentationFormat:
     EMPTY = ""
     FINAL = True
     FAILURE_SUFFIX = ":failure"
+    WORKFLOW_SUFFIX = ":workflow"
     FAILURE_DETAILS = "\n\n"
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
     NOTICE_SEPARATOR = " · "
@@ -46,6 +47,14 @@ class Presentation:
 
 
 def present_message(item: ChatMessage, t) -> ChatMessage:
+    if item.workflow:
+        from ..model import TraceItem
+        graph = TraceItem(
+            item.id + PresentationFormat.WORKFLOW_SUFFIX, TraceItem.WORKFLOW, item.workflow,
+            workflow_states=item.workflow_states,
+        )
+        trace = item.trace or ((TraceItem.thought(item.id, item.text),) if item.text else ())
+        item = replace(item, trace=(graph, *trace))
     text = item.text
     if item.role == MessageRole.ASSISTANT:
         text = split_followup(

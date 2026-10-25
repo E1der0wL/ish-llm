@@ -12,9 +12,22 @@ from .runtime import HubConfig, HubRuntime
 from .bootstrap import create_backend
 from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorOrigin
+from .progress import BackendProgress, OperationProgress
+from ..locales.keys import MessageKey
 
 
 class BackendWorker:
+    WRITE_OPERATIONS = frozenset({
+        HubRuntime.new_session.__name__, HubRuntime.delete_session.__name__,
+        HubRuntime.rename_session.__name__, HubRuntime.invite_agent.__name__,
+        HubRuntime.delete_turn.__name__, HubRuntime.cancel_request.__name__,
+    })
+    READ_OPERATIONS = frozenset({
+        HubRuntime.select.__name__, HubRuntime.turns.__name__,
+        HubRuntime.delete_turn_plan.__name__, HubRuntime.delete_turns_plan.__name__,
+        HubRuntime.project_activity.__name__, HubRuntime.execution_catalog.__name__,
+        HubRuntime.approval_details.__name__, HubRuntime.snapshot.__name__,
+    })
     ABSENT = None
     OPEN = False
     CLOSED = True
@@ -95,6 +108,9 @@ class BackendWorker:
         self._interval_changed = BackendWorker.ABSENT
         self._sidebar_width_pending = BackendWorker.ABSENT
         self._sidebar_width_task = BackendWorker.ABSENT
+        self._startup_lock = threading.Lock()
+        self._startup_observer = None
+        self._startup_progress = BackendProgress(MessageKey.PROGRESS_BACKEND_PREPARE)
         self._thread = threading.Thread(
             target=self._thread_main,
             name=BackendWorker.THREAD_NAME,
@@ -130,8 +146,10 @@ class BackendWorker:
         refresher = BackendWorker.ABSENT
         try:
             try:
-                await self.runtime.start()
-                self.publish(await self.runtime.snapshot())
+                with OperationProgress.bind(self._report_startup):
+                    await self.runtime.start()
+                    OperationProgress.report(MessageKey.PROGRESS_BACKEND_HISTORY)
+                    self.publish(await self.runtime.snapshot())
                 refresher = asyncio.create_task(self._refresh())
             except Exception as error:
                 self._failure = error
@@ -157,6 +175,18 @@ class BackendWorker:
                     refresher, return_exceptions=BackendWorker.CAPTURE_ERRORS
                 )
             await self.runtime.close()
+
+    def _report_startup(self, update):
+        with self._startup_lock:
+            self._startup_progress = update
+            if self._startup_observer is not None:
+                self._startup_observer(update)
+
+    def observe_startup(self, observer):
+        """Replay the latest stage, including work before the UI attached."""
+        with self._startup_lock:
+            self._startup_observer = observer
+            observer(self._startup_progress)
 
     async def _read_snapshot(self):
         async with self.runtime.lock:
@@ -243,8 +273,13 @@ class BackendWorker:
                 )
 
     async def _execute(
-        self, operation: str, args, acknowledged=ABSENT, progress=ABSENT
+        self, operation: str, args, acknowledged=ABSENT, progress=ABSENT, stage=ABSENT
     ):
+        with OperationProgress.bind(stage):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_WAIT)
+            return await self._execute_ready(operation, args, acknowledged, progress)
+
+    async def _execute_ready(self, operation, args, acknowledged, progress):
         await self._initialized.wait()
         if self._closed or self._restarting:
             raise RuntimeError(BackendWorker.CLOSING_MESSAGE)
@@ -261,6 +296,11 @@ class BackendWorker:
             # writes and tool imports must not block unrelated output either.
             independent = operation in BackendWorker.INDEPENDENT_OPERATIONS
             async with nullcontext() if independent else self.runtime.lock:
+                OperationProgress.report(
+                    MessageKey.PROGRESS_BACKEND_WRITE if operation in self.WRITE_OPERATIONS
+                    else MessageKey.PROGRESS_BACKEND_READ if operation in self.READ_OPERATIONS
+                    else MessageKey.PROGRESS_BACKEND_WORK
+                )
                 kwargs = CommandCallbacks(acknowledged, progress).to_kwargs()
                 result = await getattr(self.runtime, operation)(*args, **kwargs)
                 if operation not in BackendWorker.OBSERVATION_OPERATIONS:
@@ -291,19 +331,25 @@ class BackendWorker:
             raise results[BackendWorker.CLEANUP_RESULT]
 
     def call(
-        self, operation: str, *args, acknowledged=ABSENT, progress=ABSENT
+        self, operation: str, *args, acknowledged=ABSENT, progress=ABSENT, stage=ABSENT
     ) -> Future:
         if self._closed or self.loop.is_closed():
             raise RuntimeError(BackendWorker.CLOSED_MESSAGE)
         return asyncio.run_coroutine_threadsafe(
-            self._execute(operation, args, acknowledged, progress), self.loop
+            self._execute(operation, args, acknowledged, progress, stage), self.loop
         )
 
-    def prepare_restart(self) -> Future:
+    async def _restart_with_progress(self, stage):
+        with OperationProgress.bind(stage):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_CANCEL)
+            await self._prepare_restart()
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_RELEASE)
+
+    def prepare_restart(self, *, stage=None) -> Future:
         """Freeze admission, cancel commands and stop all Hub-owned execution."""
         if self._closed or self.loop.is_closed():
             raise RuntimeError(BackendWorker.CLOSED_MESSAGE)
-        return asyncio.run_coroutine_threadsafe(self._prepare_restart(), self.loop)
+        return asyncio.run_coroutine_threadsafe(self._restart_with_progress(stage), self.loop)
 
     def _cancel_restart_on_loop(self):
         self._restarting = BackendWorker.NOT_RESTARTING

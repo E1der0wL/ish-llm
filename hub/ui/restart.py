@@ -28,7 +28,8 @@ def bind_restart(controller, rebuild):
         token = controller.view.progress.start(screen.t(MessageKey.SETTINGS_RESTARTING))
         try:
             if controller.worker is not RestartContract.ABSENT_WORKER:
-                cleanup = asyncio.wrap_future(controller.worker.prepare_restart())
+                cleanup = asyncio.wrap_future(controller.worker.prepare_restart(
+                    stage=lambda update: controller._dispatch(controller.view.progress.observe, token, update)))
                 try:
                     await asyncio.wait_for(
                         asyncio.shield(cleanup),

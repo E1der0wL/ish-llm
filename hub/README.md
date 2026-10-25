@@ -475,7 +475,13 @@ Ctrl+Q로 셸 프롬프트에 돌아가 있어도 알림이 표시되며 입력 
 
 ### 저장된 Agent로 Graph Workflow 선택
 
-`/agent ID`는 Project의 실제 Agent를 선택하고 `/agents`는 정의 관리 화면을 엽니다.
+`/agents config`에서 Project의 Agent 정의와 표시 이름을 관리합니다.
+홈의 대화 상대 보조 버튼에서 **에이전트 추가**로 현재 세션에 초대합니다.
+목록에서 방향키로 선택한 뒤 Space/Enter를 누르면 해당 Agent만 수신하고,
+다시 누르면 초대한 모두에게 전송합니다. 입력창 제목에 수신 대상이 표시됩니다.
+`/agent ID`도 초대한 대화 상대 한 명을 지정합니다.
+Agent별 동시 응답은 이름으로 구분하며 Graph Agent의 생각 영역에는 Workflow와
+노드 진행 상태가 표시됩니다. 자세한 동작은 [대화 상대 문서](../docs/hub/participants.md)를 참고하세요.
 Engine 등록은 실행 전략을 제공하며, 등록만으로 Agent가 생성되지는 않습니다.
 
 ```python
@@ -508,7 +514,7 @@ Hub 확장에서는 `view.choose_agent("coordinator")`로 선택합니다. 전�
 
 입력창 명령은 `/help`, `/agent`, `/agents`, `/new`, `/clone`, `/stop`, `/details`입니다.
 `/new 이름`, `/clone 이름`은 이름이 채워진 확인 창을 엽니다. `/`는 명령,
-`/agent `는 저장 Agent, `@src/`는 지정한 루트 아래 경로 후보를 표시합니다.
+`/agent `는 초대한 Agent, `@src/`는 지정한 루트 아래 경로 후보를 표시합니다.
 방향키 ↑↓로 완성 후보를 선택하고 Tab으로 확정합니다. 후보를 고르기 전 Tab을 누르면
 첫 후보를 확정합니다. Ctrl+Space는 미확정 후보를 취소하고 원래 입력에 줄바꿈을 넣습니다.
 ESC로 좌측 패널에 이동하면

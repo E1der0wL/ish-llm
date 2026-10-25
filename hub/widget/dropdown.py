@@ -7,10 +7,60 @@ from hub.ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer
-from prompt_toolkit.widgets import Frame
+from prompt_toolkit.layout.margins import ScrollbarMargin
+from prompt_toolkit.formatted_text import to_formatted_text, fragment_list_width, fragment_list_to_text
+from prompt_toolkit.mouse_events import MouseEventType
 
 from .controls import Button, RadioList
 from ..asset.icon import NERD
+
+
+class CompletionChoices(RadioList):
+    """Dropdown interaction with the same borderless chrome as PTK completion."""
+    MENU = 'class:completion-menu'
+    NORMAL = 'class:completion-menu.completion'
+    CURRENT = 'class:completion-menu.completion.current'
+    ROW_INSET = 1
+    SCROLLBAR_WIDTH = 1
+    MINIMUM_WIDTH = 1
+    TEXT_POSITION = 1
+    SPACE = ' '
+    NEWLINE = '\n'
+    EMPTY_TEXT = ''
+    CURSOR_POSITION = '[SetCursorPosition]'
+    SHOW_CURSOR = False
+    SHOW_ARROWS = False
+
+    def __init__(self, values, width):
+        self.menu_width = width
+        super().__init__(values, container_style=self.MENU, show_cursor=self.SHOW_CURSOR)
+        self.window.right_margins = [ScrollbarMargin(display_arrows=self.SHOW_ARROWS)]
+
+    def _get_text_fragments(self):
+        from ..ui.output.labels import ellipsize
+
+        result = []
+        width = max(self.MINIMUM_WIDTH, self.menu_width - self.SCROLLBAR_WIDTH)
+        for index, (_, label) in enumerate(self.values):
+            style = self.CURRENT if index == self._selected_index else self.NORMAL
+
+            def clicked(event, row=index):
+                if event.event_type == MouseEventType.MOUSE_UP:
+                    self._selected_index = row
+                    self._handle_enter()
+
+            if index == self._selected_index:
+                result.append((self.CURSOR_POSITION, self.EMPTY_TEXT, clicked))
+            fragments = to_formatted_text(ellipsize(
+                fragment_list_to_text(to_formatted_text(label)),
+                width - self.ROW_INSET - self.ROW_INSET,
+            ))
+            result.append((style, self.SPACE * self.ROW_INSET, clicked))
+            result.extend((style, item[self.TEXT_POSITION], clicked) for item in fragments)
+            result.append((style, self.SPACE * max(self.ROW_INSET, width - self.ROW_INSET - fragment_list_width(fragments)), clicked))
+            if index != len(self.values) - self.ROW_INSET:
+                result.append((self.EMPTY_TEXT, self.NEWLINE, clicked))
+        return result
 
 
 class DropdownBox(FloatContainer):
@@ -24,7 +74,7 @@ class DropdownBox(FloatContainer):
     MENU_LEFT = 0
     MENU_MIN_WIDTH = 24
     MENU_MAX_ROWS = 10
-    MENU_BORDER_ROWS = 2
+    MENU_BORDER_ROWS = 0
     MENU_MIN_ROWS = 1
     TERMINAL_RESERVED_ROWS = 5
     MENU_LAYER = 400
@@ -49,7 +99,7 @@ class DropdownBox(FloatContainer):
         self.on_change, self.expanded = on_change, self.CLOSED
         self.width = width
         self.button = Button(self.caption, handler=self.open, width=width)
-        self.choices = RadioList([(self.ABSENT, self.EMPTY_LABEL)])
+        self.choices = CompletionChoices([(self.ABSENT, self.EMPTY_LABEL)], max(width, self.MENU_MIN_WIDTH))
         self.choices.window.height = self.CHOICE_ROWS
         keys = ShortcutRegistry.require(self.choices.control)
         keys.add(
@@ -75,7 +125,7 @@ class DropdownBox(FloatContainer):
             self.button,
             floats=[
                 Float(
-                    ConditionalContainer(Frame(self.choices), Condition(self.is_open)),
+                    ConditionalContainer(self.choices, Condition(self.is_open)),
                     # Explicit height lets the menu extend above a one-row button;
                     # preferred height alone is clipped to the button's own row.
                     bottom=self.MENU_BOTTOM,

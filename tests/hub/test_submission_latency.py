@@ -72,7 +72,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
             controller.loop = asyncio.get_running_loop()
             calls = []
 
-            def call(operation, *args):
+            def call(operation, *args, **kwargs):
                 future = Future()
                 calls.append((operation, args, future))
                 return future

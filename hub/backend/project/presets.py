@@ -25,6 +25,9 @@ class PresetService:
         record = await self.settings.load_project(identifier)
         form = ProjectConfiguration.view(record).values
         project = PresetProject.export(form)
+        handle = await self.settings.project(identifier)
+        from .agents import preset_agents
+        project = project.with_agents(await preset_agents(handle))
         globals_ = await asyncio.to_thread(
             self.store.globals, self.settings.runtime.config.user_profile
         )
@@ -35,6 +38,7 @@ class PresetService:
         self.settings.validate_values(
             PresetDefinition(value).project.validation_values(self.VALIDATION_TITLE)
         )
+        self._validate_agents(PresetDefinition(value).project.agents)
         await asyncio.to_thread(self.store.save, name, value)
         return await self.list()
 
@@ -48,6 +52,7 @@ class PresetService:
         record = await self.settings.load_project(identifier)
         view = ProjectConfiguration.view(record)
         candidate = value.project.application_values(view.values)
+        self._validate_agents(value.project.agents)
         self._check_fixed(record, candidate)
         requests = [
             (
@@ -61,7 +66,18 @@ class PresetService:
         )
         batch = await self.settings.save_all(requests)
         if not SettingsBatch.error_from_record(batch):
-            await asyncio.to_thread(self.store.select, name)
+            from .agents import apply_agents
+            try:
+                await apply_agents(project, value.project.agents)
+                await asyncio.to_thread(self.store.select, name)
+            except Exception as error:
+                from ...errors.adapters import from_exception
+                from ...errors.contracts import ErrorOrigin
+                batch = SettingsBatch(
+                    SettingsBatch.from_record(batch).results,
+                    from_exception(error, origin=ErrorOrigin.BACKEND,
+                                   operation=SettingsOperation.PRESET_APPLY),
+                ).to_dict()
         return PresetApplication(
             batch,
             await self.settings.catalog(),
@@ -72,3 +88,7 @@ class PresetService:
     @staticmethod
     def _check_fixed(record, candidate):
         ProjectConfiguration.validate_edit(record, candidate)
+
+    def _validate_agents(self, definitions):
+        for definition in definitions.values():
+            self.settings.runtime.backend.engines.resolve_agent(definition)
