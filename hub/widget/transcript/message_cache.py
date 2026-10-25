@@ -1,5 +1,7 @@
 """Worker-owned caches and immutable prefix/tail display frames."""
 
+from hub.model import ReasoningMessage
+
 from llm.core.models import MessageStatus
 from bisect import bisect_right
 from collections.abc import Sequence
@@ -149,7 +151,7 @@ class MessageRenderCache:
         # Queued user messages can follow the currently streaming response.
         # Keep that whole changing region out of the historical prefix too.
         tail_start = next((index for index, message in enumerate(messages)
-                           if message.role == "reasoning" or message.role == "assistant"
+                           if message.role == ReasoningMessage.ROLE or message.role == "assistant"
                            and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)), len(entries) - 1)
         prefix_key = tuple(id(entry) for entry in entries[:tail_start])
         if prefix_key != self._prefix_key:
@@ -166,7 +168,7 @@ class MessageRenderCache:
         parts, anchors, objects = [], [], []
         maximum = 0
         for index, frame in enumerate(entries, start):
-            if index and messages[index].role == "user" and messages[index - 1].role in ("assistant", "reasoning"):
+            if index and messages[index].role == "user" and messages[index - 1].role in ("assistant", ReasoningMessage.ROLE):
                 parts.append(((('', ''),), (('', ''),)))
                 offset += 2
             parts.append(frame.lines)

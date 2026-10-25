@@ -64,6 +64,27 @@ class ChatMessage:
     failure: ErrorInfo | None = None
 
 
+class ReasoningMessage:
+    ROLE = "reasoning"
+    SUFFIX = ":reasoning"
+
+    @classmethod
+    def identifier(cls, assistant_id):
+        return assistant_id + cls.SUFFIX
+
+    @classmethod
+    def assistant_id(cls, identifier):
+        return identifier.removesuffix(cls.SUFFIX)
+
+    @classmethod
+    def owns(cls, message):
+        return message.role == cls.ROLE and message.id.endswith(cls.SUFFIX)
+
+    @classmethod
+    def create(cls, assistant_id, text, **values):
+        return ChatMessage(cls.ROLE, text, id=cls.identifier(assistant_id), **values)
+
+
 @dataclass(frozen=True, slots=True)
 class TraceItem:
     TOOL: ClassVar[str] = "tool"

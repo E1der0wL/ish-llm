@@ -40007,8 +40007,8 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "6cf870b1e375fc1a1578bc8c5080393a1068a21078b8c772e32e69c306e575a8",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked.",
+    "sha256": "f5be2f1f3db865f05fb12cc56af24dcccc90729906b1c925c214b1e5cb2fe1ad",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40581,6 +40581,11 @@
         "owner": "AgentDefinition fields and public Schema",
         "declaration": "llm/core/agents.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "hub/backend/project/agents.py",
           "llm/engines/agents.py",
           "llm/engines/loop/engine.py",
@@ -40589,23 +40594,36 @@
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
           "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_domain.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
@@ -40635,6 +40653,11 @@
         "owner": "AgentRecord / AgentCatalog / AgentBinding",
         "declaration": "llm/core/agents.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "llm/core/models.py",
           "llm/services/api.py",
           "llm/services/lifecycle/agents.py",
@@ -40643,22 +40666,35 @@
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_resource_integrity.py",
           "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
@@ -40688,6 +40724,11 @@
         "owner": "AgentProfile / AgentPolicy / AgentResourceSelection",
         "declaration": "llm/core/agents.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "llm/components/refinement/targets.py",
           "llm/engines/agent_resources.py",
           "llm/engines/agents.py",
@@ -40695,23 +40736,36 @@
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_architecture_boundaries.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
@@ -40743,28 +40797,46 @@
         "owner": "AgentDefinition.validate_selected",
         "declaration": "llm/core/agents.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "llm/engines/base.py",
           "llm/engines/registry.py",
           "llm/services/api.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_storage.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
@@ -40794,26 +40866,44 @@
         "owner": "AgentPolicy.validate_completion",
         "declaration": "llm/core/agents.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "llm/engines/agents.py",
           "llm/services/api.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_interaction_storage.py",
@@ -42917,216 +43007,222 @@
   },
   {
     "path": "llm/engines/contracts.py",
-    "sha256": "d0e1cbbeafdc5700dc0fc2a6c9072e2c0651d0f9133335ebe0c69070269da264",
-    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Remaining actual Engine discovery/resume hooks in RunManager now use this Owner. Same-spelled Component/Adapter/Graph-handler hooks are distinct protocols, not Engine consumers. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked.",
+    "sha256": "5056ddf2b07dd6523c51d7d61938d5e879477057bed57b57f463ecd67dd96dec",
+    "reason": "Read all optional Engine hook discovery, capability and mode validation, shared synchronous factory binding and selected Agent/context wrappers. Same argument deepcopy, coroutine closing, required execution/capabilities and short-circuit mode/steering/checkpoint comparisons and diagnostics. Context omission bypasses its factory; Agent additionally validates mode and consuming checkpoint/resume contract. Registration remains separately constrained. No runtime configuration or authority added. Base reexports the same public API with one implementation, not a compatibility branch. Other Engine hook consumers remain pending. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Remaining actual Engine discovery/resume hooks in RunManager now use this Owner. Same-spelled Component/Adapter/Graph-handler hooks are distinct protocols, not Engine consumers. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "a153ae9b50fb0aa6a41958d97ec32d197f6e9975b25202ba01a1b071267fe32a",
+        "id": "0151c35d4c49a216d45bd08361a00f7d80dd87b340fd964926abf063cd9d26d2",
         "classification": "declaration",
         "owner": "EngineHooks",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2cadeed321039e7a817e22ba7af346d1df1f9f9cc668baa22447aa3ab6602b8c",
+        "id": "ab89dde8ec0b045f185b191ed6075eeccb7dba955e467f21fb59862da163f379",
+        "classification": "declaration",
+        "owner": "EngineHooks",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "6d9865ab8a62f591a98de5a7679dadbfcf121d95e65c8694b617d23107a65857",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "83c876d4b9f25945424f0c294724cb9c8c075aab763c147157d4042a6ff8d678",
+        "id": "9433c89d4f45cc4ecfc40ff515906212c0b747be0bc3b461343f18e29eea98d3",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "76a2fafc2f90b6b4cab0a36c2809d9176e6098b9873e3f54451c1dd71e0909a9",
+        "id": "f14295852a6b0c0691f5d0ded47ecba6a05eff9b67b39a6ebb53f268f755a48c",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "49f8b92eed834ab4379c2c97e536cb657981f19cdb19369cbfe69dc70d15f51e",
+        "id": "b1075eabb90ee88fa981daf020321fdc73347d21df028a4d8d34dace492201f4",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "e2248561b4400a8a8b0cddee75e21510d1329d0633226900b798ed1948c9aafe",
+        "id": "cfd50380ce639619d74f77853b860b2b8393a6c33247cb7550248c9eeca2c47b",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "8bbf4f7c43ae23bb1d7a56771b926889a7eeda72b77b5f752e6fd3a0511cd222",
+        "id": "ea67bc55976aad57154f22875250a6b44caf6f0e0b7373e43c3ed7e0d6a86b7f",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "e28a3f3e8e25aad4010e92c1b12510dd7d83a2d72140cc54334890a75a895478",
+        "id": "9f639b5e54cfca9be073f32a5e93a1ca93fa589883d1ea244340629a97c5cf5d",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "f77dab2e9f704453943e28d92d4199238e2d4e8119e300bebb8cd79615dbd2c2",
+        "id": "165b71f65eb3421fc04c650ca18329ff4fdc6e541f38830f8ede21251703994c",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "a41a9e876e3f2f113342baf61da235a239d4257f7312ef3d9a10f5292b0fb649",
+        "id": "1461559d66bdd4f030f4cb3c9bccf5dda9f24e11811e3e8ff995c88a7c4cba94",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "710a78c53a14bc26815c1d2f0bd1f15d29df0a50cd95631c1a119bff71ff92c7",
+        "id": "1442feda707144c6860d3be3e59b0e36fe873a104917b9e1a2f203a30a49e9c6",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "52c55f66f241b70f38e6ad1add59486ccc74916814e6cdb3429a9cd5fb6b8784",
+        "id": "7e295a869460af68a029e1df6be56fc259d1f79b7cd1f4d8806e1f673c078b5a",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "a402cd3980b6216dcead038cdf1acdc2aed1174b2e5b3bcb9e2eead3dbc6960e",
+        "id": "5a0945d341364644c66fcec70198fa50b2690f96a1a9805220a14e4968380d5c",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "fa11ef655d7b6bcbe9fdc2581e4d68d17cd6f3bc7bb6a9c43be30cb68d08c67e",
+        "id": "48f1687d822603111d1f999c7b8912bce64cc093597afc050c7f806b85c41d83",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "422cb8eb257d815bd498a954dec7fcfa4f9108f7a47da1b5ff71b566366ede19",
+        "id": "7484704deb6df8af24aa8ea37f5fe6ac6d831f6dcfc79e686f9e62bba4b8a6e7",
         "classification": "declaration",
         "owner": "EngineHooks",
         "reason": "Canonical required-Tool completion diagnostic, checkpoint context extension name or unsupported Engine resume diagnostic is declared by the corresponding Owner."
       },
       {
-        "id": "d8d5f3c6ecec70775c44a75687fe990e7deba827e6a461624e41bb78f6d35eff",
+        "id": "598abb3ed1f41e08271894a74d5bb36dc87c94b513f9e0a2cc7ba4372cb4bace",
         "classification": "declaration",
         "owner": "ResumableHandlerContract",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d86da676f209f4509ce629b7eaf7ef5c6a306a80ddde4cab9954ac9813455cb8",
+        "id": "b6f923fd997942627576038ec7d1c2b1e98382fc9e592927342234325ff54edf",
         "classification": "declaration",
         "owner": "ResumableHandlerContract",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "df557cf3687819c577188d645ff0e077d07c04dbb0daa2da9335d965463812e1",
+        "id": "71757ab647fe7b359b22c4dbc53f1288440f8a9c28669886429921d960d43bda",
         "classification": "declaration",
         "owner": "ResumableHandlerContract",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a46a33238716c801eeba0401390a259d5aa8120d25c29890f4c1210c337ce4fd",
+        "id": "d425b232b9085cb88c9a65564c23e6dfa2a306e11036ecd28c7c87d6f6e5cd6b",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Variable-length tuple annotation, not a runtime fallback."
       },
       {
-        "id": "1d8670aa03119d6e68a2ada408a683107f7859f33eb03b2a4509b40a9696b208",
+        "id": "f9e7eef2bc3e884a4c5ba918ea845e845bf6c34f2b9ad6347349f634257d3834",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
       },
       {
-        "id": "e917e025a6258926b26bb9003862ada043ec7ada9b7a91ae256c486ac0e08a8c",
+        "id": "b5e34b815b38a7867a4d0f963091a9b6d2b38f97578bed96f2b1b528c22ac60c",
         "classification": "non_contract",
         "owner": "Engine public binding and hooks",
         "reason": "Frozen/slots dataclass layout for fixed API diagnostics, not a policy setting."
       },
       {
-        "id": "398acd5f6cbfef8bcdb5a6c2664861b48dafa320595695cc3ae3ee02918ceec0",
+        "id": "7164654bb96b7bcd62e0e095ccf107b1d0304d2e8fe7c736ed45e8e87ef14e5b",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "db64b510454149f9673169c5dd7e8d66198b1b4d681e34df47d650fc90f449b2",
+        "id": "92d136f2dcd4c6990471ca0372651bad837b122427144e008926b29e5471fbac",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "3fb14197379e4c6867ffe7c6e66a0f4d225fd55562afeaedc7e59c58283c8e0f",
+        "id": "dee5a50de6814d01557ce72904a0782cff47668d0dbd1609ed7421454c4c2082",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "73797269267607f12222c697ffdd574034357435eb40f8a80e33d1c8edbb60bc",
+        "id": "c684df07cc838416ab71eb07b95844a8a842593b396ea70f30e4eb3f87561fd5",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "4120bd177111898ee5e99588a82b3fe84ae779e2fff027cbf45cc47400f2b6bf",
+        "id": "f20d4f530c3088e93cbad6024a218e02560ea58b49552da24e885800af1f602f",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "17b199d5191a629545f335174dbbbb1d7f813efac46112966a8dd8bb1f9e1644",
+        "id": "89944cd3035df45041d81b818c460ef55fc6847b6adb2fecc0bfd61e49029ca0",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "4b6b98b60874bf5287c75a5d3173e6fdb55c8e448e8b1d3f9d763b73e0c916a2",
+        "id": "b20d30eaf9717b181daa595ce0dfbad58858a2e299290dbeb2e821798de9526b",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "966469fa900349a330b073f6e6347ee7325a75e36ec9ea47a97819806da6ca4c",
+        "id": "c5cf1454d82cbb48db83ef26528bb3756a4ff04b85056a19c0a7a85d76806b6d",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "7b180532563472529eea0c113314cb81f8584455237475557927b89963d6654d",
+        "id": "9280bf0e8150501d4e04dc766ce1f18ee6f329fa60baa94e183eeed2d1b92770",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "a3df1da362eef17856efdd7d80cfd062547f08739a2b3913e8be131df840c00f",
+        "id": "2ace0acabacb9a449ae349cb0b288cecd1c5612fb20548a731729f31bbcf551e",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "e0d8ca8fa679b864a206e6cc93347ade0940164393e4d0bfa1cfb4c3161d1a9e",
+        "id": "86a3924a9687e98f24f288bb397a35bf38cb4676775da90ef15931b82a350ee3",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "27eac5c7fc233d2a388b1ee34e063d59555702f7063ceb8e2f570ee4de4384cd",
+        "id": "98d42272bfd6a14b782c10471917786b33549ee8c0f5f940cf127c90d7a9b1bb",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "206955c3543f80bb7bed739ee3287308c34e8d0a1833f8d1802206ab42cd55a7",
+        "id": "e557fc2baa6d9c3ad7c7601e518341e772c0527bf1b15b7779f1c266414903e4",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
       },
       {
-        "id": "b5c9733ae06fdd3a84de600598e16bfc9b157cb70388c1c7a853fd435d8cd341",
+        "id": "ffe13e008ce3a44e9dd5f6c166f025674e2cf871caed03798767ad87a763af37",
         "classification": "declaration",
         "owner": "Engine public binding and hooks",
         "reason": "Canonical optional Engine hook/capability declarations, fixed factory diagnostics or registry diagnostics before implementation. Existing absence/unsupported behavior is preserved."
@@ -43137,6 +43233,11 @@
         "owner": "EngineBindingContract / EngineContextBinding / EngineAgentBinding / required_capabilities / steering_mode / agent_mode",
         "declaration": "llm/engines/contracts.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "llm/engines/agents.py",
           "llm/engines/base.py",
           "llm/engines/graph/handler_contracts.py",
@@ -43147,16 +43248,26 @@
           "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
@@ -43165,11 +43276,13 @@
           "tests/llm/test_completion_review_crash.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_engine_steering.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_instruction_reservations.py",
@@ -43207,6 +43320,11 @@
         "owner": "EngineHooks",
         "declaration": "llm/engines/contracts.py",
         "consumers": [
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
           "llm/engines/agents.py",
           "llm/engines/graph/handler_contracts.py",
           "llm/engines/loop/engine.py",
@@ -43216,16 +43334,26 @@
           "llm/services/schema.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
@@ -43234,11 +43362,13 @@
           "tests/llm/test_completion_review_crash.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
+          "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_engine_steering.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_instruction_reservations.py",
@@ -71759,8 +71889,8 @@
   },
   {
     "path": "llm/services/history/turns.py",
-    "sha256": "699c008788a61120a366a3c5e50301a0e5ce92527624b83f623f452f3978e211",
-    "reason": "Whole context/turn review includes each policy/no-policy/snapshot/clone path, interleaved admission groups, continuation ordering, scoped steering filtering and detached clone receipts. Existing original/source evidence and current-input inclusion are preserved; only explicit list/tuple algorithm syntax remains outside declarations.",
+    "sha256": "c0c21b5cfb8f5487ebdf3526bdb18f080d6782829d682006d38f8d91acdbf3b7",
+    "reason": "Whole context/turn review includes each policy/no-policy/snapshot/clone path, interleaved admission groups, continuation ordering, scoped steering filtering and detached clone receipts. Existing original/source evidence and current-input inclusion are preserved; only explicit list/tuple algorithm syntax remains outside declarations. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -71782,19 +71912,13 @@
         "reason": "Owner-head absence markers, text-budget boundary, state/role selections and errors. Mode/role/scope/message mutation references the existing semantic Owner."
       },
       {
-        "id": "2cb9e7f6b0c5891a8d853046f580a5b51167eb2df2a2150d73f3300e7d321b15",
+        "id": "537e962c980a8cbd9b773844992ba9fd139275439b950950e1009d505ca91197",
         "classification": "non_contract",
-        "owner": "ConversationTurns.group",
-        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
+        "owner": "ConversationTurns.request",
+        "reason": "The first member of an already ordered conversation group is its request; Owner sequence access, not another persisted field."
       },
       {
-        "id": "65cec57ec9852aff6433647f19fedff6dcdc9ac86710e60b58522adc13bb0147",
-        "classification": "non_contract",
-        "owner": "ConversationTurns.through",
-        "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
-      },
-      {
-        "id": "01c73ca36e8def11dc94d3967b66c5440192120c9ea73c73dd9aed6c920c3b99",
+        "id": "18f96ec187c9e0bb1c88e6590691f675d47e285f7053f870a95f28329d33fa30",
         "classification": "non_contract",
         "owner": "ConversationTurns.through",
         "reason": "Pure list slicing/first-or-last group selection or enumerate pair position. It neither declares a stored/wire field nor adds a selection policy or limit; the surrounding algorithm is unchanged and differentially tested."
@@ -71805,21 +71929,38 @@
         "owner": "ConversationTurns / MessageRole / common ModelRole",
         "declaration": "llm/services/history/turns.py",
         "consumers": [
-          "llm/services/runtime/runs.py",
-          "llm/services/lifecycle/sessions.py",
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/continuations.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/execution/turn_values.py",
+          "hub/backend/execution/turns.py",
+          "llm/services/history/conversation.py",
           "llm/services/history/retention.py",
-          "llm/services/history/conversation.py"
+          "llm/services/lifecycle/sessions.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_composer_history.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_tool_history.py",
+          "tests/llm/test_agent_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
           "tests/llm/test_completion_integrity.py",
           "tests/llm/test_continuation_values.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_engine_steering.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_instruction_values.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
@@ -71832,6 +71973,7 @@
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_service_boundaries.py",
           "tests/llm/test_service_extensions.py",
+          "tests/llm/test_transactions.py",
           "tests/llm/test_turn_deletion.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
@@ -97011,6 +97153,396 @@
           "tests/hub/test_tool_retry.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_interrupt_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/turn_values.py",
+    "sha256": "2457d090cc47cad7fef8ad2df7170daf48a9d13fe5a56c7c5a293f04a5f2e53c",
+    "reason": "HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2d432f6c1de98dacde47b266ee64b0ba26945aef5e49ce6b575659ec3571975f",
+        "classification": "declaration",
+        "owner": "HubTurnContext",
+        "reason": "Canonical existing Hub edit-source context fields and validation; no persisted default is added."
+      },
+      {
+        "id": "643dbddc0e08b6f5fc6e918e23dfe62e42db6208726ef5d80a833085f24f7ad5",
+        "classification": "declaration",
+        "owner": "HubTurnContext",
+        "reason": "Canonical existing Hub edit-source context fields and validation; no persisted default is added."
+      },
+      {
+        "id": "1e1335abe62918d7983ab22d7224d8153dbf9288f3431e5583b1ec1a4cb9f924",
+        "classification": "declaration",
+        "owner": "HubTurnContext",
+        "reason": "Canonical existing Hub edit-source context fields and validation; no persisted default is added."
+      },
+      {
+        "id": "8bd6ad30874ad9785ec95f97f8d4f61ec35512037a3b47a69e55ed00ebfe22df",
+        "classification": "declaration",
+        "owner": "HubTurnContext",
+        "reason": "Canonical existing Hub edit-source context fields and validation; no persisted default is added."
+      },
+      {
+        "id": "00d2175855a5470f351cdfb195af10464393933500bf8672b60330aa35187cfb",
+        "classification": "declaration",
+        "owner": "HubTurnContext",
+        "reason": "Canonical existing Hub edit-source context fields and validation; no persisted default is added."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubTurnContext",
+        "declaration": "hub/backend/execution/turn_values.py",
+        "consumers": [
+          "hub/backend/execution/turns.py",
+          "hub/backend/execution/context.py",
+          "hub/backend/execution/environment.py",
+          "hub/backend/history.py"
+        ],
+        "tests": [
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/turns.py",
+    "sha256": "9162f6c81384ac29324a4cb10586b6c67621d9c0cfcd1173e31d78fc3be3bbed",
+    "reason": "HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f403490930358ef35da76a9db35a945df457243164eacb0a8ffb46ed463f72a8",
+        "classification": "non_contract",
+        "owner": "LogicalTurn",
+        "reason": "Dataclass slots generation is Python object layout."
+      },
+      {
+        "id": "9f7f1a6211b124951ef1d393ff2d89f17597ff24ce9e01db3aeae9aea0c73019",
+        "classification": "declaration",
+        "owner": "LogicalTurn",
+        "reason": "Existing first-attempt selection and no-turn sentinel; wire metadata belongs to HubTurnContext."
+      },
+      {
+        "id": "65e3014dbefb4a327752464a3ea4e2343522c756d546cd3b671050327e9bce04",
+        "classification": "non_contract",
+        "owner": "LogicalTurn.latest",
+        "reason": "Negative index selects the final active attempt in an ordered sequence."
+      },
+      {
+        "id": "50fd6a34b2b147f8cbc8d312f76330d48706f97ad60b6746aa4733b49096dd4c",
+        "classification": "declaration",
+        "owner": "TurnIndex",
+        "reason": "Existing first-attempt selection and no-turn sentinel; wire metadata belongs to HubTurnContext."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LogicalTurn / TurnIndex",
+        "declaration": "hub/backend/execution/turns.py",
+        "consumers": [
+          "hub/backend/history.py",
+          "hub/backend/execution/context.py",
+          "hub/backend/observability/snapshot.py"
+        ],
+        "tests": [
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/continuations.py",
+    "sha256": "3e21b2460fb6eaf0a1d6e4a12449925925d13e092a568b2835c168b50b05b310",
+    "reason": "HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "eee4f88a69f9828f106c98074261d89943d8c23094053191860f027e3c00698d",
+        "classification": "declaration",
+        "owner": "ContinuationDisplay",
+        "reason": "Presentation-only text join, elapsed absence and visibility declarations; Message states and roles reference their canonical Owner."
+      },
+      {
+        "id": "b9050e3a09f51e48f728998b5f4021d6a30d3bff2e435a33b9fddc4fdd745274",
+        "classification": "declaration",
+        "owner": "ContinuationDisplay",
+        "reason": "Presentation-only text join, elapsed absence and visibility declarations; Message states and roles reference their canonical Owner."
+      },
+      {
+        "id": "e4a3ee72491ac667028e8468dffe0b13ab6f3e37a4951b0ea990bd487fa8dc3c",
+        "classification": "declaration",
+        "owner": "ContinuationDisplay",
+        "reason": "Presentation-only text join, elapsed absence and visibility declarations; Message states and roles reference their canonical Owner."
+      },
+      {
+        "id": "c763bd54f36be28408fa6c2e37f3e8da1030f8f8fc7c458b31b12f2f77621ba2",
+        "classification": "declaration",
+        "owner": "ContinuationDisplay",
+        "reason": "Presentation-only text join, elapsed absence and visibility declarations; Message states and roles reference their canonical Owner."
+      },
+      {
+        "id": "ce38babb80aca8e565ba15a2f2d2118a76ec859264953a4824f3f96b3b2877b8",
+        "classification": "non_contract",
+        "owner": "continued_messages",
+        "reason": "Variadic tuple return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ContinuationDisplay / continued_messages",
+        "declaration": "hub/backend/execution/continuations.py",
+        "consumers": [
+          "hub/backend/execution/turns.py"
+        ],
+        "tests": [
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/context.py",
+    "sha256": "88f67472320bb150ce41bbbb10fc68f764b233b65d29785c89660e53c831dcef",
+    "reason": "HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "022eac7f05f8ca9ed31bb2af833b971c1a39244e01c20e052cbc049214eaa953",
+        "classification": "declaration",
+        "owner": "HubContextBuilder",
+        "reason": "Existing presentation join and optional policy boundary; Backend context selection remains authoritative."
+      },
+      {
+        "id": "d36775c6068f23260c4a545f98b3796e8136514d7c3ce923812e5626e54c29b7",
+        "classification": "declaration",
+        "owner": "HubContextBuilder",
+        "reason": "Existing presentation join and optional policy boundary; Backend context selection remains authoritative."
+      },
+      {
+        "id": "59bfacc8d4434f47bd0b3c1851c2002159c3fb8f08c25c6d03dda6a1c1fb54ea",
+        "classification": "non_contract",
+        "owner": "HubContextBuilder.for_clone",
+        "reason": "Negative index selects the last Assistant in the ordered selected group."
+      },
+      {
+        "id": "406c9f7276347f9be0d46c0c9cfd8c9959f07a6634ec7d53a86786579fef3c4c",
+        "classification": "non_contract",
+        "owner": "HubContextBuilder.for_run",
+        "reason": "Optional type annotation."
+      },
+      {
+        "id": "f2c2097dc330aff75e5370e8830ffa433ae9062db6bed47e241bb798e375b4d3",
+        "classification": "non_contract",
+        "owner": "HubContextBuilder.for_run",
+        "reason": "Variadic tuple return type annotation."
+      },
+      {
+        "id": "1a8989d37002602c2a4426eacad1baeafda4fa50c57ebff061ed22b4cbf1c10e",
+        "classification": "non_contract",
+        "owner": "HubContextBuilder.for_run",
+        "reason": "Negative index selects the last active group."
+      },
+      {
+        "id": "217c550f75e379e2e57d664b4dd7b2a38699de1ded4fe87df64df47df4ee3289",
+        "classification": "non_contract",
+        "owner": "HubContextBuilder.for_run",
+        "reason": "Slice excludes the final input while cleaning prior Assistant text."
+      },
+      {
+        "id": "f4273d2a5dbfd339481455a7cc6d7d324cb04e6ce388084089da991d2ed01a3e",
+        "classification": "non_contract",
+        "owner": "HubContextBuilder.for_run",
+        "reason": "Negative index retains the current input for final budget selection."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubContextBuilder",
+        "declaration": "hub/backend/execution/context.py",
+        "consumers": [
+          "hub/backend/bootstrap.py"
+        ],
+        "tests": [
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_retention.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/environment.py",
+    "sha256": "00e526464b535afa7b56170dc0af0bfbd2e68bd8bf9d46ac42a200597f7965db",
+    "reason": "HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ec48a6ff6572c94b3dc38af996c33c51f6ba5d17918aa6f6ff73a7a1351ae70c",
+        "classification": "declaration",
+        "owner": "EnvironmentSession",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      },
+      {
+        "id": "f979c150f19b473136e4ea0183fb40409c7c77f622af9ecbb68effd72fc1c351",
+        "classification": "non_contract",
+        "owner": "EnvironmentSession.prepare",
+        "reason": "Unreachable yield establishes an async-generator interface with no emitted event."
+      },
+      {
+        "id": "033c2e86fe44faafa7202ebd830682360bdb0edc3c7048ccb3c21fb45ab2c7e5",
+        "classification": "declaration",
+        "owner": "EnvironmentProcessor",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      },
+      {
+        "id": "acd9d2e9c4da7fc775c70dd408a5e73d96e4d70cabb6dd6e8209a2adde32849b",
+        "classification": "declaration",
+        "owner": "EnvironmentProcessor",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      },
+      {
+        "id": "febc91aafb49489eca70f039eef7938066210802e091a0f558b931c2677b6223",
+        "classification": "declaration",
+        "owner": "EnvironmentProcessor",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      },
+      {
+        "id": "85185fbbb6b5692f1a22ebae35e901ed1ca05c3caed6051638dfd688f8c3b1c2",
+        "classification": "declaration",
+        "owner": "EnvironmentEngine",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      },
+      {
+        "id": "e8405ff5a6922bdc5679f7fe466d1a0d86d790b75f749265d73a1551d4458cda",
+        "classification": "declaration",
+        "owner": "EnvironmentEngine",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      },
+      {
+        "id": "8d6af20a61bc146464bc02d106f357196e5638c4b0a833e29069080bfebd5b57",
+        "classification": "declaration",
+        "owner": "EnvironmentEngine",
+        "reason": "Exact environment instruction template, processor identity/priority, delegation attribute and absent context; SDK/execution contracts remain with their Engine Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "EnvironmentSession / EnvironmentProcessor / EnvironmentEngine",
+        "declaration": "hub/backend/execution/environment.py",
+        "consumers": [
+          "hub/backend/bootstrap.py"
+        ],
+        "tests": [
+          "tests/llm/test_conversation_turns.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_graph_agent_contract.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_retention.py"
         ],
         "complete": true
       }

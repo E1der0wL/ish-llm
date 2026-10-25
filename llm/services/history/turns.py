@@ -13,6 +13,10 @@ class ConversationTurns:
     MISSING_TURN = "Conversation turn does not exist"
 
     @classmethod
+    def request(cls, group):
+        return group[0]
+
+    @classmethod
     def group(cls, messages):
         groups, by_run = [], {}
         for message in messages:
@@ -23,7 +27,7 @@ class ConversationTurns:
                 groups.append(group)
                 for run_id in RequestAdmission.run_ids(message):
                     by_run[run_id] = group
-        by_id = {group[0].id: group for group in groups}
+        by_id = {cls.request(group).id: group for group in groups}
         current = ConversationTurns.NO_GROUP
         for message in messages:
             if message.conversation_deleted:
@@ -40,7 +44,7 @@ class ConversationTurns:
     def through(cls, messages, request_id):
         groups = conversation_turns(messages)
         index = next(
-            (i for i, group in enumerate(groups) if group[0].id == request_id), ConversationTurns.NO_INDEX
+            (i for i, group in enumerate(groups) if cls.request(group).id == request_id), ConversationTurns.NO_INDEX
         )
         if index is ConversationTurns.NO_INDEX:
             raise ValueError(ConversationTurns.MISSING_TURN)

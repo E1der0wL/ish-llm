@@ -8485,3 +8485,51 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 129파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## 대화 편집·재개 이력과 요청별 셸 환경의 단일 소유
+
+TurnValues·Turns·Continuations·Context·Environment 다섯 파일을 전수 정리했다.
+HubTurnContext가 기존 _hub_turn/source의 선언·관찰·편집 투영·제거·입력 검증을 소유한다.
+ConversationTurns.request는 정렬된 그룹의 원본 요청 위치를, LogicalTurn은 initial/active_request를
+제공한다. Hub 모델의 ReasoningMessage가 reasoning 역할과 :reasoning ID 생산·관찰을 소유하고
+Snapshot·Transcript·Preparing의 실제 소비자가 같은 API를 사용한다. 후자의 파일 전체 검토는
+아직 남아 있으며 좁은 변경을 전수 완료로 기록하지 않는다.
+
+AgentBinding.request_context의 명시적 default 인자는 기존 Hub의 생략 시 빈 객체 관찰만 보존한다.
+원본 요청·저장 설정에 기본값을 저장하거나 explicit None을 정상화하지 않는다. 편집은 기존과
+같은 얕은 context 사본을 만들어 source만 바꾸며, clone은 별도 복사본에서 실행 가능한 재개
+참조를 제거한다. 원본 admission·resume 기록, cancelled 첫 시도 보존, cycle 방어, 예산 적용 전
+완료한 논리 대화 선택, reasoning/Tool trace/elapsed 병합 및 메시지 순서를 유지한다.
+
+Environment의 request-context 입력 처리와 기존 동기 factory 검증을 유지했다. 공통 binding
+API의 추가 검증을 끼워 넣지 않았다. validate_resume은 기존처럼 context가 None일 때만 바인딩을
+생략하고, bind_execution과 with_instructions 위임 및 wrapper 복사도 동일하다. 실제 권한·Tool
+부분집합·완료 처리기 추가·취소 drain·재시도 관찰자 정리는 원래 실행 경계에 남아 있다.
+
+독립 원본/제안 157개 관찰이 일치했다. 현재 admission을 사용하는 편집·resume·restart·cycle·
+cancelled 이력, clone/for_run의 입력 불변성, reasoning/elapsed 표시, 원본 편집 요청 보존,
+잘못된 Hub context와 async/invalid factory 거부, None/False/0 context 전달, 실제 환경 안내문
+텍스트·삽입 위치·source_id를 비교했다. 비교 probe의 fixture를 현재 admission 계약에 맞춘 뒤 원본과 제안을 다시 실행했다. 실제 저장·외부 효과와 UI는 아래 기존 소비자·안전성 회귀가 검증한다.
+
+- `whole-hub-conversation-lineage-core-01`: discovered/started/pass 25/25/25, exit 0, 10.606545초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-conversation-lineage-core-01/llm.json --modules tests.llm.test_conversation_turns tests.llm.test_agent_values tests.llm.test_execution_contexts tests.llm.test_graph_agent_contract`. source `8fd79fa89d6d15b137cfe82457af8558b56b23b2774957b553c0d1b291377474`, input `f2df52c770708f4fd09223cf6a1b749225db653efd3912fa346908d75aae34ac`.
+
+- `whole-hub-conversation-lineage-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.866251초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-conversation-lineage-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `8fd79fa89d6d15b137cfe82457af8558b56b23b2774957b553c0d1b291377474`, input `f2df52c770708f4fd09223cf6a1b749225db653efd3912fa346908d75aae34ac`.
+
+- `whole-hub-conversation-lineage-l1-01`: discovered/started/pass 37/37/37, exit 0, 84.149605초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-conversation-lineage-l1-01/hub.json --modules tests.hub.test_context tests.hub.test_request_history tests.hub.test_shell_environment tests.hub.test_agent_graph tests.hub.test_settings_restart`. source `8fd79fa89d6d15b137cfe82457af8558b56b23b2774957b553c0d1b291377474`, input `f2df52c770708f4fd09223cf6a1b749225db653efd3912fa346908d75aae34ac`.
+
+- `whole-hub-conversation-lineage-l2-01`: discovered/started/pass 29/29/29, exit 0, 43.242521초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-conversation-lineage-l2-01/hub.json --modules tests.hub.test_approval_continuation tests.hub.test_tool_history tests.hub.test_conversation tests.hub.test_retry_observations tests.hub.test_history_retention`. source `8fd79fa89d6d15b137cfe82457af8558b56b23b2774957b553c0d1b291377474`, input `f2df52c770708f4fd09223cf6a1b749225db653efd3912fa346908d75aae34ac`.
+
+모든 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, 실행 전후·사이 source/input 동일성을 확인했다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 argv/exit는
+`hub-conversation-lineage-draft/selected-results.json`, 비교 명령은 `proof-commands.json`이다.
+Level 1은 LLM Conversation/Agent/Execution/Graph 계약과 Hub Context·Request history·Shell
+Environment·Agent graph·Settings restart, Level 2는 승인 연속 실행·Tool history·Conversation·
+Retry observations·History retention이다. 공통 안전성 84개 및 R3 Mutation도 통과했다.
+이미 실행 중인 전체 게이트의 Hub와 중복 자원 경쟁을 줄이도록 Hub 집중 실행만 뒤에 배치했다.
+
+기존 관찰/투영 이동의 영향 범위를 비교와 직접 소비자로 확인했다. 이 소단계의 전체 회귀는
+유예했으며 상위/원격 완료로 표현하지 않는다. Gate50에는 이 변경이 없으며 ResponseContext·
+RuntimeObservation·StopIntent 및 후속 관련 이력 변경을 묶는 Level 3·정적/문서/R3·실환경·정확한
+SHA 원격 CI가 다음 게이트다. 기존 승인·예산·실제 Tool 효과·Checkpoint·삭제 Assertion은 유지한다.

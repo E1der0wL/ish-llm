@@ -1,5 +1,7 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
 
+from hub.model import ReasoningMessage
+
 from hub.locales.keys import MessageKey
 
 from hub.ui.output.model import OutputBlock
@@ -47,7 +49,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
                 lines.extend(render_tool_history(message.tools, width, theme, t))
             continue
         index = local_index + index_offset
-        if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", "reasoning"):
+        if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", ReasoningMessage.ROLE):
             lines.extend([[('', '')], [('', '')]])
         if anchors is not None and section != "body":
             anchors.append((message.id or f"index:{index}", len(lines)))
@@ -57,7 +59,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         label = (message.author or account_name) if user else t(
             MessageKey.ASSISTANT if message.role == "assistant" else
             MessageKey.SYSTEM if message.role == "system" else
-            MessageKey.REASONING if message.role == "reasoning" else MessageKey.INFO)
+            MessageKey.REASONING if message.role == ReasoningMessage.ROLE else MessageKey.INFO)
         if message.role != "system" and (message.activity or message.phase or message.status):
             label += " · " + (message.activity or t.status(message.phase or message.status))
         if message.role == "assistant":
@@ -103,7 +105,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
             body = []
         else:
             renderable = (HubMarkdown(message.text, theme)
-                          if message.role in ("assistant", "user", "draft", "reasoning")
+                          if message.role in ("assistant", "user", "draft", ReasoningMessage.ROLE)
                           else Text(message.text, overflow="fold"))
             body = markdown_lines(renderable)
         if user:

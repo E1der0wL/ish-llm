@@ -1,5 +1,7 @@
 """Immediate local submission feedback, separate from durable chat history."""
 
+from hub.model import ReasoningMessage
+
 from hub.model import ResponseActivity
 
 from hub.locales.keys import MessageKey
@@ -157,5 +159,5 @@ class PreparingResponse:
         # For a new Run retain preparation until its own assistant is observed.
         if request.status == MessageStatus.CANCELLED or (request.status == MessageStatus.QUEUED and snapshot.run and snapshot.run.active):
             self.finish(key)
-        elif following and following[0].role in ("assistant", "reasoning"):
+        elif following and following[0].role in ("assistant", ReasoningMessage.ROLE):
             self.finish(key)

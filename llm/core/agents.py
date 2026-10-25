@@ -497,8 +497,8 @@ class AgentBinding:
         metadata[cls.EXECUTION_FIELD] = deepcopy(value)
 
     @classmethod
-    def request_context(cls, metadata):
-        return metadata.get(cls.CONTEXT_FIELD, UNSET)
+    def request_context(cls, metadata, *, default=UNSET):
+        return metadata.get(cls.CONTEXT_FIELD, default)
 
     @classmethod
     def from_metadata(cls, metadata):

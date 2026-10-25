@@ -7,7 +7,6 @@ from llm.core.plans import PlanBlockerCode
 from hub.errors.operations import OperationCode
 
 from llm.core.checkpoints import CheckpointErrorCode
-from llm.core.agents import AgentBinding
 from llm.core.models import RunStatus, MessageStatus
 import hashlib
 import json
@@ -15,7 +14,9 @@ import json
 from llm.llm import CheckpointError
 from llm.services.runtime.requests import RequestAdmission
 
-from .execution.turns import TURN_OPTION, TurnIndex
+from .execution.turns import TurnIndex
+from .execution.turn_values import HubTurnContext
+from llm.services.history.turns import ConversationTurns
 from .execution.stopping import display_run, reopen_questions
 from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorOrigin
@@ -33,7 +34,7 @@ class TurnHistory:
         """Latest admitted attempt per Agent, including a still-queued replacement."""
         selected = {}
         for group in turn.active:
-            message = group[0]
+            message = ConversationTurns.request(group)
             if not RequestAdmission.present(message):
                 continue  # Cloned observations carry no executable request identity.
             request = await session.run.arequest(message.id)
@@ -44,8 +45,7 @@ class TurnHistory:
         return dict(sorted(selected.items()))
 
     async def _edit_request(self, session_id, request, recipients, text):
-        options = dict(request.metadata.get(AgentBinding.CONTEXT_FIELD, {}))
-        options[TURN_OPTION] = {"source": request.id}
+        options = HubTurnContext.with_source(request.metadata, request.id)
         return await self.runtime._submit_recipients(session_id, text, recipients, options)
 
     async def index(self, session_id):
@@ -78,8 +78,8 @@ class TurnHistory:
             statuses = {item["status"] for item in recipients}
             status = next((value for value in self.DISPLAY_STATUS_PRIORITY if value in statuses), fallback)
             elapsed = [item["elapsed"] for item in recipients if item["elapsed"] is not None]
-            rows.append({"id": turn.id, "request_id": request.id, "text": turn.active[0][0].content,
-                         "time": turn.attempts[0][0].created_at, "status": str(status),
+            rows.append({"id": turn.id, "request_id": request.id, "text": turn.active_request.content,
+                         "time": turn.initial.created_at, "status": str(status),
                          "agent_id": ", ".join(attempts), "runs": recipients,
                          "engine": ", ".join(dict.fromkeys(item["engine"] for item in recipients)),
                          "elapsed": max(elapsed) if elapsed else None,
@@ -174,10 +174,10 @@ class TurnHistory:
                     # The public deletion planner rejects a Session containing
                     # queued work. Review dependencies after cancellation; never
                     # abandon newly discovered checkpoints without confirmation.
-                    items.append({"id": group[0].id, "queued": False, "deferred": True})
+                    items.append({"id": ConversationTurns.request(group).id, "queued": False, "deferred": True})
                     continue
-                plan = (await session.adelete_turn_plan(group[0].id)).to_dict()
-                items.append({"id": group[0].id, "queued": False, "plan": plan})
+                plan = (await session.adelete_turn_plan(ConversationTurns.request(group).id)).to_dict()
+                items.append({"id": ConversationTurns.request(group).id, "queued": False, "plan": plan})
                 for item in plan["blockers"]:
                     blockers[item["source"]["run_id"]] = item
         revision = hashlib.sha256(json.dumps(items, sort_keys=True).encode()).hexdigest()

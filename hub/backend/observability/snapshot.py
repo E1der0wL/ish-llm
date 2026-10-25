@@ -1,5 +1,7 @@
 """Read-only projection through llm services; no scheduling or localized strings."""
 
+from hub.model import ReasoningMessage
+
 from llm.core.steering import RunInstruction, is_instruction
 from llm.core.models import MessageRole
 
@@ -130,7 +132,7 @@ class SnapshotReader:
                 if reasoning or tools:
                     trace = merge_trace(self.thinking.trace(message.run_id,
                         self.trace_history.get(message.run_id, ())), tool_trace(tools))
-                    visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools,
+                    visible.append(ReasoningMessage.create(message.id, reasoning, tools=tools,
                                                trace=trace))
             status = str(RunInstruction.from_message(message).status if is_instruction(message) else message.status)
             if status == MessageStatus.PAUSED and message.run_id in stopped_runs:
