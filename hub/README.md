@@ -1,3 +1,43 @@
+# 현행 리팩터링 브랜치 안내
+
+`refactor/llm-clean`의 실행·저장 계약은 [현재 설계](../docs/llm/clean-refactor.md)와
+[계약 소유권](../docs/llm/contract-ownership.md)을 기준으로 합니다. 아래 main 사용법은 해당
+시점의 참고 자료이며 현재 브랜치의 API·저장 형식·검증 완료 증거로 승계하지 않습니다.
+날짜가 있는 과거 검증 결과는 그대로 보존합니다.
+
+현재 CLI는 저장 Agent를 `--agent`로 선택합니다. Engine 등록만으로 Agent가 생성되지는 않습니다.
+
+```sh
+python -m hub --workspace /path/to/workspace --agent assistant --model openai/YOUR_MODEL
+```
+
+Agent는 Project 도메인이며 Component 선택과 독립적입니다. 요청 시 고정한 Agent binding과
+`request_context`를 승인·재개에도 사용합니다. 현재 저장 형식의 필수 기록이나 증거가 없으면
+거부하며 구형 Run이나 불완전한 설정을 기본값으로 보충하지 않습니다. Skill의 정규 정의는
+표준 디렉터리의 `SKILL.md`이며 JSON 정의 사본이나 레거시 실행 경로를 만들지 않습니다.
+
+관리 코드를 수정할 때는 선언과 실제 소비자를 함께 변경합니다.
+
+| 변경 대상 | 선언·해석 Owner와 소비 경계 |
+|---|---|
+| 관리 명령·편집 응답·목록 | `backend/project/management_values.py`의 ManagementAction·EditorRecord·ManagementEntry → Backend 관리 코드와 모든 관리 화면 |
+| RAG 관측·삭제 검토·이미지 import | `backend/project/rag_views.py`의 RAGEntry·JobDeleteReview·JobRetentionReview·ImageImport → 공개 RAG 계획과 관리 화면 |
+| 미저장 초안·화면 표시 | `widget/forms/manager_values.py`의 DefinitionDraft·ManagerView·DefinitionView·RAGManagerView → 관리 위젯 |
+| 저장·무결성·CAS·정책 | 해당 llm Component/Repository의 현재 Owner. Hub는 공개 Data API로 조회·변경하며 내부 파일 구조를 해석하지 않음 |
+| 설정·키·문구 | 설정 Owner, `ui/input/keys.py`, `locales/keys.py`. 화면마다 필드·명령·기본값을 재선언하지 않음 |
+
+초안은 사용자가 선택·저장하기 전의 UI 데이터입니다. 관리 Projection은 기존 공개 응답 모양을
+유지하며 승인·예산·실제 효과·Checkpoint·Resume의 판단을 대신하지 않습니다. Tool package의
+수정 시각 같은 저장 관측도 저장 Owner의 공개 API를 사용합니다. Source의 필수 필드와
+관측용 선택 필드, 누락·null·명시값을 구분하며 필수 기록을 빈 데이터로 정상화하지 않습니다.
+
+검증은 [Level 1–3 정책](../docs/llm/verification-policy.md)에 따릅니다. 집중 검증과 통합 전체
+검증, 정확한 SHA의 원격 CI를 구분하며 실제 결과는
+[전수 적용 검증 기록](../docs/llm/whole-ownership-verification.md)에 기록합니다.
+아래 예제의 독립적인 wire 값·사용자 설정·셸 명령은 런타임 계약의 재선언이 아닙니다.
+
+---
+
 > 최신 키 변경, XML 출력 객체 및 Tool 관리: [사용법](../docs/hub/output-objects.md). F1–F12는 할당하지 않습니다.
 
 이 사용법은 main `94229cb865374d99f20ec48c5e48269488041a4e` 기준입니다.

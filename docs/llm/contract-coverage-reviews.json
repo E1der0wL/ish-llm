@@ -2726,7 +2726,7 @@
   {
     "path": "llm/core/implementation_parameters.py",
     "sha256": "6dc5baecdb278d643cb4da0f6b09277c3df8a043c5fd93000537a25fa1b3fc7f",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Target-stage review: added detached config/policy replacements through the same validation; no new literals/candidates. Remaining selected-implementation envelope writers keep this contract incomplete. Final llm scope review read the entire 82-line module: strict envelope validation, detached Reader/config/policy/select/to_dict/with replacements, no unknown/default section restoration, explicit path presence and dataclass field declarations. All llm envelope/layout/config consumers now have their own whole-file review; dynamic parameter names remain selected-owner data. Hub retry consumption stays explicitly incomplete.",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Target-stage review: added detached config/policy replacements through the same validation; no new literals/candidates. Remaining selected-implementation envelope writers keep this contract incomplete. Final llm scope review read the entire 82-line module: strict envelope validation, detached Reader/config/policy/select/to_dict/with replacements, no unknown/default section restoration, explicit path presence and dataclass field declarations. All llm envelope/layout/config consumers now have their own whole-file review; dynamic parameter names remain selected-owner data. Hub retry consumption stays explicitly incomplete. Final 2026-10-25 shared-consumer closure: Hub retry now delegates through EngineSelection.completion → ImplementationParameters.read/LoopParameters; defaults, naming, import and Tool parameters use the same envelope Owner. Dynamic implementation names remain open data. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -2825,25 +2825,44 @@
         "owner": "ImplementationParameters / ParameterLookup",
         "declaration": "llm/core/implementation_parameters.py",
         "consumers": [
+          "hub/backend/execution/engine_selection.py",
+          "hub/backend/project/defaults.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/project/rag_import.py",
+          "hub/backend/tools/management.py",
+          "hub/backend/tools/retry.py",
+          "hub/widget/forms/settings.py",
+          "llm/components/goals/component.py",
+          "llm/components/goals/records.py",
+          "llm/components/mcp/records.py",
+          "llm/components/memory/configuration.py",
+          "llm/components/memory/processing.py",
+          "llm/components/rag/configuration.py",
+          "llm/components/rag/search.py",
+          "llm/components/refinement/component.py",
+          "llm/components/refinement/data.py",
+          "llm/components/tools/data.py",
+          "llm/components/vision/configuration.py",
+          "llm/core/configuration_targets.py",
           "llm/core/parameters.py",
           "llm/core/schema.py",
+          "llm/engines/graph/configuration.py",
           "llm/engines/loop/engine.py",
-          "llm/components/goals/component.py",
-          "hub/backend/tools/retry.py"
+          "llm/services/command_line.py"
         ],
         "tests": [
           "tests/llm/test_parameter_values.py",
           "tests/llm/test_settings_contract.py",
           "tests/llm/test_configuration_validation.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "llm/core/schema.py",
     "sha256": "a9893e6a01b43ec56b6625da15d1c4cdb1cd0e885ba4c3debe6d0e9d2e9ed55d",
-    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending. Final llm scope review read the entire 322-line module: schema vocabulary, explicit open-owner categories, local reference traversal, annotation vs Schema separation, no generated defaults, config/policy envelope projection, Host observation markers and numeric-only inline narrowing. Recursive dynamic property/schema paths and empty structural containers reviewed against current llm consumers. The two None literals are local validation iterator exhaustion sentinels, not stored/policy fallback. Hub Schema form traversal stays explicitly incomplete. Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. SchemaForm consumer is migrated; other known Hub Schema grammar consumers remain pending and are not silently treated as complete.",
+    "reason": "Local declarations and candidate positions reviewed; remaining Project/Component envelope writers and external Schema grammar consumers still require migration, so this contract is explicitly incomplete. Other consumer files retain their independent whole-file review status. Selection-stage review: added two vocabulary declarations only; all other AST nodes and prior individual classifications remain identical. The broader Schema contract stays incomplete. Policy declarations consume six newly named standard keywords; all Schema algorithms are AST-identical after removing declarations and expanding the maximum alias. External incomplete consumers remain incomplete. Completion-policy dependency review: resource keyword/kind and registry lookup declaration only. Registered callback identity, absent-attribute empty observation and explicit None remain unchanged; no default registry is constructed by observation. Schema algorithms and prior classifications are unchanged. Incomplete external consumers remain incomplete. Agent declaration review adds existing minProperties/pattern vocabulary only. The complete prior Schema algorithms and classifications remain; external consumer closure is still incomplete. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Added only SchemaExtension.RUNTIME_CONFIGURATION and migrated two existing consumers; all previous module AST and classifications are unchanged. The existing incomplete core/schema contracts remain incomplete. Vision image delta: maxItems is declared once at SchemaKeyword. All thirteen prior Schema functions remain unchanged; previous complete/incomplete consumer tracking is preserved. Provider request delta declares the existing open-parameters Schema keyword, delegated observation code and call identity Writer; all existing shared function bodies and prior contracts are preserved. Configuration service schema vocabulary now connected; Hub form consumer remains pending. Final llm scope review read the entire 322-line module: schema vocabulary, explicit open-owner categories, local reference traversal, annotation vs Schema separation, no generated defaults, config/policy envelope projection, Host observation markers and numeric-only inline narrowing. Recursive dynamic property/schema paths and empty structural containers reviewed against current llm consumers. The two None literals are local validation iterator exhaustion sentinels, not stored/policy fallback. Hub Schema form traversal stays explicitly incomplete. Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. SchemaForm consumer is migrated; other known Hub Schema grammar consumers remain pending and are not silently treated as complete. Final 2026-10-25 shared-consumer closure: All actual Hub form/resource/question/setting consumers use SchemaKeyword/Type/Boolean and Owner traversal. Schema vocabulary is shared while domain schemas remain with their own Owners; UI descriptions do not become validation authority. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -3398,21 +3417,85 @@
         "owner": "JSON Schema vocabulary and traversal",
         "declaration": "llm/core/schema.py",
         "consumers": [
+          "hub/backend/interactions/question_values.py",
           "hub/backend/project/settings.py",
           "hub/backend/project/settings_descriptions.py",
+          "hub/backend/project/title_values.py",
           "hub/backend/tools/advice.py",
+          "hub/backend/tools/resource_contracts.py",
           "hub/backend/tools/resources.py",
+          "hub/config/general.py",
+          "hub/config/metadata.py",
+          "hub/ui/settings/global_schema.py",
           "hub/ui/settings/navigation.py",
           "hub/ui/settings/pages.py",
+          "hub/widget/forms/general_settings.py",
           "hub/widget/forms/question.py",
           "hub/widget/forms/settings.py",
+          "llm/components/base.py",
+          "llm/components/data/records.py",
+          "llm/components/definitions.py",
+          "llm/components/file_evidence.py",
+          "llm/components/goals/records.py",
+          "llm/components/goals/tool_values.py",
+          "llm/components/mcp/records.py",
+          "llm/components/memory/compaction_values.py",
+          "llm/components/memory/configuration.py",
+          "llm/components/memory/records.py",
+          "llm/components/memory/tool_values.py",
+          "llm/components/memory/work_state.py",
+          "llm/components/prompts/records.py",
+          "llm/components/rag/component.py",
+          "llm/components/rag/configuration.py",
+          "llm/components/rag/job_policy.py",
+          "llm/components/rag/prompts.py",
+          "llm/components/rag/retrieval_records.py",
+          "llm/components/rag/search.py",
+          "llm/components/rag/tools.py",
+          "llm/components/refinement/records.py",
+          "llm/components/refinement/tools.py",
+          "llm/components/registry.py",
+          "llm/components/review.py",
+          "llm/components/skills/records.py",
+          "llm/components/skills/views.py",
+          "llm/components/tools/builtin/arguments.py",
+          "llm/components/tools/builtin/catalog_values.py",
+          "llm/components/tools/builtin/file_values.py",
+          "llm/components/tools/builtin/files.py",
+          "llm/components/tools/builtin/process_values.py",
+          "llm/components/tools/builtin/workspace_values.py",
+          "llm/components/tools/constraints.py",
+          "llm/components/tools/function.py",
+          "llm/components/tools/registry.py",
+          "llm/components/tools/selection.py",
+          "llm/components/vision/configuration.py",
           "llm/components/vision/image_contracts.py",
+          "llm/components/vision/ocr_contracts.py",
+          "llm/components/vision/tools.py",
+          "llm/components/workflows/bindings.py",
+          "llm/components/workflows/graph.py",
+          "llm/core/agents.py",
           "llm/core/configuration.py",
+          "llm/core/configuration_views.py",
+          "llm/core/interactions.py",
+          "llm/core/model_protocol.py",
+          "llm/core/models.py",
           "llm/core/parameters.py",
+          "llm/core/policies.py",
+          "llm/engines/agent_values.py",
+          "llm/engines/graph/configuration.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/graph/tool_definition.py",
+          "llm/engines/loop/configuration.py",
+          "llm/engines/loop/engine.py",
           "llm/engines/registry.py",
+          "llm/policies/completion.py",
+          "llm/providers/options.py",
           "llm/providers/requests.py",
           "llm/providers/retry.py",
           "llm/providers/schema.py",
+          "llm/services/configuration_records.py",
+          "llm/services/infrastructure/process_environment.py",
           "llm/services/schema.py"
         ],
         "tests": [
@@ -3460,7 +3543,7 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -40133,7 +40216,7 @@
   {
     "path": "llm/core/agents.py",
     "sha256": "eaed5f9dde1c47e283b2e76e276400ba807e3bfc23b4ece0370ba1a93c2fefcd",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup. Final 2026-10-25 shared-consumer closure: Binding consumers use AgentBinding properties/read; definitions use AgentDefinition validation/projections in startup, selected-engine resolution, runtime, resources and explicit UI drafts. Admission/Resume validation remains at the execution boundaries. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40714,6 +40797,7 @@
         "consumers": [
           "hub/backend/execution/context.py",
           "hub/backend/execution/continuations.py",
+          "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
@@ -40724,11 +40808,37 @@
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/management_values.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/resource_contracts.py",
           "hub/model.py",
+          "hub/widget/forms/manager_values.py",
+          "llm/components/refinement/records.py",
+          "llm/components/refinement/targets.py",
+          "llm/components/skills/data.py",
+          "llm/components/tools/resolver.py",
+          "llm/core/agent_views.py",
+          "llm/core/models.py",
+          "llm/engines/agent_values.py",
           "llm/engines/agents.py",
+          "llm/engines/base.py",
+          "llm/engines/contracts.py",
+          "llm/engines/graph/configuration.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/configuration.py",
           "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
+          "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/command_line.py",
           "llm/services/lifecycle/agents.py",
+          "llm/services/lifecycle/references.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/events.py",
+          "llm/services/runtime/requests.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -40805,7 +40915,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       },
       {
         "owner": "AgentRecord / AgentCatalog / AgentBinding",
@@ -40813,6 +40923,7 @@
         "consumers": [
           "hub/backend/execution/context.py",
           "hub/backend/execution/continuations.py",
+          "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
@@ -40823,11 +40934,36 @@
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/management_values.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/resource_contracts.py",
           "hub/model.py",
+          "hub/widget/forms/manager_values.py",
+          "llm/components/refinement/records.py",
+          "llm/components/refinement/targets.py",
+          "llm/components/skills/data.py",
+          "llm/components/tools/resolver.py",
+          "llm/core/agent_views.py",
           "llm/core/models.py",
+          "llm/engines/agent_values.py",
+          "llm/engines/agents.py",
+          "llm/engines/base.py",
+          "llm/engines/contracts.py",
+          "llm/engines/graph/configuration.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/configuration.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
+          "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/command_line.py",
           "llm/services/lifecycle/agents.py",
+          "llm/services/lifecycle/references.py",
           "llm/services/runtime/agents.py",
+          "llm/services/runtime/events.py",
           "llm/services/runtime/requests.py",
           "llm/services/runtime/runs.py"
         ],
@@ -40912,6 +41048,7 @@
         "consumers": [
           "hub/backend/execution/context.py",
           "hub/backend/execution/continuations.py",
+          "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
@@ -40922,11 +41059,38 @@
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/management_values.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/resource_contracts.py",
           "hub/model.py",
+          "hub/widget/forms/manager_values.py",
+          "llm/components/refinement/records.py",
           "llm/components/refinement/targets.py",
+          "llm/components/skills/data.py",
+          "llm/components/tools/resolver.py",
+          "llm/core/agent_views.py",
+          "llm/core/models.py",
           "llm/engines/agent_resources.py",
+          "llm/engines/agent_values.py",
           "llm/engines/agents.py",
+          "llm/engines/base.py",
+          "llm/engines/contracts.py",
+          "llm/engines/graph/configuration.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/configuration.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
+          "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/command_line.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/services/lifecycle/references.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/events.py",
+          "llm/services/runtime/requests.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -41013,6 +41177,7 @@
         "consumers": [
           "hub/backend/execution/context.py",
           "hub/backend/execution/continuations.py",
+          "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
@@ -41023,10 +41188,37 @@
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/management_values.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/resource_contracts.py",
           "hub/model.py",
+          "hub/widget/forms/manager_values.py",
+          "llm/components/refinement/records.py",
+          "llm/components/refinement/targets.py",
+          "llm/components/skills/data.py",
+          "llm/components/tools/resolver.py",
+          "llm/core/agent_views.py",
+          "llm/core/models.py",
+          "llm/engines/agent_values.py",
+          "llm/engines/agents.py",
           "llm/engines/base.py",
+          "llm/engines/contracts.py",
+          "llm/engines/graph/configuration.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/configuration.py",
+          "llm/engines/loop/engine.py",
           "llm/engines/registry.py",
+          "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/command_line.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/services/lifecycle/references.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/events.py",
+          "llm/services/runtime/requests.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -41110,6 +41302,7 @@
         "consumers": [
           "hub/backend/execution/context.py",
           "hub/backend/execution/continuations.py",
+          "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
@@ -41120,9 +41313,37 @@
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/management_values.py",
+          "hub/backend/project/naming.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
+          "hub/backend/tools/builtin.py",
+          "hub/backend/tools/resource_contracts.py",
           "hub/model.py",
+          "hub/widget/forms/manager_values.py",
+          "llm/components/refinement/records.py",
+          "llm/components/refinement/targets.py",
+          "llm/components/skills/data.py",
+          "llm/components/tools/resolver.py",
+          "llm/core/agent_views.py",
+          "llm/core/models.py",
+          "llm/engines/agent_values.py",
           "llm/engines/agents.py",
+          "llm/engines/base.py",
+          "llm/engines/contracts.py",
+          "llm/engines/graph/configuration.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/loop/configuration.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/registry.py",
+          "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/command_line.py",
+          "llm/services/lifecycle/agents.py",
+          "llm/services/lifecycle/references.py",
+          "llm/services/runtime/agents.py",
+          "llm/services/runtime/events.py",
+          "llm/services/runtime/requests.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -80463,7 +80684,7 @@
   {
     "path": "llm/services/runtime/subscription_state.py",
     "sha256": "904b70d3f4eefaef81bdfa1929a1189abdc0c8e011d04b835f590429c4b8aa21",
-    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
+    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution. Final 2026-10-25 shared-consumer closure: HubRuntime subscribes with EventChannel/EventDelivery/EventOverflow and reads immutable SubscriptionStats.dropped_count; no duplicated channel/statistics field interpretation remains. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -80615,6 +80836,7 @@
           "hub/backend/runtime_views.py",
           "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/runtime/events.py",
           "llm/services/runtime/runs.py"
         ],
         "tests": [
@@ -80659,12 +80881,15 @@
         "complete": true
       },
       {
-        "owner": "Event subscription choices/statistics — Hub consumer pending",
+        "owner": "Event subscription choices/statistics",
         "declaration": "llm/services/runtime/subscription_state.py",
         "consumers": [
           "hub/__main__.py",
           "hub/backend/runtime.py",
-          "hub/backend/runtime_views.py"
+          "hub/backend/runtime_views.py",
+          "llm/llm.py",
+          "llm/services/runtime/events.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
           "tests/hub/test_agent_selection.py",
@@ -80705,7 +80930,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -82390,7 +82615,7 @@
   {
     "path": "llm/services/schema.py",
     "sha256": "6da2df73f7558b69811fb42cbda95cdaad4a1dcd5794c41038696bd4e388c5e5",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup. Final 2026-10-25 shared-consumer closure: ProjectConfiguration/ProjectSchemaDescription/ProjectFormSchemas are consumed by Bootstrap, presets, settings, RAG and real UI pages/screen/JSON editors. Effective observations remain detached and are never persisted as definitions. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -82480,6 +82705,10 @@
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/presets.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/settings.py",
+          "hub/ui/chat/projects.py",
           "hub/ui/input/json_document.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
@@ -82487,7 +82716,9 @@
           "hub/ui/settings/presets.py",
           "hub/ui/settings/screen.py",
           "hub/widget/forms/definition_manager.py",
+          "llm/llm.py",
           "llm/services/api.py",
+          "llm/services/configuration_records.py",
           "llm/services/lifecycle/projects.py"
         ],
         "tests": [
@@ -82548,19 +82779,27 @@
         "complete": true
       },
       {
-        "owner": "Project Schema catalog — Hub consumers pending",
+        "owner": "Project Schema catalog",
         "declaration": "llm/services/schema.py",
         "consumers": [
           "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
           "hub/backend/project/defaults.py",
+          "hub/backend/project/presets.py",
+          "hub/backend/project/rag_management.py",
+          "hub/backend/project/settings.py",
+          "hub/ui/chat/projects.py",
           "hub/ui/input/json_document.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
           "hub/ui/settings/screen.py",
-          "hub/widget/forms/definition_manager.py"
+          "hub/widget/forms/definition_manager.py",
+          "llm/llm.py",
+          "llm/services/api.py",
+          "llm/services/configuration_records.py",
+          "llm/services/lifecycle/projects.py"
         ],
         "tests": [
           "tests/hub/test_bootstrap.py",
@@ -82617,7 +82856,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -85907,7 +86146,7 @@
   {
     "path": "hub/config/workspace.py",
     "sha256": "7c434cea60371dbc3c92c5d22e69e78aea87c73aaa516faad1324bfc11288775",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution. Final 2026-10-25 shared-consumer closure: CLI and HubConfig both use WorkspaceSelection.default_workspace; preference/restart/draft and destination validation consume the same Owner. Explicit selection and existing absence semantics are preserved. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86018,7 +86257,8 @@
           "hub/backend/runtime_views.py",
           "hub/config/general.py",
           "hub/config/preferences.py",
-          "hub/config/restart.py"
+          "hub/config/restart.py",
+          "hub/ui/settings/drafts.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
@@ -86064,7 +86304,7 @@
         "complete": true
       },
       {
-        "owner": "WorkspaceSelection remaining startup consumers",
+        "owner": "WorkspaceSelection",
         "declaration": "hub/config/workspace.py",
         "consumers": [
           "hub/__main__.py",
@@ -86073,8 +86313,10 @@
           "hub/backend/project/settings.py",
           "hub/backend/runtime.py",
           "hub/backend/runtime_views.py",
+          "hub/config/general.py",
           "hub/config/preferences.py",
-          "hub/config/restart.py"
+          "hub/config/restart.py",
+          "hub/ui/settings/drafts.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
@@ -86117,7 +86359,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -86568,7 +86810,7 @@
   {
     "path": "hub/config/general.py",
     "sha256": "3110405209a390c840c7d89a853e833f282525fd89f326d0d31b18dc007286d0",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior. Final 2026-10-25 shared-consumer closure: GeneralForm/global schema/pages and stored preferences consume GeneralSettings fields and validated draft APIs; host editor selection is observed through the declared settings. No duplicated Backend default is introduced. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86814,13 +87056,18 @@
           "hub/backend/bootstrap.py",
           "hub/backend/project/presets.py",
           "hub/backend/project/settings.py",
+          "hub/backend/runtime.py",
           "hub/config/preference_records.py",
           "hub/config/preferences.py",
+          "hub/config/preset_records.py",
           "hub/config/presets.py",
+          "hub/config/restart.py",
+          "hub/ui/host.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/screen.py",
+          "hub/ui/view.py",
           "hub/widget/forms/general_settings.py"
         ],
         "tests": [
@@ -86875,14 +87122,14 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "hub/config/profile.py",
     "sha256": "fbba038daf5e0469e9232d80817019fcf9243102755ac89bb8d3849d5be72888",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage still independently builds identity field form descriptions/types.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage still independently builds identity field form descriptions/types. Final 2026-10-25 shared-consumer closure: GlobalSettingsSchema derives identity names from UserProfile attributes and SettingMetadata; GlobalPage delegates schema creation and constructs the same profile type on save. Preferences/presets/runtime/View share that type. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86939,10 +87186,17 @@
         "owner": "UserProfile",
         "declaration": "hub/config/profile.py",
         "consumers": [
-          "hub/config/preferences.py",
+          "hub/backend/project/settings.py",
+          "hub/backend/runtime.py",
           "hub/config/preference_records.py",
+          "hub/config/preferences.py",
+          "hub/config/preset_records.py",
           "hub/config/restart.py",
-          "hub/ui/settings/pages.py"
+          "hub/hub.py",
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/view.py",
+          "hub/widget/transcript/conversation.py"
         ],
         "tests": [
           "tests/hub/test_stores.py",
@@ -86976,7 +87230,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -87077,7 +87331,7 @@
   {
     "path": "hub/config/notifications.py",
     "sha256": "66d2e94ff471b6df3d25e9ad4dd4565b2a8a6c2b485318a27adf1cbec26fa491",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Theme, Icon and alert UI consumers still redeclare notification categories.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Theme, Icon and alert UI consumers still redeclare notification categories. Final 2026-10-25 shared-consumer closure: ThemeStyle alert selectors, Icon mappings, GeneralSettings filtering, activity/history/live producers and SessionToasts consume NotificationKind. Display selection is separate from Run execution status authority. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -87110,9 +87364,13 @@
         "owner": "NotificationKind",
         "declaration": "hub/config/notifications.py",
         "consumers": [
+          "hub/asset/icon.py",
+          "hub/backend/observability/activity_values.py",
           "hub/config/general.py",
           "hub/config/theme.py",
-          "hub/asset/icon.py",
+          "hub/config/theme_style.py",
+          "hub/ui/chat/history_ui.py",
+          "hub/ui/live.py",
           "hub/widget/feedback/notifications.py"
         ],
         "tests": [
@@ -87147,14 +87405,14 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "hub/config/sections.py",
     "sha256": "ef5e9a2ec929b974e13359fa583b1d469ffbdd084a474b6ac6a54699fff912b8",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Settings pages/drafts/navigation/service consumers still redeclare section identities.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Settings pages/drafts/navigation/service consumers still redeclare section identities. Final 2026-10-25 shared-consumer closure: Preferences, preset records, service dispatch, live state, navigation, global schema and all settings pages/drafts/screen use PreferenceSection values. No independent section identities remain. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -87181,9 +87439,14 @@
         "owner": "PreferenceSection",
         "declaration": "hub/config/sections.py",
         "consumers": [
+          "hub/backend/project/settings.py",
           "hub/config/preference_records.py",
           "hub/config/preferences.py",
-          "hub/backend/project/settings.py",
+          "hub/config/preset_records.py",
+          "hub/ui/live.py",
+          "hub/ui/settings/drafts.py",
+          "hub/ui/settings/global_schema.py",
+          "hub/ui/settings/navigation.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/screen.py"
         ],
@@ -87219,14 +87482,14 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "hub/config/preference_records.py",
     "sha256": "00d16752cd6f0dd03488a9d069370583f68dffc00fef10d63dab5daa3bc2591f",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged. Final 2026-10-25 shared-consumer closure: Bootstrap/runtime/service/live/drafts/restart consume PreferenceSnapshot and explicit mutation/projection; SidebarWidth retains observed presence and fallback semantics. UI preview never rewrites stored defaults. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -87286,6 +87549,8 @@
           "hub/backend/bootstrap.py",
           "hub/backend/project/presets.py",
           "hub/backend/project/settings.py",
+          "hub/backend/project/settings_contracts.py",
+          "hub/backend/runtime.py",
           "hub/config/preferences.py",
           "hub/config/presets.py",
           "hub/config/restart.py",
@@ -87364,7 +87629,7 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -87483,7 +87748,7 @@
   {
     "path": "hub/config/theme_style.py",
     "sha256": "49fc35c61772271b137aaf61b4dc6caf279cbda0d404235231304f78eed746bd",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged. Final 2026-10-25 shared-consumer closure: Theme, all actual renderers and widgets consume ThemeSelector/ThemeStyle, including image/markdown adapters, selection, search, transcript and chart paths. Protocol/style formatting is owned at its actual boundary. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88431,19 +88696,35 @@
           "hub/config/theme.py",
           "hub/ui/chat/resume.py",
           "hub/ui/dialogs.py",
+          "hub/ui/layout/page.py",
           "hub/ui/live.py",
           "hub/ui/output/images.py",
           "hub/ui/output/markdown.py",
           "hub/ui/output/registry.py",
           "hub/ui/settings/pages.py",
+          "hub/ui/settings/screen.py",
           "hub/ui/view.py",
           "hub/widget/actions.py",
           "hub/widget/auxiliary.py",
+          "hub/widget/composer_actions.py",
           "hub/widget/content_inset.py",
+          "hub/widget/controls.py",
           "hub/widget/feedback/notifications.py",
+          "hub/widget/feedback/progress.py",
+          "hub/widget/focus_region.py",
+          "hub/widget/forms/answer_choices.py",
           "hub/widget/forms/general_settings.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/forms/request_history.py",
+          "hub/widget/forms/settings.py",
           "hub/widget/header.py",
+          "hub/widget/input_frame.py",
+          "hub/widget/mouse.py",
+          "hub/widget/output/engine.py",
           "hub/widget/output/search_index.py",
+          "hub/widget/output/selection.py",
+          "hub/widget/output/table_inspector.py",
+          "hub/widget/output/tag_bar.py",
           "hub/widget/output_inspector.py",
           "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
@@ -88452,7 +88733,10 @@
           "hub/widget/sidebar.py",
           "hub/widget/tab_page.py",
           "hub/widget/transcript/conversation.py",
-          "hub/widget/transcript/search.py"
+          "hub/widget/transcript/search.py",
+          "hub/widget/transcript/thought_trace.py",
+          "hub/widget/usage_chart.py",
+          "hub/widget/welcome.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
@@ -88518,7 +88802,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -88695,7 +88979,7 @@
   {
     "path": "hub/config/theme.py",
     "sha256": "ece5469c45d73c354f229e2a9ea97b8b223eeb5cbc974b2746491dc394a183fd",
-    "reason": "Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. GlobalPage and other Hub consumers still redeclare appearance fields, form constraints and enum choices; their closure is pending.",
+    "reason": "Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. GlobalPage and other Hub consumers still redeclare appearance fields, form constraints and enum choices; their closure is pending. Final 2026-10-25 shared-consumer closure: GlobalSettingsSchema derives appearance fields/defaults from HubTheme and enum choices from ThemeMode; settings/preference/renderer consumers use the same declarations and validated theme construction. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89022,10 +89306,22 @@
         "owner": "HubTheme / ThemeMode",
         "declaration": "hub/config/theme.py",
         "consumers": [
-          "hub/config/theme_style.py",
-          "hub/config/preferences.py",
+          "hub/__main__.py",
           "hub/config/preference_records.py",
+          "hub/config/preferences.py",
+          "hub/config/preset_records.py",
+          "hub/config/restart.py",
+          "hub/config/theme_style.py",
+          "hub/hub.py",
+          "hub/ui/output/markdown.py",
+          "hub/ui/output/model.py",
+          "hub/ui/settings/drafts.py",
+          "hub/ui/settings/global_schema.py",
           "hub/ui/settings/pages.py",
+          "hub/ui/settings/screen.py",
+          "hub/ui/view.py",
+          "hub/widget/focus_region.py",
+          "hub/widget/output/engine.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
@@ -89050,14 +89346,14 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "hub/ui/input/keys.py",
     "sha256": "fbdef8e266af83f39ea059be2f8ea1bdf477742ca059063694849a0fb5c81b09",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged. Final 2026-10-25 shared-consumer closure: Runtime key registration, shortcuts, application entry, settings navigation, every management widget and all output/transcript readers consume KeyName/ShortcutAction/ShortcutLabel. Generic dynamic shortcut maps remain open mappings. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89646,7 +89942,10 @@
           "hub/backend/history_deletion.py",
           "hub/backend/history_values.py",
           "hub/backend/project/history_retention.py",
+          "hub/hub.py",
+          "hub/ui/application.py",
           "hub/ui/chat/projects.py",
+          "hub/ui/chat/session_actions.py",
           "hub/ui/input/bindings.py",
           "hub/ui/input/context.py",
           "hub/ui/input/history.py",
@@ -89658,9 +89957,11 @@
           "hub/ui/settings/screen.py",
           "hub/widget/actions.py",
           "hub/widget/auxiliary.py",
+          "hub/widget/composer_actions.py",
           "hub/widget/content_inset.py",
           "hub/widget/controls.py",
           "hub/widget/dialog.py",
+          "hub/widget/dropdown.py",
           "hub/widget/feedback/notifications.py",
           "hub/widget/focus_region.py",
           "hub/widget/forms/component_manager.py",
@@ -89678,6 +89979,7 @@
           "hub/widget/output/search_index.py",
           "hub/widget/output/table_inspector.py",
           "hub/widget/output/tag_bar.py",
+          "hub/widget/output/text_viewport.py",
           "hub/widget/output_inspector.py",
           "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
@@ -89687,6 +89989,7 @@
           "hub/widget/summary.py",
           "hub/widget/tab_page.py",
           "hub/widget/text_editing.py",
+          "hub/widget/transcript/conversation.py",
           "hub/widget/transcript/search.py"
         ],
         "tests": [
@@ -89768,7 +90071,7 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_workflow_format.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -89939,7 +90242,7 @@
   {
     "path": "hub/widget/forms/settings.py",
     "sha256": "83983312de402b4270ada9e037c1e145248189cf078b1d12b4e6351e3f8cf7d3",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Final 2026-10-25 shared-consumer closure: Global/general schemas, JSON editor and Project/Global pages consume ChoiceField, FieldDisplay, SchemaForm and shared path helpers; callers no longer recreate fixed input-value meanings. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -90220,7 +90523,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -90722,7 +91025,7 @@
   {
     "path": "hub/widget/feedback/notifications.py",
     "sha256": "243e2e6232c4266662b714b995749649ce91e1a06b7f3aeb52d822011a1783e6",
-    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Live notification producers still construct Project/Session pairs and literal notification kinds; their Owner connection remains explicitly pending.",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Live notification producers still construct Project/Session pairs and literal notification kinds; their Owner connection remains explicitly pending. Final 2026-10-25 shared-consumer closure: HubView constructs SessionToasts and Live delegates alerts/waiting reconciliation/push through its public API; SessionAlertKey and NotificationKind own identities/categories while Backend Run status remains authoritative. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -90929,9 +91232,9 @@
         "owner": "SessionToasts / Alert / SessionAlertKey / ToastLayout",
         "declaration": "hub/widget/feedback/notifications.py",
         "consumers": [
+          "hub/ui/application.py",
           "hub/ui/live.py",
-          "hub/ui/view.py",
-          "hub/ui/application.py"
+          "hub/ui/view.py"
         ],
         "tests": [
           "tests/hub/test_notifications.py",
@@ -90955,7 +91258,7 @@
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -91062,7 +91365,7 @@
   {
     "path": "hub/config/preset_records.py",
     "sha256": "ff0ec3eb48465557c32d9e7c291c0e17a6115c5f1e5743b296d51cee121d5a12",
-    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Startup still reads the selected Project template fields directly; UI selection and startup consumers remain explicitly pending. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Startup still reads the selected Project template fields directly; UI selection and startup consumers remain explicitly pending. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup. Final 2026-10-25 shared-consumer closure: PresetStore, PresetService, Bootstrap and PresetUI consume PresetDefinition/Index/Project/Selection; startup reads typed selected-project properties and UI retains original edit/CAS evidence. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -91276,14 +91579,14 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
   {
     "path": "hub/backend/project/settings_contracts.py",
     "sha256": "9ea155c603460a6752428c085e6cfdc3c983d7acca27cb4d4854eeb79956f9de",
-    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Read-only daily usage and Workflow preview consume canonical record/document fields, retain incomplete-draft display semantics and original errors, and isolate chart/diagram geometry from Backend policy validation.",
+    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Read-only daily usage and Workflow preview consume canonical record/document fields, retain incomplete-draft display semantics and original errors, and isolate chart/diagram geometry from Backend policy validation. Final 2026-10-25 shared-consumer closure: Service dispatch and all real Project/settings/preset/live/usage consumers use SettingsOperation/Dispatch and response observations, including SettingsBatch/Catalog, ProjectSummaries and ProjectUsageObservation. No UI policy calculation substitutes for Backend authorization. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -91632,12 +91935,14 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
         ],
-        "complete": false
+        "complete": true
       },
       {
         "owner": "PresetApplicationObservation / SettingsCatalogObservation",
         "declaration": "hub/backend/project/settings_contracts.py",
         "consumers": [
+          "hub/backend/project/presets.py",
+          "hub/backend/project/settings.py",
           "hub/ui/chat/projects.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
@@ -91688,10 +91993,13 @@
         "owner": "ProjectUsageObservation",
         "declaration": "hub/backend/project/settings_contracts.py",
         "consumers": [
+          "hub/backend/project/presets.py",
+          "hub/backend/project/settings.py",
           "hub/ui/chat/projects.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
           "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py",
           "hub/ui/settings/screen.py",
           "hub/widget/usage_chart.py"
         ],
@@ -91732,9 +92040,13 @@
         "owner": "ProjectSummaries / ProjectSummaryObservation / SettingsBatchObservation",
         "declaration": "hub/backend/project/settings_contracts.py",
         "consumers": [
+          "hub/backend/project/presets.py",
+          "hub/backend/project/settings.py",
           "hub/ui/chat/projects.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
+          "hub/ui/settings/pages.py",
+          "hub/ui/settings/presets.py",
           "hub/ui/settings/screen.py",
           "hub/widget/usage_chart.py"
         ],
@@ -118820,6 +119132,30 @@
           "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/README.md",
+    "sha256": "cb2136c437a1f67ff0bc2ccbbeaca94891329a469e5765a82a9fc18ea2a2c6fa",
+    "decisions": [],
+    "dynamic_paths_reviewed": true,
+    "reason": "Read all original 980 lines; preserved main guide and dated verification verbatim, prefixed current branch contracts/Agent CLI/native Skills and Owner navigation. Independent documentation examples are not runtime declarations; no executable asset or dynamic source is omitted.",
+    "contracts": [
+      {
+        "owner": "Hub current usage and Owner navigation",
+        "declaration": "hub/README.md",
+        "consumers": [
+          "hub/__main__.py",
+          "hub/backend/runtime.py",
+          "hub/widget/forms/manager_values.py"
+        ],
+        "tests": [
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_component_managers.py",
+          "tests/llm/test_contract_coverage.py"
         ],
         "complete": true
       }

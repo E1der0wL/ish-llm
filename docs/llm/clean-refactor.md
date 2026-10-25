@@ -1,5 +1,9 @@
 # 클린 리팩터링 설계와 구현 게이트
 
+2026-10-25 후속 소유권 전수 정리의 최신 범위/남은 게이트는
+[최종 교차 점검](contract-closure.md)과 [전수 실행 기록](whole-ownership-verification.md)을 따른다.
+아래 H1–H5/P1/A–F의 날짜별 기능·안전성 결과는 그대로 보존한다.
+
 **현재 상태와 증거: [F 최종 검토](completion-review-verification.md), [E Session 전송](session-transfer-verification.md), [D 요청·병렬 검증](multi-agent-verification.md), [B/C Agent 검증](agent-refactor-verification.md), [A Provider 검증](provider-refactor-verification.md), [P1 실행 기록](p1-verification.md), [수명주기 검증](lifecycle-verification.md).** 기준은 main
 `94229cb865374d99f20ec48c5e48269488041a4e`이며 `refactor/llm-clean`에서 시작한다.
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은

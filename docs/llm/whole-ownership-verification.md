@@ -10154,3 +10154,65 @@ R3는 불변 소스의 기존 결과를 제한적으로 재사용하고 Hub는 �
 Level 1·2 로컬 완료다. Hub README와 잔여 공유 계약의 실제 소비 연결을 마친 뒤 현재 통합
 소스의 Level 3와 정확한 SHA 원격 CI를 수행한다. 그 전에는 전체 전수 작업 완료로 선언하지
 않는다. 승인·예산·실제 효과·Checkpoint·Resume·CAS·원본 보존 기준은 그대로 유지한다.
+
+
+## DC1·DC2 전수 잔여 종료 — 최종 Gate57 준비
+
+관리 화면 `86cae96` 이후 18개 공유 계약의 실제 소비 경로와 마지막 Hub README를
+[최종 교차 점검](contract-closure.md)에 기록했다. 639개 파일/15,124개 후보, 미검토·stale·
+미분류·위반·미완료 계약·동적 경로 미검토·읽기 실패·issue 각각 0이다. 기존 38개 데이터군과
+검증된 소단계 근거를 재사용했고, 미완료였던 연결만 현재 코드/호출/Owner API로 확인했다.
+
+CI의 전체 LLM/Hub Job을 유지하고 전수 감사 `--require-complete`를 양쪽에 추가했다.
+새로운 동작/저장/재시도/승인 정책이나 테스트 예외는 없다. 실제 테스트/Assertion을 유지하며
+최종 Level 3는 현재 통합 상태에서 수행한다. 이 문단 작성 시점은 Gate57/해당 SHA 원격 CI
+실행 전이며, 완료 결과는 확인한 뒤 별도로 덧붙인다. 상세 외부 교차 근거와 변경 hash는
+`/workspace/llm-clean-resume/whole-ownership/whole-final-closure`에 보존한다.
+
+
+## Gate56 — Hub 설치·재시작·Runtime 조정 통합·정확한 SHA 원격 검증
+
+동결 SHA `806257dbac3ca11bf9ba0ea343e7e076cf043dc8`, 작업 트리 `/workspace/ish-llm-group56-validation`.
+Gate55 이후 Installation·Runtime을 묶었다. 실제 host 설치/복원·재시작 cleanup·Agent 선택/제출 상태·관측 cache·승인/삭제/Resume 조정 소비자가 기존 LLM Owner에 연결된 현재 통합 상태를 검증했다. 실행 조정과 공유 Host 조회 경계를 포함해 즉시 Level 3로 승격했고 Gate55 전체 실행 뒤에 순차 배치했다. 승인·예산·외부 효과·Checkpoint·원본 보존 Assertion을 유지했다.
+전체 LLM 다음 전체 Hub를 하나의 변경 없는 소스·환경에서 순서대로 실행했다. 소단계 결과를 합산한 전체 실행이 아니다.
+
+- LLM: 발견/실행/pass/available 2502/2502/2502/2502, 1463.4402073379606초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group56-l3/llm.json`.
+- HUB: 발견/실행/pass/available 588/588/588/588, 1111.5013727130136초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group56-l3/hub.json`.
+
+각 suite의 failure/error/skip/xfail/xpass/누락/추가/중복은 0, 발견·실행·통과 ID가 일치한다.
+source `a8b200c1305db57c6a41e84063fb7730acda17a7ab6ed1fa05f348ade53cbe30`, input `af15471e707b1a4c75abebb9563f15b14b5060635bc15f1c25955081f35df0e3`는 전체 실행 전후 동일하다.
+Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 의존성·실제 Linux/X11/Bubblewrap 환경이다.
+보조 검사 S1–S7·문서·R3 Mutation·offline Provider·LLM/Hub 환경 검사 여섯 명령도 모두 exit 0이다. 실제 argv/exit는 `group56-auxiliary/results.json`, 전체 로그/엄격 집계/manifest는 `whole-owners-group56-l3`에 보존한다.
+
+검증한 SHA만 `refactor/llm-clean`에 fast-forward Push했다. 원격 main/refactor/llm-backend와 Draft PR #1의 전후 값은 동일하다.
+원격 [40168156440](https://github.com/E1der0wL/ish-llm/actions/runs/40168156440)의 head SHA를 대조하고 2026-10-25T06:47:14Z에 두 필수 Job과 전체 필수 Step의 실제 success를 확인했다.
+- 원격 HUB: 발견/실행/pass/available 588/588/588/588, 869.777454521초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+- 원격 LLM: 발견/실행/pass/available 2502/2502/2502/2502, 2032.41097928초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+
+로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
+이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
+동결 소스의 미검토 21파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+### 최종 교차 점검의 검증 결과
+
+`whole-final-closure`의 정적 S1–S7, 감사 회귀 16개, 문서 검사와 전수 완료 CLI는 모두 exit 0.
+16개 시험의 failure/error/skip/expected failure/unexpected success는 0이다. 별도 음성 검증은
+리뷰 사본에서 README 하나를 제거하거나 계약 하나를 미완료로 바꿔 각각 해당 잔여 1건과
+예상 exit 1을 확인했다. 실제 제품/리뷰 파일을 바꾸지 않았으며 이를 성공 회귀 건수에 더하지
+않았다. 전수 완료 명령은 다음과 같다.
+
+```sh
+python -m tests.llm.check_contract_coverage --reviews docs/llm/contract-coverage-reviews.json --require-complete --output artifacts/contract-coverage.json
+python -m unittest tests.llm.test_contract_coverage tests.llm.test_architecture_reviews
+```
+
+전체 argv/exit/출력은 `checks.json`, `complete.json`, `negative-results.json`에 보존한다. 최초
+CLI 호출의 리뷰 인자 누락은 빈 리뷰로 평가되어 실패했으며 CI 명령에 정규 리뷰 경로를 명시해
+수정했다. clean-refactor.md의 최신 안내 추가로 stale이 된 정적 근거 6건은 제품 발생/분류와
+기존 계약 본문이 같음을 대조한 뒤 문서 hash만 갱신했다. 최초 실패 출력도 `initial-*`로
+보존했다. 기존 59개 정적 개별 분류는 그대로이며 새 면제나 안전성 Assertion 변경은 없다.
+
+이 단계는 문서·CI 감사 게이트 보강이다. 새 제품 구현 변경은 없으며 직전 관리 화면의
+Level 1·2 결과를 재사용한다. 다음 Gate57에서 모든 누적 제품 변경의 현재 통합 상태를
+전체 LLM/Hub로 검증한다. 이전 Gate56 원격 성공도 위에 정확한 SHA/실행 수와 별도로 기록했다.

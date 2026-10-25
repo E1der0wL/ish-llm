@@ -135,3 +135,12 @@ CI 진행 중, CI 성공을 구별하며 원격 실패가 있으면 해당 게�
 검증하는 호출은 유지한다. 공개 형식의 독립 Fixture와 실제 효과 Assertion을 제품 상수에서
 생성하는 기대값으로 대체하지 않는다. 정적 후보 0건·개별 분류·회귀 통과는 각각의 증거이며,
 미검출 경로와 실제 Owner/소비 연결을 확인하지 않은 범위를 전수 완료로 선언하지 않는다.
+
+
+## 전수 소유권 완료 이후의 회귀 게이트
+
+현행 파일/후보/Owner 소비 연결의 잔여가 0으로 검토된 이후에는 Level 3와 GitHub Actions의
+전체 LLM/Hub 필수 Job에서 `tests.llm.check_contract_coverage --reviews docs/llm/contract-coverage-reviews.json --require-complete`도 실행한다.
+새 파일·stale hash·미분류·미완료 계약·동적 경로 미검토를 완료 상태로 되돌리지 않게 하는
+추가 감사다. 기존 전체 발견/실행 엄격 검사·S1–S7·R3·실효과 검증을 대체하지 않는다.
+선택한 소단계에서는 기존 Level 1·2 정책과 영향도에 따른 승격/결과 재사용 조건을 유지한다.
