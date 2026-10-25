@@ -4,6 +4,7 @@ from prompt_toolkit.keys import Keys
 
 
 class KeyName:
+    S = "s"
     N = "n"
     N_UPPER = "N"
     P = "p"
@@ -69,6 +70,7 @@ class KeyName:
 
 
 class ShortcutAction:
+    OBJECT_SORT = "object_sort"
     NEXT_MATCH = "next_match"
     PREVIOUS_MATCH = "previous_match"
     OBJECT_RAW = "object_raw"
@@ -114,6 +116,7 @@ class ShortcutAction:
 
 
 class ShortcutLabel:
+    ENTER_S = "Enter/s"
     ESCAPE_CONTROL_T = "ESC/Ctrl+T"
     CONTROL_F_SLASH = "Ctrl+F / /"
     ENTER_TAB = "Enter/Tab"

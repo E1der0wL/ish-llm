@@ -88504,546 +88504,564 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "590ca73eef0de07b6261cdcab995c1cdb017c3241171fc4e5e71542f53dcd377",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations.",
+    "sha256": "ef58dcd775157ba4bb4fc818b2ca1029300086d8b865d9c4fd5f536194ee4467",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "18994155652056617cc5878b06e00ee35da74bb7d84b0165fc0127634a9dac11",
+        "id": "1a3fbece9e5a088515d582894c16b44e219eb962f6e0267b7f26c0befe32954e",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "20feacc892ae2a7cda3b865c645d0b1c8ac8395ed4d0645a1361907e9561f889",
+        "id": "32fda440855dbbafb4a2ec42f375b4c7e9c903b3c74cfe6f52b0737e11d8f2f5",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "18235e7797a0b9df845c7cdab1e1d825458dad73540f329a07678ccd80cb0870",
+        "id": "8f34b9374492c3fd77be5e5557bc0127712d67ae793eb8f834abc66e18bf2a8b",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4fe596c07cdbd79a1e5f97cae7d865661495aaecb0c8524ab197d578bfd079b5",
+        "id": "51e0898988e7291865a057c2c88a414eed424a32d4a158afbe14aba15365d56b",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "55a00dc05f3eecee01856a0635f0d18fb0a7af29539bf240330b278dbac8fa4d",
+        "id": "3e2407f8c8efd23182960ec03d809c5dc3a1032252f082cf04b840d7bada8b0e",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ee339a4b9eb3f81ac59503c267957d7bee5a3048fbf1b3dcca04025a769f948f",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "2f9b8b4ca8ff76502993b43dd3d8788a11ded768622907c0ef3906760c57c8e4",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "0852ca0486bdcdb00541f669be35e373acdfc6e172ec0e0489575bc651a5ad04",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "5e3136e0b728c066f7c9cfb2697475ae6bbdb1c60dada4338f79d6795db4c331",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "01d91ce5046d73a2f3ad73536359befae2ecf7c592cf25f7217f8a39767315fa",
+        "id": "9257131643075168f948c05e1fbf42dca524ce702908dff0e30bc00da791a975",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a8ab6723045bc211bcf7d7fd05619f23d388ca970ee7a3845fbe73cc2f8d57b2",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "55cbf0fcd8ff3939ded8a7eb15229360491c8b2cb6ff70cba5700c4203c06501",
+        "id": "a09b4c9aef58b533ac7752bc9b7a3cc4624973542d65878609d1d6ab47449af9",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "b98353b9f27e88f11dbd6181715103275ca1410d4ad0a31b9ea02444276594fe",
+        "id": "96743d36c7fcecab14fcce45f678db3aeee3bcb809b377effed444db77affee2",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "7228a38552e3bafe66c21e4a5e8c25911e59e22ef4bba4f928da9a70a749e20e",
+        "id": "494bd080bcbdf1d03032a90efc341f8148759d9a4a558bfd6143627d058af148",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "3208332546b79a8569d4e4d0fbeae0361c4f5da00b2bf9477cc446cd25cd6beb",
-        "classification": "declaration",
-        "owner": "KeyName",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "9da02e9600844f4074868a330313d799082ca2e39339d9493e4f894880ccf200",
+        "id": "35309ecadfae110e72bbee9600b521ab4aa27af0ad2232a1434a234b8f2a9f3a",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "16b02a5d9df61fc9bb61a8607a59971bc5f8894dabb3aef0b96dbaef8e445d43",
+        "id": "35abfc949af2703f692398d4aae92238c98ba0998167ad6082603d47b97ac9b9",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0c77a06e80e976b79ae1fa431b53fe5e686c610079fd64ebabe117aaa120bfb5",
+        "id": "47fe0781561d645584644b341106a1cc960005776d5e5f3510776dc5c099cf64",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "12aec4313141e815fe0bd7b27f2add1b0f1713226692b1d9c02c00f5736d3b1b",
+        "id": "7c64e560d90ff6440e681e9c5e1b0c49bb60e74239c7297dc3e7abb0c55ba4ba",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "19132216ea907991b9039ed6f0e99aa0d74f27a2a2d4087998a402beaf7d1363",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "5c09b262da1ecf36fdcb6c64fdae3d8cf2281fe95a68c9af623223e085d503a8",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "5913db4e17841a46c8f3a26914d01edd64cc1463a03b670a42b40fb6c4188c1a",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "80a85263129382a1ec0f8f1628e6100c0443fc5c52f0efcf8ac85030e56c46f0",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "0bca8a59e55d74ccaefd9f56a5cf2c9f12683ab2aadfda65d406c134655de969",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f1150111e547601ba486038b79a7577a3a4637b90d99dba4d82e8100b1a019d7",
+        "classification": "declaration",
+        "owner": "KeyName",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3f97c90171dee4b1e4bb2bbcafce9549b549513db2ec7910798a62abaf71024e",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e10b01f562fabcc151221b1a5376f8989329bce36e0d3cffaf1f852f762814f6",
+        "id": "31b73ba81702734ba0922034b474e85588b7186a26426698c2d45ff2faba7fa2",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "252f8ccb8cd7853dcb70303754dae30f72abbc7ec3ecf94b2954c60cdbac4148",
+        "id": "2926db6b64856826a158be894868ea157d805182451d8258a12b8103edd1a137",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f88d156516b886ac79e707a4768101df7c4ceae59e020a12a13d8399e60e4a82",
+        "id": "22239d90f7c50e6a4d1d7d15bff82986e7a4ae6b60866bc4c80100076df9f75d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e56900c2dee1bf30b0391171f63b1929bf3d32175a1171d6b5c1a737f30b784e",
+        "id": "9f0bf8abe223b73ccdbe49271277a142493d247558e46be3bc46d7cb4ef3634e",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "79eaa0f2ae2da210b8962bc44230dd6c85c3c4b4cbd0aae56b6f1a064e49a6e4",
+        "id": "dce3573cc0fa3482547528b079ba7ae3ac46a6d410d7831fae588faa3ca94e49",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "946ed28d5a7fec3b033a4048ad7d3d8a4ead90fb72e91e6e72152a47b61f00b6",
+        "id": "baa6518bd654303f2e43fe582c2a151e48b6e1ffd787c0f83cb96d31542177b3",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "faaf6e9ea2cf583eb0a39710c61eb490122965d728a871ad4501651177afe376",
+        "id": "dbba08d33a49a6c34f9df2c04bf30bb698d1a265c4d7206f988119113085b186",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c65c4fb4eb068d6fd863091c53e10ae4eb6e74b6b19329048185d0772bc027d9",
+        "id": "d664c88962fe69fe420cb2d308efa0e009f59d5f48aeb62b6dcb77afd7340e56",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cde3a752549d4582bc5dedc5cc42d445a74338247241537d8415ac4e0f1ebf63",
+        "id": "cdaa670ee832b54a88d7092216624042d55af50d6093f39a5fcfadf13fe8a3fe",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7979aa25b83c6f75c81ef2e87f93bf7fc94208804699e0d502096cc8a58f92d1",
+        "id": "cb9fe8cbef3837bf06af70f24edd2f9ab420e3ae928d1af75de94a3984c50ca0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e8739b0f53421fc6ce4f92790b5ee681ff8c3b1f6793517bae1523e106bf6ba9",
+        "id": "ff03980a6e5ad36803c4a9fc0930f94266f05aa903259453971a054f27e17ca9",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b18689400111fb09a79fe86b993373b5e08f2b92ddc13ab577b96f69185c2a21",
+        "id": "956964583c8f0440b7bc37dca09dc9d6634a24b8e31dd1990793c6445af5c33a",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "89cac41acd63e097a860c02cfa1e8c77cb838933b389db98c9e8e3f298c1fe13",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "d6b3521e7408c71dfbc03394c454fd3ef00422fd723e2643fcc5c77689b94c03",
+        "id": "54d51d2e290cfc0c66efe64e9be591fa61809222790d2a5f4fc0f3e85006a409",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "be912db63f6ee66af5d8e552d887736517dbb5766c310bb0691229c027c5e415",
+        "id": "1830b7235d58f4410c642e55a07aa491da8249c52b9eea411e3c584e6043b4af",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "b4974533fd4e58a4889f3d21e89388ce0a830438d06a3329242d11a40e62d542",
+        "id": "e6f8c44ee42fd4d1c34f0ebf99a38452cc276db473d7c0b8e25dd9473ec7e92c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "4247691dd566228ff131b9ab62c6e2f74abd16d6f7a4378b055e6daf02a2332a",
+        "id": "593587be3f79dae14c546bcbc8dfa677cfa86a43b701c9496fb3e84912a53e8a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "6b6e6ed9442e39139b6db6671ebf0d39fe35193769df18f09da89aa86eea2dab",
+        "id": "8c96fbe3d7b34ea5227e8703554264eeed39db6841ec69b6b839675d5c4461f1",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "783bb84498d04d5995581f1a4107a84d0c357cc181c5e010616cb1783ce46786",
+        "id": "46848856790c8a1c6f6e449bb6d54973862a39411bf03f5e521128d49510ce03",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "dc6cd00f212c716a5b7dab73dc6160ea641aa7e2029fd61b6e08011f04991fc5",
+        "id": "9a78637ff43cacd8e8142c6b11a8de03c9a20750ee32b817b70a181069df30e9",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "f61348993fc50c9d0da0a783f55efdcef95de5f71836c889db758dbe07600a6d",
+        "id": "fed77c701e284c8b277d35a7d7720e55e4951d4fd2aaa1088767e79df04598ac",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5b361669afcc68ff552fb2ae1d3978ac9428f716c1a880b5ce90551a4821bca7",
+        "id": "f079a1ff2ecaf8ee16ce4900ecca890d71553b1bff7c6ddd1537d7fbbb0785c1",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "995721268e1a03e9bf173129b671ccb7140a8b2c0d95357378d2257aafb5c1a9",
+        "id": "ebefc1591f21fcb15eb88c42c9366cf33a45e6b208d4b98cc818b5bb0ca8c664",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "86e026490ec2567039272c5995b879e26d979882aec7fa4f890e0d4549931bcb",
+        "id": "8a0c515937da84ee44c24b6a4d449b7fa2f5eae5d940b3937b6100faa496ebc9",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5d0ed90a20a96cf35d5dff0b643379f113cd44cf0f025b412ae98bb37aa3f8e4",
+        "id": "cfad073cdce1153a4d21020f63013ad6003c2b179bdf8772899056943c25548c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "256e7e63cfeb461ef331db43c08ae1a59a613c27a98a734b7bca3b35e9fb929e",
+        "id": "008fcac71fd3aa47ffa3920931f2c46abab86e3dd322a9d024ec650a04a2690e",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "da0cd7a4062a9ec9678204f5b0cd6bae7126c7ce13ac99fecc5ee3bd6ac872e9",
+        "id": "21f145cd82a5c69b7ae316d64b958552021250fa6cc943d0f8a39b604b2689c7",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "93da3385e853b389b013a6478a7ff23d17083226e9fb20b123da8e87e39b81b1",
+        "id": "463f166dff00936ebc2e01d97a8b2b75a95f1dd208d83e50b29e5d0eb09212a1",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "946f79a318fb3c787089e2b8e65edabda5c1ac27b2a3f90f315a5bf6260d0592",
+        "id": "11f179837f907c6060116d0b2fdd3d9e2f2a02c5c98ee42ef32a3a0430b58fbe",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bf51fc050ac912160f8c32b9b5c63ec8fc08e0210309a181fa9d5920262ae3bd",
+        "id": "62d0c7d01ee5cae341ecd18051dda92a453cc0eea67924d5729289d867542503",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0e339d0da7e96b6e3ef5bf074a67056edf59ba07378eb3d797dbae9e2637369f",
+        "id": "e6243a42a4044a79315aa7efb96363e6ce0008a2c9672f68922a5df092c12d24",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d1c238285ca3b5820a3c40dcaf7562e0e9311fbc7b49ea437903a3db31527644",
+        "id": "f8205b799a17bfb7e97cec67bc471f466f5b81fff707b224abd513d004dd04b2",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4761a4a6cf4ca1bc15e7c27d0b790f8bc8015665360570aa5d7f99713fbce13a",
+        "id": "42eaaf5bb02f45270ddeaed2247fa0ccef75a0587892f7ff8409218991f7b58c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "044d82ccd2e56133ca6a3c2cf44dec1c6796c68748d860f81a03e200e2b15952",
+        "id": "81bf55fda0f7f91c6050e3af08087e18464f7d9844cc49195994028595a23596",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6b9faa06c986384b1be3693c5eaf98c98fe3a42dfac9ec3e6a9ed079f4700645",
+        "id": "7229601c872b73f56df909e08ef22c9b2a882f38457e982d322f0a53110b2c00",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6682e1062ce1a83c72325b3851d95ead79d81db7292fca8e1edd2f3315b93ec8",
+        "id": "c290c3ac2a53980ea60106380898ca8cd88ab7f9a3bd82598611d8a22c692759",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "57660f10cffb0eb666a826da941c2c2b8fd875de80323ceb543751f0255c53b7",
+        "id": "8cb2d95fc8418964b51c7859b5392ca4e8e97a07b31343cea9d6f268150f4c4b",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2930c52068bed17c8877a6f2932f2a0a0e1b5725ce23e5b5d52de632d093b0ef",
+        "id": "8b0569fb7b3d31d70487c7333103b5feb27ae2107f4ed9372dad4a1ba419eba0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f05bcb913ce51dddfdf9b7e5bb9b7dda1584d3dafea70d4bf9da8da2a5bb2775",
+        "id": "f50f254a5dbb8b32e6651f6f9b12430b48ce7fc428c6a779b4acc97eea788cbc",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3e2f79d4e86e986c99c1a037b46d3010cb4de5210477ffc1a7a92d276752f1f1",
+        "id": "75c06491211f2daa811bc765390e2564fb070f69d12b5e47d1e24c94bf5b9ca6",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "86bc6694966dac3f005c26f5ebd5f4e98e890cb813853050d1bea471e0e1d06c",
+        "id": "effaa2541a25b2d4a7ea3cbe51b160d56836e550fbe96bf5dfa89eab5ac42ce1",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d65ba04f145206805959addd335285044f1070459693fe234c234175390262c0",
+        "id": "bb91e18598c9af29fc65209bf7c028e60ecef7540304365859c1d4b8d7ce7072",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "538eef7f92662c82eb7632846a0723c0e8fc399021867da0f87ab6d47555df14",
+        "id": "d2de6a79b21f9ffc42467c71bad866f68db80201596f2445668754c45a6eeb9a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "aae8dc43929a87ad77b7cb722dd4d964a6aa07c0f501390cfe19d1a6c1f20776",
+        "id": "f6c71dc5a2d068f5ddafaae4ad75d25570c4357511195a5ea4f0055d9f74988c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f6337e2c71b2be8733ea6060d1c8b8433886971d2081dc1b54ca69914d936882",
+        "id": "91eb91bf74da75e4c06d5f69312718a5880f1898e20d8b2b3af627fd8e116246",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3cae0a0f813b2c866c3fefa6d73e0adaabd505a74c5f9fd3b57642fa236f782e",
+        "id": "d2fb291bc5b37a2889c1b5131be6a9151afa2780b58615b8ca1ac4c2e577fa14",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f3e9acd6027ddc5d89b5bf338fcba26bb1feb887f2cea56c13b9ab616281f308",
+        "id": "c45cf93d046e987e9cd42e2c4b0f01df0072f3672d8d9bcf37869e8dcbfc450d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5524ce50587eff661ccf52a3c5009346cb6cfb2899371b05af72c4e9c2918627",
+        "id": "3c0f881073d36389d8ae81b4e7ee90b60f5116280e4809a422cd98980ebf9ccc",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1af1097f253ed27c303c3a017292fdb888aa0ff2766391bf04920c6792efcd42",
+        "id": "2b8e5082053ddeef1352b2aeff37e847e8adbed444f730a39a3b98e054b71d13",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9a4f3abb28e3642dcb6799e3cfb1c2175ced8077a823e3a06960e747c8ecfdce",
+        "id": "fd2132e9830b78bf54717d5163d9ae9a1f45aa6a120e89d4f65375b0694276e2",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9524e9444b252b3355326f5f04175e337f51740235ee98cb9bd4e2ab55da8c09",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "2aa581c7bfedb6ed31bf47ab9705cd86cd95efb573c24a6aa71abca7b317e201",
+        "id": "2df30563da3363bd9bc3010e1233e0a522f70643e074dce7a02c4a5b2fcfafb4",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "1b3f552040ae9e15442703754d6b3a003ed5ceb7592404c13ca900462d4f59dd",
+        "id": "bd61fcfeca768e713b212f23ce64894e60427e75a40ce9aa426df550d1ab4b82",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "4936b22d1544f73aa4fed10dabd68419688f65a7ac9c79daee2d78cd461008d0",
+        "id": "5831d381d7ef115b8c79f5ced4e414c5c01a337165a6df0e747d15761760d4a3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "f9b3eaa26b4a0ddceffd4660967ecac3abf159738487a45b8d11935c6b0733d4",
+        "id": "97381bf74ca0875f0d293a01cc3eb54a8f00c999fc81759160b2435a7000c11f",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "3f65d94dca72f9526386dc00f96011f2bd5f390db1e863cd510385eb26afbf5d",
+        "id": "ecc031931e399b02a9f00a5e9f38e499fe0ddca7557c5c6d29ef02d8e9f46a4c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "139458edd0e21757a06543f39c3f184e742f3b3a28b494ca8ade90a4f263be9c",
+        "id": "d3a699d434d1f34418d472fd9c8f0660995474aef0a23253459913a00f1fd179",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c14827832b98fc32aecc30a476532fba62dcb5dcdc802c7a8a7f16648c29392c",
+        "id": "055ca85167368bc8c77f9982702eeff7049e87ed20c66a93c408f4dd672b2a34",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b41372795ee434132356339e748a8336dbe2187158bed8124c47a77a942e1b64",
+        "id": "4b950d601f6d625ac7a7f36b7c0a63acfe1b9ffdc8aeda8c5f6e1687751d6b5d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "765bb0bb91ac10ca0816e6b2fc7d1adbd9a123b654e391010d1f2ce360d3b3e4",
+        "id": "69f92873d5a48901c56445c0380372dd32af0481230c99cc816981831aeeeade",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3b6f4fc99e9157c1ebe0f55778748e57c9c9dabe7a8844f15f467d09d7bf1366",
+        "id": "438570500e3c269ac7ea0d011d28adce1e6cd54504ef4f652ab50725ebe58d59",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c4df7a31a96c134b63d8e99074f556dca71006a30489fc7d8cc5a1da34a92457",
+        "id": "2f2d3a708d92d895168230b65f76cd2d346e22c27b60960d0387474fceb4049d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6e85ae50f642fdc38f4f24a871535037879a4a3bf25d529e4269d1f486838278",
+        "id": "bbc3da18219b159d07a7af64f2ed136e7992c7a84da0f4d284ee772023920a68",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9f18daa529cf0e416d616fff4dc5158acc2f1e82f57875b2a2d2e3537f05b99b",
+        "id": "b92e16f18cd52f74ed3c822dc9930b55333b66c33045c8f69c638989d8268e9b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "40c0bc80a48931fe257bd5229a52c5a441c24ebb2f57494270fbb5c96787f7dc",
+        "id": "3040488761afa2521c070cdde6ac8754cac3286a7815fa0bee5326aabdbdefd6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9bd56a39fbeeaeda28e842d953bd2cefd434e5d1700fbeb1e5ecd82456ef0749",
+        "id": "7899d75bc3a68b007933d127d547103f9aad74abdce0441cebcbc84c86bccdd1",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8509ed388c61108eab58b22e08da598429f088234ea6cd6f2098cc18c4bed576",
+        "id": "d04b11563aa8dc6162422aa46c144871bcf8226022ab2e07614c82fdbdf2ddbb",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5172ad1da8c5dce826cf37daa948edcf9d166847cf0b5c5d8618fd3764576e1d",
+        "id": "b14e6a31a7a01813234a60b697964b740ca8318a18d3e7f393fee4e5b5c204a3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "22b532c469c7687866202a86b94a7f936eb574b4864a3390505ab129be200e88",
+        "id": "bbd13bbdbb4fb9f74ddce2a1710053d9adafc36a305fa3ca0e1c862770c5ee7d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c9575e50bf7e1a0b776bf3493f54b6302c170b3a10f8bf20e015af8c81b0b0d1",
+        "id": "83af03332fe29d7847aae8346edfa5abac7959342181518962e7bc1bf2a7e119",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "99bff935b43a0ffd1f0dae90aa9acf30717078c04ca0afba05f38084f577c322",
+        "id": "f0d0377976125337af3b9443b3e2b34c5b0814f41d55b61652b8c9837698bd76",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "28e1209130e48752af797d1b6152e867888cc3a5866f1dc3536098031dc361b9",
+        "id": "54fd58d93b2e02835bbd3e16703970bdf4034c19241e805a32369f50b0eece93",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cc3d32b0a9c3cbe80848661af2deec1b313d8b1270832e269c832253223ff6a2",
+        "id": "de0ab801f5e42117a5bfb7286a27194469bd5f7b003dec46bd5dfc7922f2698b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -89082,6 +89100,7 @@
           "hub/widget/mouse_contract.py",
           "hub/widget/output/reader.py",
           "hub/widget/output/search_index.py",
+          "hub/widget/output/table_inspector.py",
           "hub/widget/output/tag_bar.py",
           "hub/widget/output_inspector.py",
           "hub/widget/panel_edge.py",
@@ -105258,8 +105277,8 @@
   },
   {
     "path": "hub/widget/output/text_viewport.py",
-    "sha256": "45c69a2f6643928bd914209e0bdb12270793aea87f4358a2bb4a0d6c58017fba",
-    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
+    "sha256": "037f742def84de42b71ee338373b097880719c505b8549ecddee87be8af21393",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -105400,29 +105419,33 @@
         "owner": "ViewportRenderKey / TextRows / TextViewport",
         "declaration": "hub/widget/output/text_viewport.py",
         "consumers": [
+          "hub/widget/forms/question_card.py",
           "hub/widget/output/output_viewport.py",
-          "hub/widget/output_inspector.py",
           "hub/widget/output/reader.py",
-          "hub/widget/forms/question_card.py"
+          "hub/widget/output/table_inspector.py",
+          "hub/widget/output_inspector.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_output_interaction.py",
-          "tests/hub/test_mouse_widgets.py",
-          "tests/hub/test_question_card.py",
-          "tests/hub/test_render_intervals.py",
-          "tests/hub/test_responsiveness.py",
-          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_completion_display.py"
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -109980,6 +110003,444 @@
           "tests/hub/test_engine_output.py",
           "tests/hub/test_home_navigation.py",
           "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/labels.py",
+    "sha256": "2c717f16d85e4855ed1d6756248926c1ee385e77f8cdde350b3069a9ccf5b7bd",
+    "reason": "Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "854c799e8ed9eccb6b18325498204247075d35cd422a9e2763fef4d2863378bd",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "f7bb1bb24300d45d50d9acd7bde7c675e2ffd733876d43d0bd8f9e9f7c708b10",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "76092943ed12aa173541d6ac15ca800f307c8deca743e73019df70f0381b24fe",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "40400beeeb5d098ce5a5f2203b78a3b4353f56cdc988da28dc4920dbe0cf9052",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "50f7fd15ed4a69a6c3a5e55530ab2e0cbb803cd9b3a47adbd5e5857c6a899e24",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "a339d6c7f8f24838ccf746bc1c414a67d85e5b9b44936c519d62d168ab245a7a",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "68674d842b8ce238b20d49a28b07c96342a1ca83271c622122c25cd6334a08aa",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "3fb90b4c28cef53299a7f32aa602fe19ab4ba358e162f6bce33ef790fa501788",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "e99f55bbda6c536edd288f625c9a8457d70ef78a97fed07910321a01001da608",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "539d7fcc9a6fd1e0236a7c29b592bb853e2cd9bff8ade1cda31c69e313569e4d",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "10084c1c6f0e4ee32cf2483996cf505bf7504347cab7de4cff3a1ef9ca1d8d20",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "aa41227f396331e2544c37938708a3711aa706100be07742c9e6f87e5757bf10",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "994dd2d9a6fe12bd34b621a503745ab1c007de4d70b9dbeba52640b0ca432991",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "ea24c20d274da12c0c6c24a18d689fe9da31b05189e4be42ca8be80efc21aa89",
+        "classification": "declaration",
+        "owner": "LabelText",
+        "reason": "Terminal-cell label grammar and bounds, canonical TitleAttributes/ImageAttributes/TableData field projections; invalid/empty/explicit label behavior preserves original fallback without a second table validator."
+      },
+      {
+        "id": "ea91412d0f237c1a92586547f8821d214487f4487b48c7c3d258a6ff7aa2c97c",
+        "classification": "non_contract",
+        "owner": "BlockCaption",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "d80006dcae55111ee75552712519db1f5075d097109ba63968fb8c0cfabedced",
+        "classification": "non_contract",
+        "owner": "BlockCaption",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "2aa435ef5920d33d6edd6aa783d4a6a815ca1a0f1a48e092804484cf8e2d1292",
+        "classification": "non_contract",
+        "owner": "StructuredCaption",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "acc94c4aeea5d350337b7eef915866b402eac3eaa5daa003b2b83037b411fe1b",
+        "classification": "non_contract",
+        "owner": "StructuredCaption",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "4804095bcca2b31f650e236c608f306219b8237977ba44d497da6397c161b66d",
+        "classification": "non_contract",
+        "owner": "ellipsize",
+        "reason": "Arithmetic cell-count accumulator starts at zero."
+      },
+      {
+        "id": "f96fb7814d1d704624b44c9b3a0a8f53564a20fb0f5b9a5c85688caf2773f7a2",
+        "classification": "non_contract",
+        "owner": "block_title",
+        "reason": "First component of Python str.partition before the newline."
+      },
+      {
+        "id": "2e82ca7355c9784de77eb6a1600f40738d26bca011474f82fbcd0ee80d36ba05",
+        "classification": "non_contract",
+        "owner": "block_title",
+        "reason": "First component of Python str.partition before the newline."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LabelText / BlockCaption / StructuredCaption",
+        "declaration": "hub/ui/output/labels.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/ui/output/registry.py",
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_auxiliary.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/table_inspector.py",
+    "sha256": "2d0798217446871b4365e9e9c9a38ea3433bd8c6b6a19f10ec49acff79c6e3be",
+    "reason": "Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "18d36fc68d6edb3d6bdc42a25e13378b6f4c6d024fffc3dd8260f23f791c9a4b",
+        "classification": "declaration",
+        "owner": "TableCell",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "bf9f813cabebf5f4c5f841e27f84c4ba6600d2ad2d7cb7865b396dc7bb8e1d92",
+        "classification": "declaration",
+        "owner": "TableCell",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "2c6cded4aa473402a948bd683437e6db130ecc0b265f6994dd6868d95d736de2",
+        "classification": "declaration",
+        "owner": "TableCell",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "d68e1cf2a1da912d160a02cbb4c0a11c97ee150c240fdf0ebf023b9be99dbb1a",
+        "classification": "non_contract",
+        "owner": "display_cell",
+        "reason": "Arithmetic terminal-cell count starts at zero."
+      },
+      {
+        "id": "c2533ab63d487f373fc2f777da936a50f6113ce0062936e1775c01f50077c71c",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "55bf1093bdcf4953624c3afe20af2ab359ded93cb3d01ef64876fcd31af95947",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "a93bffd0a634a447df65c38e1419c02469a9f61a835fd1160176e1877f8323f7",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "1e2ad7096bc3a27961de0e379d1397e014cec76f23f39aca9de67d3623840de3",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "24be815eeae046002440e8523bd2862ecb55aead67029b56997c9d456db5ed9e",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "0d08a4f6db256a36c316839ed3176b9f9cd3ac711a5377b0f16aad91fdf0b607",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "095660d185ab3ef1d6fdb21ca5a9b35b01b1fc2b19471917ac32b0d3099d377e",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "d2921c50d5ab81620f60cd455ad7be7ac4ebf767ac919c8e61707974fbe9dee9",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "f3a7266f1f7c2ce9367edd28689e0323ccfd3c818d66ea0f791732d9766759be",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "cf9b9d0b2be1a96985a3463ca9069d6cbce229cf8330209c58ca3226a6950456",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "753e672ca5a379ce6c06c354e1a2b18f32295c66f78e5eeeaaf95519b5e5841c",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "f88ac346b6e711f0b90676d60c46f9d34264faedcce388d7f7ad6787c532d07a",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "73713211a35cab03c61673a2112f7f24222aedd31b1afbf9e123e53c1004267d",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "09400631e73dd55cce15c4fcfd721b1c58b319f2d0bfc2c5187557b1eda6b35c",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "b4e35fd9fe175d421dd7a3eef51c58ef726bcb5cc1ae9c7d68b6bbb3914e1736",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "f61c0e0a8e64350c10a2bb403f22e93dfe8de82bc1c9bf04c9e483b21d146cdd",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "dd367a80d4c01af60acb3a026b361ac4702a9770486d6548c82655ad4839e5cb",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "ac4589f963360711d1e0d9ea72bf9ad8ca34aacd9dffb7ff0bfa291a29793515",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "c71ade199a546eb75f5ba0df53a6059630cebedf1fd96e227d6e2e79074e0471",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "b8b23d6a7cbd198658a9d41401c7c37490ddf52cd1fbd6838962ca2195da58db",
+        "classification": "declaration",
+        "owner": "TableControl",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "80be175f55482b9ce11a7b7ebcf2b73e25122bdcfddb06492449994eb5be130f",
+        "classification": "non_contract",
+        "owner": "TableControl.move",
+        "reason": "Convert sequence count to last inclusive index."
+      },
+      {
+        "id": "e7b514903c8081550aaad1e60d09ff6b0099f90de91b9cdb0234c8293ba61b3e",
+        "classification": "non_contract",
+        "owner": "TableControl.move",
+        "reason": "Convert sequence count to last inclusive index."
+      },
+      {
+        "id": "621851dabdb027faf69158190b5d6318d7e5ff24e3d7f348e83e2a8304f28b67",
+        "classification": "non_contract",
+        "owner": "TableControl.move",
+        "reason": "Convert sequence count to last inclusive index."
+      },
+      {
+        "id": "81aeda715bb22a8fe48c55a1b5b85cad2d6737304a24df5b265005e7b00d92ce",
+        "classification": "non_contract",
+        "owner": "TableControl.select_point",
+        "reason": "Convert row count to last inclusive index."
+      },
+      {
+        "id": "abbfbd6d3d3c025088bd2ce65849fb2b0688312a516757553c35dbc746133932",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "c4ef752b84ec840c646441161d0e4eaca389e51ec9e746155bf0ad99a0d114ab",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "1bd1a47644b7a8f71cd68b1ec702efc55614e2be9fe12d77652cc9652436206b",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "07410ee056814438790c20f71d6e7e1a328e91bf4147460fe78c1736bab05cd8",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "ba17d693f2c8e0d52022186194ae720b75c52544214c362a08114d7fa76b8fb5",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "9b4cd6f65d0c377408ea9091027bbd33d365ca81211a67ac4e77a7b8e57c422d",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "8d4ec8647d9b2a9e6f88379e7ea62148cd679a7eb4621056f0833d83e6f16066",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "b115c765df174742b8fbc7901e7885d1b8c86e6d7318ad01c03f24c78d9a9729",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "1e9b0c6502e65830828464a748fb4c058e9943cec90bd98e5e5ad24279b0ddf2",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "607a21131b9179dc8427ee8c3b06b429cee73a70445e824cb6886266af813ea3",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "783963435ea288434c8dda0a8f4d15a2b2a1e81a5cb9ac85ae5111f7711d3cf4",
+        "classification": "declaration",
+        "owner": "TableInspector",
+        "reason": "Typed prepared table, original geometry/navigation/sort/selection/display and mode defaults; canonical theme/shortcut keys; selected_value and retry_unloaded own table state while TextViewport owns render-request cancellation."
+      },
+      {
+        "id": "8fefc2906d37dba36fc31f0edc4d8e33b25c8b298adb99468016b684b0eefc3f",
+        "classification": "non_contract",
+        "owner": "TableInspector.__init__",
+        "reason": "Python -1 selects the last key event."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TableCell / PreparedTable / TableControl / TableInspector",
+        "declaration": "hub/widget/output/table_inspector.py",
+        "consumers": [
+          "hub/ui/output/registry.py",
+          "hub/ui/view.py",
+          "tests/hub/test_output_interaction.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_auxiliary.py"
         ],
         "complete": true
       }

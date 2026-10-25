@@ -242,6 +242,13 @@ class TextViewport(SelectableControl):
                 ),
             )
 
+    def reset_render_request(self):
+        """Cancel a deferred resize and allow the hidden surface to render again."""
+        if self._resize_timer:
+            self._resize_timer.cancel()
+            self._resize_timer = TextViewport.ABSENT
+        self._requested_key = TextViewport.ABSENT
+
     def scroll_to(self, line):
         self._tail = self.STOP_FOLLOWING
         self.top_line = max(

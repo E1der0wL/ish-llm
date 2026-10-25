@@ -9415,3 +9415,40 @@ values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·같
 표시/검색 내부의 Owner 이동으로 Level 1·2를 적용했다. 관련 후속 Hub 소단계와 묶은 Level 3
 및 정확한 SHA의 원격 CI가 상위 완료 조건이다. Gate53 결과를 이 변경으로 승계하지 않으며,
 남은 Hub 전수 범위와 공통 계약의 미완료 표시는 계속 추적한다.
+
+
+## Hub 표 Inspector·출력 라벨 계약
+
+labels와 table_inspector 두 파일을 전수 정리했다. TitleAttributes/ImageAttributes/TableData의
+선언을 BlockCaption/StructuredCaption이 소비한다. 라벨의 허용적인 누락/명시 null/잘못된 JSON
+fallback을 유지하며 TableData의 엄격 검증을 복제하지 않는다. TableCell·PreparedTable·TableControl·
+TableInspector가 표시 폭·상태·정렬·탐색·모드·shortcut을 소유한다. 원본 셀과 잘린 화면 셀을 구분해
+복사는 원본을 사용하며 빈 문자열 셀도 복사한다. 공통 Key/Theme 선언을 재사용한다.
+
+TableInspector가 다른 구현의 private resize/request/started 상태를 직접 쓰던 부분을
+TextViewport.reset_render_request()와 TableControl.retry_unloaded()로 이동했다. popup worker
+취소→deferred timer 취소→request 초기화→미완료 table 재요청 순서, 이미 표시된 rows의 보존과
+실패한 table을 자동 재시도하지 않는 동작을 유지한다. 새로운 Backend 실행/재시도 정책은 없다.
+
+원본과 실제 Unicode/제어 문자/대형 셀의 clipping, malformed/explicit/null 라벨, 표 filter/sort/
+탐색/선택/빈 셀 복사, raw 전환·취소 순서·실패 원본 보존 150개 관측이 일치했다. 공유 keys와
+TextViewport의 기존 실행 AST 두 개는 새 선언/API를 제외하면 동일하다. 전체 파일의 실행 AST
+동등성으로 확대해 주장하지 않는다. 아래 기존 PTK 입력/비동기 render tests가 실제 worker와
+화면 전환을 검증한다.
+
+- `whole-hub-table-labels-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.002349초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-table-labels-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `d12c77f62667d8c69a1a61bbf60a16cf0d94d12254064fdcc55c068367cfe55b`, input `0a889982e5bce6fd143f919005e1eac2975ee2c9b71241e356c3343b7e48e1d3`.
+
+- `whole-hub-table-labels-l1-01`: discovered/started/pass 10/10/10, exit 0, 2.198451초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-table-labels-l1-01/hub.json --modules tests.hub.test_output_interaction tests.hub.test_output`. source `d12c77f62667d8c69a1a61bbf60a16cf0d94d12254064fdcc55c068367cfe55b`, input `0a889982e5bce6fd143f919005e1eac2975ee2c9b71241e356c3343b7e48e1d3`.
+
+- `whole-hub-table-labels-l2-01`: discovered/started/pass 59/59/59, exit 0, 25.700921초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-table-labels-l2-01/hub.json --modules tests.hub.test_render_pipeline tests.hub.test_reading_positions tests.hub.test_engine_output tests.hub.test_mouse_widgets tests.hub.test_auxiliary`. source `d12c77f62667d8c69a1a61bbf60a16cf0d94d12254064fdcc55c068367cfe55b`, input `0a889982e5bce6fd143f919005e1eac2975ee2c9b71241e356c3343b7e48e1d3`.
+
+공통 안전성 84개·R3 Mutation, 출력/interaction·render pipeline·읽기 위치·Engine output·mouse·
+auxiliary를 검증했다. 발견/실행/pass ID 일치, failure/error/skip/xfail/xpass/누락/추가/중복 0,
+동일 suite 선택 ID 중복 0이며 source/input 전후·실행 간 동일성을 확인했다. 실제 argv/exit 및
+소스 hash는 `hub-table-labels-draft`의 selected-results.json/proof-commands.json/
+values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·고정 의존성과 실제 Linux
+환경에서 S1–S7 63개 ID·감사·문서 검사도 통과했다. 기존 테스트/Assertion은 변경하지 않았다.
+
+현재 Owner를 사용하는 표시 계약 정리이므로 Level 1·2를 적용했고 전체 회귀는 이 소단계에서
+수행하지 않았다. Gate53 이후 관련 Hub 변경을 묶은 Level 3와 정확한 SHA 원격 CI가 후속
+통합 게이트다. 공통 계약의 미완료 표시는 유지한다.
