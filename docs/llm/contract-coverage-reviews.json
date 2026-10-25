@@ -112567,5 +112567,409 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/ui/presentation.py",
+    "sha256": "2d30a926e6d957eff052355afe93f7b685db6d88c92b722e8e4c21e43d43b7f4",
+    "reason": "Pure message presentation/cache, snapshot delivery claims, terminal screen restoration and page geometry each retain their Owner, with canonical question/storage/role/theme/edge projections and unchanged execution order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "01707af650952d721b3ed7c100f086ca6bab335711879405021f088d4a9e1164",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "a9719d31ed625787bc13bb5e2f13a679a647a7a58fde00a6916f3b6d36a89713",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "47e568dd3ff9b0de9b68216aa1ed8f7b8424426cd0172e66c260fe62b3308951",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "cf593b68811c33cc1f085a575d2efcfc68ff5cfe025a3f70a112922bfa43d64c",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "e2204ddebcb6d5e9f1d29cd08112fcafbf7ac76c5bd3d7a1a7d79c9b9f20d8d7",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "e1b79d5ad4e1dd78a2a437da1f6baab15953256e1774cfcc6752f0b36beba607",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "dc891febd8ca42e50cb2bcbab6276fee5c39b086bc1e748c0ed69605cf4294c6",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "aac47bde781472e021c62f690b6cacda059e971bb59ee0350b027be395472e1c",
+        "classification": "declaration",
+        "owner": "PresentationFormat",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "ea441af5daf9347f2fe33569f9dcb09a1e55693554ffad5d9a6c1fcd0ff69ba5",
+        "classification": "non_contract",
+        "owner": "Presentation",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "1e0bc12b816c7d5aceb80c0b837196e4aab46f8a871ef00ee2eb73032eeeaec2",
+        "classification": "non_contract",
+        "owner": "Presentation",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "b3084aad6a2f99b1ffd775a74d8f0d5201a5dc1734cf393507274af005bd7ed1",
+        "classification": "declaration",
+        "owner": "Presentation",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "276d1e393d43dbd7a3add67aeaf8e7c2d18ba50cf88067ba938eae1404923af0",
+        "classification": "declaration",
+        "owner": "Presentation",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "1df840aa5c86606a550cbba173b14d0247b08df2056da83eec626e5e4dc76c40",
+        "classification": "declaration",
+        "owner": "MessagePresentationCache",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "c00ff834a615880ce3d273ff8555b052db87ff8be94e56de52a4001e6b6c8c01",
+        "classification": "declaration",
+        "owner": "MessagePresentationCache",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "914ebdf1be69526e514c2557ed656686565201e522146d50f78c2bee400b2355",
+        "classification": "declaration",
+        "owner": "MessagePresentationCache",
+        "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
+      },
+      {
+        "id": "24ee5f749be83853894ff3a317d3b429c2af72ee470f3da441e234c6bda3a45f",
+        "classification": "non_contract",
+        "owner": "present",
+        "reason": "Read the first pending question from the existing ordered snapshot."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PresentationFormat / PresentationKey / MessageProjection / MessagePresentationCache",
+        "declaration": "hub/ui/presentation.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/ui/view.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_state_owners.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_reading_positions.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/snapshot_inbox.py",
+    "sha256": "4017ff62c3796d5a0514c6aa641f27be57da008a09ad8d0779529b37a256cadb",
+    "reason": "Pure message presentation/cache, snapshot delivery claims, terminal screen restoration and page geometry each retain their Owner, with canonical question/storage/role/theme/edge projections and unchanged execution order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9190c5325224be1169c341f7a46ee5997884e80d2f3002cf73f65b7e141d87ed",
+        "classification": "declaration",
+        "owner": "SnapshotInbox",
+        "reason": "Canonical empty/claimed/unclaimed mailbox states under the same lock; offer/take/rebind scheduling remains unchanged."
+      },
+      {
+        "id": "1c610e6c75ce9f9d9aea99a32dd3f34576e92641813b865ff366afca86a1796c",
+        "classification": "declaration",
+        "owner": "SnapshotInbox",
+        "reason": "Canonical empty/claimed/unclaimed mailbox states under the same lock; offer/take/rebind scheduling remains unchanged."
+      },
+      {
+        "id": "309312e983ec156168e61fd37dd1b07e27e0115fd250e27bdce9e383abb0bd48",
+        "classification": "declaration",
+        "owner": "SnapshotInbox",
+        "reason": "Canonical empty/claimed/unclaimed mailbox states under the same lock; offer/take/rebind scheduling remains unchanged."
+      },
+      {
+        "id": "150b90f29ba47275447594c75f543b41c38607e2c92b0217ff8335df6da621d6",
+        "classification": "non_contract",
+        "owner": "SnapshotInbox.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "f9ba42023054b6d4de15b5b5e26d6e4d09aced7c81d6716dbede7f1a77e4f12a",
+        "classification": "non_contract",
+        "owner": "SnapshotInbox.__init__",
+        "reason": "Optional snapshot type annotation."
+      },
+      {
+        "id": "ceb4e72f804b3e6f94f06ee350ec17c947da82e1ffa034e126f886b06f8a9ae7",
+        "classification": "non_contract",
+        "owner": "SnapshotInbox.take",
+        "reason": "Optional snapshot return type annotation."
+      },
+      {
+        "id": "dc2ce3fc8751bcea2d4a7bf747b61afc90c60fb632707e91cc27b976025edab1",
+        "classification": "non_contract",
+        "owner": "SnapshotInbox.rebind",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SnapshotInbox",
+        "declaration": "hub/ui/snapshot_inbox.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "tests/hub/test_state_owners.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_state_owners.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_reading_positions.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/terminal_screen.py",
+    "sha256": "4deed34903c63d40c566949ed3f6f38523d57c41f4594d955f47108701a1623d",
+    "reason": "Pure message presentation/cache, snapshot delivery claims, terminal screen restoration and page geometry each retain their Owner, with canonical question/storage/role/theme/edge projections and unchanged execution order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0fa6d19f9cd83b5437e7e757a9e6b0128bdeb5d95876b663d663a37659625388",
+        "classification": "declaration",
+        "owner": "HubTerminalScreen",
+        "reason": "Typed owned app/renderer full-screen state; original erase/reset/cursor and mouse-filter identity restoration with same callbacks and buffer ownership."
+      },
+      {
+        "id": "ba4f025883dd1507de1af5c71e018af616690b036fb96b40cbfca64cb27b4d07",
+        "classification": "declaration",
+        "owner": "HubTerminalScreen",
+        "reason": "Typed owned app/renderer full-screen state; original erase/reset/cursor and mouse-filter identity restoration with same callbacks and buffer ownership."
+      },
+      {
+        "id": "ce49b928051c1ba9c4286196e47543d26e0c2d46dca079dbdfbde6a8cd8c2f9f",
+        "classification": "non_contract",
+        "owner": "HubTerminalScreen.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "ae62509f3212101a09f04195ae51a5317068cd94484d9091015aa26c1a399eb5",
+        "classification": "non_contract",
+        "owner": "HubTerminalScreen.__init__",
+        "reason": "Optional owned mode type annotation."
+      },
+      {
+        "id": "6345a052ffc0d70fbe59b0a4c8016ad60ff945333846bba14bb47f07fa4daf4f",
+        "classification": "non_contract",
+        "owner": "HubTerminalScreen._before_render",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "45ce6e459df76570f1b9c7bab75c075ce9b3365117512a9c0e7fc5d0f3c05f9b",
+        "classification": "non_contract",
+        "owner": "HubTerminalScreen._after_render",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "24b711e8727b540b7ab754da500b4f5495aeb971cd2d852b3a279f899aac15e0",
+        "classification": "non_contract",
+        "owner": "HubTerminalScreen._restore",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "b220ce2a064a3657701b149b3061ab95179cb14a0bc3d2a86ac75b9023e3b59f",
+        "classification": "non_contract",
+        "owner": "HubTerminalScreen.close",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ScreenMode / HubTerminalScreen",
+        "declaration": "hub/ui/terminal_screen.py",
+        "consumers": [
+          "hub/hub.py",
+          "tests/hub/test_terminal_screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_state_owners.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_reading_positions.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/layout/page.py",
+    "sha256": "2e06041d0b79392004e18f1b5b7b6fcc4be32f0bffd1e446a4d6e1c302574023",
+    "reason": "Pure message presentation/cache, snapshot delivery claims, terminal screen restoration and page geometry each retain their Owner, with canonical question/storage/role/theme/edge projections and unchanged execution order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "dbdcefbaafd78d6a30f2d2bc68b4844edac7f75c5eafcb7028fe7433cdb8b99f",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "9e8dcedd85febb91ff822bc3618f556e1437053f2d9301dd0efd3a875d9764a2",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "25054a0da3f5e735f2a20eb4ed1956e929f4c519f033e4d2d9a921b5e4942542",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "815cb0d93d088769ba75ede9307f4f54df3d61ad322c841b82028eabd88b87fc",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "175d59089329a314f9df553de3ca5612ad876894680293f05e473402a163517f",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "61a01d8acb38777503e0c92bd54f1c54e79c1f9b50c8ae00db9696f6eed7f89c",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "29e2160813027217ae41e687fe431c143c31872e9a5cc732c3c8c1b61225a4cb",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "9c2b8473da7518ee4aec1e5fbf51b5ae081ba6278129b8f5436b3234e784c072",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "7912470afb57a4626f7b3be5fea7c9e003bb47117513b11c8afe9b99a053c79c",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "d5fa32005bcb4d1409d87872f104f29f2e48585b1760e22e907d0f2b4bbdceda",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "1cf5c0be8fdbe5cc503c5409f69c391473bfad2b2a96e309d5c6c9f35586a62e",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      },
+      {
+        "id": "02541904fe1dd027c673e3e44130ca7ae9e556d6085b0ebc7673f74f2b6d9bd1",
+        "classification": "declaration",
+        "owner": "TwoPanelPage",
+        "reason": "Page geometry/default callbacks/category movement declared at class start; current PanelEdge/ThemeSelector provide shared divider and style meanings."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TwoPanelPage",
+        "declaration": "hub/ui/layout/page.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/widget/forms/settings.py",
+          "tests/hub/test_page_layout.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_state_owners.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_reading_positions.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

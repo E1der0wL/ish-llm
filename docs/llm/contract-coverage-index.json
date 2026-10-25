@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 631,
-    "unreviewed_files": 32,
+    "unreviewed_files": 28,
     "stale_files": 0,
-    "unclassified": 1874,
+    "unclassified": 1789,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 32,
+    "unreviewed_dynamic_paths": 28,
     "unreadable_files": 0,
-    "candidates": 16332,
+    "candidates": 16290,
     "issues": 0
   },
   "files": [
@@ -873,9 +873,9 @@
     },
     {
       "path": "hub/ui/layout/page.py",
-      "status": "unreviewed",
-      "sha256": "9762eeb2d5004c646c33c87817e7aba8d61662a4bc395a0fb478cf0ef9c131af",
-      "candidates": 18
+      "status": "reviewed",
+      "sha256": "2e06041d0b79392004e18f1b5b7b6fcc4be32f0bffd1e446a4d6e1c302574023",
+      "candidates": 12
     },
     {
       "path": "hub/ui/live.py",
@@ -963,9 +963,9 @@
     },
     {
       "path": "hub/ui/presentation.py",
-      "status": "unreviewed",
-      "sha256": "1e8a3b8d8ff5d592569df00de962ad2fc19592481c2f37061ecb0cd4ab975edc",
-      "candidates": 43
+      "status": "reviewed",
+      "sha256": "2d30a926e6d957eff052355afe93f7b685db6d88c92b722e8e4c21e43d43b7f4",
+      "candidates": 16
     },
     {
       "path": "hub/ui/requests.py",
@@ -1041,9 +1041,9 @@
     },
     {
       "path": "hub/ui/snapshot_inbox.py",
-      "status": "unreviewed",
-      "sha256": "20c9e1ab75fbf099df5b64efe3cdf0604d779f724e1ce1f00f60842f684f8127",
-      "candidates": 12
+      "status": "reviewed",
+      "sha256": "4017ff62c3796d5a0514c6aa641f27be57da008a09ad8d0779529b37a256cadb",
+      "candidates": 7
     },
     {
       "path": "hub/ui/submitted.py",
@@ -1053,9 +1053,9 @@
     },
     {
       "path": "hub/ui/terminal_screen.py",
-      "status": "unreviewed",
-      "sha256": "568b26f7e075364bf19e248e32f65f92a68e2611bf1754550bd98fea29efb6d9",
-      "candidates": 12
+      "status": "reviewed",
+      "sha256": "4deed34903c63d40c566949ed3f6f38523d57c41f4594d955f47108701a1623d",
+      "candidates": 8
     },
     {
       "path": "hub/ui/view.py",

@@ -9612,3 +9612,40 @@ feedback·completion display·stream output·tag index·responsiveness·engine o
 `fc89dd27b1994198121ed0022631e35b4b2c99452ac4701dd719ce15261ca18c`에는 제한적으로 재사용한다. 새 전체 실행으로 합산하지 않는다.
 실제 byte/AST/전체 Python manifest·환경 비교와 변경 목록은 `hub-conversation-draft/format-only-reuse`에
 보존했다. 갱신한 감사/문서 증거는 정적·감사·문서 검사로 다시 검증한다.
+
+
+## Hub 표시 변환·snapshot 전달·터미널 모드·페이지
+
+presentation·snapshot_inbox·terminal_screen·layout/page 네 파일을 전수 정리했다. 표시 포맷과
+PresentationKey/MessageProjection이 의미 있는 cache 필드를 소유한다. MessageRole/Status/
+ConversationStorage와 QuestionPresentation의 실제 request/title Reader를 재사용하며 잘못된
+필드의 기존 오류, 실패 안내와 부분 모델 응답의 분리, elapsed만 바뀐 경우의 재사용을 유지한다.
+
+SnapshotInbox의 claim 상태는 같은 Lock 아래에서 유지하고, ScreenMode는 원래 app/renderer
+모드를 함께 보관한다. shell buffer의 erase/reset·cursor·mouse filter 소유권 복원 순서를 유지한다.
+TwoPanelPage는 geometry·기본 callback·탐색 값을 소유하고 PanelEdge와 ThemeSelector를 사용한다.
+Backend 실행/정책이나 저장 데이터를 해석하는 새로운 경로는 없다.
+
+원본과 실제 표시 상태/부분 실패·elapsed cache·notice 우선순위·필수 질문 필드 오류·snapshot
+offer/take/rebind와 100개 동시 publication의 단일 claim, screen renderer callback/복원·mouse
+filter identity·PTK page geometry 88개 관측이 일치했다. 새 선언·typed record·Owner Reader를
+확장한 네 파일의 실행 AST가 같다. 비교 도구의 음수 상수 AST 표현 차이는 정규화했고 최초
+실패와 수정 로그를 보존했다. 실제 화면/입력/worker 동작은 아래 기존 통합 테스트가 검증한다.
+
+- `whole-hub-ui-observation-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.719008초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-ui-observation-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `512020029a8efab7e55e598142f82b4025325ab3f569a1aa7b16b0bb7c09eda0`, input `113e9472ee59944654dd35d14349309d5b54f9bf13cf191a539473465b30f9f3`.
+
+- `whole-hub-ui-observation-l1-01`: discovered/started/pass 19/19/19, exit 0, 6.733224초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-ui-observation-l1-01/hub.json --modules tests.hub.test_state_owners tests.hub.test_terminal_screen tests.hub.test_page_layout tests.hub.test_usage_definitions_system`. source `512020029a8efab7e55e598142f82b4025325ab3f569a1aa7b16b0bb7c09eda0`, input `113e9472ee59944654dd35d14349309d5b54f9bf13cf191a539473465b30f9f3`.
+
+- `whole-hub-ui-observation-l2-01`: discovered/started/pass 34/34/34, exit 0, 7.294555초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-ui-observation-l2-01/hub.json --modules tests.hub.test_render_pipeline tests.hub.test_snapshot_projection tests.hub.test_ish_integration tests.hub.test_reading_positions`. source `512020029a8efab7e55e598142f82b4025325ab3f569a1aa7b16b0bb7c09eda0`, input `113e9472ee59944654dd35d14349309d5b54f9bf13cf191a539473465b30f9f3`.
+
+공통 안전성 84개·R3 Mutation, 실제 state owners·terminal screen·page layout·usage/definition/system,
+render pipeline·snapshot projection·ish 통합·reading positions를 검증했다. 발견/실행/pass ID 일치,
+failure/error/skip/xfail/xpass/누락/추가/중복 0, 동일 suite 선택 ID 중복 0이며 source/input 전후·
+실행 간 동일성을 확인했다. 실제 argv/exit/hash는 `hub-ui-observation-draft`의 selected-results.json,
+proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·고정
+의존성·실제 Linux 환경에서 정적 S1–S7·감사·문서 검사도 통과했다. 기존 테스트/Assertion은
+변경하지 않았다.
+
+실행 순서와 값을 보존한 표시/전달 계약 정리이므로 Level 1·2를 적용했다. 동결 Gate54의 실제
+Hub 전체 실행과 UI 집중 검증이 경쟁하지 않도록 순서를 분리했다. 소단계 전체 회귀는 수행하지
+않았으며 Gate54 이후 관련 Hub 변경을 묶은 Level 3 및 정확한 SHA 원격 CI가 후속 게이트다.

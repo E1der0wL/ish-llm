@@ -2,12 +2,21 @@
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.filters import Condition
+from typing import NamedTuple
+
+
+class ScreenMode(NamedTuple):
+    application: bool
+    renderer: bool
 
 
 class HubTerminalScreen:
+    UNOWNED = None
+    FULL_SCREEN = True
+
     def __init__(self, app: Application, view) -> None:
         self.app, self.view = app, view
-        self._original: tuple[bool, bool] | None = None
+        self._original: ScreenMode | None = HubTerminalScreen.UNOWNED
         self._mouse_support = app.mouse_support
         self._renderer_mouse_support = app.renderer.mouse_support
         visible = Condition(lambda: self.view.visible)
@@ -20,24 +29,29 @@ class HubTerminalScreen:
 
     def _before_render(self, app: Application) -> None:
         if self.view.visible:
-            if self._original is None and not app.renderer.full_screen:
+            if (
+                self._original is HubTerminalScreen.UNOWNED
+                and not app.renderer.full_screen
+            ):
                 # Erase only PTK's current prompt region, keeping the output above
                 # it. The next render enters the terminal's alternate buffer.
                 app.renderer.erase()
-                self._original = app.full_screen, app.renderer.full_screen
-                app.full_screen = app.renderer.full_screen = True
+                self._original = ScreenMode(app.full_screen, app.renderer.full_screen)
+                app.full_screen = app.renderer.full_screen = (
+                    HubTerminalScreen.FULL_SCREEN
+                )
         else:
             self._restore()
 
     def _after_render(self, app: Application) -> None:
-        if app.is_done and self._original is not None:
+        if app.is_done and self._original is not HubTerminalScreen.UNOWNED:
             # A completed PTK render already left the alternate screen. Do not
             # erase the restored shell while releasing our mode ownership.
             self._restore()
             self.view.hide(app)
 
     def _restore(self) -> None:
-        if self._original is None:
+        if self._original is HubTerminalScreen.UNOWNED:
             return
         app = self.app
         running = app.is_running and not app.is_done
@@ -46,7 +60,7 @@ class HubTerminalScreen:
         else:
             app.renderer.reset()
         app.full_screen, app.renderer.full_screen = self._original
-        self._original = None
+        self._original = HubTerminalScreen.UNOWNED
         if running:
             app.renderer.request_absolute_cursor_position()
 
