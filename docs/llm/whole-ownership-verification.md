@@ -9919,3 +9919,48 @@ Host d833790, 고정 의존성, 정상 namespace(NoNewPrivs=0)에서 실행했�
 같아 범위가 제한됨을 확인했다. 관련 위험도/authoring 소비자와 묶는 다음 Level 3에서 전체
 LLM/Hub 현재 통합 상태를 검증하고 Push·정확한 SHA 원격 CI를 확인한다. Gate56의 과거 동결
 SHA 결과를 이 변경의 전체 회귀로 표현하지 않는다.
+
+
+## Hub 위험도 설명·승인 검토/명시 설정 투영
+
+RiskAssessment와 ApprovalReview를 전수 정리했다. _hub_risk 구조·label/score·Schema·revision·
+instruction은 모델 설명 Owner에서 한 번 선언한다. 기존 public export는 같은 Owner의 alias이며
+model_assessment의 tuple 반환과 기존 schema/contract/revision 값은 유지한다. unknown/누락/잘못된
+설명은 점수 없는 상태로 남고 모델 설명을 승인 결정으로 사용하지 않는다.
+
+InteractionRequestObservation·ToolApprovalActionView가 원래 필수/선택적 action/description/risk/
+arguments 조회를 담당한다. ApprovalRule/ApprovalPolicy.selected_threshold는 사용자가 명시한
+category/threshold의 기존 JSON Projection만 제공한다. Hub의 bool 거부·비음수 정수 확인과 오류
+순서, 정책 Schema·실행 검증은 변경하지 않았다. 표시 대상 argument 이름 집합은 custom Tool에도
+적용되는 Hub 표시 vocabulary이며 실행 Schema를 재정의하지 않는다. 문자열 조립은 원래 f-string
+평가 순서를 유지해 값 formatting과 preview 호출의 순서도 바꾸지 않았다.
+
+원본/제안의 독립 프로세스 151개 관측과 실제 Owner를 확장한 4개 구현 AST가 일치했다. 위험
+label 경계/unknown/외부 scheme·누락/손상 관측·선택 설정 검증·상세 검토 truncation/JSON fence·
+모든 기존 schema/contract/공개 선언·handler identity·실제 파일 효과 횟수를 비교했다. 설명
+metadata는 일반 효과 handler 전달 전에 제거되고 sandbox handler의 기존 타입/identity는
+보존된다. 외부 probe의 잘못된 Tool.to_dict 호출은 적용 전에 실제 Registry definition API로
+수정하고 최초 오류를 보존했다. 제품 테스트와 안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-risk-review-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.715324초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-risk-review-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `76982cef55c510587b6ab271b6cf50bf9d831ea726ac8be688c1f40bc1cfb1d1`, input `7e1adf97e6dd313c86a060d3fd85bb1d72282a3c81766469ec38de5e6fdd75ab`.
+
+- `whole-hub-risk-review-l1-llm-01`: discovered/started/pass 33/33/33, exit 0, 9.947613초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-risk-review-l1-llm-01/llm.json --modules tests.llm.test_policy_values tests.llm.test_project_policies tests.llm.test_policy_ownership tests.llm.test_policy_consumers`. source `76982cef55c510587b6ab271b6cf50bf9d831ea726ac8be688c1f40bc1cfb1d1`, input `7e1adf97e6dd313c86a060d3fd85bb1d72282a3c81766469ec38de5e6fdd75ab`.
+
+- `whole-hub-risk-review-l1-01`: discovered/started/pass 11/11/11, exit 0, 6.046585초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-risk-review-l1-01/hub.json --modules tests.hub.test_tool_advice tests.hub.test_question_card`. source `76982cef55c510587b6ab271b6cf50bf9d831ea726ac8be688c1f40bc1cfb1d1`, input `7e1adf97e6dd313c86a060d3fd85bb1d72282a3c81766469ec38de5e6fdd75ab`.
+
+- `whole-hub-risk-review-l2-01`: discovered/started/pass 55/55/55, exit 0, 236.712114초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-risk-review-l2-01/hub.json --modules tests.hub.test_tool_retry tests.hub.test_question_tools tests.hub.test_shell_environment tests.hub.test_approval_continuation tests.hub.test_interaction_updates tests.hub.test_input_contract tests.hub.test_resource_tools`. source `76982cef55c510587b6ab271b6cf50bf9d831ea726ac8be688c1f40bc1cfb1d1`, input `7e1adf97e6dd313c86a060d3fd85bb1d72282a3c81766469ec38de5e6fdd75ab`.
+
+R3 Mutation도 exit 0. 발견/실행/pass ID 일치, failure/error/Skip/xfail/xpass/누락/추가/중복 0,
+source/input 전후 및 실행 간 동일, suite별 선택 ID 중복 0을 확인했다. 공통 안전성, LLM 정책
+값/Project 정책/소유권/소비자, Hub 위험 설명·질문 카드·Tool 재시도·실제 질문 Tool·shell 환경·
+승인 연속 실행·Interaction 갱신·입력·resource 소비자가 포함된다. Python 3.12.14/Clang,
+Host d833790, 고정 의존성, 정상 namespace(NoNewPrivs=0). 실제 argv/exit/hash는 외부
+`hub-risk-review-draft`에 보존한다. 변경된 증거 hash를 재검토하고 S1–S7·감사·문서 검사를
+통과했다. 승인 preset의 비음수 하한 0을 MIN_RISK 선언으로 옮겨 소멸한 정확한 S3
+occurrence `083b9a17…:1`의 원래 review 전체 행과 이유를 별도 보존했다. 나머지 59개 finding ID와
+변경 의존성만 대조·갱신했으며 규칙이나 필수 소비자를 제거하지 않았다. 최초 검사 결과는 유지한다.
+
+Level 1·2 로컬 완료다. 기존 승인 정책·원본 Schema·binding hash·실제 효과가 동일함을 확인해
+이 이동의 영향 범위를 제한했다. Toolkit·관련 authoring 소비자와 묶는 다음 Level 3 전체 검증
+뒤에만 Push하고 정확한 SHA의 원격 CI를 기록한다. 과거 Gate56 결과는 이 변경의 전체 검증
+증거가 아니다. 승인/예산/효과/Checkpoint/Resume의 실패를 제외하거나 기준을 낮추지 않는다.

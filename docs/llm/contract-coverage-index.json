@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 635,
-    "unreviewed_files": 15,
+    "unreviewed_files": 13,
     "stale_files": 0,
-    "unclassified": 1036,
+    "unclassified": 902,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 15,
+    "unreviewed_dynamic_paths": 13,
     "unreadable_files": 0,
-    "candidates": 15849,
+    "candidates": 15778,
     "issues": 0
   },
   "files": [
@@ -279,9 +279,9 @@
     },
     {
       "path": "hub/backend/interactions/approval.py",
-      "status": "unreviewed",
-      "sha256": "c29eac57801a0b815aab912b35864b73e3c58282ea525ebfb05e7ed15d7dc697",
-      "candidates": 79
+      "status": "reviewed",
+      "sha256": "327fc22581182a3987b3f44ea1c0f781ae20072b839126e2b3f494004b4e81aa",
+      "candidates": 39
     },
     {
       "path": "hub/backend/interactions/question_values.py",
@@ -477,9 +477,9 @@
     },
     {
       "path": "hub/backend/tools/advice.py",
-      "status": "unreviewed",
-      "sha256": "2fd7bcabec4ff75a80c57298c064bab8257823c9517d04200e37326164e45b37",
-      "candidates": 55
+      "status": "reviewed",
+      "sha256": "619037c5ab7fc117bc43d62eaa292a3cc6284ee29e29b9ed9f3cdbc170b4189d",
+      "candidates": 22
     },
     {
       "path": "hub/backend/tools/builtin.py",
@@ -2830,8 +2830,8 @@
     {
       "path": "llm/core/policies.py",
       "status": "reviewed",
-      "sha256": "0275cff59137aa163155146205a9155620167bf7c6ac4ee2c20e4f5158954636",
-      "candidates": 159
+      "sha256": "2c028cf59fd855e05bed670e039f05b9c9f5007b2427449bac88febebb32f2de",
+      "candidates": 160
     },
     {
       "path": "llm/core/resource_references.py",
@@ -3766,8 +3766,8 @@
     {
       "path": "llm/services/runtime/tool_approval_records.py",
       "status": "reviewed",
-      "sha256": "83c9967ab853f1cd31d4470a8faf64ab1c1aa7dcb8380b311000ad1161942516",
-      "candidates": 5
+      "sha256": "0f97f901a9a8e1d7b8ff2e2e9876ef104636ed5db74388af63d3b106fcb60669",
+      "candidates": 6
     },
     {
       "path": "llm/services/runtime/tool_context.py",

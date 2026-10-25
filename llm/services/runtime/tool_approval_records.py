@@ -5,7 +5,11 @@ from dataclasses import asdict, dataclass, replace
 
 from llm.core.checkpoint_records import CheckpointStep
 from llm.core.checkpoints import CheckpointStatus
-from llm.core.interactions import InteractionBinding, InteractionOption, InteractionRequest
+from llm.core.interactions import (
+    InteractionBinding,
+    InteractionOption,
+    InteractionRequest,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,7 +45,9 @@ class ToolApprovalAction:
 
     @classmethod
     def from_call(cls, call, policy):
-        return asdict(cls(call.name, call.arguments, call.contract, policy, call.classification))
+        return asdict(
+            cls(call.name, call.arguments, call.contract, policy, call.classification)
+        )
 
     @classmethod
     def bind(cls, request, call, policy):
@@ -54,6 +60,16 @@ class ToolApprovalAction:
 
 
 class ToolApprovalActionView:
+    EMPTY_TOOL = ""
+
+    @property
+    def tool_or_empty(self):
+        return self._value.get(ToolApprovalAction.tool.__name__, self.EMPTY_TOOL)
+
+    @property
+    def arguments_or_empty(self):
+        return self._value.get(ToolApprovalAction.arguments.__name__, {})
+
     def __init__(self, value):
         self._value = value
 
@@ -105,27 +121,37 @@ class ToolApprovalRecord:
 
     @property
     def action(self):
-        return ToolApprovalActionView(self.interaction.get(InteractionRequest.action.__name__, {}))
+        return ToolApprovalActionView(
+            self.interaction.get(InteractionRequest.action.__name__, {})
+        )
 
     @property
     def is_approval(self):
         interaction = self.interaction
         return (
-            self._value.get(CheckpointStep.Field.STATUS.value) == CheckpointStatus.WAITING.value
-            and interaction.get(InteractionRequest.kind.__name__) == InteractionRequest.KIND_APPROVAL
-            and ToolApprovalAction.tool.__name__ in interaction.get(InteractionRequest.action.__name__, {})
+            self._value.get(CheckpointStep.Field.STATUS.value)
+            == CheckpointStatus.WAITING.value
+            and interaction.get(InteractionRequest.kind.__name__)
+            == InteractionRequest.KIND_APPROVAL
+            and ToolApprovalAction.tool.__name__
+            in interaction.get(InteractionRequest.action.__name__, {})
             and ToolApprovalAction.arguments.__name__
             in interaction.get(InteractionRequest.action.__name__, {})
         )
 
     @property
     def binding(self):
-        return ToolApprovalBindingView(self.interaction.get(InteractionRequest.binding.__name__, {}))
+        return ToolApprovalBindingView(
+            self.interaction.get(InteractionRequest.binding.__name__, {})
+        )
 
     def select(self, decision):
-        selected, _ = InteractionRequest.from_dict(self.interaction).select_decision(decision)
+        selected, _ = InteractionRequest.from_dict(self.interaction).select_decision(
+            decision
+        )
         return (
             selected.effect == InteractionOption.EFFECT_APPROVE
-            if selected.effect in (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY)
+            if selected.effect
+            in (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY)
             else self.ABSENT
         )
