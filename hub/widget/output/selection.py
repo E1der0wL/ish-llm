@@ -110,6 +110,23 @@ class TextSelection:
 class SelectableControl(UIControl):
     """Opt-in selection only; is_focusable remains UIControl's False default."""
 
+    SELECTION = "selection"
+    POINT_SELECTOR = "select_point"
+    TOP_LINE = "top_line"
+    ABSENT = None
+
+    @classmethod
+    def selection_of(cls, control):
+        return getattr(control, cls.SELECTION, cls.ABSENT)
+
+    @classmethod
+    def point_selector(cls, control):
+        return getattr(control, cls.POINT_SELECTOR, cls.ABSENT)
+
+    @classmethod
+    def top_line_of(cls, control, fallback):
+        return getattr(control, cls.TOP_LINE, fallback)
+
     def __init__(self):
         super().__init__()
         self.selection = TextSelection()

@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 628,
-    "unreviewed_files": 50,
+    "unreviewed_files": 49,
     "stale_files": 0,
-    "unclassified": 3514,
+    "unclassified": 3379,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 50,
+    "unreviewed_dynamic_paths": 49,
     "unreadable_files": 0,
-    "candidates": 17169,
+    "candidates": 17075,
     "issues": 0
   },
   "files": [
@@ -1096,8 +1096,8 @@
     {
       "path": "hub/widget/clipboard.py",
       "status": "unreviewed",
-      "sha256": "745c7126e1ce17504ef8e06c739e4db1fb6bdfa7246989bb90c331161d289412",
-      "candidates": 115
+      "sha256": "0aae07f26c66796af23e79495e45e1990a40aa4e208849851ef5bbb52d12f03c",
+      "candidates": 113
     },
     {
       "path": "hub/widget/composer_actions.py",
@@ -1317,9 +1317,9 @@
     },
     {
       "path": "hub/widget/mouse.py",
-      "status": "unreviewed",
-      "sha256": "e3c99917e264cb844d7a9311c8eea9b5e59cc25526e855af1a3a7f0a6f07728b",
-      "candidates": 133
+      "status": "reviewed",
+      "sha256": "74062c64f1b8eb65f085a2a5583e2f7463eb8f68a575cb445291e7ee3fc7aba7",
+      "candidates": 37
     },
     {
       "path": "hub/widget/mouse_contract.py",
@@ -1372,8 +1372,8 @@
     {
       "path": "hub/widget/output/selection.py",
       "status": "reviewed",
-      "sha256": "5ebb0082ae3caf87b520caa41f7ea4d14fb53de55af1a310856d8de56646b778",
-      "candidates": 13
+      "sha256": "613334e1013080b80686fdb8148d6be3a8358cb122c3253cd996fc242968a8d1",
+      "candidates": 17
     },
     {
       "path": "hub/widget/output/table_inspector.py",

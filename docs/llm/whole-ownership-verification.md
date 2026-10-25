@@ -9199,3 +9199,37 @@ Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux 환경이다.
 RenderSurfaces·OutputGrammar와 이 변경을 묶은 다음 Level 3 전체 회귀·정확한 SHA 원격 CI가
 통합 완료 조건이다. Gate52를 이 변경의 증거로 승계하지 않는다. 기존 미완료 공유 계약 표시는
 유지하며 남은 Hub 전수 작업을 계속한다.
+
+
+## Hub 마우스 dispatch·선택 조회 계약
+
+mouse.py 전체의 drag phase·취소 상태·wheel/line 이동·scrollbar 최소치·optional control 경계를
+각 MouseCapture/ScrollbarGeometry/WindowScroll/MouseController 선언에 모았다. MouseHit와
+ScrollbarHit가 내부 hit 구조를 소유하며 원래 tuple 값·destructuring/equality를 유지한다.
+SelectableControl의 동일 optional Reader를 mouse와 clipboard가 사용한다. 실제 selection
+Writer와 TableControl.select_point/TextViewport.top_line 소비 연결도 확인했다. clipboard.py는
+이 조회만 전환했으며 파일 전체 완료로 기록하지 않는다. ThemeSelector/MouseResult를 재사용했다.
+
+원래 modal scope·clip·focusability·읽기 전용 입력·화면 밖 release·사라진 drag target의 취소,
+PTK native dispatch 순서를 유지했다. Owner 선언/Reader/typed tuple을 확장하면 변경 세 파일의
+기존 실행 AST와 같다. 실제 geometry·capture·hover·hit·WindowScroll callback/원본 content 보존
+50개 관측도 원본/변경안이 일치했다. 비교의 작은 window facade는 실제 터미널 검증과 구분하며,
+아래 기존 MouseWidgetTests가 SGR 입력·modal·drag·focus·wheel을 실제 PTK 앱에서 검증한다.
+
+- `whole-hub-mouse-dispatch-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.549182초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-mouse-dispatch-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `328d0cba2e44f2cdb20c8ccf6fddfdceaefb12a882202f1ab00dfcfa17cedf77`, input `0e7018076db37334d6050e895a35dc028aeafde9a83baa67e3c8ebcf62439375`.
+
+- `whole-hub-mouse-dispatch-l1-01`: discovered/started/pass 38/38/38, exit 0, 21.80529초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-mouse-dispatch-l1-01/hub.json --modules tests.hub.test_mouse_widgets tests.hub.test_input_contract tests.hub.test_clipboard`. source `328d0cba2e44f2cdb20c8ccf6fddfdceaefb12a882202f1ab00dfcfa17cedf77`, input `0e7018076db37334d6050e895a35dc028aeafde9a83baa67e3c8ebcf62439375`.
+
+- `whole-hub-mouse-dispatch-l2-01`: discovered/started/pass 29/29/29, exit 0, 11.957232초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-mouse-dispatch-l2-01/hub.json --modules tests.hub.test_output_interaction tests.hub.test_auxiliary tests.hub.test_engine_output tests.hub.test_question_card tests.hub.test_settings_viewport tests.hub.test_page_layout`. source `328d0cba2e44f2cdb20c8ccf6fddfdceaefb12a882202f1ab00dfcfa17cedf77`, input `0e7018076db37334d6050e895a35dc028aeafde9a83baa67e3c8ebcf62439375`.
+
+공통 안전성 84개·R3 Mutation과 mouse/input/clipboard, output interaction·auxiliary·engine output·
+question card·settings viewport·page layout을 검증했다. 발견/실행/통과가 일치하고 failure/error/
+skip/xfail/xpass/누락/추가/중복은 모두 0이다. 동일 suite의 선택 ID 중복도 0이며 source/input은
+실행 전후 및 선택 실행 사이 동일하다. 실제 argv·exit·hash와 비교 근거는
+`hub-mouse-dispatch-draft/selected-results.json`, proof-commands.json, values-equivalence.json에
+보존한다. Python 3.12.14/Clang·Host d833790·같은 의존성·실제 Linux 환경이다.
+정적 S1–S7 67개 ID·감사·문서 검사와 기존 테스트/Assertion을 유지했다.
+
+표시/입력 경계의 동일 이동이므로 Level 1·2를 적용했다. Gate53 이후 변경이므로 그 게이트의
+전체 통과를 승계하지 않는다. 후속 관련 Hub 소단계와 묶은 Level 3·정확한 SHA의 원격 CI가
+상위 완료 조건이며, 남은 Hub 전수 조사와 미완료 공유 계약을 계속 추적한다.

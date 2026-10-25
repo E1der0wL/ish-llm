@@ -1,6 +1,7 @@
 """Hub's clipboard register, backed by the desktop or terminal clipboard."""
 
 from hub.locales.keys import MessageKey
+from .output.selection import SelectableControl
 
 import asyncio
 import base64
@@ -199,7 +200,7 @@ def selected_text(app, view):
         return ""
     scope = view.mouse._scope()
     for window, _ in reversed(view.mouse.windows):
-        selection = getattr(window.content, "selection", None)
+        selection = SelectableControl.selection_of(window.content)
         if window in scope and selection is not None and selection.text:
             return selection.text
     return ""

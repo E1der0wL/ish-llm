@@ -104993,8 +104993,8 @@
   },
   {
     "path": "hub/widget/output/selection.py",
-    "sha256": "5ebb0082ae3caf87b520caa41f7ea4d14fb53de55af1a310856d8de56646b778",
-    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
+    "sha256": "613334e1013080b80686fdb8148d6be3a8358cb122c3253cd996fc242968a8d1",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data. MouseCapture/ScrollbarGeometry/WindowScroll/MouseController own drag, geometry and dispatch declarations. Named hit records preserve tuple values; SelectableControl owns optional selection observation used by both mouse and clipboard. Modal clipping, cancellation and focus guards are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -105074,6 +105074,30 @@
         "classification": "non_contract",
         "owner": "TextSelection.apply.selected",
         "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "06d9c2d46998e540a06c98caf893654534c206138804dbce52ae56a2a19e6e2f",
+        "classification": "declaration",
+        "owner": "SelectableControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "212fe481ce7069e5a84c062845a01570179f0c43ff04a672e219c0687beb341f",
+        "classification": "declaration",
+        "owner": "SelectableControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "64497bead3224749f2b043a2cb67ce06020366adc95a302b8f8535eb8a7b555d",
+        "classification": "declaration",
+        "owner": "SelectableControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "0698bf4da1e7a3ba3a89dd4d873a92d6daa0d04e8f52840e31738e1c2e11b93d",
+        "classification": "declaration",
+        "owner": "SelectableControl",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -105081,29 +105105,34 @@
         "owner": "TextSelection / SelectableControl",
         "declaration": "hub/widget/output/selection.py",
         "consumers": [
+          "hub/widget/clipboard.py",
           "hub/widget/mouse.py",
+          "hub/widget/output/table_inspector.py",
           "hub/widget/output/text_viewport.py",
-          "hub/widget/transcript/conversation.py",
-          "hub/widget/output/table_inspector.py"
+          "hub/widget/transcript/conversation.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_page_layout.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
           "tests/hub/test_responsiveness.py",
-          "tests/hub/test_home_navigation.py",
-          "tests/hub/test_engine_output.py",
           "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_completion_display.py"
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -106913,6 +106942,267 @@
           "tests/hub/test_responsiveness.py",
           "tests/hub/test_completion_display.py",
           "tests/hub/test_render_intervals.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/mouse.py",
+    "sha256": "74062c64f1b8eb65f085a2a5583e2f7463eb8f68a575cb445291e7ee3fc7aba7",
+    "reason": "MouseCapture/ScrollbarGeometry/WindowScroll/MouseController own drag, geometry and dispatch declarations. Named hit records preserve tuple values; SelectableControl owns optional selection observation used by both mouse and clipboard. Modal clipping, cancellation and focus guards are unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8e26048ed751609a5e4b1654c46dbd381acec6f6acb4d81d8007bdca68a0f07c",
+        "classification": "non_contract",
+        "owner": "MouseCapture",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "a194f834e3bb4656bfaf8763699699d631c0bc1e527895d2fd0869f8c9e60db0",
+        "classification": "declaration",
+        "owner": "MouseCapture",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "43b99223b04071c6a794786dc67588693910e23c6152ac4841f974d44f3fb719",
+        "classification": "declaration",
+        "owner": "MouseCapture",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "39d325454c941a45e93d815b06fe029c8fc33a7836bbaeee5910d57840841822",
+        "classification": "non_contract",
+        "owner": "ScrollbarGeometry",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "f3da79239e3b98d2bcaeffd5641223d54d057e6a0f81d8c4f9f9006ca6cebc31",
+        "classification": "non_contract",
+        "owner": "ScrollbarGeometry",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "fd016e6fd06c34879f40611f4f32c5a8a7376e84837e00c248d549519af6f249",
+        "classification": "declaration",
+        "owner": "ScrollbarGeometry",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "ba9db5a446a1810120fc2cbb9d75834fea71efb65beb74e05d03733f98660dcd",
+        "classification": "declaration",
+        "owner": "ScrollbarGeometry",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "2fc96786c3101769578f26feda789d3ff110820eab9deb8bed695de567fde676",
+        "classification": "declaration",
+        "owner": "ScrollbarGeometry",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "d073354507abca546bd745d12303083351227dca003675a99cc70a9a54ac112c",
+        "classification": "declaration",
+        "owner": "ScrollbarGeometry",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "18ca48d7549400f5b242ee525f842b1ecee1b97aa71990941327b71f1fb0aab6",
+        "classification": "declaration",
+        "owner": "ScrollbarGeometry",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "65f2c0fb3a9b932619c40ff9044ba1d643ab9a4a2aaf617e9d492bc8ca4a5a03",
+        "classification": "declaration",
+        "owner": "ScrollbarGeometry",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "24471a0be8a16ed85aed3967ef0f1aa6b34fe727a4fd35b96a5ea588af766e3d",
+        "classification": "declaration",
+        "owner": "WindowScroll",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "1775a91c56c576f8e1ae6220921504d73da3555b7e0697f68b4a974a3cfe8129",
+        "classification": "declaration",
+        "owner": "WindowScroll",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "26f5fd165a815c9adf33d926849ec41ba92bd8d0cffd4512b8156e3f75bf4891",
+        "classification": "declaration",
+        "owner": "WindowScroll",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "0828415a2722542aac8ccb2ed5b686d19268155cb46c78bc5e7f2f56c045a9f3",
+        "classification": "non_contract",
+        "owner": "WindowScroll._scroll",
+        "reason": "Convert a height/count to its final inclusive row index."
+      },
+      {
+        "id": "bb641f3a5c38fe0d875c4ec5e6a049f860866e164f163cc7be54a575fb3d7d0d",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "c10042eb8ee5f628f0b9a504ef465308d95b1cb92eef27cdcf78cfb293d3bb7b",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "b51e96968e90c9c6fb1fe716d8c99fa68f593c2073712a978074240bfb4b12ae",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "53ae3709487c9a64479e2c1223d996a67eff5b64199cd510ae1a27d305021782",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "4f7524efa1919375e085972419001f5ff00117c93808eeece2a366948eb22e97",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "7ceef30d8e5bbd16c1eee5272c3cfb3841f2b8a630a7b29a77bfbf0d385b22f8",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "f78f0a476991a5652ba4f80f8706ed5e1a2199672c4e866aee1a1973924950e6",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "5c0be9a93fad08989d52665f0a379f3dc6a0ee945cf66b77d7ab8ef5d8762e46",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "7cae20c0eb004b46d72cc4ea9367784b6afb8d8867c6a3d8cc5ecc824022e132",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "a036ef0a35c98e13a39aeffc08af4be3f78aa5454aac067fc779456a3256a321",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "d9e670dd4a3cf9154c5ef562103017cd2acca682f7a90a5fa94c44e3840fffe8",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "2c5d38c2ece38ab97d633d4a12d33ba2a4e3bcee9c707af03e9bb1f061744bc6",
+        "classification": "declaration",
+        "owner": "MouseController",
+        "reason": "Original drag phases, scrollbar arrows/geometry minima, wheel steps, optional PTK/Hub capability observation, cancellation flags and missing layers. ThemeSelector and MouseResult own appearance/event results; NamedTuple fields replace positional hit interpretation."
+      },
+      {
+        "id": "3e3cc312318d6e8e161ee9319a0f1a65d6dcf30fb73dfe9df55b516bd0e66609",
+        "classification": "non_contract",
+        "owner": "MouseController._selection_point",
+        "reason": "Convert selection line count or viewport height to last inclusive index."
+      },
+      {
+        "id": "9b63edd443d08dfe636a0885a90ab38ab91f8584c3bd08600522aa63528ea793",
+        "classification": "non_contract",
+        "owner": "MouseController._selection_point",
+        "reason": "Clamp geometric cell/index coordinates at zero; no domain default or execution state."
+      },
+      {
+        "id": "baef2a40446daab3b952196993c1d177b9a0c77654066e9a1dd170e92371d45e",
+        "classification": "non_contract",
+        "owner": "MouseController._selection_point",
+        "reason": "Convert selection line count or viewport height to last inclusive index."
+      },
+      {
+        "id": "82b2ab4831f5cbff71c641ae5a67b3ec368e0603502f0401787d67a45bb7e888",
+        "classification": "non_contract",
+        "owner": "MouseController._selection_point",
+        "reason": "Clamp geometric cell/index coordinates at zero; no domain default or execution state."
+      },
+      {
+        "id": "9f5e8af53f8f32b58d7e7950ccf9a6f65180b1e4534a9c93d0a7bd93bcb16388",
+        "classification": "non_contract",
+        "owner": "MouseController._selection_point",
+        "reason": "Initialize character traversal accumulators."
+      },
+      {
+        "id": "b548c211639e63dc8820d7aa3a274e36f7cb3ad2c01f70268b02ea96602c74d1",
+        "classification": "non_contract",
+        "owner": "MouseController._selection_point",
+        "reason": "Advance one Unicode character in the traversal."
+      },
+      {
+        "id": "3a84124a26e72cb1a24617d5040c206b5be5f62c0c0b22c023be51b5e74a16a1",
+        "classification": "non_contract",
+        "owner": "MouseController._select_input.update",
+        "reason": "Convert rectangle edges to final inclusive cell indices."
+      },
+      {
+        "id": "ecb1d08d90f93770560cc290b4bcea20cf6131e40e9d33182d107ea5be22a907",
+        "classification": "non_contract",
+        "owner": "MouseController._select_input.update",
+        "reason": "Convert rectangle edges to final inclusive cell indices."
+      },
+      {
+        "id": "8c494422f2548953ca0ccb3bc07475cce8583b1069429ec710b911fd39847bcf",
+        "classification": "non_contract",
+        "owner": "MouseController.dispatch",
+        "reason": "Compare the final inclusive scrollbar cell/row."
+      },
+      {
+        "id": "cd710c84694a2660622960b6709a977e84789f835eb60b8e872e73b1cd6452ab",
+        "classification": "non_contract",
+        "owner": "MouseController.dispatch",
+        "reason": "Compare the final inclusive scrollbar cell/row."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MouseHit / ScrollbarHit / MouseCapture / ScrollbarGeometry / WindowScroll / MouseController",
+        "declaration": "hub/widget/mouse.py",
+        "consumers": [
+          "hub/widget/controls.py",
+          "hub/widget/clipboard.py",
+          "hub/widget/panel_edge.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_page_layout.py"
         ],
         "complete": true
       }
