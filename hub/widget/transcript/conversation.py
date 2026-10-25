@@ -104,10 +104,10 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
                     anchors.append((identifier, len(lines) + len(body)))
                 rendered = (render_block or renderers.render)(block, context)
                 if objects is not None and renderers.is_object(block):
-                    icons = for_style(theme.icon_style).output
+                    icons = for_style(theme.icon_style)
                     objects.append(OutputObject(identifier, message.id, block, block_title(block),
                         tuple(tuple(row) for row in rendered), len(lines) + len(body), len(lines) + len(body) + len(rendered),
-                        icons.get(block.kind.removeprefix("hub-"), icons["text"])))
+                        icons.for_output(block.kind)))
                 body.extend(rendered)
         elif not message.text and message.tools:
             body = []

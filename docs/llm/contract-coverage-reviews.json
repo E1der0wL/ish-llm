@@ -106256,8 +106256,8 @@
   },
   {
     "path": "hub/ui/output/model.py",
-    "sha256": "d2d08bf5d6d1745808f9de03c9262ff343292788c3899a97fb66ee9f925997fc",
-    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
+    "sha256": "f81bb867e00aae2af9571268438ee7a6c92847c750dae2c126e4261738df5b10",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers. Icon glyph/palette declarations, placeholder projection and output icon selection have explicit Owners; canonical notification/state declarations are reused while all public glyphs/maps and per-view immutable behavior remain identical.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -106273,193 +106273,199 @@
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "3d77647fb00899a28bcccee403c16c057618b6fde28c2a18cfa1c5ec7ef21cf5",
+        "id": "adb5d23e5f36ac22e4ca36171d5f2fdb3b092c91271b009576abf5108780f230",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8b270a90c82d0d501ca461e264344a02f5c3b89fb8d04f0b5e136b3eb81cb8d7",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "3ae6db568a93a73d7c21c124802936a4cf5536913822c850d14f038de5baa039",
+        "id": "da620a10621fdb8614ad6b4a92d3c3fc66c2dfd2cb704c506b4cd2bf0153d0a0",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "8704def27a022256bddf0c2d343198bdca9c02d3c3ee88f557cd37be769050ec",
+        "id": "d7778aed802b6c7b88882a2d65a2a4f7dd2398f6d4d23f5f6a2863cac2b0f307",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "58526e77b2c07e77e73f94715ffc6dd85ce4cc480b76595cc8cc49c71e6d52a3",
+        "id": "8a1ad5a5642e04779ef54e8f88ec2eed2b4751695b3592a28300d05e351530aa",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "725f5bb3f29239427e2771196e37dd297a52bacde96b10045e7b981c8d95a507",
+        "id": "11a0584f1d56527a839eaad3eea98338d6b360f3f627270f13a15fbbbc5e1ad0",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "f170deefb03ff0ab90ca71d82a54c43fdb2ce6f8c9a3a24263f9a4a8aaa08709",
+        "id": "5c4d2daf17c2bbee433f79f24f13f3b369c69a432beffff1a487805622b089eb",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "dda2ab29635e2ab62fb813e170eb77a256cbb856e3e099bcd6c36a02f99173a6",
+        "id": "f5676ec709784fa2389bbeb3e6ca903e901aeb4583506b018cfb223c657e0f9c",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "fcf527b6e66ba2fc53221405473590d9316539c947151304b2d9fc4660c87bd4",
+        "id": "5ff8b2b5f2c4a7f64530fbe69cda7d406766a118393ce56a1e18ca11e43bc3b7",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "26fd5f6329e3115805268cfcf319c454bf747560b10beb44a27a67b7113ece12",
+        "id": "38872e3944146113cac14dbe5dc08209fd5ce0be53db51bbc091df49febeaa59",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "139bbbadf571e47b7764a9318d37754cafd46d18556d794635e0ec9015b599ac",
+        "id": "fbdd7bd6b2ff7c97300ab575b199c404a14659788f6c65592c930fbacf865489",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "2882e74978011f1efd56161d1aeeaf98b86ddb90fa14070350787101dc9555eb",
+        "id": "213baaaa7ebba9d5ee2e088cd96138a3e8d80aa5da281918abde7fa5d3b44ff4",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "35694ec4a7ebc9e0b697bece14efe0e493823c69ad02518ebcc1b09ffd166eae",
+        "id": "7b1d0a970bd48768f07e1d27f87bf015a70327b6504b59a075f3ecb50e333679",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "52e2830cfdd31509f794ebadeb6fd739e05a1073e90aecf8feb186d6eaf380ee",
+        "id": "2de55bc9451e0b655fe58fd7d440a0edce11d8ad1a492400735edf1dfe78ad7f",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "4287fc1cf5a81bb073cae6284b2924b299297eb65df339c4555f0c3d538f0c5f",
+        "id": "ce652474faf980a93fcd4f8ff2b074d3214e7d1a8f6d341377c8bb65b34733c6",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "947ef100eb2e5968c5d0d37de494a46047bc060f3b39e02b1ce207080363395b",
+        "id": "70f33b01cfc70a770c6f483593c9ca3d56f1de7d32ae4b6f83fd4a5b8d2d43f1",
         "classification": "declaration",
         "owner": "OutputBlock",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "9d19cac972533029093531ebf9547aa8898af4905336a4c2888c183b166a3753",
+        "id": "2d7991731ac85546d32970c15768fec6ba4543f83051d6a14dfade78d89972a6",
         "classification": "non_contract",
         "owner": "CodeAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "769b63644310043f09db388de68e5cc1b55b44ede63de6edcde40297aaa12c80",
+        "id": "adfc0b56f227a90cd6127c682da045da2c3356a5bbef92f262365d397c83808d",
         "classification": "non_contract",
         "owner": "CodeAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "a6beda5cd1b157b3fd1cab189a7622d472d3ff0ec0b330ea614c0ad2b04c5b5f",
+        "id": "50ead4079202738a9f16bbe861ba66599bd9874ddf64b154438db8a7665d3a32",
         "classification": "declaration",
         "owner": "CodeAttributes",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "8df5cdcabbbf42607ceba83151c6582f7060392452005399d12eee8c49f0e706",
+        "id": "1b7b9ae484beeb699a0369dd9e581989f171501f5f2a24e1ebe5a33daf7d867f",
         "classification": "non_contract",
         "owner": "TitleAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "12b715bd960afc49ac7f904539c42a5b076e2f96a01bf74c076104e5022a1c64",
+        "id": "a1f4f57967496cca6eb87b8fd0027832024082072e05b16e7cbd7fe28f4be2aa",
         "classification": "non_contract",
         "owner": "TitleAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "7731e2dd6be5ad6b410911514833b8dac5d92275b17726236c316e1d296105ee",
+        "id": "2f227dd055562e897570a75cff71248dc4ccef0091b485bf6d605fb93fddee6b",
         "classification": "declaration",
         "owner": "TitleAttributes",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "eb6f1e3cb89c1eb450d423d97a962f41b0d9829cb85b6576a4fb8f2414f687e4",
+        "id": "1b50879e37ae4d7a1c431b43c7940adae2347441b4845a5b04320d4466ce864f",
         "classification": "non_contract",
         "owner": "OutputObject",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "3930f71a5ebb14ce2706c6a5afd860eb85ee5faded74e371479459261baa57ff",
+        "id": "8dd1c658af1cb0392f1a3f1007e1f7b56341cda5031e2294f02b851d95b22c23",
         "classification": "non_contract",
         "owner": "OutputObject",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "1ad4b765d5d42cef67e6437eab9b8b8a0a6e284cef90dd8d729962cb835f171a",
+        "id": "1a11a4282e7113f62fc5976dd79d69f91edba9e0e43abb04009151f2a2179e60",
         "classification": "declaration",
         "owner": "OutputObject",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "95bf5a86656c91195399b0367a8f30a075bd7ff41d096a4c5de16e55c76ed039",
+        "id": "88154b7cde3902745c92182c21dbe445821dfccd2b1441d854d398b02c071e1a",
         "classification": "declaration",
         "owner": "OutputObject",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "3cbced0d665b7be57708236d0c660a88bead37e5d0cd1e6a3ee45da77c5b2c51",
+        "id": "6634cff8dbe42130c3a37855d2f9b6494bbdfe2bd748231aae63fef103a3de43",
         "classification": "declaration",
         "owner": "OutputObject",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "fcb908cf3828062af335e71924ac16307514a70efbe255d77a2a16fe7dca0f8d",
-        "classification": "non_contract",
-        "owner": "RenderContext",
-        "reason": "Dataclass immutability/slots layout."
-      },
-      {
-        "id": "0185f0be1bc8a3ac51c8bfab60a4ce760e94be7edfac93b43fd616b8562fefb6",
+        "id": "8d16633a50871386119101f1076cd878cf7d1925f1512792725d5e13b289213e",
         "classification": "non_contract",
         "owner": "RenderContext",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "2aea354f2248a02ee5315eafd7328622638c7821066f9620f68f2045475c9c2a",
+        "id": "09eaec0025418a837a8855a51e8084926477feb48d8a240f974eb09190762ada",
+        "classification": "non_contract",
+        "owner": "RenderContext",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "75e86fa710b0b56a41c56f8bca21c509d0c1c129c8682c8d3b0c3679f9b58902",
         "classification": "declaration",
         "owner": "RenderContext",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "3fbe638467e97f96ca858aee36c6909ec1dac9ca2806d1aaf399169516224cd7",
+        "id": "9730bec5a274b1c85e210bc3a7163029e61577140ae4318e0a8bd034c7b10a01",
         "classification": "non_contract",
         "owner": "OutputUIContext",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "bedbf9d0853564e4cf5999bc766406359d04e949e0fb77ba6919f147e14db321",
+        "id": "099fc395dff3022bfc9612dd5cdfeea0377b3124106f611ea1061e050cff1bca",
         "classification": "non_contract",
         "owner": "OutputUIContext",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "52f1f49fab1a2c788985c8d57b08b65d5d8ea7d07d5229796add571cf1476266",
+        "id": "79ed51c96e49228c37973b98421e532c9aaaa8dfe13f8819e08f20a5505b7cd1",
         "classification": "declaration",
         "owner": "OutputUIContext",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
@@ -106470,6 +106476,7 @@
         "owner": "OutputBlock / DisplayAttributes / CodeAttributes / TitleAttributes / OutputObject / RenderContext / OutputUIContext",
         "declaration": "hub/ui/output/model.py",
         "consumers": [
+          "hub/asset/icon.py",
           "hub/ui/output/images.py",
           "hub/ui/output/markdown.py",
           "hub/ui/output/parser.py",
@@ -106483,7 +106490,10 @@
         "tests": [
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_completion_display.py",
+          "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_language_presence.py",
+          "tests/hub/test_locale_keys.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_output.py",
           "tests/hub/test_output_interaction.py",
@@ -106491,7 +106501,10 @@
           "tests/hub/test_render_intervals.py",
           "tests/hub/test_render_pipeline.py",
           "tests/hub/test_responsiveness.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_tag_index.py",
+          "tests/hub/test_widget_chrome.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
@@ -111338,6 +111351,795 @@
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/asset/icon.py",
+    "sha256": "59d845b75d524198b73162fbe6bd2b50f93c0a7b3f3242c023b4abfcfa626d0f",
+    "reason": "Icon glyph/palette declarations, placeholder projection and output icon selection have explicit Owners; canonical notification/state declarations are reused while all public glyphs/maps and per-view immutable behavior remain identical.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "26c49f1f22210928f4fd2a7c9337f851bc7fc2fc1f2420d50c8a88b2791f1115",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "daed453788aa93214a43c5cc1dddf92422ee12dd1ea7fdeaefc79ab2edfaa6b0",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "b7452f82bf9640febbce91c3b5b5dc9fa693e16e4e4118b0c0afabf11f820612",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "18c63d06d413b6852cd79cf7f606e6304ebe66db3377f77b96967944a62c2c4a",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "8d40c2fa2e2fff2f63e3f3642bafd87b12a7250be71a1912a559f689f5a61536",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "c7bd04cf74aa30cd1471b249a25c5624dfde1a1cb52231473af01b932982a37e",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "14f6336419c573eeb889a519afac1474790f425e368cbd13f5490cefece13040",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "e82d80c5e0a3aca1d4e0fb95c9a19ce82977f010389ba5cd1ea6c7af8e62a059",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "82c90c17c667e6df1969586b6740b9d597e6c803c67e4111cc84c3a5358855fe",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7337dd1b2fb6b24ea7292398bf17566bd0a7cd5e35c013ecb93bf90fde62f8ab",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "8bb048f24faacba3dfa151e7b6b91937c6648ec518eaa74e3eb3db3eb8d08090",
+        "classification": "declaration",
+        "owner": "AuxiliaryIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9f9e54320e48360d5f93f8da958e65080fbd2351b5845e1953f7f17d67cd6792",
+        "classification": "declaration",
+        "owner": "IconStyle",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "04b728321f686960fb3a82668d67cb0523f1eac767ee2f087850e51275f6396f",
+        "classification": "declaration",
+        "owner": "IconStyle",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "962bc1c42c0b4c5900a4508a3c64ec0666c86fa208573604a9c8027e5ea4d17a",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "ca7b896f16c857cd0e1b293ad0028d5dd0dd5df2981ebe4953c35dd2349dfe27",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "02434130b1bdd8b8420489c84f8313f8280c8f7a794144fc64372742672367f9",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9c5dee0e8eff27efdf09fb95b1945b07e85ac9c93a4bc9aae82ed6eb5a0870d9",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "f57e9d38e3e0ccbac0dff79618aa6586df01d17625b5676ad3f320bbc3274634",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "6964b5c9f693a6e4efab641496ff2d78efaeff7e0468b91f5aa9e881a4717b79",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "95a2ff951efacd9985ddcb4a0d29784109fa6bae23cf3b43af1e7024fed1f61c",
+        "classification": "declaration",
+        "owner": "OutputIcon",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "5cfbf88df3c148d2e7c70098c54466c19299fc8d26f05b945d5bd7db96947924",
+        "classification": "non_contract",
+        "owner": "IconPlaceholders",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "a41efcfc5e9d191812ce32c3be20dfb839fc59dc11a8424d09ae7d5eadbdd184",
+        "classification": "non_contract",
+        "owner": "IconPlaceholders",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "37f7382fbf82dd338adfe0f078da2cc45ad5d08cccae354c288cd714a01ea68c",
+        "classification": "declaration",
+        "owner": "IconPlaceholders",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "c7f5c0e789d649c196bd1204a33226a38e86ac8c558750d36a05449eb44b2494",
+        "classification": "declaration",
+        "owner": "IconContract",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "ecdfa557ae645b01fc1175528f553301a53d645e43e6e4ec0227f6df85ba7d80",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "b347a66f2f6169eabe2a99540788a5a36c9b47c7f0c0742eaa7a0afcc57246ac",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "aff4355b23125e67931d95c3d4a9693a0cadc7226881d80a28d64465a2c7a2fa",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "5799ff93f6666a61956c841efcdaa33bb7401b64eb9e3fab5052c7ac7aa9397d",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "466af2163c90e2c1929c4bac17f93adabce336fb8c3d83301304faf37d39d4b7",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "77dc484a5022f65ae21bcac6e2959e05c4ba8a68c0077c51c5960de5a9bc8a50",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "63a5ef137d15b2e7b8dfc50dc9beb6095b364d1ca0622b341ebf64df52176384",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9a210b7ffe0b49a8a9ba376b8d5d2abbae4a5d7d1e9db5d465c21ae644118697",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "757a3ef9ee0378fb179c707f11ba0984ccce718af4d470e21299481f703b7113",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "696c4690fceda4ea14226361bdd758e0254b5ed6995bf0c1786b1edf026c9b78",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "269e2201fdde1b91bba2e201432533471dc28cbf10c702278bbc29d8e61cb12b",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "e7947f372e20484da735d7b9febf553aeaf103676fb47c1fd070d01431f84b59",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "427e113788b209ae09b383f1b0db4ac32e440ce0708fedfef6d864e96a89396c",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "c1e6de3fe975d766687cc1054c67341fd88c87fa05af02d9890b9bb1ef88b03a",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "914812e5b0417e759db7a2c459ca4f14bdfb63e1d3bc5b492c5a73cb8a91611b",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "45556fc771ef1f1177c50c800c7997f4580f8c0016ce4812d61ae74281f32dc6",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "5645c796925ec49f986fb7857e539797bc8656f4c44cc26253bd508ef5056e74",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "0e9df445fb0c5de473a1168eef172b7e2be1d75f04fceeb94c77d96f54df30a6",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "458c1bfb3e3ec5b7b302dc836cdb51459133235826660056571e80d9b901898e",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "3c808eabd0606107457369832be0abba59d8f980cbc4c3d333737f378f16fe5c",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "b8760f079698188ca78bd6800bb7895a533957ed80f3c4a09164a972686698da",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "f29ba6d02f461896427df1d78cc9b3899d632848b7e89fdf3315067d00ab9ef8",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "5c380d173b4db7434c5e273f02f0d16ba7bb221a224e327a9599fb102c10a2d2",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "a3f344d52126d8aa71fecaa5d588fb929ed76b7c62fce6168493096e623995d8",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "887f724e96006356e6c8eb7521f57734b8496da63bc168b7465291c3956e0b21",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "5d7d095553a026f74a421bd6e7035e341a45b5ea563e7139528010ea10de7ec5",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "a058071b0162054a3da0248f7ec04cae9814c555f4adb41ffaec08531c22d433",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "42af1ac941fac8b5a79b9f7c0ceb7e20452be52dd6586a1fcb35599d8ff27e8f",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "2a0d93a7862672ab0249a42f933dfb666093e6b5a2b6ffb3a56936f545e01565",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "144bbe2a9e39bbe5442a977f1dbd50168f6d890e1371cd68ed6405898c27e7d9",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "ab5bcf05db41a378ba598948935c1f0153bda6ba24513f3c4c6684522cb764b6",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9d7309ea64b2abd70f0cadfd78cd3bd4544f05369e8d721c30fb4a66c4684504",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "020ffd810b66927337f76d1558f640da3d1867f37d3e739ad9cacb6e9a5ae57f",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "fbec2d679c732b2eaed2421dc6278e39abc1ffa8bd54e27dc3abada496406dfb",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7d34e30558bc7f82a5d04c3e2000794215d9b492671cdb1480d131e26bb294f9",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "3cc21286f49073664ed85ee5523d166218561563bf69609cdc08c05e93f547d5",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "98dea16ad41d41bd28f3c2f45e7186cf88515aeec967bd27f2999a05e7928254",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "06ece4901d5c71cd7c840422970a03c1ccc7fda67f3448c2715651cc3f8c69bc",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "5285f9db8fc944f1a4f8a6647078184f93fda9b695216caa8220c5cd9cc7aff3",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "aec224720b258c20566fe2130027461c5aa5e672fd539dfbb25cb0c78828e733",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "82d83f4eeace909dd9d4f51f1112feb36e63694d4a6e0b3dcabf2ed0b4567b58",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "64f80f1b64a4de94964e16c1ab6258dc99139c51edb378d6355cb0da5e4b2122",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "a5548953b62adc180ba4b26d403d72758468e2c0b7b6164847adbda9614c09e9",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "4421124b59083a44e18d8b3e14a45028d6a667cc0712193b20caae4089306882",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "e0a5378de142f3a9afb1e23771a436466ee06d838c279cf0373320af4bc268e3",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9cfbc3ca12913741f664ee45b25529a6bc8dc748bc8d076d2789407c589c439f",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "79ff04e4addc44d76d9792a17269b768be71894ae2f8f02f092e4168b85a0b37",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "d65acc3554972d636d19123cf2c0163a82be7bbea0d101223d69f7c37412d602",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "fc51efa4b8e9b6de756e8957adab5a3217337c5f2e11e4012a3c34ec5f481aa9",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "a64f04d123594d72c38993bb8c4bd0ff362a1cb121a603a1edf6e27a813c4f98",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "788b82a9172a89cae1ed2b9976ee10d096961f397e78abffd4f60b64fb6ba8be",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "72a42c4a33329c32528d932febc8e5a9aa79f614d17c9ca724f469c3357eb6a0",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "c9601a05c99fd6974c73f9e317719f265cf397f2edeebba1f0bb7c10dc796ba2",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "8d6b8bf92b81ad3ee1aa4648b2985bee9ace5ec1e3adcb4f4105587650c91cfe",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "b2a6b115e2b8faa1fa97a1d8888ef918d4324cfb385242a6fb78e69cdbc61c1c",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "14385f445521f93a4dd28442fbde3ceef231434175b17d522630069a43a7dee5",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "ca1eaf6dc2e968255128ef8711889a47c575b4f96dd6ebad736b5c8a72ff8a43",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "6373595f4cf009edc4ace71e58e18eccff1b560d22dfc1bdd4343eb81767010f",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "35b3531135849d7edd87cb915450ba43355ab84e8108bfb8971acea6e7037df4",
+        "classification": "declaration",
+        "owner": "IconGlyphs",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "8fa8aea5d77821ed3715857b98dc91e6a1e2a727add57f811fe7ed4657b69b8c",
+        "classification": "non_contract",
+        "owner": "IconSet",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "779fa8e0c2c1a530c903bbc0497d584b7fce51638bb1ea43db3eb1cb59c6cc44",
+        "classification": "non_contract",
+        "owner": "IconSet",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "f64920fe36ec3afbd767beb397683dcedbdef85f6ff09d4762289c240b721dfd",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "de13e4ea55c1be15e417884398ff67102c1072272cc4e3943d96d1a7fee27cf7",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "4e150d04ec06286c1f93a39648588fb7166a716c5ef497aa3c5e6073c9b0b28b",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "356aa8b6daf3c0ea7b6c3063dcc0ceb4d1bd438dc7af0051377392bc6a38001e",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "37db723b08c6fe341c2ef78414840c245d717ff38e4655053d61ef1a215068f9",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "f959ed71893f56bc96c08befafc33ea949da4a8a97d25d13cd6303e6fafc1d30",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "4841edfe578f5bcbe6fd1fad41881ec6b7766a0a632a727745f98f08a8f6761c",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9c49670c6806455a5132e57b0d571b541e606225c2d962cc09f4c9efc88e7460",
+        "classification": "declaration",
+        "owner": "IconSet",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7cfd0f80a677eaffe0b1af34aa125a928cc1c4d310f7c96e60e0c14e87e50d85",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "77ad5c9024ddff2564e86e7d3d69652867414ccf146aba9537c732b217b5d713",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "48a087b9ea280a36f8de3ec361c4b7c130a8d4312dc8b7af1a4937aefd2ce750",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7693701875aac908a6c4a1d81e4115ae765e8b61e8b7afb3ddbec1357f23ac39",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "6d71f82b16eae42eef3f0969190b35a5f7678a3beb65732d094cc2b337a2097e",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "3194d42c12b997ee9c16b783c4336b6f2fe6e7533267ad38117994a1524d58bc",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "2b08137692055e875fff87d3777e0d7f213de6112edca0ab1445dbf009d3ff2c",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "6b0214cd4c33cea5c55279518468732d1074adb474dfab09472ad464a975ed56",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "9bbd3c78ed5a9cfb17f75bfb6bb68bccb2e5976c9e0fbbffd6aa7676efb86ff1",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "511fd9fd0047bc56528700d71dc4b0d872abd9648dfeba6a06bb0c7ffbc4cc55",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7c897a2bd46132b44d6b69f318ab415da8e7fd171b92492a52c67dfd92a50aeb",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "6d3f2d864d2a2ba4314eafe26ffd7fdbce8ab56075b8e225a3c58131db3b5d8c",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "07028e8823ff0b595d91352710d4feaa9a6f53d14a2c99d66aa1903d0ef61687",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "68afa2ac5beee63820b06119e51880303102f8f47bc1df15dfb290ba5cdcc956",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "16f2aa8a981d38995fa51813b53661bd9624e4f478d3e36d72aa2ff5397567ff",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7c312d48f76ac3ad74aeebdf102d3acffa98880a42f8dbd8c378ea8b59b17269",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "dad7e3393686980e8091140865df503305c14a756f4fe38c7f201240885e58ea",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "1d62db66cda234fa2b9e652731be1f7b2442dc0fc4c9b37acdb599ed07f45ada",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "84c380655730d5062e23ed2744db8bf6d5d7d10af4663c145fd8e7b44ac6870a",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "88feb1c78ac8cda2240679d899faf8f69b09d3a8a67b8f7a5831d64e732bd7d2",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "a71a62c2ddb400a483125715b7f04f20259b4df524e7f11aa67e32424b353f89",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "aaec67a4135f634aa38273c380b1f1631d9cf3d1243ea6a154cedaf5f3bbf114",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "1e23b056a838877eb3a00c8d9d9e1ddbaac9e4088593eb8deddedc4e2c47dacf",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "ddee6a2ec6010d56a0a8b57a5a025e3efe5fcdd981ebcefb26307fdf2f4784bc",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "cdaadc39a9e2a43652a9ee5a58928e43dd80e64edbf047f37ec64af03193bdb2",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "6a820b83a54f82b5cb9033434607164dc5aa8314b5228a5007b471f6ba20cfaf",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "92e11cc1e9ad4d382c130872be98bab9e80812972b61faf362583b94ca169a15",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "7511ee115b81d87db093f7658480f48ad3ef23ef237f4f9703f7665be4ede7f3",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "23a0dd8ccabf915069a8f776f59d8a02d2dbe0cb9d3507e611763f18945159a1",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "e62dd2fae8ccc2833593e9cb61dd7d023f4b0681ede3d288c60ab3595c3f26d1",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "399c6960e4edd7aa49115141d2ac88ee869710301440c2dc47e6549c83f900fb",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      },
+      {
+        "id": "2f7161d231ac49e1140f6d8fbf0716c081114eb17476f4d83d22ae198292d3bc",
+        "classification": "declaration",
+        "owner": "IconPalettes",
+        "reason": "Glyph assets and palettes, canonical state/category maps, typed translation placeholders and output icon families. Public module glyph names alias the declarations; IconSet defaults and independent immutable auxiliary maps preserve existing behavior."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "IconGlyphs / IconPalettes / IconPlaceholders / IconSet",
+        "declaration": "hub/asset/icon.py",
+        "consumers": [
+          "hub/locales/__init__.py",
+          "hub/config/theme.py",
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/feedback/notifications.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_tag_index.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_language_presence.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_output.py"
         ],
         "complete": true
       }

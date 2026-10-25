@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 631,
-    "unreviewed_files": 34,
+    "unreviewed_files": 33,
     "stale_files": 0,
-    "unclassified": 2304,
+    "unclassified": 2129,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 34,
+    "unreviewed_dynamic_paths": 33,
     "unreadable_files": 0,
-    "candidates": 16576,
+    "candidates": 16527,
     "issues": 0
   },
   "files": [
@@ -45,9 +45,9 @@
     },
     {
       "path": "hub/asset/icon.py",
-      "status": "unreviewed",
-      "sha256": "11b0246e3284bde7cd0569350794a8d6a23dad784b973afc30140a6d10d62ebd",
-      "candidates": 173
+      "status": "reviewed",
+      "sha256": "59d845b75d524198b73162fbe6bd2b50f93c0a7b3f3242c023b4abfcfa626d0f",
+      "candidates": 125
     },
     {
       "path": "hub/asset/prompts/system.md",
@@ -922,8 +922,8 @@
     {
       "path": "hub/ui/output/model.py",
       "status": "reviewed",
-      "sha256": "d2d08bf5d6d1745808f9de03c9262ff343292788c3899a97fb66ee9f925997fc",
-      "candidates": 34
+      "sha256": "f81bb867e00aae2af9571268438ee7a6c92847c750dae2c126e4261738df5b10",
+      "candidates": 35
     },
     {
       "path": "hub/ui/output/parser.py",
@@ -1468,8 +1468,8 @@
     {
       "path": "hub/widget/transcript/conversation.py",
       "status": "unreviewed",
-      "sha256": "e856e3b03021574674ffd0a5f4f3b6a68bd4dd39961c2ab566cbcc7aca5ffb26",
-      "candidates": 257
+      "sha256": "16f59bb038d96a48ea45a602e07a12d0a8b9cbccc7bba44aa55fa18ca26e42ca",
+      "candidates": 255
     },
     {
       "path": "hub/widget/transcript/identity.py",

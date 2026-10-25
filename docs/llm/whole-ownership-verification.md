@@ -9526,3 +9526,38 @@ Python 3.12.14/Clang·Host d833790·고정 의존성·실제 Linux 환경에서 
 표시용 typed observation과 알고리즘의 동일 이동으로 Level 1·2를 적용했다. 이 소단계에서는
 전체 회귀를 수행하지 않았으며 Gate54 이후 관련 Hub 변경을 묶은 Level 3 및 정확한 SHA
 원격 CI에서 검증한다. 공유 설정 계약의 미완료 표시는 유지한다.
+
+
+## Hub 아이콘·번역 자리표시자·출력 아이콘 선택
+
+asset/icon.py를 전수 정리했다. IconGlyphs/IconPalettes가 표시 선언을 클래스 상단에 모으며
+기존 모듈 glyph 이름은 같은 선언을 노출한다. 상태/알림 키는 Session/Run/Message/Instruction
+상태와 ChatMessage/SessionSummary/NotificationKind의 정규 선언을 사용한다. IconPlaceholders가
+번역 자리표시자 Projection을 소유하고 전역 VALUES와 실제 IconSet.values가 이를 공유한다.
+
+OutputIcon은 표시 glyph 종류를, OutputBlock.icon_kind는 출력 kind의 기존 hub- 접두 처리만
+소유한다. 실제 transcript가 IconSet.for_output을 사용해 문자열 키와 fallback을 다시 해석하지
+않는다. 순환 import를 피하는 늦은 import 경계와 세 가지 독립 프로세스 import 순서를 양쪽
+소스에서 검증했다. conversation은 이 경로만 변경했으며 전수 완료로 표시하지 않는다.
+
+기존 map·glyph·잘못된 style 오류·다국어 상태/번역·실제 렌더 objects·unknown icon fallback·
+custom icon 값·동적 pack 검증과 인스턴스별 독립/불변 auxiliary map 113개 관측이 일치했다.
+공유 OutputBlock의 새 선언/API를 제외한 AST 및 transcript의 Owner 호출을 확장한 기존 실행
+AST가 같다. 전체 icon 구현 AST 동일성을 주장하지 않는다. 기존 테스트/Assertion은 유지했다.
+
+- `whole-hub-icons-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.927138초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-icons-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `6be46e2a1f01a029ee1171bc03daec04b1699b4b6026441e3bc7edfa7531faa2`, input `6cb0e127dd7ec0e8ec52800ac27c86625e72a15bcafbbbd1b1c706142a325131`.
+
+- `whole-hub-icons-l1-01`: discovered/started/pass 14/14/14, exit 0, 1.406597초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-icons-l1-01/hub.json --modules tests.hub.test_locale_keys tests.hub.test_tag_index tests.hub.test_widget_chrome tests.hub.test_question_card`. source `6be46e2a1f01a029ee1171bc03daec04b1699b4b6026441e3bc7edfa7531faa2`, input `6cb0e127dd7ec0e8ec52800ac27c86625e72a15bcafbbbd1b1c706142a325131`.
+
+- `whole-hub-icons-l2-01`: discovered/started/pass 20/20/20, exit 0, 1.339335초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-icons-l2-01/hub.json --modules tests.hub.test_language_presence tests.hub.test_render_intervals tests.hub.test_conversation tests.hub.test_snapshot_projection tests.hub.test_output`. source `6be46e2a1f01a029ee1171bc03daec04b1699b4b6026441e3bc7edfa7531faa2`, input `6cb0e127dd7ec0e8ec52800ac27c86625e72a15bcafbbbd1b1c706142a325131`.
+
+공통 안전성 84개·R3 Mutation, locale keys·tag index·widget chrome·question card·language presence·
+render intervals·conversation·snapshot projection·output을 검증했다. 발견/실행/pass ID 일치,
+failure/error/skip/xfail/xpass/누락/추가/중복 0과 동일 suite 선택 ID 중복 0, source/input 전후 및
+실행 간 동일성을 확인했다. 실제 argv/exit/hash는 `hub-icons-draft`의 selected-results.json,
+proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·
+고정 의존성·실제 Linux 환경에서 S1–S7·감사·문서 검사도 통과했다.
+
+표시 Owner와 현재 public 소비자만 바꿔 Level 1·2를 적용했다. 소단계 전체 회귀는 수행하지
+않았으며 Gate54 이후 관련 변경을 묶은 Level 3 및 정확한 SHA 원격 CI가 후속 게이트다.
+Backend 승인/권한/예산/효과/Checkpoint/Resume 정책은 변경하지 않았다.

@@ -12,6 +12,7 @@ FragmentLines = list[list[tuple[str, str]]]
 
 @dataclass(frozen=True, slots=True)
 class OutputBlock:
+    ICON_PREFIX: ClassVar[str] = "hub-"
     MARKDOWN: ClassVar[str] = "markdown"
     CODE: ClassVar[str] = "code"
     TABLE: ClassVar[str] = "table"
@@ -31,6 +32,11 @@ class OutputBlock:
     start: int
     attributes: tuple[tuple[str, str], ...] = ()
     raw: str = ""
+
+
+    @classmethod
+    def icon_kind(cls, kind):
+        return kind.removeprefix(cls.ICON_PREFIX)
 
 
 class DisplayAttributes:
