@@ -13,6 +13,11 @@ import signal
 import sys
 import time
 
+if __package__:
+    from .clipboard_wire import X11Wire
+else:
+    from clipboard_wire import X11Wire
+
 
 MAX_BYTES = 64 * 1024 * 1024
 CHUNK = 64 * 1024
@@ -247,7 +252,7 @@ class Selection:
         self.x.XSetSelectionOwner(self.display, self.atoms["CLIPBOARD"], self.window, self.timestamp)
         if self.x.XGetSelectionOwner(self.display, self.atoms["CLIPBOARD"]) != self.window:
             raise RuntimeError("Could not own clipboard")
-        sys.stdout.buffer.write(b"owned\n")
+        sys.stdout.buffer.write(X11Wire.OWNED)
         sys.stdout.buffer.flush()
         while True:
             try:
@@ -296,13 +301,13 @@ def main() -> None:
         locale.setlocale(locale.LC_CTYPE, "C")
     selection = Selection()
     try:
-        if sys.argv[1] == "read":
+        if sys.argv[1] == X11Wire.READ:
             sys.stdout.buffer.write(selection.read())
         else:
-            header = sys.stdin.buffer.read(8)
-            if len(header) != 8:
+            header = sys.stdin.buffer.read(X11Wire.HEADER_BYTES)
+            if len(header) != X11Wire.HEADER_BYTES:
                 raise EOFError
-            length = int.from_bytes(header, "big")
+            length = X11Wire.length(header)
             if length > MAX_BYTES:
                 raise ValueError("Clipboard text too large")
             content = sys.stdin.buffer.read(length)
@@ -319,10 +324,10 @@ if __name__ == "__main__":
     except EOFError:
         pass
     except ImportError:
-        sys.exit(2)
+        sys.exit(X11Wire.LIBRARY_ERROR)
     except ConnectionError:
-        sys.exit(3)
+        sys.exit(X11Wire.CONNECTION_ERROR)
     except TimeoutError:
-        sys.exit(4)
+        sys.exit(X11Wire.TIMEOUT_ERROR)
     except (OSError, RuntimeError, ValueError):
-        sys.exit(1)
+        sys.exit(X11Wire.TRANSFER_ERROR)

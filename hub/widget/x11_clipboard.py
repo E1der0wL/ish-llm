@@ -1,6 +1,12 @@
 """Nonblocking lifetime owner for the isolated native X11 clipboard client."""
 
 from hub.locales.keys import MessageKey
+from .clipboard_wire import (
+    ClipboardEnvironment,
+    ClipboardText,
+    ClipboardTransfer,
+    X11Wire,
+)
 
 import asyncio
 from collections.abc import Mapping
@@ -16,75 +22,91 @@ class X11Clipboard:
     Clipboard contents travel through pipes, never argv, files or terminal output.
     """
 
+    ABSENT = None
+    CLOSED = True
+    OPEN = False
+    RETAINED = True
+    NOT_RETAINED = False
+    ERRORS = {
+        X11Wire.LIBRARY_ERROR: MessageKey.CLIPBOARD_X11_LIBRARY,
+        X11Wire.CONNECTION_ERROR: MessageKey.CLIPBOARD_X11_CONNECTION,
+        X11Wire.TIMEOUT_ERROR: MessageKey.CLIPBOARD_X11_TIMEOUT,
+    }
+
     def __init__(self) -> None:
-        self.owner = None
+        self.owner = self.ABSENT
         self.tasks = set()
-        self.closed = False
-        self.error = None
+        self.closed = self.OPEN
+        self.error = self.ABSENT
 
     def _failed(self, code: int) -> None:
-        self.error = {2: MessageKey.CLIPBOARD_X11_LIBRARY, 3: MessageKey.CLIPBOARD_X11_CONNECTION, 4: MessageKey.CLIPBOARD_X11_TIMEOUT}.get(
-            code, MessageKey.CLIPBOARD_X11_TRANSFER)
+        self.error = self.ERRORS.get(code, MessageKey.CLIPBOARD_X11_TRANSFER)
 
     async def _reap(self, process: asyncio.subprocess.Process) -> None:
         try:
             await process.wait()
         finally:
-            if process.returncode is None:
+            if process.returncode is self.ABSENT:
                 process.kill()
                 await process.wait()
 
-    async def transfer(self, text: str | None, env: Mapping[str, str]) -> str | bool | None:
-        self.error = None
-        if self.closed or not env.get("DISPLAY"):
-            return None
-        process = None
-        retained = False
+    async def transfer(
+        self, text: str | None, env: Mapping[str, str]
+    ) -> str | bool | None:
+        self.error = self.ABSENT
+        if self.closed or not ClipboardEnvironment(env).display:
+            return self.ABSENT
+        process = self.ABSENT
+        retained = self.NOT_RETAINED
         try:
-            async with asyncio.timeout(3):
+            async with asyncio.timeout(ClipboardTransfer.TIMEOUT_SECONDS):
                 process = await asyncio.create_subprocess_exec(
-                    sys.executable, str(Path(__file__).with_name("_x11_selection.py")),
-                    "read" if text is None else "copy",
-                    stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.DEVNULL, env=env)
-                if text is None:
+                    sys.executable,
+                    str(Path(__file__).with_name(X11Wire.WORKER)),
+                    X11Wire.READ if text is self.ABSENT else X11Wire.COPY,
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.DEVNULL,
+                    env=env,
+                )
+                if text is self.ABSENT:
                     output, _ = await process.communicate()
-                    if process.returncode != 0:
+                    if process.returncode != X11Wire.SUCCESS:
                         self._failed(process.returncode)
-                        return None
-                    return output.decode("utf-8").replace("\r\n", "\n")
-                payload = text.encode("utf-8")
-                process.stdin.write(len(payload).to_bytes(8, "big") + payload)
+                        return self.ABSENT
+                    return ClipboardText.decode(output, ClipboardText.UTF8)
+                payload = text.encode(ClipboardText.UTF8)
+                process.stdin.write(X11Wire.header(len(payload)) + payload)
                 await process.stdin.drain()
-                if await process.stdout.readline() != b"owned\n":
+                if await process.stdout.readline() != X11Wire.OWNED:
                     await process.wait()
                     self._failed(process.returncode)
-                    return None
+                    return self.ABSENT
                 if self.closed:
-                    return None
+                    return self.ABSENT
                 previous, self.owner = self.owner, process
-                if previous is not None and previous.returncode is None:
+                if previous is not self.ABSENT and previous.returncode is self.ABSENT:
                     previous.stdin.close()
                 task = asyncio.create_task(self._reap(process))
                 self.tasks.add(task)
                 task.add_done_callback(self.tasks.discard)
-                retained = True
-                return True
+                retained = self.RETAINED
+                return ClipboardTransfer.SUCCESS
         except TimeoutError:
             self.error = MessageKey.CLIPBOARD_X11_TIMEOUT
-            return None
+            return self.ABSENT
         except (OSError, UnicodeError):
             self.error = MessageKey.CLIPBOARD_X11_TRANSFER
-            return None
+            return self.ABSENT
         finally:
-            if process is not None and not retained:
-                if process.returncode is None:
+            if process is not self.ABSENT and not retained:
+                if process.returncode is self.ABSENT:
                     process.kill()
                 await process.wait()
 
     def close(self) -> None:
-        self.closed = True
-        if self.owner is not None and self.owner.returncode is None:
+        self.closed = self.CLOSED
+        if self.owner is not self.ABSENT and self.owner.returncode is self.ABSENT:
             self.owner.stdin.close()
             self.owner.terminate()
 

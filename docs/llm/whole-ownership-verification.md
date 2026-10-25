@@ -9233,3 +9233,41 @@ skip/xfail/xpass/누락/추가/중복은 모두 0이다. 동일 suite의 선택 
 표시/입력 경계의 동일 이동이므로 Level 1·2를 적용했다. Gate53 이후 변경이므로 그 게이트의
 전체 통과를 승계하지 않는다. 후속 관련 Hub 소단계와 묶은 Level 3·정확한 SHA의 원격 CI가
 상위 완료 조건이며, 남은 Hub 전수 조사와 미완료 공유 계약을 계속 추적한다.
+
+
+## Hub 클립보드 전송·X11 작업자 pipe 계약
+
+clipboard.py·x11_clipboard.py와 공통 clipboard_wire.py를 전수 정리했다. ClipboardEnvironment가
+원래 호출자의 환경을 같은 조회 순서로 해석하고 ClipboardCommand가 executable/argv/encoding을
+명시한다. 명시 bridge의 실패·빈 실행 파일·잘못된 quote 처리와 SSH의 forwarded DISPLAY 우선,
+원격 WSL/Wayland 미선택 규칙을 유지했다. OSC52의 실제 terminal 판별·명시 override·7000자
+base64 한도·tmux escaping, 비동기 3초 전송·process 종료, register revision의 늦은 응답 무시도 같다.
+
+X11Wire가 부모와 작업자의 read/copy·8-byte big-endian 길이·owned ACK·exit code를 소유한다.
+작업자는 script 실행과 package import 모두 동일한 가벼운 선언 파일을 읽는다. 별도 isolated
+Python import에서 Hub·PTK·ctypes가 로드되지 않음을 확인했다. native worker의 IPC 소비자만
+전환했으며 _x11_selection.py 내부의 전체 정리는 후속 범위로 남긴다. 원문은 계속 pipe로만
+전달하고 argv·파일·터미널 출력에 저장하지 않는다. 시스템 환경을 바꾸거나 새 전송 권한을
+부여하지 않는다.
+
+환경/명령·getter 순서·누락/NULL·출력·fallback·register 관측 64개와 실제 byte header/길이 및
+경계 오류 13개가 원본과 일치했다. 선언/Reader/NamedTuple을 확장하고 동일한 상수 set·UTF8
+기본 인자·제거한 임시 override를 정규화하면 기존 세 소비 파일의 실행 AST가 같다. 아래
+실제 custom bridge subprocess와 Xvfb/xclip 상호운용 검증을 이 비교와 구분해 실행했다.
+
+- `whole-hub-clipboard-transport-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.912248초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-clipboard-transport-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `3588ea2eed9b9981d3b612d9a7115b257e617e8afb81243540a3ea377ca7e5dc`, input `0b2b59f3d229d0c46973e9c9074cd46c2cd667824bebd234e7dedda525e304f0`.
+
+- `whole-hub-clipboard-transport-l1-01`: discovered/started/pass 20/20/20, exit 0, 4.015378초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-clipboard-transport-l1-01/hub.json --modules tests.hub.test_clipboard tests.hub.test_x11_clipboard`. source `3588ea2eed9b9981d3b612d9a7115b257e617e8afb81243540a3ea377ca7e5dc`, input `0b2b59f3d229d0c46973e9c9074cd46c2cd667824bebd234e7dedda525e304f0`.
+
+- `whole-hub-clipboard-transport-l2-01`: discovered/started/pass 45/45/45, exit 0, 28.968604초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-clipboard-transport-l2-01/hub.json --modules tests.hub.test_mouse_widgets tests.hub.test_input_contract tests.hub.test_auxiliary tests.hub.test_output_interaction tests.hub.test_ish_integration`. source `3588ea2eed9b9981d3b612d9a7115b257e617e8afb81243540a3ea377ca7e5dc`, input `0b2b59f3d229d0c46973e9c9074cd46c2cd667824bebd234e7dedda525e304f0`.
+
+공통 안전성 84개·R3 Mutation, 실제 clipboard/native X11, mouse·input·auxiliary·output interaction·
+ish integration을 검증했다. 발견/실행/통과 ID가 일치하고 failure/error/skip/xfail/xpass/누락/추가/
+중복은 모두 0이다. 같은 suite 선택 ID 중복도 없고 source/input 전후 및 실행 사이 동일성을
+확인했다. 실제 argv/exit·hash는 `hub-clipboard-transport-draft`의 selected-results.json,
+proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·
+고정 의존성·실제 X11 환경이다. 정적 S1–S7 67개 ID·감사·문서 검사와 기존 Assertion을 유지했다.
+
+영향은 이미 허용된 UI 전송 경계에 제한되므로 Level 1·2를 적용했다. 다음 관련 Hub 소단계와
+묶은 Level 3 및 정확한 SHA 원격 CI가 필요하며, Gate53 결과를 이 변경의 통합 완료로 사용하지
+않는다. native X11 내부·남은 Hub 전수 작업과 공유 계약의 미완료 표시는 유지한다.

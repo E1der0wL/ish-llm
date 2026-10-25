@@ -107207,5 +107207,666 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/widget/clipboard_wire.py",
+    "sha256": "9748694be1774a7574da4949d0bf508aea9fbe4d93cbdf42d615351064dd0459",
+    "reason": "Clipboard environment/command/OSC52 declarations and the parent-worker pipe protocol have canonical transport Owners. Explicit bridge authority, SSH forwarded display selection, bounded control strings, process cleanup and generation ordering retain their original meaning.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "5fbfe5a7dcb8f80e261b00e16de2da89b3218240ccdf82d5265898e837f63b01",
+        "classification": "declaration",
+        "owner": "ClipboardText",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "b28e34cac7e36969991cac00ec73a259cbc9d1302906ffd7262f576ef1dac10e",
+        "classification": "declaration",
+        "owner": "ClipboardText",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "90a5dbed9bf45c56cd480e1357c4d8dc50df3e70083da43b26f4190942a43ddf",
+        "classification": "declaration",
+        "owner": "ClipboardText",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "12dff72363d88a026759f8d96cbe614cb3fff4908fd2f0832ff904b121455c04",
+        "classification": "declaration",
+        "owner": "ClipboardText",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "732f748a91105f04be09a4571f6f4c7d23b57ba2b07be589978577d174d64aed",
+        "classification": "declaration",
+        "owner": "ClipboardText",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "864821aff5dbe1369c5b1645099af17e34899549f2ed6d3804ab8f0a04b2c2a8",
+        "classification": "declaration",
+        "owner": "ClipboardText",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "b74d04e29edb298b50ab9d18fb436b9e306486c8b4be4326609ce58b85c49edd",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "a8210cdc7096062cec81c917c94a6f133f3f40047b68f3bdb45a1973d30aa6e4",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "23bbc09fd9fabac2b45bf97ce56596ace4584d5b62557e3c16ed8fa399cad6e1",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "c8f326e05d0131a9224b389d0915feae3e46664df8efc0d49b0aac66c9df7e85",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "f61d90f5a65b2c69ee860fc6bf1952f6e736a8c3fbc287f29b908d95217802bd",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "0f4ef65ff36def696232eb56fa2e7d8aec780e3c9d8b16bd45194bbaebfd4e9e",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "ea306ec645beb1d4b0ae4202a9ad35377652d11d3ca7cc1ae3d6219e769ba972",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "351e898989c6bc248fad6b9c634bbae8ce9075d274f6ce3bad7aa00fa413e95d",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "c665ee9cf6029dcdc9067273e898285039ddc0670d74a0d2058b293df1a91d5f",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "221aa1b795cba3656cf5c8bc8553332c309b003479cd078b8c65ded5676c373a",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "c753c5166cf38103210ef977297f9e13a6e6bd8d39d85549b59c11d3cdae1e66",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "082547672b52ceace21376e41b1790aea85dd425af6de6a422afe119c110f885",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "7298ba9a2d93c35c8fd0245d4922441bbf1b130e168f3683d1e4e3428003d1e3",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "c10d397d8855e568e4a7ac770c91c05136180d85f1af832f6e536dd9d69b7918",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "f8b3ee34835cefad73c9bbca54f6c753f28b246b62c4c24d283e544651e2ab81",
+        "classification": "declaration",
+        "owner": "ClipboardEnvironment",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "4c0868429a351cc7bd2ecf344a597c9dc33b09b69c4e037202b03cc17651b068",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "d4c4414b59012b49f03f5f019699644aa90178ce6c2f9a8214105ffd1f31a055",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "4dc050622c4f9abb93fa2b011e666fc8352a2ef30c651677b9f49b078dbccc0f",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "6126b4ce5db0ee4cb1411aef7a2a76797ca6fb92b2c9e02170820b6c0ab8c016",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "37663ec131c7bd59b12b85e359e07b8c584f46bbdd767772bd1377ddbdf738cc",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "ef9b981ccd00b649833936e3229a3a57056797d369b607430120e26bf948b347",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "3fb0db11124a9646ec7cc2f8d2c261904a50ede530597ea860d13ebe14ec8c5f",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "8aa72e72debda104bc32d2d8d73becd137f815a9fb64ede8300b184e5c93fc41",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "05abb90600b94e090a61aaf1881a0922bf8b9831272b2d19c4c6472a8a3728f6",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "0975aa0ea4ac3968800eb78568cc1142e2bc59b07a0952d1b1c75f3e50e871ba",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "d732a2ca364668a9f36cf6c45fbc0485e8451ac5ac088b6c85f6d2a45be6685f",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "d743d07f8b2d32eb33201914ad52ad912b16a0954beebec13dc8c317bbb4399a",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "18eafccfaf00b65caf198b795c2c03eeacb708bd0918e3b2ba5a75aa4c8f710e",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "bd76bbe943275a21674459f5705b049702f24dea85e6efac4dd237e4c50e519f",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "7a3ed17f672fb33c1bae3c37bf380262af68765b37273e1e6d675a72b3cd73c6",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "83d1195d810bdd2f6646328a8b90fc366a2dc753dda05ff027899f4fac28c022",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "bec6013896d0dea146552dc9629e496249054159875489e8c723a7fbe8579373",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "02febdb245a42507c4852c5d759986c0b0089c38cff88e866c96c9a23384c24c",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "e82bc230bf358966e720cf39df38aa8fdb48b2e60aab1e1bb59b276a8316cb92",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "f453e3be5d8fb7f9c305870b116bf2f4d2db2d3c65738e943592033d7c509088",
+        "classification": "declaration",
+        "owner": "ClipboardCommands",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "b12dd670d5c7570647e66d0515cf0c765580d0203a5d04db88913ddcfaef217c",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "2546cd7566a9b753e8b9e31477742b40f590046a0595a0f35cf9f9fbef52ba49",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "507ecaa88e1e5cb69ceb85a97a2d736824a62352dabfdfb15cb8e10d7a8d883a",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "e96b60924c6df4dfaac08e3a52e1aa0d5c3cbcdfa3d94de62ee9d2b1dbca132f",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "0b44fe0b09c6932f1dd4da1cdd206c7259f1d578fa815ae998059fc6662ef0b0",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "0f131d3896e7b812f7a6257a7e2238bb69ee0bfcb96eee5141d11fcf729053db",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "d9a8e4d4325e5078a599cfdd2deb379fa48115c0a1153dcb686f191d58e1871e",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "1a4d7f42a030a6ca657d1eaf85061408072c3a89a249e6e6d72d4559421ef0c2",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "e54ea1e5444cc1a67f80bd0b32ae4d0c728df827aede69c171420a58e3528bd5",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "26eed8d97b3076fd7a3fe8032c97bf3fcf567e39f5919bb00d243628db0635b4",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "05f0212526537b5d8c6d6e8672057b789783e803aba060267b2c4d8fe67c802f",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "48b1473e69af7ff0b038a3b48d3e81f482bc5faaa239a8bafcf17a23be821d4a",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "ec636d8a60d337eff362626fc224d8b7c6b64368fc1e3c77b641420cbb77d8db",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "363aef8e6cd07494b6fe088d251bc7e30c2eeda77c58a77bb7b0a3ff32cff1b6",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "4cf10af0647a12673ac6d60be0186373bf5076587f0ba64ec9e44e562f633f53",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "afdf89e14f26a44f6457f8fd4571df38c63892e4062301fca38f2cf60358b407",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "0f22edc184638e1db96deccf186ac904d8c3aef5723a28fa3e414c5a4879d1b8",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "bf0830153ea752b3e8c6a2410c1d2b5f5b4f43f75a954775a746b6467d4a32d2",
+        "classification": "declaration",
+        "owner": "TerminalClipboard",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "5050c1509079266df77c581c37d469adc2c327204940ebe0e6b6f50692ff6477",
+        "classification": "declaration",
+        "owner": "ClipboardTransfer",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "0f42c739c73e79ddedb601283e7a219bb4796c713428e924fd1d91787de533a7",
+        "classification": "declaration",
+        "owner": "ClipboardTransfer",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "37109b9a938e15ff49800c12939967c94dbe5578e4bf3cc9477542e22c69db87",
+        "classification": "declaration",
+        "owner": "ClipboardTransfer",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "f2cf5914d6d54237438ba29ea7a753f4c0fdd8fa1d05a404d4779b36b41cfa3a",
+        "classification": "declaration",
+        "owner": "ClipboardTransfer",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "94e44b8a8e2e2b6c4d53e6b8d52615602657819024694fafbf0ceece7d0b13ec",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "d35ddbaea5743c45264d2aaac07ee9b4109301be7a9330fd5a6669d8d19e35d5",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "e897d8e8933c6cc5a5aca8ea2e731c7a0f9fd8f16965cc54310de0efeeb00b51",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "ba1ec629ad0bbf4f0bd1acacea2ae0cc23c804a21b9988111269e640507103b5",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "e23495c810cf82d101341f610d45aaf220246adf7e25516d7908a2f82e03b424",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "388f948ee27610ea88879de8355a4ee50cb5cf190ece7b4959cf35672af84e00",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "1e4f84eeefc90ad675e763c891e118b105b2a5d3801b188c6a9ab8102ef13b5c",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "fbb4322ba1eb2bd62e39a849b697fae49dd392a7f40428f1d43adea2cda847af",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "459a885b97daf37ca7141dcff3342f73db1aa31f4aa49d3fd57cfada3e2e68d2",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "bf4fa65a0f9ff54971d26ace504588c041ad3b4b4dee079c1858c33255139f60",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      },
+      {
+        "id": "ea70daf0a8fcc897aa244c74611b149ac5325036f3a133756e384740b9e308a7",
+        "classification": "declaration",
+        "owner": "X11Wire",
+        "reason": "Standard-library-only environment vocabulary/projections, native argv and encodings, bounded OSC52/tmux framing and exact parent-worker modes/header/byteorder/acknowledgement/exit codes. These do not create desktop authority or a fallback policy."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ClipboardText / ClipboardEnvironment / ClipboardCommand / ClipboardCommands / TerminalClipboard / ClipboardTransfer / X11Wire",
+        "declaration": "hub/widget/clipboard_wire.py",
+        "consumers": [
+          "hub/widget/clipboard.py",
+          "hub/widget/x11_clipboard.py",
+          "hub/widget/_x11_selection.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_ish_integration.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/clipboard.py",
+    "sha256": "61744b772f732377a85b03000485a6a4a1f23f84804ffda40f6eb6d3020a4527",
+    "reason": "Clipboard environment/command/OSC52 declarations and the parent-worker pipe protocol have canonical transport Owners. Explicit bridge authority, SSH forwarded display selection, bounded control strings, process cleanup and generation ordering retain their original meaning.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "04ad9353f5d09f71f9f82f2e6d1c1779abbd4a457d5a90ed075ba68d42da5418",
+        "classification": "non_contract",
+        "owner": "commands",
+        "reason": "Inspect the first executable token returned by shlex."
+      },
+      {
+        "id": "c825ffd070a4cf176b7ae9609daf380f41c18aeb3e4afa83a0032fc2a8741646",
+        "classification": "non_contract",
+        "owner": "commands",
+        "reason": "Select the first executable token."
+      },
+      {
+        "id": "342c191ed80c79cd4d3361d9a405b67213f022bd3e8d3dcdb0abe3a62311d82e",
+        "classification": "non_contract",
+        "owner": "commands",
+        "reason": "Slice the remaining argv tokens."
+      },
+      {
+        "id": "db1649908f589db4bb2311bf12a9bd158f94cb7ea0d0d7b809cedfd0263c3cc0",
+        "classification": "declaration",
+        "owner": "SystemClipboard",
+        "reason": "Existing asynchronous transfer timeout, local register revision/lifetime and absence; canonical transport declarations supply all route, terminal and command interpretation."
+      },
+      {
+        "id": "a2a8ac52764401b90f7f9ed49274dadc2c45d405ceee48f7c8ac3a604dffe46f",
+        "classification": "declaration",
+        "owner": "SystemClipboard",
+        "reason": "Existing asynchronous transfer timeout, local register revision/lifetime and absence; canonical transport declarations supply all route, terminal and command interpretation."
+      },
+      {
+        "id": "2aca736dad0d00ea8977b7aa3d89b186960ccd59b705651eb5f94e9e57296dc9",
+        "classification": "non_contract",
+        "owner": "SystemClipboard.remember",
+        "reason": "Advance the existing local revision sequence once per accepted clipboard update; not a budget or retry limit."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Clipboard transport / SystemClipboard",
+        "declaration": "hub/widget/clipboard.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/input/bindings.py",
+          "hub/widget/output_inspector.py",
+          "hub/widget/output/table_inspector.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_ish_integration.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/x11_clipboard.py",
+    "sha256": "f647df74852bd0ab92c2ab2a20aa9fa51e03999607a6ec93c5c1b9670be014df",
+    "reason": "Clipboard environment/command/OSC52 declarations and the parent-worker pipe protocol have canonical transport Owners. Explicit bridge authority, SSH forwarded display selection, bounded control strings, process cleanup and generation ordering retain their original meaning.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e9eb5ec2d7615db9926ead0a699282351202bb1bce6e3dddf1fa0f99b96378c2",
+        "classification": "declaration",
+        "owner": "X11Clipboard",
+        "reason": "Existing isolated worker lifetime, retained-process status and error presentation mapping; X11Wire owns actual parent and child pipe fields."
+      },
+      {
+        "id": "aa3e79056ff6164f3abab6b21b320d2d9198b7faf2e7d45450289eff9e7cf444",
+        "classification": "declaration",
+        "owner": "X11Clipboard",
+        "reason": "Existing isolated worker lifetime, retained-process status and error presentation mapping; X11Wire owns actual parent and child pipe fields."
+      },
+      {
+        "id": "54d8944dbe2ef0e01e54880b4c13a7a55e2225889cf67257132b44ec1c00bb3d",
+        "classification": "declaration",
+        "owner": "X11Clipboard",
+        "reason": "Existing isolated worker lifetime, retained-process status and error presentation mapping; X11Wire owns actual parent and child pipe fields."
+      },
+      {
+        "id": "eca35d8e6209c6bf6c9cf597fba06911bc29ac15e729ed00f9e4221a39889bd7",
+        "classification": "declaration",
+        "owner": "X11Clipboard",
+        "reason": "Existing isolated worker lifetime, retained-process status and error presentation mapping; X11Wire owns actual parent and child pipe fields."
+      },
+      {
+        "id": "469ec781aca2655360a24efc8e6844924b823b18ae11e63e4652edb40de5c55b",
+        "classification": "declaration",
+        "owner": "X11Clipboard",
+        "reason": "Existing isolated worker lifetime, retained-process status and error presentation mapping; X11Wire owns actual parent and child pipe fields."
+      },
+      {
+        "id": "e471f156c4d6a48923c037229d95a77a4dc1782e9478b0a9ea38fd425fbc54bc",
+        "classification": "non_contract",
+        "owner": "X11Clipboard.__init__",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "dc493b0e3a644a99192930bd3fd2cb5be4370aea27b76507884b64e7fc28c23a",
+        "classification": "non_contract",
+        "owner": "X11Clipboard._failed",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "5e20a6bf59b5683a8103e55d85c7e96236f78a685de013390311dff990689978",
+        "classification": "non_contract",
+        "owner": "X11Clipboard._reap",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "2b04aec4425edee38e876992d3cace47d15550aa5faa408e74a5783c98839812",
+        "classification": "non_contract",
+        "owner": "X11Clipboard.transfer",
+        "reason": "Optional input type annotation."
+      },
+      {
+        "id": "fe83a870bdc432b15c8f92e06c7d948e70a7a12ba36578215368e75ba9b6c4b7",
+        "classification": "non_contract",
+        "owner": "X11Clipboard.transfer",
+        "reason": "Optional return type annotation."
+      },
+      {
+        "id": "727154ee5112eea5063dfbf31d1b75d3d2dd606d9582e8da98226e075c39019b",
+        "classification": "non_contract",
+        "owner": "X11Clipboard.close",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "8c581a0aefc24398facf882386bce775645b31cdec9ae0a00a1c1733905ddc71",
+        "classification": "non_contract",
+        "owner": "X11Clipboard.aclose",
+        "reason": "Return annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "X11Clipboard",
+        "declaration": "hub/widget/x11_clipboard.py",
+        "consumers": [
+          "hub/widget/clipboard.py",
+          "hub/ui/view.py",
+          "hub/widget/_x11_selection.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_ish_integration.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

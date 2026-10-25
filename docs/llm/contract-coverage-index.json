@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 628,
-    "unreviewed_files": 49,
+    "files": 629,
+    "unreviewed_files": 47,
     "stale_files": 0,
-    "unclassified": 3379,
+    "unclassified": 3210,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 49,
+    "unreviewed_dynamic_paths": 47,
     "unreadable_files": 0,
-    "candidates": 17075,
+    "candidates": 16998,
     "issues": 0
   },
   "files": [
@@ -1072,8 +1072,8 @@
     {
       "path": "hub/widget/_x11_selection.py",
       "status": "unreviewed",
-      "sha256": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
-      "candidates": 234
+      "sha256": "b1704b7f5e4a17c99c329bee0247cd88d016e018af4f61eb98d3a090de64a178",
+      "candidates": 225
     },
     {
       "path": "hub/widget/actions.py",
@@ -1095,9 +1095,15 @@
     },
     {
       "path": "hub/widget/clipboard.py",
-      "status": "unreviewed",
-      "sha256": "0aae07f26c66796af23e79495e45e1990a40aa4e208849851ef5bbb52d12f03c",
-      "candidates": 113
+      "status": "reviewed",
+      "sha256": "61744b772f732377a85b03000485a6a4a1f23f84804ffda40f6eb6d3020a4527",
+      "candidates": 6
+    },
+    {
+      "path": "hub/widget/clipboard_wire.py",
+      "status": "reviewed",
+      "sha256": "9748694be1774a7574da4949d0bf508aea9fbe4d93cbdf42d615351064dd0459",
+      "candidates": 74
     },
     {
       "path": "hub/widget/composer_actions.py",
@@ -1503,9 +1509,9 @@
     },
     {
       "path": "hub/widget/x11_clipboard.py",
-      "status": "unreviewed",
-      "sha256": "4e17b9b207c11735909052f89ec599558d9385a63d96e210619230929f43cc22",
-      "candidates": 47
+      "status": "reviewed",
+      "sha256": "f647df74852bd0ab92c2ab2a20aa9fa51e03999607a6ec93c5c1b9670be014df",
+      "candidates": 12
     },
     {
       "path": "llm/CONFIGURATION.md",

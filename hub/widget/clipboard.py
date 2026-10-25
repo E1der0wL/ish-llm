@@ -2,6 +2,14 @@
 
 from hub.locales.keys import MessageKey
 from .output.selection import SelectableControl
+from .clipboard_wire import (
+    ClipboardText,
+    ClipboardEnvironment,
+    ClipboardCommand,
+    ClipboardCommands,
+    TerminalClipboard,
+    ClipboardTransfer,
+)
 
 import asyncio
 import base64
@@ -14,108 +22,170 @@ from prompt_toolkit.clipboard import Clipboard, ClipboardData, InMemoryClipboard
 from prompt_toolkit.output.vt100 import Vt100_Output
 
 
-def terminal_clipboard_supported(app, env=None):
+def terminal_clipboard_supported(app, env=ClipboardTransfer.ABSENT):
     """Only use OSC 52 on a real terminal with an identified write capability.
 
     Generic xterm/VM consoles and shell output proxies can print unsupported OSC
     payloads literally. HUB_OSC52=1 is an explicit override for a verified host.
     """
     if not isinstance(app.output, Vt100_Output):
-        return False
+        return TerminalClipboard.DISABLED
     stream = app.output.stdout
-    if not getattr(stream, "isatty", lambda: False)():
-        return False
-    env = os.environ if env is None else env
-    override = env.get("HUB_OSC52")
-    if override is not None:
-        return override == "1"
+    if not getattr(
+        stream, TerminalClipboard.ISATTY, lambda: TerminalClipboard.DISABLED
+    )():
+        return TerminalClipboard.DISABLED
+    env = ClipboardEnvironment(os.environ if env is ClipboardTransfer.ABSENT else env)
+    override = env.osc52
+    if override is not ClipboardTransfer.ABSENT:
+        return override == TerminalClipboard.OVERRIDE_ENABLED
     # Multiplexers need their own verified passthrough configuration.
-    if env.get("TMUX") or env.get("STY"):
-        return False
-    return (env.get("TERM_PROGRAM", "").lower() in {"wezterm", "iterm.app", "kitty", "foot"}
-            or env.get("TERM", "") in {"xterm-kitty", "foot", "foot-extra"})
+    if env.multiplexed:
+        return TerminalClipboard.DISABLED
+    return (
+        env.terminal_program in TerminalClipboard.PROGRAMS
+        or env.terminal in TerminalClipboard.TERMINALS
+    )
 
 
-def commands(read=False, env=None):
-    env = os.environ if env is None else env
-    custom = env.get("HUB_CLIPBOARD_PASTE" if read else "HUB_CLIPBOARD_COPY", "").strip()
+def commands(read=ClipboardCommands.DEFAULT_READ, env=ClipboardCommands.ABSENT):
+    env = ClipboardEnvironment(os.environ if env is ClipboardCommands.ABSENT else env)
+    custom = env.bridge(read)
     if custom:
         argv = shlex.split(custom)
         if argv and argv[0]:
-            yield argv[0], argv[1:], "utf-8"
-        # An explicit bridge is authoritative; do not silently use a different
-        # display or the remote machine's clipboard if that bridge fails.
+            yield ClipboardCommand(argv[0], argv[1:], ClipboardText.UTF8)
+        # An explicit bridge is authoritative, including failure.
         return
-    remote = bool(env.get("SSH_CONNECTION") or env.get("SSH_TTY"))
-    # SSH's forwarded DISPLAY belongs to the connecting desktop. A Wayland or
-    # WSL clipboard on the remote host may instead belong to a different user
-    # session, so never silently fall back to it from an SSH session.
-    if not remote and (env.get("WSL_DISTRO_NAME") or env.get("WSL_INTEROP")):
+    remote = env.remote
+    # SSH forwarding must not fall back to the remote machine's desktop.
+    if not remote and env.wsl:
         if read:
-            yield "powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
-                "$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[System.Text.UTF8Encoding]::new(); "
-                "[Console]::Write((Get-Clipboard -Raw))"], "utf-8"
+            yield ClipboardCommand(
+                ClipboardCommands.POWERSHELL,
+                list(ClipboardCommands.POWERSHELL_ARGUMENTS),
+                ClipboardText.UTF8,
+            )
         else:
-            yield "clip.exe", [], "utf-16-le"
-    if not remote and env.get("WAYLAND_DISPLAY"):
-        yield ("wl-paste", ["--no-newline"], "utf-8") if read else ("wl-copy", [], "utf-8")
-    if env.get("DISPLAY"):
-        yield "xclip", ["-selection", "clipboard", "-o" if read else "-i"], "utf-8"
-        yield "xsel", ["--clipboard", "--output" if read else "--input"], "utf-8"
+            yield ClipboardCommand(ClipboardCommands.CLIP, [], ClipboardText.UTF16_LE)
+    if not remote and env.wayland:
+        yield (
+            ClipboardCommand(
+                ClipboardCommands.WL_PASTE,
+                list(ClipboardCommands.WL_PASTE_ARGUMENTS),
+                ClipboardText.UTF8,
+            )
+            if read
+            else ClipboardCommand(ClipboardCommands.WL_COPY, [], ClipboardText.UTF8)
+        )
+    if env.display:
+        yield ClipboardCommand(
+            ClipboardCommands.XCLIP,
+            [
+                *ClipboardCommands.XCLIP_SELECTION,
+                ClipboardCommands.XCLIP_READ if read else ClipboardCommands.XCLIP_WRITE,
+            ],
+            ClipboardText.UTF8,
+        )
+        yield ClipboardCommand(
+            ClipboardCommands.XSEL,
+            [
+                ClipboardCommands.XSEL_SELECTION,
+                ClipboardCommands.XSEL_READ if read else ClipboardCommands.XSEL_WRITE,
+            ],
+            ClipboardText.UTF8,
+        )
 
 
-async def system_clipboard(text=None, *, env=None, x11=None):
-    read = text is None
-    if x11 is not None:
-        x11.error = None
-    env = dict(os.environ if env is None else env)
+async def system_clipboard(
+    text=ClipboardTransfer.ABSENT,
+    *,
+    env=ClipboardTransfer.ABSENT,
+    x11=ClipboardTransfer.ABSENT
+):
+    read = text is ClipboardTransfer.ABSENT
+    if x11 is not ClipboardTransfer.ABSENT:
+        x11.error = ClipboardTransfer.ABSENT
+    env = dict(os.environ if env is ClipboardTransfer.ABSENT else env)
     try:
         candidates = list(commands(read, env))
     except ValueError:
-        return None
+        return ClipboardTransfer.ABSENT
     for name, args, encoding in candidates:
-        executable = shutil.which(name, path=env.get("PATH", os.defpath))
+        executable = shutil.which(
+            name, path=ClipboardEnvironment(env).search_path(os.defpath)
+        )
         if not executable:
             continue
-        process = None
+        process = ClipboardTransfer.ABSENT
         try:
-            process = await asyncio.create_subprocess_exec(executable, *args,
+            process = await asyncio.create_subprocess_exec(
+                executable,
+                *args,
                 stdin=asyncio.subprocess.DEVNULL if read else asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE if read else asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL, env=env)
+                stderr=asyncio.subprocess.DEVNULL,
+                env=env
+            )
             # A cold PowerShell/desktop clipboard service can take over one
             # second. This wait is asynchronous and never blocks rendering.
-            async with asyncio.timeout(3):
-                stdout, _ = await process.communicate(None if read else text.encode(encoding))
-            if process.returncode == 0:
-                return stdout.decode(encoding).replace("\r\n", "\n") if read else True
+            async with asyncio.timeout(ClipboardTransfer.TIMEOUT_SECONDS):
+                stdout, _ = await process.communicate(
+                    ClipboardTransfer.ABSENT if read else text.encode(encoding)
+                )
+            if process.returncode == ClipboardTransfer.EXIT_SUCCESS:
+                return (
+                    ClipboardText.decode(stdout, encoding)
+                    if read
+                    else ClipboardTransfer.SUCCESS
+                )
         except (OSError, UnicodeError, TimeoutError):
             pass
         finally:
-            if process is not None and process.returncode is None:
+            if (
+                process is not ClipboardTransfer.ABSENT
+                and process.returncode is ClipboardTransfer.ABSENT
+            ):
                 try:
                     process.kill()
                 except ProcessLookupError:
                     pass
                 await process.wait()
-    override = "HUB_CLIPBOARD_PASTE" if read else "HUB_CLIPBOARD_COPY"
-    if x11 is not None and env.get("DISPLAY") and not env.get(override, "").strip():
+    if (
+        x11 is not ClipboardTransfer.ABSENT
+        and ClipboardEnvironment(env).display
+        and not ClipboardEnvironment(env).bridge(read)
+    ):
         return await x11.transfer(text, env)
-    return None
+    return ClipboardTransfer.ABSENT
 
 
-async def export_text(app, text, *, env=None, x11=None):
-    env = dict(os.environ if env is None else env)
+async def export_text(
+    app, text, *, env=ClipboardTransfer.ABSENT, x11=ClipboardTransfer.ABSENT
+):
+    env = dict(os.environ if env is ClipboardTransfer.ABSENT else env)
     if await system_clipboard(text, env=env, x11=x11):
         return MessageKey.CLIPBOARD_COPIED
-    payload = base64.b64encode(text.encode()).decode("ascii")
+    payload = base64.b64encode(text.encode(ClipboardText.UTF8)).decode(
+        ClipboardText.ASCII
+    )
     # Bound the entire sequence: some terminals print the remainder of an
     # oversized control string as text. Always retain the full internal register.
-    if env.get("HUB_CLIPBOARD_COPY") or not terminal_clipboard_supported(app, env) or len(payload) > 7000:
+    if (
+        ClipboardEnvironment(env).copy_override
+        or not terminal_clipboard_supported(app, env)
+        or len(payload) > TerminalClipboard.MAX_BASE64_LENGTH
+    ):
         return MessageKey.CLIPBOARD_INTERNAL
-    sequence = "\x1b]52;c;" + payload + "\x07"
-    if env.get("TMUX"):
-        sequence = "\x1bPtmux;" + sequence.replace("\x1b", "\x1b\x1b") + "\x1b\\"
+    sequence = TerminalClipboard.OSC_PREFIX + payload + TerminalClipboard.OSC_END
+    if ClipboardEnvironment(env).tmux:
+        sequence = (
+            TerminalClipboard.TMUX_PREFIX
+            + sequence.replace(
+                TerminalClipboard.ESCAPE, TerminalClipboard.ESCAPED_ESCAPE
+            )
+            + TerminalClipboard.TMUX_END
+        )
     app.output.write_raw(sequence)
     app.output.flush()
     return MessageKey.CLIPBOARD_TERMINAL
@@ -124,15 +194,19 @@ async def export_text(app, text, *, env=None, x11=None):
 class SystemClipboard(Clipboard):
     """Synchronous PTK register with nonblocking system writes and paste reads."""
 
-    def __init__(self, app, original, *, environment=None, x11=None):
+    ABSENT = None
+    INITIAL_REVISION = 0
+
+    def __init__(self, app, original, *, environment=ABSENT, x11=ABSENT):
         from .x11_clipboard import X11Clipboard
+
         self.app, self.original = app, original
-        self.x11 = x11 if x11 is not None else X11Clipboard()
+        self.x11 = x11 if x11 is not self.ABSENT else X11Clipboard()
         self.environment = environment or (lambda: dict(os.environ))
         self.cache = InMemoryClipboard()
         self.cache.set_data(original.get_data())
-        self.pending = None
-        self.revision = 0
+        self.pending = self.ABSENT
+        self.revision = self.INITIAL_REVISION
 
     def remember(self, data):
         """Accept terminal paste without writing it back to the desktop."""
@@ -155,7 +229,8 @@ class SystemClipboard(Clipboard):
         self.remember(data)
         if self.app.is_running:
             self.pending = self.app.create_background_task(
-                self._write(data, dict(self.environment()), self.pending, self.revision))
+                self._write(data, dict(self.environment()), self.pending, self.revision)
+            )
 
     def get_data(self):
         return self.cache.get_data()
@@ -170,9 +245,9 @@ class SystemClipboard(Clipboard):
         text = await system_clipboard(env=dict(self.environment()), x11=self.x11)
         # Do not overwrite a newer terminal paste/copy with a slow read result.
         if revision != self.revision:
-            return None
-        if text is None:
-            return None
+            return self.ABSENT
+        if text is self.ABSENT:
+            return self.ABSENT
         self.remember(ClipboardData(text))
         return self.get_data()
 
@@ -196,11 +271,15 @@ def selected_text(app, view):
     if buffer.selection_state:
         start, end = buffer.document.selection_range()
         return buffer.text[start:end]
-    if view.mouse.app is None:
-        return ""
+    if view.mouse.app is SelectableControl.ABSENT:
+        return ClipboardText.EMPTY
     scope = view.mouse._scope()
     for window, _ in reversed(view.mouse.windows):
         selection = SelectableControl.selection_of(window.content)
-        if window in scope and selection is not None and selection.text:
+        if (
+            window in scope
+            and selection is not SelectableControl.ABSENT
+            and selection.text
+        ):
             return selection.text
-    return ""
+    return ClipboardText.EMPTY
