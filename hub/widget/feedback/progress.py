@@ -9,13 +9,50 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.formatted_text import ANSI, to_formatted_text
 from prompt_toolkit.layout import UIContent, UIControl, Window
 from prompt_toolkit.utils import get_cwidth
-from rich.console import Console
+from dataclasses import dataclass
+from ...ui.output.rich_terminal import RichTerminal
+from ...config.theme_style import ThemeSelector
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Column
 
 
+@dataclass(slots=True)
+class ProgressTaskFields:
+    TEMPLATE = "{{task.fields[{field}]}}"
+
+    label: str
+    percent: str
+
+    def to_kwargs(self):
+        cls = type(self)
+        return {cls.label.__name__: self.label, cls.percent.__name__: self.percent}
+
+    @classmethod
+    def label_column(cls):
+        return cls.TEMPLATE.format(field=cls.label.__name__)
+
+    @classmethod
+    def percent_column(cls):
+        return cls.TEMPLATE.format(field=cls.percent.__name__)
+
+    @classmethod
+    def set_label(cls, task, value):
+        task.fields[cls.label.__name__] = value
+
+    @classmethod
+    def set_percent(cls, task, value):
+        task.fields[cls.percent.__name__] = value
+
+
 class ProgressControl(UIControl):
-    def __init__(self, owner, notice, annotation=lambda: ""):
+    EMPTY = ""
+    SPACE = " "
+    ROWS = 1
+    SHOW_CURSOR = False
+    MIN_COLUMNS = 1
+    SINGLE_TASK = 1
+
+    def __init__(self, owner, notice, annotation=lambda: ProgressControl.EMPTY):
         self.owner = owner
         self.notice = notice
         self.annotation = annotation
@@ -24,51 +61,107 @@ class ProgressControl(UIControl):
         owner = self.owner
         tasks = owner.progress.tasks
         if not tasks:
-            text = " ".join(self.notice().split())
-            return UIContent(get_line=lambda _: [("class:hub.notice", text)] if text else [], line_count=1, show_cursor=False)
+            text = self.SPACE.join(self.notice().split())
+            return UIContent(
+                get_line=lambda _: [(ThemeSelector.NOTICE.style, text)] if text else [],
+                line_count=self.ROWS,
+                show_cursor=self.SHOW_CURSOR,
+            )
         owner.schedule_refresh()
         theme = owner.view.theme
         annotation = self.annotation()
         key = (width, theme, annotation)
         if key in owner._render_cache:
             line = owner._render_cache[key]
-            return UIContent(get_line=lambda _: line, line_count=1, show_cursor=False)
+            return UIContent(
+                get_line=lambda _: line,
+                line_count=self.ROWS,
+                show_cursor=self.SHOW_CURSOR,
+            )
         owner.bar.style = theme.muted
-        owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = theme.accent
+        owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = (
+            theme.accent
+        )
         task = tasks[-1]
-        task.fields["label"] = task.description + (
-            owner.view.t(MessageKey.PROGRESS_MORE, count=len(tasks) - 1) if len(tasks) > 1 else "")
+        ProgressTaskFields.set_label(
+            task,
+            task.description
+            + (
+                owner.view.t(MessageKey.PROGRESS_MORE, count=len(tasks) - 1)
+                if len(tasks) > self.SINGLE_TASK
+                else self.EMPTY
+            ),
+        )
         stream = StringIO()
-        console = Console(file=stream, width=max(1, width - get_cwidth(annotation) - bool(annotation)), color_system="truecolor",
-                          force_terminal=True, highlight=False)
-        console.print(owner.progress.make_tasks_table([task]), end="")
-        lines = [to_formatted_text(ANSI(line)) for line in stream.getvalue().splitlines()]
+        console = RichTerminal.console(
+            file=stream,
+            width=max(
+                self.MIN_COLUMNS, width - get_cwidth(annotation) - bool(annotation)
+            ),
+        )
+        console.print(owner.progress.make_tasks_table([task]), end=self.EMPTY)
+        lines = [
+            to_formatted_text(ANSI(line)) for line in stream.getvalue().splitlines()
+        ]
         line = lines[0] if lines else []
         if annotation:
-            line = [*line, ("class:hub.notice", " " + annotation)]
+            line = [*line, (ThemeSelector.NOTICE.style, self.SPACE + annotation)]
         owner._render_cache[key] = line
-        return UIContent(get_line=lambda _: line, line_count=1, show_cursor=False)
+        return UIContent(
+            get_line=lambda _: line, line_count=self.ROWS, show_cursor=self.SHOW_CURSOR
+        )
 
 
 class TaskProgress:
+    ABSENT = None
+    EMPTY = ""
+    SPACE = " "
+    MARKUP = False
+    NO_WRAP = True
+    OVERFLOW = "ellipsis"
+    AUTO_REFRESH = False
+    EXPAND = False
+    ROWS = 1
+    WRAP_LINES = False
+    INITIAL_COMPLETED = 0
+    INDETERMINATE = False
+    PERCENT_FORMAT = "{percentage:.0f}%"
+
     def __init__(self, view):
         self.view = view
         self.bar = BarColumn()
-        self.progress = Progress(SpinnerColumn(), TextColumn("{task.fields[label]}", markup=False,
-                                     table_column=Column(no_wrap=True, overflow="ellipsis")),
-                                 self.bar, TextColumn("{task.fields[percent]}", markup=False),
-                                 auto_refresh=False, expand=False)
-        self._timer = None
-        self._loop = None
+        self.progress = Progress(
+            SpinnerColumn(),
+            TextColumn(
+                ProgressTaskFields.label_column(),
+                markup=self.MARKUP,
+                table_column=Column(no_wrap=self.NO_WRAP, overflow=self.OVERFLOW),
+            ),
+            self.bar,
+            TextColumn(ProgressTaskFields.percent_column(), markup=self.MARKUP),
+            auto_refresh=self.AUTO_REFRESH,
+            expand=self.EXPAND,
+        )
+        self._timer = self.ABSENT
+        self._loop = self.ABSENT
         self._render_cache = {}
 
     @property
     def active(self) -> bool:
         return bool(self.progress.task_ids)
 
-    def container(self, notice=lambda: "", *, annotation=lambda: ""):
+    def container(
+        self,
+        notice=lambda: TaskProgress.EMPTY,
+        *,
+        annotation=lambda: ProgressControl.EMPTY
+    ):
         # Separate PTK controls share one model across chat and settings layouts.
-        return Window(ProgressControl(self, notice, annotation), height=1, wrap_lines=False)
+        return Window(
+            ProgressControl(self, notice, annotation),
+            height=self.ROWS,
+            wrap_lines=self.WRAP_LINES,
+        )
 
     def schedule_refresh(self) -> None:
         try:
@@ -78,34 +171,56 @@ class TaskProgress:
         if self._loop is not loop:
             self.close()
             self._loop = loop
-        if self.active and self._timer is None:
+        if self.active and self._timer is self.ABSENT:
             app = get_app()
+
             def refresh():
-                self._timer = None
+                self._timer = self.ABSENT
                 self._render_cache.clear()
                 app.invalidate()
-            self._timer = loop.call_later(self.view.theme.progress_refresh_interval, refresh)
 
-    def start(self, description: str, *, total: float | None = None) -> int:
+            self._timer = loop.call_later(
+                self.view.theme.progress_refresh_interval, refresh
+            )
+
+    def start(self, description: str, *, total: float | None = ABSENT) -> int:
         # Treat identifiers and user titles as text, including Rich markup.
-        description = " ".join(description.split())
-        task = self.progress.add_task(description, total=total, label=description, percent="")
+        description = self.SPACE.join(description.split())
+        task = self.progress.add_task(
+            description,
+            total=total,
+            **ProgressTaskFields(description, self.EMPTY).to_kwargs()
+        )
         self._render_cache.clear()
-        self.update(task, completed=0)
+        self.update(task, completed=self.INITIAL_COMPLETED)
         get_app().invalidate()
         return task
 
-    def update(self, task: int, *, completed: float, total: float | None = None,
-               description: str | None = None, indeterminate: bool = False) -> None:
+    def update(
+        self,
+        task: int,
+        *,
+        completed: float,
+        total: float | None = ABSENT,
+        description: str | None = ABSENT,
+        indeterminate: bool = INDETERMINATE
+    ) -> None:
         self.progress.update(task, completed=completed, total=total)
         current = self.progress.tasks[self.progress.task_ids.index(task)]
-        if description is not None:
-            current.description = " ".join(description.split())
+        if description is not self.ABSENT:
+            current.description = self.SPACE.join(description.split())
         if indeterminate:
-            current.total = None
-            current.finished_time = None
-            current.finished_speed = None
-        current.fields["percent"] = f"{current.percentage:.0f}%" if current.total is not None else ""
+            current.total = self.ABSENT
+            current.finished_time = self.ABSENT
+            current.finished_speed = self.ABSENT
+        ProgressTaskFields.set_percent(
+            current,
+            (
+                self.PERCENT_FORMAT.format(percentage=current.percentage)
+                if current.total is not self.ABSENT
+                else self.EMPTY
+            ),
+        )
         self.schedule_refresh()
 
     def finish(self, task: int) -> None:
@@ -118,6 +233,6 @@ class TaskProgress:
 
     def close(self) -> None:
         self._render_cache.clear()
-        if self._timer is not None:
+        if self._timer is not self.ABSENT:
             self._timer.cancel()
-            self._timer = None
+            self._timer = self.ABSENT

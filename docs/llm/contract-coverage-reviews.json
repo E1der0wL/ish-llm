@@ -104100,5 +104100,618 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/widget/feedback/preparing.py",
+    "sha256": "43d2e66dd3716964ada8bc9351839c61f967e07a295e77c96dfead5bf981cf54",
+    "reason": "Preparing feedback uses typed transient clock/resume tuples and canonical Message/Session contracts. Rich progress field serialization and template names share their field descriptors, and progress/Markdown share the original Rich terminal options. All durable observation guards and UI timing/formatting remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "19fe97cebc46d542eb016f7635efadec0730630eebb7e7932cfdc81dc9978dde",
+        "classification": "declaration",
+        "owner": "ResumingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "c7dcda1535a5be7b615c6d88682d22652601ba8d63662a056589964a54fabe55",
+        "classification": "declaration",
+        "owner": "ResumingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "e4f2c82cddfbb77e0b156cd71499ad29658bdf35a6c406f33b3b208898b3e034",
+        "classification": "declaration",
+        "owner": "PreparingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "c506b133e445560c41ba91c7ff542024e2466383d32fd147558441f6c79b2be1",
+        "classification": "declaration",
+        "owner": "PreparingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "379aff2517d9f66942dcf51c4e7d683d2ccc09055093b3d32eb9cce4fdc475fc",
+        "classification": "declaration",
+        "owner": "PreparingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "899b863ded45b2071dc7c2dd4aedc6c12eceb0a90a13e15820e8203073a95b45",
+        "classification": "declaration",
+        "owner": "PreparingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "d17b657af5c7ca1d1883806d32770c405afe3f73ad373c7d0374e76757b5bf4a",
+        "classification": "declaration",
+        "owner": "PreparingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "cf204ed6f48c1f8794fe6b4704bdeed1126a492cf5af2a05f9ceab42b388aeb7",
+        "classification": "declaration",
+        "owner": "PreparingResponse",
+        "reason": "Typed transient response clock/resume tuples, original absent/blank/identity/auto-scroll values and active statuses. MessageRole, SessionIdentity and HubSnapshot own cross-layer identity and observation."
+      },
+      {
+        "id": "bdedeb538effa0cef7834fc78bdfb9949ef44288c9a9dc648622281fa61fb3f7",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.project",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      },
+      {
+        "id": "c23b1d5f75c7f1e335aadd901bfdba82ba35226f1085d8a45902d5527c20b113",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.project",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      },
+      {
+        "id": "52578fafabd595c111e86220df566bbd1d7b3bebdd424641b9b6db450268b562",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.project",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      },
+      {
+        "id": "152622e4858fd8121376415a89cb99acdc2300cfdd6aaf83702e3e64b57cacb1",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.project",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      },
+      {
+        "id": "e0e2929328f880777c129828777278e8418142ba0ad1d949cd3af8b5dc75ddce",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.observe",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      },
+      {
+        "id": "6c9aea1a0130aaf3ddbd80d35602ea0269d3a1c7a796714a86acf8268006e532",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.observe",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      },
+      {
+        "id": "f1e773fdabfbaf1c09abc8668a9474ddd0fe4c65d030d54f477e174535de1a13",
+        "classification": "non_contract",
+        "owner": "PreparingResponse.observe",
+        "reason": "Pure sequence traversal: visit backwards, continue after the matched request, or inspect the first following message; no fallback/authority/state interpretation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ResponseClock / ResumingResponse / PreparingResponse",
+        "declaration": "hub/widget/feedback/preparing.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/widget/feedback/interrupt_feedback.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_welcome.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_deletion_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/feedback/progress.py",
+    "sha256": "e93293761a270bf6670ed2ab28a3058a4006474051df7260a272455988c232ec",
+    "reason": "Preparing feedback uses typed transient clock/resume tuples and canonical Message/Session contracts. Rich progress field serialization and template names share their field descriptors, and progress/Markdown share the original Rich terminal options. All durable observation guards and UI timing/formatting remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2d36f230a99a3f6e1006e7313db0a08477b4338383d708e92b4beca84f5b1d87",
+        "classification": "non_contract",
+        "owner": "ProgressTaskFields",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "4741b22a897d9f267ea8e20448718e2a4ee963537a07405fb6e08d743eec6a6e",
+        "classification": "declaration",
+        "owner": "ProgressTaskFields",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "a0c90a8365880013d92bb1039e9d0c2e609c91d0de13e6bddfefb3abcfbbe693",
+        "classification": "declaration",
+        "owner": "ProgressControl",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "bbc165e978b2e9f47c10a44ceb04d300891c41e4cccbc2b4d47707b1a73785b3",
+        "classification": "declaration",
+        "owner": "ProgressControl",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "b4eec12b24044492c362018ce44da3d269b80a5b19690db053fcb70c66d684bf",
+        "classification": "declaration",
+        "owner": "ProgressControl",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "3e95f04ccc5675e8ce6bc15655fa9fe506d69ffdb6ff699880422df421c569c5",
+        "classification": "declaration",
+        "owner": "ProgressControl",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "bb364522d67af756f11cf611e06fd104a2bbc56bfcd2f744c6aa34378e775fae",
+        "classification": "declaration",
+        "owner": "ProgressControl",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "ca4e8f8e5585c6f9f2822776d5329e55efccd29f5656d225408308fc22158443",
+        "classification": "declaration",
+        "owner": "ProgressControl",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "9798806655cd71438d6b57ba1679c00073f107b53611f0569b99f25ca5855428",
+        "classification": "non_contract",
+        "owner": "ProgressControl.create_content",
+        "reason": "Python -1 selects the most recent task."
+      },
+      {
+        "id": "a320e87bfc1258f81869a6250e9b1665627ae0a5cb9817d7d5fb725b9b1d9673",
+        "classification": "non_contract",
+        "owner": "ProgressControl.create_content",
+        "reason": "Subtract the displayed task from total task count for the existing additional-task label."
+      },
+      {
+        "id": "e3d08cec7bb1c7a1adcbb44a67c8347698576e84a4205ad8b6211432f5a22706",
+        "classification": "non_contract",
+        "owner": "ProgressControl.create_content",
+        "reason": "First rendered line after its nonempty guard."
+      },
+      {
+        "id": "494ebd613a3b23abccdbb3749829789eb5818c7dcd88943313be57b94c14a3bd",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "4bc6aed6e7cb35f052c9ee337585963151fe33ea32fa590d328613931ee4b26f",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "569c9db314d607864188ffe6f76a314e413cc41c0daacfcb4d1a5a3986fa61f2",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "b75cf1ffdfb78c873699252e702b3a4c961a889de6e23dea1e1a05e11ec2184d",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "e5587cb8999fdd33e266eaab432983dbc06d74e828c5abb8b275046bc0fce214",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "918eb0403dae474344a1c164a32a9ef547a8692b6f7aa8dde1f7fb449c9be5d7",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "3943c6986fb4fb8100c5615b65958633cfaf0347d8fdbe3411223e2de2f61509",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "d7696bf7d8439e759c9fed7582d0a6143046b2c1d8c274872f80c2b3e904dccf",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "641172706b175032d0a0bc8288cbf768050ae2a88bf248a4e1dd5b968899503e",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "6f8d8eb1c4d8648033993d777e75bd2c763fdda9e32f4fbefbbfa27f7c511e6a",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "e76fa8d752d4eecd9c78775910749b42a7f4e18917369727d96f792611b87d26",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "78c3e84280409ab7102570ae9744e9da348ab54e3b303eb2fe06ae1d4acda785",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "63363c1b64149ae852732fe3aa5e45d8107f7566d4ded6d174c8ae16ce527294",
+        "classification": "declaration",
+        "owner": "TaskProgress",
+        "reason": "One field descriptor definition supplies Rich task-field writes, initial kwargs and column templates. Original layout/timer/markup/wrapping/percentage and nullable progress values are declared before methods; RichTerminal owns console options."
+      },
+      {
+        "id": "14170488cb6fa597fe1bf7db7db8b47e34614f6c7513cc19dd6958fbe5666ba4",
+        "classification": "non_contract",
+        "owner": "TaskProgress.schedule_refresh",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      },
+      {
+        "id": "2c00640b63f31dd9b22136058ac0d5d19cc47646dcbf8bd41f0563d4fb6551d2",
+        "classification": "non_contract",
+        "owner": "TaskProgress.start",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      },
+      {
+        "id": "06facad3274a1591a653286744ec24ead240da0be6a4fc617a488652a5b282e9",
+        "classification": "non_contract",
+        "owner": "TaskProgress.update",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      },
+      {
+        "id": "be7c5e35f0a8da6c617eca0ca2053ff83a3634691e465ff0697606d91520cb11",
+        "classification": "non_contract",
+        "owner": "TaskProgress.update",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      },
+      {
+        "id": "f51ae34bf70baff373b48a908128b3eca959a2f9d7d587ef14a02d022a9375c9",
+        "classification": "non_contract",
+        "owner": "TaskProgress.update",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      },
+      {
+        "id": "2acdf7c2a8aacb6c7ca1bd8a62b97b9976f4440e0bedbd583fa7fa5f34048b3b",
+        "classification": "non_contract",
+        "owner": "TaskProgress.finish",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      },
+      {
+        "id": "8ad71bcc3094d9a88754fee84dee43e53abc945152783b748c9cfe8b5d55316a",
+        "classification": "non_contract",
+        "owner": "TaskProgress.close",
+        "reason": "Return or optional type annotation; runtime absent values use the Owner declaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProgressTaskFields / ProgressControl / TaskProgress",
+        "declaration": "hub/widget/feedback/progress.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/widget/forms/record_manager.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_welcome.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_deletion_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/welcome.py",
+    "sha256": "c81b5bd13248b5b65a1c9b263e661861fe5ea8a744eeb6ecc51374d84ce63831",
+    "reason": "Preparing feedback uses typed transient clock/resume tuples and canonical Message/Session contracts. Rich progress field serialization and template names share their field descriptors, and progress/Markdown share the original Rich terminal options. All durable observation guards and UI timing/formatting remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ab9abbf2dc7cd871ed9786d3346fea4a11b7bc01a9b7c42b44287220fae9d706",
+        "classification": "declaration",
+        "owner": "WelcomeLogo",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "2b2d4266ebb122d966e59db768809c4872eca4dbb2bb1497d4480bfc22999d82",
+        "classification": "declaration",
+        "owner": "WelcomeLogo",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "d6cf83bb3172c22e429a4371d5687bef091a2dbbddbf02d14b189b94b2699180",
+        "classification": "declaration",
+        "owner": "WelcomeLogo",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "c34272dbd1b42ff8ba7f5792c9acd3136c427935baaa18135a4461777e353ce9",
+        "classification": "declaration",
+        "owner": "WelcomeLogo",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "bd8f7b1bbff85d4d3d52b2fbcca47fe7473459d1c31cab72efbbf3bf6764de59",
+        "classification": "declaration",
+        "owner": "WelcomeLogo",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "17d373c7eaff02e900879160313426e65262cdc323b1b02633be502406f069b1",
+        "classification": "declaration",
+        "owner": "WelcomeLogo",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "93ef81f5d6f51b3cd1717c0a90ca39e937428579e7c8109fa47cd6202b53f8bc",
+        "classification": "non_contract",
+        "owner": "logo",
+        "reason": "Variadic tuple return annotation."
+      },
+      {
+        "id": "294e45ee8ae89b08d358676e1e62a842c51280df7a50c6a5c642dc49880fc4d5",
+        "classification": "declaration",
+        "owner": "WelcomeControl",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "40d4bc139fb78ab8bdf616510e6da3f6dc964e4dbcbd40fced18d14907eadef2",
+        "classification": "declaration",
+        "owner": "WelcomeControl",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "0a6700390c7d81901b186b75572c0a0ebd0f216676d8ffbe5c2768f541cab0d9",
+        "classification": "declaration",
+        "owner": "WelcomeControl",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "636d99e9f609cbbcc7cc0003bc25463514bb4ed3ffb037597731803b2566d099",
+        "classification": "declaration",
+        "owner": "WelcomeControl",
+        "reason": "Original cached logo/font/width threshold, welcome messages and nonfocusable layout; ThemeSelector owns accent/muted references."
+      },
+      {
+        "id": "d7dd7d2cb8cbf95499bb82fe66d791270264ce55de80c21ed9c9b65e40894747",
+        "classification": "non_contract",
+        "owner": "WelcomeControl.create_content",
+        "reason": "Pure centering arithmetic: split remaining width/height in half and clamp negative padding to zero."
+      },
+      {
+        "id": "5d523fd0277a83f4a9a9bd9185c34ec4a3ec3604ca5190c65d19fed2ae464c39",
+        "classification": "non_contract",
+        "owner": "WelcomeControl.create_content",
+        "reason": "Pure centering arithmetic: split remaining width/height in half and clamp negative padding to zero."
+      },
+      {
+        "id": "9fa5042fbc465f4b3220c1cb182395d2e0555de5c83116291928bd7b78dea1ba",
+        "classification": "non_contract",
+        "owner": "WelcomeControl.create_content",
+        "reason": "Pure centering arithmetic: split remaining width/height in half and clamp negative padding to zero."
+      },
+      {
+        "id": "29ab4e96637fa95a435bb878d56f43e0be043da4e850ff85d122066261538332",
+        "classification": "non_contract",
+        "owner": "WelcomeControl.create_content",
+        "reason": "Pure centering arithmetic: split remaining width/height in half and clamp negative padding to zero."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "WelcomeLogo / WelcomeControl",
+        "declaration": "hub/widget/welcome.py",
+        "consumers": [
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_welcome.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_deletion_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/sidebar_panel.py",
+    "sha256": "0976bf246eb107e29aa75d47a263e2c4895e178f12852fadabcd1dc244246125",
+    "reason": "Preparing feedback uses typed transient clock/resume tuples and canonical Message/Session contracts. Rich progress field serialization and template names share their field descriptors, and progress/Markdown share the original Rich terminal options. All durable observation guards and UI timing/formatting remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2cfc439a09ed5f9b0012d078e6c5c5fc1f46f95c0ac413d243c1fa03b159486a",
+        "classification": "declaration",
+        "owner": "SidebarPanel",
+        "reason": "Original optional Project fraction and bounded sidebar geometry; no automatic focusability change."
+      },
+      {
+        "id": "0852d7f5fa4cb9b292e85e804b5e5b16e15c59aa7770d19792ce6a8f8c92577c",
+        "classification": "declaration",
+        "owner": "SidebarPanel",
+        "reason": "Original optional Project fraction and bounded sidebar geometry; no automatic focusability change."
+      },
+      {
+        "id": "ae7ad2e36eb2c1ceb71518211e8991ec85383bfe848907b5cfa3f16fd0aedbf7",
+        "classification": "declaration",
+        "owner": "SidebarPanel",
+        "reason": "Original optional Project fraction and bounded sidebar geometry; no automatic focusability change."
+      },
+      {
+        "id": "ac772c8f9546262ed8b273426da91137ae3771a3a6333fc83116dba65d4e2d4e",
+        "classification": "non_contract",
+        "owner": "SidebarPanel.write_to_screen",
+        "reason": "Python projection selects the first section for its Project height."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SidebarPanel",
+        "declaration": "hub/widget/sidebar_panel.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/settings/screen.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_welcome.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_deletion_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/rich_terminal.py",
+    "sha256": "73dd9b20146fad1c956f75cc13fbef53d882abd7d362565d0067b542654750f8",
+    "reason": "Preparing feedback uses typed transient clock/resume tuples and canonical Message/Session contracts. Rich progress field serialization and template names share their field descriptors, and progress/Markdown share the original Rich terminal options. All durable observation guards and UI timing/formatting remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cf23f914e1efae0996f7d6aa3b920c90eac3f0e18a17a16dac6b464ad925ff65",
+        "classification": "declaration",
+        "owner": "RichTerminal",
+        "reason": "The unchanged truecolor/forced-terminal/no-highlight Rich display options are defined once for both actual constructors. Caller file/width/theme values retain their original semantics."
+      },
+      {
+        "id": "57e33e3d86e283c2384bdfb8689fc31334ce13c1a0a4a935cbf15421da10bfb6",
+        "classification": "declaration",
+        "owner": "RichTerminal",
+        "reason": "The unchanged truecolor/forced-terminal/no-highlight Rich display options are defined once for both actual constructors. Caller file/width/theme values retain their original semantics."
+      },
+      {
+        "id": "76f00887818bf8d19899a66ae142eee7a06d92760495c57f8e092a0e15f38c67",
+        "classification": "declaration",
+        "owner": "RichTerminal",
+        "reason": "The unchanged truecolor/forced-terminal/no-highlight Rich display options are defined once for both actual constructors. Caller file/width/theme values retain their original semantics."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RichTerminal",
+        "declaration": "hub/ui/output/rich_terminal.py",
+        "consumers": [
+          "hub/widget/feedback/progress.py",
+          "hub/ui/output/markdown.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_progress.py",
+          "tests/hub/test_welcome.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_deletion_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -6,16 +6,37 @@ from hub.model import ResponseActivity
 
 from hub.locales.keys import MessageKey
 
-from llm.core.models import MessageStatus
+from llm.core.models import MessageStatus, MessageRole
+from typing import NamedTuple
 from prompt_toolkit.application.current import get_app
 import asyncio
 from dataclasses import replace
 from time import monotonic
 
-from ...model import HubSnapshot, ChatMessage, QuestionPresentation
+from ...model import HubSnapshot, ChatMessage, QuestionPresentation, SessionIdentity
+
+
+class ResponseClock(NamedTuple):
+    message_id: str
+    elapsed_seconds: float
+    observed_at: float
+
+
+class ResumingResponse(NamedTuple):
+    run_id: str
+    anchor: str | None
+    assistant: str | None
 
 
 class PreparingResponse:
+    ABSENT = None
+    EMPTY_TEXT = ""
+    MODEL_SEPARATOR = " · "
+    DRAFT_ID = "draft:{session_id}"
+    PREPARING_ID = "preparing:{session_id}"
+    FOLLOW_TAIL = True
+    ACTIVE_STATES = (MessageStatus.STREAMING, MessageStatus.COMMITTED)
+
     def __init__(self, view):
         self.view = view
         self.pending = {}
@@ -23,37 +44,53 @@ class PreparingResponse:
         self.drafts = {}
         self.clocks = {}
         self.resuming = {}
-        self._ticker = None
+        self._ticker = self.ABSENT
 
     def visible(self):
         view = self.view
-        return (getattr(view, "project_id", ""), view.sessions[view.selected].id) in self.pending
+        return SessionIdentity.current(view).to_tuple() in self.pending
 
     def text(self):
-        return self.view.t(MessageKey.PREPARING_RESPONSE) + " · " + self.view.model
+        return (
+            self.view.t(MessageKey.PREPARING_RESPONSE)
+            + self.MODEL_SEPARATOR
+            + self.view.model
+        )
 
-    def start(self, key, text="", *, resume_run_id=None, turn_id=None):
-        self.pending[key] = None
+    def start(self, key, text=EMPTY_TEXT, *, resume_run_id=ABSENT, turn_id=ABSENT):
+        self.pending[key] = self.ABSENT
         self.started[key] = monotonic()
         if resume_run_id:
             snapshot = HubSnapshot.last_observed(self.view)
-            anchor, assistant = turn_id, None
+            anchor, assistant = turn_id, self.ABSENT
             if snapshot and key == (snapshot.project_id, snapshot.selected_id):
-                preceding = None
+                preceding = self.ABSENT
                 for message in snapshot.messages:
-                    if message.role == "user":
+                    if message.role == MessageRole.USER:
                         preceding = message.id
-                    if message.role == "assistant" and message.run_id == resume_run_id:
+                    if (
+                        message.role == MessageRole.ASSISTANT
+                        and message.run_id == resume_run_id
+                    ):
                         anchor, assistant = anchor or preceding, message.id
                         break
-            self.resuming[key] = (resume_run_id, anchor, assistant)
+            self.resuming[key] = ResumingResponse(resume_run_id, anchor, assistant)
         if text:
-            self.drafts[key] = ChatMessage("user", text, status=ChatMessage.PREPARING, id=f"draft:{key[1]}",
-                                          author=self.view.user_profile.display_name)
-        self.view.composer.buffer.suggestion = None
+            self.drafts[key] = ChatMessage(
+                MessageRole.USER.value,
+                text,
+                status=ChatMessage.PREPARING,
+                id=self.DRAFT_ID.format(session_id=SessionIdentity(key).session_id),
+                author=self.view.user_profile.display_name,
+            )
+        self.view.composer.buffer.suggestion = self.ABSENT
         self.paint()
-        if not resume_run_id and key == (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id) and self.view.general.auto_scroll:
-            self.view.output.set_follow_tail(True)
+        if (
+            not resume_run_id
+            and key == SessionIdentity.current(self.view).to_tuple()
+            and self.view.general.auto_scroll
+        ):
+            self.view.output.set_follow_tail(self.FOLLOW_TAIL)
 
     async def _tick(self):
         while self.pending or self.clocks:
@@ -65,58 +102,116 @@ class PreparingResponse:
         messages = self.view.question.project(key, messages)
         clock = self.clocks.get(key)
         snapshot = HubSnapshot.last_observed(self.view)
-        run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
+        run = (
+            snapshot.run
+            if snapshot and key == (snapshot.project_id, snapshot.selected_id)
+            else self.ABSENT
+        )
         from .retry_status import retry_text
-        activity = retry_text(run.retry if run and run.active else None, self.view.t)
+
+        activity = retry_text(
+            run.retry if run and run.active else self.ABSENT, self.view.t
+        )
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
-            if message.role == "assistant" and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED):
-                elapsed = clock[1] + monotonic() - clock[2] if clock and message.id == clock[0] else message.elapsed_seconds
-                messages = (*messages[:index], replace(message, elapsed_seconds=elapsed, activity=activity), *messages[index + 1:])
+            if (
+                message.role == MessageRole.ASSISTANT
+                and message.status in self.ACTIVE_STATES
+            ):
+                elapsed = (
+                    clock.elapsed_seconds + monotonic() - clock.observed_at
+                    if clock and message.id == clock.message_id
+                    else message.elapsed_seconds
+                )
+                messages = (
+                    *messages[:index],
+                    replace(message, elapsed_seconds=elapsed, activity=activity),
+                    *messages[index + 1 :],
+                )
                 break
         if key in self.pending:
             if key in self.resuming:
                 # Resume changes the existing response header, never its position
                 # or partial body. Keep this bridge until durable output arrives.
                 run_id, _, assistant = self.resuming[key]
-                has_body = any(m.role == "assistant" and m.run_id == run_id for m in messages)
+                has_body = any(
+                    m.role == MessageRole.ASSISTANT and m.run_id == run_id
+                    for m in messages
+                )
                 prepared = []
                 for message in messages:
-                    if message.run_id == run_id and message.role == "system":
+                    if message.run_id == run_id and message.role == MessageRole.SYSTEM:
                         if has_body:
                             continue
-                        message = replace(message, role="assistant", id=assistant or message.id, text="")
-                    if message.role == "assistant" and message.run_id == run_id:
-                        message = replace(message, status=ChatMessage.PREPARING, phase=ResponseActivity.PREPARING, activity="")
+                        message = replace(
+                            message,
+                            role=MessageRole.ASSISTANT.value,
+                            id=assistant or message.id,
+                            text=self.EMPTY_TEXT,
+                        )
+                    if (
+                        message.role == MessageRole.ASSISTANT
+                        and message.run_id == run_id
+                    ):
+                        message = replace(
+                            message,
+                            status=ChatMessage.PREPARING,
+                            phase=ResponseActivity.PREPARING,
+                            activity=self.EMPTY_TEXT,
+                        )
                     prepared.append(message)
                 messages = tuple(prepared)
             else:
                 if key in self.drafts:
                     messages = (*messages, self.drafts[key])
-                messages = (*messages, ChatMessage("assistant", "", status=ChatMessage.PREPARING,
-                    id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
-        return self.view.deleting.project(key, self.view.interrupting.project(key, messages))
+                messages = (
+                    *messages,
+                    ChatMessage(
+                        MessageRole.ASSISTANT.value,
+                        self.EMPTY_TEXT,
+                        status=ChatMessage.PREPARING,
+                        id=self.PREPARING_ID.format(
+                            session_id=SessionIdentity(key).session_id
+                        ),
+                        elapsed_seconds=monotonic() - self.started[key],
+                    ),
+                )
+        return self.view.deleting.project(
+            key, self.view.interrupting.project(key, messages)
+        )
 
     def paint(self):
         view = self.view
         session = view.sessions[view.selected]
-        key = (getattr(view, "project_id", ""), session.id)
-        view.output.update_messages(self.project(key, session.messages),
-                                    auto_scroll=True if key in self.pending and key not in self.resuming and view.general.auto_scroll else None)
+        key = (HubSnapshot.project_identifier(view), session.id)
+        view.output.update_messages(
+            self.project(key, session.messages),
+            auto_scroll=(
+                self.FOLLOW_TAIL
+                if key in self.pending
+                and key not in self.resuming
+                and view.general.auto_scroll
+                else self.ABSENT
+            ),
+        )
         app = get_app()
-        if (self.pending or self.clocks) and app.is_running and (self._ticker is None or self._ticker.done()):
+        if (
+            (self.pending or self.clocks)
+            and app.is_running
+            and (self._ticker is self.ABSENT or self._ticker.done())
+        ):
             self._ticker = app.create_background_task(self._tick())
         app.invalidate()
 
     def finish(self, key):
-        self.pending.pop(key, None)
-        self.started.pop(key, None)
-        self.drafts.pop(key, None)
-        self.resuming.pop(key, None)
+        self.pending.pop(key, self.ABSENT)
+        self.started.pop(key, self.ABSENT)
+        self.drafts.pop(key, self.ABSENT)
+        self.resuming.pop(key, self.ABSENT)
         self.paint()
 
     def accepted(self, key, message_id):
-        self.drafts.pop(key, None)
+        self.drafts.pop(key, self.ABSENT)
         self.pending[key] = message_id
         snapshot = HubSnapshot.last_observed(self.view)
         if snapshot:
@@ -124,40 +219,75 @@ class PreparingResponse:
 
     def observe(self, snapshot):
         key = (snapshot.project_id, snapshot.selected_id)
-        self.clocks = {k: v for k, v in self.clocks.items()
-                       if k[0] == snapshot.project_id and any(s.id == k[1] for s in snapshot.sessions)}
-        last = next((m for m in reversed(snapshot.messages) if m.role == "assistant"), None)
-        if last and last.role == "assistant" and last.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED) and last.elapsed_seconds is not None:
-            self.clocks[key] = (last.id, last.elapsed_seconds, monotonic())
+        self.clocks = {
+            k: v
+            for k, v in self.clocks.items()
+            if SessionIdentity(k).project_id == snapshot.project_id
+            and any(s.id == SessionIdentity(k).session_id for s in snapshot.sessions)
+        }
+        last = next(
+            (m for m in reversed(snapshot.messages) if m.role == MessageRole.ASSISTANT),
+            self.ABSENT,
+        )
+        if (
+            last
+            and last.role == MessageRole.ASSISTANT
+            and last.status in self.ACTIVE_STATES
+            and last.elapsed_seconds is not self.ABSENT
+        ):
+            self.clocks[key] = ResponseClock(last.id, last.elapsed_seconds, monotonic())
         else:
-            self.clocks.pop(key, None)
+            self.clocks.pop(key, self.ABSENT)
         if key in self.resuming:
             run_id, anchor, assistant = self.resuming[key]
-            target = next((m for m in snapshot.messages if m.id == assistant and m.role == "assistant"), None)
-            if target is None and anchor:
-                start = next((i for i, m in enumerate(snapshot.messages) if m.id == anchor), None)
-                if start is not None:
-                    for message in snapshot.messages[start + 1:]:
-                        if message.role == "user":
+            target = next(
+                (
+                    m
+                    for m in snapshot.messages
+                    if m.id == assistant and m.role == MessageRole.ASSISTANT
+                ),
+                self.ABSENT,
+            )
+            if target is self.ABSENT and anchor:
+                start = next(
+                    (i for i, m in enumerate(snapshot.messages) if m.id == anchor),
+                    self.ABSENT,
+                )
+                if start is not self.ABSENT:
+                    for message in snapshot.messages[start + 1 :]:
+                        if message.role == MessageRole.USER:
                             break
-                        if message.role == "assistant":
+                        if message.role == MessageRole.ASSISTANT:
                             target = message
                             break
-            if any(QuestionPresentation.observe(q).run_id == run_id for q in snapshot.questions) or (target and target.run_id and target.run_id != run_id):
+            if any(
+                QuestionPresentation.observe(q).run_id == run_id
+                for q in snapshot.questions
+            ) or (target and target.run_id and target.run_id != run_id):
                 self.finish(key)
             return
         request_id = self.pending.get(key)
         if not request_id:
             return
         messages = snapshot.messages
-        index = next((i for i, message in enumerate(messages) if message.id == request_id), None)
-        if index is None:
+        index = next(
+            (i for i, message in enumerate(messages) if message.id == request_id),
+            self.ABSENT,
+        )
+        if index is self.ABSENT:
             return
         request = messages[index]
-        following = messages[index + 1:]
+        following = messages[index + 1 :]
         # Queue admission during another Run is already represented as queued.
         # For a new Run retain preparation until its own assistant is observed.
-        if request.status == MessageStatus.CANCELLED or (request.status == MessageStatus.QUEUED and snapshot.run and snapshot.run.active):
+        if request.status == MessageStatus.CANCELLED or (
+            request.status == MessageStatus.QUEUED
+            and snapshot.run
+            and snapshot.run.active
+        ):
             self.finish(key)
-        elif following and following[0].role in ("assistant", ReasoningMessage.ROLE):
+        elif following and following[0].role in (
+            MessageRole.ASSISTANT,
+            ReasoningMessage.ROLE,
+        ):
             self.finish(key)

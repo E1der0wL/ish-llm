@@ -9026,3 +9026,46 @@ Host d833790·고정 의존성·실제 Linux UI 환경이다. 정적 S1–S7의 
 검사를 유지했다. 제품 실행 정책·저장 형식을 바꾸지 않는 UI 동일 이동으로 Level 1·2를 적용했다.
 동결 Gate52에 포함되지 않으며 InputWidgets와 후속 관련 Hub 변경을 묶은 Level 3·정확한 SHA
 원격 CI에서 통합 검증한다. 기존 미완료 공유 계약 표시는 유지하며 전체 완료를 선언하지 않는다.
+
+
+## Hub 준비 응답·진행률·빈 화면 표시
+
+PreparingResponse·ProgressControl/TaskProgress·Welcome·SidebarPanel과 새 RichTerminal 다섯 파일을
+전수 정리했다. 임시 ResponseClock/ResumingResponse는 이름 있는 tuple 타입으로 생산하며 clock
+소비도 속성을 사용한다. 기존 tuple 값·관측 순서·reference 상태는 유지하고 영속 기록으로 저장하지
+않는다. MessageRole/MessageStatus·SessionIdentity·HubSnapshot을 재사용한다. 요청 ACK만으로
+준비 표시를 지우지 않고 실제 후속 assistant/reasoning·취소/대기·새 Run·질문 관측을 기다리는
+조건, 기존 부분 응답과 위치, 재개 bridge, 삭제/중단 Projection 순서와 timer를 유지했다.
+
+ProgressTaskFields의 슬롯 필드 선언이 Rich 외부 task.fields의 초기 kwargs·수정 키·표시 template를
+함께 생성한다. 필드 문자열을 별도로 중복 선언하지 않았다. RichTerminal이 원래 truecolor·
+force_terminal·highlight 옵션을 소유하고 실제 progress와 Markdown 생성자가 함께 사용한다.
+기존 사용자 제목의 Rich markup 비해석, 정규화된 공백, 진행률/indeterminate/다중 작업 표시,
+화면 이동 시 공유 progress·cache·refresh timer·focus 보존을 유지했다. Welcome과 Sidebar의
+기존 빈 Project 표시·logo/cache/폭·높이 계산도 같으며 숨은 Session을 만들지 않는다.
+
+원본/변경안 preparing·ACK·clock·resume·stale snapshot·질문·누락/NULL/falsey identity 37개와
+실제 Rich/PTK progress·welcome·sidebar·Markdown 36개 관측이 일치했다. 임시 상태는 관측 시점에
+복사하여 후속 변이로 비교 증거가 사라지지 않도록 했다. 새 Owner를 확장하면 기존 다섯 파일의
+실행 AST가 같다(추가/이동 import는 실제 baseline/proposal 로딩으로 확인). 비교용 Console 속성
+접근 오류는 적용 전에 수정하고 로그를 보존했다. Markdown의 나머지 미전환 계약은 완료로
+처리하지 않았다. 명령/Hash와 비교 결과는 `hub-response-widgets-draft`에 보존한다.
+
+- `whole-hub-response-widgets-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.753634초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-response-widgets-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `3ce43d7cddc44bbcc6132ff50af9b4f7c4e5dc278652312959dd60f5510f494f`, input `5bec614392175586392de91593088a3cda806525d8200a013d6e6db264386dbe`.
+
+- `whole-hub-response-widgets-l1-01`: discovered/started/pass 24/24/24, exit 0, 10.089701초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-response-widgets-l1-01/hub.json --modules tests.hub.test_interrupt_feedback tests.hub.test_progress tests.hub.test_welcome tests.hub.test_render_intervals`. source `3ce43d7cddc44bbcc6132ff50af9b4f7c4e5dc278652312959dd60f5510f494f`, input `5bec614392175586392de91593088a3cda806525d8200a013d6e6db264386dbe`.
+
+- `whole-hub-response-widgets-l2-01`: discovered/started/pass 61/61/61, exit 0, 45.478699초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-response-widgets-l2-01/hub.json --modules tests.hub.test_submission_latency tests.hub.test_rag_jobs tests.hub.test_completion_display tests.hub.test_page_layout tests.hub.test_render_pipeline tests.hub.test_engine_output tests.hub.test_responsiveness tests.hub.test_question_card tests.hub.test_deletion_feedback`. source `3ce43d7cddc44bbcc6132ff50af9b4f7c4e5dc278652312959dd60f5510f494f`, input `5bec614392175586392de91593088a3cda806525d8200a013d6e6db264386dbe`.
+
+공통 안전성 84개·R3 Mutation, 실제 interrupt/resume feedback·progress·welcome·render interval,
+submission·RAG job·completion display·page layout·render pipeline·engine output·responsiveness·
+question·deletion feedback을 검증했다. 모든 suite의 failure/error/skip/xfail/xpass/누락/추가/중복 0,
+발견·실행·통과 ID 일치, 동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다.
+실제 argv/exit는 `hub-response-widgets-draft/selected-results.json`에 보존한다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux UI 환경이다. 기존 테스트·Assertion은
+변경하지 않았으며 정적 S1–S7 68개 발견/검토 ID·감사·문서 검사를 유지한다.
+
+이는 Backend의 승인/예산/실행/저장 정책 변경이 아닌 UI 임시 관측과 표시 계약의 동일 이동이다.
+Level 1·2로 소단계를 검증하며 동결 Gate52 결과를 승계하지 않는다. InputWidgets·MouseWidgets와
+후속 관련 Hub 변경을 묶은 다음 Level 3·정확한 SHA 원격 CI가 통합 완료 조건이다. 전체 DC3와
+기존 미완료 공유 계약의 완료를 선언하지 않는다.

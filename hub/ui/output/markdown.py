@@ -1,6 +1,7 @@
 """Rich Markdown renderer with Hub colors and PTK fragment output."""
 
 from io import StringIO
+from .rich_terminal import RichTerminal
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.markdown import HorizontalRule, Markdown
 from rich.rule import Rule
@@ -75,8 +76,7 @@ def _trim_right(fragments):
 
 
 def make_console(inner, theme):
-    console = Console(file=StringIO(), width=inner, color_system="truecolor",
-                      force_terminal=True, highlight=False,
+    console = RichTerminal.console(file=StringIO(), width=inner,
                       theme=Theme({"markdown.h1": theme.accent + " bold",
                                    "markdown.h2": theme.accent + " bold",
                                    "markdown.h3": theme.accent + " bold",
