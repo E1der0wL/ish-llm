@@ -100818,5 +100818,307 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/backend/project/title_values.py",
+    "sha256": "70a0fb720ada59e9c412ea221d4a1134031a661bbcec6d8d48cc516ae67fa3f0",
+    "reason": "Title configuration, lifecycle metadata, attempt digest and presentation have explicit Owners. Source provider selection, isolated Session/Run, same-attempt suppression, cancellation and cleanup retain their existing behavior; actual Runtime writers/readers delegate to the metadata Owner.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b6d5c5fe60a504607856bb05c83f8ceff5016a1dd418e45b443f40f207dd3169",
+        "classification": "declaration",
+        "owner": "TitleCompletion",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "5bb6c82cfbc14a7ca5ecac4d5b8ae8751616782799e1d9a6b1799273b286e48c",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "9505964bcf80295c6a13b3e6bfb323587efd6e129a6ee1b9ad035e86a75a9cb3",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "8c413b0b24f25b77596b0a388288b7a9b75a0ad36e2946debff8f758032a3a29",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "0022188c8a33d537879685db9bd58e5d66fd48108c871a3139d73d5eaead9114",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "d1dd1b97c21f2779ed62a17fddb20c64bc1f8cbed3eb16c1c061b83fea8a8cb3",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "e3ace6934c85fb825e480871096bda1e2fcb8fe6d25c68ed8f576957d9190beb",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "0a59581f56164d05988371c8680fb39dfab4b964a05b9c1eb9dbc1c0856b8d0c",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "617719c793d3e2a54a9fadeffe12ece8853cad29d7e161f5a07e6afe478217df",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "127f093e488cafe7d5d027783a2f5921e01c8574d11364d8df72df1066829fcd",
+        "classification": "declaration",
+        "owner": "TitleSessionMetadata",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "78ce677fb9236a26a99049e57157063a27560fe3cd8c90939e2f618a28f4a6b2",
+        "classification": "declaration",
+        "owner": "TitleAttempt",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "049287385bff76e87c5d5ac09d6890fed1b65b54879ba413ea7eb6da98b2ae35",
+        "classification": "declaration",
+        "owner": "TitleAttempt",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "bac52c850aefbc099fc0e423e851e536bb6236fdd65c596907dece04e9a5e639",
+        "classification": "declaration",
+        "owner": "TitleAttempt",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "595106d685eaa5189f73650095de55abd242a85fd8ef25dd367556e24d02d6bc",
+        "classification": "declaration",
+        "owner": "TitleAttempt",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "b7d51530a550485842c0d460b14b6b4109c7187d5adce00d6b82b9222bb1728c",
+        "classification": "declaration",
+        "owner": "TitleAttempt",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "9132fe70697f6c9550523c10ee6f68d716cf88f5884d13e2e4ed8cadf8d6637f",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "ebb1e75fa311df8d6b581c19a9e74b9c6c1d8ab2c2e038af780654816e2b8242",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "7d6223af39462c9e93ab35650af9a9897849eef1d1dbec54e415ba49a857c2f6",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "c6d9998bdb74ebc14a7734d55dbc84d31cfd720c15cef8e9fd2a171dcd1bc00c",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "5d29597079b8e582f30d2821746c723b660da72052913492107a151b566597a5",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "466a87b7d62f6528ab39c573f72cfac4d888644c59fab0fe66e1c21ee671051f",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "60b5a660c1c1b713ea31d96730793d360b326df2bc7d7789f6e8e382c8f44f22",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "5d9ed0c39957cc24e46a83bc856f060ff3cc2d80b766745c71cc2e35f782788f",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "47c42e8a812c37b10e43c6945c546a7614aa2ecb50ec8b46f2cdc3405f957ef3",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "35e018e99a9f5d05ab21d801825758d0a3ac5d5d6c3d4fede107d634d468c741",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "b84672680eb56380439cc2442ebbb301f9be6ded332d6ebbae4e148c29e328a3",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "1cc996f8472cf67dbf5049fc70353d757445f6abf0c8d828f0af98461b2875c1",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "19956ccc1066e255b8969613e2043e13942a30a5ef69990edc0078b04030f3fd",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "b09eade576b780753a49180684065f0950f641af67492d708d25d8cf25601649",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "6f034ff571c64efd54fde1647d0152a60dd23d8d9a1bc2094499a7e340fa1a9a",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "cde28055d9af6641df610ce4e9dc4a4e32729e1aab447428e5dd240c7b5dc427",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "23def3016a0bb0ce6dd0f0d9045dd0f189bbdea7327fa61f9cf492b2608b5df1",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "5f429c6d11e1973496456fbfb5295f08228acc89062f00075b19f4fec7c5264b",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "d11e6d24d3c7d0ec22def8adfee1e3c99834c1591941ffef9732a7502b7ebb73",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "323f093cf203dada7623f92c68039f518ec0869ca473f56eaa705df68e46c39b",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      },
+      {
+        "id": "5372e63b1631fe3f0828d7a8aea56bcf19e12ed42527dc471055100964935230",
+        "classification": "declaration",
+        "owner": "TitlePresentation",
+        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TitleCompletion / TitleSessionMetadata / TitleAttempt / TitlePresentation",
+        "declaration": "hub/backend/project/title_values.py",
+        "consumers": [
+          "hub/backend/project/naming.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_naming.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/naming.py",
+    "sha256": "a887d776862d1b6c6a76622684bb83c5e82f6b358b3e0a975e2daec06f51f58d",
+    "reason": "Title configuration, lifecycle metadata, attempt digest and presentation have explicit Owners. Source provider selection, isolated Session/Run, same-attempt suppression, cancellation and cleanup retain their existing behavior; actual Runtime writers/readers delegate to the metadata Owner.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d5fe1ab2446afa64f85312d3df973936389102100932af5dfb06744684a7170b",
+        "classification": "non_contract",
+        "owner": "TitleEngine.run",
+        "reason": "Python -1 selects the existing last input Message; no domain limit/default."
+      },
+      {
+        "id": "b5b94fbbab1082b3462844d80587af6f218bdda7127d140fbba25597b792e200",
+        "classification": "non_contract",
+        "owner": "SessionNamer._name",
+        "reason": "First element of the explicit latest-first, one-Run query after its nonempty guard."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TitleEngine / SessionNamer",
+        "declaration": "hub/backend/project/naming.py",
+        "consumers": [
+          "hub/backend/bootstrap.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_naming.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_context.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

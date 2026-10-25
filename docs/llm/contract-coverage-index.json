@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 623,
-    "unreviewed_files": 89,
+    "files": 624,
+    "unreviewed_files": 88,
     "stale_files": 0,
-    "unclassified": 4844,
+    "unclassified": 4770,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 89,
+    "unreviewed_dynamic_paths": 88,
     "unreadable_files": 0,
-    "candidates": 17806,
+    "candidates": 17770,
     "issues": 0
   },
   "files": [
@@ -375,9 +375,9 @@
     },
     {
       "path": "hub/backend/project/naming.py",
-      "status": "unreviewed",
-      "sha256": "e2a17b7ed118a0ab8466420dcf33b1ae0c2da34a31f819bc3993ca556956bebd",
-      "candidates": 64
+      "status": "reviewed",
+      "sha256": "a887d776862d1b6c6a76622684bb83c5e82f6b358b3e0a975e2daec06f51f58d",
+      "candidates": 2
     },
     {
       "path": "hub/backend/project/presets.py",
@@ -434,6 +434,12 @@
       "candidates": 1
     },
     {
+      "path": "hub/backend/project/title_values.py",
+      "status": "reviewed",
+      "sha256": "70a0fb720ada59e9c412ea221d4a1134031a661bbcec6d8d48cc516ae67fa3f0",
+      "candidates": 36
+    },
+    {
       "path": "hub/backend/project/usage.py",
       "status": "reviewed",
       "sha256": "61836500c20d9444f03941ed13d835418892c5f35e551b1b1bb1c802fe7e9fc2",
@@ -442,8 +448,8 @@
     {
       "path": "hub/backend/runtime.py",
       "status": "unreviewed",
-      "sha256": "d41e4e0fe990626f8bfdf2bad6fa546c78caa08483ae3721098fa8553fbb9acd",
-      "candidates": 180
+      "sha256": "b831c969e862f1bbece61aa2612660346d4641501113f1b4751d351516147ee7",
+      "candidates": 170
     },
     {
       "path": "hub/backend/tools/__init__.py",

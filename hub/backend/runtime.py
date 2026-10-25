@@ -1,4 +1,6 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
+from hub.backend.project.title_values import TitleSessionMetadata, TitlePresentation
+
 from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from hub.locales.codes import LanguageCode
@@ -198,7 +200,7 @@ class HubRuntime:
         sessions = []
         for session in await project.sessions.alist():
             record = await session.aget_data()
-            if not record.metadata.get("hub_internal"):
+            if not TitleSessionMetadata(record.metadata).internal:
                 sessions.append(session)
         candidates = {session.id: session for session in sessions}
         previous = self._saved_selection(project.id) if self.general.restore_last_session else ""
@@ -261,13 +263,12 @@ class HubRuntime:
         else:
             raise ValueError(f"Unknown session operation: {mode}")
         data = await session.aget_data()
-        metadata = {**data.metadata, "hub_auto_title": not bool(title) and self.config.auto_title}
-        metadata.pop("hub_title_attempt", None)
+        metadata = TitleSessionMetadata(data.metadata).initialize(not bool(title) and self.config.auto_title)
         if mode == "clone":
             from llm.services.query import Query
             source_runs = await source.run.alist(query=Query(descending=True, limit=1))
             if source_runs:
-                metadata["hub_title_agent"] = (await source_runs[0].aget_data()).agent_id
+                TitleSessionMetadata(metadata).set_agent((await source_runs[0].aget_data()).agent_id)
         await session.asave(metadata=metadata)
         self.sessions[session.id] = session
         self.notifications.register_session(self.project.id, session.id, (await session.aget_data()).title)
@@ -356,7 +357,7 @@ class HubRuntime:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
         data = await session.aget_data()
-        await session.asave(title=title.strip(), metadata={**data.metadata, "hub_auto_title": False})
+        await session.asave(title=title.strip(), metadata=TitleSessionMetadata(data.metadata).completed())
         self.namer.errors.pop(session_id, None)
         self.notifications.register_session(self.project.id, session_id, title.strip())
         self.snapshot_reader.invalidate(session_id)
@@ -535,11 +536,11 @@ class HubRuntime:
         for item in observations:
             identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
             self.notifications.observe_session(project_id, identifier, record.title, run, item.questions)
-            if record.metadata.get("hub_auto_title") and not runtime.active_runs:
+            if TitleSessionMetadata(record.metadata).automatic and not runtime.active_runs:
                 if run is not None and str(run.status) == RunStatus.COMPLETED:
                     self.namer.schedule(self.sessions[identifier], run.id)
-                elif run is None and record.metadata.get("hub_title_engine"):
-                    self.namer.schedule(self.sessions[identifier], "clone")
+                elif run is None and TitleSessionMetadata(record.metadata).engine:
+                    self.namer.schedule(self.sessions[identifier], TitlePresentation.CLONE_TRIGGER)
 
     async def snapshot(self) -> HubSnapshot:
         dropped = sum(subscription.stats["dropped"] for subscription in self._subscriptions)

@@ -8726,3 +8726,46 @@ CreationContracts·Defaults·WorkspacePresence의 실제 권한/제외 효과/�
 형식·실행 경계 변경이 없고 실제 직접 소비자를 검증했다. 전체 회귀는 ProviderActivity 등 후속
 관련 변경을 묶는 다음 Level 3와 정확한 SHA 원격 CI에서 수행한다. 실행 중 Gate51에는 이 변경이
 없으며 소단계 완료를 상위 통합·원격 완료로 표현하지 않는다.
+
+
+## Hub 자동 제목 생성의 설정·metadata·문맥
+
+TitleValues와 Naming 두 파일을 전수 정리했다. TitleCompletion은 기존 title Engine Schema와
+명시 completion/provider 설정·source completion 관측을, TitleSessionMetadata는 자동 제목·선택
+Agent·시도 식별값·내부 Session·원본 Session 참조·기존 Engine 표시를 생산·조회한다.
+실제 Runtime의 Session 생성/복제/이름 변경/목록 제외/Snapshot 재조정도 같은 API를 사용한다.
+기존 open metadata와 중첩 참조 의미를 보존하며 별도 운영 기록이나 호환 Reader를 추가하지 않았다.
+
+TitleAttempt의 버전 2·JSON 키·정렬·Unicode·SHA256 입력과 결과는 같다. TitlePresentation이 기존
+지시문·문맥 6개/각 4000자/총 12000자·제목 60자·공백/가장자리 처리와 표시 operation을 소유한다.
+현재 선택 Engine→Loop의 Provider 설정 탐색, 원본 AgentBinding 사용, Adapter의 명시적 재시도
+보존·출력 제한 제거, title 설정 최종 우선 적용, 별도 Session/Run 생성·사용량 집계·shutdown/delete,
+동일 시도 중복 억제·실패 관측·취소 전파·수동 제목 우선 의미를 유지했다.
+가벼운 TitleEngineIdentity 모듈은 기존 독립 선언으로 유지했다.
+
+원본/변경안 실행·설정 37개 비교와 metadata 6개 비교가 일치했다. source binding/생략·Null·빈
+completion, Provider 우선순위, 제목 없는/있는 대화와 역할/길이, 빈 응답·실패·취소·수동 변경,
+시도 digest·정리 호출·원본/중첩 참조를 비교했다. 실제 Runtime 파일은 새 Owner 호출을 원래
+표현으로 펼치고 import를 제거했을 때 AST가 동일했다(consumer-equivalence.json).
+이는 facade 비교와 제한된 정적 동등성 증거이며, 실제 Naming/Features와 아래 소비자 테스트의
+저장·실행·사용량·원본 대화 분리를 별도 검증했다.
+
+- `whole-hub-title-lifecycle-core-01`: discovered/started/pass 36/36/36, exit 0, 4.77797초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-title-lifecycle-core-01/llm.json --modules tests.llm.test_provider_runtime tests.llm.test_agent_values tests.llm.test_configuration_targets`. source `2330971525e96e4d04d4692ebc93f65f1f50bf1875a2630f86b95432f379ba28`, input `4523a73b5eda704ea4e4a41ebea24f36b388a374d12ed8569d6c35861c862f78`.
+
+- `whole-hub-title-lifecycle-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.294027초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-title-lifecycle-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `2330971525e96e4d04d4692ebc93f65f1f50bf1875a2630f86b95432f379ba28`, input `4523a73b5eda704ea4e4a41ebea24f36b388a374d12ed8569d6c35861c862f78`.
+
+- `whole-hub-title-lifecycle-l1-01`: discovered/started/pass 9/9/9, exit 0, 35.166311초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-title-lifecycle-l1-01/hub.json --modules tests.hub.test_naming tests.hub.test_features`. source `2330971525e96e4d04d4692ebc93f65f1f50bf1875a2630f86b95432f379ba28`, input `4523a73b5eda704ea4e4a41ebea24f36b388a374d12ed8569d6c35861c862f78`.
+
+- `whole-hub-title-lifecycle-l2-01`: discovered/started/pass 23/23/23, exit 0, 68.380476초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-title-lifecycle-l2-01/hub.json --modules tests.hub.test_auxiliary tests.hub.test_context tests.hub.test_request_history tests.hub.test_summary_api`. source `2330971525e96e4d04d4692ebc93f65f1f50bf1875a2630f86b95432f379ba28`, input `4523a73b5eda704ea4e4a41ebea24f36b388a374d12ed8569d6c35861c862f78`.
+
+모든 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 argv/exit는
+`hub-title-lifecycle-draft/selected-results.json`, 비교 명령은 `proof-commands.json`에 보존한다.
+공통 안전성 84개·R3 Mutation·정적 S1–S7·감사·문서 검사를 포함한다. 기존 실제 HTTP/Tool 효과·
+승인·예산·Checkpoint·Resume·삭제·원본 보존 Assertion을 유지했다.
+
+제품 정책·저장 형식·실행 경계 변경 없이 동일한 제목 구성/관측을 Owner로 옮겼다. 전체 회귀는
+ProviderActivity/ProjectCreation 이후 관련 변경 묶음의 다음 Level 3와 정확한 SHA 원격 CI로
+유예한다. 실행 중 Gate51에는 이 소단계가 없으며 해당 결과를 이 변경의 통합 완료로 승계하지 않는다.
+Runtime 전체 전환과 전체 DC3 완료는 남은 목록에서 계속 추적한다.
