@@ -9673,3 +9673,43 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 50파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## Hub Worker 작업 분류·callback 전달
+
+BackendWorker·UIRequests와 공통 CommandCallbacks를 전수 정리했다. Worker의 작업 이름은
+HubRuntime의 실제 메서드 선언을 사용하고, 기존 잠금/관측 선점/dirty 갱신 집합은 불변으로
+선언한다. 알려지지 않은 확장 작업의 기존 동적 호출도 유지하며 새 allowlist를 만들지 않는다.
+CommandCallbacks는 실제 두 전달 경계에서 생략된 callback을 생략한 채 투영한다. SnapshotActivity는
+HubSnapshot/RunSummary/SessionSummary의 필드 선언으로 UI 관측 pacing만 읽는다. 저장 증거나
+Backend 정책의 별도 해석은 추가하지 않는다. cancel_restart는 같은 loop에 상태 변경을 예약한다.
+
+원본과 제안의 466개 관측이 일치했다. 작업별 실제 임시 파일 효과 횟수, callback 생략/순서와
+falsey callable, 잠금·관측 취소·dirty 순서, 초기화 실패/닫힘/재시작 admission, 취소 후 cleanup,
+UI 연결/활성 상태 및 지연 전달·Future 취소/오류, loop 예약과 optional snapshot 읽기를 포함한다.
+오류 traceback은 실제 출처 파일/행만 정규화하고 프레임·예외 내용은 유지했다. 초기 비교의
+파일/행 차이 및 AST 비교기의 enum/import 차이 로그를 보존했다. 새 projection으로 교체한
+부분을 확장한 네 기존 파일의 주변 실행 AST가 같고, pacing Reader의 단락 평가 식도 같다.
+
+- `whole-hub-worker-requests-safety-01`: discovered/started/pass 84/84/84, exit 0, 35.835175초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-worker-requests-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `5ea19f612b4022ddb30e8619c81de30a5e22d332237a92b5d5b3ca9b857d3f32`, input `e9d964f3c50695d5ba6614a6c1a539ae4410c69f84fbe21c30259c6e89c559ef`.
+
+- `whole-hub-worker-requests-l1-01`: discovered/started/pass 14/14/14, exit 0, 11.031729초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-worker-requests-l1-01/hub.json --modules tests.hub.test_ui_requests tests.hub.test_live tests.hub.test_submission_latency`. source `5ea19f612b4022ddb30e8619c81de30a5e22d332237a92b5d5b3ca9b857d3f32`, input `e9d964f3c50695d5ba6614a6c1a539ae4410c69f84fbe21c30259c6e89c559ef`.
+
+- `whole-hub-worker-requests-l2-01`: discovered/started/pass 28/28/28, exit 0, 9.90901초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-worker-requests-l2-01/hub.json --modules tests.hub.test_settings_restart tests.hub.test_render_intervals tests.hub.test_responsiveness tests.hub.test_retry_ui`. source `5ea19f612b4022ddb30e8619c81de30a5e22d332237a92b5d5b3ca9b857d3f32`, input `e9d964f3c50695d5ba6614a6c1a539ae4410c69f84fbe21c30259c6e89c559ef`.
+
+최초 정적 검사는 model.py 변경으로 기존 감사 근거 hash가 오래되어 exit 1이었다. finding ID 63개는
+기존과 동일하며 새 규칙 위반이 아니다. 실제 변경·소비자 검증 후 해당 의존 근거만 갱신하고
+최종 정적 검사를 다시 통과했다. 최초 실패 보고서는 보존한다.
+
+공통 안전성 84개·R3 Mutation과 UIRequests/Live/submission latency, settings restart,
+render intervals/responsiveness/retry UI를 검증했다. 발견/실행/pass ID 일치, failure/error/skip/
+xfail/xpass/누락/추가/중복 0, 동일 suite 선택 ID 중복 0이며 source/input 전후·실행 간 동일성을
+확인했다. 실제 argv/exit/hash는 `hub-worker-requests-draft`의 selected-results.json,
+proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·
+고정 의존성·실제 Linux 환경에서 정적 S1–S7·감사·문서 검사도 통과했다. 기존 테스트와
+안전성 Assertion은 변경하지 않았다.
+
+이 결과는 Level 1·2 로컬 검증이다. Worker admission/cancellation/restart 경계가 포함되므로
+Gate54 이후 함께 모은 Charts/Icons/Conversation/UIObservation과 즉시 Level 3로 승격한다.
+해당 동결 SHA의 LLM/Hub 전체 회귀·정적 감사·R3·문서·실제 환경 검사 후에만 Push하며,
+정확한 SHA 원격 CI 결과는 별도로 기록한다.

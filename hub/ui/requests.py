@@ -6,7 +6,15 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..errors.adapters import from_exception
-from ..errors.contracts import Confidence, ErrorCategory, ErrorInfo, ErrorOrigin
+from ..backend.callbacks import CommandCallbacks
+from ..errors.contracts import (
+    Confidence,
+    ErrorCategory,
+    ErrorInfo,
+    ErrorOrigin,
+    HubErrorCode,
+    ErrorReason,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,8 +27,19 @@ class RequestResult:
 class UIRequests:
     """Transport only: callers own notices, progress widgets and domain state."""
 
-    def __init__(self, worker: Callable, dispatch: Callable, *, active: Callable[[], bool],
-                 connected: Callable[[], bool], unavailable: Callable[[], str]):
+    ABSENT = None
+    REQUIRE_CONNECTION = False
+    CANCELLED = True
+
+    def __init__(
+        self,
+        worker: Callable,
+        dispatch: Callable,
+        *,
+        active: Callable[[], bool],
+        connected: Callable[[], bool],
+        unavailable: Callable[[], str]
+    ):
         self.worker, self.dispatch = worker, dispatch
         self.active, self.connected, self.unavailable = active, connected, unavailable
 
@@ -28,39 +47,75 @@ class UIRequests:
         if self.active():
             callback(*args)
 
-    def call(self, operation: str, *args, completed: Callable[[RequestResult], None],
-             acknowledged: Callable | None = None, progress: Callable | None = None,
-             allow_disconnected: bool = False) -> None:
+    def call(
+        self,
+        operation: str,
+        *args,
+        completed: Callable[[RequestResult], None],
+        acknowledged: Callable | None = ABSENT,
+        progress: Callable | None = ABSENT,
+        allow_disconnected: bool = REQUIRE_CONNECTION
+    ) -> None:
         if not self.active():
             return
         worker = self.worker()
-        if worker is None or (not self.connected() and not allow_disconnected):
-            self._deliver(completed, RequestResult(error=ErrorInfo(code="hub_disconnected",
-                message=self.unavailable(), origin=ErrorOrigin.HUB, operation=operation,
-                category=ErrorCategory.SERVICE, reason="disconnected", confidence=Confidence.EXPLICIT)))
+        if worker is UIRequests.ABSENT or (
+            not self.connected() and not allow_disconnected
+        ):
+            self._deliver(
+                completed,
+                RequestResult(
+                    error=ErrorInfo(
+                        code=HubErrorCode.DISCONNECTED.value,
+                        message=self.unavailable(),
+                        origin=ErrorOrigin.HUB,
+                        operation=operation,
+                        category=ErrorCategory.SERVICE,
+                        reason=ErrorReason.DISCONNECTED.value,
+                        confidence=Confidence.EXPLICIT,
+                    )
+                ),
+            )
             return
-        kwargs = {}
-        if acknowledged is not None:
-            kwargs["acknowledged"] = lambda: self.dispatch(self._deliver, acknowledged)
-        if progress is not None:
-            kwargs["progress"] = lambda *values: self.dispatch(self._deliver, progress, *values)
+        kwargs = CommandCallbacks(
+            (
+                (lambda: self.dispatch(self._deliver, acknowledged))
+                if acknowledged is not UIRequests.ABSENT
+                else UIRequests.ABSENT
+            ),
+            (
+                (lambda *values: self.dispatch(self._deliver, progress, *values))
+                if progress is not UIRequests.ABSENT
+                else UIRequests.ABSENT
+            ),
+        ).to_kwargs()
         try:
             future = worker.call(operation, *args, **kwargs)
         except CancelledError:
-            self._deliver(completed, RequestResult(cancelled=True))
+            self._deliver(completed, RequestResult(cancelled=UIRequests.CANCELLED))
             return
         except Exception as error:
-            self._deliver(completed, RequestResult(error=from_exception(error,
-                origin=ErrorOrigin.BACKEND, operation=operation)))
+            self._deliver(
+                completed,
+                RequestResult(
+                    error=from_exception(
+                        error, origin=ErrorOrigin.BACKEND, operation=operation
+                    )
+                ),
+            )
             return
 
         def finished(future):
             try:
                 result = RequestResult(value=future.result())
             except CancelledError:
-                result = RequestResult(cancelled=True)
+                result = RequestResult(cancelled=UIRequests.CANCELLED)
             except Exception as error:
-                result = RequestResult(error=from_exception(error, origin=ErrorOrigin.BACKEND, operation=operation))
+                result = RequestResult(
+                    error=from_exception(
+                        error, origin=ErrorOrigin.BACKEND, operation=operation
+                    )
+                )
             self.dispatch(self._deliver, completed, result)
 
         future.add_done_callback(finished)

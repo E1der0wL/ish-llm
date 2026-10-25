@@ -1,6 +1,8 @@
 """Keep the LLM loop alive between ish's repeated prompt_async invocations."""
 
-from llm.core.models import SessionStatus, MessageStatus
+from ..model import SnapshotActivity
+from .callbacks import CommandCallbacks
+from ..config.preferences import PreferencesStore
 import asyncio
 from contextlib import nullcontext
 from concurrent.futures import Future
@@ -13,26 +15,91 @@ from ..errors.contracts import ErrorOrigin
 
 
 class BackendWorker:
-    def __init__(self, config: HubConfig, publish, report_error, *, backend_factory=create_backend):
+    ABSENT = None
+    OPEN = False
+    CLOSED = True
+    NOT_RESTARTING = False
+    RESTARTING = True
+    INITIAL_COUNT = 0
+    COUNT_STEP = 1
+    SNAPSHOT_COUNT_FIELD = "snapshot_count"
+    DEFAULT_OUTPUT_INTERVAL = 0.1
+    RESTART_POLL = 0.1
+    IDLE_MIN_INTERVAL = 0.5
+    IDLE_MAX_INTERVAL = 2.0
+    IDLE_FACTOR = 10
+    MIN_TIMEOUT = 0
+    CLEANUP_RESULT = -1
+    THREAD_NAME = "hub-backend"
+    DAEMON = True
+    CAPTURE_ERRORS = True
+    WORKER_OPERATION = "worker"
+    CLOSING_MESSAGE = "Hub backend is closing"
+    CLOSED_MESSAGE = "Hub backend is closed"
+    SHUTDOWN_FAILED = "Hub backend shutdown failed"
+    PREEMPT_OBSERVATION = frozenset(
+        {
+            HubRuntime.submit_input.__name__,
+            HubRuntime.submit.__name__,
+            HubRuntime.steer.__name__,
+            HubRuntime.interrupt.__name__,
+            HubRuntime.submission_state.__name__,
+            HubRuntime.instruction_targets.__name__,
+            HubRuntime.answer_question.__name__,
+            HubRuntime.cancel_request.__name__,
+        }
+    )
+    INDEPENDENT_OPERATIONS = frozenset(
+        {
+            HubRuntime.project_activity.__name__,
+            HubRuntime.diagnose_failures.__name__,
+            HubRuntime.execution_catalog.__name__,
+            HubRuntime.manage_tools.__name__,
+            HubRuntime.manage_records.__name__,
+            HubRuntime.approval_details.__name__,
+            HubRuntime.answer_question.__name__,
+            HubRuntime.interrupt.__name__,
+        }
+    )
+    OBSERVATION_OPERATIONS = frozenset(
+        {
+            HubRuntime.submission_state.__name__,
+            HubRuntime.instruction_targets.__name__,
+            HubRuntime.snapshot.__name__,
+        }
+    )
+
+    def __init__(
+        self,
+        config: HubConfig,
+        publish,
+        report_error,
+        *,
+        backend_factory=create_backend
+    ):
         self.config = config
         self.publish = publish
         self.report_error = report_error
         self.backend_factory = backend_factory
-        self.loop = None
-        self.runtime = None
+        self.loop = BackendWorker.ABSENT
+        self.runtime = BackendWorker.ABSENT
         self._ready = threading.Event()
-        self._closed = False
-        self._restarting = False
-        self._failure = None
-        self._shutdown_error = None
+        self._closed = BackendWorker.OPEN
+        self._restarting = BackendWorker.NOT_RESTARTING
+        self._failure = BackendWorker.ABSENT
+        self._shutdown_error = BackendWorker.ABSENT
         self._commands = set()
-        self._snapshot_task = None
-        self.snapshot_count = 0
-        self._output_interval = 0.1
-        self._interval_changed = None
-        self._sidebar_width_pending = None
-        self._sidebar_width_task = None
-        self._thread = threading.Thread(target=self._thread_main, name="hub-backend", daemon=True)
+        self._snapshot_task = BackendWorker.ABSENT
+        self.snapshot_count = BackendWorker.INITIAL_COUNT
+        self._output_interval = BackendWorker.DEFAULT_OUTPUT_INTERVAL
+        self._interval_changed = BackendWorker.ABSENT
+        self._sidebar_width_pending = BackendWorker.ABSENT
+        self._sidebar_width_task = BackendWorker.ABSENT
+        self._thread = threading.Thread(
+            target=self._thread_main,
+            name=BackendWorker.THREAD_NAME,
+            daemon=BackendWorker.DAEMON,
+        )
         self._thread.start()
         self._ready.wait()
 
@@ -50,11 +117,17 @@ class BackendWorker:
             self._shutdown_error = error
             self._ready.set()
             if isinstance(error, Exception):
-                self.report_error(from_exception(error, origin=ErrorOrigin.BACKEND, operation="worker"))
+                self.report_error(
+                    from_exception(
+                        error,
+                        origin=ErrorOrigin.BACKEND,
+                        operation=BackendWorker.WORKER_OPERATION,
+                    )
+                )
 
     async def _serve(self) -> None:
         self.runtime = HubRuntime(self.config, self.backend_factory)
-        refresher = None
+        refresher = BackendWorker.ABSENT
         try:
             try:
                 await self.runtime.start()
@@ -62,39 +135,65 @@ class BackendWorker:
                 refresher = asyncio.create_task(self._refresh())
             except Exception as error:
                 self._failure = error
-                self.report_error(from_exception(error, origin=ErrorOrigin.BACKEND, operation="start"))
+                self.report_error(
+                    from_exception(
+                        error,
+                        origin=ErrorOrigin.BACKEND,
+                        operation=HubRuntime.start.__name__,
+                    )
+                )
             finally:
                 self._initialized.set()
             await self._stop.wait()
             if self._commands:
-                await asyncio.gather(*tuple(self._commands), return_exceptions=True)
+                await asyncio.gather(
+                    *tuple(self._commands),
+                    return_exceptions=BackendWorker.CAPTURE_ERRORS
+                )
         finally:
             if refresher:
                 refresher.cancel()
-                await asyncio.gather(refresher, return_exceptions=True)
+                await asyncio.gather(
+                    refresher, return_exceptions=BackendWorker.CAPTURE_ERRORS
+                )
             await self.runtime.close()
 
     async def _read_snapshot(self):
         async with self.runtime.lock:
-            self.snapshot_count = getattr(self, "snapshot_count", 0) + 1
+            self.snapshot_count = (
+                getattr(
+                    self,
+                    BackendWorker.SNAPSHOT_COUNT_FIELD,
+                    BackendWorker.INITIAL_COUNT,
+                )
+                + BackendWorker.COUNT_STEP
+            )
             return await self.runtime.snapshot()
 
     async def _refresh(self) -> None:
-        last = None
+        last = BackendWorker.ABSENT
         loop = asyncio.get_running_loop()
         last_read = loop.time()
         while True:
             if self._restarting:
-                await asyncio.sleep(.1)
+                await asyncio.sleep(BackendWorker.RESTART_POLL)
                 continue
             dirty = self.runtime.dirty.is_set()
             self.runtime.dirty.clear()
-            active = last is None or bool(getattr(getattr(last, "run", None), "active", False)) or bool(getattr(last, "queued_count", 0))
-            active = active or any(getattr(s, "status", "") in (SessionStatus.RUNNING, MessageStatus.STREAMING, MessageStatus.QUEUED) or getattr(s, "queued_count", 0)
-                                   for s in getattr(last, "sessions", ()))
+            active = SnapshotActivity.pending(last)
             # Idle reconciliation is a safety net. Events wake it immediately,
             # throttled only by the configured output interval.
-            deadline = last_read + (self._output_interval if active or dirty else max(.5, min(2., self._output_interval * 10)))
+            deadline = last_read + (
+                self._output_interval
+                if active or dirty
+                else max(
+                    BackendWorker.IDLE_MIN_INTERVAL,
+                    min(
+                        BackendWorker.IDLE_MAX_INTERVAL,
+                        self._output_interval * BackendWorker.IDLE_FACTOR,
+                    ),
+                )
+            )
             while True:
                 self._interval_changed.clear()
                 if loop.time() >= deadline:
@@ -102,7 +201,11 @@ class BackendWorker:
                 wake = asyncio.create_task(self.runtime.dirty.wait())
                 changed = asyncio.create_task(self._interval_changed.wait())
                 try:
-                    done, _ = await asyncio.wait((wake, changed), timeout=max(0, deadline - loop.time()), return_when=asyncio.FIRST_COMPLETED)
+                    done, _ = await asyncio.wait(
+                        (wake, changed),
+                        timeout=max(BackendWorker.MIN_TIMEOUT, deadline - loop.time()),
+                        return_when=asyncio.FIRST_COMPLETED,
+                    )
                     if not done:
                         break
                     self.runtime.dirty.clear()
@@ -110,7 +213,9 @@ class BackendWorker:
                 finally:
                     wake.cancel()
                     changed.cancel()
-                    await asyncio.gather(wake, changed, return_exceptions=True)
+                    await asyncio.gather(
+                        wake, changed, return_exceptions=BackendWorker.CAPTURE_ERRORS
+                    )
             last_read = loop.time()
             try:
                 self._snapshot_task = asyncio.create_task(self._read_snapshot())
@@ -124,35 +229,41 @@ class BackendWorker:
                     self.runtime.dirty.set()
                     continue
                 finally:
-                    self._snapshot_task = None
+                    self._snapshot_task = BackendWorker.ABSENT
                 if snapshot != last:
                     self.publish(snapshot)
                     last = snapshot
             except Exception as error:
-                self.report_error(from_exception(error, origin=ErrorOrigin.BACKEND, operation="snapshot"))
+                self.report_error(
+                    from_exception(
+                        error,
+                        origin=ErrorOrigin.BACKEND,
+                        operation=HubRuntime.snapshot.__name__,
+                    )
+                )
 
-    async def _execute(self, operation: str, args, acknowledged=None, progress=None):
+    async def _execute(
+        self, operation: str, args, acknowledged=ABSENT, progress=ABSENT
+    ):
         await self._initialized.wait()
         if self._closed or self._restarting:
-            raise RuntimeError("Hub backend is closing")
+            raise RuntimeError(BackendWorker.CLOSING_MESSAGE)
         if self._failure:
             raise RuntimeError(str(self._failure))
         task = asyncio.current_task()
         self._commands.add(task)
         try:
-            if operation in {"submit_input", "submit", "steer", "interrupt", "submission_state", "instruction_targets", "answer_question", "cancel_request"}:
-                if self._snapshot_task is not None:
+            if operation in BackendWorker.PREEMPT_OBSERVATION:
+                if self._snapshot_task is not BackendWorker.ABSENT:
                     self._snapshot_task.cancel()
             # These operations capture explicit project handles and use service
             # lifecycle/version locks. They never change UI selection. Long RAG
             # writes and tool imports must not block unrelated output either.
-            independent = operation in {"project_activity", "diagnose_failures", "execution_catalog", "manage_tools", "manage_records", "approval_details", "answer_question", "interrupt"}
-            async with (nullcontext() if independent else self.runtime.lock):
-                kwargs = {"acknowledged": acknowledged} if acknowledged is not None else {}
-                if progress is not None:
-                    kwargs["progress"] = progress
+            independent = operation in BackendWorker.INDEPENDENT_OPERATIONS
+            async with nullcontext() if independent else self.runtime.lock:
+                kwargs = CommandCallbacks(acknowledged, progress).to_kwargs()
                 result = await getattr(self.runtime, operation)(*args, **kwargs)
-                if operation not in {"submission_state", "instruction_targets", "snapshot"}:
+                if operation not in BackendWorker.OBSERVATION_OPERATIONS:
                     self.runtime.dirty.set()
                 return result
         finally:
@@ -160,75 +271,106 @@ class BackendWorker:
 
     async def _prepare_restart(self):
         await self._initialized.wait()
-        self._restarting = True
+        self._restarting = BackendWorker.RESTARTING
         commands = tuple(self._commands)
         for task in commands:
             task.cancel()
-        if self._snapshot_task is not None:
+        if self._snapshot_task is not BackendWorker.ABSENT:
             self._snapshot_task.cancel()
         # Cancellation must finish storage writes and component cleanup before
         # another runtime can claim the same workspace.
         from .execution.restarting import stop_for_restart
+
         # Stop Runs concurrently with cancelled component commands, so a slow
         # RAG cancellation does not let other Sessions continue executing.
         cleanup = asyncio.create_task(stop_for_restart(self.runtime))
-        results = await asyncio.gather(*commands, cleanup, return_exceptions=True)
-        if isinstance(results[-1], BaseException):
-            raise results[-1]
+        results = await asyncio.gather(
+            *commands, cleanup, return_exceptions=BackendWorker.CAPTURE_ERRORS
+        )
+        if isinstance(results[BackendWorker.CLEANUP_RESULT], BaseException):
+            raise results[BackendWorker.CLEANUP_RESULT]
 
-    def call(self, operation: str, *args, acknowledged=None, progress=None) -> Future:
+    def call(
+        self, operation: str, *args, acknowledged=ABSENT, progress=ABSENT
+    ) -> Future:
         if self._closed or self.loop.is_closed():
-            raise RuntimeError("Hub backend is closed")
-        return asyncio.run_coroutine_threadsafe(self._execute(operation, args, acknowledged, progress), self.loop)
+            raise RuntimeError(BackendWorker.CLOSED_MESSAGE)
+        return asyncio.run_coroutine_threadsafe(
+            self._execute(operation, args, acknowledged, progress), self.loop
+        )
 
     def prepare_restart(self) -> Future:
         """Freeze admission, cancel commands and stop all Hub-owned execution."""
         if self._closed or self.loop.is_closed():
-            raise RuntimeError("Hub backend is closed")
+            raise RuntimeError(BackendWorker.CLOSED_MESSAGE)
         return asyncio.run_coroutine_threadsafe(self._prepare_restart(), self.loop)
+
+    def _cancel_restart_on_loop(self):
+        self._restarting = BackendWorker.NOT_RESTARTING
 
     def cancel_restart(self) -> None:
         if not self._closed and not self.loop.is_closed():
-            self.loop.call_soon_threadsafe(setattr, self, "_restarting", False)
+            self.loop.call_soon_threadsafe(self._cancel_restart_on_loop)
 
     def set_output_interval(self, seconds: float) -> None:
         """Change only observation batching on the backend loop."""
+
         def apply():
             if self._output_interval != seconds:
                 self._output_interval = seconds
                 self._interval_changed.set()
+
         if not self._closed and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(apply)
 
     async def _write_sidebar_width(self):
         await self._initialized.wait()
-        while self._sidebar_width_pending is not None:
-            width, self._sidebar_width_pending = self._sidebar_width_pending, None
+        while self._sidebar_width_pending is not BackendWorker.ABSENT:
+            width, self._sidebar_width_pending = (
+                self._sidebar_width_pending,
+                BackendWorker.ABSENT,
+            )
             try:
                 async with self.runtime.lock:
-                    await asyncio.to_thread(self.runtime.settings_service.preferences.save_sidebar_width, width)
+                    await asyncio.to_thread(
+                        self.runtime.settings_service.preferences.save_sidebar_width,
+                        width,
+                    )
             except Exception as error:
-                self.report_error(from_exception(error, origin=ErrorOrigin.HUB, operation="save_sidebar_width"))
+                self.report_error(
+                    from_exception(
+                        error,
+                        origin=ErrorOrigin.HUB,
+                        operation=PreferencesStore.save_sidebar_width.__name__,
+                    )
+                )
 
     def set_sidebar_width(self, width: int) -> None:
         """Coalesce only width writes, serialized with explicit settings saves."""
+
         def queue():
             if self._restarting:
                 return
             self._sidebar_width_pending = width
-            if self._sidebar_width_task is None or self._sidebar_width_task.done():
-                self._sidebar_width_task = asyncio.create_task(self._write_sidebar_width())
+            if (
+                self._sidebar_width_task is BackendWorker.ABSENT
+                or self._sidebar_width_task.done()
+            ):
+                self._sidebar_width_task = asyncio.create_task(
+                    self._write_sidebar_width()
+                )
                 self._commands.add(self._sidebar_width_task)
                 self._sidebar_width_task.add_done_callback(self._commands.discard)
+
         if not self._closed and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(queue)
 
     def close(self) -> None:
         if self._closed:
             return
-        self._closed = True
+        self._closed = BackendWorker.CLOSED
         if not self.loop.is_closed():
             self.loop.call_soon_threadsafe(self._stop.set)
         self._thread.join()
         if self._shutdown_error:
-            raise RuntimeError("Hub backend shutdown failed") from self._shutdown_error
+            raise RuntimeError(BackendWorker.SHUTDOWN_FAILED) from self._shutdown_error

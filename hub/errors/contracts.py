@@ -9,6 +9,7 @@ from llm.core.model_protocol import StopReason
 
 
 class HubErrorCode(StrEnum):
+    DISCONNECTED = "hub_disconnected"
     VALIDATION = "hub_validation"
 
 

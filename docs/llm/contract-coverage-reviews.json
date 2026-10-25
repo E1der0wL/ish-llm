@@ -95288,144 +95288,150 @@
   },
   {
     "path": "hub/errors/contracts.py",
-    "sha256": "eabe7229cd19d52cece14af2c3cd04071e54a28815fec571820a003f13f76a9d",
-    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved.",
+    "sha256": "ead8c1ab9ace893074b67a311c023f4c856f22496a39e3dca18771c3296af5ab",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "3d62c2050c948363da46633c309992b3fed4b68558e4344d3cc5d817a3b4d463",
+        "id": "a2d18c093d6e841e3f604e351687eb779938beb564128d9ce21f8429a08d344b",
+        "classification": "declaration",
+        "owner": "HubErrorCode",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "089eeb5e64f32011bbc653d4aabc3af933a2e24bae409508a1c13f020c7cdd84",
         "classification": "declaration",
         "owner": "HubErrorCode",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "e629ca0f5bb17134ecd58c9e7a3577c04774b419cdef00e4abbcb81bf8f63ec2",
+        "id": "d836db037af8efae949ce07115fe99864a6c73a3765b39e574e395f7699ce189",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "b6723a6fe339dcf699612824a08ae3533d649a28aba2d78335c3fde7e39dd1bd",
+        "id": "3595a1d8ff6f8016691ffa5f0ea8c8782fb80c4a71da58ffb4803c48d68fabc3",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "b8cc33e9ffe4016114249de2b7ef8ef404694beaa2b12225e0871013ddaddbde",
+        "id": "52a4f2f0f4e943076f8ecd54d41683a58106b86d01cf3465ee7bb614841360e3",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "d452dfda3f04e61692a5c8696a996b118a673033ce8e83a89096ca114770b4f5",
+        "id": "af9630a032d913a8dbb99b0b314e699c6d20851aca1efd147f8d017210860f23",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "fbe7b9852506f6c529c47f52ff163c201f793eedc02728e0e009555b3d3c2e84",
+        "id": "e518d32fb0e4272d9f38e83a2451f1ede629d23d8a4903b4d2ba9b300d573482",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "11d4fedfec87a7ee4ee4e7f65294ddcf68c5648dc202989875102617d32797c0",
+        "id": "1aa25030fd667afa54fc504af19ebe8c995150a826936b71e7032b81664f5675",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "c7f72903f393f355c78fbeef6ba31929a8bda096407b95bce0e0f934f5a78e6b",
+        "id": "da2a828b1720606f86d1c0e350a1b2878ef1daaf428621253b235b7c8704f4d4",
         "classification": "declaration",
         "owner": "ErrorOrigin",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "6c3959dd048e85cc4eef2704eb32ac1b6de353db87eef61c493591e366044334",
+        "id": "810509bce28e83be74da78bb95eaf88f5dece2fc03a00607df6551e0e2661d64",
         "classification": "non_contract",
         "owner": "ErrorInfo",
         "reason": "Python frozen dataclass declaration; not an execution flag."
       },
       {
-        "id": "1c26e7c3a44affc499492c33c4c72f12f84d0241f5befd5cbceff753262abd39",
+        "id": "5c451ee37f28283271b55f8c4803ba2e44cad80e9609ee553a96a162d20c8123",
         "classification": "non_contract",
         "owner": "ErrorInfo",
         "reason": "Python slots declaration; not a runtime policy."
       },
       {
-        "id": "16d2869a886f853dffcd0608ffc3f4a17c8b8393c8ee24f823f47a5052ddcb5c",
+        "id": "318daa834243794a8fa89c1888609be5ed2266c0002dbb1b6a5698db56124b49",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "87925e080f2725a4b449acc86aaa6bba161f5cf4fdb83ceee1e203999327912d",
+        "id": "55bb92d2e4e3bd2ce72bcb02e4ec69d7a01428605cad0e82595c93695cf694c1",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "54f3ae54f3bb151a7acfe1dd48599a40c847170eaf35a308f12963ba615db83d",
+        "id": "e234dc82e2ed221cea0108e4cf64cdc77deb3b08d70871576d085823626ca8f1",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "ac7ae0a321f715b9ab28b15250e628c20c0ed28ba36026bc79629fc3e0655741",
+        "id": "47bacbb8ab305c1883e3d33d40800b6c8fcdc9eef3e3da74d2b1a82b4f1313e2",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "5fb22a19cf4403a766679f52b5179b442f4d7e19694c4444f101a6a27ccb0f6b",
+        "id": "2a7dfaa17754800b73ac0f628aa94151edd8529ba5106f8db28511bb6a317c1b",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "7b5bfa70fb8784280fafe72ad5c95778a8cdbbace7eeeb499e270243d7841ef6",
+        "id": "18d196e04fdce079ab9bf6540ac58b9fa4eefe8ed8f396ecefb4e0e725105bf1",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "e6ca376fc84733635a21d563df99fed1d1e70e4935549e642adfef4534e7721d",
+        "id": "7c5e6358706fab0e09277c0c63afc9cf4f3b2c3a37616b1a71bb5795472720ff",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "e60d28e1fdd08c16dbbd5fb112ea999795eae16e4176f85173778a7cd06e6c68",
+        "id": "c36e37097f9159fc17ea5b1c081ff7b21b6a4e890e927eec3d12109a991b8aed",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "0bdf3917080f2e81f108bbcb83cb91ae11038f1e2ce18baf94626ebff8dbff2c",
+        "id": "9226728d1ed22b33ca2cea64319ec7ad1160fef70fd93192eb1a72f2c70d530a",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "542e07d4fd33816c4bc9813cbf7881aabb83e7b78a029ce7bfc26bc9614955dc",
+        "id": "a16f726ac5f8f4d32174890574b8dda80831358128497e77f1774cd44fe392d0",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "d8e725ce3abe43e49814599a76547afb2479f8d1ccdf9cf7a289ce17b8e35491",
+        "id": "c8eaf2f1ce390c29a93acad764792e1fb76ab641e27e420f7ee2ee247df1de3b",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "91c36db2fbe3fa1a876e6843a0ab85abc6bb60e75c97d18c6420f81d6e716675",
+        "id": "ebe10560d4ae2b83d7b13d275bdec7825668c9cf85b1cab4ec2a479aead50bf5",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "6a614496799c943ca4fbf6ded4116c1ab8fba38eba6c8832652ce8fe4e1f4392",
+        "id": "d8c133dc67910e2650152dc20f7d130c08c750c55c9166541b792590a78ee616",
         "classification": "declaration",
         "owner": "ErrorInfo",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
@@ -95443,9 +95449,11 @@
           "hub/backend/tools/retry.py",
           "hub/backend/tools/retry_evidence.py",
           "hub/backend/tools/retry_values.py",
+          "hub/backend/worker.py",
           "hub/errors/adapters.py",
           "hub/errors/policy.py",
           "hub/ui/error_presentation.py",
+          "hub/ui/requests.py",
           "hub/widget/feedback/retry_status.py",
           "llm/components/tools/builtin/path_values.py"
         ],
@@ -95462,11 +95470,16 @@
           "tests/hub/test_provider_stabilization.py",
           "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_ui_requests.py",
           "tests/llm/test_builtin_catalog_values.py",
           "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_builtin_file_values.py",
@@ -95491,33 +95504,41 @@
         "owner": "ErrorRepairProjection",
         "declaration": "hub/errors/contracts.py",
         "consumers": [
-          "hub/backend/tools/retry.py"
+          "hub/backend/tools/retry.py",
+          "hub/backend/worker.py",
+          "hub/ui/requests.py"
         ],
         "tests": [
-          "tests/llm/test_retry.py",
-          "tests/llm/test_builtin_file_values.py",
-          "tests/llm/test_builtin_process_values.py",
-          "tests/llm/test_builtin_catalog_values.py",
-          "tests/llm/test_execution_observations.py",
-          "tests/llm/test_completion_processing.py",
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_agent_graph.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
-          "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_agent_selection.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_bootstrap.py",
           "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_agent_graph.py"
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/llm/test_builtin_catalog_values.py",
+          "tests/llm/test_builtin_file_values.py",
+          "tests/llm/test_builtin_process_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_processing.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_retry.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -99436,8 +99457,8 @@
   },
   {
     "path": "hub/model.py",
-    "sha256": "d474a4a7e86493f8067197059c75e5024b294a662a874ea92a5f9512781de905",
-    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved.",
+    "sha256": "dba2f51b5ad9008f61191573c7b64062c61dc91859e4f9e8c09cb06575664320",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -100119,43 +100140,67 @@
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ac6c668d2fe2229b95c8729b65397be1af6ab67bfed16b8d46f3fe4fbe50b988",
+        "id": "49098cdfbd434cefcac8b645265994d2b36b88a6914b57222ab16d0bf6c0da8b",
+        "classification": "declaration",
+        "owner": "SnapshotActivity",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "87443f49245874382ef71054f8b01db744a08add349a7d9b5e7d2f50154c3a9f",
+        "classification": "declaration",
+        "owner": "SnapshotActivity",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "11b078171c8cf1d19c861281473ce9a377d7d94473025a787107c9dd681e0054",
+        "classification": "declaration",
+        "owner": "SnapshotActivity",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "92cf2eef21dbcafec67f9e00882114ffcf2fd85ac6879bdbbb4f156dc9b5b625",
+        "classification": "declaration",
+        "owner": "SnapshotActivity",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9d07a869cd261e10109a53cdfb048bd90611bd8a011ca89d50dc9c89af9f60f7",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "9905e9a1479a6a9ef77117e83cc4e289e90ce591db7f3278a157dccb7accb9b0",
+        "id": "fd0c5cdc8e363c75dbe88729c7dfe4e614fad09b79809e3aa49fc77fe79601e3",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c1c9f80b4020b6c10777016951d0c551d016c4fd52dfb956305d13417b70fa10",
+        "id": "7b3f357fc9dca3c62e7f7b88d34811abc243cf34a79b44be0eb35894090e3b7d",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "6b9612638a6e75b0bd67bda1a15020bc488de93dd09f9b0065f2058b10749af5",
+        "id": "75d3b5996f0b822fae2752e316806a8a9b8eb62612ab9a8615099027f429781f",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "a07b84239f9fe6a90be734371abba8539f3b1cdab02a6bafcb200d56994a6321",
+        "id": "cd42ea38f0b147e9b594d4daab24bc65e1f0cb2a176289ca94c283b315a0d5e2",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "15679387de0bf6fbfdb437aea7df3e87960adf69d193f746bc7da45cfb452e0e",
+        "id": "135cccab630bdf87c6146783e468665cbb690d999dd047f6ea117ec7fedfa9a0",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "b12178612652f690a29691c9faf41bb8e517c70c115d1b8f3e68b1ef3553a199",
+        "id": "d627d8bab849ae5ff595c8c629a0e33dc49ab0cfe9fb1a39017cfddb99bca5bc",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
@@ -100170,8 +100215,10 @@
           "hub/backend/interactions/questions.py",
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
+          "hub/backend/worker.py",
           "hub/ui/live.py",
           "hub/ui/presentation.py",
+          "hub/ui/requests.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
@@ -100182,18 +100229,24 @@
           "tests/hub/test_failure_diagnosis.py",
           "tests/hub/test_history_alerts.py",
           "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_intervals.py",
           "tests/hub/test_render_pipeline.py",
           "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_settings_restart.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_tag_index.py",
           "tests/hub/test_tool_history.py",
+          "tests/hub/test_ui_requests.py",
           "tests/llm/test_agent_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_execution_boundaries.py",
@@ -112967,6 +113020,400 @@
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_ish_integration.py",
           "tests/hub/test_reading_positions.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/callbacks.py",
+    "sha256": "8ea04333d55d4c116f23c4306ae4a28a333e8d5ecc4acbd32ab4e5120d4d4ebe",
+    "reason": "Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9e004278bc2bb256017e3a34a3bc1df967fee97edf7a4d181f5c12f9e95e93ec",
+        "classification": "non_contract",
+        "owner": "CommandCallbacks",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "bf7916b2eac39da46bd7c16195240e16bbfc888ce62bf0dbf2c225217134d650",
+        "classification": "non_contract",
+        "owner": "CommandCallbacks",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "144b6f2a79c11c517c0724b5416db61eb88937584c5d6ed681ee08836a1467a0",
+        "classification": "declaration",
+        "owner": "CommandCallbacks",
+        "reason": "Typed optional callback arguments; field descriptors own wire names, omitted values remain omitted and callback objects are never invoked by projection."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CommandCallbacks",
+        "declaration": "hub/backend/callbacks.py",
+        "consumers": [
+          "hub/backend/worker.py",
+          "hub/ui/requests.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_retry_ui.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/worker.py",
+    "sha256": "e5ce585c9cb7b0ffa4e7c16445a1b1c3abd8e389be5a1317ae2f100eaee8aa84",
+    "reason": "Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a045d485fd6228ac806905bc1b376b7038333c40507812398db8707466f18d79",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "d35767eae2e1f146938a2c28afda29641c5f11186da5026ca565cde7b7e56b78",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "6575309235b3bd830081e05b6dcc192161ac49b541cd74fa641a3b2f33213353",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "cbc28744ba6448c1ac6c5330bf28fa64e755b4b8e6ec3d2a06e437340f4083c1",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "12373abfe48879275244834836430d634cb3fc828b544ede119dee2830108182",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "37d49ef6f4e05096f7745ad819c91385acf2d7a7b869429a33321c39fd800199",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "283d42688a430c05e04e39ee62e85a7b1f5c5c04a0753faff036a61a0160e338",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "5d4e9833c6feb750d3e2b16459a81810afd802c2054d3f714ba4a3af8ef896fa",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "849aed2c8e78be7e89969061bbeaf018144ad1149faafc6a5f1342a12afcf885",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "550eb00cc24f092711a51d2260f4a8bccbb439634a8f256d0aab72e26868d8a5",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "c946de1df97c28bd28435e55604db8530b1f1df179b1eac19295c4f8c6861b9a",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "e89bac106637db3c3c828f141dc217ec2c0bae5c20285eec8c2fae376fb66442",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "980594d0e490cf6f777c9902f35861bdce47e0719f1c1320913fb6962cdc9d34",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "c28a8afc53a4ae99d211beca64b0a3365e4c04f145e60e8f2ae5b0f7a9cf1596",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "91d806998eed1634e6ad678eb41107de7da73bb83243f0d4b9b3f0a02a27f4f1",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "b04b0b7dcac94749c18d6b5d7fa30e48a3942e0aeda68616921bec033f8ef8c9",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "e3c1d7ffe300ab74690d09d5128cf48a1872c158a4088a33c20148a02e1261ed",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "7641b8402f39d9c13dfe7babbfb6db8385ab9bc141f935797ec57db5eefe3693",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "5ccdf5988227f4edaaee998abfd9e58dcf7f284e2eb000d85e697842a340162f",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "3ba2706cd59556b6bc5023321340701a9e2164e94c11afa28c20cd2f61a3f045",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "ee7dceafa165a4828776f37aa4bc19845ffb984074a3ea1c2e2816ad9177c784",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "c3fb14c64fa63c7de257a55ca3671b544a6d564d7294a9873480094f79747790",
+        "classification": "declaration",
+        "owner": "BackendWorker",
+        "reason": "Worker lifecycle, intervals and immutable scheduling classifications; operation identities derive from real HubRuntime/PreferencesStore methods. Same cancellation, lock, admission, cleanup and effect order."
+      },
+      {
+        "id": "7758018265427209d64e87e81dd99cea0b3952f889914208637c32881b68cea2",
+        "classification": "non_contract",
+        "owner": "BackendWorker._thread_main",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "94a8285d0774527dbccf84d7d4b27b3fafe0a79bb3e3a913a8e882fec3a8c8dd",
+        "classification": "non_contract",
+        "owner": "BackendWorker._serve",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "f405da985618b5e237b15f7efc2c7112d204e4e4a3a61cc4aa3ebc11c1bc7909",
+        "classification": "non_contract",
+        "owner": "BackendWorker._refresh",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "9dea364efe80fc03f9f518c345b062df5262d11c54d3914903db2b546f7147e7",
+        "classification": "non_contract",
+        "owner": "BackendWorker._refresh",
+        "reason": "Unconditional async observation loop; cancellation remains its termination mechanism."
+      },
+      {
+        "id": "896ea761a1444e74364bae2aef08b4ef7f6c124fb0ded11470d07a38bb7befb8",
+        "classification": "non_contract",
+        "owner": "BackendWorker._refresh",
+        "reason": "Unconditional async observation loop; cancellation remains its termination mechanism."
+      },
+      {
+        "id": "c7a36c4916f8cc94cf5c25c95f5e0c38955dfa92a59f15ca6998a4fd8338d103",
+        "classification": "non_contract",
+        "owner": "BackendWorker.cancel_restart",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "387d293c43dece033ef9ab8c2a6ad757142325703d19cf75bf56d20e20bd9c47",
+        "classification": "non_contract",
+        "owner": "BackendWorker.set_output_interval",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "c91feeee97f1fbfb020ec9ac54391ca0dacb82752b5ce7d03e5fb0e88ef62f92",
+        "classification": "non_contract",
+        "owner": "BackendWorker.set_sidebar_width",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "524fcbb10a8604d7121e69dd7a14c76e1efd9eaf728db63a028ef19c5f10be17",
+        "classification": "non_contract",
+        "owner": "BackendWorker.close",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "BackendWorker",
+        "declaration": "hub/backend/worker.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/ui/requests.py",
+          "hub/ui/restart.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_retry_ui.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/requests.py",
+    "sha256": "a35f5201c8e58afeeec79545b4edccfeb38ea88d454e996e78c8e9f7d9c647ae",
+    "reason": "Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e65f92fa23b134bc948d375c4ded0b353e9fe18d6af267d0421643bf0158e201",
+        "classification": "non_contract",
+        "owner": "RequestResult",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "1f3950b6fcae94c3e69f1cbb2eb59791be333c7e834713bcdcd23e4178bac66b",
+        "classification": "non_contract",
+        "owner": "RequestResult",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "0c346818406167464d71296402eba692a0e3573c96838a137a203af773f1319f",
+        "classification": "declaration",
+        "owner": "RequestResult",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "54af973f41e1d9b8934ed9453bb12296de2797b65d5f044418e2cb9642ff3558",
+        "classification": "declaration",
+        "owner": "RequestResult",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "3e66c52e0c4ed172cb97fd8e6a83be2f196ad42decab5219bf5dfecee77c6a31",
+        "classification": "declaration",
+        "owner": "RequestResult",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "6430c0e0eeb6593bd5c1a3795a64c8877a47e783a92b341150c93a3b5702d4db",
+        "classification": "declaration",
+        "owner": "RequestResult",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "0f48a3645b01e6770b0899c81c22f1bc6063325caf2b5f00410ac662520451be",
+        "classification": "declaration",
+        "owner": "UIRequests",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "9c7e4fb26e8a2db31ee9d06d03b6c3e957701d36144221002666fd4eff0581c0",
+        "classification": "declaration",
+        "owner": "UIRequests",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "9f063bb696facd2795bfb6e56d37bb3eda3a2c61db25ea199d9ed4e14945758e",
+        "classification": "declaration",
+        "owner": "UIRequests",
+        "reason": "UI delivery state and typed outcome; shared CommandCallbacks projects optional arguments and canonical HubErrorCode/ErrorReason own unavailable errors."
+      },
+      {
+        "id": "39d85747f81f27c2236a28b1bfc37b28de30fce793e9ba36696d4fe54d503eef",
+        "classification": "non_contract",
+        "owner": "UIRequests._deliver",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "8a2709fa7f94451726939012710877a749282ccc2db0712434acc2fbd554a9f4",
+        "classification": "non_contract",
+        "owner": "UIRequests.call",
+        "reason": "Completed callback return annotation."
+      },
+      {
+        "id": "daa65152d2290bbc5d95879ca0e4d1a0c34014a88db1df06adcaee2d7baa26bb",
+        "classification": "non_contract",
+        "owner": "UIRequests.call",
+        "reason": "Optional callback type annotation."
+      },
+      {
+        "id": "0cd0dbc07ce8fd3f986f869a34b4b1a5d638f3bc5f4cc1d63291f1a26fa23e16",
+        "classification": "non_contract",
+        "owner": "UIRequests.call",
+        "reason": "Optional callback type annotation."
+      },
+      {
+        "id": "221005b15b90d907706023d5d85598af936ea8c08155cf01bd4989efaecbdc36",
+        "classification": "non_contract",
+        "owner": "UIRequests.call",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "UIRequests / RequestResult",
+        "declaration": "hub/ui/requests.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "tests/hub/test_ui_requests.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_retry_ui.py"
         ],
         "complete": true
       }
