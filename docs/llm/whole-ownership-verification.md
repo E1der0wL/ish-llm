@@ -9713,3 +9713,37 @@ proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Cla
 Gate54 이후 함께 모은 Charts/Icons/Conversation/UIObservation과 즉시 Level 3로 승격한다.
 해당 동결 SHA의 LLM/Hub 전체 회귀·정적 감사·R3·문서·실제 환경 검사 후에만 Push하며,
 정확한 SHA 원격 CI 결과는 별도로 기록한다.
+
+
+## Hub standalone·ish 설치·재시작
+
+application·restart·hub 설치 파일과 공통 InstallationSurface를 전수 정리했다. 실제 shell과
+standalone 소비자가 같은 overlay/toast 배치 선언을 사용한다. 기존 KeyName을 재사용하고,
+worker_factory는 LiveController의 실제 인자로 전달하여 키 문자열을 재조립하지 않는다.
+원래 falsey factory의 생략 의미는 유지한다. HubInstallation이 host hook 속성과 복원 순서를
+소유하고, ShellEnvironment는 clipboard용 선택적 host 환경 복사를 제공한다. 실행 admission의
+엄격한 환경 검증은 그대로이며 clipboard의 선택적 fallback과 합치지 않는다.
+
+RestartContract는 기존 대기 안내 10초와 상태/결과 선언을 소유한다. Timeout 이후에도 shielded
+cleanup 완료를 기다린 뒤 rebuild하며, 작업 중복 시작 방지와 오류 시 Worker admission 복원을
+유지했다. 실제 환경 읽기/독립 복사·Application factory 생략과 화면 배치·재시작 성공/없음/닫힘/
+timeout/cleanup 오류/rebuild 오류 18개 관측이 원본과 일치한다. 선언/명시적 생성자 및 환경
+Projection을 확장한 네 기존 파일의 주변 실행 AST가 같다. 사라진 기존 inline timeout S3
+항목 한 건은 원래 감사 행과 대체 선언/검증 근거를 보존한 뒤 제거했다. 새 예외는 추가하지 않았다.
+
+- `whole-hub-installation-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.146043초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-installation-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `e0e849a25e9ef1a370399a70b939bc631ef33219dc058c9c3f4e1137577f00fb`, input `b2e48b14daf8f31ece85a2f6620bae7d6e0e3901b6f19711e5d86cc3f93b30cd`.
+
+- `whole-hub-installation-l1-01`: discovered/started/pass 19/19/19, exit 0, 17.979944초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-installation-l1-01/hub.json --modules tests.hub.test_ish_integration tests.hub.test_settings_restart tests.hub.test_live`. source `e0e849a25e9ef1a370399a70b939bc631ef33219dc058c9c3f4e1137577f00fb`, input `b2e48b14daf8f31ece85a2f6620bae7d6e0e3901b6f19711e5d86cc3f93b30cd`.
+
+- `whole-hub-installation-l2-01`: discovered/started/pass 33/33/33, exit 0, 26.052565초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-installation-l2-01/hub.json --modules tests.hub.test_shell_environment tests.hub.test_clipboard tests.hub.test_terminal_screen tests.hub.test_file_root_presence`. source `e0e849a25e9ef1a370399a70b939bc631ef33219dc058c9c3f4e1137577f00fb`, input `b2e48b14daf8f31ece85a2f6620bae7d6e0e3901b6f19711e5d86cc3f93b30cd`.
+
+공통 안전성 84개·R3 Mutation, 실제 ish 통합/settings restart/live, shell environment/clipboard/
+terminal screen/file-root presence를 검증했다. 발견/실행/pass ID 일치, failure/error/skip/xfail/
+xpass/누락/추가/중복 0, 동일 suite 선택 ID 중복 0이며 source/input 전후·실행 간 동일성을
+확인했다. argv/exit/hash는 `hub-installation-draft`의 selected-results.json, proof-commands.json,
+values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·고정 의존성·실제 Linux에서
+정적 S1–S7·감사·문서 검사도 통과했다. 기존 테스트와 안전성 Assertion은 변경하지 않았다.
+
+재시작 실행/cleanup 순서는 그대로인 선언과 Projection 정리로 Level 1·2를 적용했다. 소단계
+전체 회귀는 수행하지 않았다. Gate55 이후 현재 host/실행 조정 소비자 정리를 묶은 Level 3와
+정확한 SHA 원격 CI에서 통합 검증한다. 완료는 이 소단계의 로컬 검증에 한정한다.

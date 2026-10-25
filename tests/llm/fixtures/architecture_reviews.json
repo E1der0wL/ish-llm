@@ -1362,7 +1362,7 @@
       "id": "54416a4791bbbf13c999618fc9f3c82385449327524037de692c918050096a8d:1",
       "rule": "S3",
       "owner": "<module>",
-      "reason": "PLUGIN_META at this plugin entry point is the actual owning release metadata declaration. The host loader requires a literal mapping before loading dependencies. This version is neither a storage schema version nor a legacy Reader branch; the independent llm and hub plugins each own their metadata. O0 ownership re-review: Each plugin metadata owner declares its own host-required plugin version. Equal version text in distinct plugins is not a shared storage protocol. Agent Skills re-review: Dependency re-review: only the declaration fingerprint changes for direct PyYAML; every pinned distribution and artifact hash is byte-identical. Typed-contract re-review: The added typed-structure contract does not change this individually classified default, kind or boundary occurrence. This classification is not evidence that surrounding raw-dict consumers have completed the new contract; TC follow-up scope is tracked separately. DC evidence re-review: The DC placement and whole-file completion gate is stricter than these bounded S1-S7 classifications. This existing occurrence and rule-specific reason remain unchanged; this review does not waive placement, raw-dict or dynamic-consumer work. The 441-file whole-audit inventory remains unreviewed and blocks overall completion independently.",
+      "reason": "PLUGIN_META at this plugin entry point is the actual owning release metadata declaration. The host loader requires a literal mapping before loading dependencies. This version is neither a storage schema version nor a legacy Reader branch; the independent llm and hub plugins each own their metadata. O0 ownership re-review: Each plugin metadata owner declares its own host-required plugin version. Equal version text in distinct plugins is not a shared storage protocol. Agent Skills re-review: Dependency re-review: only the declaration fingerprint changes for direct PyYAML; every pinned distribution and artifact hash is byte-identical. Typed-contract re-review: The added typed-structure contract does not change this individually classified default, kind or boundary occurrence. This classification is not evidence that surrounding raw-dict consumers have completed the new contract; TC follow-up scope is tracked separately. DC evidence re-review: The DC placement and whole-file completion gate is stricter than these bounded S1-S7 classifications. This existing occurrence and rule-specific reason remain unchanged; this review does not waive placement, raw-dict or dynamic-consumer work. The 441-file whole-audit inventory remains unreviewed and blocks overall completion independently. InstallationSurface owns shared shell/standalone overlays, HubInstallation owns host hooks, RestartContract owns coordination state/notice timing, and ShellEnvironment owns optional host clipboard projection without weakening execution admission.",
       "contracts": [
         "docs/llm/clean-refactor.md",
         "docs/llm/architecture-reviews.md",
@@ -1371,39 +1371,13 @@
       "sources": {
         "docs/llm/architecture-reviews.md": "78fdb4d3d2e6a3288bf21c19efc9d693aa79dbb31a275177239b9cb129f137c3",
         "docs/llm/clean-refactor.md": "e19ddcf73ae0b93a8346fdbece8fbdf8c673f7c0476ee94f5b93f4d4be86659e",
-        "hub/hub.py": "14147cb25c588c2b1cd3d73f26a7db0675c3184cc92bcae4c146a03128c1f3c5",
+        "hub/hub.py": "779efc20df9e2a382990610fc3634e7dd5b3c9d8282a123527ebfadadd366857",
         "tests/hub/test_plugin.py": "af083dfe1c117e37e6cfee882b148959123bfc1f7b9a387947cfe02db275d323",
         "tests/llm/dependencies-linux.lock": "0d66c698461ab88b9c910ace5801b43ec7eb105867e2fb88a218bcd1b0ba0176",
         "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91"
       },
       "tests": [
         "tests.hub.test_plugin.PluginTests.test_real_loader_resolves_llm_dependency_from_deployment_tree"
-      ]
-    },
-    {
-      "id": "3ead4c2dfc185446ccc66901883e789734119b493125405b30a2dc3e072e806d:1",
-      "rule": "S3",
-      "owner": "bind_restart.restart",
-      "reason": "Ten seconds controls when the restart UI displays a waiting notice. Shielded cleanup is still awaited after the notice, so it is not an execution deadline or permission to restart before cleanup. Existing actual restart/command cleanup tests do not claim exhaustive notice-timer coverage. O0 ownership re-review: The restart UI owns a notice delay, while cleanup continues under its existing shield. This is not a cleanup cancellation deadline. Agent Skills re-review: Dependency re-review: only the declaration fingerprint changes for direct PyYAML; every pinned distribution and artifact hash is byte-identical. Typed-contract re-review: The added typed-structure contract does not change this individually classified default, kind or boundary occurrence. This classification is not evidence that surrounding raw-dict consumers have completed the new contract; TC follow-up scope is tracked separately. DC evidence re-review: The DC placement and whole-file completion gate is stricter than these bounded S1-S7 classifications. This existing occurrence and rule-specific reason remain unchanged; this review does not waive placement, raw-dict or dynamic-consumer work. The 441-file whole-audit inventory remains unreviewed and blocks overall completion independently. Translation ownership review: changed consumers have identical complete AST after expanding MessageKey/MessagePattern/LanguageCode references. Both full language tables retain exact string key/value types, order and text; Language validation, fallback and duration behavior matches the prior implementation on independent cases. Translation selection changes no backend policy, stored request, authority or effect boundary. Current UI consumers and core safety regression pass; no surrounding incomplete ownership is promoted. Event/Step Owner delta preserves live callback/worker ownership, protected metadata, asynchronous delivery/retirement ordering, original Step Reader/transaction boundary and real failure assertions. The private lifetime observation alone now uses its typed field; no assertion changed. Run Owner delta retains original Reader/Writer/ACK/effect order, required identity and evidence refusal, lock-scoped read reuse, CAS payload bytes and public injection contracts. Actual source-matched runtime, storage-fault and safety tests preserve authorization, quotas and resume boundaries. Whole lifecycle Owner connection preserves exact required Reader, live injection, lock/transaction, reference/quota and deletion/backup/observation order. Pure validators and ephemeral CAS projections retain source-matched actual storage-fault and resume safety assertions. Whole public API/Facade review preserves injected call seams, required Readers, runtime cleanup, probe copy/CAS and after-commit event order. Public projections and CLI Owner declarations retain same values, signatures and actual Host/CLI/safety evidence. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
-      "contracts": [
-        "docs/llm/clean-refactor.md",
-        "docs/llm/architecture-reviews.md",
-        "docs/llm/runtime-reliability.md",
-        "docs/llm/contract-ownership.md"
-      ],
-      "sources": {
-        "docs/llm/architecture-reviews.md": "78fdb4d3d2e6a3288bf21c19efc9d693aa79dbb31a275177239b9cb129f137c3",
-        "docs/llm/clean-refactor.md": "e19ddcf73ae0b93a8346fdbece8fbdf8c673f7c0476ee94f5b93f4d4be86659e",
-        "docs/llm/runtime-reliability.md": "ccfe6c1ffe49934b12acdf0d5f0b532b7e552071628c6328a187c48e46cef407",
-        "hub/backend/worker.py": "e5ce585c9cb7b0ffa4e7c16445a1b1c3abd8e389be5a1317ae2f100eaee8aa84",
-        "hub/ui/restart.py": "ca7d745389f28b65d68d0ee333e4abadd3393534ca55220a480865e6860e7bf4",
-        "tests/hub/test_settings_restart.py": "a875564d7a803850db752a1d4d7e27e5cdffdbd40e9ee39b6dbc87d5fa9ebd48",
-        "tests/llm/dependencies-linux.lock": "0d66c698461ab88b9c910ace5801b43ec7eb105867e2fb88a218bcd1b0ba0176",
-        "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91"
-      },
-      "tests": [
-        "tests.hub.test_settings_restart.RestartUITests.test_restart_cancels_component_command_and_waits_for_cleanup",
-        "tests.hub.test_settings_restart.RestartUITests.test_restart_interrupts_active_run_and_cancels_queue_without_execution"
       ]
     },
     {

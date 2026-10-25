@@ -1,5 +1,6 @@
 """A shell snapshot captured before a request enters the backend queue."""
 
+import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field, fields
 from pathlib import PurePosixPath
@@ -79,6 +80,15 @@ class ShellEnvironment:
                 cls._wire_name(cls.variables): dict(env),
             }
         )
+
+    @classmethod
+    def clipboard_environment(cls, prompt):
+        """Optional host environment for clipboard transport; no execution admission."""
+        context = getattr(prompt, ShellSnapshotFormat.PROMPT_CONTEXT,
+                          ShellSnapshotFormat.ABSENT_HOST_ATTRIBUTE)
+        env = getattr(context, ShellSnapshotFormat.CONTEXT_ENVIRONMENT,
+                      ShellSnapshotFormat.ABSENT_HOST_ATTRIBUTE)
+        return dict(os.environ if env is ShellSnapshotFormat.ABSENT_HOST_ATTRIBUTE else env)
 
     def to_dict(self):
         cls = type(self)

@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 632,
-    "unreviewed_files": 26,
+    "files": 633,
+    "unreviewed_files": 23,
     "stale_files": 0,
-    "unclassified": 1670,
+    "unclassified": 1590,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 26,
+    "unreviewed_dynamic_paths": 23,
     "unreadable_files": 0,
-    "candidates": 16224,
+    "candidates": 16186,
     "issues": 0
   },
   "files": [
@@ -562,7 +562,7 @@
     {
       "path": "hub/config/environment.py",
       "status": "reviewed",
-      "sha256": "9ae4b85f6d2f503d162364f5b07ef3d694641122310bea53af229ab2dff9a41f",
+      "sha256": "a9bbebce54dc117f8089e78ee38bf15c8d34182155d1f9b568d8a470e54bb247",
       "candidates": 16
     },
     {
@@ -699,9 +699,9 @@
     },
     {
       "path": "hub/hub.py",
-      "status": "unreviewed",
-      "sha256": "14147cb25c588c2b1cd3d73f26a7db0675c3184cc92bcae4c146a03128c1f3c5",
-      "candidates": 55
+      "status": "reviewed",
+      "sha256": "779efc20df9e2a382990610fc3634e7dd5b3c9d8282a123527ebfadadd366857",
+      "candidates": 30
     },
     {
       "path": "hub/locales/README.md",
@@ -753,9 +753,9 @@
     },
     {
       "path": "hub/ui/application.py",
-      "status": "unreviewed",
-      "sha256": "8acd22d36cbef3e150ccd895cc8302a941c299f6b7d1be18df3db320c2176157",
-      "candidates": 16
+      "status": "reviewed",
+      "sha256": "84110d6e4bd8b972f2cfdbe754152b35e7f78c9b050d081ed74aaf128b0dbfca",
+      "candidates": 1
     },
     {
       "path": "hub/ui/chat/__init__.py",
@@ -872,6 +872,12 @@
       "candidates": 6
     },
     {
+      "path": "hub/ui/installation.py",
+      "status": "reviewed",
+      "sha256": "936344c8a2ed2383a4a1cf5f51884d9deccfece4a1ef0bd215cee46b5ed0d608",
+      "candidates": 6
+    },
+    {
       "path": "hub/ui/layout/__init__.py",
       "status": "reviewed",
       "sha256": "c44dd26521db7f9a2006fd061f92fd9278f0675b766410d410f16b08f468474f",
@@ -981,9 +987,9 @@
     },
     {
       "path": "hub/ui/restart.py",
-      "status": "unreviewed",
-      "sha256": "ca7d745389f28b65d68d0ee333e4abadd3393534ca55220a480865e6860e7bf4",
-      "candidates": 9
+      "status": "reviewed",
+      "sha256": "f4dc43b9e791b18b59ae2bd94002af3594e2779af521f2e370716932fc9da23d",
+      "candidates": 5
     },
     {
       "path": "hub/ui/settings/__init__.py",

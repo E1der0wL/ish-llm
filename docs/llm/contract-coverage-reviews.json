@@ -85655,102 +85655,102 @@
   },
   {
     "path": "hub/config/environment.py",
-    "sha256": "9ae4b85f6d2f503d162364f5b07ef3d694641122310bea53af229ab2dff9a41f",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "sha256": "a9bbebce54dc117f8089e78ee38bf15c8d34182155d1f9b568d8a470e54bb247",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. InstallationSurface owns shared shell/standalone overlays, HubInstallation owns host hooks, RestartContract owns coordination state/notice timing, and ShellEnvironment owns optional host clipboard projection without weakening execution admission.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "fda9d96025f4db026243d6a3969a60fee24f903a6408d29460b4b3b70b92d5ba",
+        "id": "001c1dd661813e1e17f2d132f8a53e489f01fe55182b4121c91d4d6b26c92da4",
         "classification": "declaration",
         "owner": "ShellEnvironment / ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "bd8a894e7175b29df5d8a8cc938bcab502a10f865938aecba3d23bddea4ad765",
+        "id": "9490457bf9e4f8353e2d57094dbe2f2410caf9e8ab266966feffb62e53849f2d",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "3937ff90dfd19f0ee1525956b1f67c291c5ee4b20222b7771933555936e4ba22",
+        "id": "24c5c1006c8510ecab9243b333fb71e330481ceb2b012e6300822a1f77e61935",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "4be8dcf95cc8f4e52d36b491d6b3338f325a36050b502d128fec1e9d16befa5d",
+        "id": "3fa615b253e93195a03189f1a5bb9989766762738fd198ba1bae651cfdb1ec96",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "4978993e0f76a5fd804de18084b3e5880a50807c42bca648a5838d7e5df6508e",
+        "id": "422b3a05e29987f92dbf39624fde1d2540226e5ce24edf9329b19cf847ad6829",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "d480fb8c3994309d8e27f5e0a0a13692a16e3ed8953a21b52830db007e13164c",
+        "id": "31f17a21e0760977b7c39003dd95676c25c000d1141ad3bc33f2ce48764f9cea",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "7e8e7d32f91003220c118d7a8746822efc1f374be553df1f440eb29911f1dfc1",
+        "id": "16ea461f0405f6be1919f3853f2c6c1b45b4e27e1916a5d161f41b987e8ceb18",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "4e489836067104bac7d88bc899d65b7e0866559ccaf2368bb7584746ccca748e",
+        "id": "a7a284fcc57d7c7415613ea34799c6ecfb384c36530b6d8749baa990621e60aa",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "2ef500cec336c52842ca57ba1cd0daa566bf615efd6f9b6afd10fa40fc4b3753",
+        "id": "d0b080d9a3b8ffb1c3b29642b4fdd4c5b87a8a14f46e714f424677257fcbc60d",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "2411a4290a2cea857e04d876b1d7e36aabc02ff50ebf5d83075167dde2299623",
+        "id": "7b559d253781249de8590261fb5ba9ec863f72f6644bbdb65db3403c58f42c0f",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "36d358669038e0172a282ed5ec98ac342f275c7901925801c4f684307c66d501",
+        "id": "472fad83e818ea39b31dc593f38af8aed3ffab5baac402120de290457a10f17d",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "e111371cd89155db4a462652390fc946e4be7808bc62499309a18e80fd8738e8",
+        "id": "7da290657f997844f0f1b45db05d08edc3a8abe036c17c960a61c4136600b20b",
         "classification": "declaration",
         "owner": "ShellSnapshotFormat",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "6501f589157df52303777ef5dbe2bf90202173af59895d650d4376149f21434d",
+        "id": "1472ae9a02a7bfd983fb7b40ef666141af973611474f42d42607c38e2aee2d03",
         "classification": "non_contract",
         "owner": "ShellEnvironment",
         "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
       },
       {
-        "id": "0c55e16cbd36f9e250e8d90fa6b5312adddeb0c8fd99189d9e7c83ff4b6dbac2",
+        "id": "b5c973c15ddf13c01f1d43b0970212870908b88d452779853b267a6a91886210",
         "classification": "non_contract",
         "owner": "ShellEnvironment",
         "reason": "Python dataclass immutability/slots declaration; not a runtime record or policy value."
       },
       {
-        "id": "aac6c18aa6ae53b5436f05ba13df60fc26f26fa98c0aaaccfb5cd75dfa8bf46f",
+        "id": "02816444a357642df579d3b7b41151ca98913ad9ad32b9f4b50099231ca83a51",
         "classification": "declaration",
         "owner": "ShellEnvironment",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
       },
       {
-        "id": "2925fb9061b4472b182e1a35f15507e25fa5cee79c1821820c3d4637fa92c3ec",
+        "id": "48061b35a82e3c933d397ecae9474318656aaf5427ef2103d8d186e477ebff85",
         "classification": "declaration",
         "owner": "ShellEnvironment",
         "reason": "Host snapshot wire alias, capture attributes and validation grammar are declared by their adapter Owner. Public dataclass fields remain cwd/variables, transport stays cwd/env, and callers use the typed snapshot."
@@ -85761,41 +85761,46 @@
         "owner": "ShellEnvironment / ShellSnapshotFormat",
         "declaration": "hub/config/environment.py",
         "consumers": [
+          "hub/backend/execution/environment.py",
           "hub/hub.py",
-          "hub/ui/live.py",
-          "hub/backend/execution/environment.py"
+          "hub/ui/live.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_file_root_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -113414,6 +113419,399 @@
           "tests/hub/test_render_intervals.py",
           "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_ui.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/installation.py",
+    "sha256": "936344c8a2ed2383a4a1cf5f51884d9deccfece4a1ef0bd215cee46b5ed0d608",
+    "reason": "InstallationSurface owns shared shell/standalone overlays, HubInstallation owns host hooks, RestartContract owns coordination state/notice timing, and ShellEnvironment owns optional host clipboard projection without weakening execution admission.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d328ac84d07889c8b5d1986190c23fdcd7d0d48ed77d7b9500660b35e4a8c6c9",
+        "classification": "declaration",
+        "owner": "InstallationSurface",
+        "reason": "One canonical declaration for shared full-overlay and toast geometry, z-order and standalone screen defaults."
+      },
+      {
+        "id": "0fcaee0799367b225b000ce9a97d375ec5c9af3271a8a785da8ad5eb27f26048",
+        "classification": "declaration",
+        "owner": "InstallationSurface",
+        "reason": "One canonical declaration for shared full-overlay and toast geometry, z-order and standalone screen defaults."
+      },
+      {
+        "id": "587a291965b447e97e7149bad692d6647d143e56b34298d67557a2512a86bb9a",
+        "classification": "declaration",
+        "owner": "InstallationSurface",
+        "reason": "One canonical declaration for shared full-overlay and toast geometry, z-order and standalone screen defaults."
+      },
+      {
+        "id": "db266e6a35e7e454ebd96299a7283c61353eed10241fb36da4f1314c8d127616",
+        "classification": "declaration",
+        "owner": "InstallationSurface",
+        "reason": "One canonical declaration for shared full-overlay and toast geometry, z-order and standalone screen defaults."
+      },
+      {
+        "id": "6f703f841d2c3992c066377e4fce7ab97fb76a6294d2d905bdce579afe830e83",
+        "classification": "declaration",
+        "owner": "InstallationSurface",
+        "reason": "One canonical declaration for shared full-overlay and toast geometry, z-order and standalone screen defaults."
+      },
+      {
+        "id": "b1f6a86e1092b9a17b708b2d335f22678cf08561c55eded03891a1ed63967be7",
+        "classification": "declaration",
+        "owner": "InstallationSurface",
+        "reason": "One canonical declaration for shared full-overlay and toast geometry, z-order and standalone screen defaults."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InstallationSurface",
+        "declaration": "hub/ui/installation.py",
+        "consumers": [
+          "hub/ui/application.py",
+          "hub/hub.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_file_root_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/application.py",
+    "sha256": "84110d6e4bd8b972f2cfdbe754152b35e7f78c9b050d081ed74aaf128b0dbfca",
+    "reason": "InstallationSurface owns shared shell/standalone overlays, HubInstallation owns host hooks, RestartContract owns coordination state/notice timing, and ShellEnvironment owns optional host clipboard projection without weakening execution admission.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e035c2da708327cc8395f4f7c0a3bd6c051a1ce2fba9739360fecb6286886aab",
+        "classification": "declaration",
+        "owner": "create_application",
+        "reason": "Optional standalone input/output/theme and factory presence; actual typed LiveController call preserves existing truthiness/omission without dictionary key reconstruction."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "create_application",
+        "declaration": "hub/ui/application.py",
+        "consumers": [
+          "hub/__main__.py",
+          "tests/hub/test_live.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_file_root_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/restart.py",
+    "sha256": "f4dc43b9e791b18b59ae2bd94002af3594e2779af521f2e370716932fc9da23d",
+    "reason": "InstallationSurface owns shared shell/standalone overlays, HubInstallation owns host hooks, RestartContract owns coordination state/notice timing, and ShellEnvironment owns optional host clipboard projection without weakening execution admission.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f5843ddb471fe31ddf3159677add719af49840e392205debc8a40b5189cc9ec4",
+        "classification": "declaration",
+        "owner": "RestartContract",
+        "reason": "Restart result, pending/idle state and notice timeout; timeout still waits for shielded cleanup before rebuild, and exceptions still restore admission through the Worker."
+      },
+      {
+        "id": "0511f3bc2e9a0deec276dceba3265c622e4e8f03882f0cee362fdfd9dbd8f75d",
+        "classification": "declaration",
+        "owner": "RestartContract",
+        "reason": "Restart result, pending/idle state and notice timeout; timeout still waits for shielded cleanup before rebuild, and exceptions still restore admission through the Worker."
+      },
+      {
+        "id": "1daed7fc778da6bd695310b41c3fcccb61ff5212e76212c4297ed35486d0003f",
+        "classification": "declaration",
+        "owner": "RestartContract",
+        "reason": "Restart result, pending/idle state and notice timeout; timeout still waits for shielded cleanup before rebuild, and exceptions still restore admission through the Worker."
+      },
+      {
+        "id": "9fe7364b93c882f0493b2102c2615c9dcb4f3df80da3b463f3bfd8dfd25d9429",
+        "classification": "declaration",
+        "owner": "RestartContract",
+        "reason": "Restart result, pending/idle state and notice timeout; timeout still waits for shielded cleanup before rebuild, and exceptions still restore admission through the Worker."
+      },
+      {
+        "id": "1d4e5566e1a7ff0413d8b9dc650b1b72313000779087b73ab2c41dd53f95b8b3",
+        "classification": "declaration",
+        "owner": "RestartContract",
+        "reason": "Restart result, pending/idle state and notice timeout; timeout still waits for shielded cleanup before rebuild, and exceptions still restore admission through the Worker."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RestartContract / bind_restart",
+        "declaration": "hub/ui/restart.py",
+        "consumers": [
+          "hub/ui/application.py",
+          "hub/hub.py",
+          "hub/__main__.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_file_root_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/hub.py",
+    "sha256": "779efc20df9e2a382990610fc3634e7dd5b3c9d8282a123527ebfadadd366857",
+    "reason": "InstallationSurface owns shared shell/standalone overlays, HubInstallation owns host hooks, RestartContract owns coordination state/notice timing, and ShellEnvironment owns optional host clipboard projection without weakening execution admission.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8c96df6ff0fb59150b547d50333f5d95dd6cbd8b15d772c2b6ee701ab22ef5d5",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "f526b6007122f99b9f2e49f155a8be9a01d67e7bf21d20a181635386942e6638",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "f75451715a4040ab988f557ff52012680819689b420006c9493fe30974bf1b83",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "aa9f42774bdb994c8e9b4da2464f43e1b9f6724fca64576ce3b50892535975d2",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "295dc774b7e69048bcc4249c1f392120af6cf578ee2cfd928859b3602060e013",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "169e4649125e3a476529789dff35066b0fad9ec998298136ca8f559a4f2fe543",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "6583abd55871e1680cc0523a5293a34ba779e0025d9c5034d6b64c812ff3d738",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "f49504749db58ff0c7e37a1552972a6c16c436bfc034b928f274150be4ce610d",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "0e33fea88b93a87a9f94020e2ce9abdc3a373f5c6a2a2217498a24bd76a7aa9e",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "824d3928f2f00be0003b4de3cfcd021cff60a6b39b828fb21fab4cefbc07e211",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "3c392bbdcd89df95dfb9a9a6ef970acb0aadca4501fab026e72439e9e6265fbb",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "3c37591ce182e6bea763b808b3781514d33dcd6da2609c4b944597af2068c16b",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "d4f8908bab323639361eb256b45f61bfefa20ff9463c7bac91a96a35f3566e03",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "3ccca59b998d65655545ae26d4dd9aeb9ce7fa3303fd4fec2f5accf15b4e67a2",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "5d7cf3aaafd9fc331453343ca8f73d6e830dfd78b270738b594d9a1e86f2f481",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "a8657faeeed1440446ad37e1c37c4c5d1a0295af2b24753d1c212397ec0b4d7a",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "3f42973a2af692991d90c6b3b7e8f442ee727a762e56f4a1971aee39dd808d54",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "bd7543e30322b12acc92b823f13c005fd77e853c1bc3685f5d96cbafe3bb8e9a",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "c755de9edeab3ea96cde1bc257a243ae39899ba7e6c3579079dc1bbad5bc6edf",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "386f2173e01018aa03ef298cef5cb35fa1cab8cdfd92cf05bb85e7d0450d303e",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "cd9b7b3025e7fe82deca793ea345964e420124c69e68b7d743cccd1921379fb0",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "b7422c8d182854bf490779da5cc17601eca8330e2bd35521aa4e1797e12fb9e2",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "c8961cbe57bfc8bb73f0e1a5af8050cfce8d4c86175b0de7d7586a5984351959",
+        "classification": "declaration",
+        "owner": "HubInstallation",
+        "reason": "Plugin declaration and owned host lifecycle hooks/attributes; shared key/overlay/environment Owners retain foreign host identity and cleanup ownership."
+      },
+      {
+        "id": "8478e28bedfc9485c282a7ceb217eec5ce814d16a115e4615d52688d5c1046d9",
+        "classification": "non_contract",
+        "owner": "HubInstallation.__init__",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "36db454cf5599d74c1fc4bae864899586539faca9e4a936d10d8014c388ffd3e",
+        "classification": "non_contract",
+        "owner": "HubInstallation.__init__",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "c641348a8d2ef766077616cc4d11bba18e126dd67e1034077b4e6c12454238ad",
+        "classification": "non_contract",
+        "owner": "HubInstallation.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "743862f833fbbdd0339978ad5b0c073eb5feb1844711ba2d7586818ad055ebd6",
+        "classification": "non_contract",
+        "owner": "HubInstallation.set_theme",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "9e4244d323425460d874a7f6c6fd224dbe78271913971d05ec01ca021d8684c4",
+        "classification": "non_contract",
+        "owner": "HubInstallation.close",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "6aa814442aa57f4d2080717475c5da62c426ea330b40c07eef16b34f2a39da6e",
+        "classification": "non_contract",
+        "owner": "install",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "f94a546c3db6f5716968338ceee9c7cd6eda77a9674ba3c4abc32cb5f0205a62",
+        "classification": "non_contract",
+        "owner": "install",
+        "reason": "Optional argument type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubInstallation",
+        "declaration": "hub/hub.py",
+        "consumers": [
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_settings_restart.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_terminal_screen.py",
+          "tests/hub/test_file_root_presence.py"
         ],
         "complete": true
       }
