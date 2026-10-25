@@ -900,6 +900,7 @@ class GraphEngine:
 
     def _binding(self, context, graph, prepared):
         """코드의 버전은 개발자가 revision으로 관리한다. 저장 가능한 실행 설정은 직접 비교한다."""
+        from llm.services.runtime.tools import ToolExecutionScope
         if not self._configured:
             return self.with_config(context)._binding(context, graph, prepared)
         bindings, nested_graphs = [], []
@@ -946,7 +947,7 @@ class GraphEngine:
             session_config=context.session.config,
             components=list(context.project.components),
             extension=context.tools.execution_binding(
-                context.tool_scope.binding() if context.tool_scope else GraphPreparation.ABSENT
+                ToolExecutionScope.require(context).binding()
             ),
         )
 
@@ -1378,6 +1379,8 @@ class GraphEngine:
             raise ValueError(GraphDiagnostic.INVALID_NODE_STATUS)
 
     async def execute(self, context: EngineContext):
+        from llm.services.runtime.tools import ToolExecutionScope
+        ToolExecutionScope.require(context)
         worker = self.with_config(context)
         async with aclosing(worker._execute(context)) as events:
             async for event in events:

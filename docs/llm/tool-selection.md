@@ -18,4 +18,4 @@
 
 공통 Schema 어휘에 enum/uniqueItems 선언을 추가했으며 기존 Schema 함수의 구현은 그대로다.
 UI 설명과 Builtin choices를 포함한 기존 Schema 직렬화 및 오류 순서를 보존한다. 나머지 공통
-Schema 소비자의 전수 미완료는 계속 추적하고 이 소단계로 전체 완료를 선언하지 않는다.
+Schema 소비자의 후속 전수 정리는 [최종 점검](contract-closure.md)에서 확인한다. 소단계와 전체 검증은 구분한다.

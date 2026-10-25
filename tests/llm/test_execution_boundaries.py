@@ -22,6 +22,7 @@ from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.errors import CodedError
 from llm.llm import LargeLanguageModel
 from llm.services.runtime.interactions import InteractionRepository
+from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime
 from tests.llm.test_loop import chunk, call
 
 
@@ -129,7 +130,7 @@ class ObservationTests(unittest.TestCase):
         runtime = AgentExecution(engines={"custom": Custom()})
         context = SimpleNamespace(capabilities={"agents": [{"records": {
             "worker": {"purpose": "work", "engine": "custom"}}}]},
-            tools=SimpleNamespace(select=lambda names: None), tool_scope=None)
+            tools=SimpleNamespace(select=lambda names: None), tool_scope=ToolExecutionScope(ToolRuntime()))
         self.assertEqual(runtime.binding({"agent": "worker"}, context)["execution"], {"private_revision": "custom"})
 
 

@@ -3,8 +3,8 @@
 이 문서는 ish-llm의 명명 계약이다. 같은 이름은 같은 의미로 사용한다. 이름을 짧게
 만들기 위해 의미나 소유권을 바꾸지 않는다. 실행 계층은 Project → Session → Run → Step이며,
 Component는 데이터/capability, Engine은 실행 전략을 소유한다.
-이 의미 규칙은 [클린 리팩터링](clean-refactor.md)에도 적용한다. 아래의 현재 API 예시는
-main `94229cb` 기준이며 구 API나 저장 어휘를 영구 보존하라는 요구가 아니다.
+이 의미 규칙은 현재 main에도 적용한다. 아래의 과거 Naming 변경표는 당시 API 변경의 기록이며,
+현재 사용법은 [Backend API](backend-api.md)를 따른다. 구 API나 저장 어휘의 호환성을 보장하는 표가 아니다.
 
 ## 표기와 길이
 

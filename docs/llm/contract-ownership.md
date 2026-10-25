@@ -2,7 +2,8 @@
 
 2026-10-22에 확정한 현행 설계 계약이다. [클린 리팩터링](clean-refactor.md)의 단일 선언과
 [Schema 소유권](schema-ownership.md)을 보강한다. 구현의 적합성은 별도로 검증하며,
-확인된 미완료와 조사 범위는 [후속 작업](ownership-refactor.md)에서 추적한다.
+이전 조사·구현 기록은 [후속 작업](ownership-refactor.md), 전수 완료 근거는
+[최종 점검](contract-closure.md), 이후 변경과 검증 범위는 [인계](handoff.md)에서 확인한다.
 
 ## 기본 규칙
 

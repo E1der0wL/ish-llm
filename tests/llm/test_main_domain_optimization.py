@@ -17,6 +17,7 @@ from llm.services.infrastructure.journal import OutputJournal
 from llm.services.query import Query
 from llm.services.runtime.output import OutputProjection
 from llm.services.runtime.runs import RunRepository
+from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime
 from llm.services.history.conversation import MemoryConversationStore, ConversationStore
 from llm.services.infrastructure.transactions import TransactionManager
 
@@ -187,7 +188,7 @@ class GraphPreparationTests(unittest.TestCase):
         context = SimpleNamespace(capabilities={"workflows": [{"records": records}]},
             project=SimpleNamespace(config=ProjectConfig(), components=["workflows"]),
             session=SimpleNamespace(config={}), run=SimpleNamespace(engine="graph"),
-            tools=ToolRegistry(), tool_scope=None)
+            tools=ToolRegistry(), tool_scope=ToolExecutionScope(ToolRuntime()))
         engine = GraphEngine(handlers={}).for_agent({"engine": "graph", "engine_options": {"workflow": "main"}}).with_config(context)
         calls = []
         original = GraphEngine._definition

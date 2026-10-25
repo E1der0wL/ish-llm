@@ -25,7 +25,7 @@ ish에 배치할 때 `tests/`, `examples/`, `docs/`, `ish.platform/`을 플러�
 
 - [llm 사용 안내](llm/README.md), [Backend API](docs/llm/backend-api.md)
 - [hub 사용 안내](hub/README.md), [hub 설계](docs/hub/README.md)
-- [아키텍처](docs/llm/architecture.md), [최신 작업 인계](docs/llm/handoff.md)
+- [개발 문서 안내](docs/README.md), [아키텍처](docs/llm/architecture.md), [최신 작업 인계](docs/llm/handoff.md)
 - [명명 규칙과 API 변경표](docs/llm/naming-conventions.md)
 - [테스트 실행](tests/README.md), [예제 실행](examples/README.md)
 

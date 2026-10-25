@@ -1,9 +1,8 @@
 # ish-llm
 
-이 사용법은 `refactor/llm-clean`의 현재 수신자 기반 API를 설명합니다.
-단계별 완료·미완료와 검증 증거는 [클린 리팩터링 상태](../docs/llm/clean-refactor.md)와
-[다중 Agent 검증](../docs/llm/multi-agent-verification.md)을 따릅니다.
-[현행 설계](../docs/llm/architecture.md)와 [검증 상태](../docs/llm/documentation-review.md)를 함께 확인하세요.
+현재 main의 독립 Agent·수신자 기반 API를 설명합니다.
+[개발 문서 안내](../docs/llm/README.md), [현행 설계](../docs/llm/architecture.md),
+[최신 검증 범위](../docs/llm/handoff.md)를 함께 확인하세요.
 
 Backend는 mechanism·contract·persistence를 제공하고 Application이 자원 한도·검색 전략·
 모델의 Tool 인자 자유도를 정합니다. [Tool 인자 제약](../docs/llm/tool-constraints.md)은

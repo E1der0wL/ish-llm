@@ -26,6 +26,6 @@ ToolDefinition과 ToolContract가 계속 소유한다. descriptor의 중첩 정�
 Component/SDK를 import한다. 일반 프로세스 시작 게이트는 -I/-S에서 llm/외부 패키지를
 import하지 않고 실행한다. 부모 사망 신호와 stdin 수신 이전에 사용자 명령을 실행하지 않는다.
 
-이 소단계는 IPC 및 시작 요청의 Owner 연결이다. 패키지 파일/manifest, 활성화 설정, 나머지
-Tool runtime·등록·함수 Schema의 전수 정리는 후속 범위로 남는다. 실제 통과 범위와 미완료는
-[전수 실행 기록](whole-ownership-verification.md)에 별도로 기록한다.
+IPC 및 시작 요청의 Owner 연결 이후 패키지/manifest·활성화·Tool runtime·등록·함수 Schema의
+후속 전수 정리는 [최종 점검](contract-closure.md)과 [전수 실행 기록](whole-ownership-verification.md)에
+있다. 각 단계의 당시 실패와 최종 검증을 구분한다.

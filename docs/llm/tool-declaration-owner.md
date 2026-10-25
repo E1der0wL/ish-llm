@@ -12,5 +12,5 @@ Provider·Hub는 같은 타입을 사용한다. 기존 `llm.components.tools` �
 읽은 `approval_required` 속성을 사용하며 모델 설명·Project 저장값으로 권한을 만들지 않는다.
 
 기존 저장 JSON, descriptor fingerprint, 승인·재시도·격리·효과의 의미는 그대로다.
-ToolRegistry의 나머지 binding, worker IPC 및 주변 모듈의 전수 정리는 별도 미완료 범위로
-유지한다. 이 선언의 일원화나 좁은 정적 검사 통과만으로 전체 완료를 선언하지 않는다.
+ToolRegistry binding·worker IPC를 포함한 후속 전수 정리 근거는 [최종 점검](contract-closure.md)에
+있다. 이 선언의 좁은 검사와 전체 검증은 구분하며 이후 변경은 [인계](handoff.md)를 따른다.

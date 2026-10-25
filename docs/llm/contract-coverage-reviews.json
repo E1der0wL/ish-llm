@@ -42540,72 +42540,66 @@
   },
   {
     "path": "llm/engines/agent_resources.py",
-    "sha256": "45611c8c0a1349bfdf339b1e673e27c333d9eae9a920fb59bfd705ab815b3e55",
-    "reason": "Read complete selection/connect/compose flow, typed source/definition and resource/binding projections. Resolves one stored definition, preserves mandatory identity and exact revision/hash, derives only explicitly selected capabilities, checks alias uniqueness and parent restrictions before effects. Root, Graph Agent and Tool delegation share this flow. Connections remain inside the explicit execution stack after admission; no model/Tool work at selection. Prompt/Skill Owners render existing source content; RAG selects the same whole-corpus Tool name as a plain string. JSON snapshots are detached and runtime handles remain outside serialization. None semantics are declared, single-result index is an algorithmic access after exact cardinality validation. No dictionary-field parsing remains outside its Owner. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured.",
+    "sha256": "1e82f32971ea5b1a51ba00cdb78baebdb46c4fc672abade2a804e5cafd5449f5",
+    "reason": "Read complete selection/connect/compose flow, typed source/definition and resource/binding projections. Resolves one stored definition, preserves mandatory identity and exact revision/hash, derives only explicitly selected capabilities, checks alias uniqueness and parent restrictions before effects. Root, Graph Agent and Tool delegation share this flow. Connections remain inside the explicit execution stack after admission; no model/Tool work at selection. Prompt/Skill Owners render existing source content; RAG selects the same whole-corpus Tool name as a plain string. JSON snapshots are detached and runtime handles remain outside serialization. None semantics are declared, single-result index is an algorithmic access after exact cardinality validation. No dictionary-field parsing remains outside its Owner. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "b0b75da395e16845fc06fc9221eb760b10798050a4120c26f1ab9715c515a311",
+        "id": "cb8009b5e8f6ae57c6acef92d80eb589d59ae8d3b2133587f8c069ec9d0f66db",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "4c4bde14974a98ee464828f7c9e3f763afeec94131dec9015f89dc1d925e5551",
+        "id": "c3be75cdccb927491e0af90c1b218848b2b48e6fe07641f438e8697c3e3c30da",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "797bc3a6598f739df7a4d29badb878f5cd298a419750c04425d3ba0346e84a5f",
+        "id": "e6f282cdd42cf75565d47757db3108cdfd499a4fd3bd0d8e7601ef2ea378f241",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "43889b934ce20eeacf45c8028467f77f4bedbf82ef5ee895f088cc98460f8c06",
+        "id": "72249eb9e56787f8ab4cdc3577427e0a4d7ec4afc9954ab1ee94f3477f68c6fe",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "388a8c9efe8abf25119e8a0847d596624a732de5a6a237c1e7f19fc84d5fce48",
+        "id": "0f2a020959a04d5b3c1c10193fbf099870ee6c2d3d40cf406ccc2c24e64a59b2",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "ee381f3c602cad0aeeb1b2a3b02db3814c4c6c9f0ed8e412bb249143303b89f6",
+        "id": "e28cd992fe0904f9056f1fbda77e2addf89332988ce0699a9621b46681afe374",
         "classification": "non_contract",
         "owner": "Agent resource selection and execution projections",
         "reason": "Python frozen/slots dataclass layout; not an execution/storage setting."
       },
       {
-        "id": "fb4bff325c4df117b23294978dfbcb06608c9efc415fc6f1061c337d6bcc92fb",
+        "id": "ca03cd9be59ae6856541f1337f182e7a335520854f0b97c2ea4856685a5cd842",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "3f51e29a49d46c5f7165d8f5624a1bb445f5283e783f73647c7d964e2a098f40",
+        "id": "244a63892120e097b17c200bda46605b59e111811aa01bac3993ae2c68debc53",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "6d949676ce36dd94e47f0425d3bc1ae2bef2164d69769878bc29d78a7c3facea",
+        "id": "8138be19cab6d6cef30d2f98f5d940cc8d1f44f7f1835031802d038bfe1d5ed5",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
       },
       {
-        "id": "11c41be2202642614465d0d043ac6754a064b721e150b52b78a02387c98c7c8b",
-        "classification": "declaration",
-        "owner": "Agent resource selection and execution projections",
-        "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
-      },
-      {
-        "id": "dfa9acd5d8b75abfa82ea6f861c8289518d2929867f46666ab0e5bb1cec89940",
+        "id": "96da2bcef17a2600f5b82c9bd693764277a2ce2d60419f7ad4ed040aae9178c6",
         "classification": "declaration",
         "owner": "Agent resource selection and execution projections",
         "reason": "Own capability/Tool identity, optional runtime-selection sentinel, cardinality, diagnostic or rendering template declared before implementation."
@@ -42680,6 +42674,19 @@
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_agent_resource_integrity.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -44013,8 +44020,8 @@
   },
   {
     "path": "llm/engines/agents.py",
-    "sha256": "bfc01ad15fcd34efc7ddcada8f2520f3b84bf6bb2b05dd9f53abb90151578634",
-    "reason": "Read all AgentExecution, AgentInvocation and AgentDelegation paths: profile/resource resolution, public binding overrides, graph/behavior selection, selected checkpoint usage, Tool policy intersection, input/output validation, steering forwarding, child output ownership, original storage ACK before effects/continuation and cancellation cleanup. Fixed execution binding/metadata/checkpoint/Tool result values use their canonical projections. Root and nested Tool completion share AgentPolicy without changing validation order. Resume omits context for remote MCP definitions until their connection validation. Delegation queue stays one outstanding unacknowledged event, producer/reader cleanup and exception propagation unchanged. All dynamic names/dispatch reviewed; no new fallback, retry, approval, storage or authority.",
+    "sha256": "fb48899f5860e4627e7f60bd835c7d5ebe0bca3d24133da1385adfff22962d69",
+    "reason": "Read all AgentExecution, AgentInvocation and AgentDelegation paths: profile/resource resolution, public binding overrides, graph/behavior selection, selected checkpoint usage, Tool policy intersection, input/output validation, steering forwarding, child output ownership, original storage ACK before effects/continuation and cancellation cleanup. Fixed execution binding/metadata/checkpoint/Tool result values use their canonical projections. Root and nested Tool completion share AgentPolicy without changing validation order. Resume omits context for remote MCP definitions until their connection validation. Delegation queue stays one outstanding unacknowledged event, producer/reader cleanup and exception propagation unchanged. All dynamic names/dispatch reviewed; no new fallback, retry, approval, storage or authority. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -44132,127 +44139,127 @@
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "1f9fba43f1c43323869f6e8ff53e203eb2ca17534ed329426ac761d10ef03d27",
+        "id": "b9ab6cf17eb3c6e8279d483319ccd0699c1ac3809757d48b014ee40feac73868",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "96fac3c35ef3b510df0fd0e98aa9029e310d55848dddf4b504c2a826ec7e1cf9",
+        "id": "e06cd9b07ca076213d1462fea2408339735855331409cf6732c8f1b161cc9294",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "407a65af7f6e8c7c7a63ef436692133d7bddcd8751c13b11fcfbba5cc3b2a3f8",
+        "id": "a91d73632aaeb62917f55b3af0535e27939d2f42a2a99affe682b205c776af9e",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "f33333e768cb242e3804c60b2acfdb1f89959efb42e8df1404b1937140781714",
+        "id": "66a110c39a652cf969893c3f5684e3df2ec70167aff6c085c1ac0dbb59b8e809",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "c0372963fb0382c8f93f238fc7aad72c79e8c1fc0923750becae3e4bd25e5808",
+        "id": "d88a893c1cbcbaf95ae5bb6e9d55eb3b8bb1d2590feb6b6f655ee8a5c88368ec",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "f00b92c9a0d6af3509c75096827becffc881633a4e3b2eb1374b52adfa91b2a0",
+        "id": "ed14156aeb984243476f5c9b58685591fe85d5ebfd3233e0b62666d4fee57207",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "e712f76164136ecb930d2a310c22552605099848b0be98dba0aeeeff1a4ecb7f",
+        "id": "d8c0dccb66b077742fcc670d2c9f55d3f7e85b062caeca1d7621d0183747ef9a",
         "classification": "declaration",
         "owner": "AgentInvocation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "3855f166c36a8ba0b306ce4b766f9c1782e9806403bb4ddac25a8d8803ac4a0f",
+        "id": "2122a91788082ab2ac5ce063d1901e1f4ac109b3e00687b195efbbb03591171b",
         "classification": "non_contract",
         "owner": "AgentDelegationContext",
         "reason": "Frozen/slots/keyword-only Python dataclass layout, not an execution or stored policy."
       },
       {
-        "id": "1455a5acd9fee70d4becc91f05456c43df42bb5c2ae6116b725786cc6548a928",
+        "id": "2033eb61dbf29ccd6ef4cc96f85910dae806f6aab21f47ce0ae7b797fe390133",
         "classification": "non_contract",
         "owner": "AgentDelegationContext",
         "reason": "Frozen/slots/keyword-only Python dataclass layout, not an execution or stored policy."
       },
       {
-        "id": "a34acc115e5852784539762ec36d932db4764e7b14f51d99a02a4c5b2f64528b",
+        "id": "9df3eea2ecdfe97aaae0e23237dc9517d366602f888ba3caaeeae70dbdce9bdf",
         "classification": "non_contract",
         "owner": "AgentDelegationContext",
         "reason": "Frozen/slots/keyword-only Python dataclass layout, not an execution or stored policy."
       },
       {
-        "id": "8ddddac029105273227c25525d67c8dce460e62294a6493ac19ee7291caa4076",
+        "id": "73136c42c3b4b21664d460c39319415ad4739092d9f8b58c11603b7ea355c05d",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "4a8b5b6ffbf430c6bc99c0c2016b19317bf64eb0a103d6eb0e29a200249dada2",
+        "id": "830701fa767843d190321aacf4ac731feb99a76d8840a449cc8dd3020b9fe9a5",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "7d66d5d8ffb36f916f2f8f40592680daa6ad88acd03ac920c6c329c8aaef5644",
+        "id": "21c643c4f39b8d79864d5729904ba863ac592fb58e46f282f431d6cd561105a0",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "a357ce3f7d929efbf6f2df46806bd22bbce941784b3e004e8d31088a768c29cf",
+        "id": "da246a2c7d194adab38d40ed3e629a60e137133db64a509a382f96185e4c727d",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "cbff27e09a18ab2438cdb1f2354e05ab575b31156da708fdfe57505d21352489",
+        "id": "883dfdd71d100c38f698aa8cf8964275a1388c35fbe486a08241f953aec6b47f",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "131bc63caadb2ad04e347f4322385fe6ee698c34a5a2c4c80763b9658ca1829d",
+        "id": "8f3daf2b6254a8c31d6d07c452d3f8d4ec52f3f28c7dc20cdaba9f3f9e95e161",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "5c72973740b8604e639321aad210b105d86c319cb363dc68bb3bb29565849a73",
+        "id": "502e21d7d8a212862c0a09677b4bd248c843a665afaf638f625f147489f397cc",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "2299589e69c48f31bc2845052596969751013aa23ee34e5f2ea96c19ae4e4a54",
+        "id": "121760575c22d0a9c8600dd88d44a61ed961269b19e7f8335379565b512e3dfc",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "c135a90f808bf9d5d700eedd54f8a7bfef769da26850ace88a56765354c7aac2",
+        "id": "5d552d717a4fbf396714b3796100419c3c4dcedc472692cc535f9f0682738490",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "db38af80d4f814372c54acc7e312d8dcc3993e85fa8c5c14024244c0a5750ed2",
+        "id": "37cf7a5f2c4ea5868342da4745ee03784133483cc0811e9bf2213b4dc885864a",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
       },
       {
-        "id": "0f532843ed4346f2eb8053c082d4f4601e4dcf671f0db71868abff5bf7a0b0f2",
+        "id": "e8e198477136de4b63fe31dcbd8c6d5826b9b5b40baab5cab0b6aa8856c61062",
         "classification": "declaration",
         "owner": "AgentDelegation",
         "reason": "Agent execution/invocation/delegation owns its fixed defaults, diagnostics, serialization choices, absent handles and ACK queue configuration before implementation. Existing policy defaults are referenced rather than recreated."
@@ -44275,6 +44282,19 @@
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_engine_steering.py",
           "tests/llm/test_execution_boundaries.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -44636,8 +44656,8 @@
   },
   {
     "path": "llm/engines/context.py",
-    "sha256": "a623dd4d282aa37307c0493496ff4a9717cda2ec12826ed812187d84fa2799de",
-    "reason": "Complete Run-local snapshot and instruction-channel review: shared channels, copied history, unique child scope and original mode validation; capability requirement tuple validation, exact missing names and resolver response, current-engine selection, required Tool key and explicit executor forwarding. No durable writes, approvals, new default policy, expanded permissions or compatibility reader. Public identity and process imports remain tested.",
+    "sha256": "28a9459b5abd67274953e6abe124c178d69515b43bc475680467563c5dc90ef2",
+    "reason": "Complete Run-local snapshot and instruction-channel review: shared channels, copied history, unique child scope and original mode validation; capability requirement tuple validation, exact missing names and resolver response, current-engine selection, required Tool key and explicit executor forwarding. No durable writes, approvals, new default policy, expanded permissions or compatibility reader. Public identity and process imports remain tested. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -44902,6 +44922,19 @@
           "tests/llm/test_engine_steering.py",
           "tests/llm/test_execution_contexts.py",
           "tests/llm/test_capability_owners.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -65090,8 +65123,8 @@
   },
   {
     "path": "llm/engines/graph/engine.py",
-    "sha256": "47cc68ed674d0133d9b388452865b116b8e7c9b4ff722e2af91c9ff7be0c811b",
-    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "sha256": "3adf2a07cc639ad4e89b94e12752ede582e632d2122c1c60f10a6c39575ae348",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -65287,49 +65320,49 @@
         "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
       },
       {
-        "id": "8f8f0b53ee7321c762b50ddaed3dc1a3be8f4e9c828e7f2ddba433367f859c13",
+        "id": "d8450609e3ce24b7665ca488fb702562723df15202f256529a0438c84a2fe78d",
         "classification": "non_contract",
         "owner": "GraphEngine._validate_selections",
         "reason": "Local traversal progress sentinel for a finite pending set; not admitted selection or persisted status."
       },
       {
-        "id": "dd9115deec04169100368e6f955189aa56e2be6e9cbff58b3f1646ae62dd3c05",
+        "id": "d6711d81d05af121c309446945db0397d565ba4119da6b7963ff42b98b00b501",
         "classification": "non_contract",
         "owner": "GraphEngine._validate_selections",
         "reason": "Local traversal progress sentinel for a finite pending set; not admitted selection or persisted status."
       },
       {
-        "id": "288b2363d8385543e3538bdd565e64d90cc31e6ff6b534897be1b92c7ada4c72",
+        "id": "7b623be6725dd5eea77a8e3882e4e41586658df081fae63ea9bc3611d31a0402",
         "classification": "non_contract",
         "owner": "GraphEngine._deadline",
         "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
       },
       {
-        "id": "e9772315a5f471b5397b42d3f490d603a50ace88cec1f2a35e04e66475a29fc0",
+        "id": "9542a7e1a85a53820902c90a7ddbadc6c232ca39b01e65dc914352c459112f6d",
         "classification": "non_contract",
         "owner": "GraphEngine._definition",
         "reason": "First element of an already constrained ordered collection, not a policy limit or fixed record-field offset."
       },
       {
-        "id": "36b927878f5ef526c6a1ab427a4c98c476f394a8b5baf45bbe0b50bdffc63474",
+        "id": "04cf614a433dba6cbf8220b09999f87c9b78b272593344673d1bcc3e18341d71",
         "classification": "non_contract",
         "owner": "GraphEngine._prepare",
         "reason": "First element of an already constrained ordered collection, not a policy limit or fixed record-field offset."
       },
       {
-        "id": "038bad09a9a53866db7b8922b7a85503e3294420e927f4b9b0bd533b26f01ea7",
+        "id": "93e449ebb28e87d313e0d24e136399fb9e05bf53dff5b5f2bd7f3e8cb46331bd",
         "classification": "non_contract",
         "owner": "GraphEngine.additional_capabilities",
         "reason": "Python variadic tuple type syntax."
       },
       {
-        "id": "9bc214d15960b5325f68ccb0f366dc5ccacea6cae996882fa54f1d9439c40f76",
+        "id": "e76ef18fc21eda7916b9b3b152b8d7b700dbc2f009c2e9368c1d13b0b6dde0cd",
         "classification": "non_contract",
         "owner": "GraphEngine.validate_resume",
         "reason": "Python return/Callable type annotation only; not absence recovery or execution default."
       },
       {
-        "id": "bfa1441575490508558922973a6c5dcb715445c2443343a96eed1369edc4066e",
+        "id": "37aebad05cbd8eece1003130466ac625eb65ff7958dbddb6e692e2c90b9637ef",
         "classification": "non_contract",
         "owner": "GraphEngine._execute",
         "reason": "Python indefinite drain loop with explicit producer/queue exit; not execution authorization."
@@ -65378,6 +65411,19 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -66927,8 +66973,8 @@
   },
   {
     "path": "llm/engines/graph/tool.py",
-    "sha256": "0c5d5765fc383face1d2864954c55ff81c1d9fff2e1051687ba12a1d1f364f0b",
-    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained.",
+    "sha256": "7dfb7768e4bf8156da518f814c2d797e931c56d7a9eeb9dec8c63311c9f42b93",
+    "reason": "Whole Graph execution and Tool consumer review includes all literals, fixed dict Writers/queries, comparisons, dynamic optional hooks, actual selected handler identity, source/config binding snapshots, raw user payloads, native frame construction, parent/branch/iteration scopes, cancellation/shield/deadline/ACK order, confirmation vs Tool approval and explicit uncertain-node retries. Only enumerated Python type/dataclass/algorithm syntax remains; original real effect/storage/resume assertions retained. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -66981,6 +67027,19 @@
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py",
           "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -67149,8 +67208,8 @@
   },
   {
     "path": "llm/engines/loop/engine.py",
-    "sha256": "7dcea83fca94b948d8806f5792fade52515bbb519a59564b08cfb2baa113f5f0",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "sha256": "5cd54ff4537511d23c5e70ae5a1635fdf8ea7adb17a14988a7e689b81dad6894",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -67274,13 +67333,13 @@
         "reason": "Python return annotation only."
       },
       {
-        "id": "8dbf0788afa5ac7654d03329a69a8cdb89434eee54a170165b05a09476ab14ef",
+        "id": "34e75e7dd2a36fa5675d5c12ff3a3e18449f37bc76b4da4fe6c4f3d14cc9cc75",
         "classification": "non_contract",
         "owner": "LoopEngine._execute",
         "reason": "Insert the selected system message at the start of an existing ordered list; pure list position, not a policy/usage limit."
       },
       {
-        "id": "bba9991fb970efccd9b1caff9eb51ed98849907341b45723fd37760a1617e433",
+        "id": "e4ab042bbe2d9d7f003d37a11957fdb0813bb81808967066cbe4ab158c3f3c0c",
         "classification": "non_contract",
         "owner": "LoopEngine._iterate.complete",
         "reason": "Read the one captured completed response from its ordered local container; not default reconstruction."
@@ -67323,6 +67382,19 @@
           "tests/llm/test_steering_values.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -79375,8 +79447,8 @@
   },
   {
     "path": "llm/services/runtime/tools.py",
-    "sha256": "ff6d29607daf1bf280c44b21c501b4fc7f5bdc19d7c68a67ca19fe2a09324c8e",
-    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path.",
+    "sha256": "c3efc69ba118195d63addec602a624e85e462cf2225f118f2641d482a32ede7c",
+    "reason": "Full source and dynamic path review includes current full retry Reader and state transitions, shallow mixed-record approval detection followed by full Interaction validation, source/action identity, trusted runtime hooks, parent budget reservation before await, exact True/ASK semantics, no-effect persistence, explicit repair and reauthorization, operation reuse, nested event cleanup, live result channels and original actual effects/cancellation/process assertions. No duplicate storage Reader, default retry, new permission or compatibility path. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -79650,223 +79722,229 @@
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "027e0404cb6ce3d0a7fbc6e96d28ec2409596fa21b985cdbd89301f804a2b325",
+        "id": "9f90fd20e2870aa71539a4e12a77de4755b9146580846dbbb065eb9193134afe",
+        "classification": "declaration",
+        "owner": "ToolExecutionScope.require",
+        "reason": "Owner-declared contract error for an absent/invalid required Run scope; this is not an optional policy value or fallback."
+      },
+      {
+        "id": "2e7620b90adc3b127b75627341882ea4065752feb2c555df32486b54d9e8594d",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "9bb74f9bcbd5bdc7f67e12d7de4d83a8f680d1f116e7324d9a56f0749c107b70",
+        "id": "58b93914558a568ff1e6c16e6a4ad3c90f9c73577e98e0d39321ebad4a664c3b",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "837acd9b5ff70f99771e7a3c176ef0b9b2568b15d6c19d8b98bc1fe394144568",
+        "id": "85b27fc689d8c63bcc9c15e65d71b52b72e9e9a7e5dce913d218f0ae5e55a3f5",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "7a5d6b18e99c7c3c4c833263ae706e40792f377037ceabcfab844542b183d5ed",
+        "id": "0ec77b901b08929e66a765b9b521b70c4da5891bc736de5312ff2b942aa52d73",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "cbad9c60974ebd36aa2f1854493aafa39da893680d73fe7a5c65d07a1db5e607",
+        "id": "12defce28d7df404fc4b840ea48b25889a753992575566b2f62a3d047d962b42",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "f084538f47181b96b0dfc592d3fe957463c48611bd0902be2f0108d9c5157d3d",
+        "id": "8579f6cb35f2bae167cee454583416a40920b015d81d7b0c755658287f7117e9",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "bd5df61385e9e54877fb376e5848c5f258f6952c3cf65e0e2c56080e598a6468",
+        "id": "e5d968fa54786e496daa5b0b2196c466a2acb30c86fa4a334e2e65b01d1cf853",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "4f1e4b530195275ad4c67585e73219aade4c4798d2bcc594c94d625e1b65f067",
+        "id": "fdea96cb650a2ccd42e12947cafc90533e4ad030ee8d0709b3bc0234697c3e48",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "d2504d3f6e0bcc9305f37454590a0e91bc74ed010ebdc3c15c6fa611cd4c823e",
+        "id": "895c867acf23a969aaccdb424907b783cf38591415c39c2c45927ad9ed5ecd75",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "dd0adb186879e60c672b7cc4ebcab3f42304efd4ad6ae2a0a4c9f0a5091e815d",
+        "id": "3873a657442015dcaf44da3acb715deabd20cf8608dceba3324e766aa5135079",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "e0c4196c01c51a8aa43258f1ba709c100e3ff501866781d9d5f2da92c51c79d0",
+        "id": "af2f741f75d52c386ae8101ae324989e140908a6cdc9a0c9da44b64629004a89",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "827f5dcc738984ef1966f69310fe6c210a0f704cca4dcd51d500e5306ba06970",
+        "id": "4d06dd7641eb10d822e3701f60e2ff2e1c23b4f56d91919eb9c255b3097854cd",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "c80d32b743e09a3a64bbd654cdda6b598a8d3fc6ec7a0181edcf7ce6e4a5775b",
+        "id": "331df08ed175fce0ad156b548d0f64ca5f647b3510276ff477c3806594bac6fd",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "dfb7e63d7057cb360b7317e7f8441901617e86d4b16c488eb364b5005771adf3",
+        "id": "5e6486ba5cde7f24d3db6034b8127ff69276d4b5691233854bd51767abefa228",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "01ff7d9145b9c4fd6638e055b43912e0f507fb747f27e7c305b5547d4ff4a74a",
+        "id": "b77c195cae246753ac41d5e6e5fd0b9fab2892b3188fd11eb00b01077fc6fd72",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "59a129ab1629c7c077480ed4f09e304d29f58fe040ebf2068de6af8b7aee0f94",
+        "id": "cd9a78b53136dcc1cf4c0bce9efbc16026500e97f4c5da78f5a2f1e9a4028d8d",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "efe57dec7c31c3557dee02286667603f375bb4d686032d858cecbc477d895152",
+        "id": "f3fd42f7f6f17fd321594348e0071a7d7cba607f76d80efe6c65256c9fcb691f",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "f6b70f103a64fc516ec31158a2b8d87f7e6354f5dcc1e60dd87aaeecbf0bd301",
+        "id": "48a3ce53cce3cb661adb14b943d7a1a3c0174d7a548856a440936854c013ba9e",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "3ad3a32a8eb29cd4594fa89849d6d01faf4a7ecedd4fc6c1dc43af3dbbb7da8e",
+        "id": "740682dd918aac3326449f41f6c073f9fefad79750b240107cbb547d29aabd21",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "dacf30c759573a84cd6a17186f62566278538fd4335d920102393d7050bc8ec9",
+        "id": "ae86c5a43f6a8a933f4a65256b7287852bc3727e5f676b399b653258901084f5",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "6a6a331a598454066a959f3d20b9f5a91ba3edfd99a70eff1e6f6bfca17f713c",
+        "id": "705e1f27a669e7b6808b6fd5792a39bd2125825009204b7124a01d03b5b5c9dc",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "6d21b41402e404efa95a58dd101cc661329f32b449b8c7fe59da8a6df9621184",
+        "id": "e0162a2afd6d61e055447d2a5f29bec12f117b6c09da256a69b736469620344d",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "5705036e91afc811fe67019f2657652096b95a2b813f5ccffaa3764a14138d55",
+        "id": "4c830d3240d87a96716cdbf502e4cc064a90cfdc485f4aca210b84c77856dbb9",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "0e0b1dc2f99ec356c1d2ca26df864df77f35119c5ff76c3a15501dfadf667bb3",
+        "id": "b641f247af3b2ab90f407d88d04a22498c216dbf36575dc191a31ecdc3c88d5e",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "93d91b15298a2c5c0d6d8804b36ec78535eed710ce6f7252509e1b7792620844",
+        "id": "8c6426183fa738626708ae8a24a8ed430a55619615f080421e7479d3ed699029",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "2b6353d7c9a46c1542fd285dfdce90dcb4fd082f10fc77d5d5a9ea44e5438423",
+        "id": "9ba7bce4417b5d2752f6bd956fa66dd8a890032a906a973d36343a5ccb643608",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "33676e995db3fb7aec9ed0e52de8390fb6d6c904e3234286f5a5e2122689a61b",
+        "id": "0e23561110f41655090139e8d8cba79cdd79323dfe142f67833bc19dbcdea0f7",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "52f4914e779bfd600bfc3dd860d4a65dd3623884d43733d5a428583967c90751",
+        "id": "2c3043a9041ede4aecd0db8677e61ea035bb7621378c63f6b6416b90a9235198",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "351c5377fb7c4a1854d5991e31517c898c2cde077fbd907ace8c9d372fddedb1",
+        "id": "688de29bf889634a307bff520da9fda57721bebb69c3a97ab0d5851ff2835499",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "e868fa273deb2eb35c517c00d82faf5664d1205ba838a34347826c2e763706c9",
+        "id": "a6c1e5af1cb292a605ea76f4f60b652c97e8ddde42cf1b615a3e1f8222dd5f29",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "6b6c7fe05e48b6b73bfc12ed397d077d912adc89de1d1455b2206b090dda9a94",
+        "id": "92df69d8ed3552894495ba616d3d491d0f37bc703c47d5a192725fcc3cbb8153",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "5d3e3ad7ae7e23159de66a4dcf421eac31288a4e3b2e7038ce4209317a2e38ea",
+        "id": "81590373a00b884d7784d72e018e617135b7b6f4a5a9210668e2193b18ea446f",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "612eadaf38114e92552f2263b503b1b4f17b80cbcd191515e37ef158bf90bbdf",
+        "id": "8eedbe3d2c4d5fc7c44084e062bdc1ab7b3b7ed6f9f753d83058fc85807f4eec",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "cf1c94c9b3a44ec3edbb15d9cb5603199b042bb83e184b5b83004f518b35719c",
+        "id": "2cee84e79ec503bd8f14a9b046a51e07a44091275b08b7abe8a3caf456994a26",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "fee3b3ad7ce086f5f678ef359f46a1e86effe3cde00d624a396342860fcab1d4",
+        "id": "997fa0f778aa45b28f40b55be81e6b42b5bc7d8b8a61d2a0e18dd6791f04e0b8",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "bc4c2dfcb59f044ad35c39e9b2c410b3f1d0e0c0180c65c1fd78d89cfba035b8",
+        "id": "f338491056b37d83db40673196bbef018f17835f731b17156ddd084604bbc6cc",
         "classification": "declaration",
         "owner": "ToolExecutor",
         "reason": "Meaningful values are declared at their actual Owner head; consumers use typed state, projections, public hooks and existing policy/record APIs. Dataclass fields are canonical for their specific shape."
       },
       {
-        "id": "2044eb3771b23a353b7db88ac2799a8fbaa0310c3b49804ec902c6a75595bace",
+        "id": "ed768bca4f9dd6359b2b696e27792b7e263fdbb94fb051a1ab78e12e94814a87",
         "classification": "non_contract",
         "owner": "ToolExecutor._execute",
         "reason": "Unbounded iteration over the Host async event stream until StopAsyncIteration; no product retry/iteration limit is implied."
@@ -79914,6 +79992,19 @@
           "tests/llm/test_tool_workers.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "ToolExecutionScope",
+        "declaration": "llm/services/runtime/tools.py::ToolExecutionScope.require",
+        "consumers": [
+          "llm/services/runtime/tools.py::ToolExecutor.execute",
+          "llm/engines/context.py::EngineContext.execute_tool",
+          "llm/engines/agents.py::AgentExecution"
+        ],
+        "tests": [
+          "tests.llm.test_tool_scope"
         ],
         "complete": true
       }
@@ -85750,10 +85841,10 @@
   },
   {
     "path": "llm/README.md",
-    "sha256": "4bcf43d08aace62a0c3f4b09fb9777426718a76ff56c9a62cc4cd6edd387fa0d",
+    "sha256": "3617e45d7ec42e876540dda82138ff9b62edee1e86a78869b99673871aed25e5",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Reviewed whole public async API, actual deployment/CLI, recipients/Session membership, factory extensions, steering, settings and lifecycle. Corrected obsolete Session serialization and retention/retry wording; examples retain independent literals.",
+    "reason": "Reviewed whole public async API, actual deployment/CLI, recipients/Session membership, factory extensions, steering, settings and lifecycle. Corrected obsolete Session serialization and retention/retry wording; examples retain independent literals. Documentation-only review 2026-10-26: entry links now target main contracts and the scope validation report; API examples, execution policies and product assets unchanged.",
     "contracts": [
       {
         "owner": "Developer guide — llm/README.md",
@@ -85972,10 +86063,10 @@
   },
   {
     "path": "llm/engines/README.md",
-    "sha256": "d8b2c5a5674882f036197451b886a19dc6bb33e0741aa1893b4631cf201cfd98",
+    "sha256": "5e75b0f72afa2fd492dccacf56a2e89b0020fcebaeb0111604f863682812eb2e",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Reviewed whole extension hooks, registration, selected Agent, model Adapter/decoder, Step/checkpoint/output ownership, Tool approval/resume, steering and error classification. Clarified common Adapter and actual submit/resume parameters; contracts unchanged.",
+    "reason": "Reviewed whole extension hooks, registration, selected Agent, model Adapter/decoder, Step/checkpoint/output ownership, Tool approval/resume, steering and error classification. Clarified common Adapter and actual submit/resume parameters; contracts unchanged. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
     "contracts": [
       {
         "owner": "Developer guide — llm/engines/README.md",

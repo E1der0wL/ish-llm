@@ -15,6 +15,7 @@ from llm.components.rag.identity import RAGIdentity, RAGToolName
 from llm.components.tools.registry import Tool, ToolRegistry
 from llm.policies import ExecutionLimitError
 from llm.services.infrastructure.storage import revision_token
+from llm.services.runtime.tools import ToolExecutionScope
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,7 +61,6 @@ class SelectedAgentResources(NamedTuple):
 
 
 class AgentResourceResolver:
-    NO_PARENT = None
     SINGLE_DEFINITION = 1
     UNIQUE_SELECTION = "{capability}/{identifier} must resolve to exactly one definition"
     REQUIRED_RAG = "Agent RAG resource requires the rag component"
@@ -87,6 +87,7 @@ class AgentResourceResolver:
 
     @classmethod
     def select(cls, profile, context):
+        parent = ToolExecutionScope.require(context)
         selection = profile.resources
         skills = {name: deepcopy(cls.record(context.capabilities, SkillRecord.CAPABILITY, name).definition)
                   for name in selection.skills}
@@ -107,8 +108,7 @@ class AgentResourceResolver:
         aliases = [alias for server in mcp.values() for alias in server.aliases]
         if len(set(aliases)) != len(aliases) or set(aliases) & set(names):
             raise ValueError(cls.DUPLICATE_ALIAS)
-        parent = context.tool_scope
-        if parent is not cls.NO_PARENT and not ToolPolicyValues.permits_selection(parent.allowed_tools, [*names, *aliases]):
+        if not ToolPolicyValues.permits_selection(parent.allowed_tools, [*names, *aliases]):
             raise ExecutionLimitError(RunErrorCode.TOOL_DENIED, cls.WIDENED_TOOLS)
         return SelectedAgentResources(tools, AgentResources.create(skills, prompt, mcp, selection.rag))
 

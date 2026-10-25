@@ -1,31 +1,23 @@
 # 운영 준비 상태와 검증 한계
 
-기준: main `94229cb865374d99f20ec48c5e48269488041a4e`, 문서 검토일 2026-10-20.
-[현행 아키텍처](architecture.md)와 [검토 기록](documentation-review.md)을 함께 읽는다.
-이전 날짜별 시험·성능 기록은 [보존본](production-readiness-history.md)에 있다.
-문서 최신화가 제품 구현이나 배포 준비 완료를 뜻하지 않는다.
+2026-10-26, main `b4bd478f7f8ccc7326a25173e9bbae6398b69bd4`와 필수 Tool scope 보강 기준입니다.
+[현행 아키텍처](architecture.md), [최신 검증 기록](handoff.md), [문서 검토](documentation-review.md)를 함께 봅니다.
+이전 날짜별 결과는 [보관 목록](documentation-history.md)에 남아 있습니다.
 
-## 현재 구현한 제어
+## 구현과 검증 범위
 
-- workspace ownership, 원자적 도메인 트랜잭션, append-only 대화/출력, 명시 복구·보관.
-- durable 요청, Run/Step 수명, 최상위·중첩 Loop/Graph checkpoint, 명시적 Resume와 restart admission.
-- Tool 승인·권한·한도·retry·operation receipt·불확실 효과 재실행 차단.
-- 실제 Provider Adapter의 admission·사용량·retry·stream/진단 및 선택적 Linux Tool 격리.
-- Component별 generation/revision·참조·CAS, RAG Job/청크/세대 공개, Memory 처리와 자료 provenance.
-- Hub의 정규 오류/복구 API 연결, 승인 UI, 작업 환경 binding, immutable 화면 projection.
+- durable 요청/출력·Run/Step 수명, 독립 Agent·수신자별 실행, Graph/Loop checkpoint와 명시적 재개.
+- Project 정책·Tool 승인·부모 scope 축소·인자 제약·효과 원장·불확실 효과 재실행 차단.
+- 원자적 저장·참조/CAS·삭제 보호, Component별 generation/revision, Provider Adapter·usage·진단.
+- Run 문맥의 필수 ToolExecutionScope 누락 시 즉시 실패. 기존 scope를 새 객체로 대체하지 않음.
 
-이 목록은 모든 입력과 장애가 검증됐다는 뜻이 아니다. 특히 [알려진 구현 차이](documentation-review.md)의
-truthiness·버전 타입·호환 Reader·이중 경로는 아직 제품에 남아 있다. A–F 클린 설계는 구현 전이다.
+이번 코드 스냅샷에서 전체 LLM **2,510 passed / 0 failed / 0 skipped**, Hub 공개 API 연결
+**29 passed / 0 failed / 0 skipped**를 확인했습니다. 이번 Hub 검사는 전체 Hub suite가 아닙니다.
+제품 SHA `3652bbba8878f0658a66fff3213b1976da075687`의 이전 전체 Hub 588개 및 원격 CI는
+[당시 전수 점검](contract-closure.md)의 별도 증거입니다. 새 변경의 전체 Hub/CI 통과로 승계하지 않습니다.
 
-## 기준선과 완료 판정
-
-같은 main SHA의 Python 3.12.14·실제 ish 검증 기준선은 LLM 1,635개 중 1,634 pass/1 fail,
-Hub 534 pass다. 실패는 host의 `_is_library_available` 대신 `_library_available`을 참조하는 테스트다.
-로컬 Xvfb/xclip 9개는 실행·통과했다. GitHub bwrap 단계 실패와 뒤 테스트 Skip은 별개이며 미해결이다.
-이 결과는 이번 문서 변경 후 전체 suite를 다시 실행했다는 의미가 아니다.
-
-기능/Schema·문서 예제·정적 게이트·실제 효과·회귀·필수 CI를 각각 기록한다. 날짜별 pass 수를 합치거나
-Skip/환경 차단을 pass로 바꾸지 않는다. 실제 인증 모델 호출과 kernel short-write는 계속 미검증이다.
+이 결과는 검증한 로컬 Backend 계약의 회귀 근거입니다. 실서버 모델 품질, 무제한 자료 규모,
+장시간 운영, 모든 디스크 장애의 성공을 보장하지 않습니다.
 
 ## 운영 경계
 
@@ -42,5 +34,6 @@ Skip/환경 차단을 pass로 바꾸지 않는다. 실제 인증 모델 호출�
 | 확장 | trusted host callback/custom Engine이 직접 호출하는 SDK·외부 저장을 자동 감시/원자화하지 않음. |
 | 보관 | 자동 무음 삭제 없음. 명시 계획/CAS와 checkpoint·receipt·usage·자료 참조 보호. 로그 회전은 Application sink의 명시 설정. |
 
-추가 제한의 부재와 알고리즘 필수값 누락은 다르다. 필요한 기능 설정은 실행 전에 거부하고,
-Host 공유 자원과 Project 제품 정책을 분리한다. 구체적인 완료 gate는 [클린 계획](clean-refactor.md)에 있다.
+
+알고리즘 필수 설정은 실행 전에 검증하며 누락된 값에 숨은 제한·재시도·모델 값을 채우지 않습니다.
+정확한 재현 환경과 명령은 [인계 문서](handoff.md), 통과 판정은 [검증 정책](verification-policy.md)을 따릅니다.

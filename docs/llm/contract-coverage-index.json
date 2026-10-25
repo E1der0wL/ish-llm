@@ -1582,7 +1582,7 @@
     {
       "path": "llm/README.md",
       "status": "reviewed",
-      "sha256": "4bcf43d08aace62a0c3f4b09fb9777426718a76ff56c9a62cc4cd6edd387fa0d",
+      "sha256": "3617e45d7ec42e876540dda82138ff9b62edee1e86a78869b99673871aed25e5",
       "candidates": 0
     },
     {
@@ -2968,7 +2968,7 @@
     {
       "path": "llm/engines/README.md",
       "status": "reviewed",
-      "sha256": "d8b2c5a5674882f036197451b886a19dc6bb33e0741aa1893b4631cf201cfd98",
+      "sha256": "5e75b0f72afa2fd492dccacf56a2e89b0020fcebaeb0111604f863682812eb2e",
       "candidates": 0
     },
     {
@@ -2986,8 +2986,8 @@
     {
       "path": "llm/engines/agent_resources.py",
       "status": "reviewed",
-      "sha256": "45611c8c0a1349bfdf339b1e673e27c333d9eae9a920fb59bfd705ab815b3e55",
-      "candidates": 20
+      "sha256": "1e82f32971ea5b1a51ba00cdb78baebdb46c4fc672abade2a804e5cafd5449f5",
+      "candidates": 19
     },
     {
       "path": "llm/engines/agent_tools.py",
@@ -3004,7 +3004,7 @@
     {
       "path": "llm/engines/agents.py",
       "status": "reviewed",
-      "sha256": "bfc01ad15fcd34efc7ddcada8f2520f3b84bf6bb2b05dd9f53abb90151578634",
+      "sha256": "fb48899f5860e4627e7f60bd835c7d5ebe0bca3d24133da1385adfff22962d69",
       "candidates": 40
     },
     {
@@ -3022,7 +3022,7 @@
     {
       "path": "llm/engines/context.py",
       "status": "reviewed",
-      "sha256": "a623dd4d282aa37307c0493496ff4a9717cda2ec12826ed812187d84fa2799de",
+      "sha256": "28a9459b5abd67274953e6abe124c178d69515b43bc475680467563c5dc90ef2",
       "candidates": 41
     },
     {
@@ -3076,7 +3076,7 @@
     {
       "path": "llm/engines/graph/engine.py",
       "status": "reviewed",
-      "sha256": "47cc68ed674d0133d9b388452865b116b8e7c9b4ff722e2af91c9ff7be0c811b",
+      "sha256": "3adf2a07cc639ad4e89b94e12752ede582e632d2122c1c60f10a6c39575ae348",
       "candidates": 40
     },
     {
@@ -3124,7 +3124,7 @@
     {
       "path": "llm/engines/graph/tool.py",
       "status": "reviewed",
-      "sha256": "0c5d5765fc383face1d2864954c55ff81c1d9fff2e1051687ba12a1d1f364f0b",
+      "sha256": "7dfb7768e4bf8156da518f814c2d797e931c56d7a9eeb9dec8c63311c9f42b93",
       "candidates": 1
     },
     {
@@ -3160,7 +3160,7 @@
     {
       "path": "llm/engines/loop/engine.py",
       "status": "reviewed",
-      "sha256": "7dcea83fca94b948d8806f5792fade52515bbb519a59564b08cfb2baa113f5f0",
+      "sha256": "5cd54ff4537511d23c5e70ae5a1635fdf8ea7adb17a14988a7e689b81dad6894",
       "candidates": 22
     },
     {
@@ -3820,8 +3820,8 @@
     {
       "path": "llm/services/runtime/tools.py",
       "status": "reviewed",
-      "sha256": "ff6d29607daf1bf280c44b21c501b4fc7f5bdc19d7c68a67ca19fe2a09324c8e",
-      "candidates": 82
+      "sha256": "c3efc69ba118195d63addec602a624e85e462cf2225f118f2641d482a32ede7c",
+      "candidates": 83
     },
     {
       "path": "llm/services/runtime/transfer_values.py",

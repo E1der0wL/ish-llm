@@ -75,7 +75,7 @@ class EngineContext:
     checkpoint_scope: Optional[str] = NO_CHECKPOINT_SCOPE
     # 명시적 재개에서만 조회한 부분 출력. 완료/승인 증명이 아닌 scope별 참고 자료다.
     resume_outputs: tuple[ResumeOutput, ...] = ()
-    # 백엔드가 주입하는 실행 정책. Run 전체(중첩 Agent/Graph 포함)가 공유한다.
+    # 백엔드가 주입하는 실행 정책. Tool/Agent 실행에는 필수이며 누락 시 생성하지 않는다.
     tool_scope: Any = None
     pending_work: Any = None
     # 호스트 계산기 레지스트리만 공유한다. 입력 정책은 사용하는 Engine이 별도 사본에 연결한다.
@@ -119,7 +119,8 @@ class EngineContext:
         해석한다. Workflow confirmation은 Tool 권한을 부여하지 않는다.
         executor 주입으로 명시된 실행 제한을 유지한다. 소비자는 aclosing을 사용한다.
         """
-        from llm.services.runtime.tools import ToolExecutor
+        from llm.services.runtime.tools import ToolExecutor, ToolExecutionScope
+        ToolExecutionScope.require(self)
         if not isinstance(checkpoint_key, str) or not checkpoint_key.strip():
             raise ValueError(self.INVALID_TOOL_KEY)
         executor = executor if executor is not self.NO_EXECUTOR else ToolExecutor()

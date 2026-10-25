@@ -1,67 +1,32 @@
 # 개발 문서
 
-2026-10-22 현재 기능·안전성 게이트는 [클린 리팩터링 현황](llm/clean-refactor.md)과 연결된
-H1–H5·P1·A–F 검증 기록에서 확인한다. 별도로 [계약 소유권과 책임 경계](llm/contract-ownership.md)를
-보강했으며, 확인된 중복 선언과 추가 조사·구현·검증은 [후속 작업 O0–O7](llm/ownership-refactor.md)에
-미완료로 기록한다. 기존 기능 회귀·정적 후보 분류는 Owner 전수 정리의 완료 증거가 아니다.
+현재 `main`의 사용법과 계약은 [LLM 문서 안내](llm/README.md)와 [Hub 문서 안내](hub/README.md)에서 찾습니다.
+최신 작업 인계와 검증 범위는 [handoff](llm/handoff.md)를 확인하세요.
+`refactor/llm-clean`의 변경은 main에 병합되었습니다. 과거 작업 브랜치 지시와 당시 통과 수는
+현재 개발·배포 상태를 대신하지 않습니다.
 
-## 이전 진행 요약 — 2026-10-21 당시 기록
+## 읽는 순서
 
-문서 기준은 main `94229cb865374d99f20ec48c5e48269488041a4e`다. 2026-10-20에
-`docs/` 전체와 `llm/`, `hub/` 내부 문서를 재검토했다. P0 검증 도구·테스트·CI와
-[최신 SDK/MCP 전환](llm/p0-sdk-transition.md)의 로컬·원격 검증을 완료했다.
-[P1-a 타입·저장 계약](llm/p1-verification.md)은 사용량 소실 문제로 중단한 뒤,
-사용자의 재개 요청에 따라 소유권·복원 검증을 보강하고 LLM·Hub 회귀 검증을 완료했다.
-P1-b와 P1-c 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 만료 필드 누락 후
-실제 Tool 효과를 재현하여 기능 단계 진행을 중단했고, 이후 H1 승인 무결성을 보강했다.
-[검증 기록](llm/lifecycle-verification.md)에서 H1과 이후 H2-a–g의 구현·검증 및 남은 실패를 구분한다.
-기존 세 번째 Provider 계약군도 별도 커밋으로 보존한다. A–F는 미착수다.
-이후 영속 데이터 감사에서도 RAG 원본 삭제와 Session 삭제의 Project 예산 초기화를 재현했다.
-[수명주기 계약](llm/data-lifecycle.md)의 H1 세 계약군을 보강했으며 H2는 진행 중이고 H3–H5는 남아 있다.
+1. [LLM 사용법](../llm/README.md), [공개 API](llm/backend-api.md), [Hub 사용법](../hub/README.md).
+2. [아키텍처](llm/architecture.md), [설정](../llm/CONFIGURATION.md),
+   [Project 권한](llm/project-authority.md), [명명 규칙](llm/naming-conventions.md).
+3. [계약 소유권](llm/contract-ownership.md), [Schema 소유권](llm/schema-ownership.md),
+   [공통 실행 계약](llm/shared-contracts.md), [체크포인트](llm/checkpoints.md),
+   [트랜잭션](llm/storage-transactions.md), [승인](llm/interactions.md).
+4. [검증 정책](llm/verification-policy.md), [테스트 실행](../tests/README.md),
+   [운영 준비 상태와 한계](llm/production-readiness.md).
 
-후속 구현의 집중·소단계·전체 게이트와 CI 운영은
-[Level 1–3 검증 정책](llm/verification-policy.md)을 따른다.
+## 현재 계약과 과거 기록
 
-## 읽는 순서와 적용 범위
+현재 계약 문서는 소스의 공개 API와 함께 관리합니다. 단계별 작업 계획·검증 기록은 당시 범위와
+정확한 소스 SHA를 설명하는 증거입니다. 예전 실패가 지금도 남아 있다거나 예전 통과가 현재 변경을
+검증했다고 추론하지 않습니다. 계약과 코드가 충돌하면 코드의 동작을 숨기지 않고 별도로 검토합니다.
 
-1. [현행 아키텍처](llm/architecture.md): 현재 제품의 도메인·실행·저장 소유권.
-2. [명시적 설정](../llm/CONFIGURATION.md), [설정 소유권](llm/project-authority.md),
-   [Schema 소유권](llm/schema-ownership.md), [명명 규칙](llm/naming-conventions.md),
-   [계약 선언·의미 해석·책임 경계](llm/contract-ownership.md).
-3. [안전성 계약](llm/shared-contracts.md), [체크포인트](llm/checkpoints.md),
-   [트랜잭션](llm/storage-transactions.md), [영속 데이터 수명주기](llm/data-lifecycle.md),
-   [승인](llm/interactions.md), [실행 격리](llm/process-isolation.md).
-4. [현행 공개 API](llm/backend-api.md), [LLM 사용법](../llm/README.md),
-   [Hub 설계](hub/README.md), [Hub 사용법](../hub/README.md).
-5. [클린 리팩터링 목표와 단계](llm/clean-refactor.md): 승인된 설계 방향과 단계별 구현 상태.
-   [Owner 후속 작업](llm/ownership-refactor.md)은 기존 기능 게이트와 구분해 추적한다.
-6. [P0 검사와 실행 기록](llm/p0-verification.md): 로컬 결과와 원격 CI 검증을 구분한다.
-7. [전체 문서 목록](document-map.md), [문서·코드 불일치와 검증 상태](llm/documentation-review.md).
+최초 계획과 검증 증거는 [클린 리팩터링](llm/clean-refactor.md), [전수 소유권 점검](llm/contract-closure.md)에
+연결되어 있습니다. 현재 CI가 사용하는 검토 manifest와 증거 문서는 유지합니다.
+중복된 옛 사용 안내·누적 인계 기록은 [보관 목록](llm/documentation-history.md)에서 고정 커밋으로 읽을 수 있습니다.
+[전체 문서 목록](document-map.md)은 현재 파일을 분류하며 과거 전수 검토 결과를 새 검토 결과처럼 재사용하지 않습니다.
 
-사용자의 최신 필수 원칙·단일 선언 지침 → 현재 명명의 의미와 명시적 설정 계약 →
-A–F 기능·안전성 요구 → 과거 작업 기록 순서로 적용한다. 코드가 문서와 다르다는 이유만으로
-유효한 안전성 계약을 버리지 않는다. 반대로 목표 API를 현행 사용법에 넣거나 미구현 기능을
-완료로 표시하지 않는다. 충돌은 검토 기록에 근거와 처리 단계를 남긴다.
-
-## 현행 계약과 구현 차이
-
-정식 출시 전이므로 새 구현에 구 API·구 저장 형식·자동 migration·호환 Facade를 만들지 않는다.
-필수값 누락은 명시적으로 거부하고 Missing/Null/Value를 구분한다. 버전·상태·이벤트·오류·정책·경로·
-한도는 해당 구현체가 한 선언으로 소유한다. 제품에 남은 위반은 문서 수정으로 해결된 것이 아니다.
-[알려진 차이](llm/documentation-review.md)를 구현 단계에서 제거하고 검증한다.
-소유자와 저장 출처가 명확한 [Hub 생성 초기값](hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)은 허용한다.
-사용자 명시값 우선·조회/편집·재열기 시 재주입 금지·Backend 검증을 지키며 매번 수동 선택을 요구하지 않는다.
-
-현재 공개 API의 일반 Facade, sync/async 호출, 실제 Provider Adapter는 구 API 호환 계층과 다르다.
-Tool 승인·권한·한도·Checkpoint·Resume·효과 영수증·동시성 안전성은 유지한다.
-
-## 과거 기록
-
-- [LLM 인계 기록](llm/handoff.md), 날짜별 review/audit/validation 문서: 당시 요구·변경·검증.
-- [이전 아키텍처 본문](llm/architecture-history.md), [이전 API 안내](llm/backend-api-history.md),
-  [이전 운영 준비 기록](llm/production-readiness-history.md), [Hub 개발 기록](hub/history.md).
-- 과거 기록의 `Latest`/“현재”/통과 수는 작성 당시 의미다. 현재 검증 결과로 합산하지 않는다.
-- 예제는 `examples/<plugin>/`, 검사 기록은 `tests/<plugin>/reports/`에 둔다.
-  코드 옆 README는 각 구현체의 공개 계약을 설명한다.
-- `hub/asset/prompts/`와 `hub/asset/skills/`는 제품 실행에 쓰이는 자산이다. 문서 감사 대상이지만
-  단순 설명문처럼 변경하지 않는다. 이번 문서 정리에서 내용은 보존했다.
+새 테스트 로그·스냅샷·임시 검증 스크립트는 `tests/<plugin>/reports/`, 개인 스크립트는
+`tests/<plugin>/manual/`, 실행 예제는 `examples/<plugin>/`에 둡니다. 이들은 배포 플러그인에 포함하지 않습니다.
+코드 옆 README는 해당 구현체의 공개 계약을 설명합니다. 제품 prompt/skill 자산은 실행 코드의 일부로 취급합니다.

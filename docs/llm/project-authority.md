@@ -34,6 +34,31 @@ max_output_chars=...)`는 호출별 집행 도구다. 호출자가 자신의 Pro
 Run의 ToolExecutionScope와 더 좁은 쪽으로 결합한다. helper 직접 호출은 서비스 설정 해석을
 자동 수행하지 않으므로 custom Engine은 자기 describe_config와 해석 책임을 유지한다.
 
+## 필수 실행 객체의 전달
+
+설정이 비어 있는 것과 실행 객체가 누락된 것은 다르다. Project가 Tool 제한을 지정하지
+않아도 RunManager는 해당 Run의 `ToolExecutionScope`를 생성한다. 이 객체는 정책 사본,
+누적 호출/승인 상태, Host runtime 및 operation receipt 연결을 유지한다. Engine은 이를
+그대로 전달하고, 중첩 Agent는 기존 scope의 `child()`로 범위를 좁힌다.
+
+Run에 연결된 Tool·Agent 실행에서 `tool_scope`의 누락 또는 잘못된 타입은
+`ToolInvocationError` (`tool_invocation_invalid`)다. `ToolExecutionScope.require(context)`는
+객체를 검증할 뿐 생성하거나 정책을 다시 해석하지 않는다. ToolExecutor, Engine helper,
+Loop의 Tool schema 준비, Graph ToolNode, Agent resource 선택/실행이 같은 검사를 사용한다.
+검사는 해당 경계의 분류·외부 resource 연결·Tool 효과 전에 수행한다. 승인 재개도 예외가
+아니며 scope가 없다는 이유로 저장된 정책/인자 제약 binding 비교를 생략하지 않는다.
+
+누락 시 `ToolRuntime()`으로 새 scope를 만들거나 현재 Project 설정으로 복구하지 않는다.
+그렇게 하면 Run 시작 snapshot, 부모의 추가 제약, 이미 사용한 예산과 실행 원장을 잃는다.
+정상 실행의 승인 저장 순서, 명시적 resume, 완료 결과 재사용 및 uncertain 효과 보호는
+변경하지 않는다. 저장 형식·버전·승인 binding 형식도 변경하지 않는다.
+
+문맥을 전달하지 않는 `ToolExecutor.execute(..., context=None)`는 기존의 독립 호출 계약이다.
+Project/Run의 정책·승인 재개·공유 원장을 상속하지 않으며 Run 내부에서 context를 생략하는
+우회 수단으로 사용하면 안 된다. Run 실행에서는 `context.execute_tool(...)`을 사용하거나
+동일 context를 ToolExecutor에 전달한다. Host의 선택적 adapter 미주입이나 미설정
+ProviderLimits의 정상 초기 구성은 필수 Run 객체의 누락 복구와 구분한다.
+
 ## 계층과 UI
 
 내장 Engine은 Project → Session → Agent 순서다. missing은 상속, nullable 일반 설정의 null은

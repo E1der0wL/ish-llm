@@ -58,7 +58,7 @@ from llm.core.results import EngineOutput
 from llm.core.contracts import ResourceRef
 from llm.core.checkpoints import CheckpointStatus
 from llm.providers.parameters import merge_params
-from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
+from llm.services.runtime.tools import ToolExecutor, ToolExecutionScope, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.policies import CompletionPolicy, ExecutionLimitError
 from llm.components.review import CompletionReview, CompletionReviewObservation, ReviewAction, ReviewPolicy
@@ -135,7 +135,7 @@ class LoopEngine(BaseEngine):
                 self._agent_options,
                 LoopExecutionBinding.adapter_identity(self.completion_adapter),
                 context.tools.execution_binding(
-                    context.tool_scope.binding() if context.tool_scope else BaseEngine.ABSENT
+                    ToolExecutionScope.require(context).binding()
                 ),
             )
         )
@@ -298,16 +298,17 @@ class LoopEngine(BaseEngine):
         return view.with_runtime(()).to_dict()
 
     def _request(self, context: EngineContext, params: dict[str, Any]) -> ModelRequest:
+        scope = ToolExecutionScope.require(context)
         parameters = copy_model(params)
         self.completion_adapter.validate_request(
             parameters, require_model=CompletionAdapterContract.REQUIRE_MODEL
         )
         definitions = context.tools.definitions(
-            constraints=context.tool_scope.argument_constraints if context.tool_scope else BaseEngine.ABSENT
+            constraints=scope.argument_constraints
         )
         mode = (
             ToolMode.REQUIRED
-            if definitions and LoopAgentOptions.required_by(self) and not context.tool_scope.completed
+            if definitions and LoopAgentOptions.required_by(self) and not scope.completed
             else BaseEngine.ABSENT
         )
         return ModelRequest(parameters=parameters, tools=definitions, tool_mode=mode)
@@ -364,6 +365,7 @@ class LoopEngine(BaseEngine):
         return worker
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
+        ToolExecutionScope.require(context)
         context.tools.validate_selections(context)
         resolved = self.parameter_layout.unpack(
             ConfigurationView.read(
@@ -700,11 +702,7 @@ class LoopEngine(BaseEngine):
                     context.tools.prepare(
                         call.name,
                         call.arguments,
-                        constraints=(
-                            context.tool_scope.argument_constraints
-                            if context.tool_scope
-                            else BaseEngine.ABSENT
-                        ),
+                        constraints=ToolExecutionScope.require(context).argument_constraints,
                     )
                     for call in calls
                 ]
@@ -740,11 +738,7 @@ class LoopEngine(BaseEngine):
                     context.tools.prepare(
                         c.name,
                         c.arguments,
-                        constraints=(
-                            context.tool_scope.argument_constraints
-                            if context.tool_scope
-                            else BaseEngine.ABSENT
-                        ),
+                        constraints=ToolExecutionScope.require(context).argument_constraints,
                     )
                     for c in calls
                 ]

@@ -1,8 +1,7 @@
 # 현행 Backend API
 
-아래는 `refactor/llm-clean`의 독립 Agent API다. [B/C 검증 상태](agent-refactor-verification.md)와
-[클린 설계](clean-refactor.md)를 따른다. 수신자·병렬 실행은 [D 검증 상태](multi-agent-verification.md)를 함께 따른다.
-이전 누적 안내는 [과거 기록](backend-api-history.md)에 보존했다.
+현재 main의 독립 Agent·수신자 기반 API입니다. [아키텍처](architecture.md)와
+[최신 검증 범위](handoff.md)를 함께 확인하세요. 과거 누적 안내는 [보관 목록](documentation-history.md)에 있습니다.
 
 ## 소유권과 수명
 
@@ -132,7 +131,7 @@ Linux Python 3.12.14에서 저장소 루트 기준:
 python -m tests.llm.run_regression --suite llm --output /tmp/ish-llm-regression.json
 python -m tests.llm.run_regression --suite hub --output /tmp/ish-hub-regression.json
 python -m tests.llm.check_budget_mutation
-python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6
+python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --require S6 --require S7
 python -m tests.llm.check_docs
 ```
 

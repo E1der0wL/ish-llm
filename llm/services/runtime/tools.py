@@ -173,6 +173,7 @@ class ToolExecutionScope:
     BUDGET_EXHAUSTED = "Run Tool call budget exceeded"
     NOT_ALLOWED = "Tool is not allowed: {name}"
     DENIED = "Tool authorization denied: {name}"
+    MISSING_SCOPE = "Run Tool execution requires an inherited ToolExecutionScope"
 
     USAGE_COUNTERS = ToolUsageRecord.counter_fields()
     USAGE_COLLECTIONS = ToolUsageRecord.collection_fields()
@@ -228,6 +229,14 @@ class ToolExecutionScope:
         self.parent = parent
         self.restore([self.initial_usage()])
         self.revoked = ToolExecutionScope.ACTIVE
+
+    @classmethod
+    def require(cls, context):
+        """Require the admitted scope; never reconstruct policy or execution state."""
+        scope = getattr(context, EngineContext.tool_scope.__name__, cls.ABSENT)
+        if not isinstance(scope, cls):
+            raise ToolInvocationError(cls.MISSING_SCOPE)
+        return scope
 
     def revoke(self):
         """취소 이후 남아 있는 실행기가 새로운 Tool 효과를 시작하지 못하게 한다."""
@@ -466,7 +475,7 @@ class ToolExecutor:
         from llm.core.tool_contracts import ToolClassification
 
         classification = tool.classification or ToolClassification()
-        if scope is not ToolExecutor.ABSENT and scope.runtime.classify is not ToolExecutor.ABSENT:
+        if scope.runtime.classify is not ToolExecutor.ABSENT:
             classification = scope.runtime.classify(
                 ToolCall(
                     tool.name,
@@ -520,7 +529,7 @@ class ToolExecutor:
             raise ExecutionLimitError(RunErrorCode.TOOL_CONTRACT, ToolExecutor.MISSING_OPERATION_KEY)
         return call
 
-    def _request_state(self, tool, arguments, context, decision, request_key, classification):
+    def _request_state(self, tool, arguments, context, decision, request_key, classification, scope):
         """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
         records = CheckpointRecords.records_or_empty(
             getattr(context, EngineContext.checkpoint.__name__, ToolExecutor.ABSENT)
@@ -544,16 +553,15 @@ class ToolExecutor:
 
         if durable_approval:
             action = previous.action
-            scope = getattr(context, EngineContext.tool_scope.__name__, ToolExecutor.ABSENT)
             if not same_interaction_value(action.classification, classification):
                 raise ToolInvocationError(ToolExecutor.CHANGED_CLASSIFICATION)
-            if scope is not ToolExecutor.ABSENT and not same_interaction_value(
+            if not same_interaction_value(
                 action.policy, scope.binding()
             ):
                 raise ToolInvocationError(ToolExecutor.CHANGED_APPROVAL_POLICY)
             if not same_interaction_value(action.contract, tool.contract.to_dict()):
                 raise ToolInvocationError(ToolExecutor.CHANGED_CONTRACT)
-            if scope is not ToolExecutor.ABSENT and not same_interaction_value(
+            if not same_interaction_value(
                 ToolExecutionBinding.constraints(action.policy_or_empty), scope.argument_constraints
             ):
                 raise ToolInvocationError(ToolExecutor.CHANGED_CONSTRAINTS)
@@ -586,11 +594,9 @@ class ToolExecutor:
                     and same_interaction_value(action.arguments, arguments)
                 ):
                     raise ToolInvocationError(ToolExecutor.MISSING_APPROVAL_KEY)
-        scope = getattr(context, EngineContext.tool_scope.__name__, ToolExecutor.ABSENT)
         identity = ToolInvocationIdentity.pending(tool.name, arguments)
         resumed = (
             decision is not ToolExecutor.ABSENT
-            and scope is not ToolExecutor.ABSENT
             and identity in scope.pending_approvals
         )
         return decision, ToolExecutor.UNRELATED_CONTINUATION if request_key in records else resumed
@@ -601,6 +607,7 @@ class ToolExecutor:
         arguments,
         *,
         result,
+        scope,
         metadata=ABSENT,
         context=ABSENT,
         decision=ABSENT,
@@ -610,9 +617,6 @@ class ToolExecutor:
     ):
         JsonObject.validate(arguments)
         step_id = new_id()
-        scope = getattr(
-            context, EngineContext.tool_scope.__name__, ToolExecutor.ABSENT
-        ) or ToolExecutionScope(ToolRuntime())
         scope.validate(tool)
         call = ToolCall(
             tool.name,
@@ -976,24 +980,26 @@ class ToolExecutor:
         from contextlib import aclosing
         from llm.components.tools.constraints import constrained_arguments
 
-        scope = getattr(context, EngineContext.tool_scope.__name__, ToolExecutor.ABSENT)
+        # A context-free call is an independent invocation, not a replacement
+        # for a missing Run scope. Every Run-bound caller must preserve its owner.
+        scope = (ToolExecutionScope(ToolRuntime()) if context is ToolExecutor.ABSENT
+                 else ToolExecutionScope.require(context))
         arguments = constrained_arguments(
             tool.parameters,
             arguments,
-            scope.argument_constraints.get(tool.name, {}) if scope is not ToolExecutor.ABSENT else {},
+            scope.argument_constraints.get(tool.name, {}),
         )
         retry_state = self._retry_state(context, request_key, arguments)
         arguments = retry_state.arguments
         if retry_state.attempt and (
-            scope is ToolExecutor.ABSENT
-            or scope.max_retries is ToolExecutor.ABSENT
+            scope.max_retries is ToolExecutor.ABSENT
             or retry_state.attempt > scope.max_retries
         ):
             raise ToolInvocationError(ToolExecutor.RETRY_EXCEEDED)
         arguments = constrained_arguments(
             tool.parameters,
             arguments,
-            scope.argument_constraints.get(tool.name, {}) if scope is not ToolExecutor.ABSENT else {},
+            scope.argument_constraints.get(tool.name, {}),
         )
         classification = await self._classify(tool, arguments, context, scope)
         bind = ToolHandlerBindings.declared_binder(tool.handler)
@@ -1018,9 +1024,9 @@ class ToolExecutor:
                 ).to_dict(),
             )
         decision, resumed = self._request_state(
-            tool, arguments, context, decision, request_key, classification
+            tool, arguments, context, decision, request_key, classification, scope
         )
-        if scope is not ToolExecutor.ABSENT and request_key is not ToolExecutor.ABSENT:
+        if request_key is not ToolExecutor.ABSENT:
             invocation = ToolInvocationIdentity.invocation(
                 getattr(context, EngineContext.checkpoint_scope.__name__, ToolExecutor.ABSENT), request_key
             )
@@ -1035,6 +1041,7 @@ class ToolExecutor:
                     tool,
                     arguments,
                     result=result,
+                    scope=scope,
                     metadata=metadata,
                     context=context,
                     decision=decision,

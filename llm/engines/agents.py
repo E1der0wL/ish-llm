@@ -23,7 +23,7 @@ from llm.components.tools import ToolRegistry
 from llm.core.models import new_id
 from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
-from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime
+from llm.services.runtime.tools import ToolExecutionScope
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
 from llm.engines.registry import EngineRegistry
@@ -269,6 +269,7 @@ class AgentExecution:
 
     async def __call__(self, node):
         """업무의 입력/출력을 검증하고 연결 세션과 실행 스코프를 호출별로 정리한다."""
+        parent_scope = ToolExecutionScope.require(node.context)
         profile = self._profile(node.definition, node.context.capabilities)
         engine = self._engine(profile)
         if agent_mode(engine) == AgentMode.WORKFLOW:
@@ -286,7 +287,7 @@ class AgentExecution:
             async with timeout(policy.timeout_seconds), AsyncExitStack() as stack:
                 await self.connect_resources(resources, node.context, tools, stack)
                 engine = self.compose_instructions(engine, resources, node.context)
-                scope = (node.context.tool_scope or ToolExecutionScope(ToolRuntime())).child(
+                scope = parent_scope.child(
                     allowed_tools=tools.names(), max_calls=policy.max_tool_calls)
                 if node.context.checkpoint:
                     # 완료된 자식 노드를 재사용해도 Agent의 호출 예산/필수 Tool 이력은 보존한다.
@@ -427,6 +428,7 @@ class AgentInvocation:
         return discover(capabilities) if callable(discover) else ()
 
     def prepare_context(self, context):
+        ToolExecutionScope.require(context)
         if self.mode == AgentMode.BEHAVIORAL:
             tools, self.resources = self.selection._resources(self.profile, context)
             aliases = self.resources.aliases

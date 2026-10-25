@@ -143,6 +143,14 @@ confirmation이나 started 기록에 decision을 붙이면 실행 전에 거부�
 같은 Tool/인자를 사용하는 반복/병렬 노드도 각자의 기존 key를 씁니다.
 
 직접 ToolExecutor.execute를 사용하는 경우 durable 승인 재개에는 request_key가 필요합니다.
+
+Run에 연결된 호출에는 `context.tool_scope`도 필수입니다. 제한을 설정하지 않은 Project도
+서비스가 생성한 정상 scope를 전달합니다. 누락되거나 잘못된 타입이면 공통
+`ToolExecutionScope.require(context)` 검사가 `ToolInvocationError`로 즉시 거부합니다.
+Engine은 새 scope로 대체하거나 현재 Project 설정으로 복구하지 않습니다. 자식 Agent는
+부모 scope의 `child()`로 범위를 좁혀 예산·승인·원장 연결을 유지합니다. 검증은 모델에
+Tool schema를 제공하거나 Tool/Agent 효과를 실행하기 전에 수행합니다.
+문맥 없는 독립 ToolExecutor 호출은 Run의 정책과 durable 실행 보장을 상속하지 않습니다.
 누락·모호함·불일치는 `ToolInvocationError` (`tool_invocation_invalid`)로 실행 전에 거부합니다.
 일반 비영속 호출에는 key를 강제하지 않습니다. helper는 Step 저장, 승인 정책, retry,
 operation receipt를 소유하지 않으며 ToolExecutor가 이를 계속 담당합니다.

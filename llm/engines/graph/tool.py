@@ -5,7 +5,7 @@ from llm.core.tool_event_result import ToolEventResult
 
 
 from contextlib import aclosing
-from llm.services.runtime.tools import ToolExecutor, ToolApprovalRequired
+from llm.services.runtime.tools import ToolExecutor, ToolExecutionScope, ToolApprovalRequired
 from llm.engines.base import EngineEventType
 from .engine import _GraphPause
 from .handler_contracts import GraphHandlerHooks
@@ -48,6 +48,7 @@ class ToolNode:
         return GraphToolDefinition.schema()
 
     def validate(self, definition, context):
+        scope = ToolExecutionScope.require(context)
         context.tools.get(GraphToolDefinition(definition).tool)
         GraphToolDefinition.validate_sources(definition)
         if (
@@ -57,10 +58,11 @@ class ToolNode:
             context.tools.prepare(
                 GraphToolDefinition(definition).tool,
                 GraphToolDefinition(definition).arguments,
-                constraints=context.tool_scope.argument_constraints if context.tool_scope else self.ABSENT,
+                constraints=scope.argument_constraints,
             )
 
     async def __call__(self, node):
+        scope = ToolExecutionScope.require(node.context)
         definition = node.definition
         if WorkflowBindings(definition).has_inputs:
             arguments = node.inputs
@@ -73,9 +75,7 @@ class ToolNode:
         tool, values = node.context.tools.prepare(
             GraphToolDefinition(definition).tool,
             arguments,
-            constraints=(
-                node.context.tool_scope.argument_constraints if node.context.tool_scope else self.ABSENT
-            ),
+            constraints=scope.argument_constraints,
         )
         result = {}
         # node.decision은 pause_before 확인일 수도 있다. Tool 승인만 공통 helper가

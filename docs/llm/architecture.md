@@ -1,10 +1,8 @@
 # 현행 LLM 아키텍처
 
-이 문서는 `refactor/llm-clean`의 현재 구현과 보존할 계약을 설명한다. 독립 Agent와
-root 실행 전환의 검증 상태는 [B/C 기록](agent-refactor-verification.md)을 따른다. 다중 수신자·
-병렬 Dispatcher·Session 전송·최종 검토의 구현·검증은 [클린 리팩터링](clean-refactor.md)의 D–F 기록을 따른다.
-별도로 확인된 선언·의미 해석·책임 경계의 미완료는 [Owner 후속 정리](ownership-refactor.md)에서 추적한다. 문서 정리 전 본문은
-[과거 기록](architecture-history.md)에 보존했다. 확인된 구현 차이는 [검토표](documentation-review.md)에 있다.
+현재 main의 구현과 보존할 계약을 설명합니다. 리팩터링은 main에 병합되었으며
+단계별 근거는 [전수 점검](contract-closure.md), 최신 변경과 검증 범위는 [인계](handoff.md)에 있습니다.
+과거 누적 안내는 [보관 목록](documentation-history.md)에서 분리해 읽을 수 있습니다.
 
 ## 도메인과 책임
 
@@ -80,6 +78,11 @@ Session은 실제 저장한 `agent_ids`를 참여자로 보유한다. 명시한 
 
 ## Tool 승인·효과·재개
 
+Run에 연결된 Tool 실행은 서비스가 전달한 `ToolExecutionScope`를 반드시 유지한다.
+정책값 미설정은 정상적인 빈 정책 scope이며, scope 객체 자체의 누락은 실행 계약 오류다.
+중첩 Agent도 부모 scope를 새 기본 객체로 대체하지 않는다. 공통 검증과 독립 호출의
+구분은 [필수 실행 객체의 전달](project-authority.md#필수-실행-객체의-전달)을 따른다.
+
 1. Tool 선택·최종 인자/제약 검증 → 분류·trusted contract → 승인/원장 검사 → handler 실행 순서다.
 2. Host technical deny는 저장된 approve로 해제되지 않는다. 분류·모델 설명·Skill 지침은 권한이 아니다.
 3. 승인 대기는 durable InteractionRequest로 저장한다. PAUSED 확정 후 정책/사용자 응답을 저장하며,
@@ -129,7 +132,8 @@ unknown usage를 0으로 만들어 예산을 넓히지 않는다.
 
 CompletionPipeline은 Run별 session을 만들고 prepare → policy → completion → after_completion →
 최종 응답의 finish 순서를 사용한다. after_completion은 관찰이며 응답 변조/자동 재실행 권한이 아니다.
-finish는 영속 Run 완료 알림이 아니다. F의 review_final은 별도 목표 계약이다.
+finish는 영속 Run 완료 알림이 아니다. 명시적으로 활성화한 review_final은 최종 후보를 검토하는
+별도 계약이며 [최종 검토](completion-review.md)의 verdict·예산·checkpoint 규칙을 따른다.
 
 RAG는 분할·검색·세대 공개를, 선택 model client는 SDK 인자·벡터 의미를 소유한다. 현재 embedding은
 청크별 요청이며 ordinal을 애플리케이션이 대응시킨다. Memory·Goal·Refinement·Skill·Data·Vision은
@@ -137,7 +141,7 @@ RAG는 분할·검색·세대 공개를, 선택 model client는 SDK 인자·벡�
 
 ## 검증 상태
 
-현재 기준선과 확인된 차이는 [문서 검토 기록](documentation-review.md), 운영상 한계는
+현재 기준선은 [작업 인계](handoff.md), 문서 변경은 [검토 기록](documentation-review.md), 운영상 한계는
 [운영 준비 상태](production-readiness.md)를 본다. 과거 기록의 시험 수나 문서 예제의 문법 검사를
 제품 구현·실모델·CI 성공으로 해석하지 않는다. 핵심 승인·한도·중복 효과·저장 회귀가 해결되지 않으면
 다음 구현 단계로 넘어가지 않는다.

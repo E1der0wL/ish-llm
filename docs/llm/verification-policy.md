@@ -79,10 +79,11 @@ python -m tests.llm.check_docs --output artifacts/docs.json
 sudo로 시험을 실행하거나 격리를 낮추어 통과시키지 않는다.
 
 소단계는 Level 2 성공 후 문서를 먼저 최신화하고 독립 커밋으로 보존할 수 있다. 관련 소단계가
-모인 Level 3 게이트에서 전체 검증 후 `refactor/llm-clean`에 묶어 Push하는 방식을 우선한다.
+모인 Level 3 게이트에서 전체 검증 후 승인된 대상 브랜치에 묶어 Push하는 방식을 우선한다.
 매 소단계 Push가 필요한 경우에도 CI 전체 검증은 필수다. 동일 소스의 로컬 전체 실행을 중복하지
 않도록 아래 증거 재사용 조건을 적용한다. 미검증 변경을 완료로 기록하거나 묶음에 숨기지 않는다.
-main·refactor/llm-backend·Draft PR #1과 기존 브랜치 보호·작업 제한은 유지한다.
+현재 대상 브랜치는 사용자 요청과 저장소 보호 규칙을 따른다. 과거 리팩터링 브랜치 지시는
+현재 main 업로드를 제한하는 규칙이 아니다. 요청하지 않은 force push는 하지 않는다.
 
 [GitHub Actions](../../.github/workflows/tests.yml)는 Push의 정확한 SHA에서 LLM/Hub 전체와
 필수 검사를 실행한다. 부분 시험으로 대체하거나 Job·assertion을 비활성화하지 않는다.
