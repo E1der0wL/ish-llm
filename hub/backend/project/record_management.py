@@ -2,6 +2,18 @@
 
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.core.agent_views import AgentSnapshot
+from llm.components.rag.document_records import RAGDocumentInput, RAGDocument
+from llm.components.rag.document_views import DocumentEdit
+from llm.components.rag.retrieval_records import CatalogPage
+from .management_values import (
+    ManagementAction,
+    ManagementOperation,
+    ManagementEntry,
+    EditorRecord,
+    DefinitionSummary,
+    SelectedFileImport,
+    ImportProvenance,
+)
 
 import asyncio
 import json
@@ -9,7 +21,7 @@ from pathlib import Path
 import re
 from uuid import uuid4
 
-from ...components import component_spec, ManagerKind, ImportKind
+from ...components import component_spec, ManagerKind, ImportKind, ManagedComponents
 
 
 class RecordManagement:
@@ -19,23 +31,43 @@ class RecordManagement:
         self.spec = component_spec(name)
 
     @classmethod
-    async def for_project(cls, project, name, *, root=None, rag_jobs=None):
+    async def for_project(
+        cls,
+        project,
+        name,
+        *,
+        root=ManagementOperation.ABSENT,
+        rag_jobs=ManagementOperation.ABSENT
+    ):
         spec = component_spec(name)
         if spec.manager == ManagerKind.TOOLS:
-            raise ValueError("Unsupported component manager")
-        data = project.agents if spec.manager == ManagerKind.AGENT else await project.components.aget(name)
+            raise ValueError(ManagementOperation.UNSUPPORTED_MANAGER)
+        data = (
+            project.agents
+            if spec.manager == ManagerKind.AGENT
+            else await project.components.aget(name)
+        )
         if not isinstance(data, spec.data_type()):
-            raise ValueError("Unsupported component data contract")
+            raise ValueError(ManagementOperation.UNSUPPORTED_DATA)
         record = await project.aget_data()
-        root = record.paths.root if root is None else root
+        root = record.paths.root if root is ManagementOperation.ABSENT else root
         if spec.manager == ManagerKind.DOCUMENT:
             from .rag_management import RAGManagement
-            return RAGManagement(data, name, root, project.id, rag_jobs, project=project)
+
+            return RAGManagement(
+                data, name, root, project.id, rag_jobs, project=project
+            )
         if spec.manager == ManagerKind.MEMORY:
             from .memory_management import MemoryManagement
+
             return MemoryManagement(data, name, root, project)
-        manager = (SkillManagement if spec.import_kind == ImportKind.SKILL else
-                   {ManagerKind.RECORD: cls, ManagerKind.AGENT: AgentManagement}[spec.manager])
+        manager = (
+            SkillManagement
+            if spec.import_kind == ImportKind.SKILL
+            else {ManagerKind.RECORD: cls, ManagerKind.AGENT: AgentManagement}[
+                spec.manager
+            ]
+        )
         return manager(data, name, root)
 
     def source_path(self, argument):
@@ -47,32 +79,43 @@ class RecordManagement:
     @staticmethod
     def import_identifier(source):
         stem = source.stem
-        return re.sub(r"[^A-Za-z0-9_-]", "_", stem)[:64].strip("_") or uuid4().hex
+        return (
+            re.sub(
+                SelectedFileImport.IDENTIFIER_PATTERN,
+                SelectedFileImport.REPLACEMENT,
+                stem,
+            )[: SelectedFileImport.MAXIMUM_IDENTIFIER].strip(
+                SelectedFileImport.REPLACEMENT
+            )
+            or uuid4().hex
+        )
 
     def _read_import(self, argument):
         source = self.source_path(argument)
         # Only caller-selected files are read. Imported data is validated and
         # persisted by the component, never copied into its internal directories.
-        with source.open("r", encoding="utf-8-sig") as stream:
-            text = stream.read(8 * 1024 * 1024 + 1)
-        if len(text) > 8 * 1024 * 1024:
-            raise ValueError("Import file exceeds 8 MiB of text")
+        with source.open(
+            SelectedFileImport.MODE, encoding=SelectedFileImport.ENCODING
+        ) as stream:
+            text = stream.read(
+                SelectedFileImport.MAXIMUM_TEXT + SelectedFileImport.OVERFLOW_PROBE
+            )
+        if len(text) > SelectedFileImport.MAXIMUM_TEXT:
+            raise ValueError(SelectedFileImport.TOO_LARGE)
         identifier = self.import_identifier(source)
         if self.spec.import_kind == ImportKind.TEXT:
-            values = {"title": source.name, "content": text, "metadata": {"source": str(source)}}
+            values = RAGDocumentInput.content_source(
+                source.name, text, ImportProvenance.create(source)
+            )
         else:
             values = json.loads(text)
             if not isinstance(values, dict):
-                raise ValueError("Component import must contain a JSON object")
+                raise ValueError(ManagementOperation.INVALID_IMPORT)
         return identifier, values
 
     @staticmethod
     def _entry(identifier, values, version):
-        metadata = values.get("metadata") or {}
-        return {"name": identifier, "label": values.get("title") or metadata.get("title") or identifier,
-                "description": str(values.get("description") or values.get("purpose") or metadata.get("description") or
-                                   values.get("instructions") or values.get("content") or "")[:200],
-                "modified": metadata.get("updated_at", ""), "version": version}
+        return DefinitionSummary.entry(identifier, values, version)
 
     async def list(self):
         entries = []
@@ -83,7 +126,7 @@ class RecordManagement:
 
     async def read(self, identifier):
         snapshot = EditableSnapshot.read(await self.snapshot(identifier))
-        return {"text": json.dumps(snapshot.data, ensure_ascii=False, indent=2), "version": snapshot.version}
+        return EditorRecord.create(EditorRecord.render(snapshot.data), snapshot.version)
 
     async def snapshot(self, identifier):
         return await self.data.asnapshot(identifier)
@@ -97,32 +140,40 @@ class RecordManagement:
     async def delete(self, identifier, version):
         await self.data.adelete(identifier, expected_version=version)
 
-    async def execute(self, action, argument="", expected_version=None):
-        if action == "list":
+    async def execute(
+        self,
+        action,
+        argument=ManagementOperation.EMPTY_ARGUMENT,
+        expected_version=ManagementOperation.ABSENT,
+    ):
+        if action == ManagementAction.LIST:
             return await self.list()
-        if action == "read":
+        if action == ManagementAction.READ:
             return await self.read(argument)
-        if action == "import":
+        if action == ManagementAction.IMPORT:
             identifier, values = await asyncio.to_thread(self._read_import, argument)
             await self.create(identifier, values)
-        elif action == "create" and self.name in ("prompts", "agents", "workflows", "memory"):
-            values = json.loads(argument["text"])
+        elif (
+            action == ManagementAction.CREATE
+            and self.name in ManagedComponents.DEFINITION_EDITORS
+        ):
+            values = json.loads(EditorRecord(argument).text)
             if not isinstance(values, dict):
-                raise ValueError("Component data must be a JSON object")
-            await self.create(argument["name"], values)
-        elif action == "save":
-            if expected_version is None:
-                raise ValueError("Reload the item before saving")
-            values = json.loads(argument["text"])
+                raise ValueError(ManagementOperation.INVALID_DATA)
+            await self.create(EditorRecord(argument).name, values)
+        elif action == ManagementAction.SAVE:
+            if expected_version is ManagementOperation.ABSENT:
+                raise ValueError(ManagementOperation.RELOAD_SAVE)
+            values = json.loads(EditorRecord(argument).text)
             if not isinstance(values, dict):
-                raise ValueError("Component data must be a JSON object")
-            await self.save(argument["name"], values, expected_version)
-        elif action == "delete":
-            if expected_version is None:
-                raise ValueError("Reload the item before deleting")
+                raise ValueError(ManagementOperation.INVALID_DATA)
+            await self.save(EditorRecord(argument).name, values, expected_version)
+        elif action == ManagementAction.DELETE:
+            if expected_version is ManagementOperation.ABSENT:
+                raise ValueError(ManagementOperation.RELOAD_DELETE)
             await self.delete(argument, expected_version)
         else:
-            raise ValueError("Unknown component management operation")
+            raise ValueError(ManagementOperation.UNKNOWN)
         return await self.list()
 
 
@@ -131,32 +182,52 @@ class SkillManagement(RecordManagement):
 
     async def list(self):
         from llm.components.skills import SkillRecord
+
         entries = []
         for identifier in await self.data.alist():
             snapshot = EditableSnapshot.read(await self.snapshot(identifier))
             document = SkillRecord.document(snapshot.data)
-            entries.append({"name": identifier, "label": document.name,
-                            "description": document.description,
-                            "modified": "", "version": snapshot.version})
+            entries.append(
+                ManagementEntry.record(
+                    identifier,
+                    document.name,
+                    document.description,
+                    ManagementEntry.EMPTY,
+                    snapshot.version,
+                )
+            )
         return entries
 
     async def read(self, identifier):
         from llm.components.skills import SkillRecord
-        snapshot = EditableSnapshot.read(await self.snapshot(identifier))
-        return {"text": SkillRecord.document(snapshot.data).text, "version": snapshot.version}
 
-    async def execute(self, action, argument="", expected_version=None):
-        if action == "import":
+        snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+        return EditorRecord.create(
+            SkillRecord.document(snapshot.data).text, snapshot.version
+        )
+
+    async def execute(
+        self,
+        action,
+        argument=ManagementOperation.EMPTY_ARGUMENT,
+        expected_version=ManagementOperation.ABSENT,
+    ):
+        if action == ManagementAction.IMPORT:
             from llm.core.skills import SkillDocument
+
             source = self.source_path(argument)
             if source.name == SkillDocument.FILENAME and source.is_file():
                 source = source.parent
             await self.data.aimport_directory(source)
             return await self.list()
-        if action == "save":
-            if expected_version is None:
-                raise ValueError("Reload the item before saving")
-            await self.data.awrite_markdown(argument["name"], argument["text"], expected_revision=expected_version)
+        if action == ManagementAction.SAVE:
+            if expected_version is ManagementOperation.ABSENT:
+                raise ValueError(ManagementOperation.RELOAD_SAVE)
+            await self.data.awrite_markdown(
+                EditorRecord(argument).name,
+                EditorRecord(argument).text,
+                expected_revision=expected_version,
+            )
             return await self.list()
         return await super().execute(action, argument, expected_version)
 
@@ -176,34 +247,44 @@ class AgentManagement(RecordManagement):
 class DocumentManagement(RecordManagement):
     """RAG changes must update its corpus generation, not generic JSON records."""
 
+    PAGE_SIZE = 100
+
     async def list(self):
-        entries, cursor = [], None
-        while True:
-            page = await self.data.alist_catalog(limit=100, cursor=cursor)
-            entries.extend(self._entry(item["id"], item,
-                           {"generation": item["generation"], "revision": item["revision"]})
-                           for item in page["documents"])
-            cursor = page["next_cursor"]
-            if cursor is None:
+        entries, cursor = [], ManagementOperation.ABSENT
+        while ManagementOperation.ITERATE:
+            page = await self.data.alist_catalog(limit=self.PAGE_SIZE, cursor=cursor)
+            entries.extend(
+                self._entry(
+                    RAGDocument(item).identifier, item, DocumentEdit.version(item)
+                )
+                for item in CatalogPage(page).documents
+            )
+            cursor = CatalogPage(page).next_cursor
+            if cursor is ManagementOperation.ABSENT:
                 return entries
 
     async def read(self, identifier):
         item = await self.data.aget_document(identifier)
-        values = {key: item[key] for key in ("title", "content", "metadata")}
-        values["description"] = item.get("description", "")
-        return {"text": json.dumps(values, ensure_ascii=False, indent=2),
-                "version": {"generation": item["generation"], "revision": item["revision"]}}
+        values = DocumentEdit.content(item)
+        return EditorRecord.create(
+            EditorRecord.render(values), DocumentEdit.version(item)
+        )
 
     async def create(self, identifier, values):
         await self.data.aadd_document(identifier=identifier, **values)
 
     async def save(self, identifier, values, version):
-        if (not {"title", "content", "metadata"} <= values.keys() or
-                values.keys() - {"title", "content", "metadata", "description"}):
-            raise ValueError("RAG documents require title, content, metadata and optional description")
-        await self.data.aupdate_document(identifier, **values, expected_revision=version["revision"],
-                                         expected_generation=version["generation"])
+        DocumentEdit.require_fields(values)
+        await self.data.aupdate_document(
+            identifier,
+            **values,
+            expected_revision=DocumentEdit(version).revision,
+            expected_generation=DocumentEdit(version).generation
+        )
 
     async def delete(self, identifier, version):
-        await self.data.adelete_document(identifier, expected_revision=version["revision"],
-                                         expected_generation=version["generation"])
+        await self.data.adelete_document(
+            identifier,
+            expected_revision=DocumentEdit(version).revision,
+            expected_generation=DocumentEdit(version).generation,
+        )

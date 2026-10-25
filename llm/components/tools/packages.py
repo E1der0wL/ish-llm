@@ -17,10 +17,24 @@ from dataclasses import asdict, dataclass
 from typing import ClassVar
 from llm.components.base import validate_name
 from llm.components.usage import ModelUsageRecord
-from llm.services.infrastructure.storage import (reject_links, make_directory, prepare_replace,
-    temporary_file, sync_directory, unlink_file, atomic_json, read_json, remove_named_tree)
+from llm.services.infrastructure.storage import (
+    reject_links,
+    make_directory,
+    prepare_replace,
+    temporary_file,
+    sync_directory,
+    unlink_file,
+    atomic_json,
+    read_json,
+    remove_named_tree,
+)
 from .process import inspect_tool
-from .package_values import ToolPackageSource, ToolPackageDigests, ToolPackageManifest, ToolRequirements
+from .package_values import (
+    ToolPackageSource,
+    ToolPackageDigests,
+    ToolPackageManifest,
+    ToolRequirements,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,22 +44,22 @@ class ToolPaths:
     SOURCE_SUFFIX = ".py"
     REQUIREMENTS_FILE = "requirements.txt"
     MANIFEST = "packages.manifest.json"
-    PARENT_SEGMENT = '..'
-    WRITE_MODE = 'wb'
-    ESCAPED_PATH = 'Tool package path cannot escape Project'
-    UNDECLARED_STORAGE = 'Undeclared Tool storage exists'
-    MISSING_STORAGE = 'Initialized Tool storage is missing'
-    RESERVED_IDENTIFIER = 'Reserved Tool package identifier'
-    MANIFEST_EXISTS = 'Tool package manifest already exists'
-    UNDECLARED_PACKAGES = 'Cannot adopt undeclared Tool packages'
-    INVALID_MANIFEST_FILE = 'Tool package manifest must be a regular file'
-    INVALID_PACKAGE_DIRECTORY = 'Tool packages must be directories'
-    INVENTORY_MISMATCH = 'Tool packages are missing or undeclared'
-    INVALID_PACKAGE_FILE = 'Tool package contents must be regular files'
-    FILE_SET_MISMATCH = 'Tool package files are missing or undeclared'
-    INTEGRITY_MISMATCH = 'Tool package integrity mismatch'
-    MISSING_PACKAGE = 'Tool package does not exist'
-    INVALID_IMPORT = 'Tool source package requires source and optional requirements'
+    PARENT_SEGMENT = ".."
+    WRITE_MODE = "wb"
+    ESCAPED_PATH = "Tool package path cannot escape Project"
+    UNDECLARED_STORAGE = "Undeclared Tool storage exists"
+    MISSING_STORAGE = "Initialized Tool storage is missing"
+    RESERVED_IDENTIFIER = "Reserved Tool package identifier"
+    MANIFEST_EXISTS = "Tool package manifest already exists"
+    UNDECLARED_PACKAGES = "Cannot adopt undeclared Tool packages"
+    INVALID_MANIFEST_FILE = "Tool package manifest must be a regular file"
+    INVALID_PACKAGE_DIRECTORY = "Tool packages must be directories"
+    INVENTORY_MISMATCH = "Tool packages are missing or undeclared"
+    INVALID_PACKAGE_FILE = "Tool package contents must be regular files"
+    FILE_SET_MISMATCH = "Tool package files are missing or undeclared"
+    INTEGRITY_MISMATCH = "Tool package integrity mismatch"
+    MISSING_PACKAGE = "Tool package does not exist"
+    INVALID_IMPORT = "Tool source package requires source and optional requirements"
     REMOVE_ABSENT_TEMPORARY = True
     root: Path
     project_id: str
@@ -73,6 +87,10 @@ class ToolPaths:
             raise ValueError(ToolPaths.RESERVED_IDENTIFIER)
         return _checked(self.root / validate_name(name))
 
+    def modified_at(self, name):
+        """Display-only timestamp; callers obtain the current package snapshot first."""
+        return max(path.stat().st_mtime for path in self.package(name).iterdir())
+
     def source(self, name):
         return _checked(self.package(name) / (name + self.SOURCE_SUFFIX))
 
@@ -88,7 +106,10 @@ class ToolPaths:
             raise FileExistsError(ToolPaths.MANIFEST_EXISTS)
         if {path.name for path in self.root.iterdir()} != {ModelUsageRecord.DIRECTORY}:
             raise ValueError(ToolPaths.UNDECLARED_PACKAGES)
-        atomic_json(self.manifest, ToolPackageManifest.create(self.project_id, self.COMPONENT).to_dict())
+        atomic_json(
+            self.manifest,
+            ToolPackageManifest.create(self.project_id, self.COMPONENT).to_dict(),
+        )
 
     @staticmethod
     def fingerprints(value):
@@ -98,7 +119,11 @@ class ToolPaths:
         """Owner-local existence and content proof; never import package code."""
         if not self.manifest.is_file():
             raise ValueError(ToolPaths.INVALID_MANIFEST_FILE)
-        manifest = ToolPackageManifest.read(read_json(self.manifest), project_id=self.project_id, component=self.COMPONENT)
+        manifest = ToolPackageManifest.read(
+            read_json(self.manifest),
+            project_id=self.project_id,
+            component=self.COMPONENT,
+        )
         for name in manifest.packages:
             self.package(name)
         actual = set()
@@ -125,8 +150,11 @@ class ToolPaths:
             if actual != expected:
                 raise ValueError(ToolPaths.FILE_SET_MISMATCH)
             source = self.source(name).read_bytes().decode(ToolPackageSource.ENCODING)
-            wanted = (self.requirements(name).read_bytes().decode(ToolPackageSource.ENCODING)
-                      if entry.has_requirements else ToolPackageSource.ABSENT_REQUIREMENTS)
+            wanted = (
+                self.requirements(name).read_bytes().decode(ToolPackageSource.ENCODING)
+                if entry.has_requirements
+                else ToolPackageSource.ABSENT_REQUIREMENTS
+            )
             if ToolPackageDigests.for_text(source, wanted) != entry:
                 raise ValueError(ToolPaths.INTEGRITY_MISMATCH)
             packages[name] = ToolPackageSource(source, wanted)
@@ -163,11 +191,23 @@ def read_source_package(directory):
         if not stat.S_ISREG(_checked(path).stat().st_mode):
             raise ValueError(ToolPaths.INVALID_PACKAGE_FILE)
         files[path.name] = path
-    if set(files) not in ({name + ToolPaths.SOURCE_SUFFIX}, {name + ToolPaths.SOURCE_SUFFIX, ToolPaths.REQUIREMENTS_FILE}):
+    if set(files) not in (
+        {name + ToolPaths.SOURCE_SUFFIX},
+        {name + ToolPaths.SOURCE_SUFFIX, ToolPaths.REQUIREMENTS_FILE},
+    ):
         raise ValueError(ToolPaths.INVALID_IMPORT)
-    source = files[name + ToolPaths.SOURCE_SUFFIX].read_bytes().decode(ToolPackageSource.ENCODING)
-    wanted = (files[ToolPaths.REQUIREMENTS_FILE].read_bytes().decode(ToolPackageSource.ENCODING)
-              if ToolPaths.REQUIREMENTS_FILE in files else ToolPackageSource.ABSENT_REQUIREMENTS)
+    source = (
+        files[name + ToolPaths.SOURCE_SUFFIX]
+        .read_bytes()
+        .decode(ToolPackageSource.ENCODING)
+    )
+    wanted = (
+        files[ToolPaths.REQUIREMENTS_FILE]
+        .read_bytes()
+        .decode(ToolPackageSource.ENCODING)
+        if ToolPaths.REQUIREMENTS_FILE in files
+        else ToolPackageSource.ABSENT_REQUIREMENTS
+    )
     return ToolPackageSource(source, wanted).to_dict()
 
 
@@ -231,7 +271,9 @@ class ToolDependencies:
     PATH_PRIORITY = 0
     PIN = "{name}=={version}"
     AMBIGUOUS = "Ambiguous shared Tool dependency installation: {name}"
-    CONFLICT = "Shared Tool dependency conflict: {name} {version} does not satisfy {specifier}"
+    CONFLICT = (
+        "Shared Tool dependency conflict: {name} {version} does not satisfy {specifier}"
+    )
     MISSING_HOST = "Tool dependencies require the ish host and its PLUGIN_LIB_DIR"
     UNAVAILABLE = "Tool dependencies are unavailable; call tools.prepare() explicitly"
     UNSATISFIED = "Tool dependency installation did not satisfy requirements"
@@ -249,13 +291,16 @@ class ToolDependencies:
             installed[key] = dist
         return installed
 
-
     @staticmethod
     def missing(wanted, installed):
         """기존 설치는 전부 고정한다. extras의 전이 dependency도 확인한다."""
         missing, seen = [], set()
+
         def visit(req, extras=ToolDependencies.NO_EXTRAS):
-            if req.marker and not any(req.marker.evaluate(RequirementEnvironment(extra).to_dict()) for extra in extras):
+            if req.marker and not any(
+                req.marker.evaluate(RequirementEnvironment(extra).to_dict())
+                for extra in extras
+            ):
                 return
             key = str(req)
             if key in seen:
@@ -270,13 +315,19 @@ class ToolDependencies:
                 missing.append(active)
                 return
             if not req.specifier.contains(dist.version):
-                raise ValueError(ToolDependencies.CONFLICT.format(name=req.name, version=dist.version, specifier=req.specifier))
+                raise ValueError(
+                    ToolDependencies.CONFLICT.format(
+                        name=req.name, version=dist.version, specifier=req.specifier
+                    )
+                )
             for child in dist.requires or ():
-                visit(Requirement(child), tuple(req.extras) or ToolDependencies.NO_EXTRAS)
+                visit(
+                    Requirement(child), tuple(req.extras) or ToolDependencies.NO_EXTRAS
+                )
+
         for req in wanted:
             visit(req)
         return missing
-
 
     @staticmethod
     def host_target():
@@ -286,12 +337,18 @@ class ToolDependencies:
             raise RuntimeError(ToolDependencies.MISSING_HOST) from error
         return _checked(Path(config.PLUGIN_LIB_DIR))
 
-
     @staticmethod
     def loaded_target():
         config = sys.modules.get(ToolDependencies.HOST_MODULE)
-        return getattr(getattr(config, ToolDependencies.HOST_CONFIGURATION, ToolDependencies.HOST_NOT_LOADED),
-                       ToolDependencies.HOST_PLUGIN_DIRECTORY, ToolDependencies.HOST_NOT_LOADED)
+        return getattr(
+            getattr(
+                config,
+                ToolDependencies.HOST_CONFIGURATION,
+                ToolDependencies.HOST_NOT_LOADED,
+            ),
+            ToolDependencies.HOST_PLUGIN_DIRECTORY,
+            ToolDependencies.HOST_NOT_LOADED,
+        )
 
 
 # Existing injection points alias the single implementations, including crash tests.
@@ -319,13 +376,24 @@ def load_tool(project, name, *, prepare=ToolDependencies.PREPARE_BY_DEFAULT):
     with ExitStack() as stack:
         if missing:
             from ish.plugin.dependencies import install_dependency
-            pins = [ToolDependencies.PIN.format(name=name, version=dist.version) for name, dist in installed.items()]
-            constraints = pins + [req.name + str(req.specifier) for req in wanted
-                                 if not req.marker or req.marker.evaluate()]
+
+            pins = [
+                ToolDependencies.PIN.format(name=name, version=dist.version)
+                for name, dist in installed.items()
+            ]
+            constraints = pins + [
+                req.name + str(req.specifier)
+                for req in wanted
+                if not req.marker or req.marker.evaluate()
+            ]
             for req in missing:
                 if not _missing([req], _installed(target)):
                     continue
-                stack.enter_context(install_dependency(sys.executable, str(req), target, constraints=constraints))
+                stack.enter_context(
+                    install_dependency(
+                        sys.executable, str(req), target, constraints=constraints
+                    )
+                )
             if _missing(wanted, _installed(target)):
                 raise ValueError(ToolDependencies.UNSATISFIED)
         importlib.invalidate_caches()

@@ -14,11 +14,15 @@ class RetrievalHit:
 
     @classmethod
     def create(cls, chunk, document, context, score):
-        return {**chunk, RAGDocument.Field.TITLE: RAGDocument(document).title,
-                RAGDocument.Field.METADATA: RAGDocument(document).metadata,
-                RAGDocument.Field.GENERATION: RAGDocument(document).generation,
-                RAGDocument.Field.REVISION: RAGDocument(document).revision,
-                cls.Field.CONTEXT: context, cls.Field.SCORE: score}
+        return {
+            **chunk,
+            RAGDocument.Field.TITLE: RAGDocument(document).title,
+            RAGDocument.Field.METADATA: RAGDocument(document).metadata,
+            RAGDocument.Field.GENERATION: RAGDocument(document).generation,
+            RAGDocument.Field.REVISION: RAGDocument(document).revision,
+            cls.Field.CONTEXT: context,
+            cls.Field.SCORE: score,
+        }
 
     @classmethod
     def reranked(cls, hit, score):
@@ -26,9 +30,17 @@ class RetrievalHit:
 
 
 class RetrievalSource:
-    FIELDS = (RAGChunk.Field.ID, RAGChunk.Field.DOCUMENT_ID, RAGChunk.Field.SECTION_ID,
-              RAGChunk.Field.HEADING, RAGChunk.Field.TEXT, RAGDocument.Field.TITLE,
-              RAGDocument.Field.GENERATION, RAGDocument.Field.REVISION, RAGDocument.Field.METADATA)
+    FIELDS = (
+        RAGChunk.Field.ID,
+        RAGChunk.Field.DOCUMENT_ID,
+        RAGChunk.Field.SECTION_ID,
+        RAGChunk.Field.HEADING,
+        RAGChunk.Field.TEXT,
+        RAGDocument.Field.TITLE,
+        RAGDocument.Field.GENERATION,
+        RAGDocument.Field.REVISION,
+        RAGDocument.Field.METADATA,
+    )
 
     @classmethod
     def from_hit(cls, hit):
@@ -36,10 +48,13 @@ class RetrievalSource:
 
     @classmethod
     def from_document(cls, chunk, document):
-        return {**chunk, RAGDocument.Field.TITLE: RAGDocument(document).title,
-                RAGDocument.Field.GENERATION: RAGDocument(document).generation,
-                RAGDocument.Field.REVISION: RAGDocument(document).revision,
-                RAGDocument.Field.METADATA: RAGDocument(document).metadata}
+        return {
+            **chunk,
+            RAGDocument.Field.TITLE: RAGDocument(document).title,
+            RAGDocument.Field.GENERATION: RAGDocument(document).generation,
+            RAGDocument.Field.REVISION: RAGDocument(document).revision,
+            RAGDocument.Field.METADATA: RAGDocument(document).metadata,
+        }
 
 
 class CatalogCursor:
@@ -63,13 +78,22 @@ class CatalogCursor:
 
     @classmethod
     def create(cls, identity, generation, after):
-        return {cls.Field.IDENTITY: identity, cls.Field.GENERATION: generation, cls.Field.AFTER: after}
+        return {
+            cls.Field.IDENTITY: identity,
+            cls.Field.GENERATION: generation,
+            cls.Field.AFTER: after,
+        }
 
     @classmethod
     def schema(cls):
-        return {SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
-                SchemaKeyword.REQUIRED: list(cls.FIELDS), SchemaKeyword.PROPERTIES: {
-                    key: {SchemaKeyword.TYPE: SchemaType.STRING} for key in cls.FIELDS}}
+        return {
+            SchemaKeyword.TYPE: SchemaType.OBJECT,
+            SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
+            SchemaKeyword.REQUIRED: list(cls.FIELDS),
+            SchemaKeyword.PROPERTIES: {
+                key: {SchemaKeyword.TYPE: SchemaType.STRING} for key in cls.FIELDS
+            },
+        }
 
     @property
     def binding(self):
@@ -94,10 +118,18 @@ class CatalogRequest:
 
     @classmethod
     def schema(cls):
-        return {SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
-                SchemaKeyword.REQUIRED: [cls.Field.LIMIT], SchemaKeyword.PROPERTIES: {
-                    cls.Field.LIMIT: {SchemaKeyword.TYPE: SchemaType.INTEGER, SchemaKeyword.MINIMUM: cls.MINIMUM_LIMIT},
-                    cls.Field.CURSOR: CatalogCursor.schema()}}
+        return {
+            SchemaKeyword.TYPE: SchemaType.OBJECT,
+            SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
+            SchemaKeyword.REQUIRED: [cls.Field.LIMIT],
+            SchemaKeyword.PROPERTIES: {
+                cls.Field.LIMIT: {
+                    SchemaKeyword.TYPE: SchemaType.INTEGER,
+                    SchemaKeyword.MINIMUM: cls.MINIMUM_LIMIT,
+                },
+                cls.Field.CURSOR: CatalogCursor.schema(),
+            },
+        }
 
 
 class CatalogPage:
@@ -116,12 +148,20 @@ class CatalogPage:
         return self._value[self.Field.DOCUMENTS]
 
     @property
+    def next_cursor(self):
+        return self._value[self.Field.NEXT_CURSOR]
+
+    @property
     def has_more(self):
         return self._value[self.Field.NEXT_CURSOR] is not self.NO_CURSOR
 
     @classmethod
     def create(cls, documents, generation, cursor):
-        return {cls.Field.DOCUMENTS: documents, cls.Field.GENERATION: generation, cls.Field.NEXT_CURSOR: cursor}
+        return {
+            cls.Field.DOCUMENTS: documents,
+            cls.Field.GENERATION: generation,
+            cls.Field.NEXT_CURSOR: cursor,
+        }
 
 
 class RAGToolResult:
@@ -137,12 +177,18 @@ class GraphReadiness:
 
     @classmethod
     def incomplete_documents(cls, documents):
-        return [identifier for identifier, doc in documents.items()
-                if RAGDocument(doc).graph_incomplete_observation]
+        return [
+            identifier
+            for identifier, doc in documents.items()
+            if RAGDocument(doc).graph_incomplete_observation
+        ]
 
     @classmethod
     def create(cls, incomplete):
-        return {RAGDocument.Field.GRAPH_COMPLETE: not incomplete, cls.INCOMPLETE_DOCUMENTS: incomplete}
+        return {
+            RAGDocument.Field.GRAPH_COMPLETE: not incomplete,
+            cls.INCOMPLETE_DOCUMENTS: incomplete,
+        }
 
     @classmethod
     def attach(cls, graph, status):
@@ -156,5 +202,10 @@ class CombinedResult:
 
     @classmethod
     def create(cls, query, hits, graph, sources, incomplete):
-        return {cls.QUERY: query, cls.DOCUMENTS: hits, **graph, cls.SOURCES: list(sources.values()),
-                **GraphReadiness.create(incomplete)}
+        return {
+            cls.QUERY: query,
+            cls.DOCUMENTS: hits,
+            **graph,
+            cls.SOURCES: list(sources.values()),
+            **GraphReadiness.create(incomplete),
+        }

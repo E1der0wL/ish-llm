@@ -10028,3 +10028,40 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 26파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## Hub Component·Memory·Tool 관리 명령과 편집 Projection
+
+Backend 관리 코드의 명령·편집 응답·목록 Projection·명시 파일 import 규칙을 각 Host Owner로
+모았다. MemoryEdit와 DocumentEdit는 기존 공개 레코드의 편집 필드/버전 관측만 제공하며
+검증·CAS·실제 저장/삭제는 기존 Component Data API가 수행한다. CatalogPage는 현재 페이지의
+next_cursor 관측을 제공한다. ToolManager가 package 디렉터리를 직접 열어 수정 시각을
+계산하던 부분은 ToolPaths.modified_at으로 이동했고 snapshot 검증 뒤 실행 순서를 유지했다.
+원본 import 파일·SKILL.md 디렉터리·generation/revision·Session 범위·활성 Tool 해제 순서는
+변경하지 않았다. MemoryManagement.fields의 기존 확장 지점도 유지한다.
+
+원본/제안의 독립 프로세스 120개 관측과 실제 Owner를 확장한 7개 구현 AST가 일치했다.
+누락/None/falsey metadata와 편집 토큰, JSON 오류, 8 MiB 초과, identifier 경계, 실제 파일 효과,
+Skill Markdown import/edit, RAG 페이지/필수 edit 필드, Memory Session 참조, Tool 수정 시각과
+삭제/열기/내장 Tool 분기를 비교했다. 외부 AST 비교의 상수식 정규화 누락을 수정했고 최초
+비교 실패 자료를 보존했다. 제품 테스트·안전성 Assertion·저장 형식은 변경하지 않았다.
+
+- `whole-hub-management-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.003796초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-management-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `891ae1c51395b81da73fa9f60539796bb7b1f5a241fadabd5b46c720e8f38faf`, input `475ad6eb0103d5ed20dc2d82354145549567cfa1b488471e8cf7ccce09dd07d2`.
+
+- `whole-hub-management-l1-llm-01`: discovered/started/pass 107/107/107, exit 0, 61.201175초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-management-l1-llm-01/llm.json --modules tests.llm.test_memory_component tests.llm.test_memory_history_integrity tests.llm.test_tool_packages tests.llm.test_tool_package_integrity tests.llm.test_rag_storage tests.llm.test_agent_skills tests.llm.test_skill_packages`. source `891ae1c51395b81da73fa9f60539796bb7b1f5a241fadabd5b46c720e8f38faf`, input `475ad6eb0103d5ed20dc2d82354145549567cfa1b488471e8cf7ccce09dd07d2`.
+
+- `whole-hub-management-l1-01`: discovered/started/pass 12/12/12, exit 0, 32.885905초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-management-l1-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_memory_manager tests.hub.test_usage_definitions_system`. source `891ae1c51395b81da73fa9f60539796bb7b1f5a241fadabd5b46c720e8f38faf`, input `475ad6eb0103d5ed20dc2d82354145549567cfa1b488471e8cf7ccce09dd07d2`.
+
+- `whole-hub-management-l2-01`: discovered/started/pass 51/51/51, exit 0, 198.145452초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-management-l2-01/hub.json --modules tests.hub.test_components tests.hub.test_rag_jobs tests.hub.test_rag_extensions tests.hub.test_rag_retention tests.hub.test_creation_contracts tests.hub.test_shell_environment tests.hub.test_resource_tools`. source `891ae1c51395b81da73fa9f60539796bb7b1f5a241fadabd5b46c720e8f38faf`, input `475ad6eb0103d5ed20dc2d82354145549567cfa1b488471e8cf7ccce09dd07d2`.
+
+R3 Mutation exit 0. 발견/실행/pass 일치, failure/error/Skip/xfail/xpass/누락/추가/중복 0,
+source/input 전후 및 실행 간 동일, suite별 선택 ID 중복 0을 확인했다. 공통 안전성과 Memory
+Component/이력·Tool package/무결성·RAG 저장·Skill 정의/package, 실제 Hub Component·Memory
+관리·사용량/정의·RAG Job/확장/보존·생성·shell·resource 소비자를 포함한다. Python 3.12.14/Clang,
+Host d833790, 정상 namespace(NoNewPrivs=0), 고정 의존성이다. 실제 argv/exit/hash와 비교 결과는
+`hub-management-draft`에 보존한다. S1–S7·감사·문서 검사도 통과했다.
+
+Level 1·2 로컬 완료다. 관리 응답 Owner의 UI 소비자는 아직 남아 있으므로 해당 공유 계약을
+미완료로 등록했다. 관련 RAG/관리 화면 전환 후 통합 Level 3를 실행하고 검증한 SHA만 Push한다.
+앞선 전체 결과를 현재 변경의 전체 검증으로 재사용하지 않는다. 원본 보존·CAS·승인·예산·효과·
+Checkpoint·Resume 안전성은 현재 계약과 기존 Assertion을 그대로 유지한다.

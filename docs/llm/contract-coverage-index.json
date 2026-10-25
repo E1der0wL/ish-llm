@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 636,
-    "unreviewed_files": 12,
+    "files": 637,
+    "unreviewed_files": 9,
     "stale_files": 0,
-    "unclassified": 750,
+    "unclassified": 542,
     "violations": 0,
-    "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 12,
+    "incomplete_contracts": 19,
+    "unreviewed_dynamic_paths": 9,
     "unreadable_files": 0,
-    "candidates": 15661,
+    "candidates": 15519,
     "issues": 0
   },
   "files": [
@@ -374,10 +374,16 @@
       "candidates": 30
     },
     {
+      "path": "hub/backend/project/management_values.py",
+      "status": "reviewed",
+      "sha256": "1131a526b9a180c9a3afcf5a4c56cd047df6c5ec554d0e47067044acb279b892",
+      "candidates": 45
+    },
+    {
       "path": "hub/backend/project/memory_management.py",
-      "status": "unreviewed",
-      "sha256": "a657d6ffdfd78ff819fcc25b99f89ca08b2a7035d6bcffd06ea92a95ce0f7454",
-      "candidates": 37
+      "status": "reviewed",
+      "sha256": "5d86d9ef3be25c2c5873ea31e07f4d813efba3ed7da796e34d5b3377d235cc60",
+      "candidates": 2
     },
     {
       "path": "hub/backend/project/naming.py",
@@ -411,9 +417,9 @@
     },
     {
       "path": "hub/backend/project/record_management.py",
-      "status": "unreviewed",
-      "sha256": "47889e51403cccf4ba888306d4a37e4b90a6ab2d08e55e57e4879165f61fc0fe",
-      "candidates": 121
+      "status": "reviewed",
+      "sha256": "3d2c8a27536d369d77573ed3e322257710012380690a32ddb7af4f0c24f9d04f",
+      "candidates": 1
     },
     {
       "path": "hub/backend/project/settings.py",
@@ -495,9 +501,9 @@
     },
     {
       "path": "hub/backend/tools/management.py",
-      "status": "unreviewed",
-      "sha256": "134b068182c698d11695021bf366aef4a8f83adc298322c12cba9aa0f65d9563",
-      "candidates": 50
+      "status": "reviewed",
+      "sha256": "1e3a4e3f0e7ac58c0b144a0d45de12191d5dafaebe21ea57d35512be22b04f97",
+      "candidates": 16
     },
     {
       "path": "hub/backend/tools/paths.py",
@@ -1882,7 +1888,7 @@
     {
       "path": "llm/components/memory/records.py",
       "status": "reviewed",
-      "sha256": "aea3229621787482fcf2352fa12d2e50c0844ed7ea999a3fad5c04577e1ed876",
+      "sha256": "783fa73d48ea3acee61eec2f7ae4cc81fa73498997218a6f77ee623263c0ca8f",
       "candidates": 51
     },
     {
@@ -2056,8 +2062,8 @@
     {
       "path": "llm/components/rag/document_views.py",
       "status": "reviewed",
-      "sha256": "159cf705bc90e2f30c1be1c0db344b1a470b460c454387816205283faffb468b",
-      "candidates": 5
+      "sha256": "dbb75e6903a3332609c487d07ccb70d3b0aae745894eb373abca4c798e846a19",
+      "candidates": 7
     },
     {
       "path": "llm/components/rag/embedding.py",
@@ -2182,7 +2188,7 @@
     {
       "path": "llm/components/rag/retrieval_records.py",
       "status": "reviewed",
-      "sha256": "85c45bb74fa7cb20405a929746608371009bd1f14ae261bbfc066e3d3843d48c",
+      "sha256": "6604685a99d285aaae78658775a91e71962389f70668e602948e1f327c126e90",
       "candidates": 22
     },
     {
@@ -2512,7 +2518,7 @@
     {
       "path": "llm/components/tools/packages.py",
       "status": "reviewed",
-      "sha256": "ad7dab48c35e46b31f32825c7892146b52f19f63fb3fc0be2ca76b67800b8b7c",
+      "sha256": "7799ba5a6262375d93574268d9edac84ef930eca3985c918a9db5c940df2e432",
       "candidates": 41
     },
     {

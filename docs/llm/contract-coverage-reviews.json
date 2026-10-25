@@ -5417,252 +5417,252 @@
   },
   {
     "path": "llm/components/tools/packages.py",
-    "sha256": "ad7dab48c35e46b31f32825c7892146b52f19f63fb3fc0be2ca76b67800b8b7c",
-    "reason": "Read every class/helper and the Component, ToolData, parent/child inspection, host installer and fault-injection consumers. Stored source/manifest values use their existing typed Owners; only dynamic package/distribution maps remain dictionaries. Metadata/marker/Host fields are handled solely at their external boundary. Original bytes, missing/empty requirements, pin/extra semantics, explicit preparation and storage commit order remain. No execution literal candidates remain beyond dataclass flags.",
+    "sha256": "7799ba5a6262375d93574268d9edac84ef930eca3985c918a9db5c940df2e432",
+    "reason": "Read every class/helper and the Component, ToolData, parent/child inspection, host installer and fault-injection consumers. Stored source/manifest values use their existing typed Owners; only dynamic package/distribution maps remain dictionaries. Metadata/marker/Host fields are handled solely at their external boundary. Original bytes, missing/empty requirements, pin/extra semantics, explicit preparation and storage commit order remain. No execution literal candidates remain beyond dataclass flags. Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "124b5a70b6b1c5b98020a943506eeb86d586db336a387bfcffb277d0eab41470",
+        "id": "42488ad26455fda054f8e440025be961d154dad613f9ba4cfe9eddbb310e4761",
         "classification": "non_contract",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
       },
       {
-        "id": "f4e4bf62b83fe8b02b56d9b22e0b9e06c92272ab268a360d5ba19e2f063c2456",
+        "id": "fbcd41e482b995529489a89fb5ba1eeb470ce1da6afb9d3ded19ac8c543b22ed",
         "classification": "non_contract",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
       },
       {
-        "id": "d33fcdf8d3306c440c0b0788f6f8f1911a258c5b8652ede80abea6245ec6af4a",
+        "id": "2011b81a30031219bf834a44ac44e60e2cdc25fbf8683ec1392c0b792f70f578",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "7c436754111bd2b7c5585281cafca48b2c1daf71102cf67620cf6ddb3f9105b1",
+        "id": "c0eddac71b58c5b499d86b39af0efe8ec226d164680be1f157a3733fbeadfb2d",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "7fd5b2b6d823f3fb71e7dfa9709f22753ece110b75341b6f4b3d4127b70b3695",
+        "id": "c76b7e2308fa503c5f71fe4790125682e30321a99c6d07156123b5906d76aba4",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "96e647c202a8bdc95e9601af13290117f330a2a6484897c5b9553cf9662964f5",
+        "id": "c2be5b6073d7e4d9853e51a791e62c96abab1d29cf63d3394c1c1f18aaa76f4c",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "0e55f6153c9363b654534263b6f251c6f3967cbddf62045577fb1b2a3afb352e",
+        "id": "04d950711b97b076d7b8ad3d7e4d92e95f9be7730ca3cf6fd7f706d340575551",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "a249bb47cc1b337681600d3c7c52a143c29f6976891f3a2284dd5020ec64c182",
+        "id": "3b8de05c02dca57082a092a6a696236645c287b605d72d4a490ababb94d526da",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "f798db2674b3156629b2cdb0cf4199f0169a38a2211a7a74615f983e2ed6c51e",
+        "id": "c59e99b1baae3995b551128c15452ca515a15ed4a0d1c24d250a97bc5cf0ddbc",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "59160d6e321b6cf9222e33c5cc53d106138254ea5969de72427ee79cfc3099c0",
+        "id": "94475ac4020b85ae59f59eaa8230019ee22077e189153ef63ae248aae58680dd",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "d63950d4956f9edb685fb0023f9f595a20f66ab3c4d2b48a2879372317e8a9bc",
+        "id": "f4d836979d7d3198a7c426530ac98a5c20fe4fd307b305f174844cf5fd0f9c57",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "5dacc0f0df7e16f5872a3d545c4f0ef60fb4961732d4d3b644a3ca4e2cfa2d20",
+        "id": "e77b88badc0efc4cb0d87b12f5126cb15c0022a9a023f16581e07da028ee028c",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "a9e4643df6b482f91079573bdc3b10bb7369ffc1a5519e796a802c392b4958df",
+        "id": "1c125b8fa276a5096b6260071f775564daaf2e87138ea894ba28c71084789c40",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "a4abd7bc0cb70d5b9f5f18c3c6cf5532cf48fbd6a11e5178a295baea2767d5c6",
+        "id": "7e37753dd1d339931ff0cebe61dffd969b54dadb118eec5e982cef14f0b19425",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "99daaa82199592fae41ddc6dc6f74affcd77138e0bd243c7c0021d703b0f13b7",
+        "id": "2a10778dba92a5e60b048526639ab7c5040c76a2ca0e30472cbbe6e649b0e324",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "f27046a4d907817b69a24eb46190c8ebd593f197653433eb327ee79834102a0a",
+        "id": "a907f5d5b25a415a1e6d05201e2d1afd31d7013191f8ad0c301365f38947effb",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "50e2b130606e00acb8449159d89864538e303dc819ed304f9136cd7d2ba025b0",
+        "id": "18efa9140c8873b0c5160c0d5e4adcd5d9431f3107410cada0d8c2903428862a",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "a5882bd530a03c69c43d533932e81059e6afe579c1d4e77c21463eb11c84e708",
+        "id": "f97040dd39ff79c3bcaf58a0e5376f5c82204353db64c3bff266db104f2afbf6",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "ab386144bc9656420fa44d85321fd7fcfc936dc442a70065f10a9c9694cbadd2",
+        "id": "6f963035c24074a13737689cc8344e82d7c83525a6ce7f9264db12184c45c4ff",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "c8ee98af67c1e00e6568ed11a43385620b85f20b53110f47ab8791584b779b20",
+        "id": "75c13e3b0353a3041d39d3fbfaf78b4f8bfbef1df4ec2abe034b1abc0458cf85",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "03edf24411c8a00da19b063992f0ea4bac2f1969bad616d66357d6154007ecc8",
+        "id": "1809e0a4c3d90ef9317cabb60515ac04d82b39e0a1401cae2d95c8a7638e51c4",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "4a0fcfdbdfb6067f9ef07bbf5b08e56e622ff906ac2eee180af4d8da40c6446e",
+        "id": "24de786defc5e108149ea48a146e0bede479f61f65fb574eda546606ca11e464",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "1f879e2a22eae217bc298b80da82ffb0b41d8b9d67a5645d821527c7fb638d7b",
+        "id": "82d58b544e0a056e3d8ee6ce75a47bfdc3585a190c2dfb61fba9c823200748e9",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "0b769ad1d5c6e751ca35a334b00de4f7c851334112b0c45eecb95143fa0359ff",
+        "id": "03ccea6f81ff25ac714be6961fb47acd02320b1bb146b390e0da47804ee55fda",
         "classification": "non_contract",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
       },
       {
-        "id": "a9a0cc1098e693a5b29c5a743bc36a3e9e7867967c73a3969c02b2ba6af42210",
+        "id": "29ec78b3b829b37872a4dbf8d151e98897880bc39e5872db26d842a61932a5b9",
         "classification": "non_contract",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Dataclass frozen/slots generation flags are Python class mechanics; storage and preparation policy values are separately declared by the actual Owner."
       },
       {
-        "id": "8cff2b6f2576070408b6af42f2a343b146e296840ec5251f9737765dfc6f4755",
+        "id": "cc786be98d1f575a1f907597c331d56f0eff3461b0f570fd1e0a7bd7cb2fb200",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "0822da958401383937b5e15daa3eaaa72819d1dd8109fb27c802bbeec685a10a",
+        "id": "16b3a137dc3839d3cdc519bd9bcf4900acdbedc67559fdd8f65e6ad5a9c7900c",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "6849dc15e03f7ea50bb1f8e7e3e8313e5b845e3754ebb8f12d188f9234ebe1a7",
+        "id": "ceb222a1fb2bdf8d4f8c905b9f5501c20f62e4b33f4d61c26d000b73421cc02a",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "cbdaa01d34e4320b212d84dbada3c2e66a6bbc2bfee431cb6c8efd7447e19e42",
+        "id": "e5ff4cee4dca7ff1fe2192cccd665dbc59bfde30290406d77ca9555ad36fa719",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "39f871d51aa10294eb7fbd8740255cce40b3185883f1fa2aeb48213d1ce6930a",
+        "id": "84e401401340ff3a89bad086bde703c57dd2d05bc24456f96f6287d7e83b568f",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "d6f728555b006740f6de5828ee596d6d0f7d69e525a46e68ac0603033cb40a88",
+        "id": "d3cec9d66d5dcae8119c7eecfe7a41b259236b87d83f64112878f82bf27d5e48",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "e35f69c40092ca63e067c92f6d3fb3e04dcb9f86b2a01997a6a70669b469f255",
+        "id": "b126be147c27c6879e1a7598074ac96edf454a35715d6a16d2503950850501fc",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "dbea25d05108b67ecc825da074a3f22a1ec7a21cd5b3d1275af68cbdd8f17c7e",
+        "id": "d610ddf16ae65249b5e53ac783676111f71477ca0c9831373b8428cf2ca5cc2f",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "88ed514c371ab53670a6a71922e13baf3260e20572f859f0e2f06a72f9a90aa6",
+        "id": "d4a817030bc79afb733710165465d25c7d3192e71e47e07f03171ed1491c2a26",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "97a291ee3898bd8ae3a3f50925414203dc9ac8a970abb73d88e97f7a7a1fd56f",
+        "id": "6d24d3b5a2cdef1f178fe87803fd4913c92cec5aef0de809c448e99c604027ce",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "50468730c179a4b5481f10677690a3bb1ac850df2197e71f74de2734de512dad",
+        "id": "dfb187e77f5c971979c823b3c48cf052246333ed5bf2066442a9b5f0d12bbc6c",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "697a39b123ed1737819ed8b314beb58227d21b779512416cd7e36df0bff8ca39",
+        "id": "6d8ae7ad4bf6da01113a65dd4c7081d875852e42a335b2fc61b5f13b58ab7787",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "4c5d21dcfa8b48a9141a41e21e0589559ac8ae7695cd148ebc2535552a821177",
+        "id": "e5e52dae8211f302a4e9f5204a6420b0e6dbfb81f555e2fa91bc76d4b2e7a338",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "eb6a9e04866242e157c150447f9e1b5df16857fa7996eeed15e121fd9437a81f",
+        "id": "71c376c0a41a49970779a44e11d367df90dfd12c58c191da1f5e7635713ee2e8",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "676b7b6ce072e7e470f4e44671786e7ad5ddd1f33b5aa279960cb45ffbe0bcc0",
+        "id": "bfd23c26d8785f0b2cbc7ca3f7441819ba6555d186eabbd8628e5f8f44610471",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
       },
       {
-        "id": "ce4e54a21abba5669f6e179dab0cff5f3bfc273f3e86ca3c5655e06defe8f9e2",
+        "id": "301c63efdeae5076ea854a01e2ff2539c48a89e9620dc0fe64a527285c9c1106",
         "classification": "declaration",
         "owner": "ToolPaths / ToolDependencies / RequirementEnvironment",
         "reason": "Package storage or dependency boundary declares its own path/encoding option, diagnostic, marker/Host/distribution wire vocabulary and missing/explicit-prepare semantics before implementation."
@@ -5673,18 +5673,42 @@
         "owner": "Tool package storage and shared dependencies",
         "declaration": "llm/components/tools/packages.py",
         "consumers": [
+          "hub/backend/project/memory_management.py",
+          "hub/backend/project/record_management.py",
+          "hub/backend/tools/management.py",
+          "llm/components/tools/_worker.py",
           "llm/components/tools/component.py",
           "llm/components/tools/data.py",
-          "llm/components/tools/_worker.py",
-          "llm/components/tools/process.py",
-          "hub/backend/tools/management.py"
+          "llm/components/tools/process.py"
         ],
         "tests": [
-          "tests/llm/test_tool_packages.py",
-          "tests/llm/test_tool_package_integrity.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_packages.py",
           "tests/llm/test_tool_workers.py",
-          "tests/hub/test_interaction_updates.py"
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -46896,312 +46920,312 @@
   },
   {
     "path": "llm/components/memory/records.py",
-    "sha256": "aea3229621787482fcf2352fa12d2e50c0844ed7ea999a3fad5c04577e1ed876",
-    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete. Consolidation metadata and journal consumers are now connected to the dedicated operation Owner. Direct Record field reads across Component/Data/Processing/History/Tools/extraction/consolidation were rechecked: remaining identity-file and model Tool-call id fields belong to separate contracts, not MemoryRecord. This closes the recorded cross-consumer Record follow-up, without claiming those complete files are reviewed. Data/Processor closure: all existing methods in these support Owners are AST-identical (107 total). Shared name references retain the same public value; the added Source.bind_step writes only the canonical existing field, with independent mutation/error checks.",
+    "sha256": "783fa73d48ea3acee61eec2f7ae4cc81fa73498997218a6f77ee623263c0ca8f",
+    "reason": "Read the complete Owner implementation and changed Component, Data, consolidation and processing consumers. Original schema wire order, missing-field/error/cause order, exact revision types, state transitions, CAS and source/record deepcopies are preserved. Component retains locking, IO, time/ID generation and its existing extension callback boundaries. History delegates only consolidation-owned deletion metadata back to that Owner. Differential malformed-record, history, callback and projection checks plus real file integrity/fault tests pass. The Record Owner file is classified, but the whole cross-consumer contract remains explicitly incomplete: extraction-candidate creation and Tool schemas/argument projection still require connection. This record does not claim those unreviewed consumers are complete. Extraction and Tool candidate projection consumers are now connected. History uses Record typed properties and transition projections rather than foreign raw keys. Full old/new history checks were repeated on this source. Remaining consolidation and other unreviewed consumer paths are not claimed complete. Consolidation metadata and journal consumers are now connected to the dedicated operation Owner. Direct Record field reads across Component/Data/Processing/History/Tools/extraction/consolidation were rechecked: remaining identity-file and model Tool-call id fields belong to separate contracts, not MemoryRecord. This closes the recorded cross-consumer Record follow-up, without claiming those complete files are reviewed. Data/Processor closure: all existing methods in these support Owners are AST-identical (107 total). Shared name references retain the same public value; the added Source.bind_step writes only the canonical existing field, with independent mutation/error checks. Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "bbffd5d1881ef82a6235c430a2f85cd2a56516fb456b34412395b16bc6960e5e",
+        "id": "8c91dbc6cec76adff440d79b43ffcb6c15f03d71ee7e0e3239e90e92bb3d016f",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "7c8f645b20af16941f21eb314eda0f5089660b1cc92508d9d1dbf226495d7b67",
+        "id": "c40f5a4eaf49673ca4355649572ce0f8eea40b6c32f5b7b93f711130171c7f40",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "76b4b32736b0b552437589ffb2fdf802e3e7d769b93b18a77ecd54000086edbd",
+        "id": "50f75aa0788826452e6b04e42183ed10509eb848a9840cf57f57137edc910ac8",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a1d54f5a4dba083f1f453392a72b34259db05223d2fa2831d1a11e7b6ae89674",
+        "id": "2cd9a9fc9159c7b309c297afe5d2158a60b78b30a2d8ddac997a1e98823c00e8",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "5922364ae5072f67c525190c358e8324bc339168daed904e9ffaebe8c5788141",
+        "id": "b4baa4b1ddfbe8061dca9a0d542552e95b469fcd84cbf6cc77981205f9e3b88c",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "6e80437b5fb97448167a08054bdf0412b542dcef1b3f4f0e21e28408114c50e3",
+        "id": "c7bc045a8e222c1b8d534b1724c265c4e021480944f324c358adc8b515891227",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "bdb79d4294b59775326e210543d1f048ba7f28a18c606e4c1130c580ddbe4ba4",
+        "id": "40965ac93cbe84ef31c66fbcb5492e33fc4c9205949caa70f3f8a9f2556ad05a",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "1d2f9bb04f2793cedcf10fb7a97b54a9ce21280acd78e004530f6bb508dbb5e0",
+        "id": "6d54118613920afe4529dfa18f049b8c9b6c193900579d5cc7b088639e5f5e5e",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "d5c5fe53d4a76a5f2436457c89b0e6dcdfb2df79d2c5d972030ea6c5a44fc81d",
+        "id": "bd2133ec6722f51b13f8b9bdec78f5fe6e53ccb21d24763df3b10dd9c67bc255",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "3f3d0d3cdd20506c19aaa0c0d327fe17ff69e64e150fe995f1d3fadce92a2702",
+        "id": "7bf9b8d2f15a600e91b4b0c926bfbab012acac368056f873ccc149567b8bdfc6",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "22e768da1afb2f06fe08b08fa0f3c69a0974a8b8a7050d47cf3e631a1f821c78",
+        "id": "484f7c03376af0d738cd3ffc9e29d9b8e3787e917078c0a274823f8bdca9329a",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "8bcb3115bfef1cd50f2ea9ff4abd6c38d6fa62f28489477453c265669db4bc83",
+        "id": "f2140667793a5532958ec4ee99421693ebfd036bdf09d9aa703872a0b3905cc9",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "fdeb5403863f49d639c204a2302cd804ee3a681f0ca6a9f2502fae68572bd06d",
+        "id": "086859c255d61a165167aa50e8ffe1e6071a3bf32b7653700690c67c0c538052",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0e3399f0f8f9a549bf2db244349d8bdd61131ee84f416ad8d3133aa3401ed4b1",
+        "id": "b38371458192e91634b5e328bfab9d288947bb1e226b77db1a7675093ee3db5c",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "52d51fb074ae3064eac365ec54ec30b799f7f7719f37d37e9a8fb35c25159a64",
+        "id": "51b7c7bffd1a3fe4b729b5c3fd200104098d8d36fb4efd4b943ead5fa9b36282",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "24da4d39bb34b50066d5a1f9613044eec2a0d7e4e5cc3ec0676e18871a32ed78",
+        "id": "1fdd23a8a7c2a0303098ed08db9038d18c93960e42c0f4b8a9d530c8808fce92",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0eb10dacb6d84acc4d225efdc94290d51e6436dfb0313c06b1bbcc8897145ec7",
+        "id": "a11f922778c81b222031dfc442447bbf3f56e8f9400f09db77148f67da3895f6",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "31c2d6382598911ddab949c5efd31934a278ea225c1b8872874a15c5ef2f97f0",
+        "id": "7e36390dcb3278497a5bec7a379ccefde817583933f70e10b4bb6ada1ca155c9",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "2c18dcf4a3dbfe57d8073132e18cff0c72d9b99f7584f9ad6a0eda9e1e84dc89",
+        "id": "9a9844922d2b17bb8be9d8ed8721bce62a1ac9ec7046d3f7f3cc24c02c001488",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "2b10475ba8bcc92732c898eac36dc8da0d0fba82cbe59935b87e51368618821f",
+        "id": "0e57d1523f547c37447b8b04adff30b2ce6b328f45943f96021ebd0d2a6243e1",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a80aaf33bec2985de51ad0992527c49b6491f9a2005a50af8f8ff4d684efea1a",
+        "id": "82cc340cc8d5a14eb0fd7b0fc4be5352be24e1c8d712ce0bd85192060e26d367",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "e3e606054b2551c90ae0fedbbe2d436dbfba2d0ec55b62bf2ebb3688ce3c0484",
+        "id": "25b53257fb22c0571143ca9730fe3f922680961b5f34c872ce5d1c902b6f01e8",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "c34fd25aad55823f0e2814c4e9efb6bb1b1db1ae6ae45764cc7708929b56c6c5",
+        "id": "5dd5a5e7c8837f2e42ef9af302322fd79ac9bc4a67339292c04ab8eab9d99735",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "5dadb5898e140ba9597241b15b6343ea61bf9837b441a9523ec82ec081305bcd",
+        "id": "b2aa61825f106bac7fdd8935826bf0f0e060376933caf1df6e702c678f20e05d",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "ed8e622d9f81f676dd49a6b066641ded014de75881095a9b05b9413ba8e3c4d2",
+        "id": "dfa1a694e5e6349e2ed8efed1ec3ae3ab2dea46b685f5768b834c40f4d016c52",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "311b2eea55ef1bc26e8f9c47c514085325bfb41bdfd2ec63944d1a00a35fb8b5",
+        "id": "3dc84a1f68e337e5f5440ef37cfcc3ce93982afda98de35ab5824d5d19b024a1",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "2ade834798c54f1b950ca267f9717bc170c726a08ea9472b4527a50a9efbb863",
+        "id": "9cb066e091f2746092e41cfd00d1e137605fe894908fa4caef1e779d0dc32fcf",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "430d3b8dbb9956bfd74f49339215053e48c50d4513d6b347a84242f9b9054604",
+        "id": "55f338f618bc1a323b6af25fb3fe8f3f7b57295e5adf2066ea8145f2da47cd58",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "be0a4bf65e07067515d61712e8c291409c1f77d709beb1799cec39cc600e2d21",
+        "id": "46cfa0e1a908e833766d98926c2a1439224a1b67802afbc793434a5414c8b4d9",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "a192fe8be2416b4a886d05d2c1fa6c9b62bc1b5a3616a3e93d2a78017981a820",
+        "id": "3e8c4b320630a504763110398f02dbe917fef0bb0fa078bcf21fa362b8190083",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "027928496284de5d7904484e1a26a26d11ddc9a667f327d33982339d41904e8f",
+        "id": "25e4db4a6e4b6949e39d104c933bff7bc1e5fe7cb233fb334dd5f8afd79ef3f1",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "8a28e0d9b911192226687413480bc3484d571f155b9e4522f13fb00e1facdbbe",
+        "id": "fdc03861548b155dadda40f91de3c03fe00504f949daf2067682330d49c54725",
         "classification": "declaration",
         "owner": "MemoryRecord",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "c8c7992750a93cad9093b4dd07287d4b5321722b0f41da52e6446db8dad82451",
+        "id": "db2dd8195dda42ac9e43cb6b5cbd6db2d435db0176e950d0e580d5899bbe17c9",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "36b98d77c1f86a6f78eac13fefc5e72e23b0e16092591fa354592e17e55ac767",
+        "id": "e81abe438cbfdf47197467209a79936b6f62402ffb23f2ba0e209b4c3e867669",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "c052cc5eb555d227074c5f06c98129a5c25aa8d9eec637a6c3b2cd6834daf14a",
+        "id": "75e9f2c26d91fcf7cab7ae801d2d14064f5529fe56d5dd591d20475845a95787",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "efccd113e0919af7ac78ea647bc54f6dea26f6037f817bc827d742637e94ff31",
+        "id": "2bcad783eee593f5b9084322d93379471eaf1b6ffaa387125db68493795d24ac",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "24675ecfa5c4e452515126a9966f700cd777ada0f0866c785a722c128379f8b1",
+        "id": "1c9275088e91dfc922fbc9ce73c5db25e22cca7c322e6c8ca444488bf41a3a7c",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "2c799abfac25d635abb3bca848924e8d4a8b5c1ff8e243dba3ab622828574019",
+        "id": "56353ed3156c414af48a5accdb71d4404f624cd783ab2a55dac3ec85cfe0688b",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "025eb1ae3791c3d80804b211595215117d58b81ca12e37daa3a6762c882ba2a9",
+        "id": "2d1fdebf3d9951d0df3ba2ed2588a050f8ba54d3efd28e2f13c8227cd6d1d986",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "e051b1f58dabf73df39f9d962fb941b849ed815d2f94863b3c9c54513d56790f",
+        "id": "6fe2c0392a8a4cdeb69c39a084e9e5351ab9541b11f012ce121d2eeab532033a",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "673016d17626abe08c5963fe38176da809534934b6ff9a343302d93421de21a9",
+        "id": "6de7b78fc8018a9205ef4011b37dcec9cf3f9389f3cd237b0588e9bccfa30df5",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "adda13ef01ec2cd68acb630eec618d61beef9e6e75745cb6149b36b86861e5f0",
+        "id": "b3e587115541519a95909326fe6ce034575b4de24a0584491b8140f203b98bd1",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "0f2a39d65fd63f568ad516463eb13cd55fd791c975edef465beded06716266e9",
+        "id": "431a68ab9fa8b09bd1f5b7efa34b9c5668cfe29b3098f5325afe59827fadc39b",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "e3127b503498393a49f7045de802b6e53b166515a508a7c8bd141d308fb9d4b1",
+        "id": "70d920821ff06f63d6e194789e329123051ac2a4587b4e6a199205a5ebe93bbe",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "39490e4e604157ad4f8cd86bce2143f579a0329959398b1643b74ef058fecb0b",
+        "id": "976fdd4e2379943647f813f5fad98f92feddf2df02d26631f324dbb00c55839a",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "17478e8df7ff5bf6b3b8e9efe3f7a70ca6235178f8f1ba5b5ff6c6b2279e26d1",
+        "id": "7afac3bffc9b1535c4aa4d0571cc91ce4b20cc4f3f1c7480dec56726e99a28e4",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "6ac92772619ee0a1697e2d219b217d808aacd99a5648d815c49e82a6925735c9",
+        "id": "9317e4c82fbb64683a82ef5cf175d14287f4b32b47991c03d5e2fcf1a85ea7b8",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "7319c684490a5d14613e323b51bb6ddb9da8e543de29035b5b32c4ec6c208107",
+        "id": "9608fa566c0d64170fbebc9b92eed9e938e43908cf26423c8d1cb33a9554f02a",
         "classification": "declaration",
         "owner": "MemoryRecord.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "4b7f9a6061446354b1d3e1ff1d5b97682e577d5f23f4c0c30f3602f26738c6e4",
+        "id": "6889cd59b0c57db543ee8cc80a04b6807fc699d9e9055ab8f7f7c311cf910135",
         "classification": "declaration",
         "owner": "MemorySearchHit.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "6ca806131c5fc3813726a0896668c0a90baac1e39c0e45c5d28ebe36a190faa6",
+        "id": "5005da2601980dbecfd56d1266227417bbedf805c1f9378cb744fc137161b7d4",
         "classification": "declaration",
         "owner": "MemorySearchHit.Field",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
       },
       {
-        "id": "da4c0dc966af2b8b2d1f49cc277647c0327955dbfe93d66983f9211cea9a63e0",
+        "id": "9864262ed15db29d921e66ed76bb35fd88ba8ee9ec3ad840f6430ef3e53173fa",
         "classification": "declaration",
         "owner": "MemoryContextReference",
         "reason": "The Memory identity Owner declares the shared Component name before implementation; existing public names remain equal."
@@ -47212,24 +47236,47 @@
         "owner": "MemoryRecord / MemorySearchHit / MemoryContextReference",
         "declaration": "llm/components/memory/records.py",
         "consumers": [
+          "hub/backend/project/memory_management.py",
+          "hub/backend/project/record_management.py",
+          "hub/backend/tools/management.py",
           "llm/components/memory/component.py",
-          "llm/components/memory/data.py",
           "llm/components/memory/consolidation.py",
-          "llm/components/memory/processing.py",
-          "llm/components/memory/tools.py",
+          "llm/components/memory/consolidation_records.py",
+          "llm/components/memory/data.py",
           "llm/components/memory/extraction.py",
-          "llm/components/memory/tool_values.py",
           "llm/components/memory/history.py",
-          "llm/components/memory/consolidation_records.py"
+          "llm/components/memory/processing.py",
+          "llm/components/memory/tool_values.py",
+          "llm/components/memory/tools.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_memory_component.py",
-          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_memory_consolidation_integrity.py",
+          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_memory_processing.py",
           "tests/llm/test_memory_runtime_choices.py",
-          "tests/hub/test_memory_manager.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -54985,8 +55032,8 @@
   },
   {
     "path": "llm/components/rag/retrieval_records.py",
-    "sha256": "85c45bb74fa7cb20405a929746608371009bd1f14ae261bbfc066e3d3843d48c",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "sha256": "6604685a99d285aaae78658775a91e71962389f70668e602948e1f327c126e90",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval. Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -55008,115 +55055,115 @@
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "53ce4fb339f456ee43596a298d3f9781e5e0b8381a4d7e7c279ef604cd7adffa",
+        "id": "5084c7fceec59911a1b2dd934494231be9de516582e45394a2f91e0fd533880c",
         "classification": "declaration",
         "owner": "CatalogCursor",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "b727737a7b40a004c7e50fb6a3528efb0f84807a84a6aed6af2d7b6bbacb2d0d",
+        "id": "cea80d5973765bac1a5d088e978ddbbafe794c4ee69600b96537a1650044695a",
         "classification": "declaration",
         "owner": "CatalogCursor",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "d318fb9cad2c704e649722cd9c3765ec97ef81e5cb3a209fe150529551db357f",
+        "id": "24ee64008e885e253b369d058cbbd4ffa16cef3ebb358438efe8f1cc7f7999e5",
         "classification": "declaration",
         "owner": "CatalogCursor.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f4e18bdc4e35cf4a60ca444e870f08cc83d09260478fe27150dc672afa0221c5",
+        "id": "106e232c473873571a910ec22919b2898a5c60b2016cf00c67a2865f6e473672",
         "classification": "declaration",
         "owner": "CatalogRequest",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "e818d745a43468cec858cda7dae2385808bc2d97b78b5f4260827eb5feff9281",
+        "id": "db2a7b0b261ce45646d40f0fcd547e597ae620433a04cb476736b35442d447af",
         "classification": "declaration",
         "owner": "CatalogRequest",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "da252b7484bf0af86590e3267a0eced98c296a14cd3d11ed7520e8d61788d68d",
+        "id": "ff5cb5bba52ef2484983f37f19d4fc23a1b22cfcac85a2a79c1f58c641d37428",
         "classification": "declaration",
         "owner": "CatalogRequest",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0cbb8d4a08dce97a5b52bf4c9c7d4d7df359f058e2b0525b4226b5d0d9b2013b",
+        "id": "d11ae8ac6a51691e8c1f027a696cfb5bf9b1abeb3148290603ba0c6c496a63d3",
         "classification": "declaration",
         "owner": "CatalogRequest",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0ff8ab27e60bcc4cb20c4b7a2100edca39d8d1485718e26fcf4caffe6b31a4fd",
+        "id": "ea0319e6b19da1aaefdf60a50977c446c0a2e0529ee90072e77fdf6bd704c406",
         "classification": "declaration",
         "owner": "CatalogRequest",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "5724b78e33cd0e8c2f85e95c441b4bdf788efc9fdee9b828561530853b79f431",
+        "id": "32dd6951f14011218da60cda7049d8bb7178d7f692911cadbf160d52de035132",
         "classification": "declaration",
         "owner": "CatalogRequest",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "98372bf8524089d921d7505772216aa09b614f9253f9a7752600904ec53679a7",
+        "id": "9ae019d04849d81529f9a92abdee32b1a96523d8a2f9a5a7052d88bc762d88eb",
         "classification": "declaration",
         "owner": "CatalogRequest.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "83f370ff5aac2f65719490640b25e6503168e1aec5424e0adcb9ff9c01a3c542",
+        "id": "f62647dd4047521d7e64f2f2a817ccbb8c2259ff9a4594faf20e7f3ecf162a09",
         "classification": "declaration",
         "owner": "CatalogRequest.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "47c798a7a7c7702ac91bf36cddaf6f826b806372bbe7cd282616c3c122bf52d6",
+        "id": "72bf2031a18bbddcf00bb87bb13252c2028855ee4d59ef947fa712073ff86b45",
         "classification": "declaration",
         "owner": "CatalogPage.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "101e9a21f365710d7028ce90ca9bb4c32428f7c082c5cf412db8639ef847af58",
+        "id": "b15a2516edfa7ff900d65bcef72528cda75d8a069434c7a792484e8da23f66ad",
         "classification": "declaration",
         "owner": "CatalogPage.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "8018dba00b129fb53d5c7d8bc311e3e801efbdfa598dcc37657b65638774b5ef",
+        "id": "ff91c7bb43c3c902969602c90b79c76cc4748ea60b2ab591879024916acc3c78",
         "classification": "declaration",
         "owner": "CatalogPage",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e4da15ccdc83c8a1da7ad9aa0f7ead35de6e85ca8c3278b7ef5350a03b9ac5d1",
+        "id": "aa54f0e55393ca83fafcdfc528eaba286313def58ebcfda7f4023dce04b87193",
         "classification": "declaration",
         "owner": "RAGToolResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "03616b683e6e9c855c52efe18f97cb3c91eea1e70c136dc3896af19f650d565c",
+        "id": "b57d7dba84a3c87a89e0f9656df8e5cf3e3aa8160da5248fab83d32ebdcffe6a",
         "classification": "declaration",
         "owner": "GraphReadiness",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "389f18774133865d367baf329ee3528ef11b7bc16ef969daf129befd147ab51f",
+        "id": "bb5c8febd9edef0ed21fc73b860539e4fec998eb46187981619e1c1ded1fd1a9",
         "classification": "declaration",
         "owner": "CombinedResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "48e236ae22a9d7ab431f22178d855794f3be6dd0394feb7d0ce2669ea34f3af1",
+        "id": "38ad8c3622a8044fed76aec65d5df62249a21646df9b2607010c1b9ff9bdc1a6",
         "classification": "declaration",
         "owner": "CombinedResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "83f900217ef4ca50dcd65566a5a09b981ef96801d46141991813a1be47f32608",
+        "id": "66e68d5d2ce5d48377ac5939348edbf0c965e1221cad6f1ac582e08619b27536",
         "classification": "declaration",
         "owner": "CombinedResult",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
@@ -55131,6 +55178,9 @@
           "hub/backend/execution/followup.py",
           "hub/backend/execution/input_context.py",
           "hub/backend/execution/rag_catalog.py",
+          "hub/backend/project/memory_management.py",
+          "hub/backend/project/record_management.py",
+          "hub/backend/tools/management.py",
           "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
@@ -55140,19 +55190,29 @@
           "llm/components/rag/tools.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
           "tests/hub/test_followup.py",
+          "tests/hub/test_memory_manager.py",
           "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
           "tests/hub/test_response_reliability.py",
+          "tests/hub/test_shell_environment.py",
           "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_agent_skills.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_component_storage_integrity.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_rag_batch_identity.py",
           "tests/llm/test_rag_batch_source.py",
@@ -55163,6 +55223,9 @@
           "tests/llm/test_rag_query_evidence.py",
           "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_packages.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -56700,8 +56763,8 @@
   },
   {
     "path": "llm/components/rag/document_views.py",
-    "sha256": "159cf705bc90e2f30c1be1c0db344b1a470b460c454387816205283faffb468b",
-    "reason": "Complete strict input/document records and their direct/dynamic import/callback consumers reviewed. Prior full chunk/identity/import-only consumer reviews preserve every existing classification. Real regression caught the removed catalog method call; fixed current-source L1/L2 and unchanged safety/fault Assertions pass. Component remains pending whole-file scope and these related stages require an escalated full integration gate. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
+    "sha256": "dbb75e6903a3332609c487d07ccb70d3b0aae745894eb373abca4c798e846a19",
+    "reason": "Complete strict input/document records and their direct/dynamic import/callback consumers reviewed. Prior full chunk/identity/import-only consumer reviews preserve every existing classification. Real regression caught the removed catalog method call; fixed current-source L1/L2 and unchanged safety/fault Assertions pass. Component remains pending whole-file scope and these related stages require an escalated full integration gate. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged. Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -56733,6 +56796,18 @@
         "classification": "declaration",
         "owner": "RAGDataSnapshot",
         "reason": "Previously reviewed complete implementation and declarations are unchanged. Only document Owner imports moved to document_records; every non-import AST and literal classification is identical, with full consumer/fault/safety regression evidence."
+      },
+      {
+        "id": "c16d59def64e972b276ae96753c56246c5c05c741b4901a83a7b655bd461703a",
+        "classification": "declaration",
+        "owner": "DocumentEdit",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f4b4d9b67c426b8d5a239c1cad7ce06008ac834e82fb48fac86653d23277fa2f",
+        "classification": "declaration",
+        "owner": "DocumentEdit",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -56740,6 +56815,9 @@
         "owner": "DocumentView/DocumentChange/RAGDataSnapshot",
         "declaration": "llm/components/rag/document_views.py",
         "consumers": [
+          "hub/backend/project/memory_management.py",
+          "hub/backend/project/record_management.py",
+          "hub/backend/tools/management.py",
           "hub/backend/tools/resources.py",
           "llm/components/rag/data.py"
         ],
@@ -56749,10 +56827,13 @@
           "tests/hub/test_component_managers.py",
           "tests/hub/test_components.py",
           "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_memory_manager.py",
           "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_retention.py",
           "tests/hub/test_resource_tools.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_agent_skills.py",
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_checkpoint_integrity.py",
@@ -56761,6 +56842,8 @@
           "tests/llm/test_goals.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
           "tests/llm/test_rag_batch_source.py",
@@ -56773,6 +56856,8 @@
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_skill_packages.py",
           "tests/llm/test_skill_tools.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_packages.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
           "tests/llm/test_workflow_format.py"
@@ -116665,6 +116750,575 @@
           "tests/hub/test_approval_continuation.py"
         ],
         "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/record_management.py",
+    "sha256": "3d2c8a27536d369d77573ed3e322257710012380690a32ddb7af4f0c24f9d04f",
+    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0abba41107c6e2bed7bd273714e7dc401251d1f8cd7f11136160f23c59b22652",
+        "classification": "declaration",
+        "owner": "DocumentManagement",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RecordManagement / SkillManagement / AgentManagement / DocumentManagement",
+        "declaration": "hub/backend/project/record_management.py",
+        "consumers": [
+          "hub/backend/project/rag_management.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/memory_management.py",
+    "sha256": "5d86d9ef3be25c2c5873ea31e07f4d813efba3ed7da796e34d5b3377d235cc60",
+    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d792202072f1fbb3e9be4bfb39e066380489c8f6a1c5bdbada928229d65c1174",
+        "classification": "declaration",
+        "owner": "MemoryManagement",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "5edc5aa08eea4242a2a3699256b2382315e432bba610418b3f101bcdfa7cda3d",
+        "classification": "declaration",
+        "owner": "MemoryManagement",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MemoryManagement",
+        "declaration": "hub/backend/project/memory_management.py",
+        "consumers": [
+          "hub/backend/project/record_management.py",
+          "tests/hub/test_memory_manager.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/tools/management.py",
+    "sha256": "1e3a4e3f0e7ac58c0b144a0d45de12191d5dafaebe21ea57d35512be22b04f97",
+    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9813f122dbe651b254ddfea16c8aa59e64332cb70ced0aec1c815dcbb887d21b",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "15aeb2c45fd3ae88cb8db05d1fc19524895cadd075382b4082928383e3ea98d1",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "89c27e7efc131f339c178481a1a251ee11d91a80d27f6450497e839850c0089d",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "0d1e9e22108fa1a125e55879faf4124ab8c7c9f5deb2687d7bf2058b6e43d2fa",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "396c85137426e34de2b3e7f00b3fbfb2e98dbf41e1ce5e8f75d3334488b688fb",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "ce07db71aad9eccaa5188c1b2c7dca9ccc53310d04ffc7c8618b7ad4ad35f0c5",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "2255d81a5b539ca7cb622fa96f48d2a98b4581f1facc30ecdd9573eb725afbff",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "bcf00069f828c39a073849be131ef7bbc32a9aaa6200d89a3d77a9c73d6b74c6",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "076c9d9c3e5bf1d767168ba597cfebcf64733460a017723abdf4b0fac2d39639",
+        "classification": "declaration",
+        "owner": "ToolManagementContract",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "f2968d11d7d590410e5fb1024c2f97b9bf8abe65a39889387bd2539a49eb6df1",
+        "classification": "non_contract",
+        "owner": "ToolManagement.__init__",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      },
+      {
+        "id": "58f985a51caa0b29538253d0bd5a22fa3b31b7d3625cfe98eb1b5f7ea5944bf1",
+        "classification": "non_contract",
+        "owner": "ToolManagement.__init__",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      },
+      {
+        "id": "e2a3fec27899119e6795e6f13b6fb2948beeee3d6fb3c3fa6ab4759a25fa3330",
+        "classification": "non_contract",
+        "owner": "ToolManagement.for_project",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      },
+      {
+        "id": "25565068519ecf912eeeb65e9c3a213dbf34e8bf25cbb440666109e6fb364a28",
+        "classification": "non_contract",
+        "owner": "ToolManagement.for_project",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      },
+      {
+        "id": "8c4150f900b70594d69c8240111c75fb23da622d10b149e0c45c922dac83b8eb",
+        "classification": "non_contract",
+        "owner": "ToolManagement.delete",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      },
+      {
+        "id": "83c6ba2d797ae50135df051a1250dcfdf4eddd053075262daa509b35e026d6b9",
+        "classification": "non_contract",
+        "owner": "ToolManagement.toggle_builtin",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      },
+      {
+        "id": "4658d8b9244d8603b9c7de1f0a9791573dbf4b07d37624db4403b9f4e64e163d",
+        "classification": "non_contract",
+        "owner": "ToolManagement.execute",
+        "reason": "Python type annotation only; runtime absence uses its declared Owner value."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ToolManagementContract / ToolManagement",
+        "declaration": "hub/backend/tools/management.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/management_values.py",
+    "sha256": "1131a526b9a180c9a3afcf5a4c56cd047df6c5ec554d0e47067044acb279b892",
+    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "731b03c4b969edadd84e7f9e92e82252778ad65a09ea868cd513a4ecc8c7468d",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "06fa048e92a8efa5a13c327295b5d1ec791a5554087fb832e2e341273997f542",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "9cc7c433097b99ba60da185b77905c2162e5b4b8b955d6bfaffaebc9e9b90af8",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "b8ce71bbfb204c103c210deb2078f50e7dd8873499a3a2dd8fdce58fbf15c846",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "7734e467fda2f49b7d62fb9b38ade631b84d4a1d493a68a5b6dcaa71e79bec25",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "00eb0f55e94bf8cf4e36f6da0360e350a211746996b33de510d1bbded51c8b6c",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "129edb9812d9faed5db344bba6fd9fcdd8de6cd5e8bf6c470121b2fe88c3cada",
+        "classification": "declaration",
+        "owner": "ManagementAction",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "b118148e706c00670cd944e7ed02a2e7313169c61c122eed3f80d152726d4f37",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "797d6e838c33080bd28d6f63fe225c55eedf36011181b570fe69ced2dfae9886",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "60a8eef3e1b5b9fcb349cfe2edb6c31bb60b224d3822aa312267f90fe01d0937",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "49e2af2970d878047732d8c9f13f3fff37dd997057fa98b671c916344cb537bf",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "39a6d1bb26df16f42e49e389972cb3380e2a2bb11c92dcc88575b175bbfbc353",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "b94972ef910d6e8ee56a600bac411004755e7dee15ef70beb76470119e23fcdd",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "2a569b10b26b636859b11ea21682ae5ed66a0a48e1f8d6a0b1172f6ae1440b4d",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "e154dd8ed747e16b201b23f8d831898ab930aeb49c0bdefe39899a9866cd5fc3",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "8886067ff15dd84518505a2477b183329507e573f361cf4bcb2fe0060da32ecc",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "c485ec1501daaeb12a7c7e579ee628636fd3fe53fcdd40732f85b9ac4ad350dd",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "ba345be5fd40d1d1fa2a411af9b440bbb011786ca21bc3595de95d31fb64f9c4",
+        "classification": "declaration",
+        "owner": "ManagementOperation",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "3f7afc01a3caad1f9799d277d374fe770e7e4f6c88f5f761ce9f1d74cf94f782",
+        "classification": "declaration",
+        "owner": "EditorRecord",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "435354235b88b9f7e98cd48011134f2a2bcf6e1e8ea1165ad415d9429ce3fdf5",
+        "classification": "declaration",
+        "owner": "EditorRecord",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "2e88b70d03a8975ac5b1f00356fb583882a70299fc84546c6e85a3818be25784",
+        "classification": "declaration",
+        "owner": "EditorRecord",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "86ca641f65cf698b99a237e088a624ac55dba5ad996f0f3cec015eeb85d648c8",
+        "classification": "declaration",
+        "owner": "EditorRecord",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "825824a878ba14b395d7fa60359265921c21cefcda6eb766f3b6355b8c6a51dc",
+        "classification": "declaration",
+        "owner": "EditorRecord",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "c6569501882d964069b77f6b4d24ae38c915d10a0994b2f7b16c1f03d3bbde24",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "47c7c0e6a5a608bd797b518c12f29db38a831fff3f833b69b3024f0e0ccacf2b",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "de8d50124270a72c07eace39a6e863cbe5936f3c69c7eab597d89afdfa8bda21",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "501b6d01694b8917d21e0e00abd900307b91c44c8c428b38d28951c43070ad13",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "0525b577681df670fb8a1b26af399afd685cace09d981867907a95425be28cc1",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "7004be3f06391fc79a03929a0cd986e6cfde19e66b77031396a88da6f618cc1b",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "11cb8026be2ca2f746d09420e37e18ff54a3953f22acf7845c6475091278aff5",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "2c51763109a9ff7f6ee7e0802d39ac454ad45ade78381319a7ab939c6e1b36cb",
+        "classification": "declaration",
+        "owner": "ManagementEntry",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "6c2766ccd6c5b4bae94587df6a2dd43f291435f3676cd7e6a17905f377cb5f3f",
+        "classification": "declaration",
+        "owner": "ImportProvenance",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "4af1c51514e33d9a87b1f0836389d21a1471030b284ff50ad24a0cc2983d586e",
+        "classification": "declaration",
+        "owner": "DefinitionSummary",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "279867d044e62e00c5a949961c8ccc0e00529389f88a8c65b55a7c1f78afcfca",
+        "classification": "declaration",
+        "owner": "DefinitionSummary",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "1dddd9c7850ac25e1d961d87662cb11a2adbf13efec28470c48a5018ee5133bb",
+        "classification": "declaration",
+        "owner": "DefinitionSummary",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "39725de0e0e3b5b7a06139f2a6e22b82c5591f4970a51d9df3808080393dca8d",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "d1019effd9aee29f0b27f93c4e3e882f7dbfd3752d47d8c7e6acc3e6b40a19c5",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "4e3fdfe43360a13c38a9a7c7ec09c5a0ef3016b509ea4744b0b52812c317acc3",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "a91e4aab66547395d93117b0fd1ebbccdd3f5d3666f8765182243dbd7c66f3e4",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "488c02743dd1f8b0153f61b909188aeae52961693bfe9725b36a344e8413d7e4",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "0176dcdb5ddc332b45980e7cfd1afa3259f41844d1c8db9951afb8722f309df3",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "e3172dca1993e455ffc64207157da3b5140d652261e5d520d2db1b9a7fe79a28",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "223b34a99991fb844e7768f7b4f74eceeb70d85f651297327325440800a2d6a7",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "3a7d536fc0a0b43cd41111bff774422e34763cd627f3fb5008c3b9ca3c69f0b5",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      },
+      {
+        "id": "512f5b47c96dbbbd2247584943bb53fb4c465a71f5b92bca71236f9f64eff189",
+        "classification": "declaration",
+        "owner": "SelectedFileImport",
+        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ManagementAction / ManagementOperation / EditorRecord / ManagementEntry / ImportProvenance / DefinitionSummary / SelectedFileImport",
+        "declaration": "hub/backend/project/management_values.py",
+        "consumers": [
+          "hub/backend/project/record_management.py",
+          "hub/backend/project/memory_management.py",
+          "hub/backend/tools/management.py",
+          "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/record_manager.py",
+          "hub/widget/forms/tool_manager.py",
+          "hub/widget/forms/definition_manager.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_memory_component.py",
+          "tests/llm/test_memory_history_integrity.py",
+          "tests/llm/test_tool_packages.py",
+          "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_resource_tools.py"
+        ],
+        "complete": false
       }
     ]
   }

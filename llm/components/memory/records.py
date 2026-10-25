@@ -5,7 +5,13 @@ import re
 
 from jsonschema import Draft202012Validator
 from llm.components.base import validate_name
-from llm.core.schema import SchemaType, SchemaKeyword, object_schema, metadata_schema, field
+from llm.core.schema import (
+    SchemaType,
+    SchemaKeyword,
+    object_schema,
+    metadata_schema,
+    field,
+)
 from .identity import MemoryIdentity
 
 
@@ -31,7 +37,9 @@ class MemoryRecord:
     MANAGED_CONTENT = "Memory lifecycle fields cannot be supplied as content"
     INVALID_CONTENT = "Memory content: {message}"
     INVALID_STATUS = "Invalid memory status"
-    INVALID_GENERATION = "Memory requires a stored generation; re-register records without one"
+    INVALID_GENERATION = (
+        "Memory requires a stored generation; re-register records without one"
+    )
     INVALID_IDENTITY = "Invalid memory identity or revision"
     NONEMPTY_TEXT = "Memory {key} must be nonempty text"
     TIMEZONE_REQUIRED = "Memory {key} requires a timezone"
@@ -42,7 +50,9 @@ class MemoryRecord:
     INVALID_METADATA = "Memory metadata must be an object"
     INVALID_SOURCE_TAGS = "Memory requires source object and text tags"
     INVALID_EXPECTED_REVISION = "expected_revision must be a positive integer"
-    INVALID_EXPECTED_GENERATION = "expected_generation must be the generation read from the record"
+    INVALID_EXPECTED_GENERATION = (
+        "expected_generation must be the generation read from the record"
+    )
     CHANGED = "Memory changed; reload before editing"
 
     class Field:
@@ -63,12 +73,28 @@ class MemoryRecord:
         METADATA = "metadata"
         REPLACES = "replaces"
 
-    MANAGED = frozenset({Field.ID, Field.GENERATION, Field.REVISION, Field.CREATED_AT,
-                         Field.UPDATED_AT, Field.DELETED, Field.SOURCE})
+    MANAGED = frozenset(
+        {
+            Field.ID,
+            Field.GENERATION,
+            Field.REVISION,
+            Field.CREATED_AT,
+            Field.UPDATED_AT,
+            Field.DELETED,
+            Field.SOURCE,
+        }
+    )
     TEXT_FIELDS = (Field.CONTENT, Field.KIND, Field.CREATED_AT, Field.UPDATED_AT)
     TIME_FIELDS = (Field.CREATED_AT, Field.UPDATED_AT)
     SCOPE_FIELDS = (Field.SCOPE, Field.SESSION_ID)
-    IMMUTABLE = (Field.ID, Field.GENERATION, Field.CREATED_AT, Field.SOURCE, Field.SCOPE, Field.SESSION_ID)
+    IMMUTABLE = (
+        Field.ID,
+        Field.GENERATION,
+        Field.CREATED_AT,
+        Field.SOURCE,
+        Field.SCOPE,
+        Field.SESSION_ID,
+    )
 
     def __init__(self, value):
         self._value = value
@@ -76,20 +102,52 @@ class MemoryRecord:
     @classmethod
     def content_schema(cls, *, scopes=SCOPES, statuses=STATUSES):
         text = {SchemaKeyword.MIN_LENGTH: cls.MINIMUM_TEXT_LENGTH}
-        return object_schema({
-            cls.Field.CONTENT: field(SchemaType.STRING, **text),
-            cls.Field.KIND: field(SchemaType.STRING, **text),
-            cls.Field.SCOPE: field(SchemaType.STRING, **{SchemaKeyword.ENUM: list(scopes)}),
-            cls.Field.SESSION_ID: field([SchemaType.STRING, SchemaType.NULL]),
-            cls.Field.STATUS: field(SchemaType.STRING, **{SchemaKeyword.ENUM: list(statuses)}),
-            cls.Field.TAGS: field(SchemaType.ARRAY, **{SchemaKeyword.ITEMS: field(SchemaType.STRING, **text)}),
-            cls.Field.EXPIRES_AT: field([SchemaType.STRING, SchemaType.NULL]),
-            cls.Field.METADATA: metadata_schema(),
-            cls.Field.REPLACES: field(SchemaType.ARRAY, **{SchemaKeyword.ITEMS: object_schema({
-                cls.Field.ID: field(SchemaType.STRING, **text),
-                cls.Field.GENERATION: field(SchemaType.STRING, **{SchemaKeyword.PATTERN: cls.SCHEMA_GENERATION_PATTERN}),
-                cls.Field.REVISION: field(SchemaType.INTEGER, **{SchemaKeyword.MINIMUM: cls.MINIMUM_REVISION})},
-                **{SchemaKeyword.REQUIRED: [cls.Field.ID, cls.Field.GENERATION, cls.Field.REVISION]})})})
+        return object_schema(
+            {
+                cls.Field.CONTENT: field(SchemaType.STRING, **text),
+                cls.Field.KIND: field(SchemaType.STRING, **text),
+                cls.Field.SCOPE: field(
+                    SchemaType.STRING, **{SchemaKeyword.ENUM: list(scopes)}
+                ),
+                cls.Field.SESSION_ID: field([SchemaType.STRING, SchemaType.NULL]),
+                cls.Field.STATUS: field(
+                    SchemaType.STRING, **{SchemaKeyword.ENUM: list(statuses)}
+                ),
+                cls.Field.TAGS: field(
+                    SchemaType.ARRAY,
+                    **{SchemaKeyword.ITEMS: field(SchemaType.STRING, **text)}
+                ),
+                cls.Field.EXPIRES_AT: field([SchemaType.STRING, SchemaType.NULL]),
+                cls.Field.METADATA: metadata_schema(),
+                cls.Field.REPLACES: field(
+                    SchemaType.ARRAY,
+                    **{
+                        SchemaKeyword.ITEMS: object_schema(
+                            {
+                                cls.Field.ID: field(SchemaType.STRING, **text),
+                                cls.Field.GENERATION: field(
+                                    SchemaType.STRING,
+                                    **{
+                                        SchemaKeyword.PATTERN: cls.SCHEMA_GENERATION_PATTERN
+                                    }
+                                ),
+                                cls.Field.REVISION: field(
+                                    SchemaType.INTEGER,
+                                    **{SchemaKeyword.MINIMUM: cls.MINIMUM_REVISION}
+                                ),
+                            },
+                            **{
+                                SchemaKeyword.REQUIRED: [
+                                    cls.Field.ID,
+                                    cls.Field.GENERATION,
+                                    cls.Field.REVISION,
+                                ]
+                            }
+                        )
+                    }
+                ),
+            }
+        )
 
     @classmethod
     def validate_content(cls, value, *, managed, schema):
@@ -97,7 +155,9 @@ class MemoryRecord:
             raise ValueError(cls.MANAGED_CONTENT)
         error = next(Draft202012Validator(schema).iter_errors(value), cls.ABSENT)
         if error:
-            raise ValueError(cls.INVALID_CONTENT.format(message=error.message)) from error
+            raise ValueError(
+                cls.INVALID_CONTENT.format(message=error.message)
+            ) from error
 
     def content_fields(self, managed):
         return {key: value for key, value in self._value.items() if key not in managed}
@@ -108,20 +168,36 @@ class MemoryRecord:
             raise ValueError(cls.INVALID_STATUS)
 
     @classmethod
-    def check_revision(cls, record, expected_revision, expected_generation, *, conflict):
-        if type(expected_revision) is not int or expected_revision < cls.MINIMUM_REVISION:
+    def check_revision(
+        cls, record, expected_revision, expected_generation, *, conflict
+    ):
+        if (
+            type(expected_revision) is not int
+            or expected_revision < cls.MINIMUM_REVISION
+        ):
             raise ValueError(cls.INVALID_EXPECTED_REVISION)
-        if not isinstance(expected_generation, str) or not re.fullmatch(cls.GENERATION_PATTERN, expected_generation):
+        if not isinstance(expected_generation, str) or not re.fullmatch(
+            cls.GENERATION_PATTERN, expected_generation
+        ):
             raise ValueError(cls.INVALID_EXPECTED_GENERATION)
-        if (record[cls.Field.GENERATION], record[cls.Field.REVISION]) != (expected_generation, expected_revision):
+        if (record[cls.Field.GENERATION], record[cls.Field.REVISION]) != (
+            expected_generation,
+            expected_revision,
+        ):
             raise conflict(cls.CHANGED)
 
     def visible(self, session_id, *, project_scope):
-        return self._value[self.Field.SCOPE] == project_scope or self._value.get(self.Field.SESSION_ID) == session_id
+        return (
+            self._value[self.Field.SCOPE] == project_scope
+            or self._value.get(self.Field.SESSION_ID) == session_id
+        )
 
     def expired(self):
-        return bool(self._value.get(self.Field.EXPIRES_AT) and
-                    datetime.fromisoformat(self._value[self.Field.EXPIRES_AT]) <= datetime.now(timezone.utc))
+        return bool(
+            self._value.get(self.Field.EXPIRES_AT)
+            and datetime.fromisoformat(self._value[self.Field.EXPIRES_AT])
+            <= datetime.now(timezone.utc)
+        )
 
     @staticmethod
     def nonempty_text(value):
@@ -129,15 +205,27 @@ class MemoryRecord:
 
     @classmethod
     def invalid_reference(cls, value, visible):
-        return (not isinstance(value, dict) or type(value.get(cls.Field.REVISION)) is not int
-                or value.get(cls.Field.ID) not in visible
-                or visible[value[cls.Field.ID]] != (value.get(cls.Field.GENERATION), value[cls.Field.REVISION]))
+        return (
+            not isinstance(value, dict)
+            or type(value.get(cls.Field.REVISION)) is not int
+            or value.get(cls.Field.ID) not in visible
+            or visible[value[cls.Field.ID]]
+            != (value.get(cls.Field.GENERATION), value[cls.Field.REVISION])
+        )
 
     @classmethod
-    def validate_fields(cls, identifier, record, *, validate_status, scopes, session_scope):
-        if not isinstance(record.get(cls.Field.GENERATION), str) or not re.fullmatch(cls.GENERATION_PATTERN, record[cls.Field.GENERATION]):
+    def validate_fields(
+        cls, identifier, record, *, validate_status, scopes, session_scope
+    ):
+        if not isinstance(record.get(cls.Field.GENERATION), str) or not re.fullmatch(
+            cls.GENERATION_PATTERN, record[cls.Field.GENERATION]
+        ):
             raise ValueError(cls.INVALID_GENERATION)
-        if record.get(cls.Field.ID) != identifier or type(record.get(cls.Field.REVISION)) is not int or record[cls.Field.REVISION] < cls.MINIMUM_REVISION:
+        if (
+            record.get(cls.Field.ID) != identifier
+            or type(record.get(cls.Field.REVISION)) is not int
+            or record[cls.Field.REVISION] < cls.MINIMUM_REVISION
+        ):
             raise ValueError(cls.INVALID_IDENTITY)
         for key in cls.TEXT_FIELDS:
             if not cls.nonempty_text(record.get(key)):
@@ -146,7 +234,10 @@ class MemoryRecord:
             if datetime.fromisoformat(record[key]).utcoffset() is cls.ABSENT:
                 raise ValueError(cls.TIMEZONE_REQUIRED.format(key=key))
         validate_status(record.get(cls.Field.STATUS))
-        if record.get(cls.Field.SCOPE) not in scopes or type(record.get(cls.Field.DELETED)) is not bool:
+        if (
+            record.get(cls.Field.SCOPE) not in scopes
+            or type(record.get(cls.Field.DELETED)) is not bool
+        ):
             raise ValueError(cls.INVALID_SCOPE)
         if record[cls.Field.SCOPE] == session_scope:
             validate_name(record.get(cls.Field.SESSION_ID))
@@ -158,10 +249,15 @@ class MemoryRecord:
             expires = datetime.fromisoformat(record[cls.Field.EXPIRES_AT])
             if expires.tzinfo is cls.ABSENT:
                 raise ValueError(cls.EXPIRY_TIMEZONE)
-        if cls.Field.METADATA in record and not isinstance(record[cls.Field.METADATA], dict):
+        if cls.Field.METADATA in record and not isinstance(
+            record[cls.Field.METADATA], dict
+        ):
             raise ValueError(cls.INVALID_METADATA)
-        if not isinstance(record.get(cls.Field.SOURCE), dict) or not isinstance(record.get(cls.Field.TAGS), list) or any(
-                not cls.nonempty_text(tag) for tag in record[cls.Field.TAGS]):
+        if (
+            not isinstance(record.get(cls.Field.SOURCE), dict)
+            or not isinstance(record.get(cls.Field.TAGS), list)
+            or any(not cls.nonempty_text(tag) for tag in record[cls.Field.TAGS])
+        ):
             raise ValueError(cls.INVALID_SOURCE_TAGS)
 
     @property
@@ -173,12 +269,23 @@ class MemoryRecord:
         return self._value[self.Field.UPDATED_AT]
 
     @classmethod
-    def create(cls, *, project_scope, confirmed, payload, identifier, generation, at, source):
-        return {cls.Field.KIND: cls.INITIAL_KIND, cls.Field.SCOPE: project_scope,
-                cls.Field.STATUS: confirmed, cls.Field.TAGS: [], **payload,
-                cls.Field.ID: identifier, cls.Field.GENERATION: generation,
-                cls.Field.REVISION: cls.MINIMUM_REVISION, cls.Field.CREATED_AT: at,
-                cls.Field.UPDATED_AT: at, cls.Field.DELETED: cls.INITIAL_DELETED, cls.Field.SOURCE: source}
+    def create(
+        cls, *, project_scope, confirmed, payload, identifier, generation, at, source
+    ):
+        return {
+            cls.Field.KIND: cls.INITIAL_KIND,
+            cls.Field.SCOPE: project_scope,
+            cls.Field.STATUS: confirmed,
+            cls.Field.TAGS: [],
+            **payload,
+            cls.Field.ID: identifier,
+            cls.Field.GENERATION: generation,
+            cls.Field.REVISION: cls.MINIMUM_REVISION,
+            cls.Field.CREATED_AT: at,
+            cls.Field.UPDATED_AT: at,
+            cls.Field.DELETED: cls.INITIAL_DELETED,
+            cls.Field.SOURCE: source,
+        }
 
     def managed_fields(self, fields):
         return {key: self._value[key] for key in fields}
@@ -188,7 +295,10 @@ class MemoryRecord:
         return {**managed, **payload}
 
     def require_unchanged_scope(self, changes):
-        if any(key in changes and changes[key] != self._value.get(key) for key in self.SCOPE_FIELDS):
+        if any(
+            key in changes and changes[key] != self._value.get(key)
+            for key in self.SCOPE_FIELDS
+        ):
             raise ValueError(self.SCOPE_CHANGED)
 
     def require_edit_state(self, restoring):
@@ -290,7 +400,11 @@ class MemoryRecord:
 
     @classmethod
     def reference(cls, identifier, generation, revision):
-        return {cls.Field.ID: identifier, cls.Field.GENERATION: generation, cls.Field.REVISION: revision}
+        return {
+            cls.Field.ID: identifier,
+            cls.Field.GENERATION: generation,
+            cls.Field.REVISION: revision,
+        }
 
     def to_reference(self):
         return self.reference(self.identifier, self.generation, self.revision)
@@ -315,8 +429,12 @@ class MemoryRecord:
 
     @classmethod
     def transition_projection(cls, previous, *, revision, updated_at, deleted):
-        return {**previous, cls.Field.REVISION: revision,
-                cls.Field.UPDATED_AT: updated_at, cls.Field.DELETED: deleted}
+        return {
+            **previous,
+            cls.Field.REVISION: revision,
+            cls.Field.UPDATED_AT: updated_at,
+            cls.Field.DELETED: deleted,
+        }
 
 
 class MemorySearchHit:
@@ -347,3 +465,49 @@ class MemoryContextReference:
     @classmethod
     def project(cls, record):
         return {cls.TYPE: cls.KIND, **record.content_reference()}
+
+
+class MemoryEdit:
+    """Editable content and revision observations of an already-read public Memory."""
+
+    FIELDS = frozenset(
+        (
+            MemoryRecord.Field.CONTENT,
+            MemoryRecord.Field.KIND,
+            MemoryRecord.Field.SCOPE,
+            MemoryRecord.Field.SESSION_ID,
+            MemoryRecord.Field.STATUS,
+            MemoryRecord.Field.TAGS,
+            MemoryRecord.Field.EXPIRES_AT,
+            MemoryRecord.Field.METADATA,
+            MemoryRecord.Field.REPLACES,
+        )
+    )
+    VERSION_FIELDS = (
+        MemoryRecord.Field.REVISION,
+        MemoryRecord.Field.GENERATION,
+        MemoryRecord.Field.SESSION_ID,
+    )
+
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def revision(self):
+        return self._value[MemoryRecord.Field.REVISION]
+
+    @property
+    def generation(self):
+        return self._value[MemoryRecord.Field.GENERATION]
+
+    @property
+    def session_id(self):
+        return self._value[MemoryRecord.Field.SESSION_ID]
+
+    @classmethod
+    def version(cls, record):
+        return {key: record.get(key) for key in cls.VERSION_FIELDS}
+
+    @classmethod
+    def content(cls, record, fields=FIELDS):
+        return {key: value for key, value in record.items() if key in fields}
