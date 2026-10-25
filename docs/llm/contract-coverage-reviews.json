@@ -103199,5 +103199,436 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/widget/input_field.py",
+    "sha256": "1129023cab248c18fed2b2fea56e5e3e235432e0cc3fd694591e36509fa10973",
+    "reason": "Input widgets own presentation defaults and explicit selection/acceptance results. Canonical key/action/label, theme, message role and Session identity Owners are reused; the complete executable AST is identical after expanding only the new declarations and reused Owner APIs.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "a92fed9160ea2461447d7566b905df841439b5db10cf2b7e1354c97c47a27dd3",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      },
+      {
+        "id": "9cc8ce222b97e321f3ba8ee3e8a6cc70a5c8450048982d2c32ac22312621f2c9",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      },
+      {
+        "id": "c36a7cd11ccbc806de5dd71fa9a73ae401246197ff6884aaf431d97ba1ec14db",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      },
+      {
+        "id": "286fb13217d6d96db80b8edf2b30f12af230697ae5c8299634b9a8324d48388c",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      },
+      {
+        "id": "a052a38bedaca69ea27074cb65b85c61bcf100506548c11d894cd514c240df9b",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      },
+      {
+        "id": "598797d2cafb5aebdfa7cbd91ca60f205b9163bdeef57e0a8de912f6a8eb83b5",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      },
+      {
+        "id": "35a58844223de60e68708bed95e8f957b70e4b35110db1a38359b1ae24887b1b",
+        "classification": "declaration",
+        "owner": "InputField",
+        "reason": "Original optional input/action, text, button width/label and one-row layout declarations."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InputField",
+        "declaration": "hub/widget/input_field.py",
+        "consumers": [
+          "hub/ui/settings/presets.py",
+          "hub/widget/forms/component_manager.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/input_frame.py",
+    "sha256": "4c67f5be9da0fd01a10ecbe09a26b27697b53a0891ce1bf4df0d349233bdfa5e",
+    "reason": "Input widgets own presentation defaults and explicit selection/acceptance results. Canonical key/action/label, theme, message role and Session identity Owners are reused; the complete executable AST is identical after expanding only the new declarations and reused Owner APIs.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "34ec51d8512ff2934b84d775e68af6d65ceecd82d867d8d23d28fd1b6a69b7b4",
+        "classification": "declaration",
+        "owner": "InputFrame",
+        "reason": "Original hint padding, row count, wrap flag and optional actions; muted styling uses ThemeSelector."
+      },
+      {
+        "id": "65ec1953ad5a102e50415b3679b9177aa6433af876ca40dee391026b05248110",
+        "classification": "declaration",
+        "owner": "InputFrame",
+        "reason": "Original hint padding, row count, wrap flag and optional actions; muted styling uses ThemeSelector."
+      },
+      {
+        "id": "ab0fc61983484ff96e944d0616ed1715b1b0b9731a9e4a278bcd37febb5f4520",
+        "classification": "declaration",
+        "owner": "InputFrame",
+        "reason": "Original hint padding, row count, wrap flag and optional actions; muted styling uses ThemeSelector."
+      },
+      {
+        "id": "9fd5336f6fb017ce7d8212ea5eb75c6ea1bf54e96d1704b1504483d425487d92",
+        "classification": "declaration",
+        "owner": "InputFrame",
+        "reason": "Original hint padding, row count, wrap flag and optional actions; muted styling uses ThemeSelector."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InputFrame",
+        "declaration": "hub/widget/input_frame.py",
+        "consumers": [
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/dropdown.py",
+    "sha256": "3e660f08e61f51c502c43a8aa3a594b258148ec30f6bb6514add051412f747d9",
+    "reason": "Input widgets own presentation defaults and explicit selection/acceptance results. Canonical key/action/label, theme, message role and Session identity Owners are reused; the complete executable AST is identical after expanding only the new declarations and reused Owner APIs.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7dd599679c8ac3dd81284eee91f7427581258bd9bc55681b38122549a1277b6d",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "69369d9cca8d17a66e298437f771179dbdefd780845014676a38bb2aa29756cd",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "249f90b252c3307ae391415cf49bf11a9d40f80ffa9ca99eb8e60825e3888b95",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "b2e4b59c4477eee7002453bdcbac4b97c4fcb60468a598bbb6d62d3e19e8916c",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "4c8c814ea481b52edcc654405825b8001cb65fb0a9a1355aee5e024a356226a0",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "2aa12dfba0c263c55e349baf953bfc3aa9ac50f31241338e95fd92516154cdc9",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "15a35554fd794a654859d74f09eb5271bebcba5b43ae0defaf61cf40b226f047",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "f39cd0a7376eae92fa8564d04156b35d1360b0ea13f00bc39380cbb72c949c46",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "93702021e64bf356466e446e73b7d81f62a461f2a05037cb58f98c74dbd7a9e2",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "ce2981b70f5d6d88f0e81fa97f22a5e1dc6c51cd9bc7f95a56c007814a610b86",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "f7c78136ee686e8375e61abc80d7fd3c37a2fcc7375068347d9a2822948b0644",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "3788ea79b395610144e02cbe206882161e99133c65ccff7943ae3eb1b43c0e95",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "a711b44cb5314ac66a0751bc57ca93a94d2cd3e454ea0941068c93e3e0db9914",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "c514df7369aaa6451d37186d8ae3ad307e5a3d1ce96e1c8e786028d0ccaf38bf",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "871ec4fd859331a344a98419b083fc48d49792f3140bf192a3860f7b8afb2037",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "43a77b567bbe0475632467af2918ac259c0be3ef9efe7dae31e9dc7e1713b9fe",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "6a69041b747d92b0d5206373f91ae4c6cbbc69e27b1ec81d5e0061f914a6f3da",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "7e05c2bf12cdcf3fb755a038c669dcf5ffc903cdccd8c5137ef58f37169bb3f8",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "5d73bad8a64fad138f85ef88bf69ca0830d2d48c063be803a0bd925ae204190a",
+        "classification": "declaration",
+        "owner": "DropdownBox",
+        "reason": "Original popup geometry, open/close and absent values, caption formatting and first selection; shortcut identities use their existing Owners."
+      },
+      {
+        "id": "bb9de271bf0282ac2a0e0e31c3878bc13aa4f1097f8275b3c4d811ca3d3da8a0",
+        "classification": "non_contract",
+        "owner": "DropdownBox.commit",
+        "reason": "Python tuple projection selects the key from the selected (key, label) pair; no stored/default state interpretation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DropdownBox",
+        "declaration": "hub/widget/dropdown.py",
+        "consumers": [
+          "hub/widget/profile.py",
+          "hub/widget/forms/settings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/file_attachment.py",
+    "sha256": "49e25fc98a86f0804e7468b2a4e198ff0538e86871849b41416dc497af25a4b2",
+    "reason": "Input widgets own presentation defaults and explicit selection/acceptance results. Canonical key/action/label, theme, message role and Session identity Owners are reused; the complete executable AST is identical after expanding only the new declarations and reused Owner APIs.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e33d21e190e5c3112e81ecb31c126514a4bef0cfe457f6bb1debbdb28cef37dd",
+        "classification": "declaration",
+        "owner": "FileAttachmentInput",
+        "reason": "Original blank validation display, whitespace-separated JSON path insertion, unicode escaping and validation/acceptance results; never reads file contents."
+      },
+      {
+        "id": "894f05d268789e1688f2236c56b2f42845bf1e67c0d8b61aa1b0ede851db15ea",
+        "classification": "declaration",
+        "owner": "FileAttachmentInput",
+        "reason": "Original blank validation display, whitespace-separated JSON path insertion, unicode escaping and validation/acceptance results; never reads file contents."
+      },
+      {
+        "id": "0dbd232a9e176f0f45624e01c5b4dbfe6ab82b810ce0a0a8a47eea00bdbdd9e2",
+        "classification": "declaration",
+        "owner": "FileAttachmentInput",
+        "reason": "Original blank validation display, whitespace-separated JSON path insertion, unicode escaping and validation/acceptance results; never reads file contents."
+      },
+      {
+        "id": "41e7f1b3c2b8c0dec1e8cf511445673a9e92729ffed9f9fdb75e67c7f0826c7b",
+        "classification": "declaration",
+        "owner": "FileAttachmentInput",
+        "reason": "Original blank validation display, whitespace-separated JSON path insertion, unicode escaping and validation/acceptance results; never reads file contents."
+      },
+      {
+        "id": "23edbf4edc46ee26689c8872be508dee18a7970363460bf836331ae266cc9eb0",
+        "classification": "declaration",
+        "owner": "FileAttachmentInput",
+        "reason": "Original blank validation display, whitespace-separated JSON path insertion, unicode escaping and validation/acceptance results; never reads file contents."
+      },
+      {
+        "id": "7f578618664d44e5a52ed788b53695a1e60d7c5fbed7461d5bb3ca8f2814c5e1",
+        "classification": "declaration",
+        "owner": "FileAttachmentInput",
+        "reason": "Original blank validation display, whitespace-separated JSON path insertion, unicode escaping and validation/acceptance results; never reads file contents."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FileAttachmentInput",
+        "declaration": "hub/widget/forms/file_attachment.py",
+        "consumers": [
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/followup.py",
+    "sha256": "d5a67e696b33afc7039d5682600a49be03b74a21f97d2dc4ce74c3581476a2dd",
+    "reason": "Input widgets own presentation defaults and explicit selection/acceptance results. Canonical key/action/label, theme, message role and Session identity Owners are reused; the complete executable AST is identical after expanding only the new declarations and reused Owner APIs.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "404f949a3383322c8c1b3281d9c7b3ebc6c50e10a5a1f052c6137dc8dd04fb73",
+        "classification": "declaration",
+        "owner": "FollowupSuggestion",
+        "reason": "Original absent suggestion/identity state, empty text and explicit acceptance outcome; MessageRole and SessionIdentity own role and optional Project identity."
+      },
+      {
+        "id": "b9457a894b24579f33bb791537ee3d13e18301555d1fdda8bcb96660c0409d61",
+        "classification": "declaration",
+        "owner": "FollowupSuggestion",
+        "reason": "Original absent suggestion/identity state, empty text and explicit acceptance outcome; MessageRole and SessionIdentity own role and optional Project identity."
+      },
+      {
+        "id": "ed99f5565ed1fb917f2e6c50959b58fb179484a82b241b7353de7638b452e9ee",
+        "classification": "declaration",
+        "owner": "FollowupSuggestion",
+        "reason": "Original absent suggestion/identity state, empty text and explicit acceptance outcome; MessageRole and SessionIdentity own role and optional Project identity."
+      },
+      {
+        "id": "1df83f4ac9770d31095daccceaf3bc54ffac77fbb70c4632853284183ab28145",
+        "classification": "declaration",
+        "owner": "FollowupSuggestion",
+        "reason": "Original absent suggestion/identity state, empty text and explicit acceptance outcome; MessageRole and SessionIdentity own role and optional Project identity."
+      },
+      {
+        "id": "45d4db277eda834d85cc570771d30e97f0d8ba296fe78f9d6fa018d6fe18329b",
+        "classification": "non_contract",
+        "owner": "FollowupSuggestion.refresh",
+        "reason": "Python -1 selects the latest message after the original nonempty sequence guard."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FollowupSuggestion",
+        "declaration": "hub/widget/forms/followup.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/live.py",
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_followup.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_mouse_widgets.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

@@ -3,13 +3,34 @@
 from prompt_toolkit.layout import HSplit, VSplit, Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.widgets import Frame
+from ..config.theme_style import ThemeSelector
 
 
 class InputFrame(Frame):
-    def __init__(self, body, *, hint, actions=None, **kwargs):
-        hint_row = Window(FormattedTextControl(lambda: " " + hint() + " "),
-                          height=1, wrap_lines=False, style="class:hub.muted")
-        super().__init__(HSplit([
-            body,
-            VSplit([hint_row, actions], height=1) if actions is not None else hint_row,
-        ]), **kwargs)
+    NO_ACTIONS = None
+    HINT_PADDING = " "
+    HINT_ROWS = 1
+    WRAP_HINT = False
+
+    def __init__(self, body, *, hint, actions=NO_ACTIONS, **kwargs):
+        hint_row = Window(
+            FormattedTextControl(
+                lambda: self.HINT_PADDING + hint() + self.HINT_PADDING
+            ),
+            height=self.HINT_ROWS,
+            wrap_lines=self.WRAP_HINT,
+            style=ThemeSelector.MUTED.style,
+        )
+        super().__init__(
+            HSplit(
+                [
+                    body,
+                    (
+                        VSplit([hint_row, actions], height=self.HINT_ROWS)
+                        if actions is not self.NO_ACTIONS
+                        else hint_row
+                    ),
+                ]
+            ),
+            **kwargs
+        )

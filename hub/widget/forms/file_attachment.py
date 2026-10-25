@@ -11,17 +11,28 @@ from prompt_toolkit.widgets import Label
 from .path_input import PathInput
 
 
+class FileAttachmentInput:
+    """Composer insertion presentation; choosing a path never reads its contents."""
+
+    EMPTY = ""
+    SEPARATOR = " "
+    VALID = True
+    INVALID = False
+    ACCEPT_HANDLED = True
+    ESCAPE_NON_ASCII = False
+
+
 def attach_file(view):
     root = Path(view.file_root)
     field = PathInput(root)
-    error = Label("")
+    error = Label(FileAttachmentInput.EMPTY)
     body = HSplit([Label(view.t(MessageKey.ATTACH_HINT)), field, error])
 
     def validate():
         if not field.text.strip():
             error.text = view.t(MessageKey.ATTACH_REQUIRED)
-            return False
-        return True
+            return FileAttachmentInput.INVALID
+        return FileAttachmentInput.VALID
 
     def accept():
         path = Path(field.text.strip()).expanduser()
@@ -29,18 +40,30 @@ def attach_file(view):
             path = root / path
         # A quoted path keeps whitespace and line breaks unambiguous to the model.
         import json
+
         buffer = view.composer.buffer
-        prefix = " " if buffer.cursor_position and not buffer.document.char_before_cursor.isspace() else ""
-        buffer.insert_text(prefix + json.dumps(str(path), ensure_ascii=False) + " ")
+        prefix = (
+            FileAttachmentInput.SEPARATOR
+            if buffer.cursor_position
+            and not buffer.document.char_before_cursor.isspace()
+            else FileAttachmentInput.EMPTY
+        )
+        buffer.insert_text(
+            prefix
+            + json.dumps(str(path), ensure_ascii=FileAttachmentInput.ESCAPE_NON_ASCII)
+            + FileAttachmentInput.SEPARATOR
+        )
         view._focus_composer()
 
-    view.open_dialog(view.t(MessageKey.ATTACH_TITLE), body, accept, field, validate=validate)
+    view.open_dialog(
+        view.t(MessageKey.ATTACH_TITLE), body, accept, field, validate=validate
+    )
 
     def entered(_):
         if validate():
             view.close_dialog()
             accept()
         get_app().invalidate()
-        return True
+        return FileAttachmentInput.ACCEPT_HANDLED
 
     field.buffer.accept_handler = entered

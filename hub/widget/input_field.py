@@ -6,10 +6,30 @@ from .controls import Button, TextArea
 
 
 class InputField(VSplit):
-    def __init__(self, *, input=None, text="", button_text="…", on_action=None, button_width=8):
-        self.input = input if input is not None else TextArea(text=text, multiline=False, height=1)
+    ABSENT = None
+    EMPTY_TEXT = ""
+    ACTION_LABEL = "…"
+    ACTION_WIDTH = 8
+    MULTILINE = False
+    ROWS = 1
+    GAP = 1
+
+    def __init__(
+        self,
+        *,
+        input=ABSENT,
+        text=EMPTY_TEXT,
+        button_text=ACTION_LABEL,
+        on_action=ABSENT,
+        button_width=ACTION_WIDTH
+    ):
+        self.input = (
+            input
+            if input is not self.ABSENT
+            else TextArea(text=text, multiline=self.MULTILINE, height=self.ROWS)
+        )
         self.button = Button(button_text, handler=on_action, width=button_width)
-        super().__init__([self.input, self.button], padding=1)
+        super().__init__([self.input, self.button], padding=self.GAP)
 
     @property
     def buffer(self):

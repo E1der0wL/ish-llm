@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 625,
-    "unreviewed_files": 73,
+    "unreviewed_files": 68,
     "stale_files": 0,
-    "unclassified": 4331,
+    "unclassified": 4252,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 73,
+    "unreviewed_dynamic_paths": 68,
     "unreadable_files": 0,
-    "candidates": 17546,
+    "candidates": 17509,
     "issues": 0
   },
   "files": [
@@ -1113,9 +1113,9 @@
     },
     {
       "path": "hub/widget/dropdown.py",
-      "status": "unreviewed",
-      "sha256": "664c41c821b9645f4bfeeacfc0c64de60e382bb73fc641a301a07e941c1c5003",
-      "candidates": 38
+      "status": "reviewed",
+      "sha256": "3e660f08e61f51c502c43a8aa3a594b258148ec30f6bb6514add051412f747d9",
+      "candidates": 20
     },
     {
       "path": "hub/widget/feedback/__init__.py",
@@ -1203,15 +1203,15 @@
     },
     {
       "path": "hub/widget/forms/file_attachment.py",
-      "status": "unreviewed",
-      "sha256": "481468a616bb717ac9e5834746001695dfd9636487ff9f8d344876abb316a2cf",
-      "candidates": 8
+      "status": "reviewed",
+      "sha256": "49e25fc98a86f0804e7468b2a4e198ff0538e86871849b41416dc497af25a4b2",
+      "candidates": 6
     },
     {
       "path": "hub/widget/forms/followup.py",
-      "status": "unreviewed",
-      "sha256": "4c2ee1d743265a9c2b17824108779dfed05e5e3ff84aad5e42c1defe0ac2fc23",
-      "candidates": 16
+      "status": "reviewed",
+      "sha256": "d5a67e696b33afc7039d5682600a49be03b74a21f97d2dc4ce74c3581476a2dd",
+      "candidates": 5
     },
     {
       "path": "hub/widget/forms/general_settings.py",
@@ -1293,15 +1293,15 @@
     },
     {
       "path": "hub/widget/input_field.py",
-      "status": "unreviewed",
-      "sha256": "20d64b289b87124e86447a41a94679e56890a6e567fe45f05aed5c2f6de838ca",
-      "candidates": 9
+      "status": "reviewed",
+      "sha256": "1129023cab248c18fed2b2fea56e5e3e235432e0cc3fd694591e36509fa10973",
+      "candidates": 7
     },
     {
       "path": "hub/widget/input_frame.py",
-      "status": "unreviewed",
-      "sha256": "8db092d1e9aff894aec5dc105fc3c5751732affee8e7aa79ab4751b8d2617c67",
-      "candidates": 8
+      "status": "reviewed",
+      "sha256": "4c67f5be9da0fd01a10ecbe09a26b27697b53a0891ce1bf4df0d349233bdfa5e",
+      "candidates": 4
     },
     {
       "path": "hub/widget/mouse.py",

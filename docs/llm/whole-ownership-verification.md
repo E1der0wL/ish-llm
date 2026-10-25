@@ -8927,3 +8927,39 @@ PathInput capability가 정규 선언으로 이동하면서 사라진 기존 S3 
 ProviderActivity/ProjectCreation/TitleLifecycle/BackendComposition/CommandSurface와 묶은 다음
 Level 3 전체 회귀·실환경·정확한 SHA 원격 CI 게이트를 수행한다. 동결 Gate51 결과를 이 변경의
 통합 완료로 승계하지 않는다. KeyName 등 기존 미완료 공유 계약 표시는 유지한다.
+
+
+## Hub 입력 위젯·경로 삽입·후속 제안
+
+InputField, InputFrame, DropdownBox, FileAttachmentInput, FollowupSuggestion 다섯 파일을 전수
+정리했다. 기본값과 입력·팝업 크기, 빈 표시와 선택·확정·취소 결과는 구현체 상단에서 선언한다.
+단축키/표시/동작은 KeyName·ShortcutLabel·ShortcutAction, 테마는 ThemeSelector, 메시지 역할은
+MessageRole, 선택 Session 관측은 SessionIdentity를 재사용한다.
+
+Dropdown의 취소 시 값 유지·확정 callback 우선·focus 이탈 시 닫힘과 터미널 크기에 따른 menu
+계산을 보존했다. FileAttachment는 경로만 JSON 인용하여 composer에 삽입하며 UI 스레드에서
+파일 내용을 읽지 않는다. 공백·개행·유니코드 경로와 앞뒤 분리, 빈 입력의 기존 거부를 유지했다.
+Followup은 완료 assistant의 마지막 메시지만 관측하고 Session 전환·질문·설정·준비 중·완성 목록·
+이력 탐색·커서 위치 보호를 유지한다. 제안 수락은 입력만 수정하고 요청을 자동 제출하지 않는다.
+
+새 선언/Owner API를 원래 표현으로 확장하면 다섯 파일 전체 실행 AST가 동일하다.
+Theme/MessageRole 실제 값, SessionIdentity의 누락·NULL·falsey Project 관측도 확인했다.
+proof-commands.json과 consumer-equivalence.json에 고정 비교 명령·소스 Hash를 보존한다.
+
+- `whole-hub-input-widgets-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.912561초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-input-widgets-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `5a4358e672956bacf69cf16b61c34a8224cd5b0bf5a10aae6f3b6646c186d142`, input `51c0739bdc96630b6cfca5bf566206bb499b2e6957871fef2ced2e1acf278e76`.
+
+- `whole-hub-input-widgets-l1-01`: discovered/started/pass 16/16/16, exit 0, 14.861938초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-input-widgets-l1-01/hub.json --modules tests.hub.test_followup tests.hub.test_presets_widgets tests.hub.test_popup_completion`. source `5a4358e672956bacf69cf16b61c34a8224cd5b0bf5a10aae6f3b6646c186d142`, input `51c0739bdc96630b6cfca5bf566206bb499b2e6957871fef2ced2e1acf278e76`.
+
+- `whole-hub-input-widgets-l2-01`: discovered/started/pass 41/41/41, exit 0, 64.262242초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-input-widgets-l2-01/hub.json --modules tests.hub.test_input_contract tests.hub.test_component_managers tests.hub.test_settings_navigation tests.hub.test_popup_settings_updates tests.hub.test_mouse_widgets`. source `5a4358e672956bacf69cf16b61c34a8224cd5b0bf5a10aae6f3b6646c186d142`, input `51c0739bdc96630b6cfca5bf566206bb499b2e6957871fef2ced2e1acf278e76`.
+
+공통 안전성 84개와 R3 Mutation, followup·preset/input field·dropdown·popup, 실제 input contract·
+Component manager·settings navigation/update·mouse widgets 소비자를 검증했다. 모든 suite의
+failure/error/skip/xfail/xpass/누락/추가/중복은 0이며 발견·실행·통과 ID가 일치한다.
+동일 suite 선택 범위 중복 0, source/input 전후·사이 동일성을 확인했다. 실제 argv/exit는
+`hub-input-widgets-draft/selected-results.json`에 보존한다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux UI 실행이다. 기존 Assertion과 테스트 파일은 변경하지 않았다.
+정적 S1–S7 68개 발견/검토 ID, 감사와 문서 검사도 유지한다.
+
+표시·입력 계약의 동일 이동이므로 Level 1·2로 소단계를 검증했다. 동결 Gate52에는 포함되지 않으며
+후속 관련 Hub 변경과 묶은 Level 3·정확한 SHA 원격 CI가 필요하다. 영향 없는 LLM 개별 모듈이나
+전체 회귀를 반복하지 않았다. 공유 계약 미완료 표시는 유지하며 전체 DC3 완료가 아니다.
