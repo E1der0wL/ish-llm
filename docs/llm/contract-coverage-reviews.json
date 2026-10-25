@@ -105297,5 +105297,971 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/ui/output/markdown_syntax.py",
+    "sha256": "484252c8cf8f16d8c1afb820a8bd4fa23c401cd9c09dd7dd4781306fe81d5a5b",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6f50abff2c9732891995a40bc01d3ec19e5416d728a36d0f54fb2da2077ecd10",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "a116f582685ea6d13f83b1747cc384b1f9f8751f277ff6bb9a80b006f264e7af",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "909039ff474a1fa31da38f37798b4b8e873edbf86ed8eda6e08b2654b8e6a364",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "db6062f0f33ac03cfd46d808b99a670ac38e1d228bb7ee2a6026e28ed7bafb4e",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "62489390fa4c3db1f41e17a5897373c9ad8d4ae58ad2be87adcc14772a20e704",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "244e169df9382b737f322db4dfc54a2fa342b247f65579f398f9ae0c91d6affa",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "c286171692c5da9a607c973673e142501aa26bb1c9c058e986d0a4c8bd6d4e36",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "c214efe6b58f31165fd665533a84d94bc34d3442c64b64ba04360ed0b2df0290",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "6e5130550a57b0e234315057a42b3d5b45f8c922939464e6774bbca95ac1ff68",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "4f92245682b196491c989152c70d5e41231012a2cc3b534957a701684d7ffa36",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "47e8f7b2515450a2a7f4c55c39f84ce79f87f3b993d948f37b4f66a535c862ae",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "d2ee01f4c811d14788cf9a14bbd0b7312593f0678380a8eedabd205de9cbb23b",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "c0def01b143739e6f228c269ff87f9aa0dd12db1ee3824d4030a07d892c26e2e",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "e4d8cb5c2c65b27f1a6cefcbf1bbdb60f834fe772cf8ea77ab2c83fa2169daf1",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      },
+      {
+        "id": "3dea6e221bc42aa22ca978b86cfee0877d56697d551a548f697d87bff92cbcbd",
+        "classification": "declaration",
+        "owner": "MarkdownSyntax",
+        "reason": "The original CommonMark profile, table extension and MarkdownIt block/inline token identities; one parser factory and table extension path serve all consumers."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "MarkdownSyntax",
+        "declaration": "hub/ui/output/markdown_syntax.py",
+        "consumers": [
+          "hub/ui/output/parser.py",
+          "hub/ui/output/table.py",
+          "hub/widget/output/code_viewer.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/parser.py",
+    "sha256": "13511978282e122ea676ee81a8b32748a4190db22ccd3b9589fe634896535e77",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "dcc642be214e5832a1353702605aeb54a6f5f2fddf6f0b700fd80fde96725d62",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "001e59de49cabb1a03bf3b5d984411079fc9ff59e30a80cfdb91543e297fc0e4",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "cd72286749973843ea90a0167ef69f520999bbe90e1d5be1682b161d4c426a3d",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "6750c766db3aa6780ca415e029ccc041f9010bb1aced589ea04d808a47186de3",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "4f7eebb1bb96ec98f094d59d1f6c49bdea741bfa45d6dcea2d8b74d16b9e2b9a",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "f170c5683d0188a974f93736632085ea3f35d12ecdddee4e9628e4e9737a4530",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "d47aaefad65cb4e88f133e615aa775281f6adde260ac2d7f3f0009d23e943a39",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "08e703b3668cbe0de903abfa84f9a8f4e93dd40f12e65cf173a5f59f067c63fc",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "393630bd507ea7f53af57884c1efabc1220fc8b495c504a120ec328e6d45248f",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "43e8780e108b7cfda6e9224c506a3fc5d13573b2e6c9f890bc81cd7fbcbf9fa7",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "0f20a2d98e3fd5e679db5d7cdf27926c44b63a9f92c19edca7518138af6a06e2",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "ae7520a8dd2b6690a9793adbc0745edad822388b4d5cd99bf5f762084c394ccc",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "53d1eca9aeccf811f67579edbc85289a87fba2d05a4c80bd60ecb7c15fc74dc7",
+        "classification": "declaration",
+        "owner": "OutputParser",
+        "reason": "Original character bound, fence/standalone-tag/completion regex, final-stream state and XML rejection messages. OutputBlock owns UTF8 byte measurement; CodeAttributes owns language-pair construction."
+      },
+      {
+        "id": "cc91b0d9e3ec678b6636e7d15a8c51065ba3bbbb4770e7f8b60bea4eb52f1007",
+        "classification": "non_contract",
+        "owner": "OutputParser._markdown",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "24d052157bbad7655211db2ddfb2d9adaceebb69f2188dac404ade2246dc2e17",
+        "classification": "non_contract",
+        "owner": "OutputParser._markdown",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "ef9b65f43f687e94f904a3de0bac088c51f782a328d613e54802504745402148",
+        "classification": "non_contract",
+        "owner": "OutputParser._markdown",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "f9d1c8729c2c01beb3bc44384815f6eb8e0d8b072833cdf5f1630a3330a25a01",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Variadic tuple return annotation."
+      },
+      {
+        "id": "83572dbeea1a50e88d139a8958b18c7a9afdb3ad3ce97335acb66c6d70a85f3a",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "684fca948e8f0f12956c2f6bce7fd939d2aa7520ef29ce63a15da961a038eb46",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "794aa8bf62957e3c4445033c50efe9927e419d72830dd6b40eed8685d735ddfd",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "4d1eb214ae4c4d5feb85e40324fcc54df1a58d76b85513005885eb488f88d3c0",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "e682f8bd57cd2d083d91f20ac4c1df4b4d6ba154caa37511c3f540c3e097b48d",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "b6c927828fa01e2e8d1f7330a22166d631e522e3eb5d745354377a83493cab36",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "f47c42ecb2a2b9545d97cd02a091160a0c5ced5424507054afe32e838ca161f6",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "2746a6beb6f58c2452f36d488e767b1fee014b09ab8fd854d15a84050648b47b",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "d35d1e624438029db915ff1f26d86522e513c6181d4529be3838a539e1f211d4",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "24b9ca79d562b864794cf55ba926b63c94e4ca8ee11fbd2381d703c0bcccfcac",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "c62cecb5cfecf90f21bb0b74f9dc47c49bc3f45125915da238cfaa29962b7113",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      },
+      {
+        "id": "eb7177aeceab299d62ef4d2b7da3e11b7145623932c55d57937cc86afa4a1c7a",
+        "classification": "non_contract",
+        "owner": "OutputParser.parse",
+        "reason": "Pure line/character traversal or the first capture of the locally declared regex: initial offset, last/first character, next line and first capture; no stored record/default/authorization interpretation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputParser",
+        "declaration": "hub/ui/output/parser.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/table.py",
+    "sha256": "5dfa6cee012d00692dd47f5689c1565a273395acf37d4c2fbf13d1cc263bdadc",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0228bee438ca14b93b943e07c2979e081528c1417667cd8dc39e351af13f3d87",
+        "classification": "non_contract",
+        "owner": "TableData",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "4caa03fed0d71d552f5d831365bb4854462aa7510bc06265482820fe88a970db",
+        "classification": "non_contract",
+        "owner": "TableData",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "a088b08170ac369f649909ababecf77e4728ec476f740c4a8c3de3991007c20c",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "c10d7955579a215a7b4cb4f95d83de5d6dc48d06f35bc4837b374ceaa6fbd0f7",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "02a55625f8992a13ea577acc0b7b5ac3ade03d02273746255493778d8440d30f",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "76e375fd13d9f0d0e5c252d249643bc2893488a4fed22e005027205b31d44e11",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "c3e18d1ef4820db4114341d46416c32ea62551a611e241c0a5fa0bfb3d5cef23",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "031f32f39e168d3fac729c06f667cf462281a063da1f588487d1c3501e7e59a9",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "2e217c9f99eeb5ac0e5a4074fd53dcef6ee9415fe7b8b9b6cddb7a077a3b36ac",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "990e63206dc32d0b63e335d0c48916db59352d15b06797eb1fc4ca598cd2208c",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "a8b6fbb791dd52be0fec9aa11d35836fbd06376971256cbbbf730837d66f650e",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "46f13aabb317bf478de6a4141fd5be4607028ed9e1fde740f669cebee4fdab54",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "67ffb91a7cc57a23baf3e203df38d00d4299a6795da37a9021d5b2ebeae3f85b",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "3eb6043fb3c59ba45fa408428087c69b3b0dfe24ac829416896a14654601027a",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "da7f83594725940ed2f44efecfb826416e02533d6351e47cf5a1ed51e9405113",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "17bacc56632cf8863f43cc3b3372de660a071251ccf9d7224f4e057e8758d54b",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "f2bee04670060b4c1c346888cc7e2322457ae0132e096523d65c88f77a089d84",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "075425f7f916c2469d6b88ac4fb764b01db131f200bedb2982aef748fb32a3d6",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "84b9128f99d216a764d1d8e1d4d0370426933d14543a4761551ee78a528be2eb",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "02c782e588f54a1255d374896f906214141662e3b847ae985a3338649962a129",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "037f2f5e117c6fb553694ae6a585ca0598dccffc5b6324cf016e866ccc38440b",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      },
+      {
+        "id": "fffcf463c131be0b14f806c72495904d2fae982cbc82ac6d6f59ba4f4da9c329",
+        "classification": "declaration",
+        "owner": "TableData",
+        "reason": "Canonical columns/rows descriptors and original source byte, dimension, row-shape, inline display and sort contracts. Both source parsing and already decoded records share one validated constructor."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TableData",
+        "declaration": "hub/ui/output/table.py",
+        "consumers": [
+          "hub/ui/output/structured.py",
+          "hub/widget/output/table_inspector.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/structured.py",
+    "sha256": "aae5acd1604b3ca295cd3bfb5ba86e3d22f8d14d8389cd97c83a4305c70ef60e",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "96801731876f08c58df397ca3b9963d291e846fa97b29d975019d568d83b5486",
+        "classification": "non_contract",
+        "owner": "ChartData",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "715ccfbadc25b8678953268cefbf0ba06f802701cf865cf3cd781a048ff7941c",
+        "classification": "non_contract",
+        "owner": "ChartData",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "8d5f7520d71b40e2ded1fd7840aad36e97048e399c4d8e400527a61fe18c87cc",
+        "classification": "declaration",
+        "owner": "ChartData",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "a063c129bee2ff7539bd3269c0372cc89554a7060507f8d63d77f6bb43557d0a",
+        "classification": "declaration",
+        "owner": "ChartData",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "09ae36f706a64dee40f565f3ebcad6f395f255b37a6ec1121797324be03cc7cd",
+        "classification": "declaration",
+        "owner": "ChartData",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "e94aaed7354f040e95276fcca49293664ae7a6791aaa22ad4dd850196c7f6c9b",
+        "classification": "declaration",
+        "owner": "ChartData",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "ad74b3827a142be101674c367e8afad6536ab3224ac75db72b4aaccb4c22fd81",
+        "classification": "declaration",
+        "owner": "ChartData",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "cdd9fdc46f4026924236f3c169bd3324ed5328c6c45e7a583a6fd9918cea3a87",
+        "classification": "declaration",
+        "owner": "ChartData",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "abed1b7d6d882d6832e4294bcc28cbbe1c0820453fd5056d7fad73ed34f3cb2d",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "4b91ea94f9aec76589a0b45fb5929d0f286d2048aa47179822d1042fe02dd587",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "2758fee6578b26363d5880bb4bc4ba0aa45043943fe30087a0a79c7c13a3a748",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "bb2409ba62a45d88edbed0c5bb36c4ee78711abc0186adbb41afad1c5dbe893b",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "d36810312851d5cf7df2610aee8f4703cc90cedea2654cf792d986663c10bb2c",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "245c5b27d524c519ebefc5d7547970d6d96a82eede0fcf814d95cb02aff7d26b",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "f07056888d2f48df97efbacb04eda8e26f50377e8df201f1e70f7c99ae38fc2f",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "ade83e2cef782c409c5310d05583335f36dfb19b69b93b6c662875b41d378ff4",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "b3110d42c01f5ed8997c24c147b21d304bcebb75a789f3d2beaadcddc8545d3e",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "23c5f388ccc3d4153a2ac2fc48ae7e12ce0fdf38300e9e7ba5f7e3ddf6e62d62",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "10527548d874d0378b0486e3e414a7f7c8b39cea3e9fe5a89811794b6bc9ee57",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "24737d0c3001fe527748cc20be954199cc491ec9ee187ac8264af327f72eb015",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "50da2fad583ad6247fa09dc98c3aa077bfe46dae391735150394e9301fce54cb",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      },
+      {
+        "id": "50b9c32c688c4c2596eabcc7f9d4ba9de250af7be49868172406afb59d1c781b",
+        "classification": "declaration",
+        "owner": "StructuredRenderer",
+        "reason": "Typed required chart-values payload, original finite/nonnegative/count checks and scale fallback; structured code/card/table/chart rendering options reuse Code/Title/OutputBlock Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ChartData / StructuredRenderer",
+        "declaration": "hub/ui/output/structured.py",
+        "consumers": [
+          "hub/ui/output/registry.py",
+          "hub/widget/output/table_inspector.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/code_viewer.py",
+    "sha256": "0f1e7e59081297aeda210b7fd4779e7c13ddf917e07c7ee934daaff461d8a3b1",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d48b5ee7fcf8c80d0e6e8d6702f703e94dd4c52fc2c76d3df39e7244b0f280a5",
+        "classification": "declaration",
+        "owner": "CodeViewer",
+        "reason": "Original clean-code concatenation; MarkdownSyntax owns profile and fence/code-block matching."
+      },
+      {
+        "id": "45f9e30db54f26ad09b43e5836320227fca18c7679cc6799fa11984e2830d580",
+        "classification": "non_contract",
+        "owner": "CodeViewer.__init__",
+        "reason": "Python -1 inserts the code-copy action immediately before the last existing action."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CodeViewer",
+        "declaration": "hub/widget/output/code_viewer.py",
+        "consumers": [
+          "hub/ui/output/registry.py",
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/model.py",
+    "sha256": "cd4b9660a7df76efcacf4bdfc8e9629d3c5e12802545f92e6532655838afc66e",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bc80303b5f69a4c31898a8832f68ffab42e2a800f25deafe6e5d0fc6f60a2c7d",
+        "classification": "non_contract",
+        "owner": "OutputBlock",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "c167251ab70ec38857cf8d7bf09ef40a36d2625022bacbc754bd4622049c4e47",
+        "classification": "non_contract",
+        "owner": "OutputBlock",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "3d77647fb00899a28bcccee403c16c057618b6fde28c2a18cfa1c5ec7ef21cf5",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "3ae6db568a93a73d7c21c124802936a4cf5536913822c850d14f038de5baa039",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "8704def27a022256bddf0c2d343198bdca9c02d3c3ee88f557cd37be769050ec",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "58526e77b2c07e77e73f94715ffc6dd85ce4cc480b76595cc8cc49c71e6d52a3",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "725f5bb3f29239427e2771196e37dd297a52bacde96b10045e7b981c8d95a507",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "f170deefb03ff0ab90ca71d82a54c43fdb2ce6f8c9a3a24263f9a4a8aaa08709",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "dda2ab29635e2ab62fb813e170eb77a256cbb856e3e099bcd6c36a02f99173a6",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "fcf527b6e66ba2fc53221405473590d9316539c947151304b2d9fc4660c87bd4",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "26fd5f6329e3115805268cfcf319c454bf747560b10beb44a27a67b7113ece12",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "139bbbadf571e47b7764a9318d37754cafd46d18556d794635e0ec9015b599ac",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "2882e74978011f1efd56161d1aeeaf98b86ddb90fa14070350787101dc9555eb",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "35694ec4a7ebc9e0b697bece14efe0e493823c69ad02518ebcc1b09ffd166eae",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "52e2830cfdd31509f794ebadeb6fd739e05a1073e90aecf8feb186d6eaf380ee",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "4287fc1cf5a81bb073cae6284b2924b299297eb65df339c4555f0c3d538f0c5f",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "947ef100eb2e5968c5d0d37de494a46047bc060f3b39e02b1ce207080363395b",
+        "classification": "declaration",
+        "owner": "OutputBlock",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "6829313455096442e025b911abfb32df4fe4194edc6ab8040d2179e865aa6053",
+        "classification": "non_contract",
+        "owner": "CodeAttributes",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "dff08a9e1c0c45dd622f5107a3be5ef153ebcec1d3f93c9f2efe8a9fcaa5de7e",
+        "classification": "non_contract",
+        "owner": "CodeAttributes",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "04c04bfc22821576461aab96044e3d51d6dd0ac1c995efce1ff63235faac958d",
+        "classification": "declaration",
+        "owner": "CodeAttributes",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "72aa9d8fd09f1d3b77515f35da556920a9794166a481f884f5a86bd1d4b90249",
+        "classification": "non_contract",
+        "owner": "TitleAttributes",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "e5e9a9104f8a629418be5f950e709bf182155a01141bde33b579aebe54002ff5",
+        "classification": "non_contract",
+        "owner": "TitleAttributes",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "cd67e957da7706712cdf0ac90ddc6f6baca24b2a334158a7c5c2fb523cc66888",
+        "classification": "declaration",
+        "owner": "TitleAttributes",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "ce20fdab178c1819309aea74db5edec1f281d0521d3d5ca09d2ef3ddd95ae46a",
+        "classification": "non_contract",
+        "owner": "OutputObject",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "07518122990130e1a3edc6fb1e7de91a9b77cea68a2ed7662e14b16477f732f5",
+        "classification": "non_contract",
+        "owner": "OutputObject",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "696cac4a289bef18951df6facc6bf7aa377e376b4c3c3b343af86d6c58bf4c8c",
+        "classification": "declaration",
+        "owner": "OutputObject",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "2b4bba68434ee428f6cbac2c37048c1c36dad2435c68a5f2aba4651e5aa0a90e",
+        "classification": "declaration",
+        "owner": "OutputObject",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "5d5549aba78eace61531835aca4a531f521700ced64d225cc09fcf8e1b0254e7",
+        "classification": "declaration",
+        "owner": "OutputObject",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "7dc625520ec3368eeaaf282655ea4d82b0e6b607bf64533699c00e3c13a3d866",
+        "classification": "non_contract",
+        "owner": "RenderContext",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "2b85dfc849e8638ae8e048c6e1d0ffef0b986ba4dfe788f5a36299ce6fd1877a",
+        "classification": "non_contract",
+        "owner": "RenderContext",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "db53dc5872effc2c873149e80fcccfcfd94a7a897c26d7178a4b14112e6a90b4",
+        "classification": "declaration",
+        "owner": "RenderContext",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      },
+      {
+        "id": "89751e6d044baac4233ba46db31be6c3b1bb97113f654c681b4ed670ad6f6cbe",
+        "classification": "non_contract",
+        "owner": "OutputUIContext",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "f5ea8e0d16437f5ffd8096656295fa5d03306de0b9963d85c0fcee6660d40a18",
+        "classification": "non_contract",
+        "owner": "OutputUIContext",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "6db4d04d433362bc59f7447be874e893c0fd4dbb8822700afc605f7f89d72933",
+        "classification": "declaration",
+        "owner": "OutputUIContext",
+        "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputBlock / DisplayAttributes / CodeAttributes / TitleAttributes / OutputObject / RenderContext / OutputUIContext",
+        "declaration": "hub/ui/output/model.py",
+        "consumers": [
+          "hub/ui/output/parser.py",
+          "hub/ui/output/structured.py",
+          "hub/ui/output/images.py",
+          "hub/widget/transcript/message_cache.py",
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/output/output_viewport.py",
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

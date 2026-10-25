@@ -1,6 +1,6 @@
 """UI output contracts, independent of the LLM execution model."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Callable, ClassVar
 
@@ -23,6 +23,7 @@ class OutputBlock:
     HUB_CARD: ClassVar[str] = "hub-card"
     HUB_CHART: ClassVar[str] = "hub-chart"
     HUB_IMAGE: ClassVar[str] = "hub-image"
+    ENCODING: ClassVar[str] = "utf-8"
     TAG_PATTERN: ClassVar[str] = r"hub-[a-z][a-z0-9-]*"
 
     kind: str
@@ -30,6 +31,28 @@ class OutputBlock:
     start: int
     attributes: tuple[tuple[str, str], ...] = ()
     raw: str = ""
+
+
+class DisplayAttributes:
+    """Read only declared display fields, retaining explicit values and defaults."""
+
+    @classmethod
+    def from_pairs(cls, pairs):
+        values = dict(pairs)
+        return cls(**{field.name: values[field.name] for field in fields(cls) if field.name in values})
+
+    def to_pairs(self):
+        return tuple((field.name, getattr(self, field.name)) for field in fields(self))
+
+
+@dataclass(frozen=True, slots=True)
+class CodeAttributes(DisplayAttributes):
+    language: str = "text"
+
+
+@dataclass(frozen=True, slots=True)
+class TitleAttributes(DisplayAttributes):
+    title: str = ""
 
 
 @dataclass(frozen=True, slots=True)

@@ -9113,3 +9113,43 @@ Linux UI 환경이다. 정적 S1–S7 68개 발견/검토 ID·감사·문서 검
 Level 1·2로 소단계를 검증했다. InputWidgets·MouseWidgets·ResponseWidgets 및 후속 관련 출력
 변경을 묶어 Level 3·정확한 SHA 원격 CI를 수행한다. 동결 Gate52 결과를 현재 변경의 통합 증거로
 승계하지 않으며 기존 미완료 공유 계약과 전체 DC3 완료 조건을 그대로 유지한다.
+
+
+## Hub 출력 문법·표/차트 데이터·코드 표시
+
+MarkdownSyntax·OutputParser·TableData·StructuredRenderer/ChartData·CodeViewer와 model.py 여섯 파일을 전수
+정리했다. 실제 MarkdownIt 생성·table 확장·token 판별이 같은 문법 Owner를 사용한다.
+model.py의 기존 OutputBlock/OutputObject/RenderContext/OutputUIContext 생성 소비자도 대조했고,
+명시 필드 접근·불변 dataclass·UI 전용 capability 전달을 유지했다. OutputParser의 기존 독립 hub-* 요소·code fence/inline 보호·문자 한도·stream 미완료·XML 선언/
+중첩 요소 거부와 원문 보존은 그대로다. OutputBlock이 기존 UTF8 byte 표현을 소유한다.
+
+CodeAttributes/TitleAttributes의 dataclass 필드에서 Reader 기본값과 Writer 이름을 가져온다.
+명시 NULL/falsey를 보충하지 않고, 기존에 무시하던 추가 속성과 중복 pair의 마지막 값 의미를
+유지한다. TableData가 필수 columns/rows와 256 KiB·1–32열·500행·행 폭·정렬 계약을 소유하며
+from_block과 이미 해석한 JSON의 from_record가 같은 검증 구현을 공유한다. StructuredRenderer는
+원래 먼저 해석한 JSON을 전달하여 표 source를 다시 decode하지 않는다. 원래 JSON 오류가 source
+크기 검사보다 먼저 나타나던 순서를 유지한다. ChartData는 필수 values, 1–100개, bool 제외,
+유한·비음수와 0값 scale을 소유한다. 화면 출력은 코드 실행·원격 이미지 획득을 추가하지 않는다.
+
+원본/변경안 실제 parse/원문/code 추출·표 정렬·차트·Rich 렌더링의 정상/손상/과대 입력 99개
+관측이 일치했다. 별도 실제 json.loads 계수에서 표 렌더링은 2회에서 1회로 감소했으며 생성 행은
+동일했다. 실패 결과도 비교하며 필수 필드 누락·빈/과대 데이터·음수/NaN/Infinity·명시 None와
+빈 속성을 정상 값으로 바꾸지 않았다. 고정 소스·명령·실행 결과는 `hub-output-grammar-draft`의
+values-equivalence/proof-commands/decoding 기록에 보존한다.
+
+- `whole-hub-output-grammar-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.379102초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-output-grammar-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `b3984b1ce44cbf8f2faaeaea1661396fd98d9f32d53cafef272b40eda31d5ce7`, input `5c3778b3e4d159632bf4ae0dded3560812feb9d54c8128b307359765336e33e1`.
+
+- `whole-hub-output-grammar-l1-01`: discovered/started/pass 10/10/10, exit 0, 2.122117초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-output-grammar-l1-01/hub.json --modules tests.hub.test_output tests.hub.test_output_interaction`. source `b3984b1ce44cbf8f2faaeaea1661396fd98d9f32d53cafef272b40eda31d5ce7`, input `5c3778b3e4d159632bf4ae0dded3560812feb9d54c8128b307359765336e33e1`.
+
+- `whole-hub-output-grammar-l2-01`: discovered/started/pass 42/42/42, exit 0, 6.682262초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-output-grammar-l2-01/hub.json --modules tests.hub.test_render_pipeline tests.hub.test_responsiveness tests.hub.test_engine_output tests.hub.test_question_card tests.hub.test_completion_display tests.hub.test_stream_output`. source `b3984b1ce44cbf8f2faaeaea1661396fd98d9f32d53cafef272b40eda31d5ce7`, input `5c3778b3e4d159632bf4ae0dded3560812feb9d54c8128b307359765336e33e1`.
+
+공통 안전성 84개·R3 Mutation, 실제 output·output interaction 및 render pipeline·responsiveness·
+engine output·question card·completion display·stream output을 검증했다. Gate52 전체 Hub 실행과
+자원 경합을 피하기 위해 해당 실행이 끝난 뒤 이 소단계의 Hub 검증을 시작했다.
+모든 suite의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. 실제 argv/exit는
+`hub-output-grammar-draft/selected-results.json`에 보존한다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux 환경이다. 정적 S1–S7 68개 발견/검토 ID·감사·문서 검사를
+유지하며 기존 테스트·Assertion은 변경하지 않았다. 승인·예산·효과·Checkpoint·저장 계약 변경이
+없는 UI 출력 Owner 이동이므로 Level 1·2를 적용했다. 후속 관련 출력 단계와 묶은 Level 3·정확한
+SHA 원격 CI가 필요하며 Gate52 결과를 이 변경의 통합 완료로 승계하지 않는다.

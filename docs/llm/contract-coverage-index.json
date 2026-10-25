@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 627,
-    "unreviewed_files": 58,
+    "files": 628,
+    "unreviewed_files": 53,
     "stale_files": 0,
-    "unclassified": 3815,
+    "unclassified": 3666,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 58,
+    "unreviewed_dynamic_paths": 53,
     "unreadable_files": 0,
-    "candidates": 17260,
+    "candidates": 17235,
     "issues": 0
   },
   "files": [
@@ -914,16 +914,22 @@
       "candidates": 47
     },
     {
+      "path": "hub/ui/output/markdown_syntax.py",
+      "status": "reviewed",
+      "sha256": "484252c8cf8f16d8c1afb820a8bd4fa23c401cd9c09dd7dd4781306fe81d5a5b",
+      "candidates": 15
+    },
+    {
       "path": "hub/ui/output/model.py",
-      "status": "unreviewed",
-      "sha256": "cc603425acb23cad3e8106581cd2d53606a9cd6840ded10a76c43b7f05a9e010",
-      "candidates": 27
+      "status": "reviewed",
+      "sha256": "cd4b9660a7df76efcacf4bdfc8e9629d3c5e12802545f92e6532655838afc66e",
+      "candidates": 34
     },
     {
       "path": "hub/ui/output/parser.py",
-      "status": "unreviewed",
-      "sha256": "9a4d93d44b273e917120271cadc9a8acf15ad1b2c0a2db0b78a28b80967e1da1",
-      "candidates": 46
+      "status": "reviewed",
+      "sha256": "13511978282e122ea676ee81a8b32748a4190db22ccd3b9589fe634896535e77",
+      "candidates": 29
     },
     {
       "path": "hub/ui/output/registry.py",
@@ -939,15 +945,15 @@
     },
     {
       "path": "hub/ui/output/structured.py",
-      "status": "unreviewed",
-      "sha256": "2a1f42de076c2274fe3756c4e97adcac6a06bc29356356b19f28acc2b6a85174",
-      "candidates": 29
+      "status": "reviewed",
+      "sha256": "aae5acd1604b3ca295cd3bfb5ba86e3d22f8d14d8389cd97c83a4305c70ef60e",
+      "candidates": 22
     },
     {
       "path": "hub/ui/output/table.py",
-      "status": "unreviewed",
-      "sha256": "ce2e56774692d11d5bf5b951f5c29f361807c090755363e60f7a6bf53f37ad1b",
-      "candidates": 42
+      "status": "reviewed",
+      "sha256": "5dfa6cee012d00692dd47f5689c1565a273395acf37d4c2fbf13d1cc263bdadc",
+      "candidates": 22
     },
     {
       "path": "hub/ui/output/worker.py",
@@ -1329,9 +1335,9 @@
     },
     {
       "path": "hub/widget/output/code_viewer.py",
-      "status": "unreviewed",
-      "sha256": "2fb36afa7267c72423a56902dbfca3853d0b8a0384241029b4c78fd0bdef5929",
-      "candidates": 5
+      "status": "reviewed",
+      "sha256": "0f1e7e59081297aeda210b7fd4779e7c13ddf917e07c7ee934daaff461d8a3b1",
+      "candidates": 2
     },
     {
       "path": "hub/widget/output/engine.py",
