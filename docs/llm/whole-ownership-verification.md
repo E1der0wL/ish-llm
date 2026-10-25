@@ -8879,3 +8879,51 @@ Checkpoint·Resume·삭제·원본 보존 Assertion과 경량 import Assertion�
 ProviderActivity/ProjectCreation/TitleLifecycle/BackendComposition과 관련 후속 변경을 모은 다음
 Level 3·실환경·정확한 SHA 원격 CI 게이트에서 수행한다. 현재 동결 Gate51에는 이 소단계가 없으며
 그 결과를 이 변경의 완료 증거로 승계하지 않는다. Runtime/Live 전체 전환은 계속 진행한다.
+
+
+## Hub 입력·초안 복원·단축키·팝업 경계
+
+InputContext, ComposerHistory, SubmittedDraft, HubBindings, Dialog/PopupInput, PathInput,
+ReadOnlyDialog 일곱 파일을 전수 정리했다. 실제 focus 관측, 삭제 중/질문 중/자동완성 중 입력 보호,
+취소된 메시지 제외, 복구 요청 20개·연속 중복 제외, 편집 시 이력 탐색 종료, 선택 전환과 삭제의
+초안 보존을 유지했다. SubmittedDraft는 필수 Project/Session identity 비교를 공유하며 누락된
+Project를 기본값으로 보충하지 않는다. 영속 admission 확인 전에 소비한 초안의 복원 분기와 실제
+제출·승인 callback의 우선순서도 같다.
+
+KeyName/ShortcutAction/ShortcutLabel 선언을 재사용·보강하고 실제 키 binding·힌트가 같은 값을
+소비한다. ShortcutRegistry가 기존 hub_shortcuts 필드의 attach/required/optional 접근을 소유한다.
+모든 실제 생성·조회 소비자를 함께 연결했고 기존 참조 identity, optional default와 필수값 누락
+거부를 유지했다. PathInput이 기존 hub_complete_path capability를 생산·조회한다. DialogContext는
+기존 dialog/reader 구분을 선언하며 다른 명시 context도 그대로 허용한다. Popup·읽기 전용 화면의
+기존 포커스/키 전파·경로 완성·창 크기와 PTK에 전달하는 명시 kwargs를 보존했다.
+
+원본/변경안 초안·이력 55개, 단축키·context·기존 입력 callback·Registry 관측 63개, 실제 PTK
+팝업/경로 입력·읽기 화면 24개 비교가 일치했다. 필수 Project 누락 시 같은 예외와 선행 초안 효과,
+권위 Snapshot과 독립인 UI 상태·NULL/falsey control 값·Registry 참조도 포함했다.
+추가 13개 실제 소비자는 새 Owner API를 원래 표현으로 펼치고 추가 import를 제거하면 AST가
+동일했다(consumer-equivalence.json). 해당 13개 파일의 다른 미전환 책임은 완료로 처리하지 않았다.
+적용 전 표시 상수 연결 누락과 비교용 팝업 구성 오류의 로그도 보존했고, 수정 후 고정 소스에서
+비교를 다시 수행했다. 비교용 clipboard/handler facade와 아래 실제 X11·UI 실행 검증을 구분한다.
+
+- `whole-hub-input-boundary-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.112455초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-input-boundary-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `d4d6def6c5ce406997e7d4c573fc8a4115d1c1bc2e19736855efef26af296dce`, input `ae3f48e35b44029785e90a2a2a35c122bc3ca8daa786dbfbeca6477a8fc733fc`.
+
+- `whole-hub-input-boundary-l1-01`: discovered/started/pass 11/11/11, exit 0, 25.080288초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-input-boundary-l1-01/hub.json --modules tests.hub.test_input_contract tests.hub.test_composer_history tests.hub.test_popup_completion tests.hub.test_slash_commands`. source `d4d6def6c5ce406997e7d4c573fc8a4115d1c1bc2e19736855efef26af296dce`, input `ae3f48e35b44029785e90a2a2a35c122bc3ca8daa786dbfbeca6477a8fc733fc`.
+
+- `whole-hub-input-boundary-l2-01`: discovered/started/pass 54/54/54, exit 0, 111.165127초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-input-boundary-l2-01/hub.json --modules tests.hub.test_clipboard tests.hub.test_x11_clipboard tests.hub.test_submission_latency tests.hub.test_request_history tests.hub.test_settings_navigation tests.hub.test_popup_settings_updates tests.hub.test_component_managers tests.hub.test_tool_history`. source `d4d6def6c5ce406997e7d4c573fc8a4115d1c1bc2e19736855efef26af296dce`, input `ae3f48e35b44029785e90a2a2a35c122bc3ca8daa786dbfbeca6477a8fc733fc`.
+
+모든 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. argv/exit는
+`hub-input-boundary-draft/selected-results.json`, 비교 명령은 `proof-commands.json`에 보존한다.
+공통 안전성 84개·R3 Mutation, 실제 input/composer history/popup/slash, clipboard/X11,
+제출 admission·request history·settings popup·Component manager·Tool history 소비자를 검증했다.
+정적 S1–S7·감사·문서 검사와 기존 승인·예산·효과 횟수·Checkpoint·Resume·원본 보존 Assertion을
+유지했다. 이번 제품 변경은 Hub UI 범위이므로 영향 없는 별도 LLM 단위 모듈을 추가 반복하지 않았다.
+PathInput capability가 정규 선언으로 이동하면서 사라진 기존 S3 finding 한 개만 검토 fixture에서
+제거했다. 원문은 static-removed.json과 이전 커밋에 보존하며, 나머지 68개 발견/검토 ID가 정확히
+같고 정적 검사 규칙·필수 단계는 변경하지 않았다.
+
+해석·전달·UI 상태의 동일 이동이며 Backend 실행 정책·영속 형식을 바꾸지 않았다. 이 소단계 뒤에
+ProviderActivity/ProjectCreation/TitleLifecycle/BackendComposition/CommandSurface와 묶은 다음
+Level 3 전체 회귀·실환경·정확한 SHA 원격 CI 게이트를 수행한다. 동결 Gate51 결과를 이 변경의
+통합 완료로 승계하지 않는다. KeyName 등 기존 미완료 공유 계약 표시는 유지한다.

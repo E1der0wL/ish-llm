@@ -40,11 +40,11 @@ class TagBar:
         registry.add(["c"], "c", "copy", lambda e: e.app.create_background_task(self.copy()))
         self.control = SidebarList(self.items, lambda: self.selected, self.select,
                                    key_bindings=registry.bindings)
-        self.control.hub_shortcuts = registry
+        registry.attach(self.control)
         self.control.modal = True
         self.window = Window(self.control, wrap_lines=False, style="class:hub.sidebar")
         self.collapse = Button(lambda: view.icons.collapse, handler=self.close, width=3)
-        self.collapse.control.hub_shortcuts.add(["escape"], "ESC", "close", lambda e: self.close())
+        ShortcutRegistry.require(self.collapse.control).add(["escape"], "ESC", "close", lambda e: self.close())
         self.heading = Window(FormattedTextControl(lambda: " " + view.t(MessageKey.TAGS_TITLE)),
                               height=1, style="class:hub.accent bold")
         self.header = VSplit([self.heading, self.collapse], height=1)

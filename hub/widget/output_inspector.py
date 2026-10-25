@@ -1,4 +1,6 @@
 """Full-screen output inspection with local search and lossless source access."""
+from hub.widget.dialog import DialogContext
+
 
 from hub.locales.keys import MessageKey
 
@@ -107,7 +109,7 @@ class SearchableOutputViewport(OutputViewport):
 class ExpandedOutputDialog:
     """Shared full-screen shell for locally registered interactive widgets."""
 
-    shortcut_context = "reader"
+    shortcut_context = DialogContext.READER
 
     def __init__(self, item, context, output, *, body=None):
         self.item, self.context, self.output = item, context, output
@@ -128,7 +130,7 @@ class ExpandedOutputDialog:
         query_keys.add(["escape"], "ESC", "cancel", lambda e: self.finish_query(cancel=True))
         query_keys.add(["c-t"], "Ctrl+T", "close", lambda e: context.close())
         self.query.control.key_bindings = query_keys.bindings
-        self.query.control.hub_shortcuts = query_keys
+        query_keys.attach(self.query.control)
         self.query.control.modal = True
         self.buttons = [
             Button(self.t(MessageKey.SHORTCUT_FIND), handler=self.start_query),
@@ -152,7 +154,7 @@ class ExpandedOutputDialog:
         return self.container
 
     def hints(self):
-        local = getattr(get_app().layout.current_control, "hub_shortcuts", self.shortcuts)
+        local = ShortcutRegistry.for_control(get_app().layout.current_control, self.shortcuts)
         return "  ".join(f"{key} {action}" for key, action in legend(local.active(), self.t))
 
     def start_query(self):

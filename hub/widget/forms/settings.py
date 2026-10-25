@@ -191,7 +191,7 @@ class SettingField:
             when=lambda: editable() and self.editing,
         )
         self.input.control.key_bindings = registry.bindings
-        self.input.control.hub_shortcuts = registry
+        registry.attach(self.input.control)
         self.input.window.style = lambda: ThemeSelector.SETTINGS_INPUT.style + (
             FieldDisplay.SPACE + ThemeSelector.FOCUSED.style
             if get_app().layout.has_focus(self.input)
@@ -314,7 +314,7 @@ class ChoiceField(SettingField):
             when=lambda: editable() and self.editing,
         )
         self.input.control.key_bindings = registry.bindings
-        self.input.control.hub_shortcuts = registry
+        registry.attach(self.input.control)
 
     def value(self):
         return next(

@@ -38,6 +38,18 @@ class KeyName:
     CONTROL_PREFIX = "c-"
     SHIFT_PREFIX = "s-"
     CONTROL_SHIFT_PREFIX = CONTROL_PREFIX + SHIFT_PREFIX
+    CONTROL_Q = Keys.ControlQ.value
+    CONTROL_W = Keys.ControlW.value
+    CONTROL_P = Keys.ControlP.value
+    CONTROL_C = Keys.ControlC.value
+    CONTROL_V = Keys.ControlV.value
+    CONTROL_S = Keys.ControlS.value
+    CONTROL_F = Keys.ControlF.value
+    CONTROL_G = Keys.ControlG.value
+    CONTROL_L = Keys.ControlL.value
+    CONTROL_T = Keys.ControlT.value
+    CONTROL_D = Keys.ControlD.value
+    CONTROL_O = Keys.ControlO.value
     NO_MODIFIER = ""
     MOVEMENT = (UP, DOWN, LEFT, RIGHT, HOME, END, PAGE_UP, PAGE_DOWN)
 
@@ -69,6 +81,27 @@ class ShortcutAction:
     SIDEBAR = "sidebar"
 
 
+    MINIMIZE = 'minimize'
+    RESTART = 'restart'
+    PROFILE = 'profile'
+    COPY = 'copy'
+    PASTE = 'paste'
+    MOVE = 'move'
+    AUXILIARY = 'auxiliary'
+    FIND = 'find'
+    STOP_RESUME = 'stop_resume'
+    REGIONS = 'regions'
+    ITEMS = 'items'
+    WIDTH = 'width'
+    CREATE = 'create'
+    RENAME = 'rename'
+    CLONE = 'clone'
+    CATEGORIES = 'categories'
+    CONFIRM = 'confirm'
+    SEND = 'send'
+    APPROVAL_DETAILS = 'approval_details'
+
+
 class ShortcutLabel:
     ENTER_SPACE = "Enter/Space"
     HIDDEN = ""
@@ -79,3 +112,19 @@ class ShortcutLabel:
     DIRECTIONS = "↑↓←→"
     HORIZONTAL = "←→"
     ESCAPE = "ESC"
+
+    TAB_SHIFT_TAB = 'Tab/Shift+Tab'
+    VERTICAL = '↑↓'
+    CONTROL_HORIZONTAL = 'Ctrl+←→'
+    SPACE_ENTER_RIGHT = 'Space/Enter/→'
+    CONTROL_Q = 'Ctrl+Q'
+    CONTROL_W = 'Ctrl+W'
+    CONTROL_P = 'Ctrl+P'
+    CONTROL_C = 'Ctrl+C'
+    CONTROL_S = 'Ctrl+S'
+    CONTROL_F = 'Ctrl+F'
+    CONTROL_D = 'Ctrl+D'
+    CONTROL_O = 'Ctrl+O'
+    CONTROL_L = 'Ctrl+L'
+    LEFT = '←'
+    TAB = 'Tab'

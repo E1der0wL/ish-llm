@@ -88435,8 +88435,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "1c080271a5db88d0b5d444e393bc776d8d72f0c988d1bb3d3175b0d091224b94",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "sha256": "4bae8dca48fd56fa1ee9aeb7e7b270c834c86005ed9118a7439351d4f8ef64eb",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88518,151 +88518,355 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "df873c2cd3a51dd5c2093fb644f9f3a350ebc79919b8550c1317e7a5646099d1",
+        "id": "b90e7b3ba3d8e24839dda77c57392e9eb102d94ab052a7d35bb8207867cbbb5c",
         "classification": "declaration",
         "owner": "KeyName",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9494fb9b93b823bd67a1599725f786bbca6ab3125c59117e3cf6b61586c6ad70",
+        "id": "391c6c8172d0c8653e30cc1037574c4b5829aa306dc371075255be1ca4408b29",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f0f6b6cbb8fad3d649bc4dd5c19757c0086a4bff92fc3652f28e95200f159759",
+        "id": "5cb1a800d64e85b3c4c283d891f8dbd470c35c797753f6d68a728592759a7dce",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3c14d613a23f1cf906f0fcd916b7c801f025b1418c51a34aa99ab57cd5a95816",
+        "id": "c19f79c00dd3d835bc080e6eebece4f672623b20192c1643cfb1154860fe8b1d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "38c2dce45a66562ffddd79a484576cff24e3ed4ec54c70102627ace1328f1724",
+        "id": "a860f89f7895d286fe836afb33d2457438c7f5a2068e5257397976faefcab266",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2bc2464225e24dc49d7bc617a51adf565fde8c69beb49823aa97c1fc5f86b6cb",
+        "id": "32cae811476425ead94cd1848a6c78f4861c5b0255097a9442e890ef395e9b13",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "632d40da1e64e880465564a4ccbbdafa8be768c74bd28eccf0952fcd4995d586",
+        "id": "d3eff8fb7bf90d2562fe93c34430d24befe0256ce3397aecf713b6ce30a71847",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6ac758eb45bc0b06d4fc446eb6ffc557e507c4d4520d40005b17af3764e8c101",
+        "id": "213bd6999b59939f86ab41d6d186016412fc61f6c604a89637e79a43ac52b9d8",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "01ec614c76542b0992ccad1429b40866ccbdc9fd73c3059c422bafbbc289c206",
+        "id": "66264dc0e61e38180269c7f7e1ec846f2d15342295073cd64fe7a27d0dfe7a68",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "f8ca26841a27317d20f38bcb3cc5c76ba5680c16d87a463c858e0571e0801516",
+        "id": "6f11e05e4792636cf05f7f1c6abb07fb8717d397cfe0f17f8d14acbb67ea9ea1",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "05162e8f0d096993f69f2228fe3e9cece470c2d9ef51be61da51ba75787d5ce3",
+        "id": "9f58cb119b50f56b331deaac6d77a3ea3998b2562e1e7a4907e2790b496daf13",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "abb5e46fafde0c61b3d4ea66ee8df05dfb47459805b9a468c3ec8584240e6543",
+        "id": "e5dc73c0adaa0afdd69fbe96805b3ae7b74dabe1d89467a0b99606ed7dbb1cf4",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "92671c441c52a71b7875976c28313f886e99378452ffce1807f93d17a804eb3f",
+        "id": "1a200146dc8bf012f790bbd4558bb27d1c04782846bc9ab293816e48a8ccb554",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "18e120126d15cf2111e9788ad99d28e7e5eca99efee651ba8a9a84f02ebabbe0",
+        "id": "ec84316946e1caf8ff17b5f16a9b6987430d0050a3300276f51cdb04d530a5bc",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "616ad344fa33513160be1901926e9ef9e10ff7c6645e6d7f94ba2845698c82c9",
+        "id": "3f778607c19452fb50e71e941b39dcaa3d7cf49fdde09a13bdd684b8167fa304",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "b22bd216dc2aee90ddb08cb1e52d27df5eda9db0a135c917429a87db00ac1161",
+        "id": "1baa8043f73f0f10b9e99decb31cb1e7bb8ec52b82d626face85f1baee2492ef",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "49b5bf1b29868b8f2fb02272d58e9be2fd10b05bd23bf69625ec39d5053348a1",
+        "id": "6c35c34803f22ec11ac040dbc74d25488282132a1f47778753dc15de8fc8d5b8",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "da91329e5f5b9e37a4f6cb1bc165c9152251300da8a954302ba29a91b77c3d48",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a657adba185b26b63e5b515b04e6e4da41f6723bc74727ceb202b65b15ef9277",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "eab98609a517abf71cefcba85cde3f7ec2de5eb1bbac651a86b0cd0c5ab58d7c",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "14154051ecb95e56edcc474c4cc5bfbed06d8e3e8fde54813c18f8c7509d4c07",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "968c64feac485b889745fb2e788c712b8b18116d3b75d81c3771c3e08fa0b0ec",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "81f9f451ffa5baf6ad9800bdf7953a4d692494d7390333abba65e32af5f0a96a",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "2718c6abea4c62378fa09e79f8882193f3c2c0b34a0b60647a5a25dea18ac3e7",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "825c4f6c1b3813130b91052921c3bc1f94c3f32915e21e1b2bdfe399ac59e141",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "62970bfb87af43b43690dbadf3794fd719bbb6ad949ea0bb3daf7b1e1fad4d8b",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f3e7738c6091fe0e2996485bf90fb223bf0cb5e11f58ce19490d4427bd151626",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f3b51d8c9e40b1e226de1763ea8c722f55c8ab6cdb2d5af4fb57c9fe9520fb43",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b4fd58055eb3fe03905c09de470d3a3592b811efb3ad17dfdf17fdce55d1f7fd",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "817eac62c8e802186ad9f64abc8f98c850340f3eee464843b1a0c0e226a62b2b",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "aeea8b3b6d98ef86bb86bf48fa4414e0b17aa28ed7db46c4983fb622792aded6",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8f325ee830583c432d3e696e27344a0547b7c6b8782b082b464ca349ea8c4977",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "750cc6ddfde4a4dff373e861cd0af979bd179b2c4c6f381e860d618db227e761",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "0ec1dbcc249302269e9dd41aa92777d6b912a8451185f7e7dc8b47a4f3ab2bab",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "62acdd974ba973101e28109e2bcde3315552d995408235cccd15d8e0509438bb",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3037f8c6f7c932d57d21638102d626446489b6633e9abbf7751bb1e1a2d1a54c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4aa9d3045e06dd517ba9eac4c315d86340ea25a43d5179af2df63f7b45159bd8",
+        "id": "59148cc107e08ef5bd7f62fc3734eb26b098fcea15c22d708ac1922b0fcf44e5",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "0ad2e3fc74cc1359952d9ac66e79af7f0b8efa0bd2d405a661247649aebafaa6",
+        "id": "95b5895739d0cfc8ed488c5aef668dbf919f3dec2b8b1ae273716255e0e2ddc7",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "e39d7b17585ca8e8dfc855d66c73fa188fad03aa08516bb49a45e3d2ee755555",
+        "id": "b7a7eb542fdcea119d04e402f0a24540c42c971ad069f14dfc0e053996749ae6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "527ff45d9c6e45062cb1b7a554ebc6b8050a5f720fcd54324f0e019f2054cd8b",
+        "id": "61142b2159a61d26945ee1d4f7805ff9edabbf1ba541429309163801dd829218",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "a21e69ed7554bda21c393774e4f0bb0f64da6c509af1db2d2d758c4b9d249597",
+        "id": "387c8eadb041a82a2fc635e2e74384b06f9e1bc1be5c8f261175b96cd83d363d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "c3559918a64e216a576c84ebcde62006b5068efbcd8331edf825ce132e2fde3d",
+        "id": "d5a0c4b4611fa27174af9f6e16d9bc9fb333e2122c4719cb28687d3d63b1446c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "32e43c007b8143b1a97770552c4e3f016627cdeca62dc023c4268aaab2bb610f",
+        "id": "80fe083f1ffaa5b02e25e2d158e8da8902296ac3190ed723e85aea1023e970c6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "556f0bf50511b7ab3e4fe2a1ec2af115c600cffb5119f9549f451a6a221309cd",
+        "id": "9559fc39367f00d0e7815842c46ca7fde0be2f7c9719a0237b25c405ffd250d0",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a977d207f9a6f395c6de750a7b015a55df4d5a6e280a8923802a2b9286ffd29c",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "0f4f9cc0a774c65b3fe92d500ff91f209f40d6ed8ddf9bfeb9c632313bf68403",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "46eef0a1c9966474e9941297bb515f2142c1abb28b24d7ef43594e2e6db6a53c",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "8c2f036a3a47e69fe4a435400ec3e5b28f2d882e949d751899b030694a0ab845",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ded0dbb2b22945f435f4506693e5536469e9ccc8ea49d31ced759649c6fb9ae4",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ecca08f9e9c6ca364fce8938d3effe9c36ce5f3e5cbc049c88bd5b06c5b07168",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1a2f838464f32eeb47e27072d2fe7cb89466fc1357dfc5e22985ba2992a4ce65",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "48141821a0fd76e5713b370fa16610a10bb1595a8c6d0e5d5d86765d513fb1df",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "418008a0b63d1a750b043f9b6b55f84702e81e0ab03d25fff3ccc7dbe6faa411",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "022705cf2165562c7f2e3bfc89d2c2c238cff26879884bfe41d1923ef9c2de06",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "daecfff03015db005a738c56b2859b901ee988a848dc3635b258a8e2a6f77942",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "51c5c666f82720ab97bc29de64ef0f424aa4da21578341b63078cb7db1fec41f",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "4c8867b7fc4e4930b0c835fda43729624add6f0d62509d4eb5b59aac43b9637b",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f400fe07380af7254f82d6e8a8267becf52c75ad1111585c69966269d0f47a9c",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "2fb9ac79ef603861573a122a1461445225465338fd61b36b16e74412ce7973c1",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -88679,7 +88883,10 @@
           "hub/backend/project/history_retention.py",
           "hub/ui/chat/projects.py",
           "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
           "hub/ui/input/registry.py",
+          "hub/ui/input/submission.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
           "hub/ui/settings/navigation.py",
@@ -88687,10 +88894,13 @@
           "hub/widget/actions.py",
           "hub/widget/auxiliary.py",
           "hub/widget/content_inset.py",
+          "hub/widget/dialog.py",
           "hub/widget/feedback/notifications.py",
+          "hub/widget/forms/path_input.py",
           "hub/widget/forms/request_history.py",
           "hub/widget/forms/settings.py",
           "hub/widget/header.py",
+          "hub/widget/output/reader.py",
           "hub/widget/panel_edge.py",
           "hub/widget/profile.py",
           "hub/widget/section.py",
@@ -88705,7 +88915,9 @@
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_chrome.py",
+          "tests/hub/test_clipboard.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
           "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_general_options.py",
@@ -88737,10 +88949,14 @@
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_slash_commands.py",
           "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_tool_history.py",
           "tests/hub/test_turn_deletion.py",
           "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
@@ -88762,8 +88978,8 @@
   },
   {
     "path": "hub/ui/input/registry.py",
-    "sha256": "15d89c06883354cd2b11deac0f6fe91a1d54a364df4f16d6cbc01cebca724576",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged.",
+    "sha256": "4070a97827c4de525ac2769997d0c656af7ee65415f626fd6aea6be57d2cd196",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -88839,19 +89055,31 @@
         "reason": "Ordinary sequence position/negative last-element indexing; not a field name, retry limit or domain state."
       },
       {
-        "id": "ebc5a5e555e40fa4ccd053b1974fecbb486f6f469cddbaacbce28ed6ffe13a68",
+        "id": "1a3d834b833281b6463632fa00916ee27e200ec9654e30a61cd9dbec1a343594",
+        "classification": "declaration",
+        "owner": "ShortcutRegistry",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "525cc7ad7c85410f87a70c0702bf59da664345d86f7699c837136705c123c732",
+        "classification": "declaration",
+        "owner": "ShortcutRegistry",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e2188f88d4b20f5ea0f7211dc39db7b7a9b2ff9619e090e6d6404edd14a223fd",
         "classification": "declaration",
         "owner": "ShortcutRegistry",
         "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
       },
       {
-        "id": "37ef51fdd0d388b4d16bcf87d7fddcf7d43e9d7fbc235a622ab98651fab994fe",
+        "id": "d018dc8a409c08a6d90fbff5d71873940d1713a320b901b1977c13ca99484b5f",
         "classification": "declaration",
         "owner": "ShortcutRegistry",
         "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
       },
       {
-        "id": "1e95de24777302a957f9e59b8f929aa5ef156afe7ac73bce48e90915b65d2a08",
+        "id": "3f5107f7c3ce7cd196f6a3808233c643b25047e3dafe133c5241bffa92bd5df2",
         "classification": "declaration",
         "owner": "ShortcutRegistry",
         "reason": "Dispatch defaults, ordering and movement-group declaration use the input Owners. The same typed Shortcut feeds registration and the displayed legend."
@@ -88863,35 +89091,50 @@
         "declaration": "hub/ui/input/registry.py",
         "consumers": [
           "hub/ui/input/bindings.py",
-          "hub/widget/forms/settings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
           "hub/widget/actions.py",
+          "hub/widget/dialog.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/forms/settings.py",
+          "hub/widget/output/reader.py",
           "hub/widget/profile.py"
         ],
         "tests": [
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_settings_tabs.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_question_card.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -88899,8 +89142,8 @@
   },
   {
     "path": "hub/widget/forms/settings.py",
-    "sha256": "fb5029b4c0b446e867eda6fa9cc6d8f0caf336915ac4a58ac6dbcdfe8552b1d6",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "sha256": "83983312de402b4270ada9e037c1e145248189cf078b1d12b4e6351e3f8cf7d3",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89119,7 +89362,11 @@
         "owner": "FieldDisplay / SettingField / ChoiceField / SchemaForm",
         "declaration": "hub/widget/forms/settings.py",
         "consumers": [
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
           "hub/ui/input/json_document.py",
+          "hub/ui/input/submission.py",
           "hub/ui/settings/drafts.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
@@ -89127,19 +89374,26 @@
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
           "hub/ui/settings/screen.py",
+          "hub/widget/dialog.py",
           "hub/widget/forms/definition_manager.py",
-          "hub/widget/forms/general_settings.py"
+          "hub/widget/forms/general_settings.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py"
         ],
         "tests": [
+          "tests/hub/test_clipboard.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_question_card.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -89148,8 +89402,12 @@
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_text_editing.py",
+          "tests/hub/test_tool_history.py",
           "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
@@ -89277,84 +89535,84 @@
   },
   {
     "path": "hub/widget/profile.py",
-    "sha256": "08248ba64301bc8e9c5c94febd42f5a6ad568a97867572909ce27b612fcea610",
-    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "sha256": "9494f5e4868f857ab635b568d35e283b4fefd16305055ae868706aa4f945f482",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "3ec036b0833218edf93a42917b92bd3bf55a9f061ecc69120afed0d6cbb4eb3a",
+        "id": "d6269823d8b2be3581282a4491e6096a3dfb505010ec7828d4dc503d98f35555",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "e7e34048f50fb1d92f7e972a5e930b13511bd8f6d21583993309d286d96c6c5a",
+        "id": "7fa86772ccfde1248ba3b78ac6b88b687d80f4d82430fbcc7661b0c2937a1750",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "04c7d64380f413ee69c3944344eb946f286f82b739c748e5e448b0227c0566fe",
+        "id": "37bf890712d49877d5a33602a6aeafba124885483cb1e003bff8a0255601b90a",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "154b5805607ae6a0d4c9e575753b40e870a5c847ce67777873fad473c5ea05b2",
+        "id": "92817f238bb99ad62fe88dfbb950da62bbd2d08f4d10ad0c7486deb399d4f060",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "63e4032cf2c7b274cdaff29378d30f2f18a312119a0def2cb34aa271db5c71df",
+        "id": "bc16d90dbe9f56e5a0326f9f354abf449db11c01dceb06a1dab8e5697063f88b",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "a6330c5c69abf052f3d3d0b86ed0d1299d24efdea25b55a25549700ef2ff3327",
+        "id": "84b39c427044053dbe63e35446adc9a435828f27a033cf6cbad0d83ea7c27558",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "b93b3748de9e6ee61bd551c0be565b8ea210c3771f0444b3f311daf57cfd338e",
+        "id": "c4cf5e8bdd43e26ab4b8c0125fcab68ceea80851c0249ac78c7d051ef8ce2fd7",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "73e181df9036f2fd090f948b9ce686f31a41152bf0ae360d85a42a3dc35b4e12",
+        "id": "c32f8015e402cf7d391dfedefc9106e1843d694d2eab1a9159c9fa59de4b9723",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "2bed6459525f56e8a17573cc097c8508afebca388a6680eebb41068f4661c29e",
+        "id": "0ca807a8a3f261f247eee8017b9ef57bb450ec09c03fabd7e8eaee4d3c876163",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "525676a504384168dcd928e18c7fa412bbabf0440fdf0a3890fded676393be24",
+        "id": "885031da16c3b5aa81ffbb031602b0953d6af0967369dfa7473412b7fa16bd4c",
         "classification": "declaration",
         "owner": "ProfileBar",
         "reason": "Profile layout dimensions and identity formatting are declared here; input keys/legend/theme use their Owners. Preset selection comes from PresetUI and sidebar state mutation delegates to HubView."
       },
       {
-        "id": "96fe065b7a05f10a9887f6c03f3c306cf19f8a6337eb88a3309180f88075ccc6",
+        "id": "b0f66065bb8c94393cea71b54b62f115a0ba9d9db52c391a28c3a5cc4e37535e",
         "classification": "non_contract",
         "owner": "ProfileBar.__init__",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "51d4875977a4e7baeeaa8cf8507e3b24d07074741834033bb80f9064da272637",
+        "id": "603314ce4460458ba491cfd00b13c13acc41f8a532e576d6869c0b2b494ba54d",
         "classification": "non_contract",
         "owner": "ProfileBar.__init__",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "71248c5f418ab92bc2402cabeaa16b1e469c09c4553f2b29a3b1f648b39ee22f",
+        "id": "d1bad3a22c7c21383c16f939e87c2089fbe761d7b9b499fa97bda9c3d044ba99",
         "classification": "non_contract",
         "owner": "ProfileBar.__init__",
         "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
@@ -89365,30 +89623,46 @@
         "owner": "ProfileBar",
         "declaration": "hub/widget/profile.py",
         "consumers": [
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
+          "hub/ui/settings/pages.py",
           "hub/ui/view.py",
-          "hub/ui/settings/pages.py"
+          "hub/widget/dialog.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py"
         ],
         "tests": [
-          "tests/hub/test_notifications.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_clipboard.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_usability.py",
-          "tests/hub/test_chrome.py",
-          "tests/hub/test_auxiliary.py",
-          "tests/hub/test_preview.py",
-          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_slash_commands.py",
           "tests/hub/test_snapshot_projection.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -89484,108 +89758,108 @@
   },
   {
     "path": "hub/widget/actions.py",
-    "sha256": "15128d451b0973c155ba24dc77bbb52dae09d3e3b9c3d02b288d7fea7cc69c45",
-    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion.",
+    "sha256": "56dc955d0865cb09fff738f77da6e87aeba9fd80b9fc7355dd402b7dbf82f60a",
+    "reason": "Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "4c814832b965b377bccecff592fe9dbadd9adcb6f3c7462acdb714d0007680c4",
+        "id": "9bb0d17f37da95cdceef6dfada7a74307a53c1bffb16d81897ed1afcc2f42edf",
         "classification": "declaration",
         "owner": "ButtonNavigation",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "a2a9849a6580965f81ac72c74e5c08a4804289de99c38f98881b19aeb6f89259",
+        "id": "ef0e6ee2feb8dedd406bf0bdf33f5db5bcc160f058ba53514d937199f6794bc9",
         "classification": "declaration",
         "owner": "ButtonNavigation",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "88ab1f192a29364ca207d5a13a1dca0b28fca79c98a6649bc530f55ecd59af6d",
+        "id": "02355f9ae7b44e26ebfe4de9f537765ae68cc6949e6475a4d8e4184d73a67dae",
         "classification": "declaration",
         "owner": "ButtonNavigation",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "4a4ad23e89703ad0d87efded02d7732b996dc182ff9c2a025dce3c7e39a109a3",
+        "id": "19e566e0d345faf96c46c25360cf9a874d603b64b0a39b7a27698dd96d641190",
         "classification": "declaration",
         "owner": "ActionFrame",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "6b855341f2d15422b2b5c1e3ebbb1d2736320fcc9ae32d2d56aebc1a5f41e5b4",
+        "id": "93a2ec64ded6a3c10616560f90922756736e6ffdbc7b818fc0400d61a25e159c",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "1542bfc3192ea3d00b54c155ea4820d2ea317063703a14b32c05c7735e135b68",
+        "id": "f52506a2f5c0119e3f065dd3dd8a1011db0a182229dc908f0793e51350555528",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "025f8aed8e7bb6710633f067f9cc5a8c34f0ddc64f3d3192be0ecc8eae6a5eb2",
+        "id": "8bc68d18e5d30fb4b05ac963222706e92d5add04632bc562f688b7ac061cf5fe",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "671640d27bf3a0902520751c519ec66e60b49fe80611669160c63ff9b59031d8",
+        "id": "439b197f7f8b2e1c2edafa519198a773573e0b93e89622f370d237e894d7f91d",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "17d86e6d572ac9c242df20e7c52dd0899d967d913dcbcf83d54f51d3a9c6e0d4",
+        "id": "e8ac75edf9a92fe366649b9b3539d65bccd45a7d8bb1bd1e0af1595e8d774ac9",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "fd83a2cd0b3fbf7fc9258026457f071c2858d5a79c64191e59ac0368bbbb3adc",
+        "id": "63ed2682d94c0bca0c85bca416c13f5176525872bf4591d0a6363de29faa4b66",
         "classification": "non_contract",
         "owner": "bind_button_navigation",
         "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
       },
       {
-        "id": "ac697a75b7ca6a4cdcffc9ab98dedb220fcb9bb82317206911c2ceae0a421291",
+        "id": "d60bf0f45eb9eb4222441c5d7239d4b305a4980dfc50c2110eda72e6569b67fc",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "57f44301e34bf8037a3af1da2336e33fcb427a32c463d4c5b92ba7ce76a9086c",
+        "id": "5c9332bddc7cdb71dc55c091e003430c7356e526dfaaae4b4c135870d669c776",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "a03a498cb4061d78848bfb3f7c4a613b36d0aca6359b01f85670085bb1b33b35",
+        "id": "f8426ced1eb4af4146df5fdb0ded75f92badabe4298c25fcd2cce5c0a7b03100",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "b4b28b2f94b0f00db18924f9e5fef38f5c9476295aa2af9ea5c6750e50634057",
+        "id": "d8f6abf195076d04902b16edeb987e62332dc55637f0c3daf59a3e8df34f4766",
         "classification": "non_contract",
         "owner": "ActionBar.rows",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "aacfafd7c16ad8c892a839e6cca8f1895a3b597adbecfcf14ccae5026c09cad3",
+        "id": "4361f3e765602ceafa29cb4e893c6fb993e905c2467cca7a11516ffc93c2c531",
         "classification": "non_contract",
         "owner": "ActionBar.rows",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "c7df0b4a436206dccb4a20e2b378e989f958c9e7b663e185ce738fbf1bc2dfd2",
+        "id": "701c0261c373fa1edb7015c8c47457a960dfdca3d3181e98f704081262c092fa",
         "classification": "non_contract",
         "owner": "ActionBar.preferred_width",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "4ad5fcdf928cf7a68e0b93836f701c14915db9518463c612592cd734ac1d2571",
+        "id": "588c5d82d4576bdc45a07f25d0ae3e3295bfcd54af449436f549e31e9d649c22",
         "classification": "non_contract",
         "owner": "ActionBar._container",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
@@ -89596,31 +89870,47 @@
         "owner": "ButtonNavigation / ActionFrame / ActionBar",
         "declaration": "hub/widget/actions.py",
         "consumers": [
-          "hub/widget/profile.py",
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
           "hub/ui/settings/pages.py",
-          "hub/widget/forms/general_settings.py"
+          "hub/widget/dialog.py",
+          "hub/widget/forms/general_settings.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py",
+          "hub/widget/profile.py"
         ],
         "tests": [
-          "tests/hub/test_notifications.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_clipboard.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_usability.py",
-          "tests/hub/test_chrome.py",
-          "tests/hub/test_auxiliary.py",
-          "tests/hub/test_preview.py",
-          "tests/hub/test_ish_integration.py",
+          "tests/hub/test_slash_commands.py",
           "tests/hub/test_snapshot_projection.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -93108,42 +93398,42 @@
   },
   {
     "path": "hub/widget/auxiliary.py",
-    "sha256": "bce67efcc138b157d3da74fff9d94da2bb823041aa8006bcbed6e1a213784362",
-    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass.",
+    "sha256": "576cc14630c7308944a7f5ff610e200816dc32acbd3fb0d1b3b42acdfcf9d1bc",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "611cf7d67750b45b9253960b68f93df331c3d29498b908250acdbe88ef6f5a8e",
+        "id": "bcf127e519ed39c20086559f1f07113f487a993fcc22f4ff793d0dd418579d29",
         "classification": "declaration",
         "owner": "AuxiliaryButton",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "0bc690bf62b023544bfdb5de91caf79ef0a3d190157c14579efea0e54cf3d7db",
+        "id": "3b61aeca7cc7528c078d5a58760c6c959b47c9c911b1f6f193c8c71c9782e996",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "d7d0fb0ec15d68f41a8d9aa23f00ac8bf661583c5a847bf8e9b856b47d5ea613",
+        "id": "587425061a63a154878de1c596f34bc09f6b13c40e1b37790f7343e5984d498a",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "16f5a547bd632e9028d1528aeb72547b4e4314af52562e79345d477442256cf9",
+        "id": "46d5042e33da783f3126aa4bcc02b72b0f65b73b2c2f9d90bf3595bb3576061c",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "f4b8a7026ca61e3685d5b5de2e42f58348ef2091f44e233990a23d37b1cf30ea",
+        "id": "3b0844515e90d6bae08cd7413cee71eec633b26c960fe4b4e756a51601bf5d35",
         "classification": "declaration",
         "owner": "AuxiliaryBar",
         "reason": "Canonical widget presentation, dimensions, callback absence and owned input-boundary declarations; shared keys/styles/input contracts come from their existing Owners. Pure indexing and geometry remain explicitly classified separately."
       },
       {
-        "id": "ec52ff636b3c7ce615a5a24add2661ef1008fca266ca34b11c27299a0bab1bb0",
+        "id": "65a6672ee1715f3153e1c58801937a4d05ff69cd2d9587048a2c9441b1d23ab2",
         "classification": "non_contract",
         "owner": "AuxiliaryBar.__init__",
         "reason": "A disabled Tab shortcut uses a no-op Python callback; its return value is ignored rather than interpreted as domain state."
@@ -93154,13 +93444,23 @@
         "owner": "AuxiliaryButton / AuxiliaryBar",
         "declaration": "hub/widget/auxiliary.py",
         "consumers": [
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
           "hub/ui/settings/screen.py",
           "hub/ui/view.py",
-          "hub/widget/composer_actions.py"
+          "hub/widget/composer_actions.py",
+          "hub/widget/dialog.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_chrome.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
           "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
@@ -93170,18 +93470,25 @@
           "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_slash_commands.py",
           "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
           "tests/hub/test_turn_deletion.py",
           "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
@@ -93196,8 +93503,8 @@
   },
   {
     "path": "hub/widget/tab_page.py",
-    "sha256": "6328fb2d4a0038c6e8a6deb3bdab8633cc173790f91ae471ebb793bad5230ab8",
-    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "sha256": "3bd94e736091b6772a7e748d99854bc078b86330cf6577545ad15bc11d7ca1b3",
+    "reason": "Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -93296,28 +93603,45 @@
         "owner": "TabPage",
         "declaration": "hub/widget/tab_page.py",
         "consumers": [
-          "hub/ui/settings/screen.py"
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
+          "hub/ui/settings/screen.py",
+          "hub/widget/dialog.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py"
         ],
         "tests": [
-          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_page_layout.py",
-          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_tabs.py",
           "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_escape_navigation.py",
-          "tests/hub/test_chrome.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -93522,36 +93846,36 @@
   },
   {
     "path": "hub/widget/composer_actions.py",
-    "sha256": "54da65b8415c91adf9a808603fa1bf68ef646c03fd0326babd61d6cab9720283",
-    "reason": "Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass.",
+    "sha256": "4375af9d166fef559eab17d81f3829ef154db9a9692c1e8e054f6729f36e3bda",
+    "reason": "Transient interruption/deletion/composer feedback keeps durable execution and command admission unchanged. Canonical snapshot and lazy Session-pair observations preserve callback identity, read timing and exact UI projection; actual before/proposed outcomes and existing safety/UI regressions pass. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "6640462364a4d6da3d6f47093bec94d053ae412e058974533be25b76260dee02",
+        "id": "49ca8ced867b9fc8fbef88aa4d48faef9a51bbf0dfea0f15638298c0e56d4c8c",
         "classification": "declaration",
         "owner": "ComposerActions",
         "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
       },
       {
-        "id": "c93bd4b1af97185b214239f6d90e7e92096d76957e7773f0e83b2baaac254a84",
+        "id": "440caac3e7ef5f3523e73026d6e253d4611b24354695b4f91dd605773dab0cbb",
         "classification": "declaration",
         "owner": "ComposerActions",
         "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
       },
       {
-        "id": "ecd7c428990804ed8cc4daa87793166a543fd643fc4850fd8ad406c22308d466",
+        "id": "4a8ef90c4caab449bccc2f003aa548e061d779d7207930add4063142ddfa855f",
         "classification": "declaration",
         "owner": "ComposerActions",
         "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
       },
       {
-        "id": "685c2a3f971f817a2dbdb41e1adcfdd8d11f0e4ca8f7cbed980a14dfc2728666",
+        "id": "0b2c9bbba292318ecf246b006bdb2cbf9f06949b1ef7776a3e2ad9ee278ed5d1",
         "classification": "declaration",
         "owner": "ComposerActions",
         "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
       },
       {
-        "id": "50eae0ae9f12565aafdf7bf50046cae935dc4dc61b1be81a2da44c841b32775a",
+        "id": "34b86ce95ab207a93176c7bf2aa38d313f00130a30422d8cd401b8bbba9b590c",
         "classification": "declaration",
         "owner": "ComposerActions",
         "reason": "UI feedback owns only transient presentation/absence/identity declarations. Durable roles/statuses, keys/styles/icons and live snapshot/Session observations use their canonical Owners. The projection never authorizes an action or overwrites execution evidence."
@@ -93562,29 +93886,48 @@
         "owner": "ComposerActions",
         "declaration": "hub/widget/composer_actions.py",
         "consumers": [
-          "hub/ui/view.py"
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
+          "hub/ui/view.py",
+          "hub/widget/dialog.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py"
         ],
         "tests": [
-          "tests/hub/test_interrupt_feedback.py",
-          "tests/hub/test_deletion_feedback.py",
-          "tests/hub/test_mouse_widgets.py",
-          "tests/hub/test_chrome.py",
-          "tests/hub/test_live.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_chrome.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_question_card.py",
-          "tests/hub/test_turn_deletion.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_slash_commands.py",
           "tests/hub/test_snapshot_projection.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -98384,90 +98727,78 @@
   },
   {
     "path": "hub/widget/forms/request_history.py",
-    "sha256": "b7b07c3eb61ac3c1f15bbfe0172b3a184f1d831568b1139ea303905ff35de8fc",
-    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion.",
+    "sha256": "577e9621032aa70a1a79c4eae03a1e159222e97bd1687e7f262f970f34d18850",
+    "reason": "History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "2703bd5d2c5409df6b2990835edb56e0cf752cbf07f3fd77f2b9f0c042101a0b",
+        "id": "83fa7cd6b26e86ed8028c5e8a7f62d33e0c799cca4948d6e7bcc4c51ef34033d",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "46b2f06aa174a7d870adac67ce745ad4860fd8e3394c30069da0101e9502d6b3",
+        "id": "026a877f14465d2d8893f38a36e179dd556e1d9a337bad1f754a7bc4000409fd",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "044303570f8f83c342264e15af26ebc40ab85e2e54b04d5a6bd23859a3d80bbc",
+        "id": "5b0109841f4d0177249d5e9e23d189397ab62e375bd7bc2c262e13a7dbcda61f",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "d59d20588860db6f37892e2ac19e129667d04dbc5c7c4c6505475a85c701279b",
+        "id": "f8f7c7cd6b65c88ff9c2098ad42f1c0b550203e4ada8a59dbdf8c4fcf96fc330",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "ea41158c073cac957159f13ddf29aec633623d27168f7733e4bf501bc6350b24",
+        "id": "5152a8a5c5859c722e0c30f064f1283ff8deef367f8f5a2d6e46bd5fae0ba809",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "c5f73ac95ad34196fb0eecef75073b5c50a615e9e5183f56160ca7620664bb76",
+        "id": "700ac74c35e43b82d700fe837e6190942ab5c47f6683eec12a53d5d5fa79e5ab",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "9a6604223ecdcd9aa56d6a2807f40a7ba99c310f404c44c82007611de57a5555",
+        "id": "833edadba95cf47f907707143a3dad7a8c59744cb05823323a182a1a279c2bf2",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "94c50adf7eafe1b6bf05fa756f2186ffb1da9b8f165e729abee7f2b2fe947f11",
+        "id": "df19a044abb1b61e8fa0ffde2bf627800a19cdee90ea30148a98f514596399d2",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "8a034e60755ed75c1e70e634057d554ce4dfd2629faf5df201eb08b5c65accf9",
+        "id": "0bfb6a15876097a13263a83c21dbc5874ef773165307cab4a43394f3348a7e45",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "7664afa86facbeb2b654abcbe363ed82740a8f936f4e52d7bf6f0a813cbd0755",
+        "id": "edda1a9f3a0b375427383746498c940790c7fe60e4f99e89d481556f0d39afee",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "e2430df28a10963a0f6308c103e318e9609b9571ba62abea922f5fb6f3e989e9",
+        "id": "537296b62b4039314218cedf38999058d4aa7f9f0baaa1b64151a567cad78a80",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "6800079d27422879ede06785fe0ba1af6e5a8bca1cc37865cebea077af5390e0",
-        "classification": "declaration",
-        "owner": "RequestHistoryDialog",
-        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
-      },
-      {
-        "id": "8a1d9e422cec72f74150cb3d31c8d746b848c0eb17b2bcd1a8b238c17b7ca671",
-        "classification": "declaration",
-        "owner": "RequestHistoryDialog",
-        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
-      },
-      {
-        "id": "2560bc1d3745510813795ebb6cb571fea4c2d12e150088defa802d51443d4b5e",
+        "id": "c257d9204b2991049cc7f7683044a9e64e77ecdaf28e7ff6a1f24b15fff8cad9",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
@@ -98479,43 +98810,55 @@
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "028da49f4b0f33bc4b84f014f877277b148515c7f2bb749c51afeb759c9e8fe8",
+        "id": "fe5569dd05584c8866556e35d420233197e5737f553409a4dee569ea6012d9f2",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "78951ba33db06622aae6d48cfd126b47ef3bc3681060585e433283a7999a18b1",
+        "id": "0bf2262f9a99035faf85afd67bc5d6a6764f6a1f34846e65c5ae4ef83d56d57e",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "95c46ffd69611a5cc78171c6d036df748b15eb0a9ec94f836d96e642f8dc79d4",
+        "id": "66f09cf634c021f0ae7c291905de08c7f2e1672514e6aff76f731901c4c39e16",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "60fec639f0f35cf3d9026dd2048e1ed7308b135f7139575ba27362797443f3ce",
+        "id": "27a572f4858f6111f37f376b2751c1a29dfd0a8a3fc826f85ee74a145151cea2",
         "classification": "declaration",
         "owner": "RequestHistoryDialog",
         "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
       },
       {
-        "id": "4a871d2f0bcf6cd0bf005bda95d3c2739ea287e50590c59c0ed0ea7b6dd26634",
+        "id": "f7bd9ad82d9472c1436b3208fcfb32eb5f7e13fbdf516d1b859e52fb60bd3818",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "73cad1ae061cd92aa0599d9870416b2011df71699ec809c93ff90cc90b940b35",
+        "classification": "declaration",
+        "owner": "RequestHistoryDialog",
+        "reason": "Existing geometry, widget flags, detail format and shortcut context; theme/input/action and history fields reference their Owners."
+      },
+      {
+        "id": "a125338908456c98ffc5f470b23f5ea679ad69d9d610a5887b8979cf420cea23",
         "classification": "non_contract",
         "owner": "RequestHistoryDialog.__init__",
         "reason": "First row establishes the initial selection."
       },
       {
-        "id": "00972dfdf8bc722e9bc329dc24f9b34b68eb2397f6f3ef5ac388cace36e1017a",
+        "id": "665e8b0e527a45101805547e11049a89eb7b01ef1668a0d9133a1a72f5c60481",
         "classification": "non_contract",
         "owner": "RequestHistoryDialog.__init__",
         "reason": "First row supplies the initial edit text."
       },
       {
-        "id": "919cdda42034d98bb8896bab1b2882d405b1fd2db59f4545f23d716ff3ba1b65",
+        "id": "cef06d02d74d30fc8e052a48d940e27b51176a5d4a5fd941528fb38aea7453d4",
         "classification": "non_contract",
         "owner": "RequestHistoryDialog.__init__",
         "reason": "First row supplies the initial response preview."
@@ -98526,26 +98869,44 @@
         "owner": "RequestHistoryDialog",
         "declaration": "hub/widget/forms/request_history.py",
         "consumers": [
-          "hub/ui/chat/history_ui.py"
+          "hub/ui/chat/history_ui.py",
+          "hub/ui/input/bindings.py",
+          "hub/ui/input/context.py",
+          "hub/ui/input/history.py",
+          "hub/ui/input/submission.py",
+          "hub/widget/dialog.py",
+          "hub/widget/forms/path_input.py",
+          "hub/widget/output/reader.py"
         ],
         "tests": [
-          "tests/llm/test_history_retention_integrity.py",
-          "tests/llm/test_turn_deletion.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_history_retention.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_history_alerts.py",
-          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_overlays.py",
-          "tests/hub/test_deletion_feedback.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_history_retention_integrity.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_turn_deletion.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -102127,6 +102488,713 @@
           "tests/hub/test_features.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/context.py",
+    "sha256": "ce06f5779e89125fd23ba6a042b4ed991ccde529a90be0dba181ffba31e08be0",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0ba6ceeb9263b107dd90ca0ee3923ec096e90463daa226bc9ce1ad02d0c05539",
+        "classification": "declaration",
+        "owner": "InputContext",
+        "reason": "Existing absence marker for actual dialog/modal focus observations; availability predicates and evaluation order are unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "InputContext",
+        "declaration": "hub/ui/input/context.py",
+        "consumers": [
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/history.py",
+    "sha256": "259be539a6905cf3de1066ca24ec6307787f6ff677e17228b3e0b2fa27360d89",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "57d13e9cd47ff10d3b244e7bb27d99883238c066d4177ecced7684e718933cea",
+        "classification": "declaration",
+        "owner": "ComposerHistory",
+        "reason": "Original recall navigation state, twenty recovered-request bound and empty composer representation; roles and optional Project/Session identity use their Owners."
+      },
+      {
+        "id": "28038376abde27d0b7adbdecdb27b4f764d332e7acfacf54cafe79d057bff432",
+        "classification": "declaration",
+        "owner": "ComposerHistory",
+        "reason": "Original recall navigation state, twenty recovered-request bound and empty composer representation; roles and optional Project/Session identity use their Owners."
+      },
+      {
+        "id": "c6f19e0ef23615b5ac0cd625ce2053011c01c91975e8868ea3db2cdfc3bdb433",
+        "classification": "declaration",
+        "owner": "ComposerHistory",
+        "reason": "Original recall navigation state, twenty recovered-request bound and empty composer representation; roles and optional Project/Session identity use their Owners."
+      },
+      {
+        "id": "0dc8b4077a50e32cd796f4ff391eed54095c14ddd208c0d44166ea17575762ba",
+        "classification": "declaration",
+        "owner": "ComposerHistory",
+        "reason": "Original recall navigation state, twenty recovered-request bound and empty composer representation; roles and optional Project/Session identity use their Owners."
+      },
+      {
+        "id": "5f251e8c4bcded2f5c946c97fe86f168bf5fc16a3c5d71e4382643865be27d37",
+        "classification": "declaration",
+        "owner": "ComposerHistory",
+        "reason": "Original recall navigation state, twenty recovered-request bound and empty composer representation; roles and optional Project/Session identity use their Owners."
+      },
+      {
+        "id": "19467cb8ba47ae6209b2aa640c0cb8ddd7a6c2eb6f3f0810668775e473c0761d",
+        "classification": "declaration",
+        "owner": "ComposerHistory",
+        "reason": "Original recall navigation state, twenty recovered-request bound and empty composer representation; roles and optional Project/Session identity use their Owners."
+      },
+      {
+        "id": "a9b26757518ac84d60abf3fbc32e1bde18fedd8338f92154050d57a0c52bfa12",
+        "classification": "non_contract",
+        "owner": "ComposerHistory.__init__",
+        "reason": "Variadic tuple annotation."
+      },
+      {
+        "id": "5f5046f6637df2e7b98ead0a4b7b4d536fe1e596e180067246137dd190c83bf3",
+        "classification": "non_contract",
+        "owner": "ComposerHistory.__init__",
+        "reason": "Optional index annotation."
+      },
+      {
+        "id": "a92f1e7ba35111efc4ced6163a9aa349d00381253654476afb687a920f7eb57e",
+        "classification": "non_contract",
+        "owner": "ComposerHistory.recover",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "088f5b0759ec08ce8166a2f696efea1b00e2de9f0a159a70a73d0c498180d612",
+        "classification": "non_contract",
+        "owner": "ComposerHistory.recover",
+        "reason": "Python -1 examines the prior last recovered entry before deduplication."
+      },
+      {
+        "id": "65ae085c003727503639b449abb28fffb659e74ab72d11d2cd81bbc65d7eada5",
+        "classification": "non_contract",
+        "owner": "ComposerHistory.discard",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "14b24a0e7812b6b84ce744d6b484a57e9152b89e1b43d79697de7cd50af83f5c",
+        "classification": "non_contract",
+        "owner": "ComposerHistory.move",
+        "reason": "Clamp a Python sequence cursor to its first valid index."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComposerHistory",
+        "declaration": "hub/ui/input/history.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/live.py",
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/submission.py",
+    "sha256": "6ad35825b986a124225de6947c13b695c3edacf697855d2887e838e5b96099aa",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "9f1c698fdd7eb748aa119f95d65207cdbb24fcb9fdbd4bb0134c1ef39d9e10dc",
+        "classification": "non_contract",
+        "owner": "SubmittedDraft",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "0f699b0e1288ab5d328f98879c7d38887a267c934839c12ce0a6489a522853ec",
+        "classification": "declaration",
+        "owner": "SubmittedDraft",
+        "reason": "Typed submitted draft identity/text and original empty/absent/recovery-display values; one required-identity comparison is reused by consume/restore."
+      },
+      {
+        "id": "6e7d6933baaf088cc2dec5728d7669655e158f145da97d974c4f1b7411bc07ca",
+        "classification": "declaration",
+        "owner": "SubmittedDraft",
+        "reason": "Typed submitted draft identity/text and original empty/absent/recovery-display values; one required-identity comparison is reused by consume/restore."
+      },
+      {
+        "id": "11c61ff8219d88bbb1d4755c1d7714fb73246695b1ed5ab67a893a42d327abdb",
+        "classification": "declaration",
+        "owner": "SubmittedDraft",
+        "reason": "Typed submitted draft identity/text and original empty/absent/recovery-display values; one required-identity comparison is reused by consume/restore."
+      },
+      {
+        "id": "ea8e6507b5bba258ab31fbb384934eecc83449c519a28e2725859f8f8aebe2e9",
+        "classification": "non_contract",
+        "owner": "SubmittedDraft.consume",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "78f30d7ee002ed95b2964aa9645fcad3dbef97b2da461be471faacfc3a3229cf",
+        "classification": "non_contract",
+        "owner": "SubmittedDraft.restore",
+        "reason": "Return annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SubmittedDraft",
+        "declaration": "hub/ui/input/submission.py",
+        "consumers": [
+          "hub/ui/live.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/bindings.py",
+    "sha256": "b639492a5b8d1a4644e3d5c4d636853932a2ddea07531da5093c638354213fde",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ce0a12b26575a4eb9662b7448cc99f3c047893184db41956e9020a40cf6ec81d",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "5646864e1b20d0b321436ce78217995261d436eb12415efaa3b85f16f36ad8cf",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "a9bd231341d6558a7eaacc17e4b5f7d69653f8714d56c570217a9ac860b8c2b2",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "0f636aa0c749a885496853608df0c2e1866dfe5710a8cad7e5180d5363c7c0f7",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "1a5c18dcaef07a30db5539b91e0d0f4a5a930367d9d781ac9f5e7c3b1b1b1efb",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "f8e3f15ec42692243fe2942cce643c4951ffcfc27c653691496ccb363308cd1d",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "3829d68e19ced5453e65f297148553af3d505d959228f5781a6537a2caf3626b",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "d311b1a2cef6ea71d2cb9c92437402dca8571b0ddd727c76f8573d81fd12066b",
+        "classification": "declaration",
+        "owner": "HubBindings",
+        "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
+      },
+      {
+        "id": "da6dba0399b04fc1f8aa1703a23c2a39a8e1d4956f7b0294329b79a0a272d7d5",
+        "classification": "non_contract",
+        "owner": "HubBindings.__init__",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "b6129748c2f5fa30b41c79082ade90b4520080f3d0c5d1d68ffcdd9f8b5d34fa",
+        "classification": "non_contract",
+        "owner": "HubBindings.__init__",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "0f980a4c119f01697981e4f4eda0203c0a8d13550b54594cd1b5d5c83e44d5d1",
+        "classification": "non_contract",
+        "owner": "HubBindings.__init__",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "dbff1a508fb220cc89159690b8db5e53d71fc2672a72eee2d9940cdac801db4b",
+        "classification": "non_contract",
+        "owner": "HubBindings.__init__",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "693eabd4235ee3abd7ff6a949ad9ba7e471e26c38a0748b114d8e6283e7f93c0",
+        "classification": "non_contract",
+        "owner": "HubBindings.dialog_tab",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "256a82f3f5785a13e5aa6161d495ad51d3aaa431ef01554334b25362b3ac1ce1",
+        "classification": "non_contract",
+        "owner": "HubBindings.dialog_tab",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "b5c4887d9115ecb302cc986c19e7485fae25c718bff54f445bde2d693cfe4392",
+        "classification": "non_contract",
+        "owner": "HubBindings.dialog_tab",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "17c6183b56edfadbe1b9216d4c75aa4456b672a832644481c01dae9a1ce9d44c",
+        "classification": "non_contract",
+        "owner": "HubBindings.select",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "43a113a62a5de5469f4f731b1ed016a2eaaa0a6f42f3eb6345e1b179bd3e7eaa",
+        "classification": "non_contract",
+        "owner": "HubBindings.resize",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "68c600a9f70aee1f20ec9a30e7b280dd33a9d0e58e5b254871d3c9523788c728",
+        "classification": "non_contract",
+        "owner": "HubBindings.session_action",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "372519bfe0ccdc2caeb08819d0e625722f34b12f35cc8bd01f4c186c791f368e",
+        "classification": "non_contract",
+        "owner": "HubBindings.complete",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "4398cb214eaa57447e941e3ee837621d1d5518f16f27b2d92e3cca075e92acd4",
+        "classification": "non_contract",
+        "owner": "HubBindings.scroll",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      },
+      {
+        "id": "3568454135ba5ecd02ada69aac9cabd1f3b107749de18f3d55fb9c0eb36b6dbe",
+        "classification": "non_contract",
+        "owner": "HubBindings.scroll_settings",
+        "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubBindings",
+        "declaration": "hub/ui/input/bindings.py",
+        "consumers": [
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/dialog.py",
+    "sha256": "e7dac2c7754017171ec64509aa4dc42e67ae6678fdd6d4934f42a51cc961fe30",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7e0faab7a38ec9aea04e20534eff87301ea05c3c3be335ce58c459b53d9828f8",
+        "classification": "declaration",
+        "owner": "DialogContext",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "d8ea39620162a8485861926e8dc7301d91df0acedafd57fa208c1a61b173538e",
+        "classification": "declaration",
+        "owner": "DialogContext",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "a2b9cd8734b664b29bb8d8ed4b666180fe8f234665a6798ed9d23e1be1d98556",
+        "classification": "declaration",
+        "owner": "PopupInput",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "459c4ed59bac02cc55ee7f00cb9f59d82abbe32bce62fc7a341ce1464a2bdb57",
+        "classification": "declaration",
+        "owner": "PopupInput",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "cfbebe63304f125c028329cd53055176c13cb351b90ac1a838df58a8354c97e0",
+        "classification": "declaration",
+        "owner": "PopupInput",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "aec2fb5e7d6e98005f6dd73ffe087a46ff5a48707c2370a186525e67c529d36e",
+        "classification": "declaration",
+        "owner": "PopupInput",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "04ab2d147f16b34dd4ffdd0ff28c9d864b60e3e47af0c3080db44bf140f9801f",
+        "classification": "declaration",
+        "owner": "PopupInput",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "4a003096b468487358472a4841a878cc50ca5ed00a1ff984a0bb4233f1491b6e",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "991bd048d134aa7ff70fef4a5fba98c77f171f4c2a7b43ba5ab1af3905d732d5",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "af173c0f0c3e0ed98bbddc53902ae41595616c5018ab69a82709ce0fc027b481",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "970f88d0f45d7ca93b1006bf870db98d83f6508c0e771190b307d842a4c0a9d4",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      },
+      {
+        "id": "2f4c43a9eae17fee56c104acd2f0dacf4f945e2f9a54c4c00ad5f3fbd40b0ab7",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DialogContext / PopupInput / Dialog",
+        "declaration": "hub/widget/dialog.py",
+        "consumers": [
+          "hub/widget/output/reader.py",
+          "hub/widget/output_inspector.py",
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/path_input.py",
+    "sha256": "0870986ff124b20bc8b0b33cf029116a5ace51c573f99cc0acd8c859c88665f1",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6c535be9a96e305831750f0a41dcd963f7195ed4843256961eb0a0cb58bb5292",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "66e34a57c6944ee2903859af04ba5c60476b640094740f75839fbaf5513fd716",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "716a3418f59a0f6d1e98df47878002c204c6788cf2f57d5d561bd8fb3d469468",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "3db7d00a0d6d514bdff5199620c27c90168cc846dd6c032c90efc868a6caa940",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "abdad065847f6a5ced5ffc06ee2ba62d307d75388af22c9ac5d6cca005287cb1",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "c32f029d0276567130fb65c2abc1c3152b9cd05b0e4a8bd003eba9292e24788b",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "6408d3bdf08cd395090696da293dafbb7aa69bd96503c6ec5fcf06febd6cbea7",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "e2b131f0b527265da0f440e6fc7ae0c575756d3be0396863ec88e39989a78e89",
+        "classification": "declaration",
+        "owner": "PathInput",
+        "reason": "Original threaded path-completion widget settings and foreign-control completion capability Writer/Reader; shortcut names/labels/actions use their Owners."
+      },
+      {
+        "id": "537222980be108eb423167e87d5b27b7d6b7c86a7cd77704cd5bc09a8f0ee7cb",
+        "classification": "non_contract",
+        "owner": "PathInput.__init__.confirm",
+        "reason": "First actual completion after the nonempty completion-list guard."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "PathInput",
+        "declaration": "hub/widget/forms/path_input.py",
+        "consumers": [
+          "hub/ui/input/bindings.py",
+          "hub/widget/forms/settings.py",
+          "hub/widget/forms/file_attachment.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/reader.py",
+    "sha256": "02398aa6815e9b24e29ae4a539348833d41ab1cb4050cea836aae029879f13fe",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "29034143d6b1e54501dffa4d20b4403fa3e380e6be1cba26e038b97d4dd8e6e6",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "1ee591f73b80d7827fe5607a7a1dc2bb73e4d34589aa0ec16739ec8f67af70a6",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "c7bf374e625d9a2400a8856b969515d5b07061d7e79185d609d706939941eb57",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "1f4536deb841d3a477b210f7f2bf08969d4cf057997f260cb14e58598b45cd0f",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "6411c1f223c4fc5df68d91980fe2627813139be97cf7e48683c580b43d362fba",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "c2618deabf3886063c1deb7b345771c5f0641a3a97817403fde817f873b2f6cc",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "3449b3da7fdade9a541d6d3df6fb63a6c9a99e8f99f88dc82c95475dcd3da12a",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "a918c4227ce48c3d4ccd910775adb2bf516f196f249c198d2cc64bc45288d1e6",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "caab0770872d55295788df63664b3decfffe1d62466b7691bfd90f358cce6e74",
+        "classification": "declaration",
+        "owner": "ReadOnlyDialog",
+        "reason": "Original reader geometry, nullable rendering dependencies and close key declarations; shared DialogContext and ShortcutRegistry own interaction identity and registration."
+      },
+      {
+        "id": "5a0af7d3c7e8b36363602b7121b57ed497cc37a7cddcda2fc7b4d964e8492d06",
+        "classification": "non_contract",
+        "owner": "ReadOnlyDialog.__init__.scroll",
+        "reason": "Python -1 selects the last key in the delivered event sequence."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ReadOnlyDialog",
+        "declaration": "hub/widget/output/reader.py",
+        "consumers": [
+          "hub/ui/chat/component_ui.py",
+          "hub/ui/chat/history_ui.py",
+          "hub/ui/live.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_tool_history.py"
         ],
         "complete": true
       }

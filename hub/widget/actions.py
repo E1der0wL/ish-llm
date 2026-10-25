@@ -1,4 +1,6 @@
 """Shared horizontal button navigation and responsive, centered action rows."""
+from hub.ui.input.registry import ShortcutRegistry
+
 
 from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
@@ -56,7 +58,7 @@ def bind_button_navigation(buttons):
         if ButtonNavigation.bound(button.control, buttons):
             continue
         ButtonNavigation.bind(button.control, buttons)
-        registry = button.control.hub_shortcuts
+        registry = ShortcutRegistry.require(button.control)
         registry.add(
             [KeyName.LEFT, KeyName.RIGHT],
             ShortcutLabel.HORIZONTAL,

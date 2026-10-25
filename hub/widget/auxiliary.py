@@ -1,4 +1,6 @@
 """One-row icon actions shared by the composer and settings footer."""
+from hub.ui.input.registry import ShortcutRegistry
+
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import VSplit, Window
@@ -43,7 +45,7 @@ class AuxiliaryBar(VSplit):
                 lambda name=name: IconSet.action(icons(), name), handler=handler
             )
             self.buttons[name] = button
-            registry = button.control.hub_shortcuts
+            registry = ShortcutRegistry.require(button.control)
             registry.add(
                 [KeyName.ESCAPE],
                 ShortcutLabel.ESCAPE,

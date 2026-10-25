@@ -36,7 +36,7 @@ class ComponentManager(Dialog):
         if toggle:
             registry.add([" "], "Space", "tools_toggle", lambda e: self.toggle(), when=lambda: not self.busy)
         self.list = SidebarList(self.items, lambda: self.selected, self.select, key_bindings=registry.bindings)
-        self.list.hub_shortcuts = registry
+        registry.attach(self.list)
         super().__init__(title=view.t(MessagePattern.component_title(name)), body=HSplit([
             Label(view.t(MessagePattern.component_import_hint(name))), self.path, Window(height=1), Label(view.t(MessageKey.TOOLS_COLUMNS)),
             Window(self.list, height=lambda: Dimension.exact(max(2, min(18, view._rows() - 14 - detail_lines))),

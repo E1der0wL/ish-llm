@@ -53,6 +53,8 @@ class Shortcut:
 
 
 class ShortcutRegistry:
+    CONTROL_ATTRIBUTE = "hub_shortcuts"
+    UNBOUND = None
     EAGER = True
     GLOBAL = False
     VISIBLE = True
@@ -60,6 +62,18 @@ class ShortcutRegistry:
     def __init__(self):
         self.bindings = KeyBindings()
         self.shortcuts = []
+
+    def attach(self, control):
+        setattr(control, self.CONTROL_ATTRIBUTE, self)
+        return self
+
+    @classmethod
+    def require(cls, control):
+        return getattr(control, cls.CONTROL_ATTRIBUTE)
+
+    @classmethod
+    def for_control(cls, control, default=UNBOUND):
+        return getattr(control, cls.CONTROL_ATTRIBUTE, default)
 
     def add(
         self,

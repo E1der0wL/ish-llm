@@ -1,4 +1,6 @@
 """Shared sidebar identity and page navigation, independent of backend handles."""
+from hub.ui.input.registry import ShortcutRegistry
+
 
 from hub.locales.keys import MessageKey
 
@@ -83,7 +85,7 @@ class ProfileBar(HSplit):
             height=self.HEIGHT,
         )
         for button in self.buttons:
-            registry = button.control.hub_shortcuts
+            registry = ShortcutRegistry.require(button.control)
             registry.add(
                 [KeyName.TAB, KeyName.SHIFT_TAB],
                 ShortcutLabel.HIDDEN,

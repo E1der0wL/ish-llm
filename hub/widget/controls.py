@@ -130,7 +130,7 @@ class Button(PTKButton):
         hover_style(self.window)
         registry = ShortcutRegistry()
         registry.add(["enter", " "], "Enter/Space", "activate", lambda e: self.handler and self.handler())
-        self.control.hub_shortcuts = registry
+        registry.attach(self.control)
         self.control.key_bindings = merge_key_bindings([self.control.key_bindings, registry.bindings])
 
 
@@ -151,7 +151,7 @@ def _bind_choices(widget, *, on_move=None):
                 return result
     registry.add(["up", "down"], "↑↓", "select", invoke)
     registry.add(["enter", " "], "Enter/Space", "confirm", invoke)
-    widget.control.hub_shortcuts = registry
+    registry.attach(widget.control)
     widget.control.key_bindings = merge_key_bindings([native, registry.bindings])
 
 

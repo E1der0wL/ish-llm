@@ -1,4 +1,6 @@
 """Mouse actions share the composer's keyboard submission and stop handlers."""
+from hub.ui.input.registry import ShortcutRegistry
+
 
 from llm.core.models import RunStatus
 from prompt_toolkit.application.current import get_app
@@ -29,7 +31,7 @@ class ComposerActions(VSplit):
         self.buttons = (self.stop, self.send)
         bind_button_navigation(self.buttons)
         for button in self.buttons:
-            button.control.hub_shortcuts.add(
+            ShortcutRegistry.require(button.control).add(
                 [KeyName.ESCAPE],
                 ShortcutLabel.ESCAPE,
                 ShortcutAction.RETURN,

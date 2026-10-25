@@ -1,4 +1,6 @@
 """UI-thread controller; backend handles never cross into PTK callbacks."""
+from hub.ui.input.registry import ShortcutRegistry
+
 from hub.backend.session_contracts import SessionMode
 
 
@@ -529,7 +531,7 @@ class LiveController:
             def confirm(event):
                 view.dialogs.close(accepted=True)
                 accept()
-            choices.control.hub_shortcuts.add(["enter"], "", "confirm", confirm)
+            ShortcutRegistry.require(choices.control).add(["enter"], "", "confirm", confirm)
         self._call("submit_input", session_id, text, agent_id, options, completed=ready)
 
     def steer(self, session_id: str, text: str, *, expected_run_id=None, draft=None):

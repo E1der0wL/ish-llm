@@ -1,4 +1,6 @@
 """Multi-selection request history, editable input and response preview."""
+from hub.ui.input.registry import ShortcutRegistry
+
 
 from ...backend.history_values import HistoryRow
 from ...config.theme_style import ThemeSelector, ThemeStyle
@@ -112,7 +114,7 @@ class RequestHistoryDialog(Dialog):
             (KeyName.EDIT, ShortcutAction.EDIT, edit),
             (KeyName.R, ShortcutAction.RETRY, retry),
         ):
-            self.choices.control.hub_shortcuts.add(
+            ShortcutRegistry.require(self.choices.control).add(
                 [key], key, action, lambda e, callback=callback: callback()
             )
         body = HSplit(

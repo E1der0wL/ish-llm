@@ -1,4 +1,6 @@
 """A single-selection dropdown with explicit commit and cancel semantics."""
+from hub.ui.input.registry import ShortcutRegistry
+
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
@@ -18,7 +20,7 @@ class DropdownBox(FloatContainer):
         self.button = Button(self.caption, handler=self.open, width=width)
         self.choices = RadioList([(None, "")])
         self.choices.window.height = 8
-        keys = self.choices.control.hub_shortcuts
+        keys = ShortcutRegistry.require(self.choices.control)
         keys.add(["enter", " "], "Enter/Space", "confirm", lambda e: self.commit())
         keys.add(["escape"], "ESC", "close", lambda e: self.close())
         keys.add(["tab", "s-tab"], "", "", lambda e: None)

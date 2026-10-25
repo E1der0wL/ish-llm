@@ -58,8 +58,8 @@ class TabPage(HSplit):
         bar = ActionBar(self.buttons, width)
         for button in self.buttons:
             # Replace the generic button hints with the tab-specific contract.
-            button.control.hub_shortcuts.shortcuts.clear()
-            button.control.hub_shortcuts.add(
+            ShortcutRegistry.require(button.control).shortcuts.clear()
+            ShortcutRegistry.require(button.control).add(
                 [KeyName.LEFT, KeyName.RIGHT],
                 ShortcutLabel.HORIZONTAL,
                 ShortcutAction.TABS,
@@ -67,7 +67,7 @@ class TabPage(HSplit):
                     -1 if e.key_sequence[-1].key == KeyName.LEFT else 1
                 ),
             )
-            button.control.hub_shortcuts.add(
+            ShortcutRegistry.require(button.control).add(
                 [KeyName.ENTER, KeyName.SPACE],
                 ShortcutLabel.ENTER_SPACE,
                 ShortcutAction.MAIN,
