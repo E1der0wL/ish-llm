@@ -86843,8 +86843,8 @@
   },
   {
     "path": "hub/config/preference_records.py",
-    "sha256": "ecad5f1877b175dcfa786358a12ff886fdbbe91d969fbe3af209d783513c648b",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition.",
+    "sha256": "00d16752cd6f0dd03488a9d069370583f68dffc00fef10d63dab5daa3bc2591f",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Bootstrap, live UI, settings catalog and preset consumers still interpret raw preference snapshots. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86860,37 +86860,37 @@
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "a73300a85167869d7af2f4b724e8e42e2e6cbde28fd413509855f9c7a5c63458",
+        "id": "e458958396f553d22df3651a98e871046d0616dc566d87ae5187cf7a376e470d",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "fa53d0772037863d791aa7119d5643733d07f395ada29ff1016b1f2b81a0311a",
+        "id": "226f2560e9b01515174c6613f14f867a79db9679e74788a75230a4f630de0222",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "fed1cfadac102dde5ba1da78dd1f1212ba75aa6bc099b1f4a46dda373e46bf21",
+        "id": "914f289d1c144179b708ef3ce7819cbdb1e80c4c87fddfd4eae38eae96cb86d5",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "c291ec8545b7ad929aa2e38aaf718e43c1d92d1201a4c5fac55d85c52aee18b1",
+        "id": "0f7ae60f3132646fe33436dcf4459fad7a935a2b96e768ec2bf71c983b48f43c",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "06c9e52efccc5a4247633e5fd72b41f94b3217ba69462d72392f3dc7fb59ba0d",
+        "id": "2787ba6a17da3e65e3f1e45fa691117fa3eaa2de235c6c2013d250ef5bb440df",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
       },
       {
-        "id": "7ff56fa69ce1b2f41b43ffada41eb92c4bbbcd064905c58e8677bff95897bc57",
+        "id": "7d2ec9705f30c56ffd7b0725218e2b634789bd0d3b8ee4a689f2a05d358cae5f",
         "classification": "declaration",
         "owner": "PreferenceRecord",
         "reason": "Current required version/complete section fields, independent sidebar record, and detached preference/startup projections are owned here. Schema types retain their own validation; raw load/save shapes and source merge/order are preserved."
@@ -86908,31 +86908,43 @@
           "hub/config/presets.py",
           "hub/config/restart.py",
           "hub/ui/chat/projects.py",
+          "hub/ui/chat/resume.py",
+          "hub/ui/dialogs.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
-          "hub/ui/settings/screen.py"
+          "hub/ui/settings/screen.py",
+          "hub/ui/view.py"
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
+          "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_coding_skill.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_failure_diagnosis.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_home_navigation.py",
+          "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
           "tests/hub/test_naming.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_overlays.py",
           "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_preview.py",
           "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_card.py",
           "tests/hub/test_question_tools.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_reading_positions.py",
@@ -86948,7 +86960,9 @@
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_stores.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_ui_requests.py",
           "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_widget_chrome.py",
           "tests/hub/test_workspace_presence.py",
@@ -87086,8 +87100,8 @@
   },
   {
     "path": "hub/config/theme_style.py",
-    "sha256": "4784efa21be0f0919a58ab934ef39497376727edd9b2ea328abb788aa77f4edd",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations.",
+    "sha256": "49fc35c61772271b137aaf61b4dc6caf279cbda0d404235231304f78eed746bd",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -87193,475 +87207,475 @@
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "c1f66b7da56bd0d0130d20d4fca673d7eb4ab944f17d90f901a6eec462f85d5f",
+        "id": "89875c82179afcb5564aec808b95b3e57099dcb20819ea607f7efce2827bf128",
+        "classification": "declaration",
+        "owner": "ThemeSelector",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5b19b6aac4dd2abbd7319b79f7ac253f12ea028cf1f29691d491d49e94dc9be2",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "629173d729544f475932d8c97a8330b421e39e0fb6e60a0139b3ed84a998578b",
+        "id": "12a260b8d00dc6798385d8e83117d2fcb788ae284b7174a00a191424a41023ae",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f52eafcbf64873be02a76cbb34147e3f805b4db82a5cebe39545b2fbc3ba7226",
+        "id": "91605da343833bbd3691f2250063c4505ed9d5a6c5aff084b5ec06cee40937e8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "243a13172ff37a8af65ee0bb396a8f8b6deef9f699363af3cc4b9948915d7c7d",
+        "id": "c464b0f837d871c236dd5ff4c8e3a2249c75cac8fde89561296778839543d906",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0a233bac4ffd3d077a057172fc3b9a5d1c168abe42b54030e5ae4701b0b2294d",
+        "id": "f2c83c01758671a7823eb2b93c549efffc38071e54435d912cbaf602dce2421b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8287a2461ba18db4b712b4aaffe14ec50ba5744978252630bffbdb7271e80135",
+        "id": "ee1c91546b2c011cbc1aa1a5b8757ed8c07f7a3591953c263ec3a51b82b32f05",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1463e9d15f26a92536a072005fc1d013f16ede55d15421d71d77d3e3b16c56d8",
+        "id": "d1431b31fc57b2779d7f2de31a4b523075df4e7228637aca427f352630847818",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "783cdbf3bf2cd89481ceeeccaf53200152d1ea8fd22d8c22f40441df65aeca2b",
+        "id": "4a8e7cca7875edc6998de051ba346f171eee3b8bddd9532aaa6269d37fa86e74",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "2109f9c06f5ec7f342bd0ae9da83beeb1339f1a6a738f9a27bb41bf8dfe383ae",
+        "id": "4c1e8be104f4dbd5007570af8d169700772bb2695a08b0715b986bc629c07e84",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "34c66168ca5bb811da327ff0f08f99e4892061fc905fa16731ce401af62764d8",
+        "id": "d6f41051dfc5850a3f69cac250caa46f0850debbe566fd4f3fc9d262a6783eb2",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "ef195481ead2cc31eb0d6a757fb7665080e6c6d677ba3b01c42cced59a504ea4",
+        "id": "b38e3d75621dbcd897234a334950c643086fc4e29cc48b82b5b6cb6f7d84569f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "24c56f5bd47cc4951b5dabcbf45e5592c12f6b3d757c8d24c4613c30d367233e",
+        "id": "ef77003e2b3eefd5b5500dea768b2e04534ef97dec912a405dfe0a41dedde257",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "eed03b17eab5a91d4fea9c535c8488a4f3795624ac3b7d6cc41cd9984afe7230",
+        "id": "d26202fb02ff843eed298748d42b6c2dfc7b02fa7d9d0c66d6d18a82256d4c33",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "9a0286396fc342beec8e42aebce6c22f3a17b1ec68fc19e440257eaab307a27f",
+        "id": "76f71763b0dc4249976d63731e659dbe2d83876bc42917335425843252a0c37b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "16cc245653043c28c9e67f58236b40f3af1131b85c7832261490eb7b50683ae9",
+        "id": "49c00c5c3280c51373bf6a3f9cf3c7fd7a89f40ebdd44e3b0bdfd131b7e768ae",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f70c70b33dfa431d1cccb7db0e654f91539b69367ab0f37dd2d51751dd739437",
+        "id": "60c01df3b54f093c20dfebfd74921eac536771b38f78c207072815cf73f88570",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e2a26f60d4c854d8d06fa1f5b22833d900903a8a60ee98d5552e221156c93240",
+        "id": "54234e8ee4417f93eb468fdc2c8bb3647cd150f8d381a731d575aa32c548fb1f",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "622e83053139e3f7ed39c289739fa7e49c7849d710bb43e61f7137efb9be808d",
+        "id": "229f7390f90c778e29195b5aa68b129f4e0f9175e387238bc75fd189a4988929",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "7256c685445eafc48a4f549dc2962d0e9cd04b0d82e6fb3f259e5f9b936d4b1b",
+        "id": "94d7463bcf2e0f4469a5bab61d6b614ce540e5b771151ec9144249daa0085689",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "15e19920a1266b02b212dffd0f562198f2c37a76c63fefc2efe76646715d03fb",
+        "id": "e1c27ad01b0d15c44b285d0596b81de17cab6a9f7925422f9275acb04ed85dbf",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "fa16addf2a8a28da14881f83e8e7e3f0b2c32b42110d700c894f23e590a137d3",
+        "id": "eabd51304b266920ed67f1e481d4071f4e48e505f0473fa7f001eb1a55f3920b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "76567b2c596c4ad40447e35e34d5d4e2102b1373ad6bba4dc862039afc887c99",
+        "id": "0110a81ad082c0f31d2b362685c61d38d5dca4b250621e8ebb1398a98e9dd229",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "87f7b8468672a04152205321ab8658a61c3d143b29533444dc46257d947404f4",
+        "id": "9e2c24d816b5e888d1c0e6cdda49e12e63ad64d4e74268d8e4d2a7b06722ea44",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "265ff2ac5c35061b43f3417469cfc165e95420a3e505f53eccefd9596c32569e",
+        "id": "22ad865cf282db74bfde4bf29c7d95939abb20c139f3ce92a66eb7d26f8db2da",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "edcb9c860090ba3b7aa0782b4e9dea462ac3f1e27aa84dced0a91501726aebed",
+        "id": "5644c02ac964d40aa1281412358b01dcf2abe77bca0713a0b93b9d085b5713dd",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "59a8aa2366aae7a64f8f462600ba2e076d0c66445f0db99f5fa1965e94510023",
+        "id": "920fc3b06047b35f6b6f50d2282b7d1026a7d3b1b999701da91e951421211a4c",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "1221b7f838864bbc0d8c47102874106a2a4be64d837a884ec0c9d9771036e7a4",
+        "id": "0e831a942aaea78748ad38915d4ad5a61547b3b1e4c5093c2899bb6bed8010c4",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "4e46be77b8fc9fca4fea2fe8bf7cd9e7c68884e5d4aab2ef3e0ebb24ad81658f",
+        "id": "e2f01343ace2f6821e89991da52b52772af568a0e667452de11184febaca490a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "0009c983996d6a7efcf3ad0ac8fa3ec642b71177099c987e2cfa9d321532b365",
+        "id": "d012499980f6ed9e06c228b6f18c4deee3d9745efa2fb17ad5267b6baec048a4",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "2e3395b328c04691c8a14304863a5bf6a0162a3d02f51e28cb623186de2a488e",
+        "id": "dc4a452f75a9d7c8f8e842da1b8a57e72ba9429ef434997fccbdc0a81da15418",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "dc3fb616136777ee0944c3420e9d5003a973191c0a9c03ed156d49b8cc632f8d",
+        "id": "b0b40e2087eacf8bd8fad7ef72373e18a94e44f183f7fcf573e2847649a297b8",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8c209154fcb6b0869381f7e8ffd5790f7bf181ea385f7dadd8bc0e29f2e1ca7b",
+        "id": "6d451edc5bc1f62e6887b921a419955f4ab09fc8a7c4eb966ef967520f74a97d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "da02925a5c9523a48603b5cd5b7094b4748e7344db505b312bb47a2d2eb170a6",
+        "id": "da66edc273db96c672995adf08a73563bbe9350e2b95a05f6b667b592da4518d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e59a3e8f30dcaf0a7e2fde9d991ab8cbb46ad1d9f17812dcedc6220f464303cf",
+        "id": "9398726d669f03823ca4f59a67a7930ca150cc3eb1d9db62a77c343d834ce14a",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "42c2c88c7375c11616c013541d1f0c75f84b3ae53ac931931b564c9d188a5e56",
+        "id": "b2af0b8d2ba5a54a4c3f46433b4783f3e78651f8316dbbe76efca9691a42d835",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "eb558617786f23ea2073fd2cb50107ff18ca78638745d911a63af857882e862a",
+        "id": "e95b9ccf5e85f396080360dfafc6d1b9484e571897bd560f83ceb01ac3924221",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "deac07281e5f43d661b3a7fd8efbb33bde92ed1300fb404b86f0a40e36438189",
+        "id": "60cddd5efbbec05a8983bcbbc0e773ec9ef3c6310fc404f8d91ec2905b265c3b",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "fb9edb925e5b1456f1439dfa40c881902b48ca86c17b66c44e009fd13ec89d34",
+        "id": "ba90262e2e13c4dfd8760a7e424d210f133acf431f794e937dc94cecceacf5a5",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "03f3f99a241cdf582d8b496e4574f8cf71c4ec3f46c0852f9f644473707656b0",
+        "id": "648c3223e5a08d8bbf08024c62de61b9895575dc6224298f2dda5603fe3661f0",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "f1c22498df5ce5b5338c0a6f1a67c8cafddad8786f9430cec13f9398a661668b",
+        "id": "eb17d4b51e6bb3891f76f21b9f184ecd0a8d9b9d6554a61fc06e8f1346481f1d",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "399ba70e8add66c3b83bde592b3dcbd0f821ec4564ffe36dde357b134fc8addf",
+        "id": "4100157b188ca4fe097cc0847e4ed8c28a3547263e39402549a6bcfe9c9d9643",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "8f48f66d2903c017224373b4ef5d8f3d9c315b5957158907f1aee942fdb7860e",
+        "id": "2d663b0784eb2add94da0a1635393c806cc3606e3655cca170afbbc637245fde",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6d62f5f41c03d28d8f1440ad10b1a04e88523dc16640251c31a06e8584001306",
+        "id": "d343b1097172146238a55af3e3ea20ce818d2d80e358fa02e899b623f2fbac7e",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "7181ec3e0055ca4001f5909e40a1d7df27285004b632fe0bf26c639f6c8300a6",
+        "id": "f4993ada12d8079929a5de16e168497c77c777ca7bcf4f4545ed1d67bb222487",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "5fcdb8901837b90821a6d7dd5ca4ab0ee5af9248b28000266dfd66d372b2f390",
+        "id": "912f21aab88754024752d7bc062eb949d95efdd22314312e901d1c0556f68867",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "c8ff7d8953f4a037676c26cf70c7e3926bb122e16defb6f8cf09184f286e11a5",
+        "id": "ae36cce60d2918c000633c46f098c07f8fecdaa1e928cb75500cb8ebf7bf6cc4",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "d3291417efcb39c2ab594ccf95311dc01ff7830ee1125a7bd7737b5a79554fab",
+        "id": "6c1ee13613f19ad35716ef8b4ccc5c9661f46317ef97b30e43abc0efeccf53a3",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e7f5c171e22df040f2ac0d67e11648d242348467f55058e250b205356079e7fc",
+        "id": "38b0d384f4337f596f548804cc474cb6ce241e72fca4fa1b101c10cd7359b143",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "e9be4c8c5b906259fd0fe3c009f1a783e316f960372ae7667297e713ac5b1819",
+        "id": "c126cba5ce030d823a669f77b0e232df34e4e4ebdf16ecaffe26320ad8a93bac",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "a9152d41353a64ed9cc29312c17693583869ad600209b628d89430012b8da366",
+        "id": "a627b0fbdf54e7c113e9457096e673af1c57471a7b02efad08f40dfd1d1430a3",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "9f331292c403b74a1c49b0b7feb85ec724fa47314ea221f9f878446fea0dc81c",
+        "id": "2bebe27d124598170badfb6eb27d5ddf1e915f244f93444c39c39f3b99c58ff9",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "9c12ada2b0a4b48e1c50c59a6f0c945a2f8393957f6dc34552ec52c1539d908d",
+        "id": "9297cfe83160701546765bccc391deb7dda372cdeadf009f0032319691ffc339",
         "classification": "declaration",
         "owner": "ThemeSelector",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "81ab5f7992d1e13caf27d2f3a3ab9a38307fd69bfc8daaaa4b1052d12cbecd9e",
+        "id": "c313bf00e287a5e9b82d800bafd2e976a94ab2aa242e38b495727ce53ad6731f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "25656bbe14fec3667655fcd5cdbbbecd3cdf5b1c1942fc848e6dfea576884778",
+        "id": "a9623862552c9d4abcc0e5747489b58815d871d17a5fa8f6ce31ab9cd5df3996",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "45fb491d5f59ecb534604014231bfe880d634b0a708a46109d121d45b7da8711",
+        "id": "ab2e08a5bb6d4e15f62e7fad9c62bec1af40a49a97e65b37465a2458381b3a10",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0dd82e3f47fa7c49701be55f865b81707a5e4839e44b160f8fdbb6b6eb654c49",
+        "id": "6b8f9c55556798b99ab4c3b76ea1728cfe6e5e2e8d717cedc5844dd557d00343",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "31ca75cba7d03daf9f46feca493a3d6cc2da560aae109a878a94e8944a3f73bb",
+        "id": "a15ec49cfaa71ee82370f2aacefc43841a7b0b4318f6c57cb4c0a4c42d4bdeaf",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5f25316d902622d06d7797cb50340a809e5a689e232cab56566b29a5f579a977",
+        "id": "da430a27fbc39770ded5ff87ebd5b53890ad994b14b64df0935e8406c1959e31",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6e9eabfd737afa83d74d706f2af8e04099ba029ccedc639c94ba13022978be15",
+        "id": "1e7cd079c3226ecb05fea036b98dfcba0c831ca031029a4e330ad8f001e78615",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "07e036cce1ac71b8da03a4f5e4e543eaec8fc2cae2a35b51fe3155291c9d7c1f",
+        "id": "927da900ee87177fe077f4532d51f37c621eec664a2d29ddb18966acada47086",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0683c8c4328ce71532659e0c3d10fa3aba2a29140171a6ce84bf8d0e9ea01508",
+        "id": "bb7de343fd07a7ef2588702e5b6dddd66ffbce33c88a2f9c05d38324af01b36f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "916ed6e8545e9986fad0264f722bd3d356bea5bc250df9ceba302351c6c8c373",
+        "id": "165c0bf416a05b192afeb7c6f153bdd68d461bc581efe5949f5e198f11268031",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2b3b85748b791ad25eb97a8ba44ea0077d99372f03635da66e0a322d74616b2a",
+        "id": "0f33f9ad4d6b9b0c615cead4765af9d9aeb0b7954e1004aa3409d166f555f45e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a334123c6821fc7efcf8c4fb6f0146e13e0df73b8deefa5adbdc2a23ebf445ba",
+        "id": "eac9097b073b90de868032e267454774c61cceb318c0d3733efcf15021b2a8ed",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "857cac0524d5db7bd759665153a8fe1bbf4dd197411153b1bea2e15a56b020dd",
+        "id": "c2ae0e6b30cabf5448c7a78c20ff221dd75a364a8a909f4a2af7c155b3033a7b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6c18ca1d300066af387aff6825b0e071c149588599370e994afaacad9a841878",
+        "id": "5633df2ea06c1ada922166179de4ae12bdd4d3e7c402d9bb618c02f2d5ae8d8c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "474b232fe346ef31c8e6253cb1f515331b2b7094c703a6a13369ab28bd8b4069",
+        "id": "76227eb77775e4e8580f7f4479b6b8c87c1fb450d11305a869a9ae4da9415125",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "776e59a12d519c64ef68d73776de78d87963a87115042a5cc70812363c5781de",
+        "id": "ad5d5946b87827ab3b773d1d9a6e5b8777eed68dd87892999d17d2dc0996b8de",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1140c725acbd6d0de93a80498e1c292a95b6e58d340c8656c8695262155305e7",
+        "id": "9e934171716f3f2829500610fcfb133eece875612b05a63e8a3026a6af1d3b09",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c58a216d0258fee165c5ae36c52d79b896e6e86dbd1516285ccd40d97faf9c00",
+        "id": "e17b5220385f91a60b971f417cae1716bff9182516beedd28b8c24b1c59d8020",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ff0922f3fe933e7aaaa02c40872b97e7dc7a2090ed6b9a11bb811c947cf24682",
+        "id": "3e7760226ad6102a699663eb6435fd6934fd54a4d83ef7e57fe53622f230b3b0",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0c704be0e5cbfaf9f43e7cf8445d2a5b42405f438766017218b3a8bd4bd9489f",
+        "id": "71d9a2dcae0ea8872ff1653d432a3d9694eecaecfe930e91be2f3a024a592367",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "af2bdd2be1ca7799c7cf0a5585b15e933f6021c61fbd14abb6850a064c202459",
+        "id": "ae31abab28b4e975b7f7589984c5381996670c180429cb45402f724960a32e95",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b9498fb6c6dc9cc9e9268d2ed9cbff4e314eaae8ee49681fad2faa0ed7a651f3",
+        "id": "e98836087c4f83450f992a95e9b9682508961dde43bf2de73939770d2c5882c2",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "332d1647f9b05742b2d3fc33e0fc4ffb94b7e046561f03f9ec4757bb769a882a",
+        "id": "2af8eb2f23bf30cb01f20a1be13a5a5956657bf939f484bce743da5f0870e074",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9dc1bb282c65aed33124f7a9759f5722742532e3b2e97329a4224fc1086ae712",
+        "id": "b6e5541251fd3bb1106c9f5a6fb28d042431c32b0d37a9f82f4754dbab5c411d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "dd1e69ac7a811007be60020792c073983cabdd514cb56911b93dbeb279cd4b70",
+        "id": "cd1a401009074f104776e1fd850b4d93e9818465d046cd2257c94c879b27883f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0b22ab43cbef60cfd4c6bb016451c6c82b1f4ace957e5aac2d721948e4b55f92",
-        "classification": "declaration",
-        "owner": "ThemeStyle",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "2a5783432342c1078efc550c4d1615c3cd2f5eed0a4bebf8df6a8f9f422ee5e5",
+        "id": "e9304c9c943505507fe117b57197776d713ccb18503c7e7047bc7ccf96e67302",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -87673,349 +87687,355 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "812412115c27cfd615ab108c7c692f5aa5d534b65e8b0960813679e1fb7affcd",
+        "id": "56f1328132dbc13409386a620c960827739c360658fb6eb27735848946e321f3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c3efa3e5710b4ef87c03f3d9382793e1b0dd327d1f3821ef2882b237c6c31e0b",
+        "id": "6a97d7e4fdfb37a09023d99de3ef860861a576ff2e06bcfa6666e4cec192d035",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ef088b825d9b6b504025a037437f3784c94d846644689952008917126855ded9",
+        "id": "6f2c4de45a798b1b865e823211d8bb7d5f857c6a696e5a5215d1eed4d695e0b4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ae254d77720baf748a2fc671b62865912b646d7727111878192a6cf525b53b62",
+        "id": "5677edc09a7cf8e236d445486a7a6a5404fa24a2704b0642c05aa3d57eff2792",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d5f0aa0cd84dec8689c0782fcdfb2ee52ce34e391ae11c503016598d7bd01f2b",
+        "id": "c3901f990a7c9a0b12a3458e44523e50946c696e26aadcf17bd8e1a884ae9abf",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "467fb38b63d34009f515b8c9da68b782137f9fecf9bd53cb8cfdcc387194f513",
+        "id": "51c593275f7dcd569d86b764fc20d18bab8a0b916327f9c9b606ebfbba0c453f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "37b80246748b9fd91719e7a4ac87aac75479a66d41eb7da9a08b00037847e404",
+        "id": "50214689d943fabf7a4ad9029d6a6b51f7f856dc21320dab2245d15de23b1186",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9af5ea0f14a45f51e7144f839890c4da0200654f9e48398eba8fc2281c628b1c",
+        "id": "3c6aee39998c2567fed4b6839d9ac1a6e12a6e86a3f7c94dfc9776d36462ae49",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fc5f3a2873072e5ed69360777197407da1eff35df2a3c85a06322d86dbba3ded",
+        "id": "bb29fcc7aff170c51768c90e59d4e1d16c1c5af45f5708c0a0c46074a76ffd2a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e05abbd22522d592ab0933682fe8fed291387905024b967d9f71bce66935d537",
+        "id": "e06e55d4e827d0900ab106214435c0dab2cea885143e45e1e96e272306ebc8b3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6f3d64a2383d0c3079a8d4867c23101354a63b2218b54a82f2a9c31a9a3f299a",
+        "id": "ff5d71352841f3f946d002a73afacd66002d0362bbf7be2352f945ccf8f99533",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "82bd25b16db3700746035c6c0de0a8a83790d1caebc41b01d37a5eabc8f74d27",
+        "id": "52838c69230930faf79ba60ac44839ae616562c9d8cbe2164fcd04cdd29d3b2e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d48b2a1bbec6c824bfed759610c75bf9f851bac0fa01961b264d199f40ef0029",
+        "id": "90250c003d66ebad44cca20e4f2e72a3c1241ff701ca2aff75fc162eb5d9c069",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b83e30d3c0b2923ceca6f53c6ba057cc3fb105993c3a92004719e0a7a64e69fb",
+        "id": "af28792b5710568d4b1b85715c845d80c567b8c1bdec40a1869ea76b64d13f15",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3e9e89e1e5fd511bca3b9da662acc2f63cd0865b4c482e5457ef3c9538aeb6a0",
+        "id": "9387b2d3515d617f13361753680dd232926d287e6cd57d8a23089cfe83adbf1c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6ccdb37461655e24e6b1ddc16e4b0aeaf2387cbb8aa0c02e4c2432f38a2611c9",
+        "id": "0c99f35362feecf6e42d75ad18e69623abd39b6a38dd7257e4b9259f301cc581",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3dc82dfd42dbf3385432cf259eb3376dd6b4c008714eee0215e7cb9334ab03e0",
+        "id": "5d416ab8874151ea7322242320f661dc9b9a555fdad36181196c84373ed99e2f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "31ba7dff2232d586822d98ef649e43362cca67b520e46a08bf90dae997813c24",
+        "id": "e31c464c11333d819277e2e2d532cc8a4a65bb08c71cf7ef931cbf2e51c00dab",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e39602940f337bf096481db29dc9a3f7ba1742aee2c865e018aacf255b53b158",
+        "id": "a853286cb735925e7ef446fdf703d1862ef21454bfe88be55791343769efea0a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "61d7abbda970fad3539b0ffe7824e6569a9af0f64ee05476a76697cfe2f35aae",
+        "id": "2674c4c65ca793c75da4dadb764e1082a2a22f05bf9cc7d002e62e1071265946",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "70a45b0c4e9884bdd1ff7a385a4e09b0c687530006ad470d9dfc5e12fd4726f7",
+        "id": "6b8f07fafb1336182960ec0bba12c3412565677ba47c3bb299301bf2b8eec46d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e8145ce3907590b1ae0967ab6037e2b3eb6c20b069aa5efb5e2814556423cee2",
+        "id": "2cd5c2e3d0c8c54b26f5a15d6d693fc8216eef7c7712c390ee4e0d2a64c1d2b5",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9d97e9064da043a551b0bb4987ffc5b7ad06501edfef5f90e5ea816ce88d43f3",
+        "id": "b73f76c2b0a87481a0ec237b60d10ebc21bc1ae0505dbc8281057326b9aca144",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9725a3f2382f5e12d255ea59395c11eea546bf20f8bcaebcbbb3fd4d6f1aa019",
+        "id": "3a9c5d9a3df4ae471d1ff2777987b4f087283891c8dd0b5fa9dac96314a7909c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6b2a368498f97c2beeb82c873a4ad0b4b09855a5e62732eed44429f7238a935d",
+        "id": "f73f145b61c34eada4695810268596ed960f2bd847b0056e961ccae46878e187",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f4587f7a0990b596293c5a80239dfe1c1120e2e323794faf32d784bc1e7b7d4c",
+        "id": "822b565a9a2e27beb4abf6c5e01480f3881ae93c414d9c5bebaaba30ea8d31ac",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6dfb3746f9f11f431204d6983ce81f894940abda83eb76498f59c217f0c4bf16",
+        "id": "9a117d995e5d4163a55c93d43ed7db566e59269fbec4d656663ae3316ba0fce0",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "dc86f494e35ef46ba1be64c3972eecbe0419b0dc52695cd86ab09742457d1734",
+        "id": "4efbbb259919ab1a99cb6ba79f631718cb0066aa900dae1d12c309a1f55cf0ab",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2127fc5e54c1a79221ee26d376c0de6c966ef0bab0725ec360014b25c97ca946",
+        "id": "348dab4248370e026526c0e74be430a44dba15d3afc6b8682b947d89bfde55d8",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e969932473e40dbb481605e0eba148182399399559b593cd34f942577455ee6a",
+        "id": "4344b418e95bb7274dfb5781932929432e61600f362f5f6c66ff89045d729043",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a356389f21a64f35c5833388b9806831519986cf5ec98768b85d259387e09798",
+        "id": "a8479db197651c32267247ac7c592d1491b910552c6fc5b113537767b0c340a9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "56200c752f92610f9151efed81e38d23b3efad6fa4bc13d071b3e54d1beaec1b",
+        "id": "1f535dc040a903bf8c4377c5e639a1239982209a327da09362a0057d7592e98d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c645da602d3981cbcfa075674da9b9c7f9b50dada24bf733dcd0fb30695abb3f",
+        "id": "fe2173aacee85733c6d6a6ccf025eae40a14667cbc1d33602e1cf27600a0f875",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d7e95982d1272a0f09798af34c05cf6fcf80dc52dde55a1c5108fe17b23c9d36",
+        "id": "e6dec4db87af85f5728c16290eaf18df95a8efb20ea758ae1bf5d89b05e39766",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6385e2d830f83c20449a144bfca99bfe65e4dd9bb99cefb0047c592041edf078",
+        "id": "57f16e7d3b7c6e0301dc79b4a0ce2fe5c8d92079ac7332a8126e981be6f38ef7",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ac33f7de96055e0f552f9d4c89113b69fc12091dd569b312ed58701317d636e0",
+        "id": "19f3130f26b3fb82bcf830ed56967e8cb318798b01fac4107f454027ed042b74",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9dc4bbd0a99854abdb227de4e0504ca763d4a3ccca23431f2b5e5a874d74e255",
+        "id": "d39abde350c74a9a2bf3dc45c519231e435ed63588538e812150a5d27c0da24e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f1287c81e781024d1eff4a7b5eada3bf05e274e9c66f6fbffc45e7acc0f6546c",
+        "id": "e22fe342efc412f815738b28027072dc8c3ef396634df46c77e0d32d0226f625",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "69d0023cf441b22ff6f37ef33ac0b4a45dd85fd666574998750ce990e244b255",
+        "id": "8198e8eafab0a159b35dfaa086b4857d4745043fa2d3e605523e335ca11f2a02",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b8505bb398b08470209e4a5cf90ca56dcaa723a94c4dc968f7a0229f58720761",
+        "id": "bdd6147ad2e0fb404d8785ee20fdf1bc2cb877d4db4ec6834395768a117019e1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b3650e940d7346b17a6da6c653c8c6fe9e2a72a8f5f9a603ad6aee0516d86192",
+        "id": "ca5fd033cf2a2d44ebf81ca7ed630ca95d7fa2c3619e596e947505bac3813265",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "257b09a6fbf3c126353e50ff96def5f503881c3cb78adf876c3ea3c4912da5aa",
+        "id": "5446c5ecbbcd6a579416adc45d47d2065ad9a30fd014857070e7f5bb18e0e815",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "10f503ac21528dec21167d9c2fc42e48cdae207a5027f699e9711b35a064107e",
+        "id": "c360ebdfe917a298325f7b0501b800f0180227a3057630b06b55deb28e7d2259",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "11ffdf24ed58c627964e15499f7d319af7d0a3586084d5309b6913c762170d98",
+        "id": "53ee9fa36c86401287f50b4bcbbb27086e37265e16b5289620b2198800ca3746",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bb25903f85b4a01ff0f652aa329a1018cee28106642d060dfb5715c1a829ffe6",
+        "id": "c79a6017715faa48603fc61f02619d0184300c41c5586543b640833b46836a4e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "77ad731c53e44107a6ad2c69d2bd4930cb2feec004010e464e7a8c71f8d54d5c",
+        "id": "83fd9f9162051d85cf3a407665d73415b3855bf80e27d62b1e2d009497e6277a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3d66172dcc38d2cf8faa2c35aa72f331483144acb5d931a8e235878b29131efd",
+        "id": "42331e278f0993144c4bbee92c0005568d8b55ae921cbfc10f89fe4e44afa544",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c9c4b2e4e8aa8cd714220093bc7038a7af39934031a1fe833920411d0d5f26b5",
+        "id": "7b42804b228722d81c618fc2565dd49e764f272d074fe893222543a04726e068",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "aefded5045a6f329d1f78035fb180d04adcb95b230e398779dfdb1a1193def32",
+        "id": "8424f52a08d57decad574d754451409741e0275e68eb00d8b81110765ad87f6a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7faa1de4fa08b9f42f2cc244a2fb45040f08cb9f33c0d37c9c4125d319e58d16",
+        "id": "6a485b20008347a9a2dcc67713b56197f663d83d7e06b6d3d9bbefd295ef7cf6",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e3a27f16326d4784e8f7f8ea8b8b00be0a57812c203dd22517bc56b9fc6aa16a",
+        "id": "0dd4587134608ea3b369c3e1ec1cb9addc82963d3bfaf9d64763113f3e33415c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "38fed0254144fa0ae786c92166e8a3ff6becc174a1b4e77f127c405a2e98ef4d",
+        "id": "a8add2c4db5074040fbcc23801e89e238c8654ee1be62fa05248b248677379b4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "312386f0df3217d85cba5a99ff0ce4e0bc82b2cd9359be9bf2a94824d85b39fb",
+        "id": "d830cdfee24c10d6f4482555096cae4ebd32c9d28e319aead7fd306e9a313411",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "5f0da309c50f7012f8e5b3380ffbc040727c8e63e85bbd4d8598b15dd5b1c58b",
+        "id": "d4eb892073c2909b8fb1fb649ce52f070d157c0eb0581887a8f278fcb7955d5a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d8405285f22ef1ca2a2990ff4321351f37208e69c964207f532a62d769c19107",
+        "id": "aa71124d11e08e1c63c1766997277e07ebea6b001a5daeef0c92c11cc7009299",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "015f538eda269d2c7085a59ea016986e4734bdf719899242e0430ffebeb2e83c",
+        "id": "5b33ef1ef6ab469bd9083c87533e98f96bb7df583eb77c2761e4a15a8cc30d19",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "78833e14eddf84aa1ab89d12118601786fa74538d14ef901f41f20d904a0ec74",
+        "id": "e534f9e3b5032c9f0f33d0e1a5eb27dab9f55a31a12ad03148e94aa4de9ba644",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0f1dd41a2f2395f4f154f65a525d711c04261b22b1c4c2f3661858fea983e2d5",
+        "id": "555915a76aa035ae07e46dc9f602aaa8d8caa1d39948b6bfc230bc044f24460e",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "12b2e0a491520464f60581065e4596b64d3f81938c737ea43af4097e3202d8d1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -88027,10 +88047,14 @@
         "declaration": "hub/config/theme_style.py",
         "consumers": [
           "hub/config/theme.py",
+          "hub/ui/chat/resume.py",
+          "hub/ui/dialogs.py",
+          "hub/ui/live.py",
           "hub/ui/output/images.py",
           "hub/ui/output/markdown.py",
           "hub/ui/output/registry.py",
           "hub/ui/settings/pages.py",
+          "hub/ui/view.py",
           "hub/widget/actions.py",
           "hub/widget/auxiliary.py",
           "hub/widget/content_inset.py",
@@ -88050,6 +88074,7 @@
         ],
         "tests": [
           "tests/hub/test_agent_graph.py",
+          "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_chrome.py",
@@ -88059,16 +88084,22 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_failure_diagnosis.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_global_preferences.py",
           "tests/hub/test_header_actions.py",
           "tests/hub/test_home_navigation.py",
           "tests/hub/test_input_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_ish_integration.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_overlays.py",
           "tests/hub/test_page_layout.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_preview.py",
           "tests/hub/test_provider_recovery.py",
@@ -88091,7 +88122,9 @@
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stores.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_ui_requests.py",
           "tests/hub/test_widget_chrome.py",
           "tests/hub/test_workspace_presence.py",
           "tests/hub/test_workspace_settings.py",
@@ -99582,8 +99615,8 @@
   },
   {
     "path": "hub/model.py",
-    "sha256": "b46703e0fced738acc2c91b7ac0ad58dd76d6e314f24aec59932916da6aa4fd6",
-    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
+    "sha256": "29e076851a9991d6b7a5d7b7559e6938b95335f5a76750f2e54eb1be800a4064",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -100265,70 +100298,82 @@
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ace48ea5653e1598630ea4472ae4c429b3fd0b4c648b4686a2233c2efa953564",
+        "id": "432241c8ec2687756d8894b8465d10b654b7e476d54af2d67e1bd271a8e7a669",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c31fa6898c3ef15ed1aa229e44fd859a1b6150fe46a90a388bfd9dda3969624e",
+        "id": "25840bd95ff1a7c8648880240383e95932ead694681f3b5c21f76ad54898d52a",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "10e2f01b5147f839b3edd736c8d9242ae3badb2d455d8862aec6a5121cdebc96",
+        "id": "49c468072a85f143896b919d114ce88e454bb3fbcbc641841826ad56f755ca61",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "41f0ee99b299713a52f82e8630ae91843acc97ec0bb1b5f7982813a025e0e740",
+        "id": "0cf93815593361193169aac566eddbfa7e060b2df8821677587da79ef722343f",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9e8d7124f183b983aca29f8b51d64a6ae8f72be30b42d7cf55605d7c3d67d0df",
+        "id": "b344dfee172201e22ca9a09f2df4840faa5fa2bb75c255b287e70202412b1d66",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "bf9a640ed2ada0e6f5fe77245b449a8dba870bdf9dd37ecc735a5f4a166d3335",
+        "id": "953c6e9d8aaa85369ff2bb1f60bea19dd5065ced9feecfd99a7e79a9e4bf137d",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4db0d0eb85ac6135d29f82201201d927d5fd245a296510d9bd7ec5784974d5e6",
+        "id": "ffc73885f8c662f5f3d7f091ca6767ec5faf485f78761c616ecc9b2336dc84c3",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "a31b8d749c829b5bbef2e6dcd800f3c7b37447205594518333c464bf2b213a59",
+        "id": "24de36e35b02489e1d7fce97860d5fe75b59206eafb35c652fd9a00bcfd37372",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "807fc72ce27d95896bdd8da1b1e0ad48c7db82054496c44da29a406f7ce957cf",
+        "id": "ee58aac2314248cb36270373fd0c5ae7a923fd04892cfb48bba6906db5350026",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "48292a67b674dba9e2e972114a7cc0edb70c8ee1d95634a00ce3c83169bb16a9",
+        "id": "14515a9d1bc8f91f26a635b8881b2bb702e141432986aad1d917425076bc0671",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4881571d51bc06d54f57181bfb00dc2a010b0a2052fa3fb1ca37d80d405e6920",
+        "id": "6948ce1cd1cb62f0d49295842e9f6f9671047bde826bff6dd9f56e284e832484",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "3018f1478717d3343df25161667891a3576b2cc20bce2fae6ca82c5733a63a0f",
+        "classification": "declaration",
+        "owner": "InstructionTargetChoice",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "214d88e58d2f478d34cce42385b41525db5acc418e8bbd259b50d25c228668ab",
+        "classification": "declaration",
+        "owner": "InstructionTargetChoice",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -100344,9 +100389,12 @@
           "hub/backend/runtime.py",
           "hub/backend/runtime_views.py",
           "hub/backend/worker.py",
+          "hub/ui/chat/resume.py",
+          "hub/ui/dialogs.py",
           "hub/ui/live.py",
           "hub/ui/presentation.py",
           "hub/ui/requests.py",
+          "hub/ui/view.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
@@ -100356,17 +100404,24 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_escape_navigation.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_factory_presence.py",
           "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_global_preferences.py",
           "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
+          "tests/hub/test_home_navigation.py",
           "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
           "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_question_card.py",
           "tests/hub/test_question_tools.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_render_intervals.py",
@@ -103413,8 +103468,8 @@
   },
   {
     "path": "hub/widget/dialog.py",
-    "sha256": "e7dac2c7754017171ec64509aa4dc42e67ae6678fdd6d4934f42a51cc961fe30",
-    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved.",
+    "sha256": "8cec441a89f57110a9008fb079c9a6e22c5e66a22d47f252fd39d4056b2aae58",
+    "reason": "Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -103460,31 +103515,61 @@
         "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
       },
       {
-        "id": "4a003096b468487358472a4841a878cc50ca5ed00a1ff984a0bb4233f1491b6e",
+        "id": "f85011978fb05ec8cb77c7e4b9cfc309ac36c50a0f027427b761bb33d9368084",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "91fa76cf89d3fd2ad0cc5e54b4f513de27a95e002555b001e347e82cde08b625",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7381a1b35130a3a986eee0e7e6a120686d12e4eb8a59cd7bb8a122b47b849303",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3dd88c575860da2101ce06d846253a0020c5496d73909df44e9901a57fc7ae3c",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "39f914baf6b6c14d548a8ada5a5293d65af6a89b9565d9f3590031877abeb1c6",
+        "classification": "declaration",
+        "owner": "Dialog",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "86ecae7a2a05519ffc829ad5b6a35294fc76f228abef81280056e0a8a7295032",
         "classification": "declaration",
         "owner": "Dialog",
         "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
       },
       {
-        "id": "991bd048d134aa7ff70fef4a5fba98c77f171f4c2a7b43ba5ab1af3905d732d5",
+        "id": "66c451ba6c32736a59310f6d90e11deaac5cf7881fe897009406ca3f576c770e",
         "classification": "declaration",
         "owner": "Dialog",
         "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
       },
       {
-        "id": "af173c0f0c3e0ed98bbddc53902ae41595616c5018ab69a82709ce0fc027b481",
+        "id": "45ef99b4dbf6079eb59046fef2a473d4a33001ed8bce5a66cc9f5aca7cd20d3c",
         "classification": "declaration",
         "owner": "Dialog",
         "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
       },
       {
-        "id": "970f88d0f45d7ca93b1006bf870db98d83f6508c0e771190b307d842a4c0a9d4",
+        "id": "f417e22eaa7e129a923e5bbe38a8007c1877ad24b26eca0973348eca90e17639",
         "classification": "declaration",
         "owner": "Dialog",
         "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
       },
       {
-        "id": "2f4c43a9eae17fee56c104acd2f0dacf4f945e2f9a54c4c00ad5f3fbd40b0ab7",
+        "id": "21c73c22b9cbfe2f049f2cf02ff79d93e69f180208ed95c354a805afe5bfd8de",
         "classification": "declaration",
         "owner": "Dialog",
         "reason": "Original dialog/reader distinction, modal receiver flags and PTK adapter kwargs/defaults; open custom contexts and explicit kwargs remain unchanged."
@@ -103495,30 +103580,50 @@
         "owner": "DialogContext / PopupInput / Dialog",
         "declaration": "hub/widget/dialog.py",
         "consumers": [
+          "hub/ui/chat/resume.py",
+          "hub/ui/dialogs.py",
+          "hub/ui/input/bindings.py",
+          "hub/ui/live.py",
+          "hub/ui/view.py",
           "hub/widget/output/reader.py",
-          "hub/widget/output_inspector.py",
-          "hub/ui/input/bindings.py"
+          "hub/widget/output_inspector.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_input_contract.py",
-          "tests/hub/test_composer_history.py",
-          "tests/hub/test_popup_completion.py",
-          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_clipboard.py",
-          "tests/hub/test_x11_clipboard.py",
-          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_composer_history.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_popup_settings_updates.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_popup_settings_updates.py",
-          "tests/hub/test_component_managers.py",
-          "tests/hub/test_tool_history.py"
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -105530,8 +105635,8 @@
   },
   {
     "path": "hub/widget/output/text_viewport.py",
-    "sha256": "037f742def84de42b71ee338373b097880719c505b8549ecddee87be8af21393",
-    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy.",
+    "sha256": "101bed82d35bb159003ed176eb372be40a548bc69cafa7b1eb21175ad9226bf7",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy. Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -105541,127 +105646,133 @@
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "7b9cc906990f0fcb497ac1abc66cf499cd1ca3fadd4167afcf215e873823b841",
+        "id": "499f173a4ff82aae8fd98a3c44a929e4cf4e2f5c5694bdb25f314ca505542f44",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "48d9c8064c606c944ff03a1d146932640149a9ca0cfe9b729430ae1b963ffbfc",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "2dcde69c0467d24f69d47122dcc5ab796f130dedb378fa346fd0089240599db5",
+        "id": "634682252bd267aa88e5da4fc35e8585515159d86e4a5f04d85f7e53582f6794",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "3b95e3d9067108ff065f78f215fc43cbd6b6bafc7e026b2e40e433df87de5900",
+        "id": "802df76331d261f6971ce01a6075592adb1b3f57d230c630f673d08ce54983cb",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "6d32803d03e9947ab656cb9e6820e79f9354759a365b92f44df31358bdefc9a0",
+        "id": "c8007d16c285c6335f131ddce82867afe4512335718d58a42353fb7866dcdb92",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "3f157818a55b09509e9c45393fbbe0a2f59745ad17df84a1c5b1807ef7f56bab",
+        "id": "6c6ee549623ebe32d321002e783e16714dded6a262520d88afcb7e0d3325d607",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "2dc5da39f9a94953b24a0a11833c3ccaa91b7a71a72edaced32c62adf704063c",
+        "id": "e9c742fd4c51873bba69e1b05e941353415e3189594883ff04f5eac471494bd8",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "c3e2ca2b4a7b75c9494042889ae3a50525b5f3b6ff6719e56663bfdd1fa5f136",
+        "id": "051d18f4dd5ab328a1885b8469b08503e00d52689060e8fb5fb9e3a1abbd6b30",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "e2027afe4c845731aa8137b917980cb7dd6b46c9ff83b707750f0ca70f596408",
+        "id": "b0cf908c472dae9592b6469c19681c1c6b4c32f335be83cfd2dcb148ff0dec16",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "2dad48e56aea16db7edb52cb2d638c1757a7ea8ae85c21af6b155481a760966c",
+        "id": "bf2a4246a50c3ba678847293787994053c9d86ed2850d7f7695de1d3ce09709d",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "e583253e5dfa9c3a89f4bc6f85b051fca37d4e3bb15a822433cf4611af3d2e79",
+        "id": "70386edf0079f2d7f68d8cdf402fa47ceaf2877a29aba24dc3af9177952eca44",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "63ed16056ce60be6443dd7608960665b6ec3ab39af6f224f66d7cfbf1b611271",
+        "id": "75fdc73c415f87a41cfa6c502dd5c67eba9f35fd7c25529ec171091194bb1754",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "889da0254941ac56d69d37479f65c555b25726feebc0b88ac57f10169885a05c",
+        "id": "fcca1572c5091367f8b3379dda8a03d20971e729248ea211c1f38d20976e2d67",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "f8866aee3cdc4df6f036c83b3f5c14b7367e836608b8af8c595229cd9d7976c8",
+        "id": "4b318ad5f07656926c941d705cabc361f6a2746032439bf6ddabfcc23e492106",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "8f1841a0a4923bda3dfaab7d48ec0eca51571ee47feecc20b2ba9ff612672cb7",
+        "id": "f0135cb24eb6e9ee52af8b458901cbd9358322ebfd5cd6a83928c6c0d6cc1c1e",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "6e41aa4319011442925dc93c063ec6c71b6923fd98c24ec333edf3e3009ca128",
+        "id": "d8578664952e070af0ec81f2238aaf46112da8827f3e27f28bdaf874f9929684",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "cf30936965b01c096d5c9e99410af60f28e7e21c19caf4712ce1f27a26e3d94d",
+        "id": "b6cd7b68c3bbc521aee43f2b809a563539e8fe69184bd71e671d586f5f28d471",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "670a2df852af19e040a76515fcef5ad35f05fcc287b8740892a880e036ba70f4",
+        "id": "bc1b83ca8ac7b276d4e7de7378eec6adf8eb9b2eb30fbe81e78df37d52cc7dee",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "d63510bf049f36834f8995c797e32c8afabbe6d6423fd881146d6ef7aa9c0af4",
+        "id": "10bd1a50ea8367e0403b01d6efd17e1f03e80735f07dcb0082b6d56f2c004c25",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "677a78255b8675df81705bfc54b00a1a46d526e33818bafdeff9b8b8e36671d7",
+        "id": "d2d61e7b6839d886f9e650eacdf1846fa8fcba0953252a8f06b779d628587cee",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "b94abba132e5e8109467fb3d084fe980445b59e1cced95cbbae75a4c6000ac5d",
+        "id": "2866800fcda48ab711305fb78f992eb10c9902cf284d207f6991d2d8a3659b07",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
       },
       {
-        "id": "46f61bc36c09cb74714ff71c8a86249223c6855636930772b20b8c6f23458fd0",
+        "id": "192bea7175759f38dd3a65c76306ecb1acae3532c7c4e22d392d7442e1b02120",
         "classification": "declaration",
         "owner": "TextViewport",
         "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
@@ -105672,6 +105783,10 @@
         "owner": "ViewportRenderKey / TextRows / TextViewport",
         "declaration": "hub/widget/output/text_viewport.py",
         "consumers": [
+          "hub/ui/chat/resume.py",
+          "hub/ui/dialogs.py",
+          "hub/ui/live.py",
+          "hub/ui/view.py",
           "hub/widget/forms/question_card.py",
           "hub/widget/output/output_viewport.py",
           "hub/widget/output/reader.py",
@@ -105679,19 +105794,34 @@
           "hub/widget/output_inspector.py"
         ],
         "tests": [
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_completion_display.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_global_preferences.py",
           "tests/hub/test_home_navigation.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_output.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_preview.py",
           "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_render_intervals.py",
           "tests/hub/test_render_pipeline.py",
           "tests/hub/test_responsiveness.py",
+          "tests/hub/test_settings_restart.py",
           "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_ui_requests.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
@@ -114675,6 +114805,729 @@
           "tests/hub/test_question_tools.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_retry_observations.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/view.py",
+    "sha256": "9dba53ab3c32f8cd2ab0ea2cb38acc0b3573cdd298cc35b6d1604de553c67290",
+    "reason": "Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6db52bf7ef116693341bbad95c8bd7d2ef26f640f1e63557c5374610b306a590",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "f2de758eaf549ff8256b28fdc5bae8ce852c669ec0b6cc519db9c3e3e51c20d0",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "488f3ef358b4e2ce6205d78951e68aa747a685c3b94831bb1327ad2165accbdf",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "7d2cb58b7da59fb8a1510e3869f200678a50fbe4e38d701654f846ef538d4d52",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "5bf3079a100002ef10888c90dd4310763768c7cb2e6e45fe39a05c164a500794",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "93ab93327ef9de9c1d91cbfaab0757a4d1e4a86c6ee74dd25adc3c9a03b68654",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "83b3d67caebf69b0107f2bc7e53d0fa69cbf3c6510d836b0f223cc3e5b216a60",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "a100ff1682c5016a8e234d4506bae889e5650e67a0cf62c48ce14a14ba307d19",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "5f6c914eaacf52a86c1051694e3b3c843c3603bf7a3d1e06391a4263faddcb3f",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "9e832b44b42116bc89b5dc86ff1b7ef28d9fc2ef2829603ef28d6782615779a5",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "149bdc43d2930083ccefcf2e6665c8d0079c3792db0e6232620270f9695cab0b",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "80383edd19a22e25ba7fdae61209ab5969609a67e340487d189c50d124293418",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "77cb0081990f533c9883640db248e39cfb26d25a69377b5a8e26395d6beb4023",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "d88f489fbcff52d1364d78232b29bc382eae192d52bffee52860f1cf65687f9e",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "d758a6829a1972ea9689e501977fee461a66c93fcf390d89113c3cd8538ff6e3",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "acfe3554434940e48618e45a1d2455fd41a11e3c1e069ac9adae7b174b6fb518",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "45da943a70c57fe02842b84e7caab8fc88f090f0d21a3ed1fc9110dcc33939ab",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "a8d9e3adcbf676ea657c47897187850adef9e1032ffa0b4cae219bd9bd1b7092",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "3f6b07d4f64c6d7d82122019f02947d753f8c291a4a2670ddc2d4f5162272391",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "48bfed6552a01325e433ce9021e89d9505311cf0a8d8b62d263b5fabda165e50",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "b9a5514102b430bc6b5736abcbec7210b965c93ecdea1b61a0eeea75e1f0c638",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "6a39cb1780762c03b49922ce031f3cc95deb5510ff11724caf0cd2aa53a0033d",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "e99b8ccdebb466bcd70e2b21f2dd7b5e550e5560d124fa83994b45efa7286fb6",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "06f3a4ad9faeefc148041887bad8110504bd905b410b702c72bb40e267081e57",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "c10e8b6243b0d6081589a472b98b3890ea28f07bc677a57bebe44ca5ace0788c",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "ea447871aa8576e3cd7538431f9861faecf83a8b3093b339dd33f8753cd2bb0d",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "7b112d1652ab1182e1df6caff707feb8010dc93c1555edf0a5507cdf1c640278",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "301cfeeea79422f392897b19cc7ef64569dbe8287cfd0b7eee127f57ede3a23d",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "95cb7491f4b7fdc3831be495ba1ac8350662d2c470a45abfd52fc7a101672a80",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "06f8ef4801fb1f78148c5649b6fc5fdbb20081ece4bc3f1d4fefccb997027ff8",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "8f01cf220bd34b0599d3bfa475221ddc3669cfe85971d7fb2da8995bbaa5a763",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "3c0a2c58dbd87bae68a082de3f0829ed081fd812edc9a66fa801edbd2ae15e05",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "28dee31f78610a4883265ad165e0de9d18d04f338b4ecfe6572678f3d7e6a81c",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "de88612b72cc0b1646598d5dc84e69a610eb280ee61d311da049f5977987b4c6",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "81a6a1a7c1cf2624e6bbe16c65dc4aac1d31e4fde82fe22d099b2fcc231758d3",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "9265cc3fac7e6492da699d9cb4edce55ee7c88b8c101d53554c5c4f508ea7662",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "25ca02d80fc11dc6742780be124b53ec730d02041907a9f9cd829c9372265506",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "c05ea09827fe228f719a8a6bca2767f11c96a7033beb7e81fff96b12d75d7291",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "400fb7c3be9619a23b83c2f1a010607327125581f19f77bd347d00ef1da99445",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "7d681f371b1682c109666244853963dceeebc615e562560c6f258f1e8ea5a88c",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "6d5ab3297b089ec46e9a72c6601aa0b20f024de0e31d7a55ae8da4b357ab1229",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "8c4663c74c5f0f0f798bb0572a0844bbf59e157188e14a36de83bc8a638f8ffb",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "0bd2c5f6731d619844fe3da39c4ee9108b2aa94378855770ad60fe5e368ccbe2",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "ce563c3391c60d4a0c28810201332e1579f243e2abd73dac1b4fe11dde2ec503",
+        "classification": "declaration",
+        "owner": "HubView",
+        "reason": "Hub layout, draft-key grammar, callback bindings and view lifecycle declarations. Shared Agent, theme selector and auxiliary-action Owners supply existing contract identifiers."
+      },
+      {
+        "id": "61a3005adbd4c1fed4cee0aa1860bb942a5489482312b7e237ac11cb27f19089",
+        "classification": "non_contract",
+        "owner": "HubView.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "6a544ec53cc0d98dfae345c3469a5b8f62ef40843e63be2f563b726c590e2a97",
+        "classification": "non_contract",
+        "owner": "HubView.set_output",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "e2f0ef3f6e276ff8f8bd2ff6aa4f5c78e9e4b5cec3c9707076e4ad05168dbe6b",
+        "classification": "non_contract",
+        "owner": "HubView.close",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubView",
+        "declaration": "hub/ui/view.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/ui/application.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/live.py",
+    "sha256": "69b7c00d65b9381c5e87c6f2bd6cc11f79f9ea62ba174c80fc6d1748e89952bc",
+    "reason": "Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8c3d6005f9a7204962c97e4e44a13acd8d29dd089ab2b26ccd6218063f866be4",
+        "classification": "declaration",
+        "owner": "RunningSubmissionChoice",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "6c7582f584d2d765589b5ec38f8369f5d5eccf31fc4c667c101f6b081863ff65",
+        "classification": "declaration",
+        "owner": "RunningSubmissionChoice",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "002f20b1acf066baf60c06cb217d23d7b565bd438ff92cdbec78d4301ac6ae33",
+        "classification": "declaration",
+        "owner": "RunningSubmissionChoice",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "75d391a554c30290c7f982f97611d086dbd175244036aed20617e91e0cf38b98",
+        "classification": "declaration",
+        "owner": "LiveHubView",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "3e7783ef31e6f8e70b013bd847ee3cb88feb73b8274dc4ec9a4760632ef7687e",
+        "classification": "declaration",
+        "owner": "LiveHubView",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "209c24e6355c96618eba67d05260ba993fe3f1db1547b6712341468a453f0e99",
+        "classification": "non_contract",
+        "owner": "LiveHubView.apply_snapshot",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "a65fbcab6d5f9eccf84288f4b16729295fb4aaf9eb0098f5a5e277ff2bf12d71",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "1a132f15a6a9d72d2cd1b0cbe085907c893d5b8b15685defdd6e1aa9dcc39092",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "8af60ff43d278792ca808dd8accfe6b3262df08ca15b9ceb85113e874edf655c",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "3b42e530288e1629e117d1c7dd4d35765895eaa3a8264587b221631daa536eb3",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "61501aa2c45dd9e2585ddc236f3ea4b683e814976e4a2d5a8d0f9563e6a21d2a",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "66e97c8924146a9209d7b33893b662eb5c29ddaed68b1b6fb8daecd9d3e79099",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "37192e2d3df3f7a5a5a35debd4bd28ed406d92125c5b26bcac02c9639ec3cba6",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "0659ca0d77ef65df0ec58f9cef43f3ae35d683df6a29a033793241dc969b4c6b",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "cf9597dbf0495588076b2e1dd7174644e785f009c371690ef30a195cd5412004",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "b8072a67b3c957052f72d29c5d33af4d3b2f8045b20d53f1f9ff34e23f419e2c",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "93db2291c2cbfac4fc86c1bed9881ab4d762d78cca81f5286c1af311f61b88a4",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "b24ccb614206a2cf16071d9ee2c4b9ee592a64bf616212413a5fd987f4baea95",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "73982257459c5fb4673f0f4ff2f5ad743863ec04981c3ed098a8710e510d1d2d",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "69e879a7dafe82248443efef76e4050becc144aeb1a4ad6b6ef9be70a899c428",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "41d9d3f6a06dc965b7bba4fa2dec81eb4dc55760f715e25f4cfc7f5521e6fba1",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "9b96bc45c978c27db6f22b483f795ba73050ba78f7c5a680f86336f9fb25eff6",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "72208b0241a2b4cbf24ee12964cf491d97c00519933119fa602ec7fe5f52b7cf",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "89dbb13f4a4695c16f1765b3f3f7d09c22f70536041d1c3c731aceee04d7e4f5",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      },
+      {
+        "id": "76d7c10b434d4aaf6a0ffe94bf2a006557f7d689a186601fdec70c06a5c9d337",
+        "classification": "declaration",
+        "owner": "LiveController",
+        "reason": "UI connection/submission/diagnostic/debounce/notification defaults. Runtime methods, SettingsOperation, preference/question/Session Owners and View APIs supply cross-owner contracts; no new backend policy or retry."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LiveHubView / LiveController / RunningSubmissionChoice",
+        "declaration": "hub/ui/live.py",
+        "consumers": [
+          "hub/hub.py",
+          "hub/ui/application.py",
+          "tests/hub/test_live.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/dialogs.py",
+    "sha256": "5b5ea42ad0ac1dd4b47ad84d8fd7ac2bacaeff99397078f569dfa9a206a1eb9d",
+    "reason": "Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cda0e5794ddfe032484e2e250ca6de9d80d90745c6fb1866e77b31e97915d9d6",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "cef4eb50259afd533f784126196605b69e35067008dfe5a308789a5101ffb60b",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "716714f77fe4d8eb6f1d987807345bd286052ee10fa96eff747a524772bdd782",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "c7fbd8c4bafdb28129666d99863ea5322f50f4339949ef00cb1cfa9a10c49dbc",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "09cd0fab5795850b5f7fc13aa13e6206a2149634b616cbcc6f3f5406a09af258",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "1d74f07531f861d55cdb56da818094cd896cd25b9fe0aeee5cc5f3496b216504",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "95ab1fb7e7472c0b5abfd759a4a5399ed303dcef9f4bb024f290a252d32b53c7",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "82abe39590edd85cbde84820edbeb413d3e9b9b18671aa88ad6a48d1e8923017",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "c5e2aaa53bf5a0921431156abeba543c159d95d92ec3883cf253b575c2252cfe",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "7718b25fcdde8c2b4ae6115ae3f11524ac339f864bd1875c5ed41d1ec8bfb9b3",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "9dcfde39ba294bccbd5ff0c91ff1642876a2009d6ea368d54158d9c2ddbbbde6",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "ae2624f56357c5a3655b55c2cc28d32033e1879b2f804f48f8e3eda7161283dc",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "3e715876deb60d95273244a7bfba65e72aa4998c74d5f258145484b4fe62996c",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "7db3e66873986ab7a49c586247b6aedf7d60d947eb611d755ef3e4e8c02937d1",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "bb869f03705566a5db53a84686a0ac3a1ed0da8c49d888b7106dc9b25c9779f8",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      },
+      {
+        "id": "cb71a7e644264cb34eedf23f15ce57ed449007ba8fa816a8b0f33098e5c92cb2",
+        "classification": "declaration",
+        "owner": "DialogController",
+        "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "DialogController",
+        "declaration": "hub/ui/dialogs.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/live.py",
+          "tests/hub/test_overlays.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/chat/resume.py",
+    "sha256": "3ad84b47e2b9e16bb1028352c2aed4626c8ed0854a8e183c7b68a79f9ccb1698",
+    "reason": "Live UI consumes current Runtime operation names, preference/question observations and explicit View projections. Dialog and TextViewport own optional lifecycle hooks/timer disposal. Existing callback order, draft aliases, required lookups and authority remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e87aac9f5aa43737b652d3e33b770e6c3f5dd8a268ffcd70276fc0c3d02e2b17",
+        "classification": "declaration",
+        "owner": "ResumeFeedback",
+        "reason": "Resume UI omitted request/receipt state only; actual Runtime methods own dispatch names and existing Backend owns authority."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ResumeFeedback",
+        "declaration": "hub/ui/chat/resume.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/ui/chat/history_ui.py",
+          "tests/hub/test_request_history.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_overlays.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_global_preferences.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_preview.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_escape_navigation.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_popup_completion.py"
         ],
         "complete": true
       }

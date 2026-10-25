@@ -9829,3 +9829,54 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 36파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## Hub UI 생명주기·설정/질문 관측·팝업 소유 경계
+
+LiveHubView/LiveController·HubView·DialogController·resume_turn을 전수 정리했다. Runtime
+메서드와 SettingsOperation이 작업명을 공급하고, PreferenceSnapshot은 기존 선택적 section
+확인과 필수 profile/theme 생성을 담당한다. 원본 설정을 복제·보정하지 않고 기존 존재 확인
+순서와 HubConfig 재생성 조건을 유지한다. 질문은 InteractionRequestObservation과
+QuestionPresentation의 빌린 관측, SessionIdentity의 기존 tuple Projection을 사용한다.
+질문 응답 ack는 기존 AnswerFeedback.acknowledge를 호출한다. Runtime의 target tuple 공개
+형식은 유지하며 InstructionTargetChoice가 첫 식별자 Projection을 소유한다.
+
+HubView는 읽기 위치 저장/복원/삭제, default Agent와 출력 간격 callback binding, sample/empty
+초안 식별자 및 화면 기본값을 소유한다. Controller가 View의 내부 map을 직접 해석하지 않는다.
+팝업의 optional close/cancel/dispose/output protocol은 Dialog가, resize timer 취소·해제는
+TextViewport가 담당한다. 요청 중인 render key를 지우지 않으며 dispose→timer→worker cancel
+순서와 on_close의 None 검사/falsey callback 의미를 보존한다. hide의 상태 해제는 확인·취소
+callback을 실행하지 않는다. 실제 승인·효과·Checkpoint·Resume 정책은 변경하지 않았다.
+
+원본과 제안의 독립 프로세스에서 184개 관측이 일치했다. 버튼 width 생략/명시·다국어 label·
+좁은 화면·검증 거부·확인/취소·falsey callback·timer와 dispose 실패·상태/초안 alias·필수 설정
+오류·target 누락을 포함한다. 9개 변경 파일의 실제 Owner 확장/기존 구현 AST가 일치한다.
+형태가 달라진 DialogController.open의 버튼 구성은 위 실제 constructor/handler 호출로 별도
+비교했다. 전체 비교의 예외를 숨기지 않는다. 제품 테스트 및 안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-ui-lifecycle-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.695513초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-ui-lifecycle-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `3bc4ca3acba78727f6f300a6b3957189d9f2924354d14f9559d2b37d8bda70cd`, input `50da255b90e3f72c09911a5763a4a8c48d1f593d4a87d354a41efdcbc3f64b94`.
+
+- `whole-hub-ui-lifecycle-l1-01`: discovered/started/pass 28/28/28, exit 0, 26.416386초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-ui-lifecycle-l1-01/hub.json --modules tests.hub.test_live tests.hub.test_overlays tests.hub.test_reading_positions tests.hub.test_global_preferences tests.hub.test_agent_selection tests.hub.test_preview tests.hub.test_home_navigation tests.hub.test_escape_navigation`. source `3bc4ca3acba78727f6f300a6b3957189d9f2924354d14f9559d2b37d8bda70cd`, input `50da255b90e3f72c09911a5763a4a8c48d1f593d4a87d354a41efdcbc3f64b94`.
+
+- `whole-hub-ui-lifecycle-l2-01`: discovered/started/pass 65/65/65, exit 0, 67.116972초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-ui-lifecycle-l2-01/hub.json --modules tests.hub.test_submission_latency tests.hub.test_question_card tests.hub.test_approval_continuation tests.hub.test_question_tools tests.hub.test_interrupt_feedback tests.hub.test_notifications tests.hub.test_failure_diagnosis tests.hub.test_settings_restart tests.hub.test_ui_requests`. source `3bc4ca3acba78727f6f300a6b3957189d9f2924354d14f9559d2b37d8bda70cd`, input `50da255b90e3f72c09911a5763a4a8c48d1f593d4a87d354a41efdcbc3f64b94`.
+
+- `whole-hub-ui-lifecycle-popup-01`: discovered/started/pass 1/1/1, exit 0, 1.55769초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-ui-lifecycle-popup-01/hub.json --modules tests.hub.test_popup_completion`. source `3bc4ca3acba78727f6f300a6b3957189d9f2924354d14f9559d2b37d8bda70cd`, input `50da255b90e3f72c09911a5763a4a8c48d1f593d4a87d354a41efdcbc3f64b94`.
+
+공통 안전성 84개와 R3 Mutation, Live/팝업/읽기 위치/전역 설정/Agent/preview/화면 탐색,
+제출 지연/질문·승인 연속 실행/실제 question Tool/중단 feedback/notification/실패 진단/
+설정 재시작/UI request 및 실제 popup completion/resize를 검증했다. 각 실행의 발견·실행·pass ID
+일치, failure/error/Skip/xfail/xpass/누락/추가/중복 0이다. source/input은 전후 및 실행 간 동일하며
+같은 suite의 선택 ID도 겹치지 않는다. 정상 namespace(NoNewPrivs=0), Python 3.12.14/Clang,
+Host d833790와 고정 의존성에서 실행했다. argv/exit/hash/원본 비교는 외부 `hub-ui-lifecycle-draft`
+증거에 보존한다. 실행 중인 Gate55 전체 Hub와 집중 Hub가 겹치지 않도록 대기했다.
+
+초기 정적 감사는 변경된 공유 증거 hash를 감지해 exit 1이었다. 화면 completion 높이 8과 입력
+해석 대기 0.02의 두 정확한 S3 occurrence는 Owner 선언으로 이동해 소멸했다. 원래 두 review
+전체 행과 이유를 보존하고 제거했으며 남은 60개 ID와 실제 변경 의존성만 대조·갱신했다.
+정적 S1–S7·감사·문서 검사를 통과한 뒤 소단계 완료로 기록한다.
+
+Level 1·2 로컬 완료이며 전체 작업 완료는 아니다. 정책·저장 형식·승인/budget/effect 경계는
+실행 AST/직접 소비자/공통 안전성으로 영향이 제한됨을 확인했으므로 이 소단계에서 전체 회귀를
+중복 실행하지 않았다. 후속 Tool/Component 소비자 묶음의 Level 3에서 현재 통합 상태를 검증한
+뒤 Push하고 정확한 SHA의 원격 CI 결과를 기록한다. Gate56의 동결 SHA에는 이 후속 변경이
+포함되지 않으며 그 결과를 이번 변경의 전체 회귀 증거로 승계하지 않는다.

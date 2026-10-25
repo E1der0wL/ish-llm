@@ -43,6 +43,9 @@ class PreferenceSnapshot:
         """Borrowed public observation; to_dict remains the detached-copy boundary."""
         return self._value
 
+    def has_section(self, name):
+        return name in self._value
+
     def section(self, name):
         return self._value[name]
 
@@ -56,22 +59,37 @@ class PreferenceSnapshot:
         self._value.update(observation.record)
 
     def prepare_ui(self, initial_appearance):
-        self._value.setdefault(PreferenceSection.GENERAL.value, asdict(GeneralSettings()))
+        self._value.setdefault(
+            PreferenceSection.GENERAL.value, asdict(GeneralSettings())
+        )
         self._value[PreferenceSection.APPEARANCE.value] = asdict(
-            HubTheme(**self._value.get(PreferenceSection.APPEARANCE.value, initial_appearance)))
+            HubTheme(
+                **self._value.get(
+                    PreferenceSection.APPEARANCE.value, initial_appearance
+                )
+            )
+        )
 
     def theme_or(self, initial_appearance):
-        return HubTheme(**self._value.get(PreferenceSection.APPEARANCE.value, initial_appearance))
+        return HubTheme(
+            **self._value.get(PreferenceSection.APPEARANCE.value, initial_appearance)
+        )
 
     def set_sidebar(self, width, initial_appearance):
-        appearance = self._value.setdefault(PreferenceSection.APPEARANCE.value, initial_appearance)
+        appearance = self._value.setdefault(
+            PreferenceSection.APPEARANCE.value, initial_appearance
+        )
         SidebarWidth.store(appearance, width)
 
     @classmethod
     def preview(cls, initial_appearance):
-        return cls({PreferenceSection.PROFILE.value: asdict(UserProfile()),
-                    PreferenceSection.APPEARANCE.value: initial_appearance.copy(),
-                    PreferenceSection.GENERAL.value: asdict(GeneralSettings())})
+        return cls(
+            {
+                PreferenceSection.PROFILE.value: asdict(UserProfile()),
+                PreferenceSection.APPEARANCE.value: initial_appearance.copy(),
+                PreferenceSection.GENERAL.value: asdict(GeneralSettings()),
+            }
+        )
 
     @property
     def workspace_selection(self):
@@ -95,6 +113,9 @@ class PreferenceSnapshot:
     def required_profile(self):
         return UserProfile(**self._value[PreferenceSection.PROFILE.value])
 
+    def required_theme(self):
+        return HubTheme(**self._value[PreferenceSection.APPEARANCE.value])
+
     def required_general(self):
         return GeneralSettings(**self._value[PreferenceSection.GENERAL.value])
 
@@ -104,7 +125,8 @@ class PreferenceSnapshot:
     @property
     def optional_sidebar_width(self):
         return self._value.get(PreferenceSection.APPEARANCE, {}).get(
-            HubTheme.sidebar_width.__name__)
+            HubTheme.sidebar_width.__name__
+        )
 
     def apply_sidebar(self, width):
         self._value.setdefault(PreferenceSection.APPEARANCE.value, asdict(HubTheme()))[
@@ -122,11 +144,15 @@ class PreferenceSnapshot:
     def catalog(cls, profile, load, workspace):
         from .metadata import SettingMetadata
 
-        values = {PreferenceSection.PROFILE.value: asdict(profile),
-                  PreferenceSection.GENERAL.value: asdict(GeneralSettings()), **load()}
+        values = {
+            PreferenceSection.PROFILE.value: asdict(profile),
+            PreferenceSection.GENERAL.value: asdict(GeneralSettings()),
+            **load(),
+        }
         general = values[PreferenceSection.GENERAL]
         if general[GeneralSettings.workspace_root.__name__] == SettingMetadata.initial(
-                GeneralSettings, GeneralSettings.workspace_root):
+            GeneralSettings, GeneralSettings.workspace_root
+        ):
             general[GeneralSettings.workspace_root.__name__] = str(workspace())
         return values
 

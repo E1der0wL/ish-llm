@@ -36,11 +36,35 @@ class PopupInput:
 
 
 class Dialog(PTKDialog):
+    ABSENT_HOOK = None
+    CLOSE_HANDLER = "on_close"
+    CANCEL_HANDLER = "on_cancel"
+    DISPOSER = "dispose"
+    OUTPUT_SURFACE = "output"
     WITH_BACKGROUND = "with_background"
     MODAL = "modal"
     BUTTONS = "buttons"
     DEFAULT_BACKGROUND = False
     DEFAULT_MODAL = False
+
+    @classmethod
+    def close_handler(cls, dialog):
+        return getattr(dialog, cls.CLOSE_HANDLER, cls.ABSENT_HOOK)
+
+    @classmethod
+    def cancel_handler(cls, dialog):
+        return getattr(dialog, cls.CANCEL_HANDLER, cls.ABSENT_HOOK)
+
+    @classmethod
+    def dispose_resources(cls, dialog):
+        from .output.text_viewport import TextViewport
+
+        dispose = getattr(dialog, cls.DISPOSER, cls.ABSENT_HOOK)
+        if dispose:
+            dispose()
+        TextViewport.dispose_resize(
+            getattr(dialog, cls.OUTPUT_SURFACE, cls.ABSENT_HOOK)
+        )
 
     def __init__(self, *args, shortcut_context=DialogContext.DIALOG, **kwargs):
         self.shortcut_context = shortcut_context

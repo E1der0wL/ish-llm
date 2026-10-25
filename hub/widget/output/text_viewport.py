@@ -37,6 +37,7 @@ class TextRows(NamedTuple):
 
 
 class TextViewport(SelectableControl):
+    RESIZE_TIMER_ATTRIBUTE = "_resize_timer"
     ABSENT = None
     MARKDOWN = False
     FOLLOW_TAIL = True
@@ -241,6 +242,14 @@ class TextViewport(SelectableControl):
                     }[key],
                 ),
             )
+
+    @classmethod
+    def dispose_resize(cls, output):
+        """Cancel an optional popup surface timer without changing its render request."""
+        timer = getattr(output, cls.RESIZE_TIMER_ATTRIBUTE, cls.ABSENT)
+        if timer:
+            timer.cancel()
+            output._resize_timer = cls.ABSENT
 
     def reset_render_request(self):
         """Cancel a deferred resize and allow the hidden surface to render again."""

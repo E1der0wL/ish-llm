@@ -24,6 +24,7 @@ class ThemeSelector(StrEnum):
     DIVIDER = "hub.divider"
     TITLE = "hub.title"
     COMPOSER = "hub.composer"
+    INPUT_FRAME = "hub.input-frame"
     QUESTION = "hub.question"
     QUESTION_HEADING = "hub.question-heading"
     QUESTION_CHOICE = "hub.question-choice"
