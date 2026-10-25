@@ -9489,3 +9489,40 @@ Clang·Host d833790·고정 의존성·실제 Linux 환경에서 정적 S1–S7�
 표시 전용 cache/실제 소비자 계약 정리로 Level 1·2를 적용했고 소단계 전체 회귀는 수행하지
 않았다. Gate53 이후 관련 Hub 변경의 Level 3 및 정확한 SHA 원격 CI에서 통합 검증한다.
 Backend 실행/승인/예산/효과/Checkpoint/Resume 계약은 유지한다.
+
+
+## Hub 일별 사용량 차트·Workflow 미리보기
+
+usage_chart·workflow_graph 두 파일을 전수 정리했다. UsageChartLayout/Diagram이 표시 geometry·
+문자·포맷·상한을 소유하며 ThemeSelector/ThemeStyle을 재사용한다. 사용량은 기존 ProjectUsageRecord/
+DailyUsage 선언의 lazy observation을 통해 읽는다. 필수 date/tokens/unknown 누락·잘못된 타입의
+오류 및 읽기 순서를 유지한다. 내부 합계도 DailyUsage 속성으로 다룬다. DailyUsage에 slots를
+추가해 canonical field descriptor를 사용하며 기존 생성/누적/직렬화 메서드는 그대로다.
+
+PreviewGraph는 현재 WorkflowDocument/WorkflowNode/WorkflowEdge 선언을 소비한다. 미완성 편집
+초안·cycle/self-loop도 표시하는 기존 preview 의미와 200 nodes/400 edges 상한·오류를 유지했다.
+실행용 Workflow 검증을 완화하거나 UI에서 재구현하지 않는다. 사용량 표시의 누락을 원장 복구로
+해석하지 않으며 예산 계산·예약·삭제 보호에는 변경이 없다.
+
+원본과 실제 40행 차트·좁은/넓은 화면·unknown 집계·필수 필드 오류·기존 producer 직렬화,
+다국어 Workflow·분기/되돌림/self-loop·불완전 초안·잘못된 endpoint/shape·표시 상한 117개 관측이
+일치했다. 공유 두 파일의 기존 실행 메서드는 AST 비교에서 동일했다. slots/새 observation은
+그 비교에서 명시적으로 분리했고 실제 producer/consumer 비교와 아래 기존 통합 테스트로
+검증했다. 전체 제품 AST 동일성을 주장하지 않는다.
+
+- `whole-hub-charts-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.089844초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-charts-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `6b24697be477395b4f9f93684d677cfe3108d7aeedc5f216463e320ec8d62db6`, input `5d4da3fe1db2beac0eb27439fbbe04c085a1d8518f60f39f219d68ea6af8dfdc`.
+
+- `whole-hub-charts-l1-01`: discovered/started/pass 11/11/11, exit 0, 30.939605초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-charts-l1-01/hub.json --modules tests.hub.test_usage_definitions_system tests.hub.test_component_managers`. source `6b24697be477395b4f9f93684d677cfe3108d7aeedc5f216463e320ec8d62db6`, input `5d4da3fe1db2beac0eb27439fbbe04c085a1d8518f60f39f219d68ea6af8dfdc`.
+
+- `whole-hub-charts-l2-01`: discovered/started/pass 16/16/16, exit 0, 43.713457초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-charts-l2-01/hub.json --modules tests.hub.test_settings tests.hub.test_settings_navigation tests.hub.test_settings_project_flow`. source `6b24697be477395b4f9f93684d677cfe3108d7aeedc5f216463e320ec8d62db6`, input `5d4da3fe1db2beac0eb27439fbbe04c085a1d8518f60f39f219d68ea6af8dfdc`.
+
+공통 안전성 84개·R3 Mutation, usage/definition/system·component manager·settings·navigation·
+Project flow를 검증했다. 발견/실행/pass ID 일치, failure/error/skip/xfail/xpass/누락/추가/중복 0,
+동일 suite 선택 ID 중복 0과 source/input 전후·실행 사이 동일성을 확인했다. 실제 argv/exit/hash는
+`hub-charts-draft`의 selected-results.json/proof-commands.json/values-equivalence.json에 보존한다.
+Python 3.12.14/Clang·Host d833790·고정 의존성·실제 Linux 환경에서 정적 S1–S7·감사·문서 검사도
+통과했다. 기존 테스트와 Assertion은 변경하지 않았다.
+
+표시용 typed observation과 알고리즘의 동일 이동으로 Level 1·2를 적용했다. 이 소단계에서는
+전체 회귀를 수행하지 않았으며 Gate54 이후 관련 Hub 변경을 묶은 Level 3 및 정확한 SHA
+원격 CI에서 검증한다. 공유 설정 계약의 미완료 표시는 유지한다.

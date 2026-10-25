@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 631,
-    "unreviewed_files": 36,
+    "unreviewed_files": 34,
     "stale_files": 0,
-    "unclassified": 2453,
+    "unclassified": 2304,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 36,
+    "unreviewed_dynamic_paths": 34,
     "unreadable_files": 0,
-    "candidates": 16653,
+    "candidates": 16576,
     "issues": 0
   },
   "files": [
@@ -418,7 +418,7 @@
     {
       "path": "hub/backend/project/settings_contracts.py",
       "status": "reviewed",
-      "sha256": "1f4a9310e7c2449735179a19c2b7388a970b325053911fa886eb136eda611ab3",
+      "sha256": "9ea155c603460a6752428c085e6cfdc3c983d7acca27cb4d4854eeb79956f9de",
       "candidates": 48
     },
     {
@@ -442,8 +442,8 @@
     {
       "path": "hub/backend/project/usage.py",
       "status": "reviewed",
-      "sha256": "61836500c20d9444f03941ed13d835418892c5f35e551b1b1bb1c802fe7e9fc2",
-      "candidates": 4
+      "sha256": "1fb72eb8865091bb299d21a862655ef2ee8d34562f36bc4368db64e0620c6b63",
+      "candidates": 7
     },
     {
       "path": "hub/backend/runtime.py",
@@ -1503,9 +1503,9 @@
     },
     {
       "path": "hub/widget/usage_chart.py",
-      "status": "unreviewed",
-      "sha256": "b50e2ab554709172c76369837f2451213c8f9ec470db818b212d9a744fce02e7",
-      "candidates": 66
+      "status": "reviewed",
+      "sha256": "586658eef78c9b175abb52985c34bc34300aae7a98ce0a0294ea3b14ee642506",
+      "candidates": 29
     },
     {
       "path": "hub/widget/welcome.py",
@@ -1515,9 +1515,9 @@
     },
     {
       "path": "hub/widget/workflow_graph.py",
-      "status": "unreviewed",
-      "sha256": "80f2758ae987a36184f500e2598433457ddf3e96e8db881cf9580d654a55c0b9",
-      "candidates": 83
+      "status": "reviewed",
+      "sha256": "c2beb686b93c4aa6afcb24b8396ebc82eff4852a4b44025bd202fb2978391c9d",
+      "candidates": 40
     },
     {
       "path": "hub/widget/x11_clipboard.py",

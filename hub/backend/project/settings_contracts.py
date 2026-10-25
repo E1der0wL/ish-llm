@@ -166,7 +166,12 @@ class ProjectUsageFailure(ProjectSummary):
 class ProjectUsageObservation:
     """Observe a public usage row without repairing or reading stored receipts."""
 
+    NO_DAYS = ()
     record: dict
+
+    @property
+    def daily(self):
+        return self.record.get(ProjectUsageRecord.daily.__name__, self.NO_DAYS)
 
     @property
     def has_error(self):

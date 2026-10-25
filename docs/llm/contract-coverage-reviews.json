@@ -16787,10 +16787,16 @@
   },
   {
     "path": "hub/backend/project/usage.py",
-    "sha256": "61836500c20d9444f03941ed13d835418892c5f35e551b1b1bb1c802fe7e9fc2",
-    "reason": "Reviewed the unchanged complete dated UI projection. UsageReceipt owns counter meaning; dataclass fields own chart shape and arithmetic starts at declared zero. Unknown counts are displayed, never converted to known tokens or used for quota admission. Existing timezone/date sorting and absent display-date behavior remain; no raw field lookup or new ledger.",
+    "sha256": "1fb72eb8865091bb299d21a862655ef2ee8d34562f36bc4368db64e0620c6b63",
+    "reason": "Reviewed the unchanged complete dated UI projection. UsageReceipt owns counter meaning; dataclass fields own chart shape and arithmetic starts at declared zero. Unknown counts are displayed, never converted to known tokens or used for quota admission. Existing timezone/date sorting and absent display-date behavior remain; no raw field lookup or new ledger. Read-only daily usage and Workflow preview consume canonical record/document fields, retain incomplete-draft display semantics and original errors, and isolate chart/diagram geometry from Backend policy validation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
+      {
+        "id": "e0cdd532273d9978839b8ad8f2c8aa012eb8f774f83e93e02466c8ed445b0148",
+        "classification": "non_contract",
+        "owner": "DailyUsage",
+        "reason": "Dataclass slots expose the canonical field descriptors; field values and producer serialization are unchanged."
+      },
       {
         "id": "68e1883add7be1c5ab67452dd8fa59033888f78bf56ee4f49dd4b6d0e424ac03",
         "classification": "declaration",
@@ -16814,6 +16820,18 @@
         "classification": "non_contract",
         "owner": "DailyUsage",
         "reason": "Python annotation/optional runtime object absence or single-observation count increment; no domain fallback or execution choice."
+      },
+      {
+        "id": "9d7ad20b066fbbe18612dbe03281f143b4719c1e00f6f961d1047244c6d5b32e",
+        "classification": "non_contract",
+        "owner": "DailyUsageObservation",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "968c352e61f6211bad0e9a6342aea81ed6731acb65017a0a52bbe2bab88de2cb",
+        "classification": "non_contract",
+        "owner": "DailyUsageObservation",
+        "reason": "Dataclass slots layout."
       }
     ],
     "contracts": [
@@ -16825,7 +16843,18 @@
           "hub/widget/usage_chart.py"
         ],
         "tests": [
-          "tests/hub/test_usage_definitions_system.py"
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -90694,8 +90723,8 @@
   },
   {
     "path": "hub/backend/project/settings_contracts.py",
-    "sha256": "1f4a9310e7c2449735179a19c2b7388a970b325053911fa886eb136eda611ab3",
-    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition.",
+    "sha256": "9ea155c603460a6752428c085e6cfdc3c983d7acca27cb4d4854eeb79956f9de",
+    "reason": "Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Actual UI command/catalog/Project/batch consumers still need connection; producer migration alone is not closure. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Read-only daily usage and Workflow preview consume canonical record/document fields, retain incomplete-draft display semantics and original errors, and isolate chart/diagram geometry from Backend policy validation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -90891,97 +90920,97 @@
         "reason": "Python dataclass slots declaration choosing instance layout, not an execution value."
       },
       {
-        "id": "82a49a882f9276aa0665afc5ef86507d63fed77ea0d500f0a5edca5c9957434e",
+        "id": "2487c986338181d9a63a8e580e7cefab090d662f6793e40e7402f12cc7d84973",
         "classification": "non_contract",
         "owner": "SettingsCatalog",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "5bc53c0e5a2ec1ddacbfb01bbcd7fffc05a8171c64588e362ec7061351d2c6a1",
+        "id": "487ea0a0d3d8c032bf96f2412da7e7f930415473073979841642f845e5e53c4f",
         "classification": "non_contract",
         "owner": "SettingsCatalog",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "8278e7893375b6468a8c650f1800b79c7a46ecd1687bccde0ae58e1047ac36d1",
+        "id": "40915177dab2fb97b58ec158c35ae73911acd3fa03fe3cd5a363a308577cc765",
         "classification": "declaration",
         "owner": "SettingsCatalog",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "fd86eec181bb7d4520a8567615767db308e42bc4585c6ea87d4e03cda32464ef",
+        "id": "7930f18cb19829554cd074ed3d408b2d7f280e994af9d7188487269ce6c00802",
         "classification": "non_contract",
         "owner": "SettingsBatch",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "021d38e4128e407e3844fb4584a9f0e1d9992f5c59b08f16f785b85fa307f3d7",
+        "id": "93f4a28dba8694cf4a2162aaa3ba62f8bf8260e756335eca11c881308d0c5b1c",
         "classification": "non_contract",
         "owner": "SettingsBatch",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "c1b7ebaeb6cf5c28dc85f93fc65f89d4a011b1a9aba41dc2782db89974362350",
+        "id": "f2bf58254a7f5de19cd4749f6dbe95fd6d0b767fffb1b65174396beb7eab758d",
         "classification": "declaration",
         "owner": "SettingsBatch",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "2e82ebe8eacb720f188087ccef8590deeccd56eaa0fe2c7c40d87b8141d0916d",
+        "id": "d3dd157104257b171208d72ab3cb4fb05feed1c1180e0531b092509e45c72d88",
         "classification": "declaration",
         "owner": "SettingsBatch",
         "reason": "Settings command names and positional input parsing have one Owner. Response fields derive from typed projections; shallow serialization preserves nested ErrorInfo and list identity. Backend usage counters derive from UsageSummary, not Hub recalculation."
       },
       {
-        "id": "7a181980e9fc8a8e0dd0bd5b3bee0384b9c2db80535638146136ff1b2ad0e48c",
+        "id": "5cc2cdf8e2b904e2db97ba1439acdc0d283be82c9b5939880f577629831e909c",
         "classification": "non_contract",
         "owner": "PresetApplication",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "0aab41817a086a07d71ee5ad64bb9b9f7dc36244b324bdec7bbb7007a526ffde",
+        "id": "565b898a1231bd5700d56ea5c9f65dae33d24c71c422755bd3306298b5626099",
         "classification": "non_contract",
         "owner": "PresetApplication",
         "reason": "Python dataclass frozen/slots annotation, not a stored flag, policy or execution decision."
       },
       {
-        "id": "51b4cd296974c78adb26ef9d722ba3ab479a9d2d48fe6427622e101078a78f27",
+        "id": "099a9aafe1a166f256cf8fa706cebee2ae324652ee04514a1cabd4e53e3ca15f",
         "classification": "non_contract",
         "owner": "SettingsCatalogObservation",
         "reason": "This occurrence is the Python dataclass frozen declaration on the observation type; it carries no serialized field, policy or execution value."
       },
       {
-        "id": "670cf44f2e4fa402e88bd82f165bc8cc0e3b6d526a2d5511971a59381b954901",
+        "id": "dcb34ad0f2ae089afac88eec3a339cef7e7c3a2ff3714cdea8d852557ad66159",
         "classification": "non_contract",
         "owner": "SettingsCatalogObservation",
         "reason": "This occurrence is the Python dataclass slots declaration on the observation type; it chooses instance layout, not a domain literal in an implementation body."
       },
       {
-        "id": "7e8408434ef9874709677fad42d60b738bc2fed4da600499a29adebd7a985ffc",
+        "id": "810ee9ddb86d8111ef1f486aab8cd7a5428aac24e465b411f6144348cf8e0359",
         "classification": "declaration",
         "owner": "SettingsCatalogObservation",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9b546f63995f4502830efcce8e8367b6adc8668e05238bd10c0b3e46318aec07",
+        "id": "d03f37d7e5b098b437df14398b2e9889490365c6dd1dbd47a248c218fbf470c1",
         "classification": "non_contract",
         "owner": "SettingsBatchObservation",
         "reason": "Python frozen dataclass declaration on a borrowed response observation; no stored state or execution flag."
       },
       {
-        "id": "cbaf724e60a5d76d466c9bcbf69a36840bf63c479fabb324c1634563d2ebd3a1",
+        "id": "aa4f928a7c9ce68ec0a91a12a9ae96c73e1552e4d9cfd054d100ae09040b7289",
         "classification": "non_contract",
         "owner": "SettingsBatchObservation",
         "reason": "Python dataclass slots declaration sets instance layout; no protocol value is introduced."
       },
       {
-        "id": "9f5fbc7f6b053780f9a4e72f2f2b42ce0d290eed6993a74af19e6d3f3e69d609",
+        "id": "5cf758d730acface4f3d92109b785d0fc92916f6cf98244a1b91ee882f07879a",
         "classification": "non_contract",
         "owner": "PresetApplicationObservation",
         "reason": "This occurrence is the Python dataclass frozen declaration on the observation type; it carries no serialized field, policy or execution value."
       },
       {
-        "id": "726e7b43b6cc31abd92ceb59f55960666c57a680f3db535152b5a1311911fb42",
+        "id": "e1b7bd7a5e5b7efc7756efa97d7ca19d0850cadd810fa741b3bd97f6d96e3614",
         "classification": "non_contract",
         "owner": "PresetApplicationObservation",
         "reason": "This occurrence is the Python dataclass slots declaration on the observation type; it chooses instance layout, not a domain literal in an implementation body."
@@ -91001,10 +91030,12 @@
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
-          "hub/ui/settings/screen.py"
+          "hub/ui/settings/screen.py",
+          "hub/widget/usage_chart.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_home_navigation.py",
@@ -91055,10 +91086,12 @@
           "hub/ui/settings/json_editor.py",
           "hub/ui/settings/pages.py",
           "hub/ui/settings/presets.py",
-          "hub/ui/settings/screen.py"
+          "hub/ui/settings/screen.py",
+          "hub/widget/usage_chart.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_home_navigation.py",
@@ -91100,10 +91133,12 @@
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
           "hub/ui/settings/pages.py",
-          "hub/ui/settings/screen.py"
+          "hub/ui/settings/screen.py",
+          "hub/widget/usage_chart.py"
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_home_navigation.py",
@@ -91138,38 +91173,41 @@
         "owner": "ProjectSummaries / ProjectSummaryObservation / SettingsBatchObservation",
         "declaration": "hub/backend/project/settings_contracts.py",
         "consumers": [
-          "hub/ui/settings/screen.py",
-          "hub/ui/settings/drafts.py",
           "hub/ui/chat/projects.py",
-          "hub/ui/live.py"
+          "hub/ui/live.py",
+          "hub/ui/settings/drafts.py",
+          "hub/ui/settings/screen.py",
+          "hub/widget/usage_chart.py"
         ],
         "tests": [
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_configuration_targets.py",
-          "tests/llm/test_settings_consistency.py",
-          "tests/llm/test_configuration_results.py",
-          "tests/hub/test_settings.py",
+          "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_global_preferences.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_home_navigation.py",
           "tests/hub/test_live.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_navigation.py",
-          "tests/hub/test_settings_tabs.py",
-          "tests/hub/test_settings_viewport.py",
-          "tests/hub/test_settings_usability.py",
           "tests/hub/test_popup_settings_updates.py",
-          "tests/hub/test_backend_diagnostics.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_tabs.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_settings_consistency.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -110820,6 +110858,486 @@
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_output.py",
           "tests/hub/test_output_interaction.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/usage_chart.py",
+    "sha256": "586658eef78c9b175abb52985c34bc34300aae7a98ce0a0294ea3b14ee642506",
+    "reason": "Read-only daily usage and Workflow preview consume canonical record/document fields, retain incomplete-draft display semantics and original errors, and isolate chart/diagram geometry from Backend policy validation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f2c09aee9291f6df8d57ba17c1109c6c3f391b3a3be4c38561ee16d518997973",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "ca6f610a71d7f1ff59771e885cae317498658ec77b9cafcf083cf49387530e3a",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "fedbda9f24101917b7cc8ed55ecbbea7fe2bb75e6fb12b259614a4bc883d0de7",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "c9f32d9efcb80ceb5e1b538e22b1b18c142cbf5f45a076bda91ad4002ef3747e",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "6db3b411577358035202bc052aafc5ae1d8bf93fd9c501372ef4ef7d5e8337d5",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "984db91e6228936c223a21a35adbed2f9e56da40b771d73636f32c0c72a858fe",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "05b06de68dccf3cbfb23fd3f3c096fa4e357dfd081356c304fffb33714a5e5da",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "ec2edeb4d1d857616f908e57ee41fe1f35726a0e7f79d70eef5bebef8f7574c6",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "4108511c05f0c23cf58500addd9445f0b05816c4d682f1d1ebd9f31c8b11b3a8",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "a1bb9c45b09361724f13e2021826e675a53aa5605e2943df50e6669d5ece1cd4",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "f1cef5d3e668025a70ceea01fb365b5a8511da05c935305f63e6527046f886d3",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "cdf7885b66c388f0d1a6e8597cd7345811dcaf95122aadceea15f67da0afdb69",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "a3ce2ab6c3a1ee78189212ee8f73fb30763ae6b3fb026e74c743785b52bb3f04",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "f497fc6f06cc8517ec22ee90d01d3451134133ccb4630829a888b885fad22ffb",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "302c5075264015d6bd92495050a7af2adbdd1d03627d48062ca670766a3df4e9",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "59b82da92ff4eca016615dd95adf0caf27d1b56a4903a4c7b84b3ee7758567ca",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "ace31595488243c8b87359a4886f6bd31c89fd077234cbddd049d7984980a0fd",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "1fa140345fa3a6e31deb0f83b1543a816c3af90b358dbc4e796540a1c3ea8b2a",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "04caa20b8b7edab052fe4cc964199871647635d62e54fc089c6b9e779fe7bf6a",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "bf77cc0c24bc5805415b27b9c414746d1051a41a03f40978dbdbc7ed1ce12d57",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "706c75e4f16ac498f7a87cc78aebc01520f11308e0aa5f9571967992d83fde89",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "a87aa3a2e7e3cc5d9e728080557f11df2f94090b2c57d1934d9135d94cccc39f",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "0a83af28936c7476c8e60c3da38559c75ceb594d6f113c951e3cad404a059498",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "52107ecda1d58037a0082804e68d2a9c549c30dfc6bc8d33df2f1c1fd1d60bdb",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "a11f8e5a5e3faf213713f1e724cab0d22b4fccc996e1c06d171c211c9e9e4c98",
+        "classification": "declaration",
+        "owner": "UsageChartLayout",
+        "reason": "Forty-row daily chart geometry, labels and glyphs; actual ProjectUsageObservation/DailyUsageObservation consume canonical fields lazily, DailyUsage owns accumulated token/unknown attributes, and ThemeSelector/ThemeStyle own rendering styles."
+      },
+      {
+        "id": "70ffad7bb4a19e777d3bb695b16d05597824487f793dc6492ed5bb36429aa578",
+        "classification": "non_contract",
+        "owner": "DailyUsageControl.rows",
+        "reason": "Convert zero-based plot row to its upper bound."
+      },
+      {
+        "id": "074204048cae86272dd8847840824962c94d1c362938beaa54a99e7e58f4d29e",
+        "classification": "non_contract",
+        "owner": "DailyUsageControl.rows",
+        "reason": "Last inclusive plot row."
+      },
+      {
+        "id": "bbff2a728ad138029eadae75215d09fe71fc945470f662b844917096d10c0c81",
+        "classification": "non_contract",
+        "owner": "DailyUsageControl.rows",
+        "reason": "Python range starts at its first index."
+      },
+      {
+        "id": "8171ad847821988798b73f730b29e9759bf3384025313aa2b6640fc629e78b82",
+        "classification": "non_contract",
+        "owner": "DailyUsageControl.rows",
+        "reason": "First chronological date."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "UsageChartLayout / DailyUsageControl / DailyUsageChart",
+        "declaration": "hub/widget/usage_chart.py",
+        "consumers": [
+          "hub/ui/settings/pages.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/workflow_graph.py",
+    "sha256": "c2beb686b93c4aa6afcb24b8396ebc82eff4852a4b44025bd202fb2978391c9d",
+    "reason": "Read-only daily usage and Workflow preview consume canonical record/document fields, retain incomplete-draft display semantics and original errors, and isolate chart/diagram geometry from Backend policy validation.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2d16a5e05088c7ba3bb72f7d76cbf40deb6c2bbc6e0f764e74e0cd7b29031eb9",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "f93066977ed1839fd43a83f3c60a5a85b752ab7bd3b21f8decad31fbde8dc23b",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "1e6be602186a2ad07b965e8d174c327a9138e554b64a6d05ef7f90f1deb5ef83",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "0978661a9597f4c70681925bc271407c83c59eb7e87a8da807dca3df2d95c5f5",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "e05407f090992b6ddfe014780c77e00b828e53c85a3da69e145685c030cc059c",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "ef29bbbdcf49d305630086effbc6c53ccb5e6ac179a1484559ea7bb63283f279",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "596ea6c2a284eaca8b05f46e3f868dd3ca9c2817c93c22d584bda4d448d12e6e",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "ec5b0f01383847e909072c69477f2b60f1693fe1f5cd90ae056b1b5f761074dd",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "0d7f63871f3709531c70dafcc8ed5bb429224c70008664f6af380562e1684c54",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "5459fc0450e2cc493fbc9dee5087fe59a88733bf7cfe5dc089c41ac05450c82d",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "678e4b2b0f63917f863fdd853f41e1ec410bcc9f2c523f0b472061ad89d8fd8b",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "482fc2b524e37ebb7c4874b7b4252e7bf9c8d219875f2ce9b95f71d3b66703cd",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "403d68ad3a3b56f69cfdde708af0fc4a30f28f77df145f426425a909e83259db",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "07efbf3e90e885ecdc52398267a3a29c5f48ca539aae366a6910aa1c0199f36e",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "fc32e57aa1f64c039e749bf1e2d85f15137214c3751e1fa614b94fff382e932b",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "779434b8315ac18f76dc3dd6213ad625e63d415cbc30ee1e8431ef48055180c8",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "bdc1c2918ad8f469506b6e42e8a5f12f7ae1a22012d16e8d4f0c26578c8485f0",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "a286926d308afa54ad85888a286fb9deb65ae5de2d0ea13e9039131db092bdc7",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "b055691cdfc776f80e2b1ba06a71f75c0f9b22ae3600aa1a49fba98494895efc",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "3453ec911ced829e05cff734212647b71efec0fd97f060bfcf7dca890b4a9056",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "300ade6da1768e7c9d5ea054a1f35b493f3c318c347dc3eba7713bcbbd0087b9",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "c01818ef6135f06ab50207f351a37a5c6d05a80ee1d060145d46e672a5f2df74",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "fe440479bcbd3648180eff3178569707194a00320ad3c25d2e7a6736662f3d1b",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "84e92f14e0e908251e32264fabdcdc9da3f92b9250610f377cdf93b5b742712c",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "549f45fa2168ed9bc7c28744e3f4a33d89cafe7eaf0d15dfe7a23265ad507210",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "8f8236b592261775da23138ac45418e624c882d4a982931ecf2fbf9fa7b1f77a",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "7793da6a7112f8c4c34284555b229c5bf0eaffc3ff08abd76e8e6c8ffd76d2cf",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "a065d1bf8d6bfbc119c65b37cdcee84e99b2ad54b2fc36e6acbd253867ef9dd2",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "e4c6ff14c5644ff79d71cc014527286c21a7ab36406e3e321781f261a6f321ac",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "e2cad95ae61d776e9f0da649c976a26b03be214def3317102b663f82b9fecd62",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "e6a0149ed7439f3016211060852a80159995942702b7c7de815f5d8cd0e77276",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "651353254c29aaa6e51b6e7193075a17da2363ca40dbe7f3eba12c6f38190b51",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "4fe412b91a5409781d581a2157af9ec4788a873d43718709b86f159345e1fdd1",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "85c3888de34ba16e6e1bc2cece8f61da3ba35f1a381a1c7e97110b17f3620283",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "9b9a86527abdffa9de6dcd9982fdda4edd4bee6910e080761d7d24d8e72205d6",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "cb87ce527a9560b8ff43c965a4fee6e4e5a566ee6a8542bfbc704a1618abf444",
+        "classification": "declaration",
+        "owner": "Diagram",
+        "reason": "Bounded display-only Workflow geometry/glyphs/errors. PreviewGraph consumes canonical WorkflowDocument/Node/Edge fields while allowing incomplete drafts and cycles, without weakening or duplicating execution validation."
+      },
+      {
+        "id": "44acccdf7aab1027be2793b98fc94b843a8de9cbec2154010ee5652b16121f52",
+        "classification": "non_contract",
+        "owner": "workflow_diagram",
+        "reason": "Place the entry node at the front of the ordered list."
+      },
+      {
+        "id": "648db1605a82866928c509e570ca6567a028c7179b86cdd27ad45d302ed69115",
+        "classification": "non_contract",
+        "owner": "workflow_diagram",
+        "reason": "Inclusive row endpoint converted to exclusive Python range bound."
+      },
+      {
+        "id": "404b9feebf6b1d008d5415724b86e0b939fe096f1fa797b6affebd82d93d4357",
+        "classification": "non_contract",
+        "owner": "workflow_diagram",
+        "reason": "The arrow occupies the cell immediately before the box origin."
+      },
+      {
+        "id": "c08b24258e8a069a30d2b97d60a01332c6a6eb35cc7eafbdf8ddc5c5e3e65b94",
+        "classification": "non_contract",
+        "owner": "workflow_diagram",
+        "reason": "The arrow occupies the cell immediately before the box origin."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Diagram / PreviewGraph",
+        "declaration": "hub/widget/workflow_graph.py",
+        "consumers": [
+          "hub/widget/forms/definition_manager.py",
+          "tests/hub/test_usage_definitions_system.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_settings_project_flow.py"
         ],
         "complete": true
       }

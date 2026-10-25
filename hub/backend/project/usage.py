@@ -5,7 +5,7 @@ from dataclasses import dataclass, asdict
 from llm.core.usage import UsageReceipt
 
 
-@dataclass
+@dataclass(slots=True)
 class DailyUsage:
     date: str
     tokens: int = 0
@@ -20,6 +20,24 @@ class DailyUsage:
 
     def to_dict(self):
         return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class DailyUsageObservation:
+    """Read presentation totals lazily; missing required fields stay errors."""
+    record: dict
+
+    @property
+    def date(self):
+        return self.record[DailyUsage.date.__name__]
+
+    @property
+    def tokens(self):
+        return self.record[DailyUsage.tokens.__name__]
+
+    @property
+    def unknown(self):
+        return self.record[DailyUsage.unknown.__name__]
 
 
 def daily_usage(calls):
