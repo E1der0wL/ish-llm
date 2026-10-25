@@ -8672,3 +8672,57 @@ Assertion은 유지했다.
 이 소단계는 원래 파서/투영/표시 캐시의 동일 이동이며 관련 소비자로 영향 범위를 확인했다.
 전체 회귀는 다음 관련 변경 묶음의 Level 3·정적/문서/R3·실환경·정확한 SHA 원격 CI로 유예한다.
 실행 중인 Gate51에는 이 변경이 없으며 이 기록을 상위/원격 완료로 표현하지 않는다.
+
+
+## Hub Project 생성 설정·Agent 초기화·최초 선택
+
+Project agents/defaults/bootstrap 세 파일을 전수 정리했다. ProjectCreationDefaults는 기존 Hub의
+신규 Project 선택값만 선언하며, Component 이름·필드·허용값과 Engine/Provider/ToolRetry 키는
+기존 정규 Owner를 참조한다. rag_defaults/provider_defaults/Component preset은 매번 독립 사본을
+반환한다. 사용자 명시값 우선 병합, 생략한 생성 필드만 보충, 명시적 None·빈 값 보존,
+기존 Provider 4회·Tool 2회 재시도 선택값은 그대로다. Backend의 암묵적 기본값을 추가하지 않았다.
+
+ProjectConfigForm이 생성 입력을, AgentDefinition이 engine/tools 정의를 생산한다.
+ProjectSchemaDescription/ProjectConfiguration은 Component 목록과 Engine 지원 필드 조회를,
+LoopParameters는 completion/system_prompt/provider의 기존 변경을 소유한다. ToolRetryPolicy는
+기존 정책의 생략 필드 보충만 수행하며 검증·실행 경로는 변경하지 않는다. LiteLLMParameters가
+명시적 model/api_base 입력을 직렬화하고 Hub는 SDK 키를 직접 작성하지 않는다.
+PresetProject는 이미 검증된 저장 preset의 기존 필수값을 읽는다.
+
+WorkspaceJSONStore의 공유 directory API와 ProjectStartup의 원래 O_NOFOLLOW·0600 파일·flock·
+0.01초 양보를 사용한다. 가장 오래된 활성 Project 선택·동률 ID 순서, 새 Project만 초기화,
+Agent/Skill 초기화 실패·취소 시 shield 삭제와 마지막 descriptor close 순서를 유지했다.
+HubBuiltinTools의 기존 등록 이름은 해당 구현체 NAME 선언을 생산자와 소비자가 공유한다.
+해당 BuiltinTools 전체 전환은 후속 범위로 남긴다.
+
+원본/변경안 48개 비교가 일치했다. 기존 Provider/RAG 값·독립 사본, 생성 필드의 누락/Null/빈 값,
+Component별 명시 덮어쓰기, Agent 정의 복사, 기본/Title Agent 생성, 초기화 오류·취소의 정리,
+preset/Host 설정 우선순위, 실제 임시 디렉터리 lock 파일 권한·내용과 기존 Project 선택을 비교했다.
+생성 호출 facade 비교를 실제 전체 Backend 실행으로 표현하지 않는다. 아래 Bootstrap·Project
+권한·설정·Preset·Skill·RAG·응답 신뢰성 테스트가 실제 소비 경로를 추가 검증한다.
+
+- `whole-hub-project-creation-core-01`: discovered/started/pass 49/49/49, exit 0, 8.284189초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-project-creation-core-01/llm.json --modules tests.llm.test_explicit_configuration tests.llm.test_configuration_objects tests.llm.test_configuration_targets tests.llm.test_policy_values tests.llm.test_provider_codec`. source `d017c2937d0a4cf02beea9c7099f96817e678f56d658c11b4a65c2ebeb1b30ec`, input `a75f2ec57b1bfc7fcb85eae865e105a118ac80f04fe721ac4653aac03984ab62`.
+
+- `whole-hub-project-creation-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.975131초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-project-creation-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `d017c2937d0a4cf02beea9c7099f96817e678f56d658c11b4a65c2ebeb1b30ec`, input `a75f2ec57b1bfc7fcb85eae865e105a118ac80f04fe721ac4653aac03984ab62`.
+
+- `whole-hub-project-creation-l1-01`: discovered/started/pass 12/12/12, exit 0, 45.285435초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-project-creation-l1-01/hub.json --modules tests.hub.test_bootstrap tests.hub.test_rag_defaults tests.hub.test_response_reliability`. source `d017c2937d0a4cf02beea9c7099f96817e678f56d658c11b4a65c2ebeb1b30ec`, input `a75f2ec57b1bfc7fcb85eae865e105a118ac80f04fe721ac4653aac03984ab62`.
+
+- `whole-hub-project-creation-l2-01`: discovered/started/pass 17/17/17, exit 0, 89.900546초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-project-creation-l2-01/hub.json --modules tests.hub.test_project_authority tests.hub.test_settings_project_flow tests.hub.test_presets_widgets tests.hub.test_coding_skill`. source `d017c2937d0a4cf02beea9c7099f96817e678f56d658c11b4a65c2ebeb1b30ec`, input `a75f2ec57b1bfc7fcb85eae865e105a118ac80f04fe721ac4653aac03984ab62`.
+
+- `whole-hub-project-creation-consumers-01`: discovered/started/pass 14/14/14, exit 0, 51.093355초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-project-creation-consumers-01/hub.json --modules tests.hub.test_creation_contracts tests.hub.test_defaults tests.hub.test_workspace_presence`. source `d017c2937d0a4cf02beea9c7099f96817e678f56d658c11b4a65c2ebeb1b30ec`, input `a75f2ec57b1bfc7fcb85eae865e105a118ac80f04fe721ac4653aac03984ab62`.
+
+모든 실행은 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. argv와 exit는
+`hub-project-creation-draft/selected-results.json`, 원본/변경안 비교 명령은 `proof-commands.json`에
+보존한다. 공통 안전성 84개와 R3 Mutation, 정적 S1–S7·감사·문서 검사를 포함한다.
+기존 승인·권한·예산·실제 HTTP/Tool 효과·Checkpoint·Resume·무결성 Assertion을 유지했다.
+CreationContracts·Defaults·WorkspacePresence의 실제 권한/제외 효과/재개방/앵커 소비자도 별도
+선택 실행했다. 선언·Owner API 이동으로 사라진 기존 정적 S2/S3 8개 ID만 검토 fixture에서 제거했다.
+현재 발견 69개 ID와 기존 나머지 69개 ID가 정확히 같으며 검사 규칙·필수 단계는 변경하지 않았다.
+제거한 검토 원문은 static-removed.json과 이전 커밋에 보존한다.
+
+이 변경은 기존 명시적 Application 생성값과 동일한 Owner 위임이다. 공유 필드의 신규 의미·저장
+형식·실행 경계 변경이 없고 실제 직접 소비자를 검증했다. 전체 회귀는 ProviderActivity 등 후속
+관련 변경을 묶는 다음 Level 3와 정확한 SHA 원격 CI에서 수행한다. 실행 중 Gate51에는 이 변경이
+없으며 소단계 완료를 상위 통합·원격 완료로 표현하지 않는다.

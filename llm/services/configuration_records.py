@@ -69,6 +69,13 @@ class ProjectConfigForm:
         return cls(**{item.name: deepcopy(values[item.name]) for item in fields(cls)})
 
     @classmethod
+    def creation_defaults(cls, values, *, conversation_storage, components):
+        result = deepcopy(values)
+        result.setdefault(cls.conversation_storage.__name__, conversation_storage)
+        result.setdefault(cls.components.__name__, components)
+        return result
+
+    @classmethod
     def creation_request(cls, title):
         return {cls.title.__name__: title, cls.config.__name__: {}}
 

@@ -14469,8 +14469,8 @@
   },
   {
     "path": "llm/core/policies.py",
-    "sha256": "7c09ed40a6a57c97bbcee1319dc41565379aab57d6d3461cfb2944e51b7c750c",
-    "reason": "Reviewed all Schema generation, field declarations, runtime observations, normalization and argument constraint parsing/narrowing. Fixed policy views use typed attributes; only this Owner interprets its wire rules, dynamic Tool/argument maps and selected opaque parameter values. Standard Schema vocabulary is shared. Full Schema and errors/omission match the prior implementation across 446 cases. Approval keeps order/IDs/risk checks; Tool policy/Retry readers, context/Run/output consumers and binding serializer use declared fields. Explicit defaults are observations, never materialized settings. No legacy ToolPolicy type or execution path is restored. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked.",
+    "sha256": "0275cff59137aa163155146205a9155620167bf7c6ac4ee2c20e4f5158954636",
+    "reason": "Reviewed all Schema generation, field declarations, runtime observations, normalization and argument constraint parsing/narrowing. Fixed policy views use typed attributes; only this Owner interprets its wire rules, dynamic Tool/argument maps and selected opaque parameter values. Standard Schema vocabulary is shared. Full Schema and errors/omission match the prior implementation across 446 cases. Approval keeps order/IDs/risk checks; Tool policy/Retry readers, context/Run/output consumers and binding serializer use declared fields. Explicit defaults are observations, never materialized settings. No legacy ToolPolicy type or execution path is restored. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Context-specific mode categories now have one predicate declaration; Message unbound Run and detached-copy mutation are explicit. All prior methods and current stored fields/defaults remain unchanged; prior shared contract decisions are retained. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -15416,13 +15416,13 @@
         "reason": "Owner field metadata, enum, error, registry identity, explicit absence or wire semantics declaration before implementation. Standard Schema tokens reference their canonical Owner."
       },
       {
-        "id": "43d3e1703452af760c33f33017e512d2972c2d62b9e891053cde3a00f5835018",
+        "id": "641f8e56a345277b63dce1e2554f88468e1a6836bc4c338e952c702cf9f146c6",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
       },
       {
-        "id": "65c7259220f59ce38e8df885b02e5fed4054041f77dc291fe97c4c25c22be2da",
+        "id": "973127da6f5833aef209dd147ab2d5ff5bafe3d488874a1871d59090d1d26973",
         "classification": "non_contract",
         "owner": "Project policy section and field Owners",
         "reason": "Python dataclass option, optional object absence or first validation-error index. Does not create policy defaults, repair missing evidence or grant execution."
@@ -15435,6 +15435,9 @@
         "consumers": [
           "hub/backend/execution/retries.py",
           "hub/backend/execution/tool_recovery.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "llm/components/tools/constraints.py",
           "llm/core/models.py",
           "llm/engines/agent_resources.py",
@@ -15448,22 +15451,34 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_composer_history.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_checkpoint_lifecycle.py",
           "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_continuation_values.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
@@ -15471,6 +15486,7 @@
           "tests/llm/test_engine_steering.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
           "tests/llm/test_instruction_values.py",
@@ -15488,6 +15504,7 @@
           "tests/llm/test_policy_consumers.py",
           "tests/llm/test_policy_values.py",
           "tests/llm/test_project_policies.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_request_admission.py",
@@ -40007,8 +40024,8 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "6d9d489c0074e573f411cb2390ac38238733942e208063f44739ee38146dc73e",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "sha256": "eaed5f9dde1c47e283b2e76e276400ba807e3bfc23b4ece0370ba1a93c2fefcd",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40294,289 +40311,289 @@
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "6d3310357041d829c219a9587757042468d25886c84ab6c5126063d88e788993",
+        "id": "0d8b9811fe01c233e2d78d48cdf1ec98e7df9a4996668ee8d3819243f9e92797",
         "classification": "non_contract",
         "owner": "AgentDefinition.validate",
         "reason": "Select the first already sorted validation error; positional indexing, not a domain default or threshold."
       },
       {
-        "id": "8bdf2f022f864f63ada11e4c00c659f5fe07fa885c8c823f4fd63ea296b160a1",
+        "id": "0c7876a7a30e424ea04b5e318e0ef901f358f6b6e80a2aa04b8c88f9be139a5c",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "1285b5bf8928b0bb0d9a918093186458be9e040ad86b0ffd3770f3bee3e33f40",
+        "id": "106f4a4382a5587c47eebaf922a95f77497036694d813f3c41b60ceb543e05ea",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "95833ae48cb5787c132c3d910b3951c0b3c2be952f5a6971960735959738e9ef",
+        "id": "c520193584a72470a937aa3a69c09035c991753842d04e00cd3e54f9f058dd53",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "af57bf770471627b5aa582a41fb42bc02d92146afe476d8bac81e921b63934cf",
+        "id": "66ca00f9ff2ef9f4592813a4402b41534e17239c4d1e865bb62927b21ca21ac3",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2388d61349b9f22cb12f5ac4de93102d16433fdb463f9cf732b4f5a4a62d8310",
+        "id": "1e423cccc99eb389e8dc16e6cfb4985365ff097a9a4847bb2367b6c30faea97d",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "afec9a673a2aa9a9ea8251d160607a066362d9b42e4d7ec07c01ae71b8b63e10",
+        "id": "dd3fde281e06dbad9cfc38e806acf96ed45a7b70f3e8e27bb87489118f8b73c9",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "1e9781e89b315bb982b36b0823d9a8658c305570184e2090a8cb6423805aa563",
+        "id": "80c635d25e2324208dd322918498772a05b56b0f9d274cf4f01d1323cea4c81f",
         "classification": "non_contract",
         "owner": "AgentRecord",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "fa12c01ad408c3fb76f64c9b89a2efb2ad04bedfdcec11c6ff4a5b290f3ae8d2",
+        "id": "025df871313defcb6200ad82d9f89e5d9f2b4190d51f0ed7458b577decee2896",
         "classification": "non_contract",
         "owner": "AgentRecord",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "5a6100617216ce3ddcf3afa7b0be26d12dd149930a215492af6fc93cae3dba71",
+        "id": "fe67ddb1de297c20297491b7660420ffd287a90b0fefca147506921f8cec80a7",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4858f88af5801a3a3891cae6d4e299960f03faeaa87b6b47695f52cc48193406",
+        "id": "ae8a6ae4bd5af06015ae3bba872945ed51c7911b273842b271fde596005abd29",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d0d712555dd9954c8b1e4996410e26d8d81d7e9acae664e9193e36cadc50e1ba",
+        "id": "079e0a190a4cc9f3d02f412c623096f15f05d139bc31c69d1b7fd7086bc1ec77",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "f4319b8cb314b0f3dac9f9e010c6c2eef1baff7234bf2df59e16b4d6bd6ce7dd",
+        "id": "e82371bf74f7da2f6227d04419d4ef1b8da1d3672ad2a11db48491489c633592",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "8b934128970d45931856618a862dbe76fd73b31103f9e266adb235bbd113eb72",
+        "id": "61832df9abd4f82114ba2ba0728570437a846942c84fe0a298b0b7f0fdbbc4ca",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "550b5187fd02e0bf0768f782de297c225be8871a2cb5c9b1b6398cf1664cfe87",
+        "id": "9297339f7df093ed28a45d2aaa7d2a04ac7f8f3f1221694c23e81fc6a494ac4d",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4196dd4568fe856ddc595d5b2a121ffed1269d876e0640abb0975d4edd23ce64",
+        "id": "2082888c1247c35cd8b65fc1fbb10b23c4845f2afef277df3204c8f84c5ba7cd",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "29714b88526330787a0ecf17af074732b1ca3dca390269ed15c7642da840a0bf",
+        "id": "a5becacc0402c54f2ba837d538aa5349efe6a260a78790d56ccde332bfd80481",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e62ede9dfdbb55cbb146d5748d8cca43d0084c40ee412e85404436830bd69f54",
+        "id": "88e5e3b97eed86379756a80a286fce94a82a7e43a4f1f3dc1fa84cc8f9da6075",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e51cc5b1a0050686ded59b89715ea82d0fe5e6382d1c61613eda3a62ac9ed24a",
+        "id": "38b71ad277cdf977a28e4c6e6ee8363a8082565b388e679dd6b76fcfcb9c35c3",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2593643d9e1453e009c85d130e4e6429c3e982e434453ebeb9411110a024e450",
+        "id": "29b0002e8fc945683e66a2a026231dc70fb4407aafcc4aa6234febb1561f72d9",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "bc7e2b797c262c9e0d9ff7978a50e379759abeda6ae1bc0327109af5b650677f",
+        "id": "32d22a7fc65cb4366e9542855fe8859b1634f784a7246510a480ab313c238bb9",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "feb96831751cb19024f02a6c231b96a9534b6b7809c2805073709b79c02ed55d",
+        "id": "1c39a22268eb3553a59d161062a1a67fa0d2acd793f77c194d21fd1b2ea9ec29",
         "classification": "non_contract",
         "owner": "AgentCatalog",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "3afa65d0fe71c40eb7b911e6c00300578d9555cae12b976a313c9458a797cc98",
+        "id": "c22f4bc0e8ebc8f01a5984bd91e729f638d84c670c22bb178a5f12ec41b5dc04",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "a1cbe61c4c4e191cc4a479c5ccb1050234ef20207167f384ba7a683fa0cc0cbe",
+        "id": "595df18d3b91980d3e9f14a9083de080b5681f53e851ddfdb0f5508c081b538a",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "240717b1e4e5b85f21ac78e9c55a56dc8326ebc6cc9a79f6cbc648bae48a26be",
+        "id": "edd0fdcff3538d9569e294b4a5f5506acc98adf5d237b42b9747f6b6f724c86e",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "83c130d9c3d073f9833daa8d9f4b35b3d81fa3ccea95b31529124e71842462c8",
+        "id": "4c7c6da6beeb35cc62f70f6959e760f5cb4889addde3e7826a18e58cb61fea09",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2c23ff04273ec93a5dc77a98e7e65fe0047dc95c80dc61cbf3ac3b4f3b7f77cb",
+        "id": "01045561f8ac1caf14f0e7f9ed48b853362548389bf8119e8469aa31986b0339",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "0d57915c1735417e2ac89beea529e3686d951df22f0868608e0eb73632d1cda2",
+        "id": "34587a580d5ad3c935cba855be65a4dda3b5544fcba64c5ff271902fe9d85c61",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "efd39593881378eba6c9acdf88cc9b5e79ce42b6b17588db507d5d608299a53f",
+        "id": "21fa9e3118dc3e43fdd1e9830f6d705505d7c6117e848c9164f56fd9e5bd7a38",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "365f05c725fd99affdf8fa7e0e699020303cc1e67673a45d8037b4d8c4ad41a7",
+        "id": "6adb578351dfe22a12516c1743f56bf2776fa71d583040592779cf40d8281d39",
         "classification": "non_contract",
         "owner": "AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "98cb01ab9252b626d75d5a6b96a9ffd8399e74c9148b01e4ac1d518b4da9da7a",
+        "id": "55f1a55f568de97d0d15e9a381db4d1f05142812a0932206a164164991ed6051",
         "classification": "non_contract",
         "owner": "AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "4957685670ff7e2c639fdca0d5ed6c1578e580e41946f2cbb7a40d6c45c89007",
+        "id": "c308754a4ea0b642dfc40dc3c8b73f8b42b3d541007879d30ebcc40e488081a4",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "c1bb4e96b599fb6fc5da743154b54c0bf842bd47037793499fa1e681252956c6",
+        "id": "71a2b9719a9c477f4b771c92f1d5c6e1288f575d77812e19a6813edc2fa562b7",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ced38cde065cad1257d1fcd45fa0bb82bb279a1ca510ec0dc0a4ec469f51d854",
+        "id": "e1978b9eabdfac044597e4ea32bb56ba2ede8d3cd80d00612fe68587eacdd0a2",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "6c1d54407536d1068a691cb196579a81467d8e24b4ce5139c125bcac95cb00ff",
+        "id": "e291d08b3f7fb9f82f7f44afb97cad4168bed2170c68ac94d487221d3356f908",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "647185c1b4dcca86eff53d590fd978b6f3e85e5c99e15dd379529a5c38223ebf",
+        "id": "bca67f286adeb65e4a019e24fa7c823d091bebaf830254302d5e74a5ccd84153",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "96c7d098726635eb91e1d60c238f7dda88b5134cd05d12e5435fca03832a5df1",
+        "id": "d4581732183ad31c80ea0dbf04811bdbed8c71e539b4055d12ad53205b8d74e8",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "5b52f85b5352cb353cc06151337dfe49aae5025553b367cdb8718c0e5516566e",
+        "id": "68af301476c6e4baae3662c3987ed6aa6725300f410d8f3ca4e5e2c1d5e1769c",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e72fc22d17418e6939498983cd0205c91e7f43fbc25c66ce46d1b1186b7864cc",
+        "id": "401ae964c8d7ecf506e49ffcbc9ce03faa8521923c734701b086430541b3b82f",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "9058ca4ce5d0d774f3e459fbdb385a28f8d2c18e3658cba1de36c196641fc3c8",
+        "id": "db184398de7815ee022b3ec3ef2883e7c19db3a2e6fa96709199bcf3d9cb2755",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "1567986009be6504b38926daa45011ea190842e053166dcb60aac4618a97f249",
+        "id": "a616eaa4c3d4e3735e028d3cf033eaab9bb18ad719aa22a819c2366eacf090f9",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "76034be6dce3df960a3bf93bac0795895761116be7be37c2dd961f8b7fdd83c0",
+        "id": "d51c35ab0cda3422c34b3075facdc7cad0230a38ebe4124b304286be5f2ef111",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d59248f3401ebc4fc05343fe8bb89d977d9557e1ce20229ec776e5f7eceaca69",
+        "id": "772350587227d3603bd9f5034f31a63acc54e9e4b198979860ac4f535606196d",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "843334f53dce4d344cb3ae1d2f31c354728379a43458cd8fd99c9b774cc4a58a",
+        "id": "92a964be083ee5b5f95c50c5bc1c13de23f0a1201fd2a1b44555928abf4e5952",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "6b5ab7e7a7e842b94a9ee129554b31cad98e20aa12b26748eb4f5b1fa6c45ac3",
+        "id": "73abe36cf8c200ef95ab48586d6fcf9bd7c9f67280d1f3ff2d5c3de414df63fb",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "a585602e8d5e13540ebc71f69792592ebbe015f27a768efb0ce6da2635da38e3",
+        "id": "5cefcca80079de17ae8e370b184f8bb8f9710f00836d89fb0bfd714f7dbc16d1",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e7e8aa6728ed231ed93db28cbb491dd6a06989dfc30043630bd8c0960559d20b",
+        "id": "c007a9e31506760ad554205a9079f7812292d1da63ef1ba4182e865653705a98",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "5e45403857a8e3a79c203c5110b51122d7d521e05da046ecc5291caef213b26c",
+        "id": "ba8bbd9637c5de651d10dab82f12f3d1aa5e8841adeb110a568ce19624ac0459",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
@@ -40597,6 +40614,8 @@
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
           "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/model.py",
           "llm/engines/agents.py",
           "llm/engines/loop/engine.py",
@@ -40609,8 +40628,12 @@
           "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_failure_diagnosis.py",
@@ -40621,24 +40644,33 @@
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_domain.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_storage.py",
           "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
@@ -40651,6 +40683,8 @@
           "tests/llm/test_multi_agent_crash.py",
           "tests/llm/test_multi_agent_parallel.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_request_admission.py",
@@ -40678,6 +40712,9 @@
           "hub/backend/observability/logging.py",
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/model.py",
           "llm/core/models.py",
           "llm/services/api.py",
@@ -40690,8 +40727,12 @@
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_failure_diagnosis.py",
@@ -40702,24 +40743,33 @@
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_resource_integrity.py",
           "tests/llm/test_agent_storage.py",
           "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
@@ -40732,6 +40782,8 @@
           "tests/llm/test_multi_agent_crash.py",
           "tests/llm/test_multi_agent_parallel.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_request_admission.py",
@@ -40759,6 +40811,9 @@
           "hub/backend/observability/logging.py",
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/model.py",
           "llm/components/refinement/targets.py",
           "llm/engines/agent_resources.py",
@@ -40770,8 +40825,12 @@
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_failure_diagnosis.py",
@@ -40782,13 +40841,19 @@
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_values.py",
@@ -40796,11 +40861,14 @@
           "tests/llm/test_architecture_boundaries.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
@@ -40814,6 +40882,8 @@
           "tests/llm/test_multi_agent_parallel.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_refinement.py",
           "tests/llm/test_repositories.py",
@@ -40842,6 +40912,9 @@
           "hub/backend/observability/logging.py",
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/model.py",
           "llm/engines/base.py",
           "llm/engines/registry.py",
@@ -40852,8 +40925,12 @@
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_failure_diagnosis.py",
@@ -40864,24 +40941,33 @@
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_storage.py",
           "tests/llm/test_agent_values.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
@@ -40894,6 +40980,8 @@
           "tests/llm/test_multi_agent_crash.py",
           "tests/llm/test_multi_agent_parallel.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_request_admission.py",
@@ -40921,6 +41009,9 @@
           "hub/backend/observability/logging.py",
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/model.py",
           "llm/engines/agents.py",
           "llm/services/api.py",
@@ -40930,8 +41021,12 @@
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
           "tests/hub/test_failure_diagnosis.py",
@@ -40942,23 +41037,32 @@
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_agent_values.py",
           "tests/llm/test_agent_workflow.py",
           "tests/llm/test_capability_owners.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_conversation_turns.py",
           "tests/llm/test_current_contracts.py",
           "tests/llm/test_engine_requests.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_contexts.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_agent_contract.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_history_retention_integrity.py",
@@ -40972,6 +41076,8 @@
           "tests/llm/test_multi_agent_parallel.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
           "tests/llm/test_request_admission.py",
@@ -66605,8 +66711,8 @@
   },
   {
     "path": "llm/engines/loop/configuration.py",
-    "sha256": "aa3ac66566a70bf07db6591789204ae90f2903e4c298f6554605f2e9305a8d5f",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved.",
+    "sha256": "dfb472d94e16602bd6784f5b5746ea42f9fdd474eb7ac9dbfb73946549b88543",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -66730,25 +66836,25 @@
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "e5f772251a74a3f3ad2a4dc45bb376ddc813badf9ddb4da2324a63106b90674f",
+        "id": "262585e71389f5140d2488bcf703f58c1bfd0e62e59f5a2c2b20a52229b31959",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "05c60f13365f71a321ba76cf4f61f3dc2925b79fb52a3b5f7fd6e27c9fcf25a8",
+        "id": "dcb0f474ca2d9bb354963823817082c26bd983743bdc673688e11877ce9c4531",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "29d8ab814ff585d07c909d907a49c7c154f54606ede1fb6ef4dcb14dae1b3367",
+        "id": "fd3408c6802004de253c47e64fbea0fad0b4c5619f9b572894844b9f2fafd411",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "e3bbdfb1e61f0686799097e3215170fe7df8b2475c5def94a9c4d930bb20fec2",
+        "id": "2dc9aba8fbfc0e85c3299e2a1be090462d9321f16451d394636a07be68a5fd37",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
@@ -66762,6 +66868,9 @@
           "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/retries.py",
           "hub/backend/execution/retry_values.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/backend/tools/paths.py",
           "hub/backend/tools/retry.py",
           "hub/backend/tools/retry_evidence.py",
@@ -66778,14 +66887,22 @@
           "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_agent_delegation.py",
           "tests/llm/test_agent_execution.py",
           "tests/llm/test_builtin_catalog_values.py",
@@ -66797,10 +66914,13 @@
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_completion_review.py",
           "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_observations.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_graph_checkpoints.py",
           "tests/llm/test_instruction_reservations.py",
           "tests/llm/test_interaction_storage.py",
@@ -66809,6 +66929,7 @@
           "tests/llm/test_loop_steering.py",
           "tests/llm/test_nested_graph.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
           "tests/llm/test_provider_diagnostics.py",
@@ -68149,8 +68270,8 @@
   },
   {
     "path": "llm/providers/request_values.py",
-    "sha256": "c266665ed970f552b5c0b4bcf06f292b25dd8aeed9f7463500e620e2c64f7552",
-    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit. All pending Provider request/response consumer connections are now reviewed. SDK optional projection preserves omission, explicit retry/client settings and partial stream behavior; raw dict mutation is confined to the designated wire Owner. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved.",
+    "sha256": "aa21164556b1de466fcac4d5e51ed987eb5903c2f3d13c4a25e99aabd765d59b",
+    "reason": "Whole request/calls/retry/schema review covers source omission, explicit null/zero/SDK policies, exact client identity, schema freshness and native runtime values, failure classification and cause order, response validation, slot ownership/cancellation, attempt observations, bounded retry selection and original real HTTP/effect/crash tests. Only enumerated Python syntax/list positions remain outside declarations. Remaining Adapter consumers are separately incomplete below. Codec delta connects canonical request/message declarations and the designated Reader/Writer boundaries. Existing shared bodies and all prior complete/incomplete contracts remain intact; remaining Adapter consumers are still incomplete. Operation delta connects the existing nonstreaming/request and completion/embedding/rerank result contracts to Owner APIs. Prior shared contracts and incomplete remaining Adapter consumers are preserved. Runtime delta reuses canonical SDK module, Mapping-message and error/header/body projections while keeping all existing shared bodies. The remaining SDK exception diagnostic consumer is now connected; other incomplete consumers stay explicit. All pending Provider request/response consumer connections are now reviewed. SDK optional projection preserves omission, explicit retry/client settings and partial stream behavior; raw dict mutation is confined to the designated wire Owner. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -68490,7 +68611,7 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "00f5b1f3c18c1e285f569da1b1f31e448c28e243f722d57e8f25dfc76587619b",
+        "id": "02474fe892094f90e23169c25266d2bb5b201e73505646bc073c7f95de5346cc",
         "classification": "declaration",
         "owner": "EmbeddingParameters",
         "reason": "Owner-head SDK request/schema/failure/call-limit declarations. Fixed response and error fields have Owner projections; dynamic provider extensions and JSON Schema vocabulary retain their open-data meaning."
@@ -68504,6 +68625,9 @@
           "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/retries.py",
           "hub/backend/execution/retry_values.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/backend/tools/paths.py",
           "hub/backend/tools/retry.py",
           "hub/backend/tools/retry_evidence.py",
@@ -68524,18 +68648,25 @@
           "tests/hub/test_agent_selection.py",
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_base_engine.py",
           "tests/llm/test_builtin_catalog_values.py",
           "tests/llm/test_builtin_file_values.py",
@@ -68544,14 +68675,18 @@
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_processing.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_observations.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
+          "tests/llm/test_policy_values.py",
           "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
@@ -68577,6 +68712,9 @@
           "hub/backend/execution/engine_selection.py",
           "hub/backend/execution/retries.py",
           "hub/backend/execution/retry_values.py",
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/backend/tools/paths.py",
           "hub/backend/tools/retry.py",
           "hub/backend/tools/retry_evidence.py",
@@ -68595,18 +68733,25 @@
           "tests/hub/test_agent_selection.py",
           "tests/hub/test_backend_diagnostics.py",
           "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_base_engine.py",
           "tests/llm/test_builtin_catalog_values.py",
           "tests/llm/test_builtin_file_values.py",
@@ -68615,14 +68760,18 @@
           "tests/llm/test_common_provider_acceptance.py",
           "tests/llm/test_completion_integrity.py",
           "tests/llm/test_completion_processing.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_execution_observations.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_model_protocol.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_operations_schema.py",
+          "tests/llm/test_policy_values.py",
           "tests/llm/test_project_policies.py",
           "tests/llm/test_provider_choices.py",
           "tests/llm/test_provider_codec.py",
@@ -81792,8 +81941,8 @@
   },
   {
     "path": "llm/services/schema.py",
-    "sha256": "a88b6ab552e82b502dc03b6fab1173cc2aa3ec6516da33659e12096e1c473757",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change.",
+    "sha256": "6da2df73f7558b69811fb42cbda95cdaad4a1dcd5794c41038696bd4e388c5e5",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. One JsonValue comparison algorithm preserves JSON representation distinctions; Interaction validation and Project Host-lock/Missing guards remain with their domain Owners. UI JSON draft parsing/rendering and Host editor lifecycle declarations now have shared Owners. Independent actual file/process/fault and value/rejection comparisons plus unchanged regressions preserve behavior. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -81857,19 +82006,19 @@
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "f240c0124811abf381762602ac00ad9971818295b07486febb43ba253e151f2a",
+        "id": "bca97c5c0239f5ca597aca9f5f021e5229f8cbe1aeaecc08c1ca98f21073b258",
         "classification": "non_contract",
         "owner": "ProjectFormSchemas",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "c83caf0ad7198c4cfee4c8f76759d2abd58df90da9f4e859ece370f7a254ca70",
+        "id": "d9d97f065083c6f0673f5ceed6fe237d92669038a331e2bfc2e2eb272bd92868",
         "classification": "declaration",
         "owner": "ProjectConfiguration",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
       },
       {
-        "id": "3d0fbdd4a8745d7b639e2bd9a2e8aaecd72ae9c86117154e8ac50acbfcb5ce79",
+        "id": "f10ccdd263a3ba864028affd3248087de28f840de340bfe378f78a29f9dc815b",
         "classification": "declaration",
         "owner": "ProjectConfiguration",
         "reason": "Editor catalog/ID/description declarations reside at the owning class head; schema vocabulary and configuration records use canonical Owners."
@@ -81880,6 +82029,9 @@
         "owner": "ProjectConfiguration / ProjectFormSchemas / ProjectSchemaDescription",
         "declaration": "llm/services/schema.py",
         "consumers": [
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/ui/input/json_document.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
@@ -81891,6 +82043,8 @@
           "llm/services/lifecycle/projects.py"
         ],
         "tests": [
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_component_managers.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
@@ -81898,6 +82052,9 @@
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -81908,6 +82065,7 @@
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_text_editing.py",
           "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -81915,6 +82073,7 @@
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_extension_contracts.py",
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_interaction_presence.py",
@@ -81925,8 +82084,10 @@
           "tests/llm/test_operations_schema.py",
           "tests/llm/test_owner_declarations.py",
           "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
           "tests/llm/test_project_component_settings.py",
           "tests/llm/test_project_creation.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_schema_ownership.py",
@@ -81942,6 +82103,9 @@
         "owner": "Project Schema catalog — Hub consumers pending",
         "declaration": "llm/services/schema.py",
         "consumers": [
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/ui/input/json_document.py",
           "hub/ui/settings/global_schema.py",
           "hub/ui/settings/json_editor.py",
@@ -81951,6 +82115,8 @@
           "hub/widget/forms/definition_manager.py"
         ],
         "tests": [
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_component_managers.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
@@ -81958,6 +82124,9 @@
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -81968,6 +82137,7 @@
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_text_editing.py",
           "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -81975,6 +82145,7 @@
           "tests/llm/test_configuration_validation.py",
           "tests/llm/test_configuration_values.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_extension_contracts.py",
           "tests/llm/test_interaction_decisions.py",
           "tests/llm/test_interaction_presence.py",
@@ -81985,8 +82156,10 @@
           "tests/llm/test_operations_schema.py",
           "tests/llm/test_owner_declarations.py",
           "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
           "tests/llm/test_project_component_settings.py",
           "tests/llm/test_project_creation.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_run_reference_integrity.py",
           "tests/llm/test_schema_ownership.py",
@@ -82189,8 +82362,8 @@
   },
   {
     "path": "llm/services/configuration_records.py",
-    "sha256": "1ce14e96803f2740d9bbb74b57d6a1f72c98657643241e1753559bb7fdde8b52",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. Narrow lifecycle consumers now use existing domain state/error/path declarations, optional Component hooks and explicit model-observation contract. Pure guards/projections preserve required lookup and live-client semantics; no stored format or execution permission change. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition.",
+    "sha256": "e2da8f3676dd555f699a52442e23debee12dc59cfd57b4bb7b7d2eb176a48c10",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. Narrow lifecycle consumers now use existing domain state/error/path declarations, optional Component hooks and explicit model-observation contract. Pure guards/projections preserve required lookup and live-client semantics; no stored format or execution permission change. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -82224,85 +82397,85 @@
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "d046801b5e20b7aeac01d5032ba93a6489f4f6bca1a4e457a91182ff6683c22b",
+        "id": "df03a010487761459eafc489bbe0df4b0129b51ac94ab10e1def69cfdb6b0b74",
         "classification": "non_contract",
         "owner": "ProjectConfigurationView",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "c6f98f48e5949c25466d84ac543bd7a456ae05efe2b6cf4c56fd7c4796217eb0",
+        "id": "c1e40794b5f6654f77a826e1cf28bc8715215b449911517e812f7eccdbe1dd4b",
         "classification": "non_contract",
         "owner": "SessionConfigurationView",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "bda5bfefe37f0411bf66b057b22353f67bf46026a55159d7bfb1ed1827fb9605",
+        "id": "4a64c19ef26ae535947d5d0cdd4a1eb8ce72770351a10ee146e62b3e13149ee5",
         "classification": "non_contract",
         "owner": "ComponentConfigurationObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "4cd05effe5177511f4bb8648e44135b0461bea9bde49122ff8300be5d9a1873a",
+        "id": "6a6bd5070717db72e0fbc5cb44fdad4483df8474b0e3627762c483eb2a138062",
         "classification": "non_contract",
         "owner": "ComponentConfigurationObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "7f24f100c91e2152f5b0ec1b0d9d3ba362032071c4de7f7f497c08594e216dea",
+        "id": "fe44b96fd0c79e8eb38a51eb489f07862fb0dc471d09c8427917074153bd8085",
         "classification": "non_contract",
         "owner": "ComponentSchemaObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "6a1eca6142dbe708e74e186491cb85ac0dda61acdca906dc697c341825f22385",
+        "id": "0febbf766f9511ee94f3e86dfa0c3792bd5cf4c3df0e10bb53f4c633a161e8c7",
         "classification": "non_contract",
         "owner": "ComponentSchemaObservation",
         "reason": "Python dataclass frozen/slots declaration metadata; original public layout preserved, no execution policy."
       },
       {
-        "id": "a44f7ac4653b5763ef53a55a41299dcf75db1d5104a88bf2753d6f7f6d94beaf",
+        "id": "e05745540346c5f082db3ebd5fc5dc8288130deb0a1e6817f0eedca36b4838eb",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "4e51455d3b20a4521eda5f398d94e8a32ca58060ff2277e848105f129faf5a0a",
+        "id": "12dbbd3560e39c93ea91ca3f1bdf7ca2ffff895558635d47984a3039976eff4e",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "93bd77a060d1423f54853fe8d1d9cb696da6ba23554e92d5da6e7a8a728fc724",
+        "id": "3bd1120cc92433416c34630ed73102cd115da1680950baf1a3536d95fa7f61ad",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "587a237d55b7f9a98f977b4856eb77bde0f52f21db4229e8c0aef0f0c6f033cb",
+        "id": "2acc05a5061ff0bf0b84a7758e05c503418dfde792f1f7fc93f87f0a69970af7",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "0332f2e4f3e913916e0ab0764826d0d5ab3a040c44d701ad969520db6bae64ef",
+        "id": "239f8d1da93c4a7bff3053b6f5bd3d8e24ac387543bc4448467bb4d4486c40b4",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "a9d311d2290a3085e56ddcdb3d274eceda8e252d906215530773caea0dfa3d4b",
+        "id": "b410cfb648bdb73561ca5fbe5a3613327f712e15120a699e89032a855d8038c3",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "d086ac89e3d69845daa58ecfe081949ee98cbdbd4ee22f3a88a39a1bf98f7ba7",
+        "id": "c710126d62e5b6fb5fe8f52b183676f0ca0b5db7606336ca2aa6c0be1950fb1e",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
       },
       {
-        "id": "d6310b9041a94debc5306a13e68631dbe3cbdaf13c94b32ad3a42c49c60f8518",
+        "id": "cd749958b5b0b9d92127bc873d318383a7af452ce15c58a4b0c909b34667f48c",
         "classification": "declaration",
         "owner": "ProjectConfigurationSnapshot.Field",
         "reason": "Each typed form/observation/projection declares its fields at class head; raw map access is confined to this public shape Owner with required/optional access explicitly distinguished."
@@ -82313,6 +82486,9 @@
         "owner": "ProjectConfigForm / ProjectConfigurationSnapshot / ProjectRecordSnapshot / ComponentConfigurationObservation / ComponentSchemaObservation",
         "declaration": "llm/services/configuration_records.py",
         "consumers": [
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/ui/chat/projects.py",
           "hub/ui/live.py",
           "hub/ui/settings/drafts.py",
@@ -82328,6 +82504,8 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
           "tests/hub/test_component_managers.py",
           "tests/hub/test_components.py",
           "tests/hub/test_creation_contracts.py",
@@ -82339,6 +82517,9 @@
           "tests/hub/test_live.py",
           "tests/hub/test_popup_settings_updates.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -82350,6 +82531,7 @@
           "tests/hub/test_settings_viewport.py",
           "tests/hub/test_turn_deletion.py",
           "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_workspace_presence.py",
           "tests/llm/test_backup_owner_integrity.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_component_dependencies.py",
@@ -82363,6 +82545,7 @@
           "tests/llm/test_cross_session_crash.py",
           "tests/llm/test_domain_hardening.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_extension_contracts.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
@@ -82372,8 +82555,10 @@
           "tests/llm/test_operations_schema.py",
           "tests/llm/test_owner_declarations.py",
           "tests/llm/test_policy_consumers.py",
+          "tests/llm/test_policy_values.py",
           "tests/llm/test_project_component_settings.py",
           "tests/llm/test_project_creation.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_rag_models.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_repositories.py",
@@ -85098,8 +85283,8 @@
   },
   {
     "path": "hub/config/store.py",
-    "sha256": "2733aa5e32c6a6e04ab45a3074ab292b31894962624ed73092a99a870843cd65",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending.",
+    "sha256": "947608d12ae58d0e4dec66116b0ebed7c24febf9d6f551c8e776870a23260ef0",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -85169,13 +85354,13 @@
         "reason": "The common Hub store owns its directory, encoding, temporary file protocol and atomic write options. The complete write body is unchanged after expanding those declarations."
       },
       {
-        "id": "05105c0dbf838e3480c4996696385975e2efb9c72f6471ef2614b2e9b9779e22",
+        "id": "72b4f6528f4dd7c3652fdd894d000780d40da933f27c139971a537f5cdf4bb26",
         "classification": "non_contract",
         "owner": "WorkspaceJSONStore._write_json",
         "reason": "Python local resource variable before a temporary stream exists; no missing persisted record is accepted."
       },
       {
-        "id": "0752616c517e16c0ba2c2cb44c4e52f72ced1940adae0285e2eaf70b8e2e8217",
+        "id": "a81cdb6acf814f37129b2a6f0ce719d8d2fda195ae19e8c2080ce810e8e267cd",
         "classification": "non_contract",
         "owner": "WorkspaceJSONStore._write_json",
         "reason": "Local resource cleanup guard, not a stored state or recovery default."
@@ -85186,6 +85371,9 @@
         "owner": "WorkspaceJSONStore",
         "declaration": "hub/config/store.py",
         "consumers": [
+          "hub/backend/project/agents.py",
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/backend/project/settings_descriptions.py",
           "hub/config/preferences.py",
           "hub/config/presets.py",
@@ -85194,7 +85382,10 @@
         "tests": [
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_bootstrap.py",
           "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_locale_keys.py",
@@ -85203,8 +85394,10 @@
           "tests/hub/test_project_authority.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_question_tools.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -85218,10 +85411,15 @@
           "tests/hub/test_workspace_presence.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"
         ],
@@ -89755,8 +89953,8 @@
   },
   {
     "path": "hub/config/preset_records.py",
-    "sha256": "ac3e70b228a9892e3b502b912b2dac0d19875e139b33799647531e9d7d1b06ba",
-    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Startup still reads the selected Project template fields directly; UI selection and startup consumers remain explicitly pending. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior.",
+    "sha256": "ff0ec3eb48465557c32d9e7c291c0e17a6115c5f1e5743b296d51cee121d5a12",
+    "reason": "Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. PresetUI still reads the selection response fields directly; its actual consumer connection is pending, so this cross-file contract is explicitly incomplete. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Startup still reads the selected Project template fields directly; UI selection and startup consumers remain explicitly pending. Preset UI uses borrowed Owner observations with original requiredness, delayed reads and callback order. Editor draft state and diagnostic provenance have single Owners; actual old/new malformed-input and edit/cancel/failure comparisons plus unchanged consumer and safety regressions preserve behavior. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89796,121 +89994,121 @@
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "2424dd8030ccc76ef20e49f846271e1ba11220570e782f24360ad62d54dbc880",
+        "id": "7d1672ed1727a82c0cda40b79b741beb50679f63b897067f30f7041312d0f256",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "609ded9d7c7c9846efe58c3677a5f84bb8dd3b95484372f41067896cb816111e",
+        "id": "a7d7c2c2f58f85f14e6708560eca51ffb5c47fdc4454e7eaa85576f8427a3061",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "82b418eec04c3032ad19b8dfc00286c55e93e9b5cb646e872dfca1c47e6b0d80",
+        "id": "7a9cf960d2320cc2bbb086a9585f400cae765a9f3dcfe2551c306f1087ce2c00",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "014d30b9ebd3bbb4e6f4f171df8cd48db902f508462cdc4308d5cfaa4887c41e",
+        "id": "5f325b15256d6bc8c40bc7070a19f760e4f7f493877e68983d226205c0dd6de9",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "d830ecb24cd1d89edbbff8a3f13e6c752ff84951c35fad46dba7eef2230dc2f7",
+        "id": "9d50a36d289586f9508dbbff9ca6556eee39d221958d81167bac005a76c90444",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "6e628c3124c5ca53d65bf096b6bf16d181be5337e97087fe48ad01d106954e6e",
+        "id": "82773d0e84dbc9bdfdf56720d0ddd47207a1cd365226691a6922a82f8aecd07b",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "5f2aaa60a3af8399f5752f50f2e1d9c7cd5efcce35f107a077d93fac3d39a886",
+        "id": "6b0f926376bd9936c2fe3de3d0718c5afc0482ae88a29bcefcfe818b1406cda9",
         "classification": "declaration",
         "owner": "PresetDefinition",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "cdb7efb8a17a600f2c94ce9a4d4245a4c527b752e95911f5b86495f1b8c2e0d7",
+        "id": "0a6be090d1329d5a0d36bd2f2bbfe0bcb0197bc0e3dab573e19b161e1a194a1e",
         "classification": "non_contract",
         "owner": "PresetSelection",
         "reason": "Python dataclass frozen annotation, not a stored flag or application policy."
       },
       {
-        "id": "99ed7e1067e78caaf4077c729093789d8402c1d7fef3b37e4a55c597276227ea",
+        "id": "1d4e88843e91a9750d1869faf89308ad82b0cb5ce5759c2fbe30b8c29dc90fd1",
         "classification": "non_contract",
         "owner": "PresetSelection",
         "reason": "Python dataclass slots annotation, not a stored flag or application policy."
       },
       {
-        "id": "3369615fa9d0e5cb498c2bd2d8832859c2db094b3a9bd3cb880deb32f67e12ad",
+        "id": "8f7dd2a910ab2e5701d4b54c7a9531208fbc5b2c445700b2e92a8a475ad83198",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "f81ff8f18536c5911f99ddcc5412bf557d0b271682282ce01d873256c2254308",
+        "id": "a729a9b62f92405e88498eada87dcb4af39fcf476179c3125df1beb96dc44121",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "9142c8a4dd165646082250e350cc224d6716aefee340f46d300d49c43dd32297",
+        "id": "65d3d60aefef8a91c44676b4201238d82de29af840ae63bcf0207459665d15fe",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "7d6f66c33dc5cff35607ad1169b98ef0f0e7afc0a1d91c92c00caa9dedc8115d",
+        "id": "fc58928baab4bd432d9c9efa00498854d4201520ddefd232949c632cf921467b",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "5474b8842c4b8acceeef92e2f18942a8ed783767bf0fbe4d6fc50ca573d916de",
+        "id": "67c5d34eebd0f031e111f1a69a24ce6cefd49be54c92cad0cc480c4b26614ec3",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "4d9f4bbb60b89c7d777c1c44ce170db8b5a3efbcad5ffaa3a809f5cde77c4e91",
+        "id": "f6a4f1e8c60775f3ffc4328780bc324e5c04a7d3ad9f5cfe11f7fbe1b25e9134",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "d05d253175269feda431f10da5d70d3fe4bbe48e9a6b21c0267aa5a1e776b4f0",
+        "id": "2e03a8564e9613d2e6b9afaac9a94ccf4c12aa9abf836d9620ecfe6ab14c34c7",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "285c4569761582cfbede880e0025841404c16d9f21c9dc395d024bc8e3c2b23a",
+        "id": "01fe7eb86ec48ca9db30594579135f90703ed8ae2649ed4d91e076e65bab0bee",
         "classification": "declaration",
         "owner": "PresetIndex",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "0d5d056672b08630e79871491117a420c4dc4e3bbb0cdcb2835d6d344d3a3c29",
+        "id": "fc520ef193e6a035d50650b8e92212dfea4cb6245d0302e76c1d42edbd0f4ca9",
         "classification": "declaration",
         "owner": "PresetName",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "baf0d170a5a141b7c69e09a4205262d9bb75fd63207361abe6ec58a13f5bdea3",
+        "id": "e050e7bf6d25deb44fa6e37459bbe3360088900838820888e29baf5581a1bb8d",
         "classification": "declaration",
         "owner": "PresetName",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
       },
       {
-        "id": "266c7a335e06e3064c39001b3c1e63cc49e37aa82fd04693dfde0e5f8ae00614",
+        "id": "6f1ce34b377eaf0e27847649a64421e611db9625262ec65de060f3bfe2b5cf99",
         "classification": "declaration",
         "owner": "PresetName",
         "reason": "Current portable definition, project projection, saved index, selection response and name constraints have explicit declarations. Project form field names derive from ProjectConfigForm; format/version/selection semantics stay unchanged."
@@ -89921,7 +90119,9 @@
         "owner": "PresetDefinition / PresetProject / PresetIndex / PresetSelection / PresetName",
         "declaration": "hub/config/preset_records.py",
         "consumers": [
+          "hub/backend/project/agents.py",
           "hub/backend/project/bootstrap.py",
+          "hub/backend/project/defaults.py",
           "hub/backend/project/presets.py",
           "hub/backend/project/settings.py",
           "hub/config/presets.py",
@@ -89929,13 +90129,19 @@
           "hub/ui/settings/presets.py"
         ],
         "tests": [
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_error_contract.py",
           "tests/hub/test_global_preferences.py",
           "tests/hub/test_locale_keys.py",
           "tests/hub/test_naming.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_defaults.py",
           "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_response_reliability.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -89947,11 +90153,16 @@
           "tests/hub/test_workspace_presence.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_explicit_configuration.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_observation_values.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_declarations.py",
           "tests/llm/test_usage_deletion.py",
@@ -100169,6 +100380,440 @@
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_failure_diagnosis.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/agents.py",
+    "sha256": "7b5533a391a9836a680aef94208e6f572ce01665d305885efb600e0933fd0086",
+    "reason": "Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ee36c9aca820ffbeacb6023a553f9062b10c237ea0896df85afe9bc675c14ad6",
+        "classification": "declaration",
+        "owner": "Hub Agent presets / initialize",
+        "reason": "Hub default/title Agent identifiers and unspecified definition; AgentDefinition owns the explicit selected-engine/tools writer."
+      },
+      {
+        "id": "9f246e668f93472d8182153ca7987718c0f98b3004afe3252119ba7a0685c9cf",
+        "classification": "declaration",
+        "owner": "Hub Agent presets / initialize",
+        "reason": "Hub default/title Agent identifiers and unspecified definition; AgentDefinition owns the explicit selected-engine/tools writer."
+      },
+      {
+        "id": "48c9bf3b611b1e53dfd6a09ca0ab9784eada9b04e67e4730d78d461fede7fd84",
+        "classification": "declaration",
+        "owner": "Hub Agent presets / initialize",
+        "reason": "Hub default/title Agent identifiers and unspecified definition; AgentDefinition owns the explicit selected-engine/tools writer."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Hub Agent presets / initialize",
+        "declaration": "hub/backend/project/agents.py",
+        "consumers": [
+          "hub/backend/project/defaults.py"
+        ],
+        "tests": [
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_workspace_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/defaults.py",
+    "sha256": "7197dcd56d2ba1c864b071434e34bca850c27c7b63984330b51b911849046034",
+    "reason": "Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "22bb5bc2d932980c469eeb6f9881c0a7150bd8d051e89815c8fbe3fd471e52ba",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "a32df35c1b293470235be2329213457ee3fb1a372ff147820dc0bbb34c40f096",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "ad05b5ea6863d7c5c09b13370593ab0ad80b0c4e62bcf1c87f43a06e6b70488b",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "8be7172ae916b19527345c16cefd1ed160dcfa05f6aa09a8716c025fca70b5f9",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "28dcbfbfdacf6586b65cb3834d6056fc1058f54ed5dc13aa731b743a76b79817",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "c4b856475a24c4d4d7803f75e86de4f3ae5043aab48a47abee950e21ddd51d2f",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "3fbba254787f1b2f451fa35f0fa890a948edc1ec185fd8d507b1138e816a4001",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "8d35a68da65b611667e31290e073843abe07d5cd8b1698a50de81e50896502e7",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "51e0bc4900cd3968271500f4ef1572c10e900d3b17282c8b43fe038adc78a0bf",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "f3d2700cde1fd857c1c57d4c0d0e6100bb5b3ffe4b2336b73afc7c1864574074",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "96e5dba67c2f001683537aad9c1941d264015e118c68c1f643f0ec949dd50ef8",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "9b7b0f5e61473202eec868f53e92fe2a6ec6efbbf91cea1e5e5f0f5272101999",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "3c6b2d7f1e83c2e9c8c4defd0fdafa6605e5dc9ae407b4ba0d376114bc6c8304",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "961f3331811aeb62784f749f15f20bcfe40ee375307f6b1ab9641daf2ae8fd57",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "9224a2340373b9d792f4a3e01d452b1fff89551204f9bf603880e79da6e3daf6",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "dda0f037a6250bccaa239e51c0bdd8966b9c1fbbc89ceb0d48bfc2f274e733a3",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "735031e46f78cafc4e9f1056a014265ef42a4b3f61a6241934d2ba595ae56c30",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "d609dd48ca2d7e3a694c87d63df1b2d50b6c0584b8c6c0badd3b437682e6c79f",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "d00c3a09d4e9f0fc7d8a91fbbbf8c84c6e04366d1faf954f4805515d01e09e9c",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "60bad0d736450e9e1dfcc1d7ff92cf005210166df978068d3105ab215b9f7ec2",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "1c4ec6207abb7a602d808aa81be3ecbc26f17ef95f12994b19565446e7b70299",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "51af5ce07ffa1ae1cac5b6133d7e6b16d30dfd6cebefb08bab8955cb6fd33fd2",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "ab1edcfe6d9edf6e65b200e8caacc58324628fb33ac2f81c0002990e3c778a59",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "57d2c93b87d73791b9e3988409bb7efd0e0b1401cd830b18796a591dc1ce6a6a",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "5d4e74185c5aaa6fe9141ccda3cca85b72361729bec1a27780abc1b585becb77",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "97b2f2bb1134dabefdebbdc08b44374ef7463a21b6aa4c6638b1bec0b0c3c69d",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "949d5d731d916b27713dc0a728e92fdfb9a3830feee7d2abe5cb0d417ee6e352",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "8a6a3928a0dbda937505c30773e57e440a2c521c8414b9d3e88faf48c3be540c",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "81d44b71a72facfd947f9e30dde0f6d9da022158197e79af770246783890208b",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "ac9e67567ae8044171083c4530536272a081c9a228fdefa9b98d26fae9197e9b",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "40a6ca9d7a31a19a83db45d2302e6615662882f31e57e3d9323f2f34af7ce581",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "98a12427baf180f8f2d32812277b309fa7f016eceae3d4c4c3c436abd49399a7",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "ffae3c72fa18ea1d4b2810c4cc1e7e1b725898ca32124fb0d2b3217ab5f2ed0d",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "5431cb165ac1b64491066130deebb70d32164b175e4a3e6145cec6106456e18b",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "b25abe314b638cceee1ec1473762a08c492d1d28830c13a9f6b952a6a7708b6f",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "2c7a12866c8ae8bf5421cf957924f21c67144fcc7c06fdd0e833759889ddc035",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      },
+      {
+        "id": "4e87ceda32bd19aab8fae08b6f1e89855d6761925aca6a94f8876eb7ed717f9f",
+        "classification": "declaration",
+        "owner": "ProjectCreationDefaults",
+        "reason": "Existing Application creation presets, provider/tool retry values and optional Agent choice; keys and enumerated choices reference canonical selected implementation Owners. Fresh nested copies are provided for every creation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectCreationDefaults / create_project",
+        "declaration": "hub/backend/project/defaults.py",
+        "consumers": [
+          "hub/backend/project/bootstrap.py",
+          "hub/backend/project/settings.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_workspace_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/bootstrap.py",
+    "sha256": "6b31130c866edbe94e1895d1d8ea0bcea9a612fefea1b616071527cc4444dbdb",
+    "reason": "Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "db4656212468dbde79be1cd6ab5119684dff3fe7e746da0841045040cd5a564d",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "af4c3ad4dc84b5eccf71fefcb09b55d8d2a7bf8593c2ba7cec274c4038fa4665",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "91a08650bfa029b29b076bf6b8274b631ae1d17d67c32d83ad208f734a0ce750",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "5dfacc1b04db352ae0fe8943b063a184bf7aa16a2be2579b4fb2cb38f00585a7",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "65919ca2f67b69229460a44dfe2180fc4b55dacb11114f5e264272800ef273b3",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "7ec1bc6f28073d26476fa36607b8be54e68cfd1c48358272ebba1565706441b8",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "6b22137b76fc4b4a55ef37a63657b3ff2866e6b84bf7b88fac14619d35b49738",
+        "classification": "declaration",
+        "owner": "ProjectStartup",
+        "reason": "Original startup lock filename/flags/mode/poll interval and directory creation, initial title and optional anchor. WorkspaceJSONStore owns the shared namespace; PresetProject and ProjectSchemaDescription own reads, Loop/Adapter own configuration writing."
+      },
+      {
+        "id": "19947705722f3823b0c47ee673cb7cbb90e02fc7955f2012e213891a70d4a985",
+        "classification": "non_contract",
+        "owner": "select_or_create",
+        "reason": "Unbounded lock-acquisition loop exits only on flock success; not an execution retry or default."
+      },
+      {
+        "id": "0c9ea68da4d92c564bbfb3b408f20a91e3bb0f445586b07ce79836847d7d1795",
+        "classification": "non_contract",
+        "owner": "select_or_create",
+        "reason": "Tuple projection of the data in (record, handle) for sorting."
+      },
+      {
+        "id": "7a0b7357099bf8bce9d951d565c8120e5a10ee5d6a1bcb44778e59fb0eb38c61",
+        "classification": "non_contract",
+        "owner": "select_or_create",
+        "reason": "Tuple projection of the data in (record, handle) for deterministic tie ordering."
+      },
+      {
+        "id": "9b910bf18f34d193c34d95df10d38c43dc5f713ba0bb5ffc30f2bd87f43bc7be",
+        "classification": "non_contract",
+        "owner": "select_or_create",
+        "reason": "Select the handle from the existing (record, handle) pair."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProjectStartup / select_or_create",
+        "declaration": "hub/backend/project/bootstrap.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_explicit_configuration.py",
+          "tests/llm/test_configuration_objects.py",
+          "tests/llm/test_configuration_targets.py",
+          "tests/llm/test_policy_values.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_bootstrap.py",
+          "tests/hub/test_rag_defaults.py",
+          "tests/hub/test_response_reliability.py",
+          "tests/hub/test_project_authority.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_workspace_presence.py"
         ],
         "complete": true
       }

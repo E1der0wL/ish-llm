@@ -66,6 +66,18 @@ class PresetProject:
         )
         return cls(result)
 
+    @property
+    def config(self):
+        return self._value[self.CONFIG]
+
+    @property
+    def components(self):
+        return self._value[self.COMPONENTS]
+
+    @property
+    def conversation_storage(self):
+        return self._value[self.STORAGE]
+
     def validation_values(self, title):
         return {ProjectConfigForm.title.__name__: title, **self._value}
 

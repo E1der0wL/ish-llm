@@ -50,6 +50,10 @@ class ProjectSchemaDescription:
     TARGET_PARAMETERS = "대상별 전달 인자. 같은 이름의 인자를 다른 대상으로 자동 전달하지 않는다."
 
     @classmethod
+    def component_names(cls, schema):
+        return list(schema[cls.COMPONENTS])
+
+    @classmethod
     def engine_catalog(cls, schema):
         return schema.get(cls.ENGINES, {})
 
@@ -107,6 +111,11 @@ class ProjectConfiguration:
         return deepcopy(
             parameters[SchemaKeyword.PROPERTIES][ParameterTargets.ENGINES][SchemaKeyword.PROPERTIES]
         )
+
+    @staticmethod
+    def engine_supports(schemas, name, section, option):
+        return option in schemas.get(name, {}).get(SchemaKeyword.PROPERTIES, {}).get(
+            section, {}).get(SchemaKeyword.PROPERTIES, {})
 
     @staticmethod
     def engine_form_path(name):

@@ -527,6 +527,12 @@ class ToolRetryPolicy(PolicyValue):
         SchemaKeyword.TYPE: [SchemaType.NUMBER, SchemaType.NULL], SchemaKeyword.DESCRIPTION: "Tool 재시도 대기; null은 비활성화",
         SchemaKeyword.MINIMUM: 0}})
 
+    @classmethod
+    def apply_defaults(cls, policies, *, max_retries, delay_seconds):
+        retry = policies.setdefault(cls.SECTION, {})
+        retry.setdefault(cls.max_retries.__name__, max_retries)
+        retry.setdefault(cls.delay_seconds.__name__, delay_seconds)
+
 
 def describe_policies() -> dict:
     """UI용 필드·설명을 포함한 독립 JSON Schema를 만든다."""

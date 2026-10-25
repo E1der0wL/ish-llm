@@ -20,6 +20,7 @@ from ..interactions.question_values import QuestionTool
 
 
 class HubBuiltinTools(BuiltinToolComponent):
+    NAME = "builtin_tools"
     capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
 
     def __init__(self, file_root=None, *, test_root=None):
@@ -31,7 +32,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         self._resolved = {}
         self._toolkit_lock = Lock()
         # Schema discovery needs an existing host directory, not a Project.
-        super().__init__(self._create(Path.cwd() if self.file_root is None else self.file_root), name="builtin_tools")
+        super().__init__(self._create(Path.cwd() if self.file_root is None else self.file_root), name=self.NAME)
 
     def _create(self, root, environment=None):
         # Hub 제품 preset: 네트워크 차단, 명시적으로 선택한 파일만 복사.

@@ -123,6 +123,14 @@ class AgentDefinition:
         return definition.get(cls.Field.PURPOSE.value, cls.NO_PURPOSE)
 
     @classmethod
+    def selected(cls, engine, *, tools=UNSET):
+        """Compose an explicit definition; admission retains the existing validation."""
+        value = {cls.Field.ENGINE.value: engine}
+        if tools is not UNSET:
+            value[cls.Field.TOOLS.value] = tools
+        return value
+
+    @classmethod
     def engine(cls, definition):
         return definition[cls.ENGINE_FIELD]
 

@@ -22,7 +22,11 @@ class WorkspaceJSONStore:
     MISSING_TEMPORARY_OK = True
 
     def __init__(self, workspace, filename: str):
-        self.path = Path(workspace).expanduser() / self.DIRECTORY / filename
+        self.path = self.directory(workspace) / filename
+
+    @classmethod
+    def directory(cls, workspace):
+        return Path(workspace).expanduser() / cls.DIRECTORY
 
     @property
     def workspace(self):

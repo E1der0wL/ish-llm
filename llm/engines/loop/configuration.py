@@ -98,6 +98,19 @@ class LoopParameters:
     def final_review(self):
         return self._value.get(self.FINAL_REVIEW)
 
+    def update_completion(self, supplied):
+        self._value.setdefault(self.COMPLETION, {}).update(supplied)
+        return self._value
+
+    def default_system_prompt(self, prompt):
+        self._value.setdefault(self.SYSTEM_PROMPT, prompt)
+        return self._value
+
+    @classmethod
+    def default_provider(cls, policy, value):
+        policy.setdefault(cls.PROVIDER, value)
+        return policy
+
     @classmethod
     def has_completion(cls, value):
         return cls.COMPLETION in value

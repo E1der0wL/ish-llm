@@ -265,6 +265,11 @@ class LiteLLMParameters(SDKRetryParameters):
             tool_choice=self._value.get(self.TOOL_CHOICE),
         )
 
+    @classmethod
+    def connection_options(cls, *, model, api_base):
+        return {key: value for key, value in ((cls.MODEL, model), (cls.API_BASE, api_base))
+                if value is not cls.UNSPECIFIED}
+
     @property
     def optional_api_base(self):
         return self._value.get(self.API_BASE)
