@@ -9271,3 +9271,40 @@ proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Cla
 영향은 이미 허용된 UI 전송 경계에 제한되므로 Level 1·2를 적용했다. 다음 관련 Hub 소단계와
 묶은 Level 3 및 정확한 SHA 원격 CI가 필요하며, Gate53 결과를 이 변경의 통합 완료로 사용하지
 않는다. native X11 내부·남은 Hub 전수 작업과 공유 계약의 미완료 표시는 유지한다.
+
+
+## Hub native X11 selection 내부 계약
+
+_x11_selection.py 전체의 C ABI·atom·property format·event flag·전송 제한·오류·부모 수명주기
+선언을 XlibABI/SelectionAtoms/Selection/WorkerLifetime으로 모았다. atom 필드에서 실제
+XInternAtom 이름과 순서를 파생하며 내부 소비는 typed 속성을 사용한다. advertised targets와
+text conversion style도 같은 atom 객체에서 제공한다. PropertyValue/ConvertedText/TransferKey/
+IncrementalTransfer가 내부 tuple 의미를 소유하고 기존 tuple 값·조회·destructuring을 유지한다.
+
+원래 ctypes 구조·함수 signature, UTF8/Latin1/COMPOUND/TEXT 변환과 손실 변환 거부,
+64 MiB·64 KiB chunk·2.5초 deadline·1초 parent poll·10초 미완료 전송 정리, ICCCM MULTIPLE/INCR,
+부모 종료 SIGTERM·locale fallback·내용의 pipe 전용 전달은 같다. 실제 C 구조 size/alignment/
+field offset과 호출 signature·atom 생성 순서, property 메모리 Reader/해제·답변·chunk 경계·
+손상 UTF8의 22개 관측이 원본과 일치했다. 작은 Xlib facade의 비교는 실제 X11 증거와 구분한다.
+Typed key의 repr 차이는 값/tuple 조회로 비교하도록 표현을 정규화했고 실제 (window, property)
+조회도 검증했다. 선언/typed records/atom projection을 확장하면 기존 실행 AST와 일치한다.
+
+- `whole-hub-native-selection-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.792849초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-native-selection-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `a3dbd742e6f8d48d723d2ce342a80286128426b4a402b7cd97b88052f67864b7`, input `ac95598143e21d3d4ca51a9177b737c7fd12c8ea0ff288eefaa08541f035caf2`.
+
+- `whole-hub-native-selection-l1-01`: discovered/started/pass 9/9/9, exit 0, 2.894108초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-native-selection-l1-01/hub.json --modules tests.hub.test_x11_clipboard`. source `a3dbd742e6f8d48d723d2ce342a80286128426b4a402b7cd97b88052f67864b7`, input `ac95598143e21d3d4ca51a9177b737c7fd12c8ea0ff288eefaa08541f035caf2`.
+
+- `whole-hub-native-selection-l2-01`: discovered/started/pass 25/25/25, exit 0, 13.824407초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-native-selection-l2-01/hub.json --modules tests.hub.test_clipboard tests.hub.test_input_contract tests.hub.test_auxiliary tests.hub.test_ish_integration`. source `a3dbd742e6f8d48d723d2ce342a80286128426b4a402b7cd97b88052f67864b7`, input `ac95598143e21d3d4ca51a9177b737c7fd12c8ea0ff288eefaa08541f035caf2`.
+
+공통 안전성 84개·R3 Mutation, 기존 실제 Xvfb/xclip native 상호운용 전체와 clipboard·input·
+auxiliary·ish integration을 검증했다. 대용량 INCR·Unicode/멀티 target·작업자 종료·timeout 등
+기존 Assertion을 제거하지 않았다. 발견/실행/통과 ID가 같으며 failure/error/skip/xfail/xpass/
+누락/추가/중복 0, 같은 suite의 선택 중복 0, source/input 전후 및 실행 사이 동일성을 확인했다.
+실제 argv/exit·hash·비교는 `hub-native-selection-draft`의 selected-results.json,
+proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·
+같은 의존성·실제 Linux X11 환경이다. 기존 S3 4개는 Xlib의 성공/오류 및 PropertyNewValue/PropertyDelete 비교가 정규 선언으로
+이동해 사라진 발생만 제거했다. 원래 행은 static-removed.json과 이전 커밋에 보존한다.
+나머지 정적 S1–S7 63개 ID·감사·문서 검사 규칙을 유지했다.
+
+기존 UI clipboard process 경계 내부의 동일 이동으로 Level 1·2를 적용했다. 후속 관련 Hub
+소단계와 묶은 Level 3 및 정확한 SHA의 원격 CI가 상위 완료 조건이다. Gate53의 소스에 포함되지
+않은 변경이며 그 결과를 승계하지 않는다. 남은 Hub 전수 작업과 공유 계약은 계속 추적한다.

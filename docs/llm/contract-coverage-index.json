@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 629,
-    "unreviewed_files": 47,
+    "unreviewed_files": 46,
     "stale_files": 0,
-    "unclassified": 3210,
+    "unclassified": 2985,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 47,
+    "unreviewed_dynamic_paths": 46,
     "unreadable_files": 0,
-    "candidates": 16998,
+    "candidates": 16916,
     "issues": 0
   },
   "files": [
@@ -1071,9 +1071,9 @@
     },
     {
       "path": "hub/widget/_x11_selection.py",
-      "status": "unreviewed",
-      "sha256": "b1704b7f5e4a17c99c329bee0247cd88d016e018af4f61eb98d3a090de64a178",
-      "candidates": 225
+      "status": "reviewed",
+      "sha256": "aaa75615d7d4538320c1c02ca11d176dada658a49363ff8dd5b14eaf380b59e6",
+      "candidates": 143
     },
     {
       "path": "hub/widget/actions.py",

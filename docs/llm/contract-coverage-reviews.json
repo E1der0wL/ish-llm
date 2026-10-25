@@ -107868,5 +107868,896 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/widget/_x11_selection.py",
+    "sha256": "aaa75615d7d4538320c1c02ca11d176dada658a49363ff8dd5b14eaf380b59e6",
+    "reason": "Native X11 ABI and atom declarations, property/conversion/transfer records and worker lifetime have explicit Owners. Startup field order, C signatures/layout, conversion outcomes, incremental stream limits and parent-bound process cleanup remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "05d927761df033e1cc4d6f00daee5457ead192a7c38116f12617e8c130440983",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "f5902430414e1ea95fb4298d65caaeb48f1c482dd7a9cff0874bd536763fab0c",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2648c9becaaf7544705afc183fca15b5f780afbc38d9a2f7feeca840949f195c",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "52b595c1ea81e383de9d107aa1c33189ac77f2358c5484c3d4cd27fbf8687b71",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "0ac5a624727b42bf88bed88bd6973b0f8c35ea857a6470f6ca939cdfb8b29849",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "ab17f997c559ce006b029c8a2d928ee126fa2ceb0b307738a840fbac2f99af59",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "8c845ad6ad62d7ec78ea7a79c9157b28919a7731b093c21909f77275b07e2f97",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "eda344a5c29f739d2ebaccad1af4e43bf23462d5f0b63d077c1b4b0c4e6ca93d",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4dc05680329abc49edf332f25c2b0d17b9323c923355cc3f8c304ae624f75209",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "733eb62a97df87c55f5ce0a374cdad999414d9c063bf41125d53f0e7c0eb336d",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "e0aa78fcb4c45ac1bb557c437acfb6face7b94bcbd6a24e50af105696edd2dfa",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "7965cae6649cd433fc900d010da091a76a9d87b44916f0b6d987dde04afb1ed7",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4de1572bf07078cc4973416ac9a40618674543e4a40a88758bc117be8213c220",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4a3e89ce15b7944a265be0e2f8147aebd5ae3b7f24031f227381ac9422880296",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "127e12ba2c0e713c679314c4e12cb8b48ac25227a5eb5fbd26e37960731856bc",
+        "classification": "declaration",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "109027caefc42574b3ef78741594236a7a87fc03c659a1cfda6b034a1ee5327c",
+        "classification": "declaration",
+        "owner": "SelectionRequest",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2a3450d0e838cc4892fbe28f568f27246139d204cccf11f4dedbd2457afb010f",
+        "classification": "declaration",
+        "owner": "SelectionRequest",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "3e149b20dc94dbcd7b4da46e0548760f3f1242609c3c3426ff3a4cf26b854bf6",
+        "classification": "declaration",
+        "owner": "SelectionRequest",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "e399cde25c5677f9c27671b703d3481a54893ebde4b7b9209fbb61d98129b475",
+        "classification": "declaration",
+        "owner": "SelectionRequest",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "39d32ff01ffb4a8cdd30ed901bea8c59191ad2fb1fb04727286d0aa17b90ec7a",
+        "classification": "declaration",
+        "owner": "SelectionRequest",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "5b7403466f607e17c78a030c4ee26ed79c94ee6e48e806be91bac5f9d5714465",
+        "classification": "declaration",
+        "owner": "SelectionRequest",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "5a0233f6e4b495cae47b682aba9a839eb84abf0be10bec1b9d71fad30efd7d00",
+        "classification": "declaration",
+        "owner": "SelectionNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "ce5d4885739454c1a5032308213ee7e217082cfb641dd0849862f93a817f69fa",
+        "classification": "declaration",
+        "owner": "SelectionNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "8252c49c1e95d3f38082ae825ba84110a912b9dc0948ed1c7cd2dd0a5936aa2f",
+        "classification": "declaration",
+        "owner": "SelectionNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "eebb06166fdd60569f53e20d09ef92a45320c54ad2a5c8319c8b950be5bf9298",
+        "classification": "declaration",
+        "owner": "SelectionNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "65f4aaea7dab5226dc912506e17499497cdf088d45326d0a0c61fcdac0de291f",
+        "classification": "declaration",
+        "owner": "SelectionNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "129d946347d6c49991f99f8572efecf27174447c7a3959bed48c4110c2045805",
+        "classification": "declaration",
+        "owner": "PropertyNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "9832777557e441cba078c4eb10ef49dcc7876b82c7ad26b2362c3c23eb7ce9e0",
+        "classification": "declaration",
+        "owner": "PropertyNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "462a54a6308d476e9a6a381f98a8e4ab45248892a7f0b0eb6700961f45f7d813",
+        "classification": "declaration",
+        "owner": "PropertyNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "b81ebeb5875f7149fae93a95695632db11aa4635a1ffbc67857a5e947bd5fb62",
+        "classification": "declaration",
+        "owner": "PropertyNotify",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "251743520a701d017e51a92fcf5038bc35d1f1aaef1135ef0bf0f9f288b2c1e7",
+        "classification": "declaration",
+        "owner": "Event",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "677ddcf293d7dab8c4ed73e484186311d156cf5d5f538639510c87294c0ba9ef",
+        "classification": "declaration",
+        "owner": "Event",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4aca583e56439b5b53fcfe7374ee690bc2c034d3f3ff60d911f23d6443bd6098",
+        "classification": "declaration",
+        "owner": "Event",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "083105513b3eb88e9dbc4a9df76808acaaf09af2e0d18c7c365106d96b32b740",
+        "classification": "declaration",
+        "owner": "Event",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "7b13f628b77a52b4ae3bca89ceab7c61257b5ceca527e165c6c6e1d0de926fee",
+        "classification": "declaration",
+        "owner": "Event",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "89678ac175c055c84467428ebbd88a53fe9f0b73575b7e77401a8f5fd86b80fa",
+        "classification": "declaration",
+        "owner": "Event",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "3fcfdb700d9ac7c54af2223dab2101bb5dea7b7bf6a377ffb10d3ede22f09914",
+        "classification": "declaration",
+        "owner": "TextProperty",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "cdf1f049d312a7d26219371417c692587a1fcd7e2f7ffbf9d285854666bff537",
+        "classification": "declaration",
+        "owner": "TextProperty",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "c3763637cc5658e3525ac551b5316cdd5cf28cb3b449b36e015e79a6f3f2895a",
+        "classification": "declaration",
+        "owner": "TextProperty",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "689dce01af48c432d13a09105190eb9d24e900c45a39d9d50ca736fc3f150d57",
+        "classification": "declaration",
+        "owner": "TextProperty",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "d4d3d6fef10b8d4ad73ba25fdbd3847b37665d89784a2fa5f493469dfa3a4e29",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "ab0306fe98ada5c4eedd6b74a1879757d34db92c3b7009faf1f874380a123612",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "a43297b984bccd5899b35451d42f65bf5c31f1b47eb7b9ae2d31fa3382e664d9",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "14dd7cb3b56910970688b0ee7089c9b811c3e1575aac56e40bf09054a586a93c",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "74745abaf4d2abf61e97821d39bf323d27d6aaf5b58f8570374160839fd47fcc",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "b2ba55faaec62a6679bf375af386d0051cdfc578c3d18621d3c3a79561b1e599",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4c2c5a68a112b7967a22d5d0842a0471f042a832684faad445307b36348554cd",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4499699b55011978045ce35e63fc6965c3c8430c4b7e6393eec80e7671f25ca9",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "7d5808fd62d46444eb935e66f3074dedf72fa9c3492acf35a16c215380c69b36",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "57d26b32c2fda5f8ce4e4506cdaf1afb3721cc1ec20e722ffdf8e590fed03b21",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "edcee4f28080970de1786edda42b44b1dfb6f2fe023c82e7c9f6393f9dce78b8",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "e28db41c4dd8b434a6554123763f84e5fcdc576f0c0f70b217092239fe7892c0",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "6ac120ec8cf11777dfba91543ec691124b958e9ffe75ced8a24f6e8a63594119",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "363c225c734497bf2446f6672b6ac66033adb3c050a67e462eabe6a23606b6c9",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "5774450490256fd8c6ce87b7d36eaae2576cd3b62105383b830ae8b9fc39dbc4",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "d77085f9cc1d7854d1308e94de43566027e4baff4a4f10aa265aba462a381eb1",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "0b16e1aa92b099664f844be58bf1e6fb194b4f026c0d529be3f820b562d5323a",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "40fe410d516b6c9694ccbbf48605cc316b63faba510d2b0a7cdf858c9a685c45",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "22e6e284d575e54949a9a8237ca750ae6204cf14a476932051227be3c7ab4882",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "0e539b1a063022dbff15a048cf4e3e4f3ea02027af8202e4a1155dd5c792f8b8",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2ed4775e6e04d5ebd56ac27844edbd49a5fdf370612acb5631bb511ea636b74d",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "d50f2716eaf502eacd1453500e6043b1b3fcdae0fd956cb714d328bb108b2006",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "1b15c4dd0aa0217ac4d479d8cc3d2c4217ac3e50e2d3b9bd25301075861965ef",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "e0d0467ac8257c45e4f7793de79ad5e6f44167cb6b23a9d3d5e55558016c2fbd",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "36e7b596b2c09666deeb1f4545635be1c82dd20886d6c27c8df9b85989cb27b0",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "370c97817e67d2d71cf677f0f0d19fc70be563b3d9554d5025a92b597e171e01",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "1938916c686dd3b3d2bd108428061671620228fdde54b7f2cb83d5628250028a",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "3fab4a0d414bc9262cb489eac6e98e360a1d73a25d62345f9d13537addce836b",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "92bd847cd6c57b654ba608aaa5b325ca6cf6d47f0cc6f764907dfc6633479e2b",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "0cdddd767c8a865e39478aa2042fbb57a81564a0bf6902b7de05295b45da08d8",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "768d82af521739457aa822558eceb7da4b587db2cf356fdac2b4884c4f2d314a",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "f22eaa0ad5c20328fe296c93ca7e546f28b182f7632eb982f3167b0c82fc70ba",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "7e97f2bb135b95c0724bca5cf3fe2e6205595ac2385d828185c074c5cdbd60aa",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "869d727c1a2c881bc7065d7fd345f15d4d113a42d6700f61efbae722ecd6ad2d",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "9f507977b1ca2ea3a791fdb76329e410bae83caf6c42bc846e02bc7522155ac3",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "38fc68523e6efeb9805abc7c159868811adb7c10307433e4127d182567c6f7e9",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "e9101696cb2138f2b0a4938eb41df5a7bf922c487ec433e950fd7d8545ace38d",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "dd4ed2f7c3143eca624d332c2b303f91075e7e9b085d0048a747a9c6a6b4c5b9",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "3454dbb71791ec46574c0e50a015188316f5c9863304d76ec82cb3e395f8fb0c",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "cb5c1f25384884aaaf88d26549648e4045b5715eb129fcb13dec7e9d63ed308f",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "c389c01dd6c0dd9fad488cbf3aa50127286e8786cc6a336388b29c5c85dfcf74",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "32697cd314a48ef24206324e2ad2c1bbf1f3ae3303a6a17ac8ea90d3108a880e",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "586d056052b2e9e10e5f244e7308d578b9e74794fcb1db1a4b6431488e7f5489",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "df0906a4555ab06116fa0db4cbdb62aa8f55a3f4d5b09b98825e9b72cc15bdc3",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "b23977b0b625ae3622dbbd677b79bbb5f8183f699b57a69b0269561686756823",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "a514cd01217c5bb7d51d182e036c68a71a8ee6284d91986ba84abe28dd0f64d3",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "b47e309f1f73f2c776d5feb066b60b0f4bbb8130fe797e3b8aa90062d5106c2a",
+        "classification": "declaration",
+        "owner": "XlibABI",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "bc719c0fc43e34ce4e879a7524d995e499fa0308af3d29cda0ae728350976a17",
+        "classification": "non_contract",
+        "owner": "SelectionAtoms",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "d7297a9de3fb5a846c201e1e9f3c33c1789795e2d2505bdfed7a0d2465fd30da",
+        "classification": "non_contract",
+        "owner": "SelectionAtoms",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "2a5752ee25d4e8cc572f7d25c11d144e56983ba4ac7d8274e0b68c5ebac295d0",
+        "classification": "declaration",
+        "owner": "PropertyValue",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "06eb0d628003ad21ca831628f96198669980e24ae21737ca5e9e1641243af3c0",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "f16dcc5b360d091ef514c18c20b6d11bc5eb78a1a0c011c804010c1e45d273a8",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "52f682cca23d046edd3044a8176e2577c0de3546f5d9e9a2069f1deabf0dfada",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2147cb761460a10798d031d0438460de60162a4f882faeaacde561da081795f4",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "870a99cf4e9a60d7f2bb3c3ca6cb950987e8fb1b4d41c3e6767b3de78f0161d1",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "ca33d4b8fb0d2c12654aa485e350ff49e48881e0dbb86b1b4be1d82108806b06",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "511a8584f500e024c7bc0ebc90b4e2c2d7b451e17c328bd3ad7b4e065ea6c566",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "5dbbdc5d49ad1f9d9a9dfb1e90b4a37114af64ecb85b6523f3acb38980992e74",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "c5892ed9ebe5557435cae0fdfc6cd9695b091dae18bcf6944040074183c41308",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "721a790d438ea1e58b1e2bae2774e04848dd9dde5befd9a8d7b4340c62790f9c",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "792fb6a8b01f4cf1dde44e3178dcf0db9b1731896cee63e265b4132407fd6356",
+        "classification": "declaration",
+        "owner": "WorkerLifetime",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "bc60b38a29c378826a54f04e507b610763bba0c6dee7f4c53cee99adcb30cd2e",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4229409f44e2fbeb00140ae41fcc44871c8a872cc5be25b4211dff6ee33cc6ad",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "61bee48ad4a6e7a9a6b7c6cdc0b5e48b2be59d1beb795d6aeb84dcf7745ab763",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "3c4d11a57a9d3e051fe0b13186419827869513c13bdaa6541e0bf95085522e0b",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2a68847a04043646a317d9dfb80fa0d02e5fa6c0f3f44cb36f87d75101a23eb1",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "e9d1fc4232d9e0957e7aa485d83fa851875adaf3c616c2a418203989ee875f1e",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "168e63c07b5eae7f535c1a3d8fbc77b8278aba419a0cc4da0d2cb8add491024e",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "f08dc8eb453bc9d54f41aac6832afd81a2a44f7bbec1bdaa1ac0b0f0cebaa87c",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "a8519a203316d11f83971c2054d0f4060a194c70321cebd4da82678382d2ad1b",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "a5bd11e1119ef717ffff05db67fe4dad9fb2a4fe289e5e667b8cabddbce97345",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "8a39ec42d123679360b977b78ee1d4877b84ee0bf91a5d3319bf3fa545ee7b03",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2de85171439bd35be0b22844d9e756621753d68e9e516c769d6b190be004b763",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "ec96dbc05a6c2a82c1e047adf20c4a72e987cbafa863c4e06c258971902f497c",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "4951c6de427d29b037381f56325ac6006b327f2575ceb4a2ca093d3f8ab2af90",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "2f66592709f0427ce44a23d8254a9395260208812f743dcc43a8ce1e8dcdebb6",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "323478ff67d7615dd8606cda5b17b783b0b5398aadc8658e156386af2bc1f81a",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "8cb5fafd67a36d8ee16878b4f16dd6792abb6acf6d6261e767e9446bb08a7a18",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "3fcb7a3339069093b08f895f802d66f533805e063d6cad67dfdb623df0320df2",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "a684ba1f61506b621bc4e611c608e102c7e8b158e27751b3f482563c63c68c26",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "6ce89d3ebdf7e5b0af8be07a2b702827b1b7108eda0abbd808d6835dd4aa94b1",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "9b1ffcfcf079c6cb653b8738a65fed8058156d3081218720ff889bd08855fe41",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "f5a82984045ca320501aea47c0088e1adfdec4822d10afab983348c32a3985b8",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "75b022d9288ed3afbdd46df32337b5bbbcb9e54ebf8b8a7dc7725d1c6dbe7771",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "f79ab0faa873d4de2f493b2c43b6f29549ea468b9818e4be15aef4a10c727a95",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "82599d266fc27b826f77ef9e529715e2d2ce2c421bdc1296c29753ac1021e14c",
+        "classification": "declaration",
+        "owner": "Selection",
+        "reason": "Canonical ctypes signatures/structure fields, native atom field names and advertised/conversion projections, unchanged property format/event flags/limits, typed internal transfer records and parent-lifetime/locale diagnostics. X11Wire remains the parent-child transport Owner."
+      },
+      {
+        "id": "21d56facd6fbe7ffe50f03543ce3f09febc2df60bbb3ec1ea08467253146e0e2",
+        "classification": "non_contract",
+        "owner": "Selection.__init__",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "dc80883b78e82d47b2f1113cd3c54d21a4491ebcacbf0256f24d83b54cbd30d8",
+        "classification": "non_contract",
+        "owner": "Selection.close",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "ec6d53e6de2105c99e7bbe11fc9cd2ae9b98734d09617ccb16e767829cbb1ba1",
+        "classification": "non_contract",
+        "owner": "Selection.put",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "29621c1163bcdb32e837c0887d0c1a1c6d1da66d64a026c14295a210a91ad9c0",
+        "classification": "non_contract",
+        "owner": "Selection.event",
+        "reason": "Clamp remaining select wait to a nonnegative duration."
+      },
+      {
+        "id": "aa8e7ec5be179d4d2adc75e3a6a30b84cc254ca3ecbe69b2366b1e072e32752c",
+        "classification": "non_contract",
+        "owner": "Selection.read",
+        "reason": "Unconditional event loop terminated by its existing validated break/return/exception paths."
+      },
+      {
+        "id": "c4a9e358e370b0c2a59de0b59e47513a26345dbf404148049fb1d0a2eb53295f",
+        "classification": "non_contract",
+        "owner": "Selection.read",
+        "reason": "Initialize the accumulated byte count for this stream."
+      },
+      {
+        "id": "8090372ef46ff94630a7dffd5874e0e6e6fbbe10c31ec7784e34835f0ddd421e",
+        "classification": "non_contract",
+        "owner": "Selection.read",
+        "reason": "Unconditional event loop terminated by its existing validated break/return/exception paths."
+      },
+      {
+        "id": "796fe10f30bd5460203b2c36d4f5764126331c2d3dab601862abfad55145a0d2",
+        "classification": "non_contract",
+        "owner": "Selection.convert",
+        "reason": "Optional return type annotation."
+      },
+      {
+        "id": "cf72f1fd3c3e506a09e89412d7327cefa8f6387f8d57c3c7233a04fc5f82fc66",
+        "classification": "non_contract",
+        "owner": "Selection.answer",
+        "reason": "Inspect or update the adjacent property cell while iterating the declared two-cell ICCCM pair representation inside its Owner."
+      },
+      {
+        "id": "ccdf919ef2f0bf631f20bba912ad9e794a01c8727b3e83ad390f8f7473619303",
+        "classification": "non_contract",
+        "owner": "Selection.answer",
+        "reason": "Inspect or update the adjacent property cell while iterating the declared two-cell ICCCM pair representation inside its Owner."
+      },
+      {
+        "id": "c0eebf0bbc81561a50b07f4a4a404dca9dbd038204f0c5eb65f3da38969b9e6b",
+        "classification": "non_contract",
+        "owner": "Selection.answer",
+        "reason": "Inspect or update the adjacent property cell while iterating the declared two-cell ICCCM pair representation inside its Owner."
+      },
+      {
+        "id": "1b1ba4a9f01800d7ac6ef9db74e52dfbcd6010b1b5c276935065b2f21822bef9",
+        "classification": "non_contract",
+        "owner": "Selection.copy",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "82e1bb346a0809d9e553c131fec2cf50a58ee4408da7adf41bfc39633922c846",
+        "classification": "non_contract",
+        "owner": "Selection.copy",
+        "reason": "Unconditional event loop terminated by its existing validated break/return/exception paths."
+      },
+      {
+        "id": "2b97c21f24c3748a4a85ee1529f92f079fe5fcce7c78fc862d32ecf4e2a533c8",
+        "classification": "non_contract",
+        "owner": "Selection.copy",
+        "reason": "Unconditional event loop terminated by its existing validated break/return/exception paths."
+      },
+      {
+        "id": "fe82d983f7b140432cd02c8dd4d09f855afdf1b188ea58ae304442e2dc74114c",
+        "classification": "non_contract",
+        "owner": "main",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "1448c6d489588744abce16bddb0279026d833e436d452fa6a308dc807eed7fc2",
+        "classification": "non_contract",
+        "owner": "main",
+        "reason": "Python argv first positional argument."
+      },
+      {
+        "id": "035f92d489bb6f0163abae614853b1f0c919b4c2b97d92cff93b1eba4a3c63e8",
+        "classification": "non_contract",
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "reason": "Python script entrypoint guard."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "XlibABI / SelectionAtoms / PropertyValue / ConvertedText / TransferKey / IncrementalTransfer / WorkerLifetime / Selection",
+        "declaration": "hub/widget/_x11_selection.py",
+        "consumers": [
+          "hub/widget/x11_clipboard.py",
+          "hub/widget/clipboard.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_x11_clipboard.py",
+          "tests/hub/test_clipboard.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_ish_integration.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]
