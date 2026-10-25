@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 635,
-    "unreviewed_files": 13,
+    "files": 636,
+    "unreviewed_files": 12,
     "stale_files": 0,
-    "unclassified": 902,
+    "unclassified": 750,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 13,
+    "unreviewed_dynamic_paths": 12,
     "unreadable_files": 0,
-    "candidates": 15778,
+    "candidates": 15661,
     "issues": 0
   },
   "files": [
@@ -512,6 +512,12 @@
       "candidates": 0
     },
     {
+      "path": "hub/backend/tools/resource_contracts.py",
+      "status": "reviewed",
+      "sha256": "8f8921197f0b4bb44bf406fe247b4b7d4de21246271a547f6984ec6fefea6c3d",
+      "candidates": 35
+    },
+    {
       "path": "hub/backend/tools/resource_views.py",
       "status": "reviewed",
       "sha256": "ee8b6532f0a8cd77db3cdb82486c00454404472cca5494126c5420d095941e98",
@@ -519,9 +525,9 @@
     },
     {
       "path": "hub/backend/tools/resources.py",
-      "status": "unreviewed",
-      "sha256": "897d6371d701c3afa26d251d23c7f517f465f280bdd7a7c04f4f95cc9edc30e5",
-      "candidates": 152
+      "status": "reviewed",
+      "sha256": "8d6317841fbc206bbfffa02c24ff5d74e6bca777d3c58778ae460e31ed7540eb",
+      "candidates": 0
     },
     {
       "path": "hub/backend/tools/retry.py",
@@ -1696,7 +1702,7 @@
     {
       "path": "llm/components/goals/records.py",
       "status": "reviewed",
-      "sha256": "49830fa737c5fb02a3f2cd0b8f16562e7a35df6d7ee1f6a0cbe63146f12c5e93",
+      "sha256": "42779fbc3c468673b71c41912d455eee3abe3b0f6dfc9e20ef2b85371f1320f0",
       "candidates": 32
     },
     {
@@ -2044,13 +2050,13 @@
     {
       "path": "llm/components/rag/document_records.py",
       "status": "reviewed",
-      "sha256": "8e78ade1f689a200f691b21b5bf011355ebcf1401a593ea0c3795159cbfef733",
+      "sha256": "c8daf005e1e2162e2e2f663316777d1b9541bc6681edfb0a4bcade0a3dacd779",
       "candidates": 52
     },
     {
       "path": "llm/components/rag/document_views.py",
       "status": "reviewed",
-      "sha256": "35ccb753887591bed03670ad43307062536603f71e1467b191069cf11931b3ad",
+      "sha256": "159cf705bc90e2f30c1be1c0db344b1a470b460c454387816205283faffb468b",
       "candidates": 5
     },
     {
@@ -2656,7 +2662,7 @@
     {
       "path": "llm/components/workflows/graph.py",
       "status": "reviewed",
-      "sha256": "870764bfe10512aa6418631468e55bf576438b7429ef7cbf7c1b782e20e04644",
+      "sha256": "dbe89ad594c9407b52682fd4cc219922718512303d013750d28abf4ef841519a",
       "candidates": 88
     },
     {

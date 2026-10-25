@@ -4,8 +4,15 @@ from copy import deepcopy
 from enum import StrEnum
 
 from llm.core.models import ResourceKind
-from llm.core.schema import (SchemaType, SchemaKeyword, SchemaBoolean,
-                             object_schema, field, metadata_schema, implementation_schema)
+from llm.core.schema import (
+    SchemaType,
+    SchemaKeyword,
+    SchemaBoolean,
+    object_schema,
+    field,
+    metadata_schema,
+    implementation_schema,
+)
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.services.infrastructure.storage import revision_token
 
@@ -59,7 +66,11 @@ class GoalRunReference:
 
     @classmethod
     def create(cls, session_id, run_id, relation):
-        return {cls.Field.SESSION_ID: session_id, cls.Field.RUN_ID: run_id, cls.Field.RELATION: relation}
+        return {
+            cls.Field.SESSION_ID: session_id,
+            cls.Field.RUN_ID: run_id,
+            cls.Field.RELATION: relation,
+        }
 
     @property
     def session_id(self):
@@ -94,51 +105,136 @@ class GoalDefinition:
 
     @classmethod
     def identifier_schema(cls):
-        return field(SchemaType.STRING, **{SchemaKeyword.PATTERN: cls.IDENTIFIER_PATTERN})
+        return field(
+            SchemaType.STRING, **{SchemaKeyword.PATTERN: cls.IDENTIFIER_PATTERN}
+        )
 
     @classmethod
     def text_schema(cls):
-        return field(SchemaType.STRING, **{SchemaKeyword.MIN_LENGTH: cls.MINIMUM_TEXT_LENGTH})
+        return field(
+            SchemaType.STRING, **{SchemaKeyword.MIN_LENGTH: cls.MINIMUM_TEXT_LENGTH}
+        )
 
     @classmethod
     def list_schema(cls):
-        return {SchemaKeyword.TYPE: SchemaType.ARRAY, SchemaKeyword.ITEMS: cls.text_schema()}
+        return {
+            SchemaKeyword.TYPE: SchemaType.ARRAY,
+            SchemaKeyword.ITEMS: cls.text_schema(),
+        }
 
     @classmethod
     def schema(cls):
         scope = GoalScope.Field
         reference = GoalRunReference.Field
-        return object_schema({
-            cls.Field.TITLE: cls.text_schema(), cls.Field.OBJECTIVE: cls.text_schema(),
-            cls.Field.SCOPE: {SchemaKeyword.ONE_OF: [
-                object_schema({scope.TYPE: {SchemaKeyword.CONST: ResourceKind.PROJECT.value}},
-                    **{SchemaKeyword.REQUIRED: [scope.TYPE], SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT}),
-                object_schema({scope.TYPE: {SchemaKeyword.CONST: ResourceKind.SESSION.value}, scope.ID: cls.identifier_schema()},
-                    **{SchemaKeyword.REQUIRED: [scope.TYPE, scope.ID], SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT})]},
-            cls.Field.STATUS: field(SchemaType.STRING, **{SchemaKeyword.ENUM: [status.value for status in GoalStatus]}),
-            **{key: cls.list_schema() for key in cls.LIST_FIELDS},
-            cls.Field.RUN_REFS: {SchemaKeyword.TYPE: SchemaType.ARRAY, SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
-                SchemaKeyword.ITEMS: object_schema({reference.SESSION_ID: cls.identifier_schema(),
-                    reference.RUN_ID: cls.identifier_schema(), reference.RELATION: cls.text_schema()},
-                    **{SchemaKeyword.REQUIRED: [reference.SESSION_ID, reference.RUN_ID, reference.RELATION],
-                       SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT})},
-            cls.Field.METADATA: metadata_schema(),
-        }, **{SchemaKeyword.REQUIRED: [cls.Field.TITLE, cls.Field.OBJECTIVE, cls.Field.SCOPE, cls.Field.STATUS]})
+        return object_schema(
+            {
+                cls.Field.TITLE: cls.text_schema(),
+                cls.Field.OBJECTIVE: cls.text_schema(),
+                cls.Field.SCOPE: {
+                    SchemaKeyword.ONE_OF: [
+                        object_schema(
+                            {
+                                scope.TYPE: {
+                                    SchemaKeyword.CONST: ResourceKind.PROJECT.value
+                                }
+                            },
+                            **{
+                                SchemaKeyword.REQUIRED: [scope.TYPE],
+                                SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
+                            }
+                        ),
+                        object_schema(
+                            {
+                                scope.TYPE: {
+                                    SchemaKeyword.CONST: ResourceKind.SESSION.value
+                                },
+                                scope.ID: cls.identifier_schema(),
+                            },
+                            **{
+                                SchemaKeyword.REQUIRED: [scope.TYPE, scope.ID],
+                                SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
+                            }
+                        ),
+                    ]
+                },
+                cls.Field.STATUS: field(
+                    SchemaType.STRING,
+                    **{SchemaKeyword.ENUM: [status.value for status in GoalStatus]}
+                ),
+                **{key: cls.list_schema() for key in cls.LIST_FIELDS},
+                cls.Field.RUN_REFS: {
+                    SchemaKeyword.TYPE: SchemaType.ARRAY,
+                    SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
+                    SchemaKeyword.ITEMS: object_schema(
+                        {
+                            reference.SESSION_ID: cls.identifier_schema(),
+                            reference.RUN_ID: cls.identifier_schema(),
+                            reference.RELATION: cls.text_schema(),
+                        },
+                        **{
+                            SchemaKeyword.REQUIRED: [
+                                reference.SESSION_ID,
+                                reference.RUN_ID,
+                                reference.RELATION,
+                            ],
+                            SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
+                        }
+                    ),
+                },
+                cls.Field.METADATA: metadata_schema(),
+            },
+            **{
+                SchemaKeyword.REQUIRED: [
+                    cls.Field.TITLE,
+                    cls.Field.OBJECTIVE,
+                    cls.Field.SCOPE,
+                    cls.Field.STATUS,
+                ]
+            }
+        )
+
+    @classmethod
+    def session_task(cls, values, source, relation):
+        """Project an admitted task without replacing the component's validation."""
+        return {
+            cls.Field.TITLE: values[cls.Field.TITLE],
+            cls.Field.OBJECTIVE: values[cls.Field.OBJECTIVE],
+            cls.Field.SUCCESS_CRITERIA: values[cls.Field.SUCCESS_CRITERIA],
+            cls.Field.SCOPE: GoalScope.session(source.session_id),
+            cls.Field.STATUS: GoalStatus.ACTIVE.value,
+            cls.Field.RUN_REFS: [
+                GoalRunReference.create(source.session_id, source.run_id, relation)
+            ],
+        }
 
 
 class GoalContextReference:
     GOAL_ID = "goal_id"
     VERSION = "version"
-    SUMMARY_FIELDS = (GOAL_ID, VERSION, GoalDefinition.Field.OBJECTIVE, GoalDefinition.Field.SUCCESS_CRITERIA)
+    SUMMARY_FIELDS = (
+        GOAL_ID,
+        VERSION,
+        GoalDefinition.Field.OBJECTIVE,
+        GoalDefinition.Field.SUCCESS_CRITERIA,
+    )
 
     @classmethod
     def project(cls, identifier, value):
-        return {cls.GOAL_ID: identifier, cls.VERSION: revision_token(value),
-                **{name: deepcopy(value[name]) for name in GoalDefinition.CONTEXT_FIELDS if name in value}}
+        return {
+            cls.GOAL_ID: identifier,
+            cls.VERSION: revision_token(value),
+            **{
+                name: deepcopy(value[name])
+                for name in GoalDefinition.CONTEXT_FIELDS
+                if name in value
+            },
+        }
 
     @classmethod
     def for_summary(cls, value):
-        return {name: deepcopy(value[name]) for name in cls.SUMMARY_FIELDS if name in value}
+        return {
+            name: deepcopy(value[name]) for name in cls.SUMMARY_FIELDS if name in value
+        }
 
 
 class GoalCloneOrigin:
@@ -185,7 +281,9 @@ class GoalRecord:
     def cloned(self, project_id, identifier):
         value = deepcopy(self._value)
         value[GoalDefinition.Field.RUN_REFS] = []
-        value.setdefault(GoalDefinition.Field.METADATA, {})[GoalCloneOrigin.KEY] = GoalCloneOrigin.project(project_id, identifier)
+        value.setdefault(GoalDefinition.Field.METADATA, {})[GoalCloneOrigin.KEY] = (
+            GoalCloneOrigin.project(project_id, identifier)
+        )
         return value
 
 
@@ -204,18 +302,39 @@ class GoalSettings:
 
     @classmethod
     def schema(cls):
-        return implementation_schema(config=object_schema({
-            cls.PRIORITY: field(SchemaType.INTEGER),
-            cls.IDENTIFIERS: {SchemaKeyword.TYPE: SchemaType.ARRAY, SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
-                             SchemaKeyword.ITEMS: GoalDefinition.identifier_schema()},
-            cls.NESTED_AGENT_IDS: {SchemaKeyword.TYPE: SchemaType.ARRAY, SchemaKeyword.ITEMS: GoalDefinition.text_schema()},
-        }, **{SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT}),
-            policy=object_schema({cls.INJECT: field(SchemaType.BOOLEAN), cls.WRITE_TOOLS: field(SchemaType.BOOLEAN)},
-                                 **{SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT}))
+        return implementation_schema(
+            config=object_schema(
+                {
+                    cls.PRIORITY: field(SchemaType.INTEGER),
+                    cls.IDENTIFIERS: {
+                        SchemaKeyword.TYPE: SchemaType.ARRAY,
+                        SchemaKeyword.UNIQUE_ITEMS: SchemaBoolean.ACCEPT,
+                        SchemaKeyword.ITEMS: GoalDefinition.identifier_schema(),
+                    },
+                    cls.NESTED_AGENT_IDS: {
+                        SchemaKeyword.TYPE: SchemaType.ARRAY,
+                        SchemaKeyword.ITEMS: GoalDefinition.text_schema(),
+                    },
+                },
+                **{SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT}
+            ),
+            policy=object_schema(
+                {
+                    cls.INJECT: field(SchemaType.BOOLEAN),
+                    cls.WRITE_TOOLS: field(SchemaType.BOOLEAN),
+                },
+                **{SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT}
+            ),
+        )
 
     @property
     def inject(self):
         return self._parameters.policy.get(self.INJECT)
+
+    @property
+    def write_tools_observation(self):
+        """Borrow the selected option; consumers retain their existing truth test."""
+        return self._parameters.policy.get(self.WRITE_TOOLS)
 
     @property
     def write_tools(self):

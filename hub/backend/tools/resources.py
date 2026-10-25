@@ -4,12 +4,27 @@ from llm.components.processing import COMPLETION_PROCESSORS
 
 from .resource_views import CreatedResource
 
-from llm.core.implementation_parameters import ImplementationParameters
+from llm.components.goals.records import GoalDefinition, GoalSettings
+from llm.components.goals.tool_values import GoalToolArguments, GoalToolContract
+from llm.components.rag.document_records import RAGDocumentInput
+from llm.components.rag.document_views import DocumentView
+from llm.components.workflows.graph import WorkflowHandlerContract
+from llm.components.workflows.contracts import WorkflowDocument
+from .resource_contracts import (
+    ResourceToolContract,
+    DefinitionArguments,
+    ResourceAuthorship,
+    AuthoredDefinition,
+    DefinitionPreview,
+    AuthoringTool,
+    WorkflowAuthoring,
+    RAGAuthoring,
+    GoalAuthoring,
+)
 
 from copy import deepcopy
 
 from llm.components.goals import GoalComponent
-from llm.components.goals.data import GoalStatus
 from llm.components.rag import RAGComponent
 from llm.components.workflows import WorkflowComponent
 from llm.core.tool_contracts import ToolContract
@@ -18,26 +33,55 @@ from llm.services.runtime.tools import current_tool_call
 from ...components import component_spec
 from llm.core.tool_contracts import ToolEffect, ToolIsolation
 
-IDENTIFIER = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
+IDENTIFIER = DefinitionArguments.IDENTIFIER_SCHEMA
 
 
 def owner(data):
     call = current_tool_call()
-    if call is None or call.project_id != data.project.id or not all((call.session_id, call.run_id, call.step_id)):
-        raise ValueError("Resource tools require an owning Run in this Project")
+    if (
+        call is ResourceToolContract.ABSENT
+        or call.project_id != data.project.id
+        or not all((call.session_id, call.run_id, call.step_id))
+    ):
+        raise ValueError(ResourceToolContract.MISSING_OWNER)
     return call
 
 
-def tool(name, description, properties, required, handler, *, write=False):
-    return Tool(name, description, {"type": "object", "properties": properties,
-        "required": required, "additionalProperties": False}, handler,
+def tool(
+    name,
+    description,
+    properties,
+    required,
+    handler,
+    *,
+    write=ResourceToolContract.READ_ONLY
+):
+    return Tool(
+        name,
+        description,
+        ResourceToolContract.parameters(properties, required),
+        handler,
         contract=ToolContract(
-            revision='1', effect=ToolEffect.UNKNOWN if write else ToolEffect.READ_ONLY,
-            isolation=ToolIsolation.NONE, approval_required=write,
-            operation_key_required=False, retry_fields=()))
+            revision=ResourceToolContract.REVISION,
+            effect=ToolEffect.UNKNOWN if write else ToolEffect.READ_ONLY,
+            isolation=ToolIsolation.NONE,
+            approval_required=write,
+            operation_key_required=ResourceToolContract.OPERATION_KEY_REQUIRED,
+            retry_fields=(),
+        ),
+    )
 
 
-def authoring_tools(data, name, definition_schema, *, discover=True, schema_extensions=None, source_field="metadata", identifier_schema=None):
+def authoring_tools(
+    data,
+    name,
+    definition_schema,
+    *,
+    discover=AuthoringTool.DISCOVER,
+    schema_extensions=ResourceToolContract.ABSENT,
+    source_field=ResourceAuthorship.DEFAULT_FIELD,
+    identifier_schema=ResourceToolContract.ABSENT
+):
     """One schema/create contract shared by Skill, Workflow and Agent authoring."""
     prefix = component_spec(name).tool_prefix
 
@@ -47,47 +91,82 @@ def authoring_tools(data, name, definition_schema, *, discover=True, schema_exte
 
     async def create(args):
         call = owner(data)
-        definition = deepcopy(args["definition"])
-        definition.setdefault(source_field, {})["hub_source"] = {
-            "session_id": call.session_id, "run_id": call.run_id, "step_id": call.step_id}
-        identifier = await data.acreate(definition, identifier=args["identifier"])
-        return {"created": identifier, "component": name, "applies_to": "subsequent_runs"}
+        definition = deepcopy(DefinitionArguments(args).definition)
+        ResourceAuthorship.stamp(definition, source_field, call)
+        identifier = await data.acreate(
+            definition, identifier=DefinitionArguments(args).identifier
+        )
+        return AuthoredDefinition(identifier, name).to_dict()
 
     async def listing(args):
         owner(data)
-        return {key: {name: value[name] for name in ("title", "purpose", "description", "engine") if name in value}
-                for key, value in (await data.alist()).items()}
+        return DefinitionPreview.project(await data.alist())
 
     async def read(args):
         owner(data)
-        return await data.asnapshot(args["identifier"])
+        return await data.asnapshot(DefinitionArguments(args).identifier)
 
-    tools = [tool(prefix + "_schema", "Read the exact creation input schema before creating a " + prefix + ".",
-                  {}, [], schema),
-             tool(prefix + "_create", "Create a new project " + prefix + ". Read " + prefix +
-                  "_schema first. Existing IDs are never overwritten. Saved execution definitions become available "
-                  "to subsequent Runs; creation does not execute or grant new authority.",
-                  {"identifier": identifier_schema or IDENTIFIER, "definition": {"type": "object"}},
-                  ["identifier", "definition"], create, write=True)]
+    tools = [
+        tool(
+            AuthoringTool.SCHEMA_NAME.format(prefix=prefix),
+            AuthoringTool.SCHEMA_DESCRIPTION.format(prefix=prefix),
+            {},
+            [],
+            schema,
+        ),
+        tool(
+            AuthoringTool.CREATE_NAME.format(prefix=prefix),
+            AuthoringTool.creation_description(prefix),
+            DefinitionArguments.create_properties(identifier_schema),
+            DefinitionArguments.create_required(),
+            create,
+            write=ResourceToolContract.WRITES,
+        ),
+    ]
     if discover:
-        tools += [tool(prefix + "_list", "List saved " + name + " in this Project.", {}, [], listing),
-                  tool(prefix + "_read", "Read a saved definition and its revision as reference data.",
-                       {"identifier": IDENTIFIER}, ["identifier"], read)]
+        tools += [
+            tool(
+                AuthoringTool.LIST_NAME.format(prefix=prefix),
+                AuthoringTool.LIST_DESCRIPTION.format(name=name),
+                {},
+                [],
+                listing,
+            ),
+            tool(
+                AuthoringTool.READ_NAME.format(prefix=prefix),
+                AuthoringTool.READ_DESCRIPTION,
+                DefinitionArguments.read_properties(),
+                DefinitionArguments.read_required(),
+                read,
+            ),
+        ]
     return tools
 
 
 class HubWorkflowComponent(WorkflowComponent):
     capabilities = (*WorkflowComponent.capabilities, ToolRegistry.CAPABILITY)
 
-    def __init__(self, *, handlers=None):
+    def __init__(self, *, handlers=ResourceToolContract.ABSENT):
         self._handler_schemas = {
-            name: deepcopy(handler.describe_config()) if callable(getattr(handler, "describe_config", None)) else None
-            for name, handler in (handlers or {}).items()}
+            name: WorkflowHandlerContract.describe_snapshot(handler)
+            for name, handler in (handlers or {}).items()
+        }
 
     def resolve_runtime(self, project, capability, *, data_factory):
         if capability == ToolRegistry.CAPABILITY:
-            return ToolRegistry(tuple(authoring_tools(data_factory(self.name), self.name, self.schema,
-                schema_extensions={"x-hub-action-handlers": self._handler_schemas})))
+            return ToolRegistry(
+                tuple(
+                    authoring_tools(
+                        data_factory(self.name),
+                        self.name,
+                        self.schema,
+                        schema_extensions=WorkflowAuthoring.extensions(
+                            self._handler_schemas
+                        ),
+                        source_field=WorkflowDocument.METADATA,
+                    )
+                )
+            )
         return super().resolve_runtime(project, capability, data_factory=data_factory)
 
 
@@ -97,8 +176,11 @@ class HubRAGComponent(RAGComponent):
     def resolve_runtime(self, project, capability, *, data_factory):
         if capability == COMPLETION_PROCESSORS:
             from ..execution.rag_catalog import RAGCatalogProcessor
+
             return RAGCatalogProcessor(data_factory(self.name))
-        registry = super().resolve_runtime(project, capability, data_factory=data_factory)
+        registry = super().resolve_runtime(
+            project, capability, data_factory=data_factory
+        )
         if capability != ToolRegistry.CAPABILITY:
             return registry
         data = data_factory(self.name)
@@ -107,50 +189,75 @@ class HubRAGComponent(RAGComponent):
             call = owner(data)
             values = deepcopy(args)
             from ..project.rag_import import document_description
-            values.setdefault("description", document_description(values["content"]))
-            values.setdefault("metadata", {})["hub_source"] = {
-                "session_id": call.session_id, "run_id": call.run_id, "step_id": call.step_id}
-            result = await data.aadd_document(**values)
-            return {key: result[key] for key in ("id", "title", "revision")}
 
-        registry.register(tool("rag_add_document", "Register a document in this Project's RAG corpus and build its "
-            "search index. Use file_read to read an authorized file first, then provide its text. Embedding "
-            "configuration is required. Existing IDs are not overwritten. Report success only after this returns.",
-            {"identifier": IDENTIFIER, "title": {"type": "string"}, "content": {"type": "string", "minLength": 1},
-             "description": {"type": "string", "description": "Short factual overview for deciding relevance before retrieval."},
-             "metadata": {"type": "object"}}, ["identifier", "title", "content"], add, write=True))
+            RAGDocumentInput.set_description_if_absent(
+                values, document_description(RAGDocumentInput(values).content)
+            )
+            ResourceAuthorship.stamp(values, RAGDocumentInput.Field.METADATA, call)
+            result = await data.aadd_document(**values)
+            return DocumentView.created(result)
+
+        registry.register(
+            tool(
+                RAGAuthoring.NAME,
+                RAGAuthoring.DESCRIPTION,
+                RAGAuthoring.properties(),
+                RAGAuthoring.required(),
+                add,
+                write=ResourceToolContract.WRITES,
+            )
+        )
         return registry
 
 
 class HubGoalComponent(GoalComponent):
     def resolve_runtime(self, project, capability, *, data_factory):
-        registry = super().resolve_runtime(project, capability, data_factory=data_factory)
-        if capability != ToolRegistry.CAPABILITY or not ImplementationParameters.read(self.get_config(project)).policy.get("write_tools"):
+        registry = super().resolve_runtime(
+            project, capability, data_factory=data_factory
+        )
+        if (
+            capability != ToolRegistry.CAPABILITY
+            or not GoalSettings(self.get_config(project)).write_tools_observation
+        ):
             return registry
         data = data_factory(self.name)
 
         async def create(args):
             call = owner(data)
-            identifier = await data.acreate({"title": args["title"], "objective": args["objective"],
-                "success_criteria": args["success_criteria"], "scope": {"type": "session", "id": call.session_id},
-                "status": GoalStatus.ACTIVE.value, "run_refs": [{"session_id": call.session_id, "run_id": call.run_id,
-                                                     "relation": "contributes_to"}]}, identifier=args["identifier"])
-            return CreatedResource.from_snapshot(identifier, await data.asnapshot(identifier)).to_dict()
+            identifier = await data.acreate(
+                GoalDefinition.session_task(args, call, GoalAuthoring.RELATION),
+                identifier=GoalToolArguments(args).identifier,
+            )
+            return CreatedResource.from_snapshot(
+                identifier, await data.asnapshot(identifier)
+            ).to_dict()
 
         async def complete(args):
             call = owner(data)
-            if args["identifier"] not in await data.alist(session_id=call.session_id):
-                raise ValueError("Goal is outside the current Session scope")
+            if GoalToolArguments(args).identifier not in await data.alist(
+                session_id=call.session_id
+            ):
+                raise ValueError(GoalToolContract.OUTSIDE_SCOPE)
             return await data.acomplete(**args)
 
-        registry.register(tool("goal_create", "Track an authorized multi-step task in this Session with observable "
-            "success criteria. Reuse existing goals; do not create goals for casual questions or invent new tasks.",
-            {"identifier": IDENTIFIER, "title": {"type": "string", "minLength": 1},
-             "objective": {"type": "string", "minLength": 1},
-             "success_criteria": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}},
-            ["identifier", "title", "objective", "success_criteria"], create, write=True))
-        registry.register(tool("goal_complete", "Mark an existing goal complete only after verifying all its success "
-            "criteria. Does not change or restart any Run.",
-            {"identifier": IDENTIFIER, "expected_version": {"type": "string", "minLength": 1}},
-            ["identifier", "expected_version"], complete, write=True))
+        registry.register(
+            tool(
+                GoalAuthoring.CREATE_NAME,
+                GoalAuthoring.CREATE_DESCRIPTION,
+                GoalAuthoring.create_properties(),
+                GoalAuthoring.create_required(),
+                create,
+                write=ResourceToolContract.WRITES,
+            )
+        )
+        registry.register(
+            tool(
+                GoalAuthoring.COMPLETE_NAME,
+                GoalAuthoring.COMPLETE_DESCRIPTION,
+                GoalAuthoring.complete_properties(),
+                GoalAuthoring.complete_required(),
+                complete,
+                write=ResourceToolContract.WRITES,
+            )
+        )
         return registry

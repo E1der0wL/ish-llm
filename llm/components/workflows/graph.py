@@ -18,7 +18,13 @@ from llm.core.schema import (
     OpenSchemaKind,
 )
 from llm.core.json_data import JsonPointer
-from .contracts import WorkflowDocument, WorkflowNode, WorkflowEdge, WorkflowCondition, WorkflowCase
+from .contracts import (
+    WorkflowDocument,
+    WorkflowNode,
+    WorkflowEdge,
+    WorkflowCondition,
+    WorkflowCase,
+)
 from .bindings import WorkflowBindings
 from .bindings import pointer_parts, validate_contract
 
@@ -129,6 +135,14 @@ class WorkflowHandlerContract:
     ABSENT = None
 
     @classmethod
+    def describe_snapshot(cls, handler):
+        return (
+            deepcopy(handler.describe_config())
+            if callable(getattr(handler, cls.DESCRIBE_CONFIG_METHOD, cls.ABSENT))
+            else cls.ABSENT
+        )
+
+    @classmethod
     def declaration(cls, engine):
         return getattr(engine, cls.DECLARE_METHOD, cls.ABSENT)
 
@@ -144,7 +158,10 @@ def workflow_schema():
             name: {
                 SchemaKeyword.ANY_OF: [
                     field(SchemaType.BOOLEAN),
-                    open_schema(WorkflowValidation.VALUE_SCHEMA_OWNER, category=OpenSchemaKind.SCHEMA),
+                    open_schema(
+                        WorkflowValidation.VALUE_SCHEMA_OWNER,
+                        category=OpenSchemaKind.SCHEMA,
+                    ),
                 ]
             }
             for name in (
@@ -156,17 +173,22 @@ def workflow_schema():
     )
     common = {
         **contract,
-        WorkflowNode.TYPE: field(SchemaType.STRING, minLength=WorkflowValidation.NONEMPTY_COUNT),
+        WorkflowNode.TYPE: field(
+            SchemaType.STRING, minLength=WorkflowValidation.NONEMPTY_COUNT
+        ),
         WorkflowNode.METADATA: metadata_schema(),
         WorkflowNode.PAUSE_BEFORE: field(SchemaType.BOOLEAN),
         WorkflowNode.TIMEOUT_SECONDS: field(
-            [SchemaType.NUMBER, SchemaType.NULL], exclusiveMinimum=WorkflowValidation.POSITIVE_TIMEOUT
+            [SchemaType.NUMBER, SchemaType.NULL],
+            exclusiveMinimum=WorkflowValidation.POSITIVE_TIMEOUT,
         ),
     }
     condition = object_schema(
         {
             WorkflowCondition.PATH: field(SchemaType.STRING),
-            WorkflowCondition.OPERATOR: field(SchemaType.STRING, enum=list(ConditionOperator)),
+            WorkflowCondition.OPERATOR: field(
+                SchemaType.STRING, enum=list(ConditionOperator)
+            ),
             WorkflowCondition.VALUE: {
                 SchemaExtension.OWNER: WorkflowValidation.CONDITION_SCHEMA_OWNER,
                 SchemaExtension.OPEN_KIND: OpenSchemaKind.DATA,
@@ -179,23 +201,32 @@ def workflow_schema():
             WorkflowNode.CASES: field(
                 SchemaType.ARRAY,
                 items=object_schema(
-                    {WorkflowEdge.PORT: field(SchemaType.STRING), WorkflowCase.WHEN: condition},
+                    {
+                        WorkflowEdge.PORT: field(SchemaType.STRING),
+                        WorkflowCase.WHEN: condition,
+                    },
                     required=[WorkflowEdge.PORT, WorkflowCase.WHEN],
                 ),
             ),
             WorkflowNode.DEFAULT: field(SchemaType.STRING),
         },
         ControlNodeType.PARALLEL: {WorkflowNode.JOIN: field(SchemaType.STRING)},
-        ControlNodeType.JOIN: {WorkflowNode.WAIT: field(SchemaType.STRING, enum=list(JoinWait))},
+        ControlNodeType.JOIN: {
+            WorkflowNode.WAIT: field(SchemaType.STRING, enum=list(JoinWait))
+        },
         ControlNodeType.LOOP: {
             WorkflowNode.BODY: {SchemaKeyword.REF: JsonPointer.FRAGMENT},
-            WorkflowNode.MAX_ITERATIONS: field(SchemaType.INTEGER, minimum=WorkflowValidation.NONEMPTY_COUNT),
+            WorkflowNode.MAX_ITERATIONS: field(
+                SchemaType.INTEGER, minimum=WorkflowValidation.NONEMPTY_COUNT
+            ),
             WorkflowNode.WHILE: condition,
             WorkflowNode.ON_LIMIT: field(SchemaType.STRING, enum=list(LoopLimit)),
         },
         ControlNodeType.END: {},
         ControlNodeType.WORKFLOW: {
-            WorkflowNode.WORKFLOW: field(SchemaType.STRING, minLength=WorkflowValidation.NONEMPTY_COUNT)
+            WorkflowNode.WORKFLOW: field(
+                SchemaType.STRING, minLength=WorkflowValidation.NONEMPTY_COUNT
+            )
         },
     }
     variants = [
@@ -222,8 +253,12 @@ def workflow_schema():
     )
     return object_schema(
         {
-            WorkflowDocument.SCHEMA_VERSION: {SchemaKeyword.CONST: WorkflowGraph.SCHEMA_VERSION},
-            WorkflowDocument.ENTRY: field(SchemaType.STRING, minLength=WorkflowValidation.NONEMPTY_COUNT),
+            WorkflowDocument.SCHEMA_VERSION: {
+                SchemaKeyword.CONST: WorkflowGraph.SCHEMA_VERSION
+            },
+            WorkflowDocument.ENTRY: field(
+                SchemaType.STRING, minLength=WorkflowValidation.NONEMPTY_COUNT
+            ),
             WorkflowDocument.NODES: object_schema(
                 additionalProperties={SchemaKeyword.ONE_OF: variants},
                 minProperties=WorkflowValidation.NONEMPTY_COUNT,
@@ -242,7 +277,11 @@ def workflow_schema():
             WorkflowDocument.INITIAL_STATE: open_schema(
                 WorkflowValidation.STATE_SCHEMA_OWNER, category=OpenSchemaKind.DATA
             ),
-            **{key: value for key, value in contract.items() if key != WorkflowBindings.RESUME_SCHEMA},
+            **{
+                key: value
+                for key, value in contract.items()
+                if key != WorkflowBindings.RESUME_SCHEMA
+            },
             WorkflowNode.METADATA: metadata_schema(),
         },
         required=list(WorkflowGraph.MANAGED_FIELDS),
@@ -251,14 +290,24 @@ def workflow_schema():
 
 def validate_handler_options(node, handler):
     """Graph는 handler 필드의 의미를 모른다. 선택 구현체의 스키마에 위임한다."""
-    describe = getattr(handler, WorkflowHandlerContract.DESCRIBE_CONFIG_METHOD, WorkflowValidation.ABSENT)
+    describe = getattr(
+        handler,
+        WorkflowHandlerContract.DESCRIBE_CONFIG_METHOD,
+        WorkflowValidation.ABSENT,
+    )
     if describe is WorkflowValidation.ABSENT and callable(
-        getattr(handler, WorkflowHandlerContract.VALIDATE_METHOD, WorkflowValidation.ABSENT)
+        getattr(
+            handler, WorkflowHandlerContract.VALIDATE_METHOD, WorkflowValidation.ABSENT
+        )
     ):
         return
-    schema = describe() if describe is not WorkflowValidation.ABSENT else object_schema()
+    schema = (
+        describe() if describe is not WorkflowValidation.ABSENT else object_schema()
+    )
     Draft202012Validator.check_schema(schema)
-    values = {key: value for key, value in node.items() if key not in COMMON_NODE_FIELDS}
+    values = {
+        key: value for key, value in node.items() if key not in COMMON_NODE_FIELDS
+    }
     try:
         Draft202012Validator(schema).validate(values)
     except ValidationError as error:
@@ -287,7 +336,9 @@ def _condition(value) -> None:
         raise ValueError(WorkflowValidation.INVALID_OPERATOR)
     if op != ConditionOperator.EXISTS and WorkflowCondition.VALUE not in value:
         raise ValueError(WorkflowValidation.MISSING_CONDITION_VALUE)
-    if op == ConditionOperator.IN and (not isinstance(value[WorkflowCondition.VALUE], list)):
+    if op == ConditionOperator.IN and (
+        not isinstance(value[WorkflowCondition.VALUE], list)
+    ):
         raise ValueError(WorkflowValidation.INVALID_MEMBERSHIP)
 
 
@@ -298,13 +349,20 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
         or type(data.get(WorkflowDocument.SCHEMA_VERSION)) is not int
         or data[WorkflowDocument.SCHEMA_VERSION] != WorkflowGraph.SCHEMA_VERSION
     ):
-        raise ValueError(WorkflowValidation.INVALID_VERSION.format(version=WorkflowGraph.SCHEMA_VERSION))
+        raise ValueError(
+            WorkflowValidation.INVALID_VERSION.format(
+                version=WorkflowGraph.SCHEMA_VERSION
+            )
+        )
     if _depth == WorkflowValidation.ROOT_DEPTH:
         Component.serialize(data)
         errors = list(Draft202012Validator(workflow_schema()).iter_errors(data))
         if errors:
             error = errors[WorkflowValidation.FIRST_ERROR]
-            path = JsonPointer.SEPARATOR.join(map(str, error.absolute_path)) or WorkflowValidation.ROOT_LABEL
+            path = (
+                JsonPointer.SEPARATOR.join(map(str, error.absolute_path))
+                or WorkflowValidation.ROOT_LABEL
+            )
             raise ValueError(
                 WorkflowValidation.SCHEMA_ERROR.format(path=path, message=error.message)
             ) from error
@@ -335,8 +393,14 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             raise ValueError(WorkflowValidation.INVALID_NODE)
         _text(node.get(WorkflowNode.TYPE), WorkflowValidation.NODE_TYPE_LABEL)
         if node[WorkflowNode.TYPE] == ControlNodeType.WORKFLOW:
-            _text(node.get(WorkflowNode.WORKFLOW), WorkflowValidation.WORKFLOW_REFERENCE_LABEL)
-        if WorkflowNode.PAUSE_BEFORE in node and type(node[WorkflowNode.PAUSE_BEFORE]) is not bool:
+            _text(
+                node.get(WorkflowNode.WORKFLOW),
+                WorkflowValidation.WORKFLOW_REFERENCE_LABEL,
+            )
+        if (
+            WorkflowNode.PAUSE_BEFORE in node
+            and type(node[WorkflowNode.PAUSE_BEFORE]) is not bool
+        ):
             raise ValueError(WorkflowValidation.INVALID_PAUSE)
         validate_contract(node)
         if node[WorkflowNode.TYPE] in ControlNodeType.structural() and any(
@@ -374,7 +438,13 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
         raise ValueError(WorkflowValidation.ENTRY_INCOMING)
     # Detect cycles before reachability; bounded loop bodies are the only repetition syntax.
     counts = {name: len(items) for name, items in incoming.items()}
-    ready = deque((name for name, count in counts.items() if count == WorkflowValidation.READY_INDEGREE))
+    ready = deque(
+        (
+            name
+            for name, count in counts.items()
+            if count == WorkflowValidation.READY_INDEGREE
+        )
+    )
     ordered = []
     while ready:
         name = ready.popleft()
@@ -405,15 +475,32 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             for case in cases:
                 if not isinstance(case, dict):
                     raise ValueError(WorkflowValidation.INVALID_CASE)
-                ports.append(_text(case.get(WorkflowEdge.PORT), WorkflowValidation.CASE_PORT_LABEL))
+                ports.append(
+                    _text(
+                        case.get(WorkflowEdge.PORT), WorkflowValidation.CASE_PORT_LABEL
+                    )
+                )
                 _condition(case.get(WorkflowCase.WHEN))
-            ports.append(_text(node.get(WorkflowNode.DEFAULT), WorkflowValidation.DEFAULT_PORT_LABEL))
+            ports.append(
+                _text(
+                    node.get(WorkflowNode.DEFAULT),
+                    WorkflowValidation.DEFAULT_PORT_LABEL,
+                )
+            )
             actual = [edge.get(WorkflowEdge.PORT) for edge in links]
-            if len(set(ports)) != len(ports) or sorted(actual, key=str) != sorted(ports):
+            if len(set(ports)) != len(ports) or sorted(actual, key=str) != sorted(
+                ports
+            ):
                 raise ValueError(WorkflowValidation.BRANCH_EDGES)
         elif kind == ControlNodeType.PARALLEL:
-            join = _text(node.get(WorkflowNode.JOIN), WorkflowValidation.PARALLEL_JOIN_LABEL)
-            if join not in nodes or nodes[join][WorkflowNode.TYPE] != ControlNodeType.JOIN or join in joins:
+            join = _text(
+                node.get(WorkflowNode.JOIN), WorkflowValidation.PARALLEL_JOIN_LABEL
+            )
+            if (
+                join not in nodes
+                or nodes[join][WorkflowNode.TYPE] != ControlNodeType.JOIN
+                or join in joins
+            ):
                 raise ValueError(WorkflowValidation.PARALLEL_JOIN)
             joins[join] = name
             if len(links) < WorkflowValidation.MINIMUM_BRANCHES or len(
@@ -428,18 +515,25 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
                 or WorkflowEdge.PORT in links[WorkflowValidation.SINGLE_EDGE_INDEX]
             ):
                 raise ValueError(WorkflowValidation.SINGLE_SUCCESSOR)
-            if kind == ControlNodeType.JOIN and node.get(WorkflowNode.WAIT, JoinWait.ALL) != JoinWait.ALL:
+            if (
+                kind == ControlNodeType.JOIN
+                and node.get(WorkflowNode.WAIT, JoinWait.ALL) != JoinWait.ALL
+            ):
                 raise ValueError(WorkflowValidation.JOIN_WAIT)
             if kind == ControlNodeType.LOOP:
                 limit = node.get(WorkflowNode.MAX_ITERATIONS)
-                if type(limit) is not int or limit < WorkflowValidation.MINIMUM_ITERATIONS:
+                if (
+                    type(limit) is not int
+                    or limit < WorkflowValidation.MINIMUM_ITERATIONS
+                ):
                     raise ValueError(WorkflowValidation.LOOP_BOUND)
                 if WorkflowNode.WHILE in node:
                     _condition(node[WorkflowNode.WHILE])
                 if node.get(WorkflowNode.ON_LIMIT) not in tuple(LoopLimit):
                     raise ValueError(WorkflowValidation.LOOP_LIMIT)
                 validate_graph(
-                    node.get(WorkflowNode.BODY), _depth=_depth + WorkflowValidation.NESTED_DEPTH_INCREMENT
+                    node.get(WorkflowNode.BODY),
+                    _depth=_depth + WorkflowValidation.NESTED_DEPTH_INCREMENT,
                 )
     for name, node in nodes.items():
         if node[WorkflowNode.TYPE] == ControlNodeType.JOIN and name not in joins:
@@ -451,7 +545,12 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             if (
                 name != join
                 and outgoing[name]
-                and all((edge[WorkflowEdge.TARGET] in reaches_join for edge in outgoing[name]))
+                and all(
+                    (
+                        edge[WorkflowEdge.TARGET] in reaches_join
+                        for edge in outgoing[name]
+                    )
+                )
             ):
                 reaches_join.add(name)
         branch_regions = []
@@ -491,7 +590,9 @@ class WorkflowGraph:
         try:
             Draft202012Validator(object_schema(properties)).validate(fields)
         except ValidationError as error:
-            raise ValueError(WorkflowValidation.CONSTRUCTOR_ERROR.format(message=error.message)) from error
+            raise ValueError(
+                WorkflowValidation.CONSTRUCTOR_ERROR.format(message=error.message)
+            ) from error
         self._data = {
             **deepcopy(fields),
             WorkflowDocument.SCHEMA_VERSION: WorkflowGraph.SCHEMA_VERSION,
@@ -504,13 +605,23 @@ class WorkflowGraph:
         """공통/제어 구조는 to_dict, action 고유 필드는 선택 handler가 검증한다."""
         _text(identifier, WorkflowValidation.NODE_ID_LABEL)
         _text(kind, WorkflowValidation.NODE_TYPE_LABEL)
-        if identifier in self._data[WorkflowDocument.NODES] or WorkflowNode.TYPE in options:
+        if (
+            identifier in self._data[WorkflowDocument.NODES]
+            or WorkflowNode.TYPE in options
+        ):
             raise ValueError(WorkflowValidation.DUPLICATE_NODE)
-        self._data[WorkflowDocument.NODES][identifier] = {WorkflowNode.TYPE: kind, **deepcopy(options)}
+        self._data[WorkflowDocument.NODES][identifier] = {
+            WorkflowNode.TYPE: kind,
+            **deepcopy(options),
+        }
         return self
 
     def connect(
-        self, source: str, target: str, *, port: Optional[str] = WorkflowValidation.ABSENT
+        self,
+        source: str,
+        target: str,
+        *,
+        port: Optional[str] = WorkflowValidation.ABSENT
     ) -> "WorkflowGraph":
         """노드 간 연결을 추가한다. branch에서만 port로 조건별 경로를 지정한다."""
         edge = {WorkflowEdge.SOURCE: source, WorkflowEdge.TARGET: target}

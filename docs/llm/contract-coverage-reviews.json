@@ -45795,198 +45795,198 @@
   },
   {
     "path": "llm/components/goals/records.py",
-    "sha256": "49830fa737c5fb02a3f2cd0b8f16562e7a35df6d7ee1f6a0cbe63146f12c5e93",
-    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path. Followed the MemoryData consumer discovered during whole Memory audit: GoalContextReference.for_summary owns its exact four-field optional subset in canonical field order with deepcopies. Component selection references GoalDefinition.COMPONENT. Goal context/version data remain reference data, never Goal or Run authority.",
+    "sha256": "42779fbc3c468673b71c41912d455eee3abe3b0f6dfc9e20ef2b85371f1320f0",
+    "reason": "Read entire Goal definition, current parameter view, scope/reference/context/clone projections, locked CRUD/CAS/reference validation, explicit context injection and Tool handlers. Field/schema/state/event-free contract values are declared by the Goal Owners; processors/tools consume lazy typed properties and projections. Validation/callback/copy order and exact wire schema are compared against 42b28d0. Shared schema helpers retain their original descriptions for record forms, while Tool wire helpers preserve absent descriptions. Actual Tool runs prove approval-before-write, one approved save, zero stale/cross-Session saves and no subsequent model call on failure. No new store, default, Run authority, migration or compatibility path. Followed the MemoryData consumer discovered during whole Memory audit: GoalContextReference.for_summary owns its exact four-field optional subset in canonical field order with deepcopies. Component selection references GoalDefinition.COMPONENT. Goal context/version data remain reference data, never Goal or Run authority. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "84bf04d36076b8e43e712648f9d8ab878069451da7b5a2985e70dc83893c6c7a",
+        "id": "b34e05a517e40bde0210063f0d54c62d9e4ad56fb4fe311b0da10951685073c3",
         "classification": "declaration",
         "owner": "GoalStatus",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "c240ef10d3f71b72347b042902b3299d5dceae4a19e733ae2bc728a3314e65a3",
+        "id": "1cd981bb3ea454d68bfe1a258384f87328d33660077e421f64234c4be628ad75",
         "classification": "declaration",
         "owner": "GoalStatus",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "e41ebb30a42f1e5f5d62dd0c78623e3ee1983346971c127b8ecc65aecfda0dde",
+        "id": "35dfdd59a903297470dd426a9ece7031ca3fb52ea4d6e26a8a3b4cac1e952684",
         "classification": "declaration",
         "owner": "GoalStatus",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "6e1b0ab7c52d434eac225463b1819be21f209ecd4e6d8daafb53e2cd09cd227a",
+        "id": "875773f14a071bec1785d9ebb7c45df9c36bb7cfc8446e77a7c9a796f2ee32d2",
         "classification": "declaration",
         "owner": "GoalScope.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "4deb3cdd5a14c96330fb27d094bc56d6e15e020ea35b837ea52d2493e29e1ed9",
+        "id": "838c32f9c555cfa3e07cd1bdc7459f1ad0463b942939ff20f6dce41502541ad9",
         "classification": "declaration",
         "owner": "GoalScope.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "d2715fb3ff82a0f57717d019ca80846031cb7a419afb6eb90894e80b281745ed",
+        "id": "5183457169f9e10295f48cecf9291ed1b50007c34f25a26739bb1989a30443a6",
         "classification": "declaration",
         "owner": "GoalRunReference.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "19973f5dcc90abcb3b23e85506ab4221fbc5f1b03a3364c9dc2fee5285bb8212",
+        "id": "71cf4e3650beeb3bd111157bc846d91b136d881621f1f82db9a5f3823a2ba16c",
         "classification": "declaration",
         "owner": "GoalRunReference.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "ba9dc63d369b87b70129e232c5866cb4dd34313ed21e174a138db5553f95e37b",
+        "id": "3f052e5d8ee361fbc2d45bd3de447fae18753fc5dc356ada9f81a6c6ae8d2581",
         "classification": "declaration",
         "owner": "GoalRunReference.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "46cd34a3202b541b674b4a902eca15cf6afd2f03ad81fb6d16b85517f4c4e530",
+        "id": "e3ae1f866e8fec5bfc0d03d10a661489e696721fd2383400b6c4f14f349ce7c5",
         "classification": "declaration",
         "owner": "GoalDefinition",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "37b4b58e316582c5f4972676a10d45c6ab7decd91f4e430d844ec4e9d1568fb3",
+        "id": "c161ada13459bc97df2e1412ec4ac9b1cdb73f06111207e104854f590dd9d2fb",
         "classification": "declaration",
         "owner": "GoalDefinition",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "9e9331f4cac11f8a07509f5da003c8ed0cbb17d22e6cce29da6e065e6b7d0ecf",
+        "id": "0710854b0a3b4496e8ea16e6e76ce0c6bdc4f86b4984dba690cca1aadb6b04f8",
         "classification": "declaration",
         "owner": "GoalDefinition",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "fc8aaa4dbbbb9931af6593ff2de8d341d2eb4c9e03a6d227f1f51c5f84b56c67",
+        "id": "2bb407fcd9410a624481b2e6524a9e312f10fd8d8d7b629be4dca842ba0960ba",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "79beed788d61389e1169dc97585208398de068b76c7c00f88a73a2814f025a3c",
+        "id": "db5ebbf467d5d558d62b66773d1e8012ef2be443d87c52fc878c643077891171",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "4b9a6bf3bda98819cc43ab26e341b288857fa3e785713f41da86793866bf7917",
+        "id": "8ee11f0d19e5deede7f7d9d3e366eef1dfd4ceeee5213ddbc842d0fae18d2def",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "eeddfc1efd22a10e3b6b87d7384391914b8cbdccf1945bb9ff1f85228d22462a",
+        "id": "deb564d9817e8261f5c7b9f1ee1fbe78ded6d5b0304a11d58446be79a26280d9",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "476835b311d02b9eaf954932d3bb23d325853f23298f166304a7218c4146387c",
+        "id": "d1cf8fdc4ceeb35b64b951d0f3b916e6e1d7ca75e685d47dff30b13fdec4662a",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "c12d70774942aa3779e65fffafb0f25c1342bb26ebf885e7199c5c3fd5b4fa43",
+        "id": "cb92e614d3d4d8634a77f8564e610af7c9160555ab04801e792d13e5ea86f614",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "0673bd1740cde6e988d5cf36197585168ff8879f5c00a630878e6c5cc147abdc",
+        "id": "f76bb88313122112eb9614a00a8fd056a89b49f0ff67386bce14f996e2289817",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "8583a05add6b9feafcc2c301d059140ef23bc9a68835de6cababa800582b5af8",
+        "id": "09a72568331a8dfb63bfb826b7f74bd1a71cc54a1d2b00b198960c7644d8e8b5",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "76bb6191b25865903fa4069d8b156c20bb17d237b26eae7c5e47ccd0dee43faa",
+        "id": "76852bd7b0cdb5f10e3d578f0199b0a20352cd0f8c66ae6eba41fffe41d903ab",
         "classification": "declaration",
         "owner": "GoalDefinition.Field",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "724c68f04ea6dcb93eb0549ce0721b4ddd83c6e8eafa812931f437b8b0c2e09d",
+        "id": "67c14e6b05497cfc0676b865cacfb6dd6429cce6244e36696c5ce39f0c54d965",
         "classification": "declaration",
         "owner": "GoalContextReference",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "3ea9f531e5561b8f659e7d2e3ba9bb0e84caf161e1f94f744ab8ca6f05d15eb6",
+        "id": "e4579b737f3745e3109f32b7175c175c2f74a8d7dfb4f26d6d8459e83219cc27",
         "classification": "declaration",
         "owner": "GoalContextReference",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "48f59a79c7ff790ae44da2222c07f7214522373861fbdcfd409da851a7128a36",
+        "id": "280a0d3f12c67363e030ba0d0b3b9ec2dad855278e1b27a24e634822008a2168",
         "classification": "declaration",
         "owner": "GoalCloneOrigin",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "8df64a4e1f92515648d0632109c13d13609de4446ec9bead239d9c746010ae32",
+        "id": "f38dbbe019b8816ef553e4e581d80235d501dd3298b6af1b931da7708f7e6717",
         "classification": "declaration",
         "owner": "GoalCloneOrigin",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "9c2ab988443924e750fc00dc843ff9b36254f4fbc7fdb8e82ada735ee16dc2a3",
+        "id": "dedd2b834278e9dd5d01bf1724e21c2e0d8fcb70ab150565dd2946e920e24ce9",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "1aaf5866e17013f9e49953ee9ac39f5e2d5de39f9d082f9b538a071a1632384f",
+        "id": "aea31061cca1fc5f494788b38110450646307caded2709fc99d8478a311340eb",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "50fa2a2356ace5b938115ba37a2b6c6810bb15b40235d079978af5ed25480110",
+        "id": "9faacc2ea6e924cb783662176d67cde8658ce21f1d45b1af50313f2be7e711f1",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "aac1c96dba642f818a49a0a3b963de31c527e16efcfc4a9daa6aaabbdcaedf3d",
+        "id": "d3e5d2e3996560f0a0281ebfb02951cfdcabdabe320b089ec54a1b5f57b04b7b",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "36fcad04faf3be2e8574be8d76d1cc11a216e70858ea2e7d1c4fdd85f013da9d",
+        "id": "5f24ab6e0d7932a05b869d28cb26a1fc2971fc670f6fce0d45e5cbe652e494a8",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "40a07b0ef5acf959ded726c907ea6c9a2918edc862e0c6723848c3d6d334c044",
+        "id": "860c6dd157c1756621030a762ca41811d7c56e170c14c6e187a5deea7d4b4989",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "d5e5dca7155122799b349c5265639c43a3ab82a006ea3e5e8acafbc8b15acef4",
+        "id": "74bc1874aee522457820b97821e1461f4018fec478506848cf9502c0e2a4d773",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
       },
       {
-        "id": "8619063a57686930abea2a009aeb245f9041a00846af0ab2afd57af88744e052",
+        "id": "04a469e4e42f4e75bed3dc197ce8f329c38d4942405dfd98a186377a47fc767a",
         "classification": "declaration",
         "owner": "GoalSettings",
         "reason": "Canonical Goal record/Tool/configuration/diagnostic or rendering value declared before implementation; actual consumers use its Owner API or field declarations."
@@ -45997,18 +45997,41 @@
         "owner": "GoalDefinition / GoalRecord / GoalScope / GoalSettings / GoalToolArguments / GoalToolContract",
         "declaration": "llm/components/goals/records.py",
         "consumers": [
+          "hub/backend/tools/resources.py",
           "llm/components/goals/component.py",
           "llm/components/goals/data.py",
           "llm/components/goals/processing.py",
-          "llm/components/goals/tools.py",
-          "llm/components/goals/tool_values.py"
+          "llm/components/goals/tool_values.py",
+          "llm/components/goals/tools.py"
         ],
         "tests": [
-          "tests/llm/test_goals.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_completion_processing.py",
-          "tests/llm/test_refinement.py",
+          "tests/llm/test_configuration_workflow_example.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_deletion_integrity.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_refinement.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       },
@@ -46016,12 +46039,36 @@
         "owner": "GoalContextReference summary projection / GoalDefinition Component identity",
         "declaration": "llm/components/goals/records.py",
         "consumers": [
+          "hub/backend/tools/resources.py",
           "llm/components/memory/data.py"
         ],
         "tests": [
-          "tests/llm/test_work_state.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_workflow_example.py",
+          "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_goals.py",
-          "tests/llm/test_memory_processing.py"
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_memory_processing.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_work_state.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -56653,36 +56700,36 @@
   },
   {
     "path": "llm/components/rag/document_views.py",
-    "sha256": "35ccb753887591bed03670ad43307062536603f71e1467b191069cf11931b3ad",
-    "reason": "Complete strict input/document records and their direct/dynamic import/callback consumers reviewed. Prior full chunk/identity/import-only consumer reviews preserve every existing classification. Real regression caught the removed catalog method call; fixed current-source L1/L2 and unchanged safety/fault Assertions pass. Component remains pending whole-file scope and these related stages require an escalated full integration gate.",
+    "sha256": "159cf705bc90e2f30c1be1c0db344b1a470b460c454387816205283faffb468b",
+    "reason": "Complete strict input/document records and their direct/dynamic import/callback consumers reviewed. Prior full chunk/identity/import-only consumer reviews preserve every existing classification. Real regression caught the removed catalog method call; fixed current-source L1/L2 and unchanged safety/fault Assertions pass. Component remains pending whole-file scope and these related stages require an escalated full integration gate. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "2e87e4b6498350a0c44a24b1f507104bfbeb20698b335874488cdbd1ebcd3891",
+        "id": "66d27d74aba6f1d08bca1772e79e009b298235886b13856c72d6c12936b441ab",
         "classification": "declaration",
         "owner": "DocumentChange",
         "reason": "Previously reviewed complete implementation and declarations are unchanged. Only document Owner imports moved to document_records; every non-import AST and literal classification is identical, with full consumer/fault/safety regression evidence."
       },
       {
-        "id": "1f5b55c20b1b6f0955725c70b18ce449c7c97fa9220ba128879ca5bfee148fd8",
+        "id": "c06f2ad5886dde0cb62c8f0ca6e864f51ac1d6eafa246aa4ad58efc7a75cc7a5",
         "classification": "declaration",
         "owner": "DocumentChange",
         "reason": "Previously reviewed complete implementation and declarations are unchanged. Only document Owner imports moved to document_records; every non-import AST and literal classification is identical, with full consumer/fault/safety regression evidence."
       },
       {
-        "id": "d813f94667dcc3a124068b06b6912b4da350892d2f967e229e1e2d7040bbf5ad",
+        "id": "f330e721a174fbf803a8559b4dde25bd7cf789d488c8b21de0e6dd18733a6a48",
         "classification": "declaration",
         "owner": "RAGDataSnapshot",
         "reason": "Previously reviewed complete implementation and declarations are unchanged. Only document Owner imports moved to document_records; every non-import AST and literal classification is identical, with full consumer/fault/safety regression evidence."
       },
       {
-        "id": "398271874531d55c5acc1773fa1d77562ceea239b7fe30397b945ecae7367fa7",
+        "id": "5d93b5e1b7a3604afdcdf19199bee45d0c0482a27798cde664fb5ec12d8b5c62",
         "classification": "declaration",
         "owner": "RAGDataSnapshot",
         "reason": "Previously reviewed complete implementation and declarations are unchanged. Only document Owner imports moved to document_records; every non-import AST and literal classification is identical, with full consumer/fault/safety regression evidence."
       },
       {
-        "id": "6ae3e4eb86df835a2b942e2cfb46d98dbee483bd249170bdee0d461336352796",
+        "id": "d86ce0cb6ef0f5aa7c2ee4aada0fa5c1a34fad9b18a7ea97850b9e2349a938aa",
         "classification": "declaration",
         "owner": "RAGDataSnapshot",
         "reason": "Previously reviewed complete implementation and declarations are unchanged. Only document Owner imports moved to document_records; every non-import AST and literal classification is identical, with full consumer/fault/safety regression evidence."
@@ -56693,18 +56740,42 @@
         "owner": "DocumentView/DocumentChange/RAGDataSnapshot",
         "declaration": "llm/components/rag/document_views.py",
         "consumers": [
+          "hub/backend/tools/resources.py",
           "llm/components/rag/data.py"
         ],
         "tests": [
-          "tests/llm/test_rag_prepared_integrity.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_workflow_example.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_operations_schema.py",
+          "tests/llm/test_rag_batch_source.py",
+          "tests/llm/test_rag_catalog_integrity.py",
           "tests/llm/test_rag_corpus_integrity.py",
           "tests/llm/test_rag_input_integrity.py",
           "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_batch_source.py",
-          "tests/llm/test_rag_catalog_integrity.py",
+          "tests/llm/test_rag_prepared_integrity.py",
           "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_operations_schema.py",
-          "tests/hub/test_resource_tools.py"
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -56814,318 +56885,318 @@
   },
   {
     "path": "llm/components/rag/document_records.py",
-    "sha256": "8e78ade1f689a200f691b21b5bf011355ebcf1401a593ea0c3795159cbfef733",
-    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "sha256": "c8daf005e1e2162e2e2f663316777d1b9541bc6681edfb0a4bcade0a3dacd779",
+    "reason": "Whole RAG Component and affected modules reviewed: lifecycle, configuration, preparation, storage, explicit deletion, checkpoint source validation, graph/result projections, runtime capability, backup/clone and selected callbacks. Full function equivalence and actual malformed-source Reader traces supplement original real file/effect/crash assertions; current bounded L1/L2 passes after the preserved Reader patch-target error was corrected. Whole integration is gated separately. Vision delta: existing method bodies unchanged; added observations/schema/content Writer use canonical fields and preserve missing fields. All previous contract tracking is retained. Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "636488262fa0097303e3d8ec13d832be45c327abc2ab0d3b41ec4182dda0a7ff",
+        "id": "cedeea3417fcde34a2001d792f90687e142db81fafb8b64670878e571a626b17",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f451a09866f7a79be2d022d55f968a29f21eda58daf32cc0b15bfb2f3ef82cc5",
+        "id": "97f2c66cd082d68ee45723d06503670b72c0a908e9b73eaeaaec69cdcee4847a",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "27d49eb37baccec467de32af93f40bf3969ad0e14d362b612618272dda1dea85",
+        "id": "29d4a12108e3d4fe288fa70fe0d4da94dee7b2f74e563dc0d312215218fcd000",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "aac9375cee43a6a6e191bf0c626a522d1308d4ab1251e4a0f0ddf28153804aad",
+        "id": "fb9a25dd09a55ba18bafe2e65cad1d48357acfbd140beef23641aa0e17f723d9",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "eff3b650620af2ccf8f0a42f8176065c109a414c1bfb6f23fc2af454bf47b298",
+        "id": "952169dd7bc56a8c55d5243232fdf70602078aec148897742f85e7567a86156b",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "e50fdc61ed0393ee806383c71075c3d5f054b4b15ee08328c544a4985719624e",
+        "id": "0844c4106496b15c943449eb1c1257059aacfeda504689e33189199a950790dc",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "086c9d59a3cd67b172d18e7e431657a1d1d0d1dfa416777cc2f9821619fa6667",
+        "id": "75a84401a21c44d4d0970420840e0450a7f190300b77020f18722f8cd5eb85a8",
         "classification": "declaration",
         "owner": "ExtractionManifestEntry.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ed30c0a8d0ad335c93c90cbd6cc8524d7408ae5522b0a169144324cd183747f4",
+        "id": "3c108d4f1d1fd5d2702484644b78c31bd8d9af3732d045d66d76df001ad3e52f",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "a5b6295ee81cfe9527e8624bf53275d4058e46abdc7a18c35b669e6b44bac974",
+        "id": "943a5fa05a6761584cdbb901d413d23f3200af73abd9cdbe69c8b733938f9569",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0a0e16109a262d5e392ed2d849147eed1987226f1fde00386c5ef3a37514305e",
+        "id": "29fb046e6dac23ca5c280326020a3248635c2af65ccdbdfb1660be447dea580e",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c2e813cbb072e5eb203c8bc380bb51e51a2dbea0a5ae82fc36cb859e4915f77e",
+        "id": "98c55bf81b59f18f884b85b8d8abe9ac607908725019703fc22b4d065b7c9531",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "4cd09e58cedc38ba84e451a54a36c4e54b9fa85d884a30d2ef16f1df1c9c791f",
+        "id": "2a0f87bb27f9b73c477c26f56e31a4864e32862f3a83484331a60f660130d8c6",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "16a45bb71aa7fd621347cb74d7597aa42bdc3064c0d7e0a826c8b1963e06f780",
+        "id": "13776fc151d285f6bdf0a316a674e30f30b0049406640db9f367ea9e70e4c860",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "971b29c8b14f7f545725a5e783cf44255d5de11ec8b2edb932dabf2d840b8a42",
+        "id": "05f3be1962afd0771a7c8b6d60b173f04ce65ab754a0162655a3436fec006d93",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ddc51eb962237ba09467a95a4ba1f3ec1d2f4dbb9811f78ba14a59696997918c",
+        "id": "0d8e3c466682d580d2b06fee6f967176242db4a60b5868f072b80c28b43307af",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "1f5cbd02519f59ddf9d1acc090461be21f423fb0ba422eed62010aac00d80c1d",
+        "id": "7a5b121126bf0684364f3bf344b85a84ad196beae3559712889a35f3be7c44f4",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ce2c33162d225d5ade4d58980e97466f7702a85932c4da252c004cbd97a27c3f",
+        "id": "d7422fbef399c4540ce79c70ea65de002116b9218942794acd39d8f036bcb014",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0a3292aff7ba3bddfad434ac64833ac7d05dc817d0d8063e110ee5634b5e2ab9",
+        "id": "333ace2f9e0669d89fa232b6e1d1626e2d3d45a6ab192541eb7a10c67fc2bb22",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "706940f5bef119945a54c00ee617905a71dc8efe76e7fe8b507a0efeb49b1c24",
+        "id": "a6795bac5f52f681c03f259e8f3bb063fa2b5ecb7658c3da0e33fb515a868f3a",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "280fa94627fdb45b2fd92d390a499164bc9ccdd217d99284977b1f86190be138",
+        "id": "94fafd177677ce726e615fe158361e6d47083393b271da9e9155dd5350c45013",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "7eab9f9f8ffae23b81d4a5c52f74c220f9da96dfb6e047693f870b4cbd70d609",
+        "id": "7f0e47d0f223ed1238518a41e06c0e7c7c0ffe8fd34a2651ee6e3e8ed94357b6",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "2b7f0461ce122842ac1df882d53e26faad7f7a3959e3ff5e2b3a519a7877b8a8",
+        "id": "540af376d89fedb5eff2b2c736d43951eea8ac3970419658cac06392552d07c8",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "3405420f0a2f285f36e0c8f8fef13f9e4d19373018104ddbb81559f2837bb3b6",
+        "id": "929a5032c5253ba1275800a2cfc6abcf51e496867180ec96ce6841a21b21ff10",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c0877dd330baf490457325fb7a6da38b63a54840db2612de7bbc2dbd43f25cbd",
+        "id": "d3ba811ad2c7309f1884dd94cf7b8560bb54b8ef7e6dcb843857ddb81886346a",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "e486495cb103dbe5e1a3b5186100fae998d0dc63a726738b15134bb9899fbb2f",
+        "id": "f73ea19f4a710ff4af0068f53ecdec3cfe83465adac8efca896b12c74e2f0bed",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "a54602b319fbb7c80f5c0e9a699a5b8791e4f46003dccb555c97a2a88eb43467",
+        "id": "af5148bd1ef60f78311bc7124d50a66fdebc489ed8a8895999da57fbacb58d78",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "fca2647c4c060cb434a4d2b328c3beedff032f73b8926adf9b203bf31b5c51c1",
+        "id": "308e750e9f5ad1fbba1afb83e36cf519b8512c932205add5d4ddd9604990da59",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "2f766bc7820460071ccd55f2de38f07a53cf7769163d06ac4b2c311dfb0a9049",
+        "id": "89091be65327fad8a0f02ac93fe4b0905d417b06d43bf7bd462c1ff191ec5dc0",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "c4c0c7a119086bec1535453b25ef71bf50cc0e17f4bcea11a78659be80719391",
+        "id": "09f315a1d5fa2c15eb45cb6b3cec167d646002e89d51b73a6175f6b6f9a2bc05",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "6898d9ec7a624a3531585653b2f06ea311a5b327af8b65892f18f8c3ff995b05",
+        "id": "bd65a948ed61a8f4b9e353d6f87ad9c47c9c45a273c65b1d8015a729091e3b5c",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bf84ebc30085a2bb55f7ae1cb964531a5890efcbc6d80259e695fa1647d0a06d",
+        "id": "e598c2e0161c8eeef935d4dffe2f0f2dbdbca137e2922333b2aacbff3fad66f4",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "409284a27a5e205254405806399fa939a0e2168b63ff3942a731429a9e6aeaac",
+        "id": "d7c6ddee83463005917bb852ad6cf7f45f1337f7e4f1373fbb5e789d15bae6f1",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "1f9a0522204fe61322e439ff063e283aac2d0909d6ef51950ccf84133177a80c",
+        "id": "c3fec32a0b3169b3e959a79349b82fb123f0e4d5877e5cbc1b319ec0b3bfb5be",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ce0cbcdd2c9ed0ae27b500444e4abd1fe275dc9c77f6fa111fbcc8fc38c1e869",
+        "id": "78cded0526e61462d4252d7d9c69c0135d1bfd47f365be6edfefe2a5d4c85039",
         "classification": "declaration",
         "owner": "RAGDocument",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "a4663bfca92eb3914389310c273dddb00f8944926522857213aea9b6df5598f7",
+        "id": "6110a6c365813dd409ccb3e0d8cc42d7daff4b1e00a421326cc1567fb76a6d31",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0de683651bfcd35ba2b1985c56a51ec85b346f08e4e4b4144301eb7d7aed6711",
+        "id": "75dcb5dd4719e2dd2a178ebe23b82c77e32e04827ce0dfa30ddb975d04e5c1c7",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ce41dae8563728beca297ae9bb6d31dc5ab76561446fde8062a645111fbd9bf1",
+        "id": "b50692acd47f946f066ccb5abd7be3b776ea933231b58424e0e481de09b97154",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "ab140d6bf61764e32d20de310e8204c76f307883677e097298dc0d6cd566b316",
+        "id": "adda8674537830dd9de555ce44155b0bf76df1551f06a61ede4dcc738c2a14c3",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "2a83205b719e2829cdddd2c387cd328b52b84239a25a4e6cb3867a667f815adb",
+        "id": "1efc781c24755d77f5ca87f5ffcd9c7711eebce0e1a136d98b76fe1930156e9c",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "15ae1ca6672a013e923033d82248fa64776e9ca7536a3fafe077c093389084d3",
+        "id": "e181470299dce0e488ed604bf98dd6577e2097513dabcc86f449cf499c506864",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "afcd16b9081bcfa5604014f360d7ea612b82ccb89275a2fbca2304f261514142",
+        "id": "42ab22cf1994902ddce18e00ef1f8945fd37723b0d9c41f13efb075078333eb5",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "1710eb9050c05e32103914eeeef16676bd04437aa061975b027dbd951eadd458",
+        "id": "4ba8476ad4ecbab98930abab9d50f79e2d5edbf7e34293844c404246111fb607",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "0c8faa7b2385cd3531fe4f5985136c8aeb94484b665e98d815110b7f5fc7bda4",
+        "id": "88ab32580f5a26ce43e2aadf167d8b3d3d3db4af92a16187ef73ec18e89e725d",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "9f492d8bb7a32fc25e4966f6be17728e1bfe3c176138156897acfc19c4ed89b5",
+        "id": "6b04490e4ed63e8a6cbd522e3e1336e1ec40e96dc7c6ce5d6cb15affc6415c97",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "14e8ca176318b2d59a8afa7080adc4af5caaaa5083db3fc544fbeffb2bb0c9c3",
+        "id": "0532f8769218b30c1ac39ee7f1f9a7ddccec53d50fcc03078651694af30c89af",
         "classification": "declaration",
         "owner": "RAGDocument.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "f74cc9957960063564718b68fa1656315e267b81629fcc2c4d69e63163950afa",
+        "id": "e1adb53d9e4b734f25e22c0c859535b4a395a6ebe4e008fb99c4f0859bf5c1fc",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "d5dc3e23d4d09b49cf60f65105eb9fe6d3dd8f81300fee7326ec44f4109c8398",
+        "id": "caca128509165a427dd345c86cad205a3ccfbef80f07b88f752827d43b25b22b",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "760e2b23e7c62036881d32451ec045031fa141ca278ffc0ebc5c4db9c605ac51",
+        "id": "72a8dcbf0a77668b644ac10875b43bc4117e89936cf5f1e827706de1362a4ff3",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "167de6d5e5001bc02fe0f9802c25c7682b0f12ce58122eb7b49806c103c581d4",
+        "id": "d812bedf2abb3e35a32eb92ab1aba5ad14b2b30ceffa9cf122a5883074a741e1",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "6f33166ba6e69212070ffe1543aa3322b0085513b659105700ef26dcc97c48fa",
+        "id": "57bc8711e78af8717fcabf5bf047ec51d0b87160d3422d3ad61472a612f644e3",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "31c0a23bb710df1fdd931d4d195405243d741e3ab7e34d9c315eb0b9fc54f911",
+        "id": "5b623bdfc7a479d4bd16221e3e88b27f86b818f1dff05991cd0d789f11ae1a0b",
         "classification": "declaration",
         "owner": "RAGDocumentInput",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
       },
       {
-        "id": "fd625508126c3c3135c73c684ceab441c037db288374b34e78ccd72a652cea5f",
+        "id": "1439c8ac8ad32e67f4f6ca0402e5e1ba211ceb07126542fbcf41755e8ce71f93",
         "classification": "declaration",
         "owner": "RAGDocumentInput.Field",
         "reason": "Canonical fields, paths, phases, diagnostics, signatures and absence values are at their responsible Owner heads. Actual reads/writes use Owner properties, validation and projections; generic callback orchestration preserves the selected implementation. No duplicate Reader or implicit default/retry is introduced."
@@ -57140,6 +57211,7 @@
           "hub/backend/execution/followup.py",
           "hub/backend/execution/input_context.py",
           "hub/backend/execution/rag_catalog.py",
+          "hub/backend/tools/resources.py",
           "llm/components/rag/checkpoint_source.py",
           "llm/components/rag/component.py",
           "llm/components/rag/corpus_storage.py",
@@ -57154,17 +57226,28 @@
           "llm/components/vision/results.py"
         ],
         "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_context.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_creation_contracts.py",
           "tests/hub/test_followup.py",
           "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
           "tests/hub/test_response_reliability.py",
           "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_agent_workflow.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_completion_processing.py",
           "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_configuration_workflow_example.py",
           "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_goals.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
@@ -57177,8 +57260,11 @@
           "tests/llm/test_rag_query_evidence.py",
           "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_usage_deletion.py"
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -63827,534 +63913,534 @@
   },
   {
     "path": "llm/components/workflows/graph.py",
-    "sha256": "870764bfe10512aa6418631468e55bf576438b7429ef7cbf7c1b782e20e04644",
-    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked.",
+    "sha256": "dbe89ad594c9407b52682fd4cc219922718512303d013750d28abf4ef841519a",
+    "reason": "Whole Workflow definition schema/builder/structure/binding validation and Component reference traversal reviewed, including optional handler methods, recursive body scope, pointer grammar/index meaning, foreign-schema prohibition, selected handler allow-list, exact current version, original node/edge ordering and failure preservation. Existing AST and differential failure/effect evidence reused. Only enumerated Python type/layout syntax remains outside declarations; Engine and Tool consumers remain separately tracked. Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "1645551783766cbb6629b75242dda47b661fbf497daaab8576a9cf319ad42f4e",
+        "id": "1c5344513b32dd34d49e481fe42b39e35cdaebe9303ee0892ec7efa244f38002",
         "classification": "declaration",
         "owner": "ControlNodeType",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "c2ac914fa800f6981f1ecf0e925ebfb14b7dcba872c40454c8e4790db33b688b",
+        "id": "e50659c24b887a392dea4740c292ac43ce1675c79a601900df95e7744dcb0564",
         "classification": "declaration",
         "owner": "ControlNodeType",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "7137f989203e97b9eff362a76470b6d57fcb86614c9e795d875f2640c3b52be2",
+        "id": "f0deec7e0657da44983d02f563c1e626dd78f39422d34a1d0e3a448eabab1201",
         "classification": "declaration",
         "owner": "ControlNodeType",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "96f6d9d5b75ce215bed29927dc9f5fb251de142b3c4ea04ea52d5247a465b47e",
+        "id": "5ddb1c543166897ecc12e628c13a0e6d88664364fcf5f0d0f40372151133c7d4",
         "classification": "declaration",
         "owner": "ControlNodeType",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "289bf883d09d737266e3d70a8ab3006caa21e236e49ac7e1a6aaea28d8a94790",
+        "id": "b3fa5b5c2141e315a6f7ef00dba3a05883d5fd45cf515b1f03bdaf9e9b5113a4",
         "classification": "declaration",
         "owner": "ControlNodeType",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "9c33f579e09c02bf1d8014290108553105b9822ef427011ddeb622a87e1eb011",
+        "id": "7c85991270802acbfaa5c2210d99e6e6fc5157418a4a10a0ee9b7bf2205f3240",
         "classification": "declaration",
         "owner": "ControlNodeType",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "277c409d7bbe12faed534321f2b61c3ed7d95b60c4132c17371170f98463805d",
+        "id": "ee0cce5496308b8de2d04058079b4631a08203a55e16f9933dd2ca3c9f7d48a6",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "1b75fbe30d0169107b85943d7508cc934d60937b897c2abc894b8e37504ab159",
+        "id": "062c8b1bd298ce156b43b6bc4368816fd7eda24a4e4840f1cb3113266134af9f",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "bee2df63b1c190d286db851b20baba01b285157b81e413d35e4a9387df427225",
+        "id": "c2b57eec786544156b5db0936d67d19cc4ea510b5a085f9d92e8c588535b4a05",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "afd34ab6ef6a503b4d0ee84276c9b6f0c358ace695aceaf488908d5ebd9ac1bf",
+        "id": "daca5ea7f6d84e67e78403f82ff3a0df77ed729a435a234e716a54197a37f22a",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "8161faf80512bb6a7b1867bc8316dcf03211e14f75f3627bf963078689e05caa",
+        "id": "d93e544f76029682697185a710d97f8996efc45a0be1330d2c20cc799468ec1f",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "2a4e9bf6cafa6dc3a3153938b5568f971cd0f93f8dca84914e3dd465cd8f0124",
+        "id": "d8f02ed62e3112745ae3f6391c59b583f442c5a7fed9476ff68f6e90c5a85048",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "a771b05b037640786fc97fe073a8f13fc3049e272812756518e38242a5324b9d",
+        "id": "0548cfede084b51ebc463317fd13bbcc118f3be0060f203a47c537c123916850",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3f91e9a9eed9c1a0a4bea32e9b4eb8c1e7e77668ec1dfabe77afb5b7443a7faf",
+        "id": "289ae65fb861f766f7d662d2fa4b73bed0e257c0b5589fd88dc2e159bb584641",
         "classification": "declaration",
         "owner": "ConditionOperator",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "03a576624e7368a8649e94e092503196efaea006650dfed1af8e2ded50b2cf5a",
+        "id": "3449d59a6c7cbacfc8a860ff8588862f5bb1d84750703748e563f13266365671",
         "classification": "declaration",
         "owner": "JoinWait",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "e0f0c5b93ebf8c2d54244950ac8045438b7c4bd7f6dadecedcf119677173fb5c",
+        "id": "8db81c1c24e0f02f797f83db30a1f609a05de4d3116efd975d92cd4a6933aa8f",
         "classification": "declaration",
         "owner": "LoopLimit",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "eaa324f6b5be728e49dc2f3960c50d8fcf73b660bf7508fac1c840ad9a3959c6",
+        "id": "c4740fd76211a4036c28fd3f269cb7ddaa8d835e41a743b4483a05369285695a",
         "classification": "declaration",
         "owner": "LoopLimit",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "46ad47f15eb5ec9f9f9d67149f67ad29524dfdb603a5773d23c05fab6b1c09b2",
+        "id": "403035dbb7c2a943d7b0494fab3a0761de175cdae87985be6ea35dd34e456da7",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "c1d5e8f95586e8547e2962bf26ab6a39feb2c5730d67e50f0ca9d108a873adb7",
+        "id": "719334fbd51a480860c1fd89ee57779a9405d1583266012e73ebc08f19b906b3",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "a7a8570e9d41f2ebea27a8aae8f5508e1d54f607ff9bbaf3e67dc91f110e4481",
+        "id": "751c36ffdd09b2de53e834ed246dd50724ea4aa0c373f5708c5e0b9f0656a8be",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "9492439dd00e7e71320169e8ce2b558ffca5ad6997ca3ce9738cf5710263bf4b",
+        "id": "771bc757357a2001b76d526a94a86f71bf4800b31ccc040bd6f94db6b3fa5158",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "7a302db2515cdf212434341d2e7a796a32e651cdaf7084b1634231ac08763410",
+        "id": "f86429e7efac6c0a5522f1dedf2a1f430729a5b0624103af70bddac364c5b9dd",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d339f0430bf6ebfc44905494065508c9ff5878902e65ee5af75e1a0093b40d18",
+        "id": "301eeb4e66c8a2f7505dd7fb25f7a8fc4b11df33b5348a7dc3afb65d969dcdf1",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "9d974cee01ab8c118586d15a0c88b732f3cd9c9f355c6fca7cd1b0e4267a9e28",
+        "id": "406d952a7b80361cbf90d33d18d6a4926eef3fd20bda2b7ed4284342f0c0fd49",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3e544c432f4cca1f83f0365ee7f865479018c7549a3a1fc5aa2a6c7f2bb57c49",
+        "id": "d831b5bf28643cf86c09b6f220619db0ff01374491afd5b952ff31b99e0a3b86",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "15d6bdbefa69fd9b3caa1260491918f0766434013ef7cbae57bacf15d657b480",
+        "id": "cf349bd34063987419b3b78d312ab4792e16097b1cd0a7a412c788a763046ab2",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3b1991c22dd7733f11fd237cda89f8b98d0cce592316df4253e092c4db8aab22",
+        "id": "455ad1e98c09d5be6085732cd69442d7d70b325adbc897e238f362cc0792d365",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "a583be51eb3c7076ec5923b78b3054e19fac5660f4abc67771c2c3c09a36affb",
+        "id": "b655e8e282838fadc80bd90936e57b36f0adddd9ec7cea70739dfe37bacd08fd",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "13bf507acae7768ca4a229b8d79c68b2b545f2dae5a7a8d5b1e3400aedf111ff",
+        "id": "24d292e6f451ac98eb93f9bb829efb88b0153bd08da8ebceb364c6a20fa0a474",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "8ec8bb160fdfbe818b063728efc8aba755d75f9ab775faee0b75be10ed1a2964",
+        "id": "82bf7e8f0e12901dc3fff32ec01e67835f79fc0ae2faa30ef969d9601cf3687d",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "7b152a30c081235353db1168b10738e104e891618ac2d7257117e165a3c708c6",
+        "id": "116dcb480d2035b846b392aa48066ac14b9bd201c9728b76252a2280d8dae236",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "f3a6999ba1dd25b3d9e3ce0059879547e699daa87904d9e31a55a057cdd2cf9e",
+        "id": "8655ba413a33f571b4512671d51a4738ae6ba04ae50acec72d361f2ca5d4571d",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "068fe58bffa9652d52c909b404f6d63cb3e5eca1237bdee40abd046e70cba825",
+        "id": "92b1b5b0eaf9d5863aa4e9de8ed5cede64cedafc2044afd7656f91a8f9617d5f",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3780c1685465d697562c6e0c243a5760f4fc31827016b1dc2d9391d2effc159d",
+        "id": "3b93fdc666472ac8a4dd87b0ef556181758293f390f67befd056cebeaed31f8e",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "1eb2cf157092630fdc4aaae9e6500117089880c00358b39c647fa138974a9652",
+        "id": "74e92223adff90af321e4cba72b0138b017f0b648b6e11a719c0167abdcf68db",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "95c828c6142e1cb1926b213950369903ee1b4946bf9563bacafcb3644a314646",
+        "id": "544e80686f1f5591754b6c3c57cdeefa92dfdd030bf39f0cfb0c324d1a0f554a",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "6e3d791c64013794618f8cd2b148c5fcf325f5c36c5aead6114882d70f0702c4",
+        "id": "937a47237c087833879fe79a2916f1c5371f17fa158b706eb7b0319e4460eae0",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "621758f98de7cbdaab581d691b63f99523d42838f95c56531d04e8feb154b31f",
+        "id": "2580a85a7b93cc82051b2b8f6ee46c5cf1618c2fddd1bd314e4ee390a69dc814",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d4566e590135d27dc8cd0a374ea56ece5883bf93176056a637c8f49c54637625",
+        "id": "97f95ca3cacd56d4ccd737ded91b1cb6094da49f44321fa6ceaefadf9281d1d4",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "b41e66b8449f7bf027853de6b2384bab08549aac8b014bb1316345af6d5d0ab1",
+        "id": "df9f47e378ff2dedbe7ce0f35cd795ac229f93d0bb0f4d65967bea03ffad0468",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "469fb3c529267218f8bdca915609c37b528a5b04ac3c08212558274c68f040ac",
+        "id": "b3f565b8388c55193e5abfbbe280af9d91c9d9da213d78a5a7c6c9516a15550d",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "e7e1c06e363f211e762e9934cd52d3e73cabe853b1c13eca4640cf636672b83a",
+        "id": "4939c4ed5ad314892456ab288fada17871ddd95fd0fc6a9fb421166576d4fa9b",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "2929b9771120bdafdbc4a43b8bda2b3831e2b73ad9009d2ab4f1b8cda246b4a9",
+        "id": "d20a8cb19c671de07a540cc856e96758a27c5db88db9013f6d1e6415b15b4b5d",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "c0cb37165c8d97604ba6b8e4373630c9c5fc1fd24ea995e128c7ef27a17094e8",
+        "id": "65e2612dd41032fc03aa9769b363959e9f67c5e956c55d5d2c8694bb20283e1a",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "c1b463ca7a283499cd5fd6dcf0cd67768d442b5409f2031b026c30f2572e09c7",
+        "id": "6f98f2502963244004d86d63ed3f0f558d6b622f4c4972861cc6f098d457a19e",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "57e341c5e9daef8c65a7fe7cddcc55c4d0867e4368f908a2d254625f518055d9",
+        "id": "989df29c4fa5ff3435f03ccb2ac36276ac07a889de6260dffdc4bf2efa8217f1",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "4c02523f89afea044db8188b99a2d7dae3fd855b452a6ba2f863a341abae750c",
+        "id": "3bf792c7e40b46f892e65b82572e4a80d468f392a48e83c66855cd6baef4fbb8",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "bb584c86b3118bf6181362fda25c105a86c4197dfeb3b349f109d7c09242847c",
+        "id": "13ca37d1bf46bea8728b42f83ae24e43561c31cd24076f712c3012c0cbd62aba",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d9b93b7c8cae76a89f8915372d8aaae5207c595a3ed3291e3dbd596ac2f906e9",
+        "id": "9836c35100c13d1c7bb1f55ff707446bfb9f948f0afdd53f81d9caa5c5c059d1",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "123ffcf8c8c018817cbafa65fc1bc889dc1d4f72fe4ce021c4c672b38f52a779",
+        "id": "6dabaaa051ce32605eaf2d600e41d5c5bb78cb638651ba6e4769f002b40cc224",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "c4d6a49e125654a20c6a95d563763df20509f24bc319a4346093506f892fc42b",
+        "id": "7678c45b951db30590c98c96b45ddd0926ce2f565973cf2e64f5338e74708cac",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "48c06d20851479525f3e73aa9277d937645554e229039a31ff99b21750e3481f",
+        "id": "fd599e23395c17234a73b26aadc06e07a181014abf775c635c78c654273de0bc",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "20edba84e8605908030daa0a4208f4e093d5ea8408c677e35a4b6d684cf86e65",
+        "id": "4464c9f72f372f97d2c492ede0fb1323bd7612242ac897cf3d9046f19dae2820",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "708eda2aef26555fba8252837fcc95dd3732ac62583f866744a79c0af5bab87b",
+        "id": "509024aacaf29e6db0ab6de012db29244b49b88d3ab9a9f9405800da0edbc103",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "8edb7348b17e5f0310adb00f77eba8a5b4935f19c302f325b68ec8878d564f8b",
+        "id": "894a6527d379f18cf8a2ec76a77132dcb9d1e71bce8dff6b0b9bb60fb0049372",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3aed1c1f47174168bf8ed19632b2c9dde2455ac5f4240d4d8a7f004db77afa7b",
+        "id": "292760c3438f1fc6b3bd13f7f8124d1835626f12d713657c520f064162e4748a",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "554938863816e7edcfbe81be7d7d503e2ec7f6ec249b8598f37bd31ffa5a8573",
+        "id": "0183423f3f5009809e823cb963ac163d05ff508e17df9cb1cf456b3ca1c48ce0",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "684537b4407da8d32cd6348aed9cd9efb8536b8cf8f0955dd8ecc3bc4afa49ff",
+        "id": "094459ce4d915667bd03338ca80b0322b3f232155716b6972d6492f0bf3090a4",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d23c24a278a7e42701709de46c2a0eba926023c75260fd9a4648386dd5862e15",
+        "id": "71f08c239ead9677938f500cc0b1050f0e55b40560e881b47426767cffd8ac2b",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "ae6c2d0acaa4301428ea5c9bbb58d5dd912d0d199b77a74e039506d1f13b5cf0",
+        "id": "79bb9cfd7e1de0d4c05bb7cdd9808e49fa54b0350d03fd8dd33203ba22c4c1e1",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "4a58de21a39108328a04388d5a89b2360de8a39b1f63c723083ba1a9c28b6047",
+        "id": "76baccea3eaec4515f00b045fe3032962292f3d6ec26ce94bf69c4b18545ca1f",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "2113088253095d461006bbc34fafc2f789b049a71c22ec8fa0f093a13b5dfcf0",
+        "id": "0f32ec8b2cd4b294fc79c452656e6d9411a136e150cd9bc819e53f3ae547d234",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "941f4694044b499136551e2b7a5aa29b1ee0064967b8c138e4d96b26e2ffe7d1",
+        "id": "00f50c31064b6ab3b9a895e80665cdd8cf1e486a13972cc07ec1e12ec8248f31",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "fdd042cc12c0fd83f9bfa3b24228a389f02bad42a3ed09a90cb4459e3d2c5928",
+        "id": "20038defe136dc5a286261fb996e4569158b1a673e9069e2d6b75372d2bef406",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "6d3a54707aa3d97c7f42fd7591fdf2df00752db9880c05ea63b30f1bc3d14bd2",
+        "id": "1e99785577096cd7936e4e39082b17edb54b82c2a6b539112655e059dc9f86fa",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "f19e9a649037a83fae3c7895f4fee6bc31530dd2787f5a0e66c0bdf48b4543fd",
+        "id": "07057c213e5da9d6936bd119a8b87c6620bfcf64676fc2e8531427667b8e519b",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "5758f6f37abb7c863ef8c6f31525aa2d28a267ad1bcc64003fb7147271ac6d1c",
+        "id": "aaa55f2005e9e7670365e3a1f5b3ce2fe0a4774dad191fdff84e8988a5546bfb",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "d7b3657438b922dd75ddbd0d90721bbc135c4841ebf945bcb3fb45c4ad63ef7b",
+        "id": "cb41eff406a0189d2ca16359a790c7c0d58ae1ee91c5761a3dfeb051987272e2",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "bc22612192a34d4d47b6c42b2bd3f7a71f5bbffdb7b884107f72dca8e18abb13",
+        "id": "e850877b9bc316b201caa38e3219d2f8a9d8e930755413141793781fa9d3b4f3",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "aead08bc30dce3a290243056221ebae4abf30100f07ed9eea91fa595cded2c8f",
+        "id": "73f786249ae9a8e430ffab740d609bd0840ebc5629f3c8d12a23b9b45a3770a5",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "307e1f1ab6af351369f9ef231d60925a7d53c2be50940b1a4565dad9f827fb27",
+        "id": "ef833182185931c1aec85cfead580fb7988ee20963a2b397fe0047f54b7d22d9",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "5e73d844e22ffb1cc1f180fb9ec316563ec14b9bfa86c76de438ebf2efe538db",
+        "id": "c61f8d80a58701f370d120d063587435b8ecc8215bf6a3342725e05913d11ffa",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "b87e60948e13b13517302d7f0ea14cd5bbada066fa7df2ff2308af7edc3695a7",
+        "id": "448bb3eb7c088c8143ef5a84f5ad46bdca77fa85b17d388470358f312ab7ee6c",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "3ee7e16a2933d2820996120c159b18422dfb3e758589a1d479ea69167d61a6d8",
+        "id": "7301ad8c15ec68bd6a3dff91e2661bbe7322979fd884e39a9fc7ef0f75434263",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "bbd90744afef17bb0053e7c5508657afd1b2e64fbbe25ef4b6065b8a8558c009",
+        "id": "49e801db48082875ad6e301fb6b1984ec910f0891a71621abc386ac78863eef4",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "e9ae037b821e42e7337ba33a41477551169c2ff87118195ef358b4b35cdd4267",
+        "id": "fbe09abbefb72cecf7e5163d8741f382019db17dc2404122c99628804e91f358",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "4b7b7b6b78c10712e6e31c0f4e3f740211c16f93b28e33aee92ffc7ade637afc",
+        "id": "224de0a6745eb4dadf4a0e374316a478a69e685c618c8c6ec0deec92dbc9ec75",
         "classification": "declaration",
         "owner": "WorkflowValidation",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "17433c297697b426c9704b2f58230cc654c6d652f505f10059e8641c406be54e",
+        "id": "a43957415724ed6d66b8f0a4f3041d1cd3bd40890da5c8bd30f2a147dca8cc9a",
         "classification": "declaration",
         "owner": "WorkflowHandlerContract",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "b635765efc739febbe3ff53a99b1c19d5d98934628046138909c83d513ff7a0a",
+        "id": "3bd9cc2807d5c02fd6487f498c5dd0b518d7671285b673de0d34225c44d04ce1",
         "classification": "declaration",
         "owner": "WorkflowHandlerContract",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "02785ee892679a6214ed2483ba4936146afa200d6aad1d009bc7b54156276489",
+        "id": "2234d9142bbe85b9bb108c484e834c67602fd34b078b468cf3af3f2021aa3da1",
         "classification": "declaration",
         "owner": "WorkflowHandlerContract",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "a2d44cfe9fc6c6d00ce2dc34644c3dc528d5183734c72763a8464a5332bff49d",
+        "id": "086a2a29379ac728b33b4f51510f7ed7235ddfe215813a3f7e75c4b9f6748cee",
         "classification": "declaration",
         "owner": "WorkflowHandlerContract",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "ee350187e4cc008c42e3b1d77cea9fdea520a2ccb953793a20088ec3fae413bc",
+        "id": "f1c8fde9c83800d8b5d2076758d99261e1f61b45a5924f4d28fb3e73d3bdeee7",
         "classification": "non_contract",
         "owner": "_condition",
         "reason": "Python -> None return type annotation, not a missing-field/default policy."
       },
       {
-        "id": "1e3770576f4e006f38732b61e3604032e35446ba9deb8911414aa3ab4f82c9b0",
+        "id": "5a06fe2955eb0ca7f2aba8ec9dc2b036530c700fbe857cbc5a62b9bb5c420990",
         "classification": "non_contract",
         "owner": "validate_graph",
         "reason": "Python -> None return type annotation, not a missing-field/default policy."
       },
       {
-        "id": "e800f31dfe8ec87e5035b879ab41368d616d2747329a3f395716c19d6dbc72f8",
+        "id": "f535a389c6f6de8c624a326c38b24f4782b39a4b8106d4e454cc11d3e6c1a81d",
         "classification": "declaration",
         "owner": "WorkflowGraph",
         "reason": "Owner-head fields, binding/schema directions, structural enums, current version, diagnostic and algorithm bounds are declared once; structure validation and builder use those declarations, reference traversal uses typed projections."
       },
       {
-        "id": "a9fa78ced39818dd4545725e643c6d2001d022d551fad07639f4348b59b862a2",
+        "id": "4c34df914a53c051d0c62c6049a4dd57c6dc9e04a5ccaee6dd8ae3a0c69f82f4",
         "classification": "non_contract",
         "owner": "WorkflowGraph.__init__",
         "reason": "Python -> None return type annotation, not a missing-field/default policy."
       },
       {
-        "id": "a71b5682496540eefe2e5e32dccc2afea04c2c83393d6ea3ef5fdb1767650bee",
+        "id": "cc1c7c6cecf1605fa94aa0dcf4c3a6c256babb9c19929c5d1f2c834da370e9f6",
         "classification": "non_contract",
         "owner": "WorkflowGraph.node",
         "reason": "Python forward return type annotation; no runtime contract key or state."
       },
       {
-        "id": "ae971349d5e3a835bda655a56c90209f4942a3012943293d7291294ad02a087f",
+        "id": "bd99fb60303dcfe02357c9c00adaba9c53150f677feaa5b8f9fbf889db65eed8",
         "classification": "non_contract",
         "owner": "WorkflowGraph.connect",
         "reason": "Python forward return type annotation; no runtime contract key or state."
       },
       {
-        "id": "cf59ee15c81298733f9ca7e018a1ece3425ce9a0255991aea415706fdcb639d7",
+        "id": "251b96e1616b581c4f11923c2bbb2cdf55e41f0c98b1c2dc9c4b7582f58b1473",
         "classification": "non_contract",
         "owner": "WorkflowGraph.from_dict",
         "reason": "Python forward return type annotation; no runtime contract key or state."
@@ -64365,28 +64451,46 @@
         "owner": "WorkflowGraph / Workflow structure validation / WorkflowHandlerContract",
         "declaration": "llm/components/workflows/graph.py",
         "consumers": [
-          "llm/components/workflows/data.py",
+          "hub/backend/tools/resources.py",
           "llm/components/workflows/component.py",
+          "llm/components/workflows/data.py",
           "llm/engines/graph/engine.py",
           "llm/engines/graph/tool.py"
         ],
         "tests": [
-          "tests/llm/test_workflow_format.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_graph_engine.py",
-          "tests/llm/test_graph_decisions.py",
-          "tests/llm/test_agent_workflow.py",
-          "tests/llm/test_nested_graph.py",
-          "tests/llm/test_graph_checkpoints.py",
-          "tests/llm/test_agent_resource_integrity.py",
-          "tests/llm/test_resource_references.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_lifecycle_integrity.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_defaults.py"
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/llm/test_agent_resource_integrity.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_configuration_workflow_example.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_decisions.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -116260,6 +116364,305 @@
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_input_contract.py",
           "tests/hub/test_resource_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/tools/resources.py",
+    "sha256": "8d6317841fbc206bbfffa02c24ff5d74e6bca777d3c58778ae460e31ed7540eb",
+    "reason": "Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "Resource authoring Tool orchestration",
+        "declaration": "hub/backend/tools/resources.py",
+        "consumers": [
+          "hub/backend/tools/builtin.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_coding_skill.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_configuration_workflow_example.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/tools/resource_contracts.py",
+    "sha256": "8f8921197f0b4bb44bf406fe247b4b7d4de21246271a547f6984ec6fefea6c3d",
+    "reason": "Host resource authoring owns Tool input/schema/response and provenance projections. Domain-owned Goal/RAG/Workflow helpers preserve required fields, eager evaluation, truthiness and error order; original Tool source ownership and effects stay unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e3ee5ccc8bb001969d5c8a5c821c04ffb5f21159580d5a653c7dc1ef7765aab9",
+        "classification": "declaration",
+        "owner": "ResourceToolContract",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "1a9c406f656e3f9dfccfb9bcc335e5ccf342d7152ba1b7188b4156157c83d364",
+        "classification": "declaration",
+        "owner": "ResourceToolContract",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "6ea1207c934311a260ab7021d19634226c9a61123429c667f7b487d53aae8df9",
+        "classification": "declaration",
+        "owner": "ResourceToolContract",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "d2678d96a1497e7170a0b8fa0b2c661afc1cf4dc4d0c8b8bf88202b4b23e7b84",
+        "classification": "declaration",
+        "owner": "ResourceToolContract",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "369060952e6a331e9ca134ac9c94011c9be26fc7f532a0f6745ff3c4022aebd7",
+        "classification": "declaration",
+        "owner": "ResourceToolContract",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "e8c961fdea01b93ec849bce6eca65120d9ba9e7fd5ca5d1a689f06683998b58d",
+        "classification": "declaration",
+        "owner": "ResourceToolContract",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "8634d594d81a1f01a6c5ad6ac386ef55414eccb8be4395391f69bfd225011db9",
+        "classification": "declaration",
+        "owner": "DefinitionArguments",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "46e9d8438472879ee245d4e4cfc68c2dd29835603d326175a2f53b723dcee065",
+        "classification": "declaration",
+        "owner": "DefinitionArguments",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "f42d2f668953833dd1166368e337d1ac5a82d9e795b2a6b75c7740424bb7bcc9",
+        "classification": "declaration",
+        "owner": "DefinitionArguments",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "22b4868be352b0602097596021d47aaf45e63d21030196b01861cd73394a41cc",
+        "classification": "non_contract",
+        "owner": "ResourceAuthorship",
+        "reason": "Dataclass language declaration: frozen/slots, not a domain default or runtime branch."
+      },
+      {
+        "id": "a0766f71211feef27417fff445a301207a7450e82d6a9d94d3f3a0eddbb317a8",
+        "classification": "non_contract",
+        "owner": "ResourceAuthorship",
+        "reason": "Dataclass language declaration: frozen/slots, not a domain default or runtime branch."
+      },
+      {
+        "id": "6562260c931d73589f449b178ea19c0ad873d17d93a6306ceea90dd33eaa012c",
+        "classification": "declaration",
+        "owner": "ResourceAuthorship",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "e8d21d76d7740e57847e77a7bc3b758ae01f915a07165353365a40db4f7d2bdb",
+        "classification": "non_contract",
+        "owner": "AuthoredDefinition",
+        "reason": "Dataclass language declaration: frozen/slots, not a domain default or runtime branch."
+      },
+      {
+        "id": "f8ccbe02cc2f746756c81fa9c99e77e048096b09ee0e72d4869f3ed05df0cf75",
+        "classification": "non_contract",
+        "owner": "AuthoredDefinition",
+        "reason": "Dataclass language declaration: frozen/slots, not a domain default or runtime branch."
+      },
+      {
+        "id": "2013e41245590fb83f190fe12cfa6d881be70b438674aa8ba85d8f4277c1a266",
+        "classification": "declaration",
+        "owner": "DefinitionPreview",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "4cff5aab8f9c1ed7cfdea34a4f829780371d5f34b4ab4c2e3e3c0d622cf15c0c",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "e6df4443481997ae84187371f38402deb6f59dabe6961e9a2b22825e5f31f440",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "6b34f9a939e889722517e1bf1131fbee5c286cc6f57fff35379c86706d001537",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "e3a9758e5493171de0c500df30a634146c7278043f2b8a2c09a6524cc6e91017",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "62e76b82b0cab4726b2506736d80d55c4d800496eda49f78841ed7c265dd5bb5",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "e1ccd5e285546deb2c8df98c06b2f508a557bd7cad812be4248ea9b45fe36c4f",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "35f7278a08379591cd860e34c5554a08855778cff59598e9ba4aa71670507c32",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "c3ec4f60272f22d60d9b280c8d2d0c8bfbd55171509ef90c2c5cb9e6daefa014",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "00fb237e292448a73d6bc26ab1b3b9501fa08ebc69661726f8107b66e3f86821",
+        "classification": "declaration",
+        "owner": "AuthoringTool",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "acc5d9dd97e0b29aeb066be734cefac0977fd4472e5dde70e6d39a41473e74d6",
+        "classification": "declaration",
+        "owner": "WorkflowAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "46e75ae35329ace4c89209319648b85eb166149f403cef9f7b62ec4a7e24e19c",
+        "classification": "declaration",
+        "owner": "RAGAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "005dcea7f8440152e26f5ac712cb00e07fcdcde5a1e660789679ac1b2b443dc5",
+        "classification": "declaration",
+        "owner": "RAGAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "cf75fa3ec90b9fb3ff12831e936d6a9789dba4b690c99fe372b3df62aee5692a",
+        "classification": "declaration",
+        "owner": "RAGAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "4e2399f7f77d385adb0ee03d8734f3851e099590f546d028bdad70bff6f6412e",
+        "classification": "declaration",
+        "owner": "RAGAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "18113d369dad11359fcbb9252916dc9a953618cfb16629904f858c257b6bd8a3",
+        "classification": "declaration",
+        "owner": "GoalAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "647ac69826512630b1b822b68b64f5b2edd49c67b2fd92d6dc269549e11f2b2a",
+        "classification": "declaration",
+        "owner": "GoalAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "14c0a5980e88d0ba4ce80b342d570845559c2eeef6ae49c77ea00fa83c4483f7",
+        "classification": "declaration",
+        "owner": "GoalAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "37a4825b93337ae70b9075a86b18bd4584451efa3667b36f0c19ec83c8d7922a",
+        "classification": "declaration",
+        "owner": "GoalAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "f44b56dcd1ecbbbd9e125d722fdc36615c8153cf024d626fdb0d865aca675041",
+        "classification": "declaration",
+        "owner": "GoalAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      },
+      {
+        "id": "6b5d0da7fc277321b1c80c9aa835fd73b563750c1ec0cb5f6d849634b19e5c65",
+        "classification": "declaration",
+        "owner": "GoalAuthoring",
+        "reason": "Each Host authoring request/schema/projection/description and source annotation is declared at its actual Owner; domain fields and revision semantics reference existing Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ResourceToolContract / DefinitionArguments / ResourceAuthorship / AuthoredDefinition / DefinitionPreview / AuthoringTool / WorkflowAuthoring / RAGAuthoring / GoalAuthoring",
+        "declaration": "hub/backend/tools/resource_contracts.py",
+        "consumers": [
+          "hub/backend/tools/resources.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_goals.py",
+          "tests/llm/test_agent_skills.py",
+          "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_tools.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_agent_workflow.py",
+          "tests/llm/test_configuration_workflow_example.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_approval_continuation.py"
         ],
         "complete": true
       }

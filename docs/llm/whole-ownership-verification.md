@@ -9964,3 +9964,40 @@ Level 1·2 로컬 완료다. 기존 승인 정책·원본 Schema·binding hash·
 이 이동의 영향 범위를 제한했다. Toolkit·관련 authoring 소비자와 묶는 다음 Level 3 전체 검증
 뒤에만 Push하고 정확한 SHA의 원격 CI를 기록한다. 과거 Gate56 결과는 이 변경의 전체 검증
 증거가 아니다. 승인/예산/효과/Checkpoint/Resume의 실패를 제외하거나 기준을 낮추지 않는다.
+
+
+## Hub 리소스 작성 Tool·원본 참조·도메인 Projection
+
+Agent/Workflow/Skill 작성 Tool과 RAG/Goal Tool의 입력·Schema·응답·원본 참조를 Owner로
+일원화했다. ResourceToolContract는 기존 revision·효과 계약만 선언하고 실행 허가를 만들지
+않는다. ResourceAuthorship은 기존 Session/Run/Step 참조만 기록하며 정의나 실행 기록을
+복제하지 않는다. AuthoredDefinition과 기존 CreatedResource의 서로 다른 공개 응답은 구분한다.
+GoalDefinition·RAGDocumentInput·DocumentView·WorkflowHandlerContract의 공개 helper를
+통해 도메인 필드/Projection을 소비한다. 원래 Tool 호출의 현재 Project/Session/Run/Step 검사는
+모든 handler 효과 전에 그대로 실행된다. Skill은 SKILL.md와 기존 명시 source 필드를 유지한다.
+
+원본/제안의 독립 프로세스 88개 관측과 실제 Owner를 확장한 5개 구현 AST가 일치했다.
+전체 Tool 이름/Schema/계약·handler 결과·실제 파일 효과 횟수·누락/다른 Project의 실행 소유권·
+원본 인자 보존·source metadata·RAG description의 eager 평가·Goal write_tools의 원래 truthiness·
+Workflow 선택적 describe_config getter 호출 횟수와 예외 순서를 확인했다. 새 기본값·호환 Reader·
+권한 경로를 추가하지 않았다. 제품 테스트와 안전성 Assertion은 변경하지 않았다.
+
+- `whole-hub-authoring-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.379673초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-authoring-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `1afb8eccedde53dadba26e9a97687bf711e200a3babf9cd61baf7d195b1ccea9`, input `506bdfe6c75ae2474cc8b2eb458e56a98c63745463cc06ee5c5c0f22a1655e5d`.
+
+- `whole-hub-authoring-l1-llm-01`: discovered/started/pass 95/95/95, exit 0, 73.16874초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-authoring-l1-llm-01/llm.json --modules tests.llm.test_goals tests.llm.test_agent_skills tests.llm.test_skill_packages tests.llm.test_skill_tools tests.llm.test_workflow_format tests.llm.test_agent_workflow tests.llm.test_configuration_workflow_example tests.llm.test_rag_storage`. source `1afb8eccedde53dadba26e9a97687bf711e200a3babf9cd61baf7d195b1ccea9`, input `506bdfe6c75ae2474cc8b2eb458e56a98c63745463cc06ee5c5c0f22a1655e5d`.
+
+- `whole-hub-authoring-l1-01`: discovered/started/pass 28/28/28, exit 0, 217.256526초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-authoring-l1-01/hub.json --modules tests.hub.test_resource_tools tests.hub.test_coding_skill tests.hub.test_rag_jobs tests.hub.test_creation_contracts`. source `1afb8eccedde53dadba26e9a97687bf711e200a3babf9cd61baf7d195b1ccea9`, input `506bdfe6c75ae2474cc8b2eb458e56a98c63745463cc06ee5c5c0f22a1655e5d`.
+
+- `whole-hub-authoring-l2-01`: discovered/started/pass 28/28/28, exit 0, 67.473333초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-authoring-l2-01/hub.json --modules tests.hub.test_components tests.hub.test_component_managers tests.hub.test_rag_extensions tests.hub.test_rag_retention tests.hub.test_approval_continuation`. source `1afb8eccedde53dadba26e9a97687bf711e200a3babf9cd61baf7d195b1ccea9`, input `506bdfe6c75ae2474cc8b2eb458e56a98c63745463cc06ee5c5c0f22a1655e5d`.
+
+R3 Mutation exit 0. 발견/실행/pass ID 일치, failure/error/Skip/xfail/xpass/누락/추가/중복 0,
+source/input 전후 및 실행 간 동일, suite별 선택 ID 중복 0을 확인했다. 공통 안전성 84개와
+Goal·Agent Skills·Skill package/Tool·Workflow·RAG 저장, Hub resource·coding Skill·RAG Job·
+생성 계약·Component manager·RAG 확장/보존·승인 연속 실행을 포함한다. Python 3.12.14/Clang,
+Host d833790, 고정 의존성, 정상 namespace(NoNewPrivs=0). 앞선 전체 Hub 실행 종료 뒤
+집중 Hub를 실행하여 timing 검증 경쟁을 피했다. 실제 argv/exit/hash는 외부
+`hub-authoring-draft`에 보존한다. S1–S7 59개 finding ID는 동일하며 변경된 의존 증거만 갱신했다.
+
+Level 1·2 로컬 완료다. Toolkit·RiskReview·UI lifecycle과 함께 다음 Level 3에서 현재 통합 소스를
+검증한 뒤 Push하고 정확한 SHA의 원격 CI를 확인한다. Gate56은 이 변경의 전체 검증 증거가
+아니다. 승인·예산·외부 효과·Checkpoint·Resume·저장 무결성 기준은 그대로 유지한다.
