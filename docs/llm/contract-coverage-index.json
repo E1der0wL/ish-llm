@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 618,
-    "unreviewed_files": 109,
+    "unreviewed_files": 107,
     "stale_files": 0,
-    "unclassified": 5836,
+    "unclassified": 5818,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 109,
+    "unreviewed_dynamic_paths": 107,
     "unreadable_files": 0,
-    "candidates": 18383,
+    "candidates": 18377,
     "issues": 0
   },
   "files": [
@@ -189,8 +189,8 @@
     },
     {
       "path": "hub/backend/execution/restarting.py",
-      "status": "unreviewed",
-      "sha256": "6aa3f4e5fb43a1cf9816e8d514eea94a6e4f3cdb058c680e2d497578733f51bc",
+      "status": "reviewed",
+      "sha256": "2644128172033837bfc5a509b2074a532953d382e2831104e68dcefeccd59967",
       "candidates": 2
     },
     {
@@ -213,9 +213,9 @@
     },
     {
       "path": "hub/backend/execution/stopping.py",
-      "status": "unreviewed",
-      "sha256": "c0721606c77ea2057b92d2f82e7b799b65d29e83c12b0758c67c2473548566a6",
-      "candidates": 16
+      "status": "reviewed",
+      "sha256": "7581b706bf725e03b9a093ec95b5a6b9dab37a8796b24fd9d1024d755163a68d",
+      "candidates": 10
     },
     {
       "path": "hub/backend/execution/thinking.py",
@@ -304,7 +304,7 @@
     {
       "path": "hub/backend/observability/snapshot.py",
       "status": "unreviewed",
-      "sha256": "d35e1013c69dee86fd72ce3b873534f6eda38fb929b8c7cd74be6d593ff2e219",
+      "sha256": "fb79cc9c817ecd4485118a0792469ea1df5aa4077d0b1090ecb09a833f945bf3",
       "candidates": 67
     },
     {

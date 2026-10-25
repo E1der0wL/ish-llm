@@ -96872,5 +96872,148 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/backend/execution/stopping.py",
+    "sha256": "7581b706bf725e03b9a093ec95b5a6b9dab37a8796b24fd9d1024d755163a68d",
+    "reason": "StopIntent owns the existing Session metadata fields and exact mark/reopen/clear projections. Cancellation/renewal under workspace ownership, queue checks, shutdown order and all Backend authorization remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b51b328137683bdbe3bc52296a4aa1244e0ee243e4d0a39951f92fb7d5ae5c51",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "787c6a5498e017813fd315c27fc213c375c96468b58334e70ffc22f1f488ca11",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "faf9fd132ea362fe12d3194d2ab7db3078cd8bb0c93d849832bd92b13a6cdc4a",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "056fba80275933c5643c763d64165a976230b3a52065588c3e42e24d7daaec81",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "447a546cc86c38abb9d4ba335fc042607fdf0458b9f8f226280f3afece5ddc3a",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "19b184e9fa88187a6f4646ab0452177eaa43e327500e03f2a902d4b76356e50a",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "4e444b516e15786df762b746cb9878486e79302772488bd78fa71c0d4ceafd47",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "30861ae08a4e43a96af0d794b0bdf5928597b372ba2907832ea77bb626444b3a",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "9de0679ec76b69fc67301e6ce7784920dfab94eed53df72a02fb148e9f982397",
+        "classification": "declaration",
+        "owner": "StopIntent",
+        "reason": "Canonical Session stop-intent metadata, original query bounds and explicit changed/unchanged outcomes."
+      },
+      {
+        "id": "593b03ec77c017a5caab15cb65e1abbbe036388a37627b16d3c03fde9d60cf5b",
+        "classification": "non_contract",
+        "owner": "stop_paused.stop",
+        "reason": "First handle from the explicitly bounded latest-Run query; ordinary sequence indexing."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "StopIntent / stop_paused / reopen_questions / finish_review",
+        "declaration": "hub/backend/execution/stopping.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "hub/backend/history.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/backend/execution/restarting.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_interrupt_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/execution/restarting.py",
+    "sha256": "2644128172033837bfc5a509b2074a532953d382e2831104e68dcefeccd59967",
+    "reason": "StopIntent owns the existing Session metadata fields and exact mark/reopen/clear projections. Cancellation/renewal under workspace ownership, queue checks, shutdown order and all Backend authorization remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "bd373c03fa5f480d6fd90fb1bf071a92c6cb90d1cc53415b3eeb6be834a49181",
+        "classification": "declaration",
+        "owner": "RestartDrain",
+        "reason": "Existing drain absence and exception collection declarations; shutdown order remains in the operation."
+      },
+      {
+        "id": "0fb10538b43fe72862006104fbc74ad54179b4f6dfdcc59cb533f7134b8bfddf",
+        "classification": "declaration",
+        "owner": "RestartDrain",
+        "reason": "Existing drain absence and exception collection declarations; shutdown order remains in the operation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RestartDrain / stop_for_restart",
+        "declaration": "hub/backend/execution/restarting.py",
+        "consumers": [
+          "hub/backend/worker.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_interrupt_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]

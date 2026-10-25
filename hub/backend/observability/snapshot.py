@@ -18,7 +18,7 @@ from ..execution.trace import merge_trace, tool_trace
 from ..execution.steps import display_steps
 from ..execution.engine_selection import agent_model, selected_engines
 from ..interactions.questions import waiting_status
-from ..execution.stopping import display_run, STOPPED, RESUME_INTERACTIONS
+from ..execution.stopping import display_run, StopIntent
 
 
 @dataclass(slots=True)
@@ -162,7 +162,7 @@ class SnapshotReader:
                 handle = latest[0] if latest else None
                 run = display_run(record, await handle.aget_data()) if handle else None
                 question_handle = handle if run and str(run.status) == RunStatus.PAUSED else None
-                target = record.metadata.get(RESUME_INTERACTIONS)
+                target = StopIntent(record.metadata).review_target
                 if target and not runtime.active_runs and not runtime.queued_count:
                     try:
                         candidate = handle if run and run.id == target else await session.run.aload(target)
@@ -182,7 +182,7 @@ class SnapshotReader:
                 self.observations[identifier] = (monotonic(), item)
             observations.append(item)
             status = waiting_status(item.questions) if item.questions else str(item.runtime.status)
-            if not item.runtime.active_runs and item.run and item.run.id in item.record.metadata.get(STOPPED, {}):
+            if not item.runtime.active_runs and item.run and item.run.id in StopIntent(item.record.metadata).stopped_runs:
                 status = str(item.run.status)
             summaries.append(SessionSummary(identifier, item.record.title, status, item.runtime.queued_count))
         selected = next((item for item in observations if item.session_id == selected_id), None)
@@ -193,7 +193,7 @@ class SnapshotReader:
             steps = await selected.handle.steps.alist() if selected.run else ()
             messages = await self.messages(session, await session.aconversation(), config.user_profile.display_name,
                                            latest=selected.run, latest_steps=steps,
-                                           stopped_runs=selected.record.metadata.get(STOPPED, {}))
+                                           stopped_runs=StopIntent(selected.record.metadata).stopped_runs)
             if selected.run:
                 run = selected.run
                 questions = selected.questions

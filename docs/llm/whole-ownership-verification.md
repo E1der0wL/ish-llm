@@ -8421,3 +8421,43 @@ Snapshot이다. 공통 안전성 84개와 R3 Mutation도 통과했다. 기존 �
 보존한다. 이 소단계에서 전체 회귀는 실행하지 않았다. Gate50에는 이 후속 변경이 포함되지 않으며
 ResponseContext와 후속 관련 실행 소비자를 묶는 다음 Level 3 전체·정적/문서/R3·실환경 및 정확한
 SHA의 원격 CI가 후속 게이트다. 전체 미검토/미완료 계약 0 조건을 낮추지 않는다.
+
+
+## 일시정지·질문 재개·재시작의 Session 운영 표시
+
+Stopping·Restarting 두 파일을 전수 정리했다. StopIntent가 기존 hub_stopped_runs와
+hub_resume_interactions의 선언·관찰·mark/reopen/clear 투영을 소유하고 Snapshot의 실제 소비자가
+그 API를 사용한다. 공개 별칭은 같은 선언을 참조하며 추가 Reader나 실행 경로가 아니다.
+Run 자체·Checkpoint·승인 원본은 그대로다. 변경된 Session metadata도 같은 값과 구조다.
+
+stop_paused의 소유권 잠금→활성/대기 검사→최신 PAUSED 선택→pending interaction 취소→mark
+순서를 유지한다. mark는 기존 marks 사본을 만든 뒤 동일 UTC clock을 읽는다. reopen은 기존
+PAUSED/INTERRUPTED/FAILED와 응답 가능·CANCELLED/EXPIRED 조건을 보존하고 활성/대기가 있으면
+갱신 전에 거부한다. 취소/만료 Interaction 갱신은 승인 부여가 아니다. finish_review는 정확한
+Run ID가 일치할 때만 현재 입력 폼 target을 제거하며 다른 metadata를 보존한다.
+재시작은 namer/질문 종료 후 worker shutdown을 먼저 수행하고 대기 요청 취소·paused 처리를
+진행한다. 병렬 Session 작업의 예외를 수집한 뒤 원래 예외를 전파한다.
+
+독립 원본/제안 137개 관찰이 일치했다. 실제 운영 함수에 기록 가능한 facade 대역을 주입해
+활성/대기/상태/기존 mark 조합, cancel/renew 중 결함, clear target 일치·불일치, 재시작의 순서와
+한 Session 실패 후 다른 Session 처리·예외 전파를 비교했다. 이 비교를 실제 파일 효과 테스트로
+표현하지 않는다. 실제 저장·승인·재개·Tool 효과는 아래 기존 통합 및 공통 안전성 모듈로 검증했다.
+
+- `whole-hub-stop-intent-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.548467초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-stop-intent-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `1e3191a20980ba506ad78e593abbdaeea9e1bef77ebeb7d1f4785ea2d5f33a89`, input `6211dc0ab96f6218db088761043274ed084bb0a2da4ed741fea04e1391be3772`.
+
+- `whole-hub-stop-intent-l1-01`: discovered/started/pass 23/23/23, exit 0, 55.450449초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-stop-intent-l1-01/hub.json --modules tests.hub.test_execution tests.hub.test_request_history tests.hub.test_settings_restart`. source `1e3191a20980ba506ad78e593abbdaeea9e1bef77ebeb7d1f4785ea2d5f33a89`, input `6211dc0ab96f6218db088761043274ed084bb0a2da4ed741fea04e1391be3772`.
+
+- `whole-hub-stop-intent-l2-01`: discovered/started/pass 36/36/36, exit 0, 78.494265초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-stop-intent-l2-01/hub.json --modules tests.hub.test_approval_continuation tests.hub.test_tool_retry tests.hub.test_snapshot_projection tests.hub.test_interrupt_feedback`. source `1e3191a20980ba506ad78e593abbdaeea9e1bef77ebeb7d1f4785ea2d5f33a89`, input `6211dc0ab96f6218db088761043274ed084bb0a2da4ed741fea04e1391be3772`.
+
+각 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0과 실행 전후·사이 source/input 동일성을 확인했다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 명령/exit는
+`hub-stop-intent-draft/selected-results.json`, 원본 비교는 `proof-commands.json`에 보존한다.
+Level 1은 실제 Execution·Request history·Settings restart, Level 2는 승인 연속 실행·Tool retry·
+Snapshot·Interrupt feedback이다. 공통 안전성 84개와 R3 Mutation도 통과했다. 기존 안전성 Assertion,
+실제 효과 횟수·Checkpoint·예산 보존 검증은 유지한다.
+
+저장 정책이나 승인 상태 전이를 바꾸지 않는 동일 투영 이동임을 원본 비교와 실제 소비자 테스트로
+확인했다. 이 소단계에서 전체 회귀는 실행하지 않았으며 전체/원격 완료로 표현하지 않는다.
+Gate50에는 이 변경이 없고 ResponseContext·RuntimeObservation 및 후속 관련 실행 소비자와 묶는
+다음 Level 3 전체·정적/문서/R3·실환경·정확한 SHA 원격 CI가 후속 게이트다.
