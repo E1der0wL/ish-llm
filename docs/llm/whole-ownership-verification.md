@@ -9649,3 +9649,27 @@ proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Cla
 실행 순서와 값을 보존한 표시/전달 계약 정리이므로 Level 1·2를 적용했다. 동결 Gate54의 실제
 Hub 전체 실행과 UI 집중 검증이 경쟁하지 않도록 순서를 분리했다. 소단계 전체 회귀는 수행하지
 않았으며 Gate54 이후 관련 Hub 변경을 묶은 Level 3 및 정확한 SHA 원격 CI가 후속 게이트다.
+
+
+## Gate53 — Hub 입력·응답·렌더링 계약 통합·정확한 SHA 원격 검증
+
+동결 SHA `93b2fec2b15ad88658d20c7cfe862173b1ae2627`, 작업 트리 `/workspace/ish-llm-group53-validation`.
+Gate52 이후 InputWidgets·MouseWidgets·ResponseWidgets·RenderSurfaces·OutputGrammar·RenderAdapters를 묶었다. 입력·마우스·준비/재개 관측·렌더 취소/지연 결과·표/차트/이미지 원문과 경로 보호의 실제 Producer/Consumer가 연결된 현재 통합 상태에서 승인·예산·외부 효과·Checkpoint·원본 보존을 포함한 Level 3를 수행했다.
+전체 LLM 다음 전체 Hub를 하나의 변경 없는 소스·환경에서 순서대로 실행했다. 소단계 결과를 합산한 전체 실행이 아니다.
+
+- LLM: 발견/실행/pass/available 2502/2502/2502/2502, 1456.185811488016초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group53-l3/llm.json`.
+- HUB: 발견/실행/pass/available 588/588/588/588, 1099.787103590963초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group53-l3/hub.json`.
+
+각 suite의 failure/error/skip/xfail/xpass/누락/추가/중복은 0, 발견·실행·통과 ID가 일치한다.
+source `6d4327a251c96aa15977f5c137f33d7695a64495a6c190da3e1f5ef9ee8e3884`, input `371dd034cacbff45c8e0e81e926fca43629dbe2cd5768508f53578a44b347849`는 전체 실행 전후 동일하다.
+Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 의존성·실제 Linux/X11/Bubblewrap 환경이다.
+보조 검사 S1–S7·문서·R3 Mutation·offline Provider·LLM/Hub 환경 검사 여섯 명령도 모두 exit 0이다. 실제 argv/exit는 `group53-auxiliary/results.json`, 전체 로그/엄격 집계/manifest는 `whole-owners-group53-l3`에 보존한다.
+
+검증한 SHA만 `refactor/llm-clean`에 fast-forward Push했다. 원격 main/refactor/llm-backend와 Draft PR #1의 전후 값은 동일하다.
+원격 [40157600842](https://github.com/E1der0wL/ish-llm/actions/runs/40157600842)의 head SHA를 대조하고 2026-10-25T03:53:24Z에 두 필수 Job과 전체 필수 Step의 실제 success를 확인했다.
+- 원격 HUB: 발견/실행/pass/available 588/588/588/588, 1437.4057178980001초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+- 원격 LLM: 발견/실행/pass/available 2502/2502/2502/2502, 2094.001422733초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+
+로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
+이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
+동결 소스의 미검토 50파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
