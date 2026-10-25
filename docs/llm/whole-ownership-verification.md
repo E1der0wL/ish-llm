@@ -10001,3 +10001,30 @@ Host d833790, 고정 의존성, 정상 namespace(NoNewPrivs=0). 앞선 전체 Hu
 Level 1·2 로컬 완료다. Toolkit·RiskReview·UI lifecycle과 함께 다음 Level 3에서 현재 통합 소스를
 검증한 뒤 Push하고 정확한 SHA의 원격 CI를 확인한다. Gate56은 이 변경의 전체 검증 증거가
 아니다. 승인·예산·외부 효과·Checkpoint·Resume·저장 무결성 기준은 그대로 유지한다.
+
+
+## Gate55 — Hub 표시·관측·Worker 전달 통합·정확한 SHA 원격 검증
+
+동결 SHA `d74f2e5b7381e32a81b8501528a974fe910dc364`, 작업 트리 `/workspace/ish-llm-group55-validation`.
+Gate54 이후 Charts·Icons·Conversation·UIObservation·WorkerRequests를 묶었다. 사용량/Workflow 표시·아이콘·대화 frame/cache·터미널 모드·UI 요청 전달·Worker의 관측 선점/잠금/취소/재시작이 연결된 현재 통합 상태를 검증했다. Worker 실행 경계 변경이 포함되어 즉시 Level 3로 승격했고 승인·예산·외부 효과·Checkpoint·원본 보존 Assertion을 유지했다.
+초기 제한 런처 실행은 LLM 2,502개 발견/실행 중 pass 2,489, failure event 14/error event 3으로 실패했고 Hub는 실행하지 않았다. 13개 실패 test ID는 모두 실제 sandbox 격리 모듈에 속했다. 변경 전후의 동일 uid-map 오류와 정상 namespace 재현, 해당 모듈 39개 통과를 보존했다. 원인은 제품 변경이 아니라 NoNewPrivs=1의 제한된 실행 범위였다. 제품·테스트·Assertion 변경 없이 올바른 namespace 환경에서 새 `whole-owners-group55-l3-02` 전체 실행을 수행했다. 초기 결과를 합산하거나 성공으로 바꾸지 않았다. 실패 자료는 `group55-restricted-attempt`와 기존 전체 로그에 보존한다.
+
+전체 LLM 다음 전체 Hub를 하나의 변경 없는 소스·환경에서 순서대로 실행했다. 소단계 결과를 합산한 전체 실행이 아니다.
+
+- LLM: 발견/실행/pass/available 2502/2502/2502/2502, 1448.5881851279992초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-owners-group55-l3-02/llm.json`.
+- HUB: 발견/실행/pass/available 588/588/588/588, 1102.2622467100155초, exit 0. `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-owners-group55-l3-02/hub.json`.
+
+각 suite의 failure/error/skip/xfail/xpass/누락/추가/중복은 0, 발견·실행·통과 ID가 일치한다.
+source `5ea19f612b4022ddb30e8619c81de30a5e22d332237a92b5d5b3ca9b857d3f32`, input `1a7ef4523c422c20fe1faf9c09b4281da1fd0fad7059bcdd7ef410ba3af13eb1`는 전체 실행 전후 동일하다.
+Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 의존성·실제 Linux/X11/Bubblewrap 환경이다.
+같은 SHA·Python/Host/의존성·입력/발견 목록을 확인했으며, 이미 정상 namespace 환경에서 통과한 여섯 보조 검사의 증거만 재사용했다. 두 전체 suite는 새 namespace 실행에서 수행했고 초기 실패 환경과 구분한다.
+보조 검사 S1–S7·문서·R3 Mutation·offline Provider·LLM/Hub 환경 검사 여섯 명령도 모두 exit 0이다. 실제 argv/exit는 `group55-auxiliary/results.json`, 전체 로그/엄격 집계/manifest는 `whole-owners-group55-l3-02`에 보존한다.
+
+검증한 SHA만 `refactor/llm-clean`에 fast-forward Push했다. 원격 main/refactor/llm-backend와 Draft PR #1의 전후 값은 동일하다.
+원격 [40165560489](https://github.com/E1der0wL/ish-llm/actions/runs/40165560489)의 head SHA를 대조하고 2026-10-25T06:03:37Z에 두 필수 Job과 전체 필수 Step의 실제 success를 확인했다.
+- 원격 HUB: 발견/실행/pass/available 588/588/588/588, 962.614478004초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+- 원격 LLM: 발견/실행/pass/available 2502/2502/2502/2502, 2064.42605093초; failure/error/skip/xfail/xpass/누락/추가/중복 0. Python `3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]`.
+
+로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
+이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
+동결 소스의 미검토 26파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
