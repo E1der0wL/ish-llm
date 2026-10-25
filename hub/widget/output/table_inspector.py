@@ -1,4 +1,6 @@
 """Keyboard-operated table inspection; all state is local to the popup."""
+from hub.ui.output.worker import RenderSlot
+
 
 from hub.locales.keys import MessageKey
 
@@ -75,7 +77,7 @@ class TableControl(SelectableControl):
                 self.filter(self.query)
             get_app().invalidate()
         if self.context.render_worker and get_app().is_running:
-            self.context.render_worker.request("popup", build, apply, lambda error: str(error))
+            self.context.render_worker.request(RenderSlot.POPUP, build, apply, lambda error: str(error))
         else:
             try:
                 apply(build())
@@ -196,7 +198,7 @@ class TableInspector(ExpandedOutputDialog):
         # Both surfaces share the popup worker slot. Re-request any surface
         # whose queued render was superseded while it was hidden.
         if self.context.render_worker:
-            self.context.render_worker.cancel("popup")
+            self.context.render_worker.cancel(RenderSlot.POPUP)
         if self.output._resize_timer:
             self.output._resize_timer.cancel()
             self.output._resize_timer = None

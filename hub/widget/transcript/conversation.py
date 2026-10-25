@@ -1,4 +1,6 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
+from hub.ui.output.worker import RenderSlot
+
 
 from hub.model import ReasoningMessage
 
@@ -169,7 +171,7 @@ class ConversationControl(SelectableControl):
         self._search_lines = {}
         self._search_key = None
         self.render_worker = None
-        self.render_slot = "transcript"
+        self.render_slot = RenderSlot.TRANSCRIPT
         self._requested_key = None
         self._resize_timer = None
         self._max_width = 0
@@ -242,7 +244,7 @@ class ConversationControl(SelectableControl):
         self._search_lines = {}
         if not self.search_query:
             if self.render_worker:
-                self.render_worker.cancel("search")
+                self.render_worker.cancel(RenderSlot.SEARCH)
             return
         from ..output.search_index import index_lines
         lines, query = self._lines, self.search_query
@@ -256,7 +258,7 @@ class ConversationControl(SelectableControl):
                 self.move_search()
             app.invalidate()
         if self.render_worker and app.is_running:
-            self.render_worker.request("search", lambda: index_lines(lines, query), apply, lambda _: ((), {}))
+            self.render_worker.request(RenderSlot.SEARCH, lambda: index_lines(lines, query), apply, lambda _: ((), {}))
         else:
             self.search_hits, self._search_lines = index_lines(lines, query)
             self.search_index = min(self.search_index, len(self.search_hits) - 1)

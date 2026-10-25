@@ -9069,3 +9069,47 @@ Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux UI 환경이�
 Level 1·2로 소단계를 검증하며 동결 Gate52 결과를 승계하지 않는다. InputWidgets·MouseWidgets와
 후속 관련 Hub 변경을 묶은 다음 Level 3·정확한 SHA 원격 CI가 통합 완료 조건이다. 전체 DC3와
 기존 미완료 공유 계약의 완료를 선언하지 않는다.
+
+
+## Hub 렌더 슬롯·작업 증거·읽기 전용 출력
+
+RenderWorker·TextSelection·TextViewport·OutputViewport 네 파일을 전수 정리했다. RenderSlot이
+실제 네 개 transcript/popup/search/question 슬롯을 선언하고 생성·request·cancel 소비자를
+모두 연결했다. 오래된 주석의 five는 실제 집합과 같은 four로 바로잡았으며 슬롯을 추가/제거하지
+않았다. RenderToken/PendingRender는 원래 generation/epoch/progressive와 callback tuple을
+이름 있는 타입으로 생산한다. 한 작업 thread·슬롯별 교체 batch·취소 epoch·최신 generation·
+progressive 중간 결과·UI loop 전달 직전 재확인·fallback·종료 후 폐기 조건을 그대로 유지한다.
+RenderStats는 진단용이며 예산/실행 횟수 정책으로 사용하지 않는다.
+
+TextViewport의 동일 callable/string/JSON 해석을 plain_source 하나로 합쳤다. build가 캡처한 원본
+text와 호출 횟수·Unicode/indent·JSON 오류 의미는 같다. TextRows는 준비 결과 tuple에 이름을
+부여한다. ViewportRenderKey는 width 접두사 생성/조회만 소유하고 기존 렌더러 context suffix
+확장을 허용한다. Text/Output 실제 Writer와 resize Reader를 연결했다. ControlFragment가
+PTK zero-width marker·style/text 위치를 소유하고 TextSelection은 이를 재사용한다. 선택 해제·
+줄/셀 clamp·스타일·개행·reflow, 비포커스 출력과 스크롤·지연 resize·오래된 결과 무시를 유지한다.
+
+원본/변경안의 실제 PTK 출력·선택/유니코드/JSON/캡처 getter·스크롤·output key, 결정적 queue·
+late/progressive/cancel/close 관측 70개가 같았다. 다섯 슬롯 소비자는 Owner를 확장하면 전체
+AST가 같다. 결정적 queue 비교는 Thread facade이고 실제 동시성 검증을 대신하지 않는다.
+아래 render_pipeline은 실제 한 thread·수백 pending 교체·late delivery·취소·fallback·close를
+기존 Assertion으로 검증한다. 추상 SelectableControl을 직접 생성한 초기 비교 도구 오류는 실제
+TextViewport로 고치고 로그를 보존했다. 부분 연결한 기존 UI 파일은 전수 완료로 처리하지 않았다.
+
+- `whole-hub-render-surfaces-safety-01`: discovered/started/pass 84/84/84, exit 0, 37.239926초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-render-surfaces-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `493d4e5d9f0e4daee1170f8bd2c6fa93084711bc4ebc71de6f603b0d2d1939bb`, input `853e461ceb684f0d036f3ebf170237a5bd5aadc499cf7acada209ac2372ec9ad`.
+
+- `whole-hub-render-surfaces-l1-01`: discovered/started/pass 27/27/27, exit 0, 3.851818초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-render-surfaces-l1-01/hub.json --modules tests.hub.test_render_pipeline tests.hub.test_output_interaction`. source `493d4e5d9f0e4daee1170f8bd2c6fa93084711bc4ebc71de6f603b0d2d1939bb`, input `853e461ceb684f0d036f3ebf170237a5bd5aadc499cf7acada209ac2372ec9ad`.
+
+- `whole-hub-render-surfaces-l2-01`: discovered/started/pass 52/52/52, exit 0, 21.683692초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-render-surfaces-l2-01/hub.json --modules tests.hub.test_mouse_widgets tests.hub.test_question_card tests.hub.test_render_intervals tests.hub.test_responsiveness tests.hub.test_home_navigation tests.hub.test_engine_output tests.hub.test_settings_viewport tests.hub.test_completion_display`. source `493d4e5d9f0e4daee1170f8bd2c6fa93084711bc4ebc71de6f603b0d2d1939bb`, input `853e461ceb684f0d036f3ebf170237a5bd5aadc499cf7acada209ac2372ec9ad`.
+
+공통 안전성 84개·R3 Mutation, 실제 render_pipeline/output interaction과 mouse·question card·
+render intervals·responsiveness·home navigation·engine output·settings viewport·completion display를
+검증했다. 모든 suite의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. argv/exit는
+`hub-render-surfaces-draft/selected-results.json`, 고정 비교/Hash는 proof-commands.json과
+consumer-equivalence.json에 보존한다. Python 3.12.14/Clang, Host d833790·고정 의존성·실제
+Linux UI 환경이다. 정적 S1–S7 68개 발견/검토 ID·감사·문서 검사를 유지하며 기존 테스트·Assertion은
+변경하지 않았다. Backend 승인·예산·효과·Checkpoint·저장 계약은 변경하지 않았다.
+
+Level 1·2로 소단계를 검증했다. InputWidgets·MouseWidgets·ResponseWidgets 및 후속 관련 출력
+변경을 묶어 Level 3·정확한 SHA 원격 CI를 수행한다. 동결 Gate52 결과를 현재 변경의 통합 증거로
+승계하지 않으며 기존 미완료 공유 계약과 전체 DC3 완료 조건을 그대로 유지한다.

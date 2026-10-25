@@ -1,4 +1,6 @@
 """Popup lifecycle, validation and focus restoration on the UI thread."""
+from hub.ui.output.worker import RenderSlot
+
 
 from hub.locales.keys import MessageKey
 
@@ -76,7 +78,7 @@ class DialogController:
         if timer:
             timer.cancel()
             output._resize_timer = None
-        self.view.render_worker.cancel("popup")
+        self.view.render_worker.cancel(RenderSlot.POPUP)
 
     def cycle(self, reverse=False):
         controls = [item.content for item in walk(to_container(self.current), skip_hidden=True)

@@ -91519,8 +91519,8 @@
   },
   {
     "path": "hub/widget/input_contract.py",
-    "sha256": "53b3a1a6d5386fb2ed069aea63f497ecc89ebb1a6fda5cc4d0c383f2d9147310",
-    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "sha256": "895f988c173bbfa0b3d6cc989a60007560d4462140a2b80c5c3d1602cf3de6ab",
+    "reason": "EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass. RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -91578,7 +91578,19 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c83bd64d29af76f95620bf2aa8699bf4c0bbecffdab38272770f29ca70481a06",
+        "id": "7f9d1670cd95e0f6f65d9c43b71dc5c0cdb7557c573b02036a818c6b125598e5",
+        "classification": "declaration",
+        "owner": "ControlFragment",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d47448878f730a84443cd128c34faf38b8c9b9f875372a039a70a2aa6c3076e6",
+        "classification": "declaration",
+        "owner": "ControlFragment",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5b6bb2983e8f49c482903b99253a52ee695c1fe2cdd03f4ca61886e7b8ea7871",
         "classification": "declaration",
         "owner": "ControlFragment",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -91591,6 +91603,7 @@
         "consumers": [
           "hub/backend/interactions/questions.py",
           "hub/model.py",
+          "hub/ui/output/worker.py",
           "hub/ui/settings/navigation.py",
           "hub/widget/auxiliary.py",
           "hub/widget/content_inset.py",
@@ -91602,6 +91615,9 @@
           "hub/widget/forms/question_card.py",
           "hub/widget/header.py",
           "hub/widget/mouse.py",
+          "hub/widget/output/output_viewport.py",
+          "hub/widget/output/selection.py",
+          "hub/widget/output/text_viewport.py",
           "hub/widget/panel_edge.py",
           "hub/widget/sidebar.py",
           "hub/widget/tab_page.py",
@@ -91610,6 +91626,8 @@
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_chrome.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
           "tests/hub/test_home_navigation.py",
@@ -91617,11 +91635,15 @@
           "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output_interaction.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_popup_completion.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_question_tools.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -91656,17 +91678,23 @@
         "consumers": [
           "hub/backend/interactions/questions.py",
           "hub/model.py",
+          "hub/ui/output/worker.py",
           "hub/widget/feedback/answer_feedback.py",
           "hub/widget/forms/answer_choices.py",
           "hub/widget/forms/question.py",
           "hub/widget/forms/question_card.py",
           "hub/widget/forms/settings_viewport.py",
+          "hub/widget/output/output_viewport.py",
+          "hub/widget/output/selection.py",
+          "hub/widget/output/text_viewport.py",
           "hub/widget/sidebar.py",
           "hub/widget/tab_page.py"
         ],
         "tests": [
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_chrome.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_escape_navigation.py",
           "tests/hub/test_header_actions.py",
           "tests/hub/test_home_navigation.py",
@@ -91674,10 +91702,14 @@
           "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
           "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output_interaction.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_question_tools.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_navigation.py",
           "tests/hub/test_settings_project_flow.py",
@@ -91706,33 +91738,46 @@
         "owner": "ControlFragment",
         "declaration": "hub/widget/input_contract.py",
         "consumers": [
+          "hub/ui/output/worker.py",
+          "hub/widget/forms/answer_choices.py",
           "hub/widget/forms/question.py",
-          "hub/widget/forms/answer_choices.py"
+          "hub/widget/output/output_viewport.py",
+          "hub/widget/output/selection.py",
+          "hub/widget/output/text_viewport.py"
         ],
         "tests": [
-          "tests/llm/test_interactions.py",
-          "tests/llm/test_interaction_presence.py",
-          "tests/llm/test_interaction_decisions.py",
-          "tests/llm/test_tool_registration_bindings.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_question_tools.py",
-          "tests/hub/test_question_card.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/hub/test_tool_advice.py",
-          "tests/hub/test_snapshot_projection.py",
-          "tests/hub/test_live.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_ui.py",
-          "tests/hub/test_tool_retry.py",
           "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_input_contract.py"
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -94525,120 +94570,114 @@
   },
   {
     "path": "hub/widget/forms/question_card.py",
-    "sha256": "c6974b834438f26f9e2c4dd09e22593f5b12e6a0cc5ba1a2f7bb301ce347ea8b",
-    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass.",
+    "sha256": "31697110959681aaf80a3f5509df3bcdd67fa1c9879c7e86e65551f0488d83c0",
+    "reason": "Question/approval presentation uses canonical borrowed Interaction/Tool source observations and shared Question response Writers. Strict stored Interaction parsing and decision validation remain unchanged. Required/optional read timing, aliases, Future ownership, schemas and actual UI outputs match independent prior-source observations; existing approval/effect/safety consumers pass. RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "3f574fe4aab9e388c46ed2099f472634019a0db6e27557a95932397b3d003644",
+        "id": "ce04ba10bc4733c51d0520e36903eeeff450c3fc7a2b36c02a176a1d68027acd",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "01ea3af9a64c9890f7d87c1ea1dc3d6e09883301db9c6b4f3fe2a49e43a0c0ec",
+        "id": "f160c35752b45108f41135a7f01cc2152ff976d7238e74d72ae1909c5b5c7244",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "f25b449d3b072c6876430e0d49c937448520fb40d727fd71c60cdbed9bb488bf",
+        "id": "30a7127bf44db14f128a5422f62a8d9c921790bdcd2907bcffdb9715bf3393cd",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "62a5c9eaacf78e564d5982466ec4745d43bb0f83dc7460fd344bc66a11ab8b1c",
+        "id": "f0da7caff642fba5ced3e587adf9a05bd334e45ce354f114a230940ef2412bae",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "dedf17f4eaff00a7210fd85c1608ca6cf9e9e9fbdcc0684688966f1b7f35a0f7",
+        "id": "85393d11994c10ea96ea3de37788b7df0e03948e18b51c5bd773545d0ee8f4b8",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "1f3a255fef39df055df25bb793c7ad42ef17d978784b0e7bd96fbd0f01cea0b1",
+        "id": "e77a91e2ebc6ca6da0469a3185c7de4527818f2f9e4c492dd7a3def3d785328b",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "673252678ac6a486b11be87c5b4e1a44df30134874c821b87f7514b24dcf0d3b",
+        "id": "ed40825d54bbf43d6cef07ba348d89fa25b99d798bb5d5304c7571ea3952e8e5",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "47d8a1fa36ad3c8ade096e9828c95870fbdb1e4accfe5afad8e50b08a12d45db",
+        "id": "c2fc66dcbca00e9375d87ee74359b9ade531979e8b1937a68a848c1019850a86",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "2a56800d721ec7c3997b684aba60a2e3871c66889777e3629b3fb734b8e3a1ff",
+        "id": "fb6a22f08de23fd4334cff23538dc485a21af2f660c8765af410ed29d47c8127",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "2e570646bfbbc00b945f73edc7930cba12a1fc6e68004f92928d560d90e9fcf4",
+        "id": "097bad9aafd8e89725bcd1d3d244aaacd22d9f13c136c102b19e7c0d643a329d",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "a1aeeece7b714f72985c3b489e92570f136936fa9fb6631d4e515defbba7b81d",
+        "id": "88c310cd36ee21738c07d0ad793c056341845ff3516667d36a91ae46e2ff02eb",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "2a5b44ccd10575a4827a559fdc6e789aae1a34a4d4ad8f7644f5f2f883dd1457",
+        "id": "1c457d5fd8591b2eab940618811ffde0afe794ab274043cb42e13ab59ce3cd43",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "fb9dd0e2edfd10d77a3d49dc80a08f754da8d512db8d1f191761b17e2309dd6f",
+        "id": "1f499b804661bca9ac55148dd5f2b1e1f89bf483e8f7dcb1ed42586f9b6a2b12",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "163b47b5ed38cf77455e955bec01838a59ae19ccb2d574d3c685cb039dd570ca",
+        "id": "da4a0b16142bfda5af6e2c15d5f943b24f2c9cf2da47f31b561d678e8f89522e",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "602237d638d3bf8a3c0a4c0580761cbb017c988e5b0cb3c56ef1fa001d66e7ef",
+        "id": "4e517a32a4d15f517f4dedfca53603b51d3d9517e76261b7639821392d671da9",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "f6ad104aa4b0730a131397ace42fa4db04201f61fbd60fefddde6ff5718ca565",
+        "id": "2bb75bda4b16c4d8a05b31bac74d9d613ea71872d0d3b6fd9502097913c76220",
         "classification": "declaration",
         "owner": "QuestionCard",
         "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
       },
       {
-        "id": "51f94c9f9379a548ef056788e0cd8df434b15e468598851f33bebecdd598ce97",
-        "classification": "declaration",
-        "owner": "QuestionCard",
-        "reason": "Canonical question/answer presentation and Tool argument/response declarations. Fixed public records use their original Owners; mutable UI maps remain keyed by dynamic identity. No stored Reader fallback, policy recomputation or authority is introduced."
-      },
-      {
-        "id": "39affb770b69ed417981ce93d3b738038d10c168c407f3edf3070b15a20518d9",
+        "id": "563a84c931326513775e130ae126853335946e0dbc869ee583c88a437a4be543",
         "classification": "non_contract",
         "owner": "QuestionCard.set_request",
         "reason": "Reset horizontal/vertical offsets to the coordinate origin for a new render request."
       },
       {
-        "id": "9d0d2c29e9ec1cf05ec5ce6eaad0d3255749ec01386c784f476896ec3b66168c",
+        "id": "96cc24ddfcb86b943a86dea968fddb00697bbd90a4097a94a7b26d3b1f6c9ceb",
         "classification": "non_contract",
         "owner": "QuestionCard.render_request.build",
         "reason": "Compare with the first rendered line to apply the heading style; this is sequence indexing."
@@ -94649,32 +94688,45 @@
         "owner": "QuestionCard",
         "declaration": "hub/widget/forms/question_card.py",
         "consumers": [
-          "hub/widget/forms/question.py"
+          "hub/ui/output/worker.py",
+          "hub/widget/forms/question.py",
+          "hub/widget/output/output_viewport.py",
+          "hub/widget/output/selection.py",
+          "hub/widget/output/text_viewport.py"
         ],
         "tests": [
-          "tests/llm/test_interactions.py",
-          "tests/llm/test_interaction_presence.py",
-          "tests/llm/test_interaction_decisions.py",
-          "tests/llm/test_tool_registration_bindings.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_question_tools.py",
-          "tests/hub/test_question_card.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/hub/test_tool_advice.py",
-          "tests/hub/test_snapshot_projection.py",
-          "tests/hub/test_live.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_input_contract.py",
           "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_ui.py",
-          "tests/hub/test_tool_retry.py",
           "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_input_contract.py"
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_advice.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_decisions.py",
+          "tests/llm/test_interaction_presence.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_interactions.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -104709,6 +104761,538 @@
           "tests/hub/test_responsiveness.py",
           "tests/hub/test_question_card.py",
           "tests/hub/test_deletion_feedback.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/worker.py",
+    "sha256": "60a8290124fc506029f2e11f0d512bcfd75bd3d5cab1640612473cc8c9045707",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "ddd45c3982285af518407c26fd6cad8f8932922dd67d053a06cd3959a63d7cad",
+        "classification": "non_contract",
+        "owner": "RenderStats",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "fe54be37d574fadd85b0cf98bb596649a5a90e3a13e801a0f7df22e29f691277",
+        "classification": "declaration",
+        "owner": "RenderStats",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "44b9ae851448b3690293e0b64079833258b5941e586bc7980cf38d24e38f52ea",
+        "classification": "declaration",
+        "owner": "RenderStats",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "925e095ec15b224e12e743c8262ef875ca51821cb13483e3043ac5d1389e9cdc",
+        "classification": "declaration",
+        "owner": "RenderStats",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "ecc479392e8c00ee7aa8d7622f6ddf7a91e412a7b5e4cf81a862edca6c537a1e",
+        "classification": "declaration",
+        "owner": "RenderStats",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "cecd7983e3e1c25d4af0893f30eb48a3cd81e6511c68dedab63c06bb9eeced07",
+        "classification": "declaration",
+        "owner": "RenderStats",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "141ecbae40a020129a8a5f1d7e56cd664e3af3b57b82fd20135802d8da1a6992",
+        "classification": "declaration",
+        "owner": "RenderStats",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "9b34538fce108634868c7f3dc65a958cc80f331be1adc0b6edd353a46a06d9de",
+        "classification": "declaration",
+        "owner": "RenderSlot",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "8fdecd498fa92b8ad2126ccfd11360018c58016b8649ed63afbfba4495f27101",
+        "classification": "declaration",
+        "owner": "RenderSlot",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "082ce47fd297a6841345d3f95ab486d164434d96b62692552cbfa3fa63e89e98",
+        "classification": "declaration",
+        "owner": "RenderSlot",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "2925d8a547458754d534a5f373dbb8931b85bca71cc8b5f5aad48fc04e46524b",
+        "classification": "declaration",
+        "owner": "RenderSlot",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "2bee8de37caa5e6b33ab847bed6dab75c22105fd8b56bb0508d2136c8d4354c9",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "ccf42f7fb08489fcc891206699319e30026f52053a992ff26c7592456a8b23d2",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "8104cc42b62240316d7827be8c7eadd11866c2544430080c4f0121fc6dbfffa6",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "dc010186e970cd9b5025298c168cf8f476feac5326144c846bb41e357ffb3098",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "1b2a26662abf6caa22d9f97254aabed1601cf15cefeb798c7d9e27b9421cb311",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "75248d08944a78a61e45071421b97282fe814a70f73b6e65a34eb19f3231ac82",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "259318b77096949dd306b3e4848ee52f79cf476aba73b7ae8e7e04d9fbdc7324",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "fef88f51e23d912b27ed172dcf4a321b8b013435846d6eb21ee6d2c91162b02b",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "23c486831818c0712d371350a9028819ae637eeead97eae870a68f955b1cccf0",
+        "classification": "declaration",
+        "owner": "RenderWorker",
+        "reason": "Actual four bounded UI render slots, typed transient generation/epoch/job tuples and original worker lifecycle/thread options. Stats remain diagnostic; cancellation and final delivery checks retain original order."
+      },
+      {
+        "id": "ddd3d422ff54fb4ce179e68a9628c6deb8fe1db80056a3066ab6e0ceada4782d",
+        "classification": "non_contract",
+        "owner": "RenderWorker.request",
+        "reason": "Increment one observed render statistic per event; diagnostic count, not an execution quota or policy default."
+      },
+      {
+        "id": "51f39bec7bf006edfbe54ceacdb3c9688d711e0742528a3c357191c5a0af8e32",
+        "classification": "non_contract",
+        "owner": "RenderWorker.request",
+        "reason": "Increment one observed render statistic per event; diagnostic count, not an execution quota or policy default."
+      },
+      {
+        "id": "48976305e3cdfe942f6676bdcfafc99c184924e5bd87947a70f8187a2d3817ec",
+        "classification": "non_contract",
+        "owner": "RenderWorker._run",
+        "reason": "Unconditional worker loop; actual exit/closed state uses the Owner declarations."
+      },
+      {
+        "id": "70403c31f85d34a1f705136d232422cecb402dec7118b833ab79d6b0bef2d69e",
+        "classification": "non_contract",
+        "owner": "RenderWorker._run",
+        "reason": "Increment one observed render statistic per event; diagnostic count, not an execution quota or policy default."
+      },
+      {
+        "id": "db824805811eb3d98debc18f98f65e882464800ed6aa10c92c634498d4bd4ff2",
+        "classification": "non_contract",
+        "owner": "RenderWorker._run",
+        "reason": "Increment one observed render statistic per event; diagnostic count, not an execution quota or policy default."
+      },
+      {
+        "id": "a491c9f1f0eeeb0b0823ce163b3ad1cd12cba9e14fe1816124ee0c39f1f6b261",
+        "classification": "non_contract",
+        "owner": "RenderWorker._run",
+        "reason": "Increment one observed render statistic per event; diagnostic count, not an execution quota or policy default."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RenderSlot / RenderStats / RenderToken / PendingRender / RenderWorker",
+        "declaration": "hub/ui/output/worker.py",
+        "consumers": [
+          "hub/widget/output/text_viewport.py",
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/output/table_inspector.py",
+          "hub/widget/forms/question_card.py",
+          "hub/ui/dialogs.py",
+          "hub/widget/output/loop.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_completion_display.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/selection.py",
+    "sha256": "5ebb0082ae3caf87b520caa41f7ea4d14fb53de55af1a310856d8de56646b778",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "8233bf15030ebab2fce010897913530035780abc3a894bcf71c5b0a037de5140",
+        "classification": "declaration",
+        "owner": "TextSelection",
+        "reason": "Original empty/absent and selected text presentation; canonical ControlFragment and ThemeSelector own PTK zero-width and selection style markers. Selection never confers focusability."
+      },
+      {
+        "id": "694458c1411af1ea840000dd787babbb545789a438d72188447755d372c58b96",
+        "classification": "declaration",
+        "owner": "TextSelection",
+        "reason": "Original empty/absent and selected text presentation; canonical ControlFragment and ThemeSelector own PTK zero-width and selection style markers. Selection never confers focusability."
+      },
+      {
+        "id": "3bf2401387285baac583390fbc4680f4fb7ea1bbcf6ad08c4a85b881a73e33ea",
+        "classification": "declaration",
+        "owner": "TextSelection",
+        "reason": "Original empty/absent and selected text presentation; canonical ControlFragment and ThemeSelector own PTK zero-width and selection style markers. Selection never confers focusability."
+      },
+      {
+        "id": "b695beeef48d293c4a5559230dabe93d1a90c5699b214633903cced020d88020",
+        "classification": "declaration",
+        "owner": "TextSelection",
+        "reason": "Original empty/absent and selected text presentation; canonical ControlFragment and ThemeSelector own PTK zero-width and selection style markers. Selection never confers focusability."
+      },
+      {
+        "id": "61c971a816acddcdb36240dd965ed0cdb0b6509ecbf8d1f77510cdc568ef5523",
+        "classification": "non_contract",
+        "owner": "TextSelection.point",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "29dedf386fcd7a3902f881b550443a20737ed3ceb6900ff789e4f60f490f6f60",
+        "classification": "non_contract",
+        "owner": "TextSelection.point",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "e9820d3e37e17e705dbcf8636e47ef8d950d2039c0cad1c7fe7ab38808d26f99",
+        "classification": "non_contract",
+        "owner": "TextSelection.point",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "11cc73a49594a8deb7ea8dd91258c3c3c223bc8295e706f6ace7d80b23fd9e92",
+        "classification": "non_contract",
+        "owner": "TextSelection.text",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "03f402d60876a91d2c603bb352538337787f0e50ff5ce33bcb75911e3f01bb25",
+        "classification": "non_contract",
+        "owner": "TextSelection.apply.selected",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "d79e299e24aecf07e96a1f17041af874bee0bd6871a4a50f46bd64a25721eced",
+        "classification": "non_contract",
+        "owner": "TextSelection.apply.selected",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "19045dab33d2e7d5ddfc792de4e5d5ad6317ddc64500ce0b4fc553374bac0a1a",
+        "classification": "non_contract",
+        "owner": "TextSelection.apply.selected",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "5c3fb0e68fa4366d880a4d2657422833ecb837297a6861e799daafbcdaa148ca",
+        "classification": "non_contract",
+        "owner": "TextSelection.apply.selected",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      },
+      {
+        "id": "b90548901615d8028c22f1800cbeec393164da3b28763f94d58d54f23d77cf7a",
+        "classification": "non_contract",
+        "owner": "TextSelection.apply.selected",
+        "reason": "Pure rendered-sequence indexing/clamping/offset arithmetic: bound points to available rows/columns, project sorted bounds, or traverse intervening rows."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "TextSelection / SelectableControl",
+        "declaration": "hub/widget/output/selection.py",
+        "consumers": [
+          "hub/widget/mouse.py",
+          "hub/widget/output/text_viewport.py",
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/output/table_inspector.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_completion_display.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/text_viewport.py",
+    "sha256": "45c69a2f6643928bd914209e0bdb12270793aea87f4358a2bb4a0d6c58017fba",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "c7b4163b0fc3170a5b3a09989d097f6faea5888df8dec6a66416a001a0a68bbd",
+        "classification": "declaration",
+        "owner": "ViewportRenderKey",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "7b9cc906990f0fcb497ac1abc66cf499cd1ca3fadd4167afcf215e873823b841",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "2dcde69c0467d24f69d47122dcc5ab796f130dedb378fa346fd0089240599db5",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "3b95e3d9067108ff065f78f215fc43cbd6b6bafc7e026b2e40e433df87de5900",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "6d32803d03e9947ab656cb9e6820e79f9354759a365b92f44df31358bdefc9a0",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "3f157818a55b09509e9c45393fbbe0a2f59745ad17df84a1c5b1807ef7f56bab",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "2dc5da39f9a94953b24a0a11833c3ccaa91b7a71a72edaced32c62adf704063c",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "c3e2ca2b4a7b75c9494042889ae3a50525b5f3b6ff6719e56663bfdd1fa5f136",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "e2027afe4c845731aa8137b917980cb7dd6b46c9ff83b707750f0ca70f596408",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "2dad48e56aea16db7edb52cb2d638c1757a7ea8ae85c21af6b155481a760966c",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "e583253e5dfa9c3a89f4bc6f85b051fca37d4e3bb15a822433cf4611af3d2e79",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "63ed16056ce60be6443dd7608960665b6ec3ab39af6f224f66d7cfbf1b611271",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "889da0254941ac56d69d37479f65c555b25726feebc0b88ac57f10169885a05c",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "f8866aee3cdc4df6f036c83b3f5c14b7367e836608b8af8c595229cd9d7976c8",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "8f1841a0a4923bda3dfaab7d48ec0eca51571ee47feecc20b2ba9ff612672cb7",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "6e41aa4319011442925dc93c063ec6c71b6923fd98c24ec333edf3e3009ca128",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "cf30936965b01c096d5c9e99410af60f28e7e21c19caf4712ce1f27a26e3d94d",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "670a2df852af19e040a76515fcef5ad35f05fcc287b8740892a880e036ba70f4",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "d63510bf049f36834f8995c797e32c8afabbe6d6423fd881146d6ef7aa9c0af4",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "677a78255b8675df81705bfc54b00a1a46d526e33818bafdeff9b8b8e36671d7",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "b94abba132e5e8109467fb3d084fe980445b59e1cced95cbbae75a4c6000ac5d",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      },
+      {
+        "id": "46f61bc36c09cb74714ff71c8a86249223c6855636930772b20b8c6f23458fd0",
+        "classification": "declaration",
+        "owner": "TextViewport",
+        "reason": "Original optional rendering dependencies, Unicode JSON source presentation, scroll/layout/defaults and resize delay. One source function preserves captured callable evaluation; the width-prefix key allows existing context suffixes; prepared rows retain tuple compatibility."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ViewportRenderKey / TextRows / TextViewport",
+        "declaration": "hub/widget/output/text_viewport.py",
+        "consumers": [
+          "hub/widget/output/output_viewport.py",
+          "hub/widget/output_inspector.py",
+          "hub/widget/output/reader.py",
+          "hub/widget/forms/question_card.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_completion_display.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/output/output_viewport.py",
+    "sha256": "1755ba98ef41b13c86b91edaecf8d028fae0491477fd07772bddbba85334e849",
+    "reason": "RenderSlot supplies all actual render/cancel surface identifiers. RenderToken/PendingRender/TextRows name transient tuples; ViewportRenderKey owns the width prefix with an open renderer-context suffix. Text source interpretation and PTK fragment/selection markers are owned once without changing cancellation, scheduling, focus or stored data.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "7de58aa678e1e47ff59f3b75d964f69661be3ca5207c50c78acc7e7d29d48ae7",
+        "classification": "declaration",
+        "owner": "OutputViewport",
+        "reason": "Original non-following output preview and inherited minimum width; actual request keys use the canonical width-prefix factory."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "OutputViewport",
+        "declaration": "hub/widget/output/output_viewport.py",
+        "consumers": [
+          "hub/widget/output_inspector.py",
+          "hub/widget/output/table_inspector.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_home_navigation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/hub/test_completion_display.py"
         ],
         "complete": true
       }

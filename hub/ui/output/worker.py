@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass
 from threading import Condition, Thread
 from time import perf_counter
+from typing import NamedTuple, Callable
 
 
 @dataclass(slots=True)
@@ -16,57 +17,93 @@ class RenderStats:
     pending_peak: int = 0
 
 
+class RenderSlot:
+    TRANSCRIPT = "transcript"
+    POPUP = "popup"
+    SEARCH = "search"
+    QUESTION = "question"
+    ALL = (TRANSCRIPT, POPUP, SEARCH, QUESTION)
+
+
+class RenderToken(NamedTuple):
+    generation: int
+    epoch: int
+    progressive: bool
+
+
+class PendingRender(NamedTuple):
+    token: RenderToken
+    loop: object
+    build: Callable
+    deliver: Callable
+    fallback: Callable
+
+
 class RenderWorker:
     """Never submit CPU work to asyncio's unbounded default executor queue.
 
-    One running job and one pending batch (at most five fixed surfaces). A
+    One running job and one pending batch (at most four fixed surfaces). A
     surface replaces its pending job; unrelated surfaces cannot starve its final
     result. Only the UI loop delivers results. Progressive surfaces publish
     completed intermediate frames; cancellation epochs reject old sessions.
     Other surfaces retain strict latest-generation delivery.
     """
 
-    slots = frozenset({"transcript", "popup", "search", "question"})
+    slots = frozenset(RenderSlot.ALL)
+    INITIAL_GENERATION = 0
+    INITIAL_EPOCH = 0
+    REVISION_STEP = 1
+    ABSENT = None
+    OPEN = False
+    CLOSED = True
+    PROGRESSIVE = False
+    THREAD_NAME = "hub-render"
+    DAEMON = True
 
     def __init__(self):
         self.stats = RenderStats()
         self._condition = Condition()
         self._pending = {}
-        self._generation = dict.fromkeys(self.slots, 0)
-        self._epoch = dict.fromkeys(self.slots, 0)
-        self._thread = None
-        self._closed = False
+        self._generation = dict.fromkeys(self.slots, self.INITIAL_GENERATION)
+        self._epoch = dict.fromkeys(self.slots, self.INITIAL_EPOCH)
+        self._thread = self.ABSENT
+        self._closed = self.OPEN
 
     def cancel(self, slot):
         with self._condition:
-            self._generation[slot] += 1
-            self._epoch[slot] += 1
-            self._pending.pop(slot, None)
+            self._generation[slot] += self.REVISION_STEP
+            self._epoch[slot] += self.REVISION_STEP
+            self._pending.pop(slot, self.ABSENT)
 
-    def request(self, slot, build, deliver, fallback, *, progressive=False):
+    def request(self, slot, build, deliver, fallback, *, progressive=PROGRESSIVE):
         if slot not in self.slots:
             raise ValueError(slot)
         loop = asyncio.get_running_loop()
         with self._condition:
             if self._closed:
                 return
-            self._generation[slot] += 1
+            self._generation[slot] += self.REVISION_STEP
             generation = self._generation[slot]
             self.stats.requested += 1
             if slot in self._pending:
                 self.stats.discarded += 1
-            token = (generation, self._epoch[slot], progressive)
-            self._pending[slot] = (token, loop, build, deliver, fallback)
+            token = RenderToken(generation, self._epoch[slot], progressive)
+            self._pending[slot] = PendingRender(token, loop, build, deliver, fallback)
             self.stats.pending_peak = max(self.stats.pending_peak, len(self._pending))
-            if self._thread is None:
-                self._thread = Thread(target=self._run, name="hub-render", daemon=True)
+            if self._thread is self.ABSENT:
+                self._thread = Thread(
+                    target=self._run, name=self.THREAD_NAME, daemon=self.DAEMON
+                )
                 self._thread.start()
             self._condition.notify()
 
     def _current(self, slot, token):
         generation, epoch, progressive = token
-        return not self._closed and self._epoch[slot] == epoch and (
-            progressive or self._generation[slot] == generation)
+        return (
+            not self._closed
+            and self._epoch[slot] == epoch
+            and (progressive or self._generation[slot] == generation)
+        )
 
     def _deliver(self, slot, token, deliver, result):
         with self._condition:
@@ -98,7 +135,9 @@ class RenderWorker:
                 current = self._current(slot, token)
             if current:
                 try:
-                    loop.call_soon_threadsafe(self._deliver, slot, token, deliver, result)
+                    loop.call_soon_threadsafe(
+                        self._deliver, slot, token, deliver, result
+                    )
                 except RuntimeError:  # Host prompt loop was closed while hidden.
                     pass
             else:
@@ -106,6 +145,6 @@ class RenderWorker:
 
     def close(self):
         with self._condition:
-            self._closed = True
+            self._closed = self.CLOSED
             self._pending.clear()
             self._condition.notify()

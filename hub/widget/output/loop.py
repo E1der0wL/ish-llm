@@ -1,4 +1,6 @@
 """Loop transcript and output objects inside the common engine output frame."""
+from hub.ui.output.worker import RenderSlot
+
 from hub.widget.mouse_contract import MouseBinding
 
 
@@ -112,6 +114,6 @@ class LoopOutput(EngineOutput):
         if control._resize_timer:
             control._resize_timer.cancel()
             control._resize_timer = None
-        self.view.render_worker.cancel("transcript")
-        self.view.render_worker.cancel("search")
+        self.view.render_worker.cancel(RenderSlot.TRANSCRIPT)
+        self.view.render_worker.cancel(RenderSlot.SEARCH)
         self.renderers.close()

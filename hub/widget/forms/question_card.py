@@ -1,4 +1,6 @@
 """Read-only request card; keyboard focus stays in the answer composer."""
+from hub.ui.output.worker import RenderSlot
+
 
 from hub.locales.keys import MessageKey
 
@@ -21,7 +23,7 @@ class QuestionCard(TextViewport):
     INDENT = " "
     PARAGRAPH = "\n\n"
     FOLLOW_TAIL = False
-    RENDER_SLOT = "question"
+    RENDER_SLOT = RenderSlot.QUESTION
     NO_RENDER = None
     MAX_LINE_CHARACTERS = 240
     MAX_CHARACTERS = 8000

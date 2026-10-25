@@ -54,8 +54,14 @@ class ControlFragment:
     """Reserved prompt_toolkit formatted-text control markers."""
 
     CURSOR_POSITION = "[SetCursorPosition]"
+    ZERO_WIDTH_ESCAPE = "[ZeroWidthEscape]"
+    STYLE_POSITION = 0
     TEXT_POSITION = 1
 
     @classmethod
     def text(cls, fragment):
         return fragment[cls.TEXT_POSITION]
+
+    @classmethod
+    def style(cls, fragment):
+        return fragment[cls.STYLE_POSITION]
