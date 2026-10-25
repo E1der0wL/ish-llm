@@ -8835,3 +8835,47 @@ Hub 집중 실행은 진행 중이던 동결 Gate51 Hub 전체 회귀와 중복 
 관련 후속 변경 묶음의 다음 Level 3와 정확한 SHA 원격 CI에서 수행한다. Gate51 결과를 이 변경의
 통합 완료로 승계하지 않는다. 공유 GeneralSettings 등의 아직 미전환 Hub 소비자는 기존 미완료
 표시를 유지한다.
+
+
+## Hub 명령·Component 관리 목록·Session 생성 화면
+
+Component catalog, component command parser, SessionMode, command dispatch/parser, completion,
+ComponentCommands, SessionActions와 SessionForm 여덟 파일을 전수 정리했다. ManagedComponents는
+현행 maintenance 계약의 가벼운 Application 관리 목록을 유지한다. 기존 이름·순서·접두사·관리
+종류·가져오기 형식·정해진 데이터 클래스 경로와 editor/operation 선택을 한 선언에서 사용한다.
+UI import에서 llm/PTK를 로드하지 않으며, 데이터 타입의 import는 기존 Backend 경계에 남는다.
+이 목록은 실제 Component 활성화·실행 권한의 원본이 아니다.
+
+CoreCommand/ComponentAction/CommandArguments/CommandInput이 기존 명령 목록과 / 문법을
+공유한다. 등록되지 않은 절대 경로·슬래시 입력은 일반 요청으로 남고 명령·Agent·Project 내부
+경로 자동완성의 결과와 순서를 유지한다. SessionMode는 기존 new/clone 작업을 실제 Runtime,
+LiveController, 명령, SessionActions, SessionForm에서 공유한다. 복제·새 Session의 권한/실행
+판단은 Backend에 남는다. 폼은 HistoryRow.id를 읽으며 최신 경계 선택·선택 인덱스·화면 변경 후
+늦은 callback 거부·이름 검증·입력 보존·진행 callback을 유지했다.
+
+원본/변경안 명령·자동완성·catalog 관측 114개, 별도 경량 import 8개, 실제 폼/Session callback
+관측 54개, 관리 화면 routing 24개가 일치했다. 경로 비교는 실제 디렉터리/파일과 내부·외부
+symlink를 사용했다. Session 비교는 실제 PTK 폼과 기존 콜백을 실행했고 manager routing은
+facade로 인자·등록·호출을 비교했다. 실제 Runtime/Live의 해당 변경은 Owner 참조를 원래 표현으로
+펼쳤을 때 AST가 동일했다(consumer-equivalence.json). 이 제한된 비교와 아래 실제 UI·Component
+관리·Session/Agent·이력 테스트를 구분한다.
+
+- `whole-hub-command-surface-core-01`: discovered/started/pass 13/13/13, exit 0, 2.25051초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-command-surface-core-01/llm.json --modules tests.llm.test_agent_domain tests.llm.test_session_domain`. source `f1ae7dc6b8540f6ec794339f4e5865be4c791640c9bf00c054b59abaf6b7204f`, input `e0a40978fc90dfb4058edf854d1a31e4f293fc0270cc960b6161c64abbb6137e`.
+
+- `whole-hub-command-surface-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.501817초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-command-surface-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `f1ae7dc6b8540f6ec794339f4e5865be4c791640c9bf00c054b59abaf6b7204f`, input `e0a40978fc90dfb4058edf854d1a31e4f293fc0270cc960b6161c64abbb6137e`.
+
+- `whole-hub-command-surface-l1-01`: discovered/started/pass 11/11/11, exit 0, 24.556013초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-command-surface-l1-01/hub.json --modules tests.hub.test_component_catalog tests.hub.test_slash_commands tests.hub.test_popup_completion tests.hub.test_input_contract`. source `f1ae7dc6b8540f6ec794339f4e5865be4c791640c9bf00c054b59abaf6b7204f`, input `e0a40978fc90dfb4058edf854d1a31e4f293fc0270cc960b6161c64abbb6137e`.
+
+- `whole-hub-command-surface-l2-01`: discovered/started/pass 27/27/27, exit 0, 110.92329초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-command-surface-l2-01/hub.json --modules tests.hub.test_component_managers tests.hub.test_features tests.hub.test_request_history tests.hub.test_summary_api`. source `f1ae7dc6b8540f6ec794339f4e5865be4c791640c9bf00c054b59abaf6b7204f`, input `e0a40978fc90dfb4058edf854d1a31e4f293fc0270cc960b6161c64abbb6137e`.
+
+모든 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. argv/exit는
+`hub-command-surface-draft/selected-results.json`, 비교 명령은 `proof-commands.json`에 보존한다.
+공통 안전성 84개·R3 Mutation·정적 S1–S7·감사·문서 검사를 포함한다. 기존 승인·예산·실제 효과·
+Checkpoint·Resume·삭제·원본 보존 Assertion과 경량 import Assertion을 유지했다.
+
+명령과 폼의 동일한 선택·관측 이동이며 실행 정책·영속 형식을 변경하지 않았다. 전체 회귀는
+ProviderActivity/ProjectCreation/TitleLifecycle/BackendComposition과 관련 후속 변경을 모은 다음
+Level 3·실환경·정확한 SHA 원격 CI 게이트에서 수행한다. 현재 동결 Gate51에는 이 소단계가 없으며
+그 결과를 이 변경의 완료 증거로 승계하지 않는다. Runtime/Live 전체 전환은 계속 진행한다.

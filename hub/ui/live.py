@@ -1,4 +1,6 @@
 """UI-thread controller; backend handles never cross into PTK callbacks."""
+from hub.backend.session_contracts import SessionMode
+
 
 from hub.locales.codes import LanguageCode
 
@@ -476,7 +478,7 @@ class LiveController:
     def submit(self, session_id: str, text: str):
         if not session_id:
             self.view.notice = self.view.t(MessageKey.SESSION_REQUIRED)
-            self.view.session_dialog("new")
+            self.view.session_dialog(SessionMode.NEW.value)
             return
         if not text.strip() or session_id in self._submitting or self._choosing_submission:
             return
@@ -560,7 +562,7 @@ class LiveController:
         if session_id:
             self._call("select", session_id)
 
-    def new_session(self, mode="new", title="", source_id=None, through_message_id=None):
+    def new_session(self, mode=SessionMode.NEW.value, title="", source_id=None, through_message_id=None):
         def created(session_id):
             if session_id is None:
                 return

@@ -1,4 +1,6 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
+from hub.backend.session_contracts import SessionMode
+
 from hub.backend.project.title_values import TitleSessionMetadata, TitlePresentation
 
 from hub.backend.execution.engine_selection import HubEngineIdentity
@@ -228,9 +230,9 @@ class HubRuntime:
         self.selected_id = session_id
         self.dirty.set()
 
-    async def new_session(self, mode: str = "new", title: str = "", source_id: str | None = None,
+    async def new_session(self, mode: str = SessionMode.NEW.value, title: str = "", source_id: str | None = None,
                           through_message_id: str | None = None) -> str:
-        if mode == "clone":
+        if mode == SessionMode.CLONE:
             if not self.sessions:
                 raise ValueError(self.t(MessageKey.SESSION_REQUIRED))
             source = self.sessions[source_id or self.selected_id]
@@ -256,7 +258,7 @@ class HubRuntime:
                         await session.adelete_turn(ConversationTurns.request(group).id)
             finally:
                 await source.run.start()
-        elif mode == "new":
+        elif mode == SessionMode.NEW:
             participants = sorted(identifier for identifier in await self.project.agents.alist()
                                   if not identifier.startswith("_hub_"))
             session = await self.project.sessions.acreate(title or self.t(MessageKey.NEW_SESSION), agent_ids=participants)
@@ -264,7 +266,7 @@ class HubRuntime:
             raise ValueError(f"Unknown session operation: {mode}")
         data = await session.aget_data()
         metadata = TitleSessionMetadata(data.metadata).initialize(not bool(title) and self.config.auto_title)
-        if mode == "clone":
+        if mode == SessionMode.CLONE:
             from llm.services.query import Query
             source_runs = await source.run.alist(query=Query(descending=True, limit=1))
             if source_runs:
@@ -276,7 +278,7 @@ class HubRuntime:
         await session.run.start()
         self._opened_sessions.add(session.id)
         self.dirty.set()
-        if mode == "clone":
+        if mode == SessionMode.CLONE:
             self.namer.schedule(session, "clone")
         return session.id
 

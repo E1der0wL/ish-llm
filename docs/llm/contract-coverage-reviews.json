@@ -101231,5 +101231,905 @@
         "complete": true
       }
     ]
+  },
+  {
+    "path": "hub/components.py",
+    "sha256": "1c8cb3c431dd0b3ca4e9fd21efbf47ac1b16438d4cbd96b50952a00b3480cf62",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b3cf9b0fb91120fce09e154b5b04915d7fb85bfde009c45b7c33f0ac0fdad08b",
+        "classification": "declaration",
+        "owner": "ManagerKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "ded55a4346bbfa0410afd35b8ecbf6d8580afff2079e1ffa12c2f721e25f212e",
+        "classification": "declaration",
+        "owner": "ManagerKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "4b91c6e6d2b164a50272f794e986ced1d3fd5273eb791b1d9045fb6f8144f343",
+        "classification": "declaration",
+        "owner": "ManagerKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "b1224e784ca3b3889d48e4ee75526b0e8d0d9ea37c8fc7f8819fa197a474482c",
+        "classification": "declaration",
+        "owner": "ManagerKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "e7c2ebf80989f9287844a59c5048ce9dcf6d559f39e3ac2e5f97741bb619245b",
+        "classification": "declaration",
+        "owner": "ManagerKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "4d66df1bd955fddd8c353378a4bd69efe78808bf94e14f1ba1866b3d6662726b",
+        "classification": "declaration",
+        "owner": "ImportKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "10c4f25c0da55664ca842ba9401ff89db9e9b1b4e33a5dfe279c36bdf5f3716a",
+        "classification": "declaration",
+        "owner": "ImportKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "ceb93eab5e72315df79d0bf6c53c857e51a9a39afdc29936cc01311d34e1f418",
+        "classification": "declaration",
+        "owner": "ImportKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "cdfcf1131eeb32f56a8b7c007f14b1f91ee6777d38cb9e3ac1f60f093c130941",
+        "classification": "declaration",
+        "owner": "ImportKind",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "0f4f44286179440aba7c8061b5844aced85df4227924b27e34ef6ebecf22eb3b",
+        "classification": "non_contract",
+        "owner": "ComponentSpec",
+        "reason": "Dataclass frozen value representation."
+      },
+      {
+        "id": "fbf8eca1366454491ff3bf422c46a4e77dab566d62c1251ce628f495e74d565a",
+        "classification": "non_contract",
+        "owner": "ComponentSpec",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "f1a991da05357cf01634d3b1eaf41f600f1702a9a6215414c1b415b3c7aa904d",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "97bbe92093dca212f46648761a73797c44b221e816074bde63fdcb2278e61e53",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "51cdc8a4357adb05404eb64a6dbd9be686a373e49c9b5385bf2fc2274fa43ed6",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "65122c4d682a089f7113333d9c9a44bddca67062cdcf8bacf3ff7033fb5a5220",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "5504498fb032da8bcfde40181290eaabfa10b6528c94b590e59ca0f955a99a0f",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "88778643e62421129f708e6393c253be9f22a42d5e8ea0998dea6ddc6c47c6fa",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "c97176a33b42df9464dc45ee8c972dab9eea0a2be7b946111fc4683a523f80d4",
+        "classification": "declaration",
+        "owner": "ComponentSpec",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "1a49619bcfeef336d368ea2206f26ddd61f2c4f65d3849a664b42e7dc611dcab",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "e88d66565da2fc9b255797e2c02a15d9a5b34f48fb5cdbae29ab3b48f4e7dd91",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "fe254d4ddfb5258dad291e2c9215ca19f645bba83fc53c8a368652d678d404c5",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "a55a14f260e14e4838a9e65a22bb4113a2e8b7f23b4c961ea887130cfad51cc4",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "96cb6a56ae2162e2e132eb0fb56ebc29aed0f7c59d7d5e57bd7e6c700d7776e4",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "8d61106e9b6a2b9cccb1bef896f05c64c1e81d33ce7f22d56f3d0bc01a922b13",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "4d5103cea590f8b5714ce5bb1c1350f142ad6798945b9a49138af000855bd140",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "beed54bdd486ee471f1eff2559bbb2f79eafa9393c4838d134d93c6edc9a1d65",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "f8503377d542a51d1c98c7f04c23085829f4a058d9139f949d1543db8de2528b",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "3827f23cf2fea7c130ffdf5423c2dd85dc2c40668c667cffe20910c035030143",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "5003dd8143f2e04ce4ca1d7cd3225c31eeec594fa9a8ad45deb18f26925d1d20",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "f4e9d7717ad132ccd464b27b60c6eca2e2bc296c1aa36e053798a5b60bfc6017",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "32d6650958aab92e18b0f2884d88773e79a0359de19bcbae59b3e9210a97aea3",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "2d0c31ad50bf15b52ec22cec29a95b8d7be35400893ae4831bae52ec9ce4b2ca",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "c920b8238816df3b4744f7baa85822840c899022a9ab3303df56ce0d6b1acbaa",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "d629c74101d1175dba08cb6f307774bb43b3665dd53d6b91ae507c7c6792562a",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "3e85c73a632a9503c981e38901e97b78b18e2b38083ca74df03b82da7c6e162d",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "7999638138eba8f037199573ef92686d919c2785406157fac42c746ce152335c",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "b094339fec3704ee000006452e4e9e1b295902a4ba6528d7009da971746d6930",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "bf7d11361323124b0a204b7107f736f17d215a67d73f121eecb5b544f2209b79",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "baf0f85a68c985ac4bbc6fee929732a3709165ba3df5449aa32eeb37a45c1e33",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "aabc2da84751a72584320f641fdad00c21f401b3b8da73d6455f5c8c55b878ae",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "a20a16577413af9520c864b63b59b293ca43ac5eafe2018b32e0806b67e37da2",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "d9c6247bba9f98c3552240236669868a4aadec83326b9763344e1c88eafc6fb4",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "1d90bcb4c6b5293846d37a86e4410948486a87e70a5c59c1518dcd6357665b10",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "eb31468b4b3f59d5ca6badc22b16030c0234d38411c7af6cea944e3ba7458cd1",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "d5033cea894e6c11206ca79b7d68938c65c3d137081a0d441f2b53db1b424154",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "ee1fe97e3f6325017249f406c92748c1fcf9a0ad834d82f2403e02b97d0a11be",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "5b5dfb7ea37ec5066acfc25792e85a8e644f09751719fdc700606c296dfa97d8",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "b27b34510aab1caaf827631af835336d55ed94d1bd27911e6f9c413715444475",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      },
+      {
+        "id": "2aa3f642e99d32a500ecd7d6f7f20e48b8ed660a81c41b6bcd198004ec75f4ff",
+        "classification": "declaration",
+        "owner": "ManagedComponents",
+        "reason": "Existing lightweight Application management catalog entries and order, fixed backend import contracts, operation names/editor suffixes and manager routing. Catalog membership never activates a Backend component or grants permission."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ManagedComponents / ComponentSpec / ManagerKind / ImportKind",
+        "declaration": "hub/components.py",
+        "consumers": [
+          "hub/backend/project/component_commands.py",
+          "hub/ui/chat/component_ui.py",
+          "hub/backend/project/record_management.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/project/component_commands.py",
+    "sha256": "d43cf956ff2ea7c5ec4411debb80fffa581b819e64a164c792d66f64436dc322",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "22606a8a28577b1c3397aa6bf58f757151b75d9436a4a60ba73d93fefccc7d4b",
+        "classification": "declaration",
+        "owner": "ComponentAction / parse_arguments",
+        "reason": "Existing config/help action grammar and exactly-one argument limit; managed names reference the catalog."
+      },
+      {
+        "id": "ebd1a9b3ffd7a87ba0823f57cbc91a026cd69a84aaa29248f4b3de2e5aeafeeb",
+        "classification": "declaration",
+        "owner": "ComponentAction",
+        "reason": "Existing config/help action grammar and exactly-one argument limit; managed names reference the catalog."
+      },
+      {
+        "id": "9132591051e2d8b8c5f4dd3f9ed0ba9f26188ba4d651a1350dab6387e83a5db8",
+        "classification": "declaration",
+        "owner": "ComponentAction",
+        "reason": "Existing config/help action grammar and exactly-one argument limit; managed names reference the catalog."
+      },
+      {
+        "id": "3981f9e1ad3154cbf6fdc49cc043dad61e43d165f053de7b262f34c198ef39c1",
+        "classification": "non_contract",
+        "owner": "component_commands",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "f0eaafd39c52e76bc939f295e4695e48162e831ea3cadfd3668717736f363bc2",
+        "classification": "non_contract",
+        "owner": "parse_arguments",
+        "reason": "First parsed word after empty handling, checked against exact argument count."
+      },
+      {
+        "id": "d400eb5e569f37a6b0e5026d6356421b65424d142671b2d462770dc091b37e72",
+        "classification": "non_contract",
+        "owner": "parse_arguments",
+        "reason": "Return the one validated word."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentAction / parse_arguments",
+        "declaration": "hub/backend/project/component_commands.py",
+        "consumers": [
+          "hub/ui/chat/component_ui.py",
+          "hub/ui/chat/completion.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/session_contracts.py",
+    "sha256": "31de378d72710f0f0618bc5bb89779aca848846c8e9679c79df8d2285e6563c9",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "1941ba339f5999e09701735af2a026366a7e8778e6cc5208cbf18e53ccb1b1a9",
+        "classification": "declaration",
+        "owner": "SessionMode",
+        "reason": "Canonical existing new/clone Hub operation identifiers; every actual mode producer/consumer uses the same declaration."
+      },
+      {
+        "id": "42132f2d79fbea9f058cefdcb025f25fee743c97171acccec9eb9ce66990425d",
+        "classification": "declaration",
+        "owner": "SessionMode",
+        "reason": "Canonical existing new/clone Hub operation identifiers; every actual mode producer/consumer uses the same declaration."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SessionMode",
+        "declaration": "hub/backend/session_contracts.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "hub/ui/live.py",
+          "hub/ui/input/commands.py",
+          "hub/ui/chat/session_actions.py",
+          "hub/widget/forms/session_form.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/input/commands.py",
+    "sha256": "f4c511c0371e68a3b819e2fae242c36bf6d7c5bf02f2fbc75591736ff5127f8d",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b84c570da05856774e88e88c40b7add50836305502724e539611147948b7fea8",
+        "classification": "declaration",
+        "owner": "CoreCommand",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "ff1fdd5415c789bdf2043f5bd9da092913fd19f3772e5789f85f246d60a17679",
+        "classification": "declaration",
+        "owner": "CoreCommand",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "04e2581786806d50e1016efa468eb1ccfe0a35074ad5120893702530e8fc79c8",
+        "classification": "declaration",
+        "owner": "CoreCommand",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "50e791f69eaf5bed947cd54f3de6d2cf80170820b2970d7a156b31572ad527ad",
+        "classification": "declaration",
+        "owner": "CoreCommand",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "116ff0a32e9bb96b24b78be04a6ba63c9fd6e6be2a9b98635a7ab2fd8b70e00d",
+        "classification": "declaration",
+        "owner": "CommandArguments",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "b8304ec45d9e9661a1217b229f80cebcbb286833f418071957b1c5cc4e588248",
+        "classification": "declaration",
+        "owner": "CommandSyntax",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "ae1f795b6e8944d82781003e2479a4bcc5f9cd48ee130274d1ca95d8c941253b",
+        "classification": "declaration",
+        "owner": "CommandSyntax",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "73bb1097de261feecc9a9589797b5cc0ed39ea0fc4a394e63824932cce53963b",
+        "classification": "declaration",
+        "owner": "CommandSyntax",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "0b3596e114673713fc8419c4016951d0de8423897ff740b8eedffee9ba9d2ef2",
+        "classification": "declaration",
+        "owner": "CommandSyntax",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "fe8f9cc05325c6281b34384c5519ffce6f2dc73b0fa24b4ddcf7f3881abeae9f",
+        "classification": "declaration",
+        "owner": "CommandSyntax",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "76260a6c6113553333fef683643dcc2aeb2ac8b6fee25b286773d82853f722aa",
+        "classification": "non_contract",
+        "owner": "CommandInput",
+        "reason": "Dataclass frozen value representation."
+      },
+      {
+        "id": "dc16fa2356107f23bfaf2ca811dd391cbb463400e912c1a25ec98277593f9550",
+        "classification": "non_contract",
+        "owner": "CommandInput",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "18613a9ebb1dbac109d1ecc243351fcf4609ba786a39fdf2846a3f9d5c0785fa",
+        "classification": "non_contract",
+        "owner": "CommandSpec",
+        "reason": "Dataclass frozen value representation."
+      },
+      {
+        "id": "e45430b56bc91581f6107208066479cc50979e8e28f43510eaee18a10b965bd6",
+        "classification": "non_contract",
+        "owner": "CommandSpec",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "2b12d5f6b5e0ebfcb7245fb2f77a3c084d2fddb00f5f5064059acc0645f9a848",
+        "classification": "declaration",
+        "owner": "CommandSpec",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "a53d487b32098c8a1e0017bfb72e29cbcba8c60603eb622a01ff7a8b67eb858d",
+        "classification": "declaration",
+        "owner": "CommandSpec",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "9a9855b71f0a5dc05910c7b7e832ce6c64206b364ac7ad03f7743f5c4f149327",
+        "classification": "non_contract",
+        "owner": "find_command",
+        "reason": "Optional return type annotation."
+      },
+      {
+        "id": "bbf5925dd5c61163240d47c8b79f1866511d62c67c2a69a69728a033557ed81c",
+        "classification": "declaration",
+        "owner": "HubCommands",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      },
+      {
+        "id": "85f6bec47669cd1a8d511d1010f68a7d46729431fe60e048a5625f7b10ddd28e",
+        "classification": "declaration",
+        "owner": "HubCommands",
+        "reason": "Existing slash-command spelling, argument kind, parser projection and fixed ordered dispatch definitions; Session modes reference their operation Owner."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "CoreCommand / CommandArguments / CommandSyntax / CommandInput / CommandSpec / HubCommands",
+        "declaration": "hub/ui/input/commands.py",
+        "consumers": [
+          "hub/ui/chat/completion.py",
+          "hub/ui/view.py",
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/chat/completion.py",
+    "sha256": "30012f9a4265cf82e2c56843abe3933ca63450412eb755cca1c8549034e9f983",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "27942ce4af23afbbe7302ddd476388e1e9447c9dd9e6ccf3328b0299e7dc7596",
+        "classification": "declaration",
+        "owner": "HubCompleter",
+        "reason": "Existing path-completion grammar/format and missing-command marker. Slash parsing and action/argument choices reference command Owners."
+      },
+      {
+        "id": "ac2c52fecb2bc2a6683fc1a75d0980dae50f7a1a3ed669584714d0f53d491b72",
+        "classification": "declaration",
+        "owner": "HubCompleter",
+        "reason": "Existing path-completion grammar/format and missing-command marker. Slash parsing and action/argument choices reference command Owners."
+      },
+      {
+        "id": "6525689213208dcfbb30dece9dbd82af2e7d54131f20070dc027e770bcc569c5",
+        "classification": "declaration",
+        "owner": "HubCompleter",
+        "reason": "Existing path-completion grammar/format and missing-command marker. Slash parsing and action/argument choices reference command Owners."
+      },
+      {
+        "id": "72fef94ca981fc2eb140333fdc271b5aab9b02dc27781afc44921c0dbd683c58",
+        "classification": "declaration",
+        "owner": "HubCompleter",
+        "reason": "Existing path-completion grammar/format and missing-command marker. Slash parsing and action/argument choices reference command Owners."
+      },
+      {
+        "id": "6c8a43ddc49334a1f04134c81f5d94f40bdc3ee25be043b47ad0f7aae6180bba",
+        "classification": "non_contract",
+        "owner": "HubCompleter.__init__",
+        "reason": "Constructor return annotation."
+      },
+      {
+        "id": "0a8da577f486afa69928cb87afb89af5fc05846d90ecbdca63a2e5f8a60d5891",
+        "classification": "non_contract",
+        "owner": "HubCompleter.get_completions",
+        "reason": "The first capture group of the explicitly declared path regex."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubCompleter",
+        "declaration": "hub/ui/chat/completion.py",
+        "consumers": [
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/chat/component_ui.py",
+    "sha256": "50385756fb03ecb1e83c940977d76dd7ac620612f81e85aacece18f99be1b8c7",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "fa25f5e29c7c8e9d9472ef96ea2ea6aea2fb60d28deb4d2f53583916eca3102d",
+        "classification": "declaration",
+        "owner": "ComponentCommands",
+        "reason": "Existing help title and optional progress callback; action, prefix and definition-editor selection reference catalog/command Owners."
+      },
+      {
+        "id": "0d5aca78a35d0b1eb0675953c79507088ccbe6ff02877da3fa215c978d26fcd9",
+        "classification": "declaration",
+        "owner": "ComponentCommands",
+        "reason": "Existing help title and optional progress callback; action, prefix and definition-editor selection reference catalog/command Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ComponentCommands",
+        "declaration": "hub/ui/chat/component_ui.py",
+        "consumers": [
+          "hub/ui/live.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/chat/session_actions.py",
+    "sha256": "6ceb87cd271dd8168af39f8a18c13fd837d8358cc4b7b46603d0c69728f3c4d9",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "070084c629a9d8e32144b5408fb80af16915a1165295dcf9e9a1ffd70677e4aa",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "ac7125df269c74ea63be05eca31a33caf7edc1c2e44b47c611e24fc1383f0649",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "e80a2960ca4da28241a947ec5edf5116527f2ca6c4e90a4f8869868ba8080cd5",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "962422a7b03acaeda46a3d99cd73ee64555b431877b4e6cf1ff962f5f67c972b",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "ef92316a73f09e4f7948c3117dd7b32ce1d10b210380ebafe1df766cb22693f2",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "65dd61a44ddb362cd830cffd1742ce7cf2694ebef8e35b109faf616d9d7895b1",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "9462d1e54fd17366a7fd850c48cdfc897a87c7df7748092d83ccec1f7f1aafaa",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "1b30cbc343d15d781e9c45a74db9bc76f7ed932c4938d971e3eac0251f667452",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SessionActions",
+        "declaration": "hub/ui/chat/session_actions.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "hub/ui/input/bindings.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/session_form.py",
+    "sha256": "d854cc896b1c563a150a1259bbc5bc6900057b1d65ab212286c908eea93c0300",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f7fcc4593bff83c1cae3618d2afbad029e92c00d87330c878313941cc4ea0231",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      },
+      {
+        "id": "14ca3717308ef502c299395e24ed025b9fea21ce97e9f03bc8ea8ec543b1a71a",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      },
+      {
+        "id": "78d018cb9a791b99a1fad0f518610f91d070714997fd517fd255e8abbeb6dd4e",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      },
+      {
+        "id": "29b0ee3f1d4aadd4a36e3f0311b54b9ebc854bd59f299ef00b3f78b955cb4ed1",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      },
+      {
+        "id": "20f0455233631be700832db3e0775f625dc31e84a6df4154713fc3c3f774548b",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      },
+      {
+        "id": "e1256a33b05292962e1903af8548946165e18d40bce97efaf541dddc94fe6aff",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      },
+      {
+        "id": "d4fb842284268a705f81fda7dc193c6f4df3ef437181297414f9fb6a9bc25f65",
+        "classification": "declaration",
+        "owner": "SessionForm",
+        "reason": "Existing form geometry/focus/nullable latest boundary; Session operation values and HistoryRow IDs reference canonical Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SessionForm",
+        "declaration": "hub/widget/forms/session_form.py",
+        "consumers": [
+          "hub/ui/chat/session_actions.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_domain.py",
+          "tests/llm/test_session_domain.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_component_catalog.py",
+          "tests/hub/test_slash_commands.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_features.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_summary_api.py"
+        ],
+        "complete": true
+      }
+    ]
   }
 ]
