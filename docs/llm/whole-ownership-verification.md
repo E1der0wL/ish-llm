@@ -9747,3 +9747,61 @@ values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·고
 재시작 실행/cleanup 순서는 그대로인 선언과 Projection 정리로 Level 1·2를 적용했다. 소단계
 전체 회귀는 수행하지 않았다. Gate55 이후 현재 host/실행 조정 소비자 정리를 묶은 Level 3와
 정확한 SHA 원격 CI에서 통합 검증한다. 완료는 이 소단계의 로컬 검증에 한정한다.
+
+
+## Hub Runtime·CLI 및 실제 Owner 조회 경계
+
+Runtime·CLI와 RuntimeAgentCatalog를 전수 정리했다. HubConfig/CLI의 기본 workspace는
+WorkspaceSelection 한 선언에서 같은 시점에 해석한다. 기존 AgentDefinition.engine/purpose,
+HubEngineIdentity, PreferenceSnapshot.general, 이벤트 channel/delivery/overflow/statistics,
+SessionManager 삭제 오류와 SteeringMode/MessageRole을 재사용한다. HubConfig의 factory
+None/빈 컬렉션/내용 있는 falsey 컬렉션 의미와 생성 시 검증 경계는 유지한다.
+
+SubmissionResult가 한 필드 제출 상태 Projection과 필수 run_id 조회를 소유하고, AgentSummary와
+RuntimeAgentCatalog가 기존 공개 agents→engine/purpose 형태를 만든다. 공개 응답을 변경하거나
+누락 필드를 기본값으로 채우지 않는다. ViewStateStore/EngineSelection의 Owner Projection은
+기존 tuple 반환 API와 읽기 순서를 유지한다. SnapshotReader가 제출 timestamp의 기록/eviction과
+누락 관측 후 정확히 두 cache의 무효화를 소유한다. 다른 cache나 저장 기록을 비우지 않는다.
+
+LargeLanguageModel.workspace_or와 BackendServices.observed_sink는 실제 Host Owner의 선택적
+속성 조회다. 기존 getattr와 동일하게 AttributeError에만 명시적 fallback/기존 UNSPECIFIED를
+적용하고, None/False 값과 다른 오류는 보존한다. 실행 권한이나 필수 저장 증거에 적용하지 않는다.
+
+원본과 100개 관측이 일치했다: factory/Agent 설정 검증, optional 속성 getter의 실제 호출/오류,
+필수 통계/제출 필드 오류, tuple Projection, cache 경계/중복 key eviction과 선택적 무효화,
+실제 Runtime의 Agent catalog/Agent별 제출 상태, CLI help/오류/인자/실행·종료 순서다.
+실제 Owner 함수 본문을 확장한 기존 10개 파일의 실행 AST가 같다. 외부 준비 도구의 잘못된
+Facade import와 CLI UTF-8 AST 위치 오류는 적용 전에 수정했고 최초 실패 자료를 보존했다.
+제품 테스트나 안전성 Assertion을 변경하지 않았다.
+
+- `whole-hub-runtime-safety-02`: discovered/started/pass 84/84/84, exit 0, 37.029761초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-runtime-safety-02/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `a8b200c1305db57c6a41e84063fb7730acda17a7ab6ed1fa05f348ade53cbe30`, input `214cb103ec670aa810155421360582c005eb1c6ae5e5e724453caf73792512c4`.
+
+- `whole-hub-runtime-l1-02`: discovered/started/pass 17/17/17, exit 0, 50.167923초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-runtime-l1-02/hub.json --modules tests.hub.test_defaults tests.hub.test_factory_presence tests.hub.test_agent_selection tests.hub.test_multi_agent tests.hub.test_submission_latency`. source `a8b200c1305db57c6a41e84063fb7730acda17a7ab6ed1fa05f348ade53cbe30`, input `214cb103ec670aa810155421360582c005eb1c6ae5e5e724453caf73792512c4`.
+
+- `whole-hub-runtime-l2-02`: discovered/started/pass 48/48/48, exit 0, 112.646311초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-runtime-l2-02/hub.json --modules tests.hub.test_execution tests.hub.test_request_history tests.hub.test_history_retention tests.hub.test_approval_continuation tests.hub.test_question_tools tests.hub.test_snapshot_projection tests.hub.test_retry_observations`. source `a8b200c1305db57c6a41e84063fb7730acda17a7ab6ed1fa05f348ade53cbe30`, input `214cb103ec670aa810155421360582c005eb1c6ae5e5e724453caf73792512c4`.
+
+초기 제한 런처의 Level 2 `whole-hub-runtime-l2-01`은 48개 발견/실행 중 47 pass,
+failure 1/error 0/Skip 0이었다. 실제 sandbox 출력 Assertion이 실패했고 stderr는
+`bwrap: setting up uid map: Read-only file system`이었다. 변경 전 a80f289와 변경 후 코드에서
+동일 실패·NoNewPrivs=1을 재현했고, 정상 namespace 환경에서는 동일 원본 Assertion이 모두
+통과했다. 제품 코드/테스트는 수정하지 않았다. 최초 전체 로그·실패 출력·진단을 보존했다.
+
+실행 환경이 달랐으므로 초기 성공들을 합산하지 않고 NoNewPrivs=0의 기존 실제 namespace
+환경에서 공통 안전성/R3/Level 1/Level 2를 모두 새 `-02` 실행으로 검증했다. 아래 최종 결과는
+이 새 실행 집합에만 해당하며 초기 실패를 지우거나 성공으로 바꾸지 않는다.
+
+공통 안전성 84개·R3 Mutation, defaults/factory presence/Agent selection/multi-Agent/submission
+latency와 execution/request history/history retention/approval continuation/question tools/
+snapshot projection/retry observations를 검증했다. 발견/실행/pass ID 일치, failure/error/skip/
+xfail/xpass/누락/추가/중복 0, 동일 suite 선택 ID 중복 0이며 source/input 전후·실행 간 동일성을
+확인했다. argv/exit/hash는 `hub-runtime-draft`의 selected-namespace-results.json, namespace-execution-scope.json, proof-commands.json,
+values-equivalence.json에 보존한다. 초기 정적 검사는 변경된 공유 소스의 감사 hash 갱신을
+요구해 exit 1이었고, 기존 62개 finding ID와 변경 근거를 대조·갱신한 뒤 정적 S1–S7·감사·문서
+검사를 통과했다. 최초 보고서를 보존한다. Python 3.12.14/Clang·Host d833790·고정 의존성·실제
+Linux 환경에서 검증했다.
+
+여기까지는 Level 1·2 로컬 검증 완료다. 실행 조정과 공유 Host 조회 경계를 포함하므로
+Installation과 Runtime의 현재 통합 상태를 Gate56 Level 3 대상으로 즉시 고정한다. 이미 실행
+중인 Gate55 전체 회귀와 경쟁하지 않도록 전체 실행을 순서대로 배치한다. LLM/Hub 전체 회귀·
+정적 감사·R3·문서·실제 환경 검사 이후에만 Push하고 정확한 SHA 원격 CI를 별도 기록한다.
+승인/예산/외부 효과/Checkpoint/Resume 정책, 저장 후 ack, 취소 cleanup/재시작 순서는 유지했다.

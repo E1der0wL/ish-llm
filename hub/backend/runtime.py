@@ -1,5 +1,23 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
+
 from hub.backend.session_contracts import SessionMode
+from llm.llm import LargeLanguageModel
+from llm.core.agents import AgentDefinition
+from llm.core.models import MessageRole
+from llm.core.steering import SteeringMode
+from llm.components.tools import ToolRegistry
+from llm.components.rag.identity import RAGIdentity
+from llm.services.composition import BackendServices
+from llm.services.lifecycle.sessions import SessionManager
+from llm.services.runtime.subscription_state import (
+    EventChannel,
+    EventDelivery,
+    EventOverflow,
+    SubscriptionStats,
+)
+from ..config.preference_records import PreferenceSnapshot
+from .execution.engine_selection import EngineSelection
+from .runtime_views import RuntimeAgentCatalog
 
 from hub.backend.project.title_values import TitleSessionMetadata, TitlePresentation
 
@@ -38,7 +56,24 @@ class HubConfig:
     nonempty collections retain their entries regardless of custom truthiness.
     Factories are validated here and constructed later on the backend thread.
     """
-    workspace: str | Path = field(default_factory=lambda: Path.home() / ".ish/hub-workspace")
+
+    UNSPECIFIED = None
+    INVALID_LOG_SINK = "log_sink must be callable"
+    INVALID_RETRY_CHOOSER = "tool_retry_chooser must be callable"
+    INVALID_RETRY_EVIDENCE = (
+        "tool_retry_evidence maps Tool names to callable evidence providers"
+    )
+    RESERVED_AGENT = "Internal Hub Agent IDs are reserved"
+    SESSION_REQUIRES_PROJECT = "session_id requires project_id"
+    INVALID_ENGINE_FACTORIES = "engine_factories must be a dictionary or None"
+    UNREGISTERED_ENGINE = "Initial engine must be registered in engine_factories"
+    INVALID_ENGINE_FACTORY = (
+        "Use nonempty engine names and callable factories; _hub_ is reserved"
+    )
+    INVALID_COMPONENT_FACTORIES = "component_factories must be a tuple, list or None"
+    INVALID_COMPONENT_FACTORY = "Component factories must be callable"
+
+    workspace: str | Path = field(default_factory=WorkspaceSelection.default_workspace)
     agent_id: str = DEFAULT_AGENT
     agent_definition: dict | None = None
     model: str | None = None
@@ -54,91 +89,158 @@ class HubConfig:
     auto_title: bool = True
     user_profile: UserProfile = field(default_factory=UserProfile)
     language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
-    _workspace_anchor: str | Path | None = field(default=WorkspaceSelection.UNBOUND_ANCHOR, repr=False)
+    _workspace_anchor: str | Path | None = field(
+        default=WorkspaceSelection.UNBOUND_ANCHOR, repr=False
+    )
     tool_retry_chooser: Callable | None = None
     tool_retry_evidence: dict[str, Callable] = field(default_factory=dict)
     log_sink: Callable | None = None
 
     def __post_init__(self) -> None:
         Language(self.language, self.language_packs)
-        if self.file_root is not None:
+        if self.file_root is not HubConfig.UNSPECIFIED:
             # Validate path input without changing its value or resolution time.
-            value = str(self.file_root) if isinstance(self.file_root, str) else self.file_root
+            value = (
+                str(self.file_root)
+                if isinstance(self.file_root, str)
+                else self.file_root
+            )
             Path(value)
-            object.__setattr__(self, "file_root", value)
-        if self.log_sink is not None and not callable(self.log_sink):
-            raise TypeError("log_sink must be callable")
-        if self.tool_retry_chooser is not None and not callable(self.tool_retry_chooser):
-            raise TypeError("tool_retry_chooser must be callable")
-        if not isinstance(self.tool_retry_evidence, dict) or any(not isinstance(name, str) or not name or not callable(provider)
-               for name, provider in self.tool_retry_evidence.items()):
-            raise TypeError("tool_retry_evidence maps Tool names to callable evidence providers")
+            object.__setattr__(self, HubConfig.file_root.__name__, value)
+        if self.log_sink is not HubConfig.UNSPECIFIED and not callable(self.log_sink):
+            raise TypeError(HubConfig.INVALID_LOG_SINK)
+        if self.tool_retry_chooser is not HubConfig.UNSPECIFIED and not callable(
+            self.tool_retry_chooser
+        ):
+            raise TypeError(HubConfig.INVALID_RETRY_CHOOSER)
+        if not isinstance(self.tool_retry_evidence, dict) or any(
+            not isinstance(name, str) or not name or not callable(provider)
+            for name, provider in self.tool_retry_evidence.items()
+        ):
+            raise TypeError(HubConfig.INVALID_RETRY_EVIDENCE)
         from llm.core.agents import AgentDefinition
+
         AgentDefinition.identifier(self.agent_id)
-        if self.agent_id.startswith("_hub_"):
-            raise ValueError("Internal Hub Agent IDs are reserved")
-        if self.agent_definition is not None:
+        if HubEngineIdentity.internal(self.agent_id):
+            raise ValueError(HubConfig.RESERVED_AGENT)
+        if self.agent_definition is not HubConfig.UNSPECIFIED:
             from copy import deepcopy
+
             AgentDefinition.validate(self.agent_id, self.agent_definition)
-            object.__setattr__(self, "agent_definition", deepcopy(self.agent_definition))
+            object.__setattr__(
+                self,
+                HubConfig.agent_definition.__name__,
+                deepcopy(self.agent_definition),
+            )
         if self.session_id and not self.project_id:
-            raise ValueError("session_id requires project_id")
-        if self.engine_factories is not None:
+            raise ValueError(HubConfig.SESSION_REQUIRES_PROJECT)
+        if self.engine_factories is not HubConfig.UNSPECIFIED:
             if not isinstance(self.engine_factories, dict):
-                raise TypeError("engine_factories must be a dictionary or None")
-            if self.initial_engine not in (HubEngineIdentity.LOOP, "graph") and self.initial_engine not in self.engine_factories:
-                raise ValueError("Initial engine must be registered in engine_factories")
-            if any(not isinstance(name, str) or not name.strip() or name.startswith("_hub_") or not callable(factory)
-                   for name, factory in self.engine_factories.items()):
-                raise ValueError("Use nonempty engine names and callable factories; _hub_ is reserved")
-        if self.component_factories is not None:
+                raise TypeError(HubConfig.INVALID_ENGINE_FACTORIES)
+            if (
+                self.initial_engine
+                not in (HubEngineIdentity.LOOP, HubEngineIdentity.GRAPH)
+                and self.initial_engine not in self.engine_factories
+            ):
+                raise ValueError(HubConfig.UNREGISTERED_ENGINE)
+            if any(
+                not isinstance(name, str)
+                or not name.strip()
+                or HubEngineIdentity.internal(name)
+                or not callable(factory)
+                for name, factory in self.engine_factories.items()
+            ):
+                raise ValueError(HubConfig.INVALID_ENGINE_FACTORY)
+        if self.component_factories is not HubConfig.UNSPECIFIED:
             if not isinstance(self.component_factories, (tuple, list)):
-                raise TypeError("component_factories must be a tuple, list or None")
+                raise TypeError(HubConfig.INVALID_COMPONENT_FACTORIES)
             if any(not callable(factory) for factory in self.component_factories):
-                raise ValueError("Component factories must be callable")
+                raise ValueError(HubConfig.INVALID_COMPONENT_FACTORY)
 
     @property
     def launch_workspace(self):
-        return self.workspace if self._workspace_anchor is WorkspaceSelection.UNBOUND_ANCHOR else self._workspace_anchor
+        return (
+            self.workspace
+            if self._workspace_anchor is WorkspaceSelection.UNBOUND_ANCHOR
+            else self._workspace_anchor
+        )
 
     @property
     def initial_engine(self):
         """Creation preset only; requests always select a saved Project Agent."""
-        return HubEngineIdentity.LOOP if self.agent_definition is None else self.agent_definition["engine"]
+        return (
+            HubEngineIdentity.LOOP
+            if self.agent_definition is HubConfig.UNSPECIFIED
+            else AgentDefinition.engine(self.agent_definition)
+        )
 
 
 class HubRuntime:
     """All handles, subscriptions and locks belong to one backend event loop."""
 
-    def __init__(self, config: HubConfig, backend_factory: Callable = create_backend) -> None:
+    ABSENT = None
+    NO_SELECTION = ""
+    UNTITLED = ""
+    NO_ARGUMENT = ""
+    INITIAL_DROPPED = 0
+    EVENT_BUFFER_SIZE = 128
+    LAST_ENTRY = -1
+    NEXT_TURN = 1
+    LATEST_RUN_LIMIT = 1
+    LATEST_RUN_POSITION = 0
+    NEWEST_FIRST = True
+    CAPTURE_ERRORS = True
+    SUCCEEDED = True
+    ACTIVITY_LIMIT = 300
+    ACTIVITY_NEWEST_FIRST = False
+    CHECK_RUNNING = True
+    NO_QUEUED_IDS = 0
+    UNIQUE_CANDIDATE_COUNT = 1
+    SOLE_CANDIDATE_POSITION = 0
+    PENDING_ONLY = True
+    PARTIAL_OUTPUT = True
+    UNKNOWN_SESSION_OPERATION = "Unknown session operation: {mode}"
+    FOREIGN_SESSION = "Session is not an active member of the selected Project"
+    INTERNAL_RECIPIENT = "Internal Agent cannot receive conversation requests"
+    FOREIGN_QUESTION = "Project changed; reload the question"
+
+    def __init__(
+        self, config: HubConfig, backend_factory: Callable = create_backend
+    ) -> None:
         from ..config.preferences import configured_workspace
+
         config = configured_workspace(config)
         self.config = config
         self.t = Language(config.language, config.language_packs)
         self._factory = backend_factory
-        self.backend = None
-        self.project = None
+        self.backend = HubRuntime.ABSENT
+        self.project = HubRuntime.ABSENT
         self.sessions = {}
-        self.selected_id = ""
+        self.selected_id = HubRuntime.NO_SELECTION
         self.dirty = asyncio.Event()
         self.lock = asyncio.Lock()
         self._subscriptions = []
-        self._dropped_observations = 0
+        self._dropped_observations = HubRuntime.INITIAL_DROPPED
         from .observability.snapshot import SnapshotReader
+
         self.snapshot_reader = SnapshotReader()
         from .observability.failures import FailureDiagnostics
+
         self.failure_diagnostics = FailureDiagnostics(self)
         from .history import TurnHistory
+
         self.history = TurnHistory(self)
         self._opened_sessions = set()
         self._rag_jobs = {}
         self.notifications = NotificationBuffer()
-        self.builtin_tools = None
+        self.builtin_tools = HubRuntime.ABSENT
         from .project.settings import SettingsService
+
         self.settings_service = SettingsService(self)
         preferences = self.settings_service.preferences.load()
-        self.general = GeneralSettings(**preferences.get("general", {}))
+        self.general = PreferenceSnapshot(preferences).general()
         from .project.naming import SessionNamer
+
         self.namer = SessionNamer(self)
 
     def session_is_open(self, identifier):
@@ -156,12 +258,18 @@ class HubRuntime:
         self.notifications.record_run(event.run)
         self.dirty.set()
 
-    def _saved_selection(self, project_id=None):
+    def _saved_selection(self, project_id=ABSENT):
         try:
             store = ViewStateStore(self.config.workspace)
-            return store.load(project_id)[0] if project_id else store.last_project()
+            return (
+                ViewStateStore.selected_from(store.load(project_id))
+                if project_id
+                else store.last_project()
+            )
         except (OSError, ValueError, TypeError):
-            return ""  # Corrupt UI state must not prevent opening the backend.
+            return (
+                HubRuntime.NO_SELECTION
+            )  # Corrupt UI state must not prevent opening the backend.
 
     def _questions_changed(self):
         self.notifications.observe_questions(self.builtin_tools.questions.pending)
@@ -169,46 +277,84 @@ class HubRuntime:
 
     async def start(self) -> None:
         from .project.bootstrap import select_or_create
+
         self.backend = self._factory(self.config)
         from .tools.builtin import HubBuiltinTools
-        if "builtin_tools" in self.backend.project_manager.components.names():
-            component = self.backend.project_manager.components.get("builtin_tools")
+
+        if HubBuiltinTools.NAME in self.backend.project_manager.components.names():
+            component = self.backend.project_manager.components.get(
+                HubBuiltinTools.NAME
+            )
             if isinstance(component, HubBuiltinTools):
                 self.builtin_tools = component
                 component.questions.changed = self._questions_changed
         await self.backend.__aenter__()
-        for channel, callback in (("engine", self._engine_event), ("run", self._run_event)):
-            self._subscriptions.append(self.backend.events.subscribe(
-                callback, channel=channel, delivery="queued", buffer_size=128, overflow="drop_oldest"))
+        for channel, callback in (
+            (EventChannel.ENGINE.value, self._engine_event),
+            (EventChannel.RUN.value, self._run_event),
+        ):
+            self._subscriptions.append(
+                self.backend.events.subscribe(
+                    callback,
+                    channel=channel,
+                    delivery=EventDelivery.QUEUED.value,
+                    buffer_size=HubRuntime.EVENT_BUFFER_SIZE,
+                    overflow=EventOverflow.DROP_OLDEST.value,
+                )
+            )
         if self.config.project_id:
             self.project = await self.backend.projects.aload(self.config.project_id)
         elif self.general.restore_last_project:
             previous = self._saved_selection()
             if previous:
-                self.project = next((project for project in await self.backend.projects.alist() if project.id == previous), None)
-        if self.project is None:
+                self.project = next(
+                    (
+                        project
+                        for project in await self.backend.projects.alist()
+                        if project.id == previous
+                    ),
+                    HubRuntime.ABSENT,
+                )
+        if self.project is HubRuntime.ABSENT:
             self.project = await select_or_create(self.backend, self.config)
         await self.activate_project(self.project, session_id=self.config.session_id)
 
     async def settings(self, operation, *args):
         return await self.settings_service.execute(operation, *args)
 
-    async def activate_project(self, project, *, session_id=None):
+    async def activate_project(self, project, *, session_id=ABSENT):
         data = await project.aget_data()
-        if self.builtin_tools is not None and self.builtin_tools.name in data.components:
+        if (
+            self.builtin_tools is not HubRuntime.ABSENT
+            and self.builtin_tools.name in data.components
+        ):
             # Prepare only the saved selection. Opening a Project never edits
             # its components or supplies a new enabled-Tool preset.
-            await asyncio.to_thread(self.builtin_tools.resolve, data, "tools")
+            await asyncio.to_thread(
+                self.builtin_tools.resolve, data, ToolRegistry.CAPABILITY
+            )
         sessions = []
         for session in await project.sessions.alist():
             record = await session.aget_data()
             if not TitleSessionMetadata(record.metadata).internal:
                 sessions.append(session)
         candidates = {session.id: session for session in sessions}
-        previous = self._saved_selection(project.id) if self.general.restore_last_session else ""
-        selected = session_id or (previous if previous in candidates else sessions[-1].id if sessions else "")
+        previous = (
+            self._saved_selection(project.id)
+            if self.general.restore_last_session
+            else HubRuntime.NO_SELECTION
+        )
+        selected = session_id or (
+            previous
+            if previous in candidates
+            else (
+                sessions[HubRuntime.LAST_ENTRY].id
+                if sessions
+                else HubRuntime.NO_SELECTION
+            )
+        )
         if selected and selected not in candidates:
-            raise ValueError("Session is not an active member of the selected Project")
+            raise ValueError(HubRuntime.FOREIGN_SESSION)
         # Session start owns stale-state recovery and durable queued-request recovery.
         # Opening history alone does not start every Session in the Project.
         if selected:
@@ -216,7 +362,9 @@ class HubRuntime:
         self.project, self.sessions, self.selected_id = project, candidates, selected
         self.snapshot_reader.clear()
         for session in sessions:
-            self.notifications.register_session(project.id, session.id, (await session.aget_data()).title)
+            self.notifications.register_session(
+                project.id, session.id, (await session.aget_data()).title
+            )
         if selected:
             self._opened_sessions.add(selected)
         self.dirty.set()
@@ -230,56 +378,99 @@ class HubRuntime:
         self.selected_id = session_id
         self.dirty.set()
 
-    async def new_session(self, mode: str = SessionMode.NEW.value, title: str = "", source_id: str | None = None,
-                          through_message_id: str | None = None) -> str:
+    async def new_session(
+        self,
+        mode: str = SessionMode.NEW.value,
+        title: str = UNTITLED,
+        source_id: str | None = ABSENT,
+        through_message_id: str | None = ABSENT,
+    ) -> str:
         if mode == SessionMode.CLONE:
             if not self.sessions:
                 raise ValueError(self.t(MessageKey.SESSION_REQUIRED))
             source = self.sessions[source_id or self.selected_id]
             status = await source.run.astatus()
-            if status.active_runs or status.queued_count or source.id in self.namer.tasks:
+            if (
+                status.active_runs
+                or status.queued_count
+                or source.id in self.namer.tasks
+            ):
                 raise ValueError(self.t(MessageKey.CLONE_BUSY))
             await source.run.shutdown()
             try:
                 from .execution.turns import TurnIndex, edit_source
                 from llm.services.history.turns import ConversationTurns
+
                 records = await source.aconversation()
-                revised = any(edit_source(m) or ResumeRecord.from_metadata(m.metadata) for m in records)
+                revised = any(
+                    edit_source(m) or ResumeRecord.from_metadata(m.metadata)
+                    for m in records
+                )
                 index = TurnIndex(records)
-                boundary = (next(i for i, turn in enumerate(index.turns) if turn.id == through_message_id)
-                            if revised and through_message_id else None)
-                session = await source.aclone(title=title or self.t(MessageKey.NEW_SESSION),
-                    through_message_id=None if revised else through_message_id)
-                if boundary is not None:
+                boundary = (
+                    next(
+                        i
+                        for i, turn in enumerate(index.turns)
+                        if turn.id == through_message_id
+                    )
+                    if revised and through_message_id
+                    else HubRuntime.ABSENT
+                )
+                session = await source.aclone(
+                    title=title or self.t(MessageKey.NEW_SESSION),
+                    through_message_id=(
+                        HubRuntime.ABSENT if revised else through_message_id
+                    ),
+                )
+                if boundary is not HubRuntime.ABSENT:
                     # The Hub context builder clones logical turns. Trim the
                     # freshly created inactive clone through public deletion.
                     groups = await session.aturns()
-                    for group in reversed(groups[boundary + 1:]):
+                    for group in reversed(groups[boundary + HubRuntime.NEXT_TURN :]):
                         await session.adelete_turn(ConversationTurns.request(group).id)
             finally:
                 await source.run.start()
         elif mode == SessionMode.NEW:
-            participants = sorted(identifier for identifier in await self.project.agents.alist()
-                                  if not identifier.startswith("_hub_"))
-            session = await self.project.sessions.acreate(title or self.t(MessageKey.NEW_SESSION), agent_ids=participants)
+            participants = sorted(
+                identifier
+                for identifier in await self.project.agents.alist()
+                if not HubEngineIdentity.internal(identifier)
+            )
+            session = await self.project.sessions.acreate(
+                title or self.t(MessageKey.NEW_SESSION), agent_ids=participants
+            )
         else:
-            raise ValueError(f"Unknown session operation: {mode}")
+            raise ValueError(HubRuntime.UNKNOWN_SESSION_OPERATION.format(mode=mode))
         data = await session.aget_data()
-        metadata = TitleSessionMetadata(data.metadata).initialize(not bool(title) and self.config.auto_title)
+        metadata = TitleSessionMetadata(data.metadata).initialize(
+            not bool(title) and self.config.auto_title
+        )
         if mode == SessionMode.CLONE:
             from llm.services.query import Query
-            source_runs = await source.run.alist(query=Query(descending=True, limit=1))
+
+            source_runs = await source.run.alist(
+                query=Query(
+                    descending=HubRuntime.NEWEST_FIRST,
+                    limit=HubRuntime.LATEST_RUN_LIMIT,
+                )
+            )
             if source_runs:
-                TitleSessionMetadata(metadata).set_agent((await source_runs[0].aget_data()).agent_id)
+                TitleSessionMetadata(metadata).set_agent(
+                    (
+                        await source_runs[HubRuntime.LATEST_RUN_POSITION].aget_data()
+                    ).agent_id
+                )
         await session.asave(metadata=metadata)
         self.sessions[session.id] = session
-        self.notifications.register_session(self.project.id, session.id, (await session.aget_data()).title)
+        self.notifications.register_session(
+            self.project.id, session.id, (await session.aget_data()).title
+        )
         self.selected_id = session.id
         await session.run.start()
         self._opened_sessions.add(session.id)
         self.dirty.set()
         if mode == SessionMode.CLONE:
-            self.namer.schedule(session, "clone")
+            self.namer.schedule(session, TitlePresentation.CLONE_TRIGGER)
         return session.id
 
     async def turns(self, session_id):
@@ -289,18 +480,26 @@ class HubRuntime:
         return await self.history.retry(session_id, request_id, expected_run_id)
 
     async def edit_turn(self, session_id, request_id, text, expected_request_id):
-        return await self.history.edit(session_id, request_id, text, expected_request_id)
+        return await self.history.edit(
+            session_id, request_id, text, expected_request_id
+        )
 
     async def delete_turns_plan(self, session_id, identifiers):
         return await self.history.deletion_plan(session_id, identifiers)
 
-    async def delete_turns(self, session_id, identifiers, expected_revision, *, progress=None):
-        return await self.history.delete(session_id, identifiers, expected_revision, progress=progress)
+    async def delete_turns(
+        self, session_id, identifiers, expected_revision, *, progress=ABSENT
+    ):
+        return await self.history.delete(
+            session_id, identifiers, expected_revision, progress=progress
+        )
 
     async def delete_turn_plan(self, session_id, request_id):
         return (await self.sessions[session_id].adelete_turn_plan(request_id)).to_dict()
 
-    async def delete_turn(self, session_id, request_id, abandon_runs=(), expected_revision=None):
+    async def delete_turn(
+        self, session_id, request_id, abandon_runs=(), expected_revision=ABSENT
+    ):
         session = self.sessions[session_id]
         status = await session.run.astatus()
         if status.active_runs or status.queued_count or session_id in self.namer.tasks:
@@ -308,18 +507,26 @@ class HubRuntime:
         await session.run.shutdown()
         try:
             try:
-                await session.adelete_turn(request_id, abandon_runs=abandon_runs, expected_revision=expected_revision)
+                await session.adelete_turn(
+                    request_id,
+                    abandon_runs=abandon_runs,
+                    expected_revision=expected_revision,
+                )
             except ValueError as error:
-                if str(error) == "Turn deletion plan changed; reload and confirm again":
-                    raise ValueError(self.t(MessageKey.HISTORY_DELETE_CHANGED)) from error
-                if str(error) == "Conversation turn is required by an unfinished resumable Run":
-                    raise ValueError(self.t(MessageKey.HISTORY_CHECKPOINT_PROTECTED)) from error
+                if str(error) == SessionManager.STALE_PLAN:
+                    raise ValueError(
+                        self.t(MessageKey.HISTORY_DELETE_CHANGED)
+                    ) from error
+                if str(error) == SessionManager.RESUMABLE_TURN:
+                    raise ValueError(
+                        self.t(MessageKey.HISTORY_CHECKPOINT_PROTECTED)
+                    ) from error
                 raise
             self.snapshot_reader.clear()
         finally:
             await session.run.start()
         self.dirty.set()
-        return True
+        return HubRuntime.SUCCEEDED
 
     async def cancel_request(self, session_id, request_id):
         session = self.sessions[session_id]
@@ -329,14 +536,24 @@ class HubRuntime:
         self.dirty.set()
         if not cancelled:
             raise ValueError(self.t(MessageKey.HISTORY_CANCEL_UNAVAILABLE))
-        return True
+        return HubRuntime.SUCCEEDED
 
     async def project_activity(self):
         """Keep public activity records and add bounded provider diagnostics."""
-        from .observability.provider_logs import read_provider_logs, associate_provider_logs
+        from .observability.provider_logs import (
+            read_provider_logs,
+            associate_provider_logs,
+        )
+
         project = self.project
-        rows = [event.to_dict() for event in await project.aactivity(limit=300, newest_first=False)]
-        workspace = getattr(self.backend, "workspace", self.config.workspace)
+        rows = [
+            event.to_dict()
+            for event in await project.aactivity(
+                limit=HubRuntime.ACTIVITY_LIMIT,
+                newest_first=HubRuntime.ACTIVITY_NEWEST_FIRST,
+            )
+        ]
+        workspace = LargeLanguageModel.workspace_or(self.backend, self.config.workspace)
         provider = await asyncio.to_thread(read_provider_logs, workspace, project.id)
         return associate_provider_logs(rows, provider)
 
@@ -346,8 +563,7 @@ class HubRuntime:
     async def execution_catalog(self, session_id: str) -> dict:
         project = self.sessions[session_id].project if session_id else self.project
         definitions = await project.agents.alist()
-        return {"agents": {identifier: {"engine": definition["engine"], "purpose": definition.get("purpose", "")}
-                           for identifier, definition in definitions.items() if not identifier.startswith("_hub_")}}
+        return RuntimeAgentCatalog.from_definitions(definitions).to_dict()
 
     async def rename_session(self, session_id: str, title: str) -> str:
         if not title.strip():
@@ -355,12 +571,15 @@ class HubRuntime:
         session = self.sessions[session_id]
         # Stop an in-flight automatic title before saving the explicit title.
         task = self.namer.tasks.get(session_id)
-        if task is not None:
+        if task is not HubRuntime.ABSENT:
             task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
+            await asyncio.gather(task, return_exceptions=HubRuntime.CAPTURE_ERRORS)
         data = await session.aget_data()
-        await session.asave(title=title.strip(), metadata=TitleSessionMetadata(data.metadata).completed())
-        self.namer.errors.pop(session_id, None)
+        await session.asave(
+            title=title.strip(),
+            metadata=TitleSessionMetadata(data.metadata).completed(),
+        )
+        self.namer.errors.pop(session_id, HubRuntime.ABSENT)
         self.notifications.register_session(self.project.id, session_id, title.strip())
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
@@ -382,33 +601,59 @@ class HubRuntime:
         self.sessions.pop(session_id)
         self._opened_sessions.discard(session_id)
         self.notifications.forget_session(session_id)
-        self.namer.errors.pop(session_id, None)
+        self.namer.errors.pop(session_id, HubRuntime.ABSENT)
         if self.selected_id == session_id:
             if self.sessions:
                 await self.select(next(iter(self.sessions)))
             else:
-                self.selected_id = ""
+                self.selected_id = HubRuntime.NO_SELECTION
         self.dirty.set()
         return self.selected_id
 
-    async def manage_tools(self, project_id, action, argument="", expected_version=None):
+    async def manage_tools(
+        self, project_id, action, argument=NO_ARGUMENT, expected_version=ABSENT
+    ):
         from .tools.management import ToolManagement
+
         project = await self.backend.projects.aload(project_id)
-        tools = await ToolManagement.for_project(project, root=self.config.file_root, builtin=self.builtin_tools)
+        tools = await ToolManagement.for_project(
+            project, root=self.config.file_root, builtin=self.builtin_tools
+        )
         return await tools.execute(action, argument, expected_version)
 
-    async def manage_records(self, project_id, name, action, argument="", expected_version=None, *, progress=None):
+    async def manage_records(
+        self,
+        project_id,
+        name,
+        action,
+        argument=NO_ARGUMENT,
+        expected_version=ABSENT,
+        *,
+        progress=ABSENT
+    ):
         from .project.record_management import RecordManagement
+
         project = await self.backend.projects.aload(project_id)
-        manager = await RecordManagement.for_project(project, name, root=self.config.file_root, rag_jobs=self._rag_jobs)
-        if name == "rag":
-            return await manager.execute(action, argument, expected_version, progress=progress)
+        manager = await RecordManagement.for_project(
+            project, name, root=self.config.file_root, rag_jobs=self._rag_jobs
+        )
+        if name == RAGIdentity.CAPABILITY:
+            return await manager.execute(
+                action, argument, expected_version, progress=progress
+            )
         return await manager.execute(action, argument, expected_version)
 
-    async def submit(self, session_id: str, text: str, agent_id: str | None = None,
-                     request_context=UNSET) -> str:
-        selected = self.config.agent_id if agent_id is None else agent_id
-        return await self._submit_recipients(session_id, text, [selected], request_context)
+    async def submit(
+        self,
+        session_id: str,
+        text: str,
+        agent_id: str | None = ABSENT,
+        request_context=UNSET,
+    ) -> str:
+        selected = self.config.agent_id if agent_id is HubRuntime.ABSENT else agent_id
+        return await self._submit_recipients(
+            session_id, text, [selected], request_context
+        )
 
     async def _submit_recipients(self, session_id, text, recipients, request_context):
         """Application-selected recipients share one durable Backend admission."""
@@ -420,62 +665,108 @@ class HubRuntime:
         project = await session.project.aget_data()
         config = (await session.aget_data()).config
         from .execution.engine_selection import agent_model
+
         for selected in recipients:
-            if selected.startswith("_hub_"):
-                raise ValueError("Internal Agent cannot receive conversation requests")
+            if HubEngineIdentity.internal(selected):
+                raise ValueError(HubRuntime.INTERNAL_RECIPIENT)
             definition = await session.project.agents.aload(selected)
-            if agent_model(self.backend.engines, project.config, definition, config)[1]:
+            if EngineSelection.model_required(
+                agent_model(self.backend.engines, project.config, definition, config)
+            ):
                 raise ValueError(self.t(MessageKey.MODEL_REQUIRED))
-        request = await session.run.submit(text, recipients=recipients, request_context=request_context)
+        request = await session.run.submit(
+            text, recipients=recipients, request_context=request_context
+        )
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return request.id
 
-    async def submit_input(self, session_id: str, text: str, agent_id: str,
-                           request_context=UNSET, check_running: bool = True) -> SubmissionResult:
+    async def submit_input(
+        self,
+        session_id: str,
+        text: str,
+        agent_id: str,
+        request_context=UNSET,
+        check_running: bool = CHECK_RUNNING,
+    ) -> SubmissionResult:
         """Check and admit in one UI command; acknowledge only persisted input."""
         from datetime import datetime, timezone
+
         timestamp = datetime.now(timezone.utc).isoformat()
         if check_running:
             state = await self.submission_state(session_id, agent_id)
-            if state["run_id"]:
-                return SubmissionResult(run_id=state["run_id"])
+            if SubmissionResult.state_run_id(state):
+                return SubmissionResult(run_id=SubmissionResult.state_run_id(state))
         identifier = await self.submit(session_id, text, agent_id, request_context)
-        self.snapshot_reader.submissions[identifier] = timestamp
-        if len(self.snapshot_reader.submissions) > 1024:
-            self.snapshot_reader.submissions.pop(next(iter(self.snapshot_reader.submissions)))
+        self.snapshot_reader.record_submission(identifier, timestamp)
         # No extra reads after admission: a later read failure must not make a
         # durable request look rejected. The next snapshot supplies exact state.
-        return SubmissionResult(message=ChatMessage("user", text, timestamp,
-            status=MessageStatus.QUEUED.value, id=identifier, author=self.config.user_profile.display_name))
+        return SubmissionResult(
+            message=ChatMessage(
+                MessageRole.USER.value,
+                text,
+                timestamp,
+                status=MessageStatus.QUEUED.value,
+                id=identifier,
+                author=self.config.user_profile.display_name,
+            )
+        )
 
-    async def submission_state(self, session_id: str, agent_id: str | None = None) -> dict:
-        status = await self.sessions[session_id].run.astatus(queued_limit=0)
-        selected = self.config.agent_id if agent_id is None else agent_id
-        return {"run_id": next((run.run_id for run in status.active_runs if run.agent_id == selected), None)}
+    async def submission_state(
+        self, session_id: str, agent_id: str | None = ABSENT
+    ) -> dict:
+        status = await self.sessions[session_id].run.astatus(
+            queued_limit=HubRuntime.NO_QUEUED_IDS
+        )
+        selected = self.config.agent_id if agent_id is HubRuntime.ABSENT else agent_id
+        return SubmissionResult.state_record(
+            next(
+                (run.run_id for run in status.active_runs if run.agent_id == selected),
+                HubRuntime.ABSENT,
+            )
+        )
 
-    async def instruction_targets(self, session_id: str, run_id: str | None = None) -> tuple[str, tuple[tuple[str, str], ...]]:
+    async def instruction_targets(
+        self, session_id: str, run_id: str | None = ABSENT
+    ) -> tuple[str, tuple[tuple[str, str], ...]]:
         session = self.sessions[session_id]
         status = await session.run.astatus()
-        selected = next((run for run in status.active_runs if (
-            run.run_id == run_id if run_id is not None else run.agent_id == self.config.agent_id)), None)
-        if selected is None:
+        selected = next(
+            (
+                run
+                for run in status.active_runs
+                if (
+                    run.run_id == run_id
+                    if run_id is not HubRuntime.ABSENT
+                    else run.agent_id == self.config.agent_id
+                )
+            ),
+            HubRuntime.ABSENT,
+        )
+        if selected is HubRuntime.ABSENT:
             raise ValueError(self.t(MessageKey.NO_ACTIVE_RUN))
         run = await session.run.aload(selected.run_id)
-        targets = tuple((target.id, target.node_path or target.node_id or target.engine)
-                        for target in await run.ainstruction_targets()
-                        if target.accepting and str(target.mode) == "consume")
+        targets = tuple(
+            (target.id, target.node_path or target.node_id or target.engine)
+            for target in await run.ainstruction_targets()
+            if target.accepting and str(target.mode) == SteeringMode.CONSUME.value
+        )
         if not targets:
             raise ValueError(self.t(MessageKey.NO_TARGETS))
         return selected.run_id, targets
 
-    async def steer(self, session_id: str, run_id: str, text: str, targets: list[str]) -> str:
-        result = await self.sessions[session_id].run.steer(run_id, text, targets=targets)
+    async def steer(
+        self, session_id: str, run_id: str, text: str, targets: list[str]
+    ) -> str:
+        result = await self.sessions[session_id].run.steer(
+            run_id, text, targets=targets
+        )
         self.dirty.set()
         return result.id
 
     async def interrupt(self, session_id: str) -> bool:
         from .execution.stopping import stop_paused
+
         session = self.sessions[session_id]
         result = await session.run.interrupt()
         if not result:
@@ -486,30 +777,53 @@ class HubRuntime:
 
     async def resume_latest(self, session_id: str):
         from .execution.stopping import display_run
+
         await self.history.require_idle(session_id)
         index = await self.history.index(session_id)
         if not index.turns:
-            return None
-        turn = index.turns[-1]
+            return HubRuntime.ABSENT
+        turn = index.turns[HubRuntime.LAST_ENTRY]
         session = self.sessions[session_id]
         record = await session.aget_data()
-        candidates = [run for _, run in (await self.history.attempts(session, turn)).values()
-                      if run is not None and str(display_run(record, run).status) == RunStatus.INTERRUPTED]
-        if len(candidates) != 1:
-            return None  # History offers explicit Run selection for ambiguous retries.
-        return await self.history.retry(session_id, turn.id, candidates[0].id)
+        candidates = [
+            run
+            for _, run in (await self.history.attempts(session, turn)).values()
+            if run is not HubRuntime.ABSENT
+            and str(display_run(record, run).status) == RunStatus.INTERRUPTED
+        ]
+        if len(candidates) != HubRuntime.UNIQUE_CANDIDATE_COUNT:
+            return (
+                HubRuntime.ABSENT
+            )  # History offers explicit Run selection for ambiguous retries.
+        return await self.history.retry(
+            session_id, turn.id, candidates[HubRuntime.SOLE_CANDIDATE_POSITION].id
+        )
 
     async def approval_details(self, request_data):
         from .interactions.approval import review_text
+
         return await asyncio.to_thread(review_text, request_data)
 
-    async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value, *, acknowledged=None):
+    async def answer_question(
+        self,
+        project_id,
+        session_id,
+        run_id,
+        request_data,
+        option_id,
+        value,
+        *,
+        acknowledged=ABSENT
+    ):
         from llm.core.interactions import InteractionOption, InteractionRequest
+
         if project_id != self.project.id:
-            raise ValueError("Project changed; reload the question")
+            raise ValueError(HubRuntime.FOREIGN_QUESTION)
         request = InteractionRequest.from_dict(request_data)
         if self.builtin_tools and request.id in self.builtin_tools.questions.pending:
-            self.builtin_tools.questions.answer(project_id, session_id, run_id, request, option_id, value)
+            self.builtin_tools.questions.answer(
+                project_id, session_id, run_id, request, option_id, value
+            )
             if acknowledged:
                 acknowledged()
         else:
@@ -522,53 +836,116 @@ class HubRuntime:
             self.dirty.set()
             if acknowledged:
                 acknowledged()
-            denied = next(option for option in request.options if option.id == option_id).effect == InteractionOption.EFFECT_DENY
-            if not await run.ainteractions(pending_only=True):
+            denied = (
+                next(
+                    option for option in request.options if option.id == option_id
+                ).effect
+                == InteractionOption.EFFECT_DENY
+            )
+            if not await run.ainteractions(pending_only=HubRuntime.PENDING_ONLY):
                 if not denied:
                     agent_id = (await run.aget_data()).agent_id
                     # The backend validates persisted user decisions, including
                     # uncertain-effect approval. Never invent retry_nodes here.
-                    await session.run.resume(run_id, agent_id=agent_id, partial_output=True)
+                    await session.run.resume(
+                        run_id,
+                        agent_id=agent_id,
+                        partial_output=HubRuntime.PARTIAL_OUTPUT,
+                    )
                 from .execution.stopping import finish_review
+
                 await finish_review(session, run_id)
         self.dirty.set()
-        return True
+        return HubRuntime.SUCCEEDED
 
     def _reconcile_snapshot(self, project_id, observations):
         for item in observations:
-            identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
-            self.notifications.observe_session(project_id, identifier, record.title, run, item.questions)
-            if TitleSessionMetadata(record.metadata).automatic and not runtime.active_runs:
-                if run is not None and str(run.status) == RunStatus.COMPLETED:
+            identifier, record, runtime, run = (
+                item.session_id,
+                item.record,
+                item.runtime,
+                item.run,
+            )
+            self.notifications.observe_session(
+                project_id, identifier, record.title, run, item.questions
+            )
+            if (
+                TitleSessionMetadata(record.metadata).automatic
+                and not runtime.active_runs
+            ):
+                if (
+                    run is not HubRuntime.ABSENT
+                    and str(run.status) == RunStatus.COMPLETED
+                ):
                     self.namer.schedule(self.sessions[identifier], run.id)
-                elif run is None and TitleSessionMetadata(record.metadata).engine:
-                    self.namer.schedule(self.sessions[identifier], TitlePresentation.CLONE_TRIGGER)
+                elif (
+                    run is HubRuntime.ABSENT
+                    and TitleSessionMetadata(record.metadata).engine
+                ):
+                    self.namer.schedule(
+                        self.sessions[identifier], TitlePresentation.CLONE_TRIGGER
+                    )
 
     async def snapshot(self) -> HubSnapshot:
-        dropped = sum(subscription.stats["dropped"] for subscription in self._subscriptions)
+        dropped = sum(
+            SubscriptionStats.dropped_count(subscription.stats)
+            for subscription in self._subscriptions
+        )
         if dropped != self._dropped_observations:
             # A missing text delta makes a cached thinking phase unreliable.
             # Rebuild the display from durable messages/completions below.
-            self.snapshot_reader.thinking.runs.clear()
-            self.snapshot_reader.observations.clear()
+            self.snapshot_reader.invalidate_dropped_events()
             self._dropped_observations = dropped
         from dataclasses import replace
+
         snapshot, observations = await self.snapshot_reader.read(
-            self.project, self.sessions, self.selected_id, config=self.config,
-            engines=self.backend.engines, title_errors=self.namer.errors)
+            self.project,
+            self.sessions,
+            self.selected_id,
+            config=self.config,
+            engines=self.backend.engines,
+            title_errors=self.namer.errors,
+        )
         self._reconcile_snapshot(snapshot.project_id, observations)
-        questions = self.builtin_tools.questions.views(self.project.id, self.selected_id) if self.builtin_tools else ()
+        questions = (
+            self.builtin_tools.questions.views(self.project.id, self.selected_id)
+            if self.builtin_tools
+            else ()
+        )
         questions = questions + snapshot.questions
         from .execution.retries import RetryMonitor
-        monitor = getattr(self.backend.services, "observability_sink", None)
+
+        monitor = BackendServices.observed_sink(self.backend.services)
         if snapshot.run and snapshot.run.active and isinstance(monitor, RetryMonitor):
-            snapshot = replace(snapshot, run=replace(snapshot.run, retry=monitor.view(snapshot.run.id)))
+            snapshot = replace(
+                snapshot, run=replace(snapshot.run, retry=monitor.view(snapshot.run.id))
+            )
         from .interactions.questions import waiting_status
-        waiting = {item.session_id for item in self.builtin_tools.questions.pending.values()
-                   if item.project_id == snapshot.project_id} if self.builtin_tools else set()
-        sessions = tuple(replace(item, status=SessionSummary.WAITING_INPUT) if item.id in waiting else item for item in snapshot.sessions)
-        return replace(snapshot, notifications=self.notifications.items(), questions=questions, sessions=sessions,
-                       status=waiting_status(questions) if questions else snapshot.status)
+
+        waiting = (
+            {
+                item.session_id
+                for item in self.builtin_tools.questions.pending.values()
+                if item.project_id == snapshot.project_id
+            }
+            if self.builtin_tools
+            else set()
+        )
+        sessions = tuple(
+            (
+                replace(item, status=SessionSummary.WAITING_INPUT)
+                if item.id in waiting
+                else item
+            )
+            for item in snapshot.sessions
+        )
+        return replace(
+            snapshot,
+            notifications=self.notifications.items(),
+            questions=questions,
+            sessions=sessions,
+            status=waiting_status(questions) if questions else snapshot.status,
+        )
 
     async def close(self) -> None:
         if self.builtin_tools:
@@ -577,7 +954,7 @@ class HubRuntime:
         for subscription in self._subscriptions:
             await subscription.aclose()
         self._subscriptions.clear()
-        if self.backend is not None:
+        if self.backend is not HubRuntime.ABSENT:
             await self.backend.shutdown()
         if self.builtin_tools:
             await self.builtin_tools.close()

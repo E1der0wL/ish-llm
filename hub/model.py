@@ -122,6 +122,14 @@ class SubmissionResult:
     run_id: str | None = None
     message: ChatMessage | None = None
 
+    @classmethod
+    def state_record(cls, run_id):
+        return {cls.run_id.__name__: run_id}
+
+    @classmethod
+    def state_run_id(cls, value):
+        return value[cls.run_id.__name__]
+
 
 @dataclass(frozen=True, slots=True)
 class SessionSummary:
@@ -188,6 +196,10 @@ class AgentSummary:
     id: str
     engine: str
     purpose: str = ""
+
+    def catalog_entry(self):
+        cls = type(self)
+        return {cls.engine.__name__: self.engine, cls.purpose.__name__: self.purpose}
 
 
 @dataclass(frozen=True, slots=True)

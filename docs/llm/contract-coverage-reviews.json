@@ -80080,8 +80080,8 @@
   },
   {
     "path": "llm/services/runtime/subscription_state.py",
-    "sha256": "032a0093fa4561f955b0ca17e70e8f54173d9530e10c430fc8ca75da4a7aaf5c",
-    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts.",
+    "sha256": "904b70d3f4eefaef81bdfa1929a1189abdc0c8e011d04b835f590429c4b8aa21",
+    "reason": "Full source and dynamic consumer review: one live subscription object, timeout/overflow/self-close/retirement behavior, immutable public stats boundary, JSON-before-protection and transactional metadata mutation; Step identity-before-full-Reader, injected repository/query hooks, validation and watch/write/log ordering. Actual prior/current behavior and fault evidence preserve the existing contracts. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -80228,16 +80228,30 @@
         "owner": "SubscriptionEntry / DeliveryCounters / SubscriptionStats / EventChannel / EventDelivery / EventOverflow",
         "declaration": "llm/services/runtime/subscription_state.py",
         "consumers": [
-          "llm/services/runtime/runs.py",
-          "llm/services/api.py",
+          "hub/__main__.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
           "llm/llm.py",
-          "hub/backend/runtime.py"
+          "llm/services/api.py",
+          "llm/services/runtime/runs.py"
         ],
         "tests": [
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_submission_latency.py",
           "tests/llm/test_catalog_presence.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_contracts.py",
@@ -80266,13 +80280,27 @@
         "owner": "Event subscription choices/statistics — Hub consumer pending",
         "declaration": "llm/services/runtime/subscription_state.py",
         "consumers": [
-          "hub/backend/runtime.py"
+          "hub/__main__.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py"
         ],
         "tests": [
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
+          "tests/hub/test_submission_latency.py",
           "tests/llm/test_catalog_presence.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_contracts.py",
@@ -82213,8 +82241,8 @@
   },
   {
     "path": "llm/services/composition.py",
-    "sha256": "107013ef0dacda994075a25c51e43015af20379eabf692263bf6515e367f1dc7",
-    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass.",
+    "sha256": "9782d686af78eece5f25dfe03a543019d6954b8ccbf040e62c03e20386470a81",
+    "reason": "Full schema and composition sources, direct llm/Hub settings consumers and dynamic injected hooks reviewed. Required lookups and copy/borrow boundaries, resource/schema narrowing, fixed-leaf checks and construction/observation ordering retained. Existing real storage/CAS/safety tests and independent old/new projections pass. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -82361,15 +82389,29 @@
         "owner": "BackendServices",
         "declaration": "llm/services/composition.py",
         "consumers": [
+          "hub/__main__.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
           "llm/llm.py"
         ],
         "tests": [
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_creation_contracts.py",
           "tests/hub/test_defaults.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_navigation.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_submission_latency.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_configuration_objects.py",
           "tests/llm/test_configuration_results.py",
@@ -84424,8 +84466,8 @@
   },
   {
     "path": "llm/llm.py",
-    "sha256": "24e4f77c832c4e8a1dc5a48b88e2841c4dbc9b155424502bbb2674b01e2ca920",
-    "reason": "Full public handle, Facade and CLI implementation plus dynamic injection/after-commit/async cleanup paths reviewed. Only execution coordination remains here: required domain Readers and active/resume/quota/effect checks stay at their original boundaries. Source-matched public signatures, values, failure ordering and real Host/CLI/storage safety tests pass; CLI options and payload construction have their explicit Owner.",
+    "sha256": "faf0401246c7f1c9fe798811e17921c97f9a3355651246e3e153e2f1ad85ccc5",
+    "reason": "Full public handle, Facade and CLI implementation plus dynamic injection/after-commit/async cleanup paths reviewed. Only execution coordination remains here: required domain Readers and active/resume/quota/effect checks stay at their original boundaries. Source-matched public signatures, values, failure ordering and real Host/CLI/storage safety tests pass; CLI options and payload construction have their explicit Owner. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84645,67 +84687,67 @@
         "reason": "Owner defaults/errors/options at the class head; shared state, configuration, event, public response and runtime observations reference their actual canonical Owners. Host PLUGIN_META is its static loader declaration."
       },
       {
-        "id": "a532ce223a9ec004bcacf78a9ff1c997dfb2e88aedc03e374ee7594b64052b7c",
+        "id": "d340a4357eb0dc5448d34afd2460ae7e49dff38218d144c06431609b177eee99",
         "classification": "non_contract",
         "owner": "LargeLanguageModel.__init__",
         "reason": "Python None return annotation."
       },
       {
-        "id": "7b9b3dd280620a4939c9ffe70e02525b1aa3e11cc913742cabe8fa23fe6056e4",
+        "id": "4f22ea5bbb6b888fcf223bd9d605c84631bb5c8955948b53255627f64b8ca051",
         "classification": "non_contract",
         "owner": "LargeLanguageModel._check_open",
         "reason": "Python None return annotation."
       },
       {
-        "id": "1e0c8dd6c816db38565b9578960e64265db40e5a9b776e45fa94fc8c506e4b03",
+        "id": "1b8be0a8f3f47eb798932e13965dda5492f7e2527e663f27674f185e149bb348",
         "classification": "non_contract",
         "owner": "LargeLanguageModel._bind_loop",
         "reason": "Python None return annotation."
       },
       {
-        "id": "176dadabb0ea7165d5699f25bf9a8cb8acf36d40134caf3a43cdbb9dfa0dba33",
+        "id": "52973048a6a1002d3ffed0a7e2cc8b4d34ade90e07da9b4a6e7280fa78028269",
         "classification": "non_contract",
         "owner": "LargeLanguageModel._stop_session",
         "reason": "Python None return annotation."
       },
       {
-        "id": "ed4eb47494ee138c4183179f6ab988faaeb38714a79527ca3d8a9fb00b0a9e0e",
+        "id": "ddb39b2bd18e9329f954dff8ffd354fdab22091573e3ad4cda9547ace0be5049",
         "classification": "non_contract",
         "owner": "LargeLanguageModel.shutdown",
         "reason": "Python None return annotation."
       },
       {
-        "id": "811ddcfe16c6b6da79c73e6eddb0fd513a043a26d114bad593f758a6ccd14463",
+        "id": "37ca8675213fa8441f4b78ac473280967b8b2dab0a5772d42e17b2956b63d8d7",
         "classification": "non_contract",
         "owner": "LargeLanguageModel.__aenter__",
         "reason": "Forward Python async return annotation."
       },
       {
-        "id": "44cd8becd5bde02620ae7b5621fc6d880c39f727f04449121707ef0c374ac7ad",
+        "id": "c2a8dd5bc9b9f837e38aa9ed5afff12725e98ae0f156fa7eb7b4e4fc7f4a9f2c",
         "classification": "non_contract",
         "owner": "LargeLanguageModel.__aexit__",
         "reason": "Python None return annotation."
       },
       {
-        "id": "bb09fb9dacd2ffcafe9323eadb224404b588a21e0dbbf3cc7e43af2d81ca5505",
+        "id": "1df7be234daec3f4adc02e969c7de0a303c0f6bc19036679494f56b4c277e476",
         "classification": "non_contract",
         "owner": "print_event",
         "reason": "Python None return annotation."
       },
       {
-        "id": "06d99f90ae829568d2b63ac852714a7c0c50432de4a9b659d05a36d630309753",
+        "id": "7307e7e1d00159c1dd09acc986fe1541f33cf1826598eb54d238c72047aeba25",
         "classification": "non_contract",
         "owner": "main",
         "reason": "Python None return annotation."
       },
       {
-        "id": "a45fb51fbc644a532205489359c5f63b50950534a873db8dac80ea04fe1936f3",
+        "id": "43218bd8fa9cb734f485fc85eb504e538f177d6903c62694f8ef6c8a341734e1",
         "classification": "non_contract",
         "owner": "LargeLanguageModel / CLI entry",
         "reason": "Standard Python module entry sentinel, not a product status or selection policy."
       },
       {
-        "id": "747e441a19ba9f93fb9a6a037aff73e3acea495cff7c65eaa11e705807084dd3",
+        "id": "91dbf9a532c762058c4faff1dd91c87b01e1d84202775473fde495eae70eb2e2",
         "classification": "non_contract",
         "owner": "LargeLanguageModel / CLI entry",
         "reason": "Standard sys.argv slice removing the executable name; positional language/CLI plumbing."
@@ -84716,15 +84758,30 @@
         "owner": "LargeLanguageModel / CLI entry",
         "declaration": "llm/llm.py",
         "consumers": [
-          "hub/backend/bootstrap.py"
+          "hub/__main__.py",
+          "hub/backend/bootstrap.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py"
         ],
         "tests": [
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_http_backend.py",
           "tests/hub/test_interaction_updates.py",
           "tests/hub/test_live.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_submission_latency.py",
           "tests/llm/test_backend.py",
           "tests/llm/test_backend_contracts.py",
           "tests/llm/test_checkpoint_integrity.py",
@@ -85467,18 +85524,18 @@
   },
   {
     "path": "hub/config/workspace.py",
-    "sha256": "ee1cc2d3ab678a854e2f184f6ebe1e4e8d4c39dc7e779d70505dc55972461487",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "sha256": "7c434cea60371dbc3c92c5d22e69e78aea87c73aaa516faad1324bfc11288775",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "121c4d2d02c82c0b91f56dc29ca33ef088feeb1368559ab136737e05ddf9bc7c",
+        "id": "44f782e0ad3e19022faf8e3f8686e9bb4bf8e555938e11d7a0ddd12bba0253d0",
         "classification": "declaration",
         "owner": "WorkspaceSelection",
-        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bcacb2addbeb3ff8b3e06e78a6de0b47b860b036694ed259a9fc31484596c23b",
+        "id": "bad72e0ad51ca229037be928584950d4610be5f4fce34fd4b5a1dcf57cf38581",
         "classification": "declaration",
         "owner": "WorkspaceSelection",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
@@ -85490,73 +85547,79 @@
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "bfc40733a141e41a60bf87778c02b19de11a517d2a1b4c46dfa33eb4d1399dc1",
+        "id": "40717623b708c0b3425197dcd44a1e3e16b8b4d95fe753ddc69a3fcccb8a3dcb",
+        "classification": "declaration",
+        "owner": "WorkspaceSelection",
+        "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
+      },
+      {
+        "id": "bbb77a9ddab683c88ab4495b0229e531c77c9d80e0b8eb732e777d735f76f793",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "4a7c118c006ef9d16d6eb3cd7ff960d5178814cdf26c95954f72216dea415fe2",
+        "id": "6a5a4db02d606bbb9152c5dab954644bd5bd0729283d1ac807ea01ba2e6094f7",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "0ad7f9cd3739289d8ef714e9cd704472d4f2041962794bb57c3214a2ffab85b6",
+        "id": "81fdfe8bbefb02f9b3356c04d320371f7ded8654a604e4cb6e1ffe2c35c6c1b8",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "7f9dddfbe54ab9509a69adaab49c13625acca0f465be09219fd0189f8161390c",
+        "id": "2b4931b3fe3c3258522f3ea5c52bdb8ed943d9816c5c075f7fad5f3b7c8bbe31",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "3335c273fa5c0d5249b355f9719f71c01b0ecc37cdce4622b5f58608d0ec9a76",
+        "id": "76c0bb2cd328a1f32fa0eb33e144ccf1b6f096bbc9d5d938636e4e65b3aac1ca",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "e43265d47ee9bd52bf96aa7eeefe2e7ec8e9fdf50865c0cac859d51837d4772a",
+        "id": "fcc940f1c1d8696ac1d2d7fbbdc08b7f44d7f1d728dd79179dfcbfe817972055",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "a579b2d889aa4430b1237bad5acccebf6210165b4879edf5c8243b0a81bca9ef",
+        "id": "5e32d7ea7894381207ce953b785c3ea5eeebaf3928c7dd7807db073053041029",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "39bac5ae77936e9eaf8fe7984caf2249dc185a7a0e60e5f95b9e28cb58b10a93",
+        "id": "44f150717da56598aa60c3a5fc27f76f2272f232a64adbbe14693a043c928a36",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "53a405d0438588bad78853fe13367b03660a46528c089fe6d853764c26ce863f",
+        "id": "43d368c8faa95aa1a9849ec5ca6a49e64e61c4b42bec89bc45cbabed558855e6",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "bab42a046fa74a22974d9d53f7ced220bbee02d1d3c5258f1128bc5d7bd050d2",
+        "id": "378521f2e1c29f0a194347f6e080cc438757a0a65ee0878e6f67c01e1d27e9d8",
         "classification": "declaration",
         "owner": "WorkspacePath",
         "reason": "The data-root selection grammar, absent selection and destination errors belong to this module; expansion and access checks preserve the original effect order."
       },
       {
-        "id": "0404b1e81b753d051b106fa42771f25fb22199ad2939ed6908bbb75891b86c46",
+        "id": "1d5ac499cdec471329cf5e8fc6a374ba8e9cd07af642b458f2d9dfecd92fb638",
         "classification": "non_contract",
         "owner": "workspace_path",
         "reason": "Optional return type annotation."
       },
       {
-        "id": "9aa5975eb80e37ca44824d7f34af9b6375f4d6dad80db36c74ecd401072a3158",
+        "id": "2ee4d6c0742e8e75150b1912e29341f3d2750abe45fe397776507eaaeebc3663",
         "classification": "non_contract",
         "owner": "validate_destination",
         "reason": "Void return type annotation."
@@ -85567,42 +85630,54 @@
         "owner": "WorkspacePath / workspace_path / validate_destination",
         "declaration": "hub/config/workspace.py",
         "consumers": [
+          "hub/__main__.py",
+          "hub/backend/project/settings.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
           "hub/config/general.py",
           "hub/config/preferences.py",
-          "hub/config/restart.py",
-          "hub/backend/project/settings.py"
+          "hub/config/restart.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       },
@@ -85610,44 +85685,55 @@
         "owner": "WorkspaceSelection remaining startup consumers",
         "declaration": "hub/config/workspace.py",
         "consumers": [
-          "hub/backend/runtime.py",
-          "hub/config/preferences.py",
-          "hub/config/restart.py",
+          "hub/__main__.py",
           "hub/backend/bootstrap.py",
+          "hub/backend/project/presets.py",
           "hub/backend/project/settings.py",
-          "hub/backend/project/presets.py"
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
+          "hub/config/preferences.py",
+          "hub/config/restart.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": false
       }
@@ -85951,84 +86037,90 @@
   },
   {
     "path": "hub/config/view_state.py",
-    "sha256": "21d7b844e60e7c2657f36d59f3b0ee9eb6e1dce7a05b0fb9e95c75d93c6bf7ff",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed.",
+    "sha256": "cc1de0d5aa59f201c703cc2f593a064536083f6473086114e08ed7e6eea2e92d",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "440306b48d8ae914e5ac279e190244c87ecc6ddd993b28f97d20c38fd2c3c152",
+        "id": "ee823475b99b9c4351ab1b05926fa691ebca1a34772fbb04aa6a9d495561cbe1",
+        "classification": "declaration",
+        "owner": "ViewStateStore",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5d7872d1298d1a6dac572ad768351d8c654f00ba86320f3d52f22bd56c0f25cb",
         "classification": "declaration",
         "owner": "ViewStateStore",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "440cbaf31e4fdc03ed618205b85d3d438b396946f48d297e048664f0158a918f",
+        "id": "5418b66eb64cd585c0fbf341bc58a81567252bb0d44f42632fc6127398c7c5fc",
         "classification": "declaration",
         "owner": "ViewStateWriter",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "2244378153997f898a83379dba79ef891b0a309881f7b4a455e1139c7bbe9f2b",
+        "id": "a76ca11f7674e2d49ec18bb3f05a30d12e5878880c29d7b457ecaabdb823b838",
         "classification": "declaration",
         "owner": "ViewStateWriter",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "28fa138ebcbf97a6dc03bc815e25316c8016a9520326f79ed26afa10d748eac8",
+        "id": "a79d1489b126aba9e8eea11e9c88e53d6fffc78e6a7dda51e1ad3185fe54241d",
         "classification": "declaration",
         "owner": "ViewStateWriter",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "dec6318dcc2edb94b0f5dea366b3b540966295d85134613281d9b5c4db319e6c",
+        "id": "d2e36e070f62e80857c3c9e617e51dfa4370e8d1e319c285b0786b820d93a786",
         "classification": "declaration",
         "owner": "ViewStateWriter",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "e08e769dcb0610429b91d2059c6ff915a47520c04242f2b7a658e32eed1e5501",
+        "id": "adcacacf2a7a86af54edafabd2040f34ebb9fa80702bdaee3ecd168c5555b09f",
         "classification": "declaration",
         "owner": "ViewStateWriter",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "6b1e4916ce9ce4397ec1997fc9d521561ef46e2a9c97bd0e8c30a967f5a75c39",
+        "id": "c817fdc09fc9ec8e1b1bdcdde764046d5593264ca797a31a388819ebc4b4493c",
         "classification": "declaration",
         "owner": "ViewStateWriter",
         "reason": "The store delegates JSON interpretation to its record types; the writer owns executor options and running/idle bookkeeping. Public ReadingPosition import, tuples, queue ordering and callbacks remain unchanged."
       },
       {
-        "id": "9bd6a0dddd9dbfd7301de96f0364f14e0839bf1778ae54901951c22311a082ea",
+        "id": "576e40aa07eece38e00f8becf0ec0b1b1b84d45d7d7e2a418cad8f6d4ca43658",
         "classification": "non_contract",
         "owner": "ViewStateWriter.save",
         "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
       },
       {
-        "id": "548df9e8c79744b3d924a35b3a92720ff4ea037fc33e1e67ba3ebb2a4505d823",
+        "id": "8c3b33b6c8e46fd0ee17ba641aedf322574a423e55b917fb85725f53f3af0063",
         "classification": "non_contract",
         "owner": "ViewStateWriter.save",
         "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
       },
       {
-        "id": "b26c2979b634e1c7f3c236045fa442e00464086f391d10fe0daade0ac89900cf",
+        "id": "f8eb145ad003feb159203d0e258dd5d1815abbbf64252e352531090fd0ffc2ce",
         "classification": "non_contract",
         "owner": "ViewStateWriter.load",
         "reason": "A Python cache-miss sentinel triggers the original store read; it does not supply a missing persisted value."
       },
       {
-        "id": "5ba23c87d08e3698737a036de2f61adc361b6db374b1d34162997602f7b3168a",
+        "id": "3fac989b81641f355ec35cfd7250e102c2e69997b63a50bedbc3dfcad3a7b7fd",
         "classification": "non_contract",
         "owner": "ViewStateWriter.load",
         "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
       },
       {
-        "id": "76d47843bd3167b470cb48c5fade3c807644428bcee7ff2655cb2d4f56ae55b4",
+        "id": "0a6e7da43c31042d3c7c5829cc70b2fbb4078b4d3e8b9eb3dee88683824f66ef",
         "classification": "non_contract",
         "owner": "ViewStateWriter.load",
         "reason": "Pure tuple indexing of an in-memory selected-position pair; no wire field or domain default."
       },
       {
-        "id": "957ded54819df8fba532350c309b6415049efd6a1bf682fce09f98998fb49521",
+        "id": "8583cd9ab620d59f58e3fa7a941fb1424a7f1603ae41f03f60af4f594df6dffc",
         "classification": "non_contract",
         "owner": "ViewStateWriter._write",
         "reason": "Ordinary drain-loop syntax; termination remains the locked empty-pending check."
@@ -86039,42 +86131,53 @@
         "owner": "ViewStateStore / ViewStateWriter",
         "declaration": "hub/config/view_state.py",
         "consumers": [
+          "hub/__main__.py",
           "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
           "hub/ui/live.py",
           "hub/widget/output/loop.py",
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
-          "tests/hub/test_stores.py",
-          "tests/hub/test_reading_positions.py",
-          "tests/hub/test_shell_environment.py",
-          "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_workspace_presence.py",
-          "tests/hub/test_general_options.py",
-          "tests/hub/test_settings_restart.py",
-          "tests/hub/test_settings.py",
-          "tests/hub/test_settings_json.py",
-          "tests/hub/test_presets_widgets.py",
-          "tests/hub/test_settings_usability.py",
-          "tests/hub/test_settings_editor.py",
-          "tests/hub/test_widget_chrome.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_project_flow.py",
-          "tests/hub/test_question_tools.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_request_history.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_coding_skill.py",
-          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_coding_skill.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_general_options.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_settings_editor.py",
+          "tests/hub/test_settings_json.py",
+          "tests/hub/test_settings_project_flow.py",
+          "tests/hub/test_settings_restart.py",
+          "tests/hub/test_settings_usability.py",
+          "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_stores.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_widget_chrome.py",
+          "tests/hub/test_workspace_presence.py",
+          "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -96766,8 +96869,8 @@
   },
   {
     "path": "hub/backend/execution/engine_selection.py",
-    "sha256": "819179a72b1356c104212623d55d5bdfcd077601f13bc0326a67d861f984fd07",
-    "reason": "Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior.",
+    "sha256": "c94cc263fba9519c5a584acfca89e8c02dcda3416b7778733fec40a5a1ed9348",
+    "reason": "Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -96789,25 +96892,31 @@
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "afe16235530a352eeeb71bfce071e729e766c25a06ece49b37d52bb5f58b89d4",
+        "id": "9b94723018ca99434fd4035a7a0b4fdf53f108b78ca8cd97f782b37a339c63a3",
+        "classification": "declaration",
+        "owner": "EngineSelection",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "285eb727c86fd9b1bacd224922019e26d0894b94469e5ff15397fd140ea6a254",
         "classification": "declaration",
         "owner": "EngineSelection",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "a978c840574f1f41bd799a3ffa22e496393c8135229ee9fa40598e8605c1d34a",
+        "id": "1dc64fcfef86e1756cc29288282de014c6811ab8f505cc4263467bb8283137be",
         "classification": "declaration",
         "owner": "EngineSelection",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "202affa0c1efbbc2ac52b28c783fa77829735a4ad74aac08c0e8c0e7d5aae61b",
+        "id": "5f52302913004773060add2e07ab88ea1c6ecb38e29b6b6326e000eda0e86351",
         "classification": "declaration",
         "owner": "EngineSelection",
         "reason": "Canonical Owner declarations for observations, explicit helper limits, message templates and typed projections. Consumers preserve values and use Owner APIs."
       },
       {
-        "id": "3299f894dfce9dfb09435ab37c8a791cc8789f407777eb2e2040c5d7e18ff868",
+        "id": "4a8ecffaa6431a7582dfb0c05163cd79becf655cbd0969debe275a8cf4812c88",
         "classification": "non_contract",
         "owner": "selected_engines",
         "reason": "Python variadic tuple return annotation."
@@ -96818,9 +96927,11 @@
         "owner": "HubEngineIdentity / EngineSelection",
         "declaration": "hub/backend/execution/engine_selection.py",
         "consumers": [
+          "hub/__main__.py",
           "hub/backend/bootstrap.py",
           "hub/backend/project/defaults.py",
           "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
           "hub/backend/tools/retry.py",
           "hub/ui/view.py",
           "hub/widget/forms/definition_manager.py"
@@ -96828,16 +96939,25 @@
         "tests": [
           "tests/hub/test_agent_graph.py",
           "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_bootstrap.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_execution.py",
           "tests/hub/test_factory_presence.py",
           "tests/hub/test_file_root_presence.py",
           "tests/hub/test_general_options.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_resource_tools.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_submission_latency.py",
           "tests/hub/test_tool_retry.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_builtin_catalog_values.py",
@@ -99462,8 +99582,8 @@
   },
   {
     "path": "hub/model.py",
-    "sha256": "dba2f51b5ad9008f61191573c7b64062c61dc91859e4f9e8c09cb06575664320",
-    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility.",
+    "sha256": "b46703e0fced738acc2c91b7ac0ad58dd76d6e314f24aec59932916da6aa4fd6",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved. Worker owns admission/observation routing and lifecycle scheduling; actual HubRuntime methods declare operation names. CommandCallbacks owns optional callback projection, SnapshotActivity owns optional live pacing reads, and UIRequests retains delivery-only responsibility. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -99785,427 +99905,427 @@
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ac964a2e89bf375d1a3e0c3e13467dd67fb556dc4788b94032fb523463e0ef04",
+        "id": "441d43cc64cb7a5c605c2e4d110fe162a6475a917ba32d6967f8182ce68b63e3",
         "classification": "non_contract",
         "owner": "SessionSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "1e71dfc5fd91f12d098acb8ed6358aa54b2b932097ccf3608bf0fe50f6c4bf01",
+        "id": "b03f8d1edc944e58cf174d669caa0af5f4ada831f97fa80f98e3a1e06ce41cff",
         "classification": "non_contract",
         "owner": "SessionSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "cf1153eea9869f00683762e192b5ff3657b6e04c71e11a5f4959f5d260cc72c2",
+        "id": "43074a4eb5c9cda15e7aaa2fb7ae5e6938c9fdc6bea974c4443678eb116b3b03",
         "classification": "declaration",
         "owner": "SessionSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "b4203570a839c80e5919f5062a20fc0c9e3e44c1187f2800ba9ff98bdf73f795",
+        "id": "90b06b8f325364311d977deea0fe7ee3e726f095c1607d3650cc3043e1a17d24",
         "classification": "declaration",
         "owner": "SessionSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "3d36d992f70ef256adc607fecc72b836c140635caf03669c13266cedcc070bc5",
+        "id": "198cc73d66a2dc3e8cd9047ebfa7d24665f578c1fd7229407e59c0f351a02efe",
         "classification": "declaration",
         "owner": "SessionSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "0f2e43b8d431ff31c7cc1a1c65c68abf62a481fea9bf7c58298ed4cd018327c7",
+        "id": "65c19d192ef831435a11f57bcfcc9850b07fe3f8762feeffeec4f0a4a3411b3b",
         "classification": "non_contract",
         "owner": "SessionNotification",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "d4b11857eac50b22793c3b9b359ad4844479b988602cc765550b218ae551d036",
+        "id": "7f21ec692993e7883016146fd4111f91755529317a5826655e389695030efa74",
         "classification": "non_contract",
         "owner": "SessionNotification",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "847d9a0e048cf082828ff3ead632f987d05580880ec3a9525c4dc5926b5aa625",
+        "id": "db5d6fc820b742f60747ca68ffb97c410808fa9625af18981eba83745aa0427a",
         "classification": "non_contract",
         "owner": "StepSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "a0c199c1af9834f228a2e5ba2dfaa808abf1f64fb408d66cb22fb450596b3d9c",
+        "id": "70d7c363a1afd82d5b9f8de4631625e2bee32bf3843aa90e10f492b86c3aec85",
         "classification": "non_contract",
         "owner": "StepSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "9eda328e671c06221174301bf4d44c465f6641956b0615594f3ea2e13391ba19",
+        "id": "34fa1a8375832745ce2679034af2300e009368f78302c5f9ac646bf7defd0693",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "274dd64ff3aa3c2241d6c49274cc47c07afc57f7f7eafe3eac43aa71e0c22ef4",
+        "id": "6c2adc2b2872f456e117939de9669a92970c26fec6ebbfa006cb660d91366cf9",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c140b75b6d7199130009d18958dbde5ae86ef42e706e64c6bccad80f69c94e2b",
+        "id": "97600b2297b97dcad0a3ab228cb8ba556d5cdc16b9ae27a1a7117f11b8f9b5a0",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "cad6f109db84a18b4a0e1de4ceecbcad1f912e8c353c764a17bad8ebf917f1f6",
+        "id": "05d41c16c9eb89f094543126005dc4f6baf032940c5f963a03e074c1faab7fd6",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "dd0ce29412569aac95f6ab5ef52292e62ce4e05169ce168d5bddd37d168e7efb",
+        "id": "85992d895ae76deccf8691ffa51c837d93d77dbe9b3677140e71d6cb5e4b8978",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "b9bb850aee0393316597a4263540d6bd3d3f9e0941fde6cb2b5bb8c94918c774",
+        "id": "27beab9cd1ea3c56fc90bf73a012985ecc15019fc92d06d13d1aba5c83b0e752",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "5292b47d0a6d3834471324e61d1cc9745e2e4dc4c91ab6f44c0e6ed321960e80",
+        "id": "b43a14e43112bfd5401ed0db3ef28140b780fd0c618f79777ba817a82001a168",
         "classification": "non_contract",
         "owner": "RetrySummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "c5ebf605b5aeea27e93e5614444ff0c37d09f2613a9d6416384b4fdecf9c489f",
+        "id": "a8831b800131c388b3a22e9f5c8b91177b94d061a8185f9750f7cdb4244001e6",
         "classification": "non_contract",
         "owner": "RetrySummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "17d517c3c325af82ce15c3f0ed9be645a8094cc64905cbb92d27206dc28acc3a",
+        "id": "fdcc52605e97f346562439664ffdd8c12eb18f9c9af57e83589230bd3692dbb1",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "6fad34b63fe00465dc9e406d1742cc29d7a298fb459c43a9cad031395c3a649f",
+        "id": "6da3e21583d031aae33e81ec275d11fb6dfd03152b860a632ef105363747d123",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "cd9111e8d102da77eb638feb0c6ec55ca56e5795db9b81b755cfd3741b17a70c",
+        "id": "7de1cdfd6ae4cb385ccd082eaab77c4aa8763ee98566161e987143cba1b5222f",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "7aff0eef2ac0e71b56e243ccf035bcf8fde848919872cf5c9b94aedad48c1bef",
+        "id": "3782c24c907c59153183c546110a9eb2be9086ab28a30b949df3816fbdf31a6a",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "39f52f1eb2b40df4c50e5a3f01d19f4519a09488e13d5dfd3eab7459be7345ae",
+        "id": "819688253c639d9f234efd685356d1967a1449d3fc33eed43ec19877d386e3db",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d4679e1d8b3091ca6364c4730a9263ace01530e62cf24fad35e1ce2e35908e97",
+        "id": "348d3264d03d0208add217a71315fe19c223447375a467c73017aa194f8d39e4",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "b14ad56d7bc9c858be6e214c91b24bd6ce4ac89d011459937e0e16cfaa3e2bf3",
+        "id": "1d964b7a5eef783b821e8f45c8f91f02675a99baa2c252b8fcba98e9e70f10cd",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ed71648d08a7b1495158132899846c18750f65b4946750b83533cbdb661c2b5f",
+        "id": "c5c0c0c1f4a8d78291cd54953d2f1ec0e6a010447a24b08a7b88892cb978b68c",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "acb72a56fa3784661500b9e7304b5bd4d9f07f70a196b2c2fb9c4d6faaaaf89a",
+        "id": "0fdccfe2ef91a7cebe1f8c5b3047e479e3ddbe162a59ae88c219d7d2c41c2193",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "74165b610aa52261af87deca63a12c3bb36145c7b8f85b2cc6e2410598d26635",
+        "id": "66bbc590b1df7b792aeefbe9cebaf7320264c508f01de8fdb1fd85b769aec1d0",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "3048d9df9e21e0f091a2235648f2bb86ba95201346084ea323da0c0b11df9b5a",
+        "id": "cdb8657d064dc629b8996cf61433abee0b61c600b6b02e896368f64ac2c7282f",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "7f13a816fa2e02d1d84981d71b8fcc9047421685c388495db2558c2add2ba6ae",
+        "id": "5444bea8a5c23586ee604430d29ac1f0f890b13941fe6031302af5fe4c8a892b",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "5db2f91655d2002644f580aadb22a00eeb65d4796eb1bb1bc5e227f12dd16124",
+        "id": "48e785fb3fb0b5eb03f1c33210545e00a811be0146fb5ecf4e47b09c92f36d09",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "41bd6bef8c35352af23cbcd97dc9c4eea9ba924994335e4cb44651160513aba3",
+        "id": "7987b28c0033faf9e9fed50d022921051bbe82fb5789bb540cab8db937608a09",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d38cb73b2ed980b4113921febb686bb66291e420b2b2787f6ddc0f109d050231",
+        "id": "9e75cfec705aef06ef9e89a9253f2b2955b9959c74b774572904fbe6f1a2d1b5",
         "classification": "non_contract",
         "owner": "AgentSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "c17db76a171c0202acf7c1f2ac3498d7566deb3b28539382715dd8c81bf425d7",
+        "id": "5f2e3267b422862b1ccd91b432ef5030de76e1dac871988b90e1b8fb33b0b51a",
         "classification": "non_contract",
         "owner": "AgentSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "8bfc858c93e95171925fd614924e35ac458a5450e88aa9abb4d30ae6224fad06",
+        "id": "596ceec2a025e85975823d5768cccd26e5810c987297cbde5f9c7f295e854c80",
         "classification": "declaration",
         "owner": "AgentSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "430246777c832e301515719f252a3ea05e7160d5d60d4688ee43c2d37287c607",
+        "id": "63fb8e2389dee52b8d1da69e8419e4fb9999a458733e78ab484bf5030f604029",
         "classification": "non_contract",
         "owner": "RunSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "3d1bdcd94bf3de91e739d6e46bc4d066e8320dc7bfa334b0e977c7bb28f59704",
+        "id": "882dceea71622315240743cbbf3877d3959c6abf89f37d3aa20e428dafdc0bd0",
         "classification": "non_contract",
         "owner": "RunSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "3ad86c5045a200f1ce792ffa5e6e1fdc49b3450c4cdc8ad64dca9f02125589fc",
+        "id": "bb4dd721128165a99164ec63e162c360f035039c293f961e54976e39fbe6fde4",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "38af0974a512b49935a0546e8357a1338c1c562e8a0c2a4837b8155dfc16a4ab",
+        "id": "041c2bfdf3f04db4183c5c2bad819ead7bed26b8c4a82b44238f302efff2d93a",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c3fea53abcee05521f701f113e64dd59837171b016e1f923b874cf81741e0775",
+        "id": "990b3d208a1ed7fee137c6c8650f7ed958efe4982a81397963f5818cb0fdbde7",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "8ae8adf77f8f1e5564a28e6780a79b2f73728b7b3c1d5e51dbfc16a2b981ff9b",
+        "id": "84ab96c53e20fd117288396e97392f1743285c5f20ee35853396aa865050a783",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "dca731e9b33cea9668674b35b8dce5481339a10b0970a3b1e019fbc1af99c28d",
+        "id": "8b9354ff9651b1e56629835ddfaec10b999ffd66be30e3c00383fd7ab3ae55e7",
         "classification": "non_contract",
         "owner": "HubSnapshot",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "74b7392e25f3c3f60f5ad3e7b18d9a84e33c8e5024bfee5139fe25dadd4ac900",
+        "id": "a697d60f01ebbbf12ecb90003272c8f68549557967b71660986b6c680c7f265b",
         "classification": "non_contract",
         "owner": "HubSnapshot",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "255dae20e96afab80b2f643fc08a91ab4988c8036a1b6cde3bc3165d57f99d49",
+        "id": "b9e89388650c4fbc92460902a652982bbcb860652fdb53b8a5949299c0d14db2",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "62297464fbdcdf0fde26a1af305064f869cffbdd7ed61761a6853c54540a4f49",
+        "id": "12b9d23030194ac507c1c3f7808cb664911eee7d770ec0fc7e60ddac237b4d96",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "62ad26ce1bf64cfd80e6a393e4b8d554e45794e29c42cff1863846877d60a036",
+        "id": "36cb7abfa6734449e3bd264542b3da17afd1294295769efba60aa3a2931815a0",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "5e274ee37dac75c8f325f31a4b6bf91ec834597ec4f61da3286c713ba78d9be7",
+        "id": "5b617cbec90066bba82b60ddfb652ba55ebb60584b71c7c7aaad59656ab411fe",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "07808cfb04e64337f74b2e36f0d4a64eb62578d872e2469b50d75eca17be3736",
+        "id": "292f7206f3f3b550f706457638b4225219d9f62030691537c810df3c3fc7383e",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "23c03c8dc10873ec102da828132abd925801d9a99066439cf3a31af25e69548e",
+        "id": "8410a93fe1f913af6675b8b2eeb2066e8137f93c9082da63243fa942a8dd8f10",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "7de6e4e3184ebfd6cb0727a1a7c9e8e050ea22d72f4c6655a0600d643562cc0a",
+        "id": "1f2c76af17eec723830679bdc3ee0283642ca9772babb3e93a74ff729d1933b5",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "2aba99f5443dc5e6f56eeafc0ac1c50bcebc53b24da87a4093fc58ee08949a3a",
+        "id": "49c3436c61b1140dea32785ebb08bc6a82deacb7551a70075eb5e66e3e3977dc",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "83be08c189686768d6f9b4f86afafa18c9842e641674753c8b412c790c094046",
+        "id": "5a793040c63e33b374a3bd1d435623815b6ee26c46aa7645d61f166a3daecf68",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "493fd2f11f648f9251a62c7d97ce8ab3be2fc917c138effe1ddd4f3851ed3cd2",
+        "id": "5f787a5b8d695e361429c4053b40dd0e6a3e123a26ffb525c723eda97da3b938",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "22b34e86a35f6c4c1869732e21c5dcf428c1977dd203ff45f96ec0d2fafa771a",
+        "id": "a5131bb5e2fe1654c4a39eab8179d5fe5f1c146efffa9ef7ee04ea87b9e5a32b",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c52aebd4d61d779e1758dbe9695497962c5fd90a02fc6fe08f3a161266e932d3",
+        "id": "a05e4cbebf21307756f558cf53b0a4df72e89eb82d68ce138be515745d91b42b",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "42cd6db4940bf6debda5219b580f5deb090e7bf63239a06661c4c4e0b6170031",
+        "id": "16d59c779a400ea3e4a33513d93d94e9fd36073c9a62a62b8fce0a70b932967c",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "3e476565943c7ed8f4d88625c946e86a5bbf85e5899ee30662014951e4c4bcff",
+        "id": "dcefb7ab005f5fbc47028aa706db04d69119db1a47adddbccc51084ec1296232",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "5fbcd51bfa9ead63deb92c747f8c58018c349f15e86a59fdf9b5ed382f96680d",
+        "id": "45deca40da5f8f6487746850dc0114d6df675267108be601e367beabafdeb7c4",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "dcf06adab1f6194012d7bbd0bc96d85a02e4b7b7f0f4ab7b061ce2e5c43c1be4",
+        "id": "9d3460e117ceeb1564a43662115703aa45fca95fba9fbd8498b51c6729cf3d9e",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d8eaad5921c50d80164eee82f7be14a46aa345fc4769668391413f96d5539571",
+        "id": "510fc15ecb44b5bd2cd9b1d35578afd8235a4bfa035680117fab2f09e3184acb",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ac33c4c48a320a69b8271b41408c7d50ed4fc5943446df9564214cea43099fdd",
+        "id": "43665a1419753e1c14fdb15902ffb5eb8989a2cb0af2fce96ffdad412df55fbb",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "49098cdfbd434cefcac8b645265994d2b36b88a6914b57222ab16d0bf6c0da8b",
+        "id": "ace48ea5653e1598630ea4472ae4c429b3fd0b4c648b4686a2233c2efa953564",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "87443f49245874382ef71054f8b01db744a08add349a7d9b5e7d2f50154c3a9f",
+        "id": "c31fa6898c3ef15ed1aa229e44fd859a1b6150fe46a90a388bfd9dda3969624e",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "11b078171c8cf1d19c861281473ce9a377d7d94473025a787107c9dd681e0054",
+        "id": "10e2f01b5147f839b3edd736c8d9242ae3badb2d455d8862aec6a5121cdebc96",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "92cf2eef21dbcafec67f9e00882114ffcf2fd85ac6879bdbbb4f156dc9b5b625",
+        "id": "41f0ee99b299713a52f82e8630ae91843acc97ec0bb1b5f7982813a025e0e740",
         "classification": "declaration",
         "owner": "SnapshotActivity",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9d07a869cd261e10109a53cdfb048bd90611bd8a011ca89d50dc9c89af9f60f7",
+        "id": "9e8d7124f183b983aca29f8b51d64a6ae8f72be30b42d7cf55605d7c3d67d0df",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "fd0c5cdc8e363c75dbe88729c7dfe4e614fad09b79809e3aa49fc77fe79601e3",
+        "id": "bf9a640ed2ada0e6f5fe77245b449a8dba870bdf9dd37ecc735a5f4a166d3335",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "7b3f357fc9dca3c62e7f7b88d34811abc243cf34a79b44be0eb35894090e3b7d",
+        "id": "4db0d0eb85ac6135d29f82201201d927d5fd245a296510d9bd7ec5784974d5e6",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "75d3b5996f0b822fae2752e316806a8a9b8eb62612ab9a8615099027f429781f",
+        "id": "a31b8d749c829b5bbef2e6dcd800f3c7b37447205594518333c464bf2b213a59",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "cd42ea38f0b147e9b594d4daab24bc65e1f0cb2a176289ca94c283b315a0d5e2",
+        "id": "807fc72ce27d95896bdd8da1b1e0ad48c7db82054496c44da29a406f7ce957cf",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "135cccab630bdf87c6146783e468665cbb690d999dd047f6ea117ec7fedfa9a0",
+        "id": "48292a67b674dba9e2e972114a7cc0edb70c8ee1d95634a00ce3c83169bb16a9",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d627d8bab849ae5ff595c8c629a0e33dc49ab0cfe9fb1a39017cfddb99bca5bc",
+        "id": "4881571d51bc06d54f57181bfb00dc2a010b0a2052fa3fb1ca37d80d405e6920",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
@@ -100216,10 +100336,13 @@
         "owner": "Hub presentation models / TraceItem / QuestionPresentation / SessionIdentity",
         "declaration": "hub/model.py",
         "consumers": [
+          "hub/__main__.py",
           "hub/backend/execution/thinking.py",
           "hub/backend/interactions/questions.py",
           "hub/backend/observability/notifications.py",
           "hub/backend/observability/snapshot.py",
+          "hub/backend/runtime.py",
+          "hub/backend/runtime_views.py",
           "hub/backend/worker.py",
           "hub/ui/live.py",
           "hub/ui/presentation.py",
@@ -100227,21 +100350,28 @@
           "hub/widget/transcript/conversation.py"
         ],
         "tests": [
+          "tests/hub/test_agent_selection.py",
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_completion_display.py",
           "tests/hub/test_conversation.py",
+          "tests/hub/test_defaults.py",
           "tests/hub/test_engine_output.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
           "tests/hub/test_failure_diagnosis.py",
           "tests/hub/test_history_alerts.py",
+          "tests/hub/test_history_retention.py",
           "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
           "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_tools.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_render_intervals.py",
           "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_responsiveness.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_retry_ui.py",
@@ -100267,8 +100397,8 @@
   },
   {
     "path": "hub/backend/observability/snapshot.py",
-    "sha256": "945dc5103bab541f4e2c7b7c5e3f6eea678cbfaf10e936276d29400c23a4a12a",
-    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "sha256": "d74af3748207c0dafdc93546c8e69753d9792f20a22c2df0b8a3d44f70891281",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -100350,13 +100480,13 @@
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "240db23e0178c038f6fb8bb685140fe3038220aac0feb58a81ddccf007e71ecc",
+        "id": "1b42f580f9ca6d80c387e63720efc5c855d949504eeeb2af497dd1666dcbc8c9",
         "classification": "non_contract",
         "owner": "SnapshotReader.run_display",
         "reason": "Optional elapsed type annotation."
       },
       {
-        "id": "7672d5a3d0e0b036540ca7cc10cfdb5534da1596faed52323f0a9455863daf30",
+        "id": "158fc9a017503f24361e94c5d93656218ab9f988dc1b5a0bb2fc4cbc1218f1f9",
         "classification": "non_contract",
         "owner": "SnapshotReader.read",
         "reason": "First handle from the explicitly bounded newest-Run query."
@@ -100367,27 +100497,37 @@
         "owner": "SnapshotReader / SessionObservation / CachedSessionObservation",
         "declaration": "hub/backend/observability/snapshot.py",
         "consumers": [
+          "hub/__main__.py",
+          "hub/backend/history.py",
           "hub/backend/runtime.py",
-          "hub/backend/history.py"
+          "hub/backend/runtime_views.py"
         ],
         "tests": [
-          "tests/llm/test_agent_values.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_factory_presence.py",
           "tests/hub/test_failure_diagnosis.py",
-          "tests/hub/test_notifications.py",
-          "tests/hub/test_log_retention.py",
-          "tests/hub/test_retry_observations.py",
           "tests/hub/test_history_alerts.py",
-          "tests/hub/test_tool_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_tool_history.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -113812,6 +113952,729 @@
           "tests/hub/test_clipboard.py",
           "tests/hub/test_terminal_screen.py",
           "tests/hub/test_file_root_presence.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/runtime.py",
+    "sha256": "7fd654364202bd7f400aa30ba99e4495206fdd3f8193ea5e53a48e84caaeaa48",
+    "reason": "HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "97eb4a878f8e9cc0e947825176b6d90f9f6d57ce149689bcbe5957f527f0c10a",
+        "classification": "non_contract",
+        "owner": "HubConfig",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "e9b539796e4812968ae4252e55dfc8eaae8c21d8d357554087578fbc9e7bb866",
+        "classification": "non_contract",
+        "owner": "HubConfig",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "8a41452f3f40869b5bba03879cf767995a28e1ff20819bbd0f79308764a919e4",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "d6fd0c345a377169982c434ce4413c1e76d1a1a24ffec851c852388d2cd3a650",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "5ab81fa49b279d8c321d03f498688ad9499f1f8e93b7f17461fa5a0fe242b960",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "feadf322d39177f15a9f4e8c68995e8a37384887391ab2980016595e76ad7dc9",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "4e532f6882454525219fd9586a2d0288e4a43a898997dccfc8386318cd5ad611",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "d1a34effd84646c9ec263990b36d433bd09af9ad281d80d7d0d470fa2adec9f3",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "6d918fb829d897639357c0f3a8384809976d514e6ec4c3aee361bcb6bbbba9b0",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "19e6c70b7e19eebdc6a92e24bcce48bc7e8137a259e389f74c631704ffc3111a",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "33c267ae968b6b02b20d07ca028749b7ba702b8a8036404557be7606d2e2e8e5",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "d6d614574fe2024f6873feb49865b650f652f386016c91884868e10b37581015",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "91d92e0a6e98797f146b362cfc412a81f266de31c7f0dc60b796b38dc31a8fdc",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "a26ded6f23f2a181c1a512b9793be472f3ecd517aee7281de098e5b13d75d42f",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "80430ce0c8c4b9c2525081146a639e84d6bcd42fb1de73e276b12751e0e06195",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "c9806427b132dab1f3fc7d783adf02a281e85a1e3ea34848b696485f46bb70ab",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "ee9cbbdf4356a6832514436b81e4dc50fa654ed8539376c159cfe01ddb7e5763",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "e7aef80a4daaa395b9e4791f807dffa7ee2cbf3847e2f75b4cb188649f1d4b6d",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "8a8d22588f458c671f6090e8ac9eb7415dda3a424ee73d18045ab8f797025984",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "07145d377261afbc2cc4746c5c70cdf02284daf1e27627dcc12e45546f970c70",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "429d79faf6ef2b2d1211b7c786a41022dea3b55e9b5ddb2125be617f25c66d83",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "215d51634c73505ba128a256c55d0e205cb50a36b815c50ecfdfa4216a5c9054",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "3d696c16ad13bbe1e5f441aed51e081875ae2982f793eaad13668ae578777315",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "e1678167aafadb9159d09186ffe5e373213c52cdf2d1b5e76af61f1d66bcabfc",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "d12f9d7e55dba96e94a4e01952d7b846af30800af1bff7ee8dca8bac91dbe036",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "8de3127e12568d05c16fb5e30c9055955c8e1c341967844126ff8f4d3b534631",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "3c187b0ba63ff01d01b49f788eab770ece42852c995e29358fb52217b270aeec",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "471b978d94323c1b6e7b437942275a4d71df7ba28c4859895160a5e1ae2f115f",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "f634fc2ab2b0df9688d192c6c4232acba9db17052b6dd834448d9aa436409092",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "4dfd794a666fbe41e36ea3d5f3801255b36872269f0f8abf35a08b9f5dd5457a",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "36d249767ec5bcea5f4b44228d606259fa1a8dcd7f5d68200f5a63f1cdf6dd8d",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "4f98910349db7805d2527d9b96c009d865afc80ec10dcabb2566bfcfb9796d39",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "8ff865d16dfb72ad0627875a817632f0febae7d4ecc48054dc3da4d172859863",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "ea707f0fc593ba4ce98f874e70f365af4e05e143f6ab5b6db14fb200a751f403",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "46250a4330ad8777f12679a116bdc25e4a6ea35929cc88d3b76d16f3880fe27d",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "58aadd67e9b02ea5f70c57fb10f192cb7d36ddbad2c99403ea5b3ec6b58bd566",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "c624943a8c573b17dfe7577e66d7e1b12c80f083453e345c5d3e940a54490391",
+        "classification": "declaration",
+        "owner": "HubConfig",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "964136211486f4133a590989e85de47dc2192f631e7f293c9e26c9075dcebe13",
+        "classification": "non_contract",
+        "owner": "HubConfig.__post_init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "ab2a6e1ac0a529eeeb8ba766a7c59473632e8d037c8089a848ab7def4c8dbe47",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "08ceba94149a78133ba3ebe68b5d85dd50243a1fc787c2864533f39899a28e8d",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "3c01082172f53bf83e88d86b2d243423938b5c0280d952ce0549e2502e428ba7",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "b53f7c71fa10280c4dc4ff370da900ec9fcf675cfca565571c7190a44e2ae3cc",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "0a2fea113d60890ca9ee97fdac6ee8c816f756ffef8903902025f79310de42d6",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "f8856b5f9eae3690afd344429d67df964ce6f3e8972a4a3b386d7eccaee1f796",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "5b0dbbbff4b854fb0bb2a2d809cfb3ef3cf6b91c31b30b1720a8ed55be64edcd",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "54ddae9d171dd795af575856bd1669dac1c071b199b63eff9d51af12be6e3710",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "4c5017c56e2ed54211d160002d9cbd27e62ccc9221c4b8b75a2d626689e132fb",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "e9218c3a021e40787322fff9c715d29020da1479919a75985e1a30c8b264fc77",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "24f8659b591cb47d4d0055a6856f761b13c3db33a6b4364eca94a50680ef0299",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "9165b5ff87c02e1605bfb06341dac2943b4e8b15839d8d5ecfa17d9ba1fbf91d",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "8cb2b70b52866da92bc73c171d5bfdf5bc73e4ca2d0cf125e5ebd32197fd7eb9",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "d737e3240af9b2d0b645e266ae9ce1b2c7d38f8fe4d3660c86c698117996d1bf",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "26f497e0a45ff563deabc0ca36020c2b700ab6628793f6faa5cea53bb804f24f",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "da94c897949b8e951c805d82bf8c064eaecb7f115f931eadb2abf6e05164c1e5",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "127161071bb20bf7b77911b6c9d4280d5e05dc5c506aff603799159687b2c17e",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "a79021d9f7306251b3b4578e12017803c3335887fea3ac343a98791fc7711244",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "cd035d43fb61d9facee8b91f23b092fc806d6e7ede7e4870eddc41067767150c",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "1acc958a028e5426e9bc140cae3bc1e2504576c292e4cfc04fdeda6f9990a77d",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "3e527c8dd101867beeb59cf1d89ab00233f66d729cd5c64b955f2d4bc211ab84",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "c14e7c76e0db6deafb93ab2691d315491bd507a64fc5704be34cd911242dd613",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "f4f738fef2560e35f0310b345b1a65d3edc40546b68972942e3c3410b47d3309",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "5f403135d9778d361b31c7c29bfe0437c455cb5ccc9bc139679d6e69b23738f2",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "1f282fb2a80bd66587ec76602ec50dc38167d2fa7caa8ba231cfc8e25db06078",
+        "classification": "declaration",
+        "owner": "HubRuntime",
+        "reason": "Current host config validation and Runtime-only queue/observation/selection/error declarations. Existing AgentDefinition, event enums/stats, SessionManager error declarations, PreferenceSnapshot and response Owners supply shared meanings. No policy/grant/budget/effect/retry semantics are added."
+      },
+      {
+        "id": "aa37c6d7cef96f5863ed1d88bdd558035847e0a15189b329957f3e142e89552e",
+        "classification": "non_contract",
+        "owner": "HubRuntime.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "82d34f1bb9e6e0c3bcfe7b61e9535c430ceda8acf0049b665f10da07d48ebaa9",
+        "classification": "non_contract",
+        "owner": "HubRuntime._engine_event",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "bb32c162fb9575841165ba80a1bbdb6e331b51093d10f2622716e7f3bafae058",
+        "classification": "non_contract",
+        "owner": "HubRuntime._run_event",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "fac38c4db1ba24d250486324ef4a78cbf761787c236f2f78830bf42f2fb25a9c",
+        "classification": "non_contract",
+        "owner": "HubRuntime.start",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "a33e1a94e95646af82625fc27075ddd612153c30358472e6b31f97e7d9b61b5c",
+        "classification": "non_contract",
+        "owner": "HubRuntime.select",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "a2e493f9ea7f7b314969c2246412c81ff55e38d854287b3a5f1939ea17e7549a",
+        "classification": "non_contract",
+        "owner": "HubRuntime.new_session",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "5c47312e277bec05f93aa47bdd01353b347b6fbcbaf57c5a8d28775f3f4035a5",
+        "classification": "non_contract",
+        "owner": "HubRuntime.new_session",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "f7d48d00d0f8e539456b22c5ace0425d33d8bcf15e5b1d12c9962ad533408444",
+        "classification": "non_contract",
+        "owner": "HubRuntime.submit",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "23df8be5df801815a01e6d105f14d5eda2960cdeee4a59d3dbd2427f4a1264a7",
+        "classification": "non_contract",
+        "owner": "HubRuntime.submission_state",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "cf3fb1359b97f417e1419e11e159fef796150cc2e8e3fa08bf75d667344a2542",
+        "classification": "non_contract",
+        "owner": "HubRuntime.instruction_targets",
+        "reason": "Optional argument type annotation."
+      },
+      {
+        "id": "bcc7cb9297afc19e1a83baacc371bd0de706e4a33b9daca1d60221e34d5805f5",
+        "classification": "non_contract",
+        "owner": "HubRuntime.instruction_targets",
+        "reason": "Variable-length tuple type annotation."
+      },
+      {
+        "id": "a1b07c4c07d7c7397dba739b9c52b35234f011f5fdda85a1815581dc87b8215f",
+        "classification": "non_contract",
+        "owner": "HubRuntime.close",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubConfig / HubRuntime",
+        "declaration": "hub/backend/runtime.py",
+        "consumers": [
+          "hub/backend/worker.py",
+          "hub/backend/bootstrap.py",
+          "hub/ui/live.py",
+          "tests/hub/test_execution.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_retry_observations.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/runtime_views.py",
+    "sha256": "d45c357476f19acef351d8bfe55c7c984c4206feb716821f16386283dfb7e663",
+    "reason": "HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4f49abcb1be9867bd9c27e99a039bd2ca94962de818b94b91b836ce85ccf4567",
+        "classification": "non_contract",
+        "owner": "RuntimeAgentCatalog",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "73ab1a77f1d088b69c2c98e370d74ea943bb1284e0e6944d351dada10e885bd2",
+        "classification": "non_contract",
+        "owner": "RuntimeAgentCatalog",
+        "reason": "Dataclass slots layout."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RuntimeAgentCatalog",
+        "declaration": "hub/backend/runtime_views.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_execution.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_retry_observations.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/__main__.py",
+    "sha256": "4ee7d296a9a7c0848687f53149ecfd4a80b1e45fd7f0be243b90ae1e09abef99",
+    "reason": "HubRuntime consumes canonical configuration/Agent/event/deletion/observation Owners; public Runtime dict shape and required lookups remain unchanged. SnapshotReader owns cache mutation, and CLI/HubConfig share WorkspaceSelection default resolution.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "6c747e17f60162579fcab177eafa1f8ada8857b514e3a9a5777fc3c8437cf974",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "75c0afed642b72ed42d4d11ea6a5ed94e55a09758cce9473e9bd00449aae07ea",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "c72bbbba613e088156c3591b3fab674dd539031c194f831cb3a590e56435d8ab",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "b722e07dbe51d8976387cb534dd0bf4f35fa65a87bc9b53f3e0ac84ef73a408a",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "f7a97b34b34f18e5039e2b59d4fdb2499676e4b711a1ed780a315e9f8b2070a7",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "7462de4cb61e7a26382da7add1c217e99aba186c1a661ad9f3bfa42f973210e8",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "f5ef7378cdd36939dc398223db48b82c83dd7f5f37ce579b90744a6e44a24cfc",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "a0c05d6020f79dcec86fb2b590acdd8cc4cbed070c9ae60687e23d7e8cf98551",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "3e6f22295abf64c921f2636a7fa057db9c5a217dbe671b9d2a09f4cfce8ca666",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "8d70c950dacdf00e9f7cee0ad40c97ec765d13f7180e709c2e1efc2867c96c3c",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "9d125d55a676ef81669c960edd80634ebfa2fa0e082610fab8af1c2c8f9b92b1",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "0e4d45df2202689a5b85fb3f638efe7ba56523be2cdc5a89b26068f1d142d5a2",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "5c1b6afeb4b075aff649bd015fef7806986b410f11717543a04f6361eed27c5c",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "48f9e8bfe6cf6f0f35e22362f0615e8921486fca8e53fa013775c4b694ba7d71",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "29928604c5de3689b02db838890fbc36513f16e3fe2b3b9b85fa849ddb182f2d",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "28560b63306c75831c2d6313a7bd4aa5044940b3f87abfdb6a9e7973fede9d58",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "721c2d877b0bf1d8a088009186ff0a596762fd6084f7c0745c93dad592b30b79",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "698a738d55020a6945077a9c7799be43513df185b05ebce1c71f0de3f9f562b2",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "067618aa28274eb4a5600b0fa56cc92abf23bc0cb817ce9e3f88485f349fa803",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "6c8f6fab4fc929b9bee1dc5b7c018d2f0fe86c614001ed52f2df2b211d7c1964",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "9bdacda0607c64fa62e8b413a1305488af7022775c436c3a8efe8f9a27721abc",
+        "classification": "declaration",
+        "owner": "HubCommand",
+        "reason": "CLI option/help/validation and launch choice declarations; actual HubTheme.dark method names its preset and WorkspaceSelection resolves the shared startup default at invocation time."
+      },
+      {
+        "id": "a0b81281c75cddf130f6eb91da62c8f46c9c4e62b4985dce4a647a855b1320d7",
+        "classification": "non_contract",
+        "owner": "main",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "2ba7528e0611076308edc7f02800ba18256db1987a682158ba6fed671981a77d",
+        "classification": "non_contract",
+        "owner": "main",
+        "reason": "Unconditional application restart loop; the existing result comparison terminates it."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "HubCommand",
+        "declaration": "hub/__main__.py",
+        "consumers": [
+          "hub/README.md",
+          "tests/hub/test_defaults.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_factory_presence.py",
+          "tests/hub/test_agent_selection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_submission_latency.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_history_retention.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_question_tools.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_retry_observations.py"
         ],
         "complete": true
       }

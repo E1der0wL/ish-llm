@@ -6,9 +6,14 @@ from pathlib import Path
 class WorkspaceSelection:
     """Startup data-root binding and selections cleared when that root changes."""
 
+    DEFAULT_DIRECTORY = ".ish/hub-workspace"
     UNBOUND_ANCHOR = None
     NO_PROJECT = None
     NO_SESSION = None
+
+    @classmethod
+    def default_workspace(cls):
+        return Path.home() / cls.DEFAULT_DIRECTORY
 
 
 class WorkspacePath:

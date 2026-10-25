@@ -12,12 +12,21 @@ class HubEngineIdentity:
     GRAPH = "graph"
     INTERNAL_PREFIX = "_hub_"
 
+    @classmethod
+    def internal(cls, identifier):
+        return identifier.startswith(cls.INTERNAL_PREFIX)
+
 
 class EngineSelection:
+    REQUIRED_POSITION = 1
     NO_SESSION_CONFIG = None
     NO_DESCRIPTION = None
     NO_MODEL = ModelParameters.NO_MODEL_NAME
     MODEL_NOT_REQUIRED = False
+
+    @classmethod
+    def model_required(cls, selection):
+        return selection[cls.REQUIRED_POSITION]
 
     @classmethod
     def completion(cls, values):
@@ -32,7 +41,7 @@ def selected_engines(config, registered) -> tuple[str, ...]:
     return tuple(
         name
         for name in registered
-        if not name.startswith(HubEngineIdentity.INTERNAL_PREFIX)
+        if not HubEngineIdentity.internal(name)
     )
 
 

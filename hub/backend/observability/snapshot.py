@@ -62,6 +62,15 @@ class SnapshotReader:
     NO_QUEUED_REQUESTS = 0
     NO_MODEL_REQUIRED = False
 
+    def record_submission(self, identifier, timestamp):
+        self.submissions[identifier] = timestamp
+        if len(self.submissions) > SnapshotReader.CACHE_LIMIT:
+            self.submissions.pop(next(iter(self.submissions)))
+
+    def invalidate_dropped_events(self):
+        self.thinking.runs.clear()
+        self.observations.clear()
+
     def __init__(self):
         self.cache = {}
         self.observations = {}

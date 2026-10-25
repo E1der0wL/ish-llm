@@ -790,6 +790,14 @@ class LargeLanguageModel:
 
     NO_UNFINISHED_WORK = RuntimeGauges.ZERO
 
+    @staticmethod
+    def workspace_or(backend, fallback):
+        """Observe the host workspace, retaining the caller's explicit fallback."""
+        try:
+            return backend.workspace
+        except AttributeError:
+            return fallback
+
     def __init__(
         self,
         workspace: Union[str, Path] = DEFAULT_WORKSPACE,

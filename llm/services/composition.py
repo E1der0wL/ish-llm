@@ -62,6 +62,14 @@ class BackendServices:
     observability_sink: Optional[Callable] = None
     transfer_authorize: Optional[Callable] = None
 
+    @classmethod
+    def observed_sink(cls, services):
+        """Read an optional host observation sink; this never grants authority."""
+        try:
+            return services.observability_sink
+        except AttributeError:
+            return cls.UNSPECIFIED
+
     def describe(self):
         """Host 자원의 읽기 전용 투영. callable/client/인증값을 직렬화하지 않는다."""
         from dataclasses import fields, asdict

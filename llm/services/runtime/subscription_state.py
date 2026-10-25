@@ -123,6 +123,10 @@ class SubscriptionStats:
         return asdict(self)
 
     @classmethod
+    def dropped_count(cls, value):
+        return value[cls.dropped.__name__]
+
+    @classmethod
     def aggregate(cls, retired, snapshots):
         return {
             **retired.total(snapshots),

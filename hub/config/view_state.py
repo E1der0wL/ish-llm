@@ -8,6 +8,7 @@ from .view_records import ProjectReadingState, ReadingPosition, ViewStateRecord
 
 
 class ViewStateStore(WorkspaceJSONStore):
+    SELECTED_POSITION = 0
     VERSION = ViewStateRecord.VERSION
     FILE = "view-state.json"
 
@@ -26,6 +27,10 @@ class ViewStateStore(WorkspaceJSONStore):
         project = self._read().project(project_id)
         positions = project.positions()
         return project.selected, positions
+
+    @classmethod
+    def selected_from(cls, loaded):
+        return loaded[cls.SELECTED_POSITION]
 
     def save(self, project_id, selected, positions):
         data = self._read()

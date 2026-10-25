@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 633,
-    "unreviewed_files": 23,
+    "files": 634,
+    "unreviewed_files": 21,
     "stale_files": 0,
-    "unclassified": 1590,
+    "unclassified": 1398,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 23,
+    "unreviewed_dynamic_paths": 21,
     "unreadable_files": 0,
-    "candidates": 16186,
+    "candidates": 16097,
     "issues": 0
   },
   "files": [
@@ -27,9 +27,9 @@
     },
     {
       "path": "hub/__main__.py",
-      "status": "unreviewed",
-      "sha256": "2018b2a7f216516f4042b30abe7580c3395a896106b0e6ee41e682abc5df2306",
-      "candidates": 27
+      "status": "reviewed",
+      "sha256": "4ee7d296a9a7c0848687f53149ecfd4a80b1e45fd7f0be243b90ae1e09abef99",
+      "candidates": 23
     },
     {
       "path": "hub/asset/__init__.py",
@@ -148,8 +148,8 @@
     {
       "path": "hub/backend/execution/engine_selection.py",
       "status": "reviewed",
-      "sha256": "819179a72b1356c104212623d55d5bdfcd077601f13bc0326a67d861f984fd07",
-      "candidates": 7
+      "sha256": "c94cc263fba9519c5a584acfca89e8c02dcda3416b7778733fec40a5a1ed9348",
+      "candidates": 8
     },
     {
       "path": "hub/backend/execution/environment.py",
@@ -334,7 +334,7 @@
     {
       "path": "hub/backend/observability/snapshot.py",
       "status": "reviewed",
-      "sha256": "945dc5103bab541f4e2c7b7c5e3f6eea678cbfaf10e936276d29400c23a4a12a",
+      "sha256": "d74af3748207c0dafdc93546c8e69753d9792f20a22c2df0b8a3d44f70891281",
       "candidates": 15
     },
     {
@@ -453,9 +453,15 @@
     },
     {
       "path": "hub/backend/runtime.py",
-      "status": "unreviewed",
-      "sha256": "085639743545facf3fe8e534d57f4898a53f13b733e7588ba6d10d414f62b8eb",
-      "candidates": 165
+      "status": "reviewed",
+      "sha256": "7fd654364202bd7f400aa30ba99e4495206fdd3f8193ea5e53a48e84caaeaa48",
+      "candidates": 75
+    },
+    {
+      "path": "hub/backend/runtime_views.py",
+      "status": "reviewed",
+      "sha256": "d45c357476f19acef351d8bfe55c7c984c4206feb716821f16386283dfb7e663",
+      "candidates": 2
     },
     {
       "path": "hub/backend/session_contracts.py",
@@ -652,14 +658,14 @@
     {
       "path": "hub/config/view_state.py",
       "status": "reviewed",
-      "sha256": "21d7b844e60e7c2657f36d59f3b0ee9eb6e1dce7a05b0fb9e95c75d93c6bf7ff",
-      "candidates": 13
+      "sha256": "cc1de0d5aa59f201c703cc2f593a064536083f6473086114e08ed7e6eea2e92d",
+      "candidates": 14
     },
     {
       "path": "hub/config/workspace.py",
       "status": "reviewed",
-      "sha256": "ee1cc2d3ab678a854e2f184f6ebe1e4e8d4c39dc7e779d70505dc55972461487",
-      "candidates": 15
+      "sha256": "7c434cea60371dbc3c92c5d22e69e78aea87c73aaa516faad1324bfc11288775",
+      "candidates": 16
     },
     {
       "path": "hub/errors/__init__.py",
@@ -742,7 +748,7 @@
     {
       "path": "hub/model.py",
       "status": "reviewed",
-      "sha256": "dba2f51b5ad9008f61191573c7b64062c61dc91859e4f9e8c09cb06575664320",
+      "sha256": "b46703e0fced738acc2c91b7ac0ad58dd76d6e314f24aec59932916da6aa4fd6",
       "candidates": 124
     },
     {
@@ -3154,7 +3160,7 @@
     {
       "path": "llm/llm.py",
       "status": "reviewed",
-      "sha256": "24e4f77c832c4e8a1dc5a48b88e2841c4dbc9b155424502bbb2674b01e2ca920",
+      "sha256": "faf0401246c7f1c9fe798811e17921c97f9a3355651246e3e153e2f1ad85ccc5",
       "candidates": 47
     },
     {
@@ -3364,7 +3370,7 @@
     {
       "path": "llm/services/composition.py",
       "status": "reviewed",
-      "sha256": "107013ef0dacda994075a25c51e43015af20379eabf692263bf6515e367f1dc7",
+      "sha256": "9782d686af78eece5f25dfe03a543019d6954b8ccbf040e62c03e20386470a81",
       "candidates": 23
     },
     {
@@ -3748,7 +3754,7 @@
     {
       "path": "llm/services/runtime/subscription_state.py",
       "status": "reviewed",
-      "sha256": "032a0093fa4561f955b0ca17e70e8f54173d9530e10c430fc8ca75da4a7aaf5c",
+      "sha256": "904b70d3f4eefaef81bdfa1929a1189abdc0c8e011d04b835f590429c4b8aa21",
       "candidates": 23
     },
     {
