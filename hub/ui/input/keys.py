@@ -61,8 +61,11 @@ class KeyName:
 
     @classmethod
     def shifted(cls, key):
-        return (cls.CONTROL_SHIFT_PREFIX + key[len(cls.CONTROL_PREFIX):]
-                if key.startswith(cls.CONTROL_PREFIX) else cls.SHIFT_PREFIX + key)
+        return (
+            cls.CONTROL_SHIFT_PREFIX + key[len(cls.CONTROL_PREFIX) :]
+            if key.startswith(cls.CONTROL_PREFIX)
+            else cls.SHIFT_PREFIX + key
+        )
 
     @classmethod
     def unshifted(cls, key):
@@ -70,6 +73,8 @@ class KeyName:
 
 
 class ShortcutAction:
+    OPEN_DIRECTORY = "open_directory"
+    TOOLS_TOGGLE = "tools_toggle"
     OBJECT_SORT = "object_sort"
     NEXT_MATCH = "next_match"
     PREVIOUS_MATCH = "previous_match"
@@ -93,29 +98,29 @@ class ShortcutAction:
     SCROLL = "scroll"
     SIDEBAR = "sidebar"
 
-
-    MINIMIZE = 'minimize'
-    RESTART = 'restart'
-    PROFILE = 'profile'
-    COPY = 'copy'
-    PASTE = 'paste'
-    MOVE = 'move'
-    AUXILIARY = 'auxiliary'
-    FIND = 'find'
-    STOP_RESUME = 'stop_resume'
-    REGIONS = 'regions'
-    ITEMS = 'items'
-    WIDTH = 'width'
-    CREATE = 'create'
-    RENAME = 'rename'
-    CLONE = 'clone'
-    CATEGORIES = 'categories'
-    CONFIRM = 'confirm'
-    SEND = 'send'
-    APPROVAL_DETAILS = 'approval_details'
+    MINIMIZE = "minimize"
+    RESTART = "restart"
+    PROFILE = "profile"
+    COPY = "copy"
+    PASTE = "paste"
+    MOVE = "move"
+    AUXILIARY = "auxiliary"
+    FIND = "find"
+    STOP_RESUME = "stop_resume"
+    REGIONS = "regions"
+    ITEMS = "items"
+    WIDTH = "width"
+    CREATE = "create"
+    RENAME = "rename"
+    CLONE = "clone"
+    CATEGORIES = "categories"
+    CONFIRM = "confirm"
+    SEND = "send"
+    APPROVAL_DETAILS = "approval_details"
 
 
 class ShortcutLabel:
+    SPACE = "Space"
     ENTER_S = "Enter/s"
     ESCAPE_CONTROL_T = "ESC/Ctrl+T"
     CONTROL_F_SLASH = "Ctrl+F / /"
@@ -135,18 +140,18 @@ class ShortcutLabel:
     HORIZONTAL = "←→"
     ESCAPE = "ESC"
 
-    TAB_SHIFT_TAB = 'Tab/Shift+Tab'
-    VERTICAL = '↑↓'
-    CONTROL_HORIZONTAL = 'Ctrl+←→'
-    SPACE_ENTER_RIGHT = 'Space/Enter/→'
-    CONTROL_Q = 'Ctrl+Q'
-    CONTROL_W = 'Ctrl+W'
-    CONTROL_P = 'Ctrl+P'
-    CONTROL_C = 'Ctrl+C'
-    CONTROL_S = 'Ctrl+S'
-    CONTROL_F = 'Ctrl+F'
-    CONTROL_D = 'Ctrl+D'
-    CONTROL_O = 'Ctrl+O'
-    CONTROL_L = 'Ctrl+L'
-    LEFT = '←'
-    TAB = 'Tab'
+    TAB_SHIFT_TAB = "Tab/Shift+Tab"
+    VERTICAL = "↑↓"
+    CONTROL_HORIZONTAL = "Ctrl+←→"
+    SPACE_ENTER_RIGHT = "Space/Enter/→"
+    CONTROL_Q = "Ctrl+Q"
+    CONTROL_W = "Ctrl+W"
+    CONTROL_P = "Ctrl+P"
+    CONTROL_C = "Ctrl+C"
+    CONTROL_S = "Ctrl+S"
+    CONTROL_F = "Ctrl+F"
+    CONTROL_D = "Ctrl+D"
+    CONTROL_O = "Ctrl+O"
+    CONTROL_L = "Ctrl+L"
+    LEFT = "←"
+    TAB = "Tab"

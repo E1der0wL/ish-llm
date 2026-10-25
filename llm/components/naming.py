@@ -2,14 +2,19 @@
 
 import re
 
+
 class ComponentName:
     PATTERN = r"[A-Za-z0-9_-]{1,64}"
     SCHEMA_PATTERN = "^" + PATTERN + "$"
     INVALID = "Invalid component directory or record ID"
 
     @classmethod
+    def matches(cls, value):
+        return re.fullmatch(cls.PATTERN, value)
+
+    @classmethod
     def validate(cls, value):
-        if not isinstance(value, str) or not re.fullmatch(cls.PATTERN, value):
+        if not isinstance(value, str) or not cls.matches(value):
             raise ValueError(cls.INVALID)
         return value
 

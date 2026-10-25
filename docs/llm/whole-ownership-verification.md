@@ -10103,3 +10103,54 @@ Level 1·2 로컬 완료다. 아직 전환하지 않은 RAG 관리 화면 소비
 기록했다. 관련 관리 화면까지 전환한 현재 통합 상태에서 Level 3를 실행하고 검증한 SHA만
 Push한다. 앞선 Gate56 결과는 이 변경의 전체 검증이 아니다. 관측 오류가 Job을 취소하지 않는
 계약, 새 외부 효과 전 중복 등록 검사, 실제 삭제/재개 revision 검사는 그대로 유지한다.
+
+
+## Hub 전체 관리 화면·초안·편집 입력 계약
+
+Component/Record/Tool/Definition/RAG 관리 화면 모두 ManagementEntry·EditorRecord·ManagementAction·
+RAGEntry·JobDeleteReview·ImageImport·ProgressCounts·IngestionCounts를 소비한다. 반환 dict나
+중첩 필드·명령의 재선언을 제거하고 콜백 옵션은 ManagerCallbacks가 소유한다. geometry·버튼·
+지연·표시 기본값은 ManagerView/DefinitionView/RAGManagerView에 모았다. 번역/단축키 식별자는
+MessageKey와 KeyName/ShortcutAction/ShortcutLabel을 사용한다. 기존 미번역 delete 표시값은 ManagerView.DELETE_TEXT에 선언하고 언어 pack이나 fallback
+동작은 변경하지 않았다. 최초 Level 2의 LocaleKeyTests 1건은 미번역 표시값을 공개 번역
+catalog에 추가한 오류를 검출했다(27 pass/1 failure, 나머지 오류·Skip·누락·중복 0).
+원래 Assertion과 실패 로그를 보존하고 선언 위치만 수정해 Hub Level 1·2를 새 소스에서
+재실행했다. 번역 catalog를 정확히 양쪽 언어 pack과 일치시키는 기존 계약을 유지했다.
+
+DefinitionDraft는 사용자가 아직 저장하지 않은 새 Prompt/Agent/Workflow/Memory 편집 초안의
+Owner다. 기존 명시 초안값만 제공하고 Backend 기본값을 추가하지 않는다. PromptMessage와
+기존 도메인 필드를 사용하며 매번 새 중첩 데이터를 만든다. 편집 크기·JSON object 확인은
+공통 helper를 사용하고 저장 시 이름 확인이 JSON parse보다 앞서는 원래 순서를 유지했다.
+ComponentName.matches는 기존 regex 연산을 공개하여 validate와 UI가 같은 구현을 사용한다.
+
+원본/제안의 독립 프로세스 179개 관측이 일치했다. 실제 80열 화면 렌더링·키 연결·image 선택을
+취소한 뒤 경로/효과 보존·목록/누락/falsey 필드·선택 경계·콜백 순서·관측 진행률·재시도 표시·
+실패한 저장 후 초안/원래 version 보존·편집 오류 우선순위·모든 초기 초안과 독립 사본을 비교했다.
+8개 Owner 확장 AST 비교가 통과했으며 initial_definition은 모든 지원 이름/미지원 이름/새 사본
+9개 관측으로 별도 검증했다. 최초 외부 렌더 probe의 실행 loop 누락과 AST 확장의 중첩 property
+처리 문제를 수정해 재검증하고 원래 로그를 보존했다. 최종 probe는 RuntimeWarning도 오류로
+취급했고 실제 render 성공을 별도 확인했다. 제품 테스트/Assertion은 변경하지 않았다.
+
+- `whole-hub-manager-ui-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.784072초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-manager-ui-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `02bdaaa63d0443e3d54d00cad2a5bc7c32e884c99d9733fca3568ec6b75c36b8`, input `9714ac9dcb3f1a5cfbc433973419a3cffc51221a1c5e5069541d64e7b3572840`.
+
+- `whole-hub-manager-ui-l1-llm-01`: discovered/started/pass 51/51/51, exit 0, 7.853618초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-manager-ui-l1-llm-01/llm.json --modules tests.llm.test_components tests.llm.test_component_storage_integrity tests.llm.test_tool_package_values tests.llm.test_skill_record_values tests.llm.test_workflow_format tests.llm.test_configuration_validation`. source `02bdaaa63d0443e3d54d00cad2a5bc7c32e884c99d9733fca3568ec6b75c36b8`, input `9714ac9dcb3f1a5cfbc433973419a3cffc51221a1c5e5069541d64e7b3572840`.
+
+- `whole-hub-manager-ui-l1-02`: discovered/started/pass 28/28/28, exit 0, 80.385835초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-manager-ui-l1-02/hub.json --modules tests.hub.test_component_managers tests.hub.test_memory_manager tests.hub.test_rag_extensions tests.hub.test_rag_jobs`. source `ef14e3ed7a20675bf95488e93b634db6d8d2d97c95f09545a97a35b765e8b015`, input `2a6d7e7849541b2eacc006f72bf52189f1eecf31b5011a0136fa7149be88ef0b`.
+
+- `whole-hub-manager-ui-l2-02`: discovered/started/pass 28/28/28, exit 0, 73.155306초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-manager-ui-l2-02/hub.json --modules tests.hub.test_components tests.hub.test_settings tests.hub.test_locale_keys tests.hub.test_usage_definitions_system tests.hub.test_creation_contracts tests.hub.test_popup_completion`. source `ef14e3ed7a20675bf95488e93b634db6d8d2d97c95f09545a97a35b765e8b015`, input `2a6d7e7849541b2eacc006f72bf52189f1eecf31b5011a0136fa7149be88ef0b`.
+
+R3 Mutation exit 0. 발견/실행/pass 일치, failure/error/Skip/xfail/xpass/누락/추가/중복 0,
+각 실행 source/input 전후 동일, suite별 선택 ID 중복 0을 확인했다. 수정된 네 Hub 파일 외
+모든 제품/시험/fixture 및 실행 환경·의존성 hash가 같음을 대조했다. LLM 안전성·Component와
+R3는 불변 소스의 기존 결과를 제한적으로 재사용하고 Hub는 수정된 소스에서 재실행했다.
+`limited-reuse.json`에 이전/현재 source hash·변경 파일·실행 구분을 보존하며 이를 단일 전체
+회귀 실행으로 합산하지 않는다. 공통 안전성, Component
+저장/정의·Tool/Skill record·Workflow·설정 검증, Hub Component/Memory/RAG 관리·설정·번역 key·
+사용량/정의·생성·popup completion을 포함한다. Python 3.12.14/Clang, Host d833790,
+고정 의존성, 정상 namespace(NoNewPrivs=0). 실제 argv/exit/hash는 `hub-manager-ui-draft`에
+보존한다. S1–S7·감사·문서 검사를 통과했다. 관리 응답과 RAG 관측 공유 계약은 실제 UI 소비자
+전환/검증을 확인하여 완료로 갱신했다. 다른 미완료 공유 계약은 최종 교차 점검까지 유지한다.
+
+Level 1·2 로컬 완료다. Hub README와 잔여 공유 계약의 실제 소비 연결을 마친 뒤 현재 통합
+소스의 Level 3와 정확한 SHA 원격 CI를 수행한다. 그 전에는 전체 전수 작업 완료로 선언하지
+않는다. 승인·예산·실제 효과·Checkpoint·Resume·CAS·원본 보존 기준은 그대로 유지한다.

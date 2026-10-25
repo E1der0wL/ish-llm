@@ -16922,7 +16922,7 @@
   {
     "path": "hub/locales/keys.py",
     "sha256": "e00c9738db89d05fc4621a976cd658e8dca8fb9a15e0e788c8d52767f7bd274d",
-    "reason": "Reviewed complete locale declarations, renderer, custom-pack validation and direct consumers. 612 unique canonical keys, exact bilingual tables, 65 normalized whole consumer ASTs, independent formatting/invalid-input cases and real UI consumers preserve output and storage behavior. Open lookup suffix/prefix construction remains open; same-spelling domain actions, roles and fields remain owned by their actual domain. The README documents these boundaries and grants no execution authority. Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending.",
+    "reason": "Reviewed complete locale declarations, renderer, custom-pack validation and direct consumers. 612 unique canonical keys, exact bilingual tables, 65 normalized whole consumer ASTs, independent formatting/invalid-input cases and real UI consumers preserve output and storage behavior. Open lookup suffix/prefix construction remains open; same-spelling domain actions, roles and fields remain owned by their actual domain. The README documents these boundaries and grants no execution authority. Preset record/selection validation and mutation now have a single current Owner. Independent real-file/differential fault/order observations and unchanged focused consumer/safety tests preserve the exact public format. Only the explicitly listed whole files are complete; PresetStore global composition and other service/UI contracts remain pending. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -20734,28 +20734,48 @@
           "hub/locales/en.py",
           "hub/locales/ko.py",
           "hub/ui/error_presentation.py",
-          "hub/ui/settings/pages.py"
+          "hub/ui/settings/pages.py",
+          "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/manager_values.py",
+          "hub/widget/forms/rag_manager.py",
+          "hub/widget/forms/record_manager.py",
+          "hub/widget/forms/tool_manager.py"
         ],
         "tests": [
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
           "tests/hub/test_general_options.py",
           "tests/hub/test_language_presence.py",
           "tests/hub/test_locale_keys.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_project_authority.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
           "tests/hub/test_settings_project_flow.py",
           "tests/hub/test_settings_usability.py",
           "tests/hub/test_stores.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_workspace_settings.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_configuration_validation.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_tool_package_values.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_usage_deletion.py"
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -54555,36 +54575,36 @@
   },
   {
     "path": "llm/components/naming.py",
-    "sha256": "93dec5811cb0acf393600eb28165a32f37f57f15aa180ea530b6be0fdc0a6703",
-    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation.",
+    "sha256": "093b033e17af33ff11270e31b0690fe0352abad7925a192990144a176b4ede98",
+    "reason": "Whole Registry and current Base/Naming reviewed including dynamic optional hooks, missing fields, selected implementations, dependency and reference/lifecycle consumers. Original algorithms and property/error order proven equivalent; only exact Python annotation/stub/exception syntax remains in implementation. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "6458f751427f0c0c08a8d0413780cff2b57c0d170b7a9099bc8a04b434f410b6",
+        "id": "4797a2ff78f3b71a95bbdc6c66e3ad8fcfbe61672da1599b28605c02d8b3abd4",
         "classification": "declaration",
         "owner": "ComponentName",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "8598ed9845169e242794c6218170ac3f874884f42bdc768504d4a1e55689d04a",
+        "id": "1d9ffcfbd496fda8f803d132fe9ad1c3c79c1a790e5c22b722ddd3b844e65140",
         "classification": "declaration",
         "owner": "ComponentName",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "0b9957796b4664dda7db498d6c7e9fdd61291b13ad2d6dc57411b55ae20481c3",
+        "id": "e405838329b295ecec257de0bad99357d1479b28f8d42c745b2f0322e63eda02",
         "classification": "declaration",
         "owner": "ComponentName",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "64f142e34ae7ce3a4863b3f0a04749e6f271273a107ea138b47393e8fe329a93",
+        "id": "aba509a16454123611c54021872f72225d13a5c4083f5aa670a2217ed06a5110",
         "classification": "declaration",
         "owner": "ComponentName",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
       },
       {
-        "id": "da6e853c440c0815a0dd7acdb920ee5721b4c0baa954b6e80324982a47f81d17",
+        "id": "fa1a7c0b11db1f66fc3a630af3d76456e32141df9a5c8781d519c2ba49beffb8",
         "classification": "declaration",
         "owner": "ComponentIdentity",
         "reason": "Canonical Component metadata/hooks, distinct identity/path grammars and registration/selection diagnostics are declared at their actual Owner heads; all runtime contracts use those APIs."
@@ -54595,21 +54615,45 @@
         "owner": "ComponentName / ComponentIdentity",
         "declaration": "llm/components/naming.py",
         "consumers": [
-          "llm/services/schema.py",
+          "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/manager_values.py",
+          "hub/widget/forms/rag_manager.py",
+          "hub/widget/forms/record_manager.py",
+          "hub/widget/forms/tool_manager.py",
+          "llm/components/registry.py",
           "llm/services/lifecycle/components.py",
-          "llm/components/registry.py"
+          "llm/services/schema.py"
         ],
         "tests": [
-          "tests/llm/test_component_dependencies.py",
-          "tests/llm/test_project_component_settings.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_resource_references.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_component_storage_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
+          "tests/hub/test_component_managers.py",
           "tests/hub/test_components.py",
-          "tests/hub/test_component_managers.py"
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_dependencies.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_project_component_settings.py",
+          "tests/llm/test_resource_references.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": true
       }
@@ -89012,8 +89056,8 @@
   },
   {
     "path": "hub/ui/input/keys.py",
-    "sha256": "ef58dcd775157ba4bb4fc818b2ca1029300086d8b865d9c4fd5f536194ee4467",
-    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy.",
+    "sha256": "fbdef8e266af83f39ea059be2f8ea1bdf477742ca059063694849a0fb5c81b09",
+    "reason": "Whole input registry and SchemaForm review with canonical Schema, Project fields, restart metadata, input-key and theme Owners. Twenty complete old functions expand identically; the one constructor difference has actual field/callback/copy/Host-lock comparisons. Existing tests and assertions unchanged. Remaining foreign consumers: other Hub key/action declarations and GlobalPage x-hub-choices must still connect to these Owners. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. EditableControl owns marker registration and writable observation shared by text, focus and mouse; KeyName and SettingsZone own keyboard and panel contracts. Viewport measurement, PTK Buffer edits and focus/cancellation effects match the prior implementation in independent comparisons and unchanged consumer regressions. Pure indexing expressions are individually classified, not turned into artificial domain constants. Settings Screen/Drafts/ChatProjects consume borrowed response observations and Owner mutation/projection APIs. Independent old/proposed processes preserve required/optional reads, partial-save callback order, UI draft aliases and explicit creation omissions; unchanged focused UI, public configuration and safety regressions verify the bounded transition. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. History rows and deletion review/result wire fields have canonical Writers and borrowed projections. Existing queue cancellation order, reviewed blocker set, revision checks, source preservation and Application retention selection remain unchanged; the Backend still authorizes every deletion. Hub input contexts, draft recovery, recall, shortcut registration and popup contracts use their Owners. All existing foreign-control shortcut writers and optional/required readers delegate to ShortcutRegistry; original presence, aliases, key dispatch, stale-state guards and admission callbacks are preserved. Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Typed search hits/spans/cache/query keys and shared highlight rendering connect the actual Inspector and transcript consumers. Popup search/navigation/geometry declarations use explicit Owners, preserving subclass behavior and per-overlap current-index observations. Table presentation, selection and deferred viewport invalidation belong to their UI Owners. BlockCaption/StructuredCaption consume canonical attribute/column declarations, retain lossless original cells and permissive label behavior, and never reinterpret backend execution policy. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -89131,445 +89175,463 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3f97c90171dee4b1e4bb2bbcafce9549b549513db2ec7910798a62abaf71024e",
+        "id": "b1623886ef32a58c10f3b379841850d0b47d38fbcd38f24908d5815166345de5",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "31b73ba81702734ba0922034b474e85588b7186a26426698c2d45ff2faba7fa2",
+        "id": "e0c6d0f547f174be76091c11a6270987ceb4ff64528841de1cce4e656f9222e3",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2926db6b64856826a158be894868ea157d805182451d8258a12b8103edd1a137",
+        "id": "93c5fa32a25e928c419fdd4f148858ed271d88574e64296d09a4ac0174f1d413",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "22239d90f7c50e6a4d1d7d15bff82986e7a4ae6b60866bc4c80100076df9f75d",
+        "id": "bb8f1decde33b1e66b59d17a78b6289f0b79739118f3b31b54df5cd3d0cc9145",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9f0bf8abe223b73ccdbe49271277a142493d247558e46be3bc46d7cb4ef3634e",
+        "id": "133ab6786e84454344ebaf16c832c6750e8caa6161e1c632f937925f5b81a1af",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "dce3573cc0fa3482547528b079ba7ae3ac46a6d410d7831fae588faa3ca94e49",
+        "id": "e856119f0f4ff424ffd7e5b0e83f417e9dc6abb22725654fb606a2b5198f7d38",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "baa6518bd654303f2e43fe582c2a151e48b6e1ffd787c0f83cb96d31542177b3",
+        "id": "38c614626a34b935e3aca1922f627cad42cd78e55bc4d7d8fe17d0c71ccdbf6d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "dbba08d33a49a6c34f9df2c04bf30bb698d1a265c4d7206f988119113085b186",
+        "id": "882f47673e9b42a52d0a671b3ad6bc647821e8159bcf7bf91511b0ed0168a940",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d664c88962fe69fe420cb2d308efa0e009f59d5f48aeb62b6dcb77afd7340e56",
+        "id": "c61ddd679eb5f52f49002f7d40f58a40c6f23ca551e26d6a843649b6bf7b731f",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cdaa670ee832b54a88d7092216624042d55af50d6093f39a5fcfadf13fe8a3fe",
+        "id": "40e4a1ee94f7864eb04a2af4ef65a40d3aaf38d87eb960fb64e4e019ea7d03af",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cb9fe8cbef3837bf06af70f24edd2f9ab420e3ae928d1af75de94a3984c50ca0",
+        "id": "58f758399cd3f44404f7c2f37572a1bc5d15d52f9596c785b694883b7ec27a1a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ff03980a6e5ad36803c4a9fc0930f94266f05aa903259453971a054f27e17ca9",
+        "id": "a2e2054f1fa440ef181fe40b14d819d47eff2bde89f9190b9def44591e8a5cae",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "956964583c8f0440b7bc37dca09dc9d6634a24b8e31dd1990793c6445af5c33a",
+        "id": "20d6b0241355ac99906a90173c97076a23aa8612899f84aed0b7a98f42c50970",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "89cac41acd63e097a860c02cfa1e8c77cb838933b389db98c9e8e3f298c1fe13",
+        "id": "762db23830166bd612d8fa10e3fe911fda28e9b60d7ebb3be547609b8c787430",
         "classification": "declaration",
         "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "54d51d2e290cfc0c66efe64e9be591fa61809222790d2a5f4fc0f3e85006a409",
+        "id": "9c56e1f98c99b95ccc104e0de158ba935be24f44f30e366820838daf6102cfb5",
         "classification": "declaration",
         "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1830b7235d58f4410c642e55a07aa491da8249c52b9eea411e3c584e6043b4af",
-        "classification": "declaration",
-        "owner": "ShortcutAction",
-        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
-      },
-      {
-        "id": "e6f8c44ee42fd4d1c34f0ebf99a38452cc276db473d7c0b8e25dd9473ec7e92c",
+        "id": "f89baed47d5742d6f28483ddb100e2abbb9fc733a29a418d52a66ca23621e190",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "593587be3f79dae14c546bcbc8dfa677cfa86a43b701c9496fb3e84912a53e8a",
+        "id": "19c1b588dad4cb69ba802e392269af8a81f3eeee345cf15d21e83f6684b7135c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "8c96fbe3d7b34ea5227e8703554264eeed39db6841ec69b6b839675d5c4461f1",
+        "id": "3d62ac1a0d19477f97c4d7d7d6a9f1e2383d1893a34fb692e43d17c50277aadd",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "46848856790c8a1c6f6e449bb6d54973862a39411bf03f5e521128d49510ce03",
+        "id": "f174ba8ad366be158cb31775443f0eed32fe5e283040b256fd460ad2ef2ff94a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "9a78637ff43cacd8e8142c6b11a8de03c9a20750ee32b817b70a181069df30e9",
+        "id": "8acc39fb5398633689986dcdbb77d674de9ce29bc1a653f059ea1c007068a2b5",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "fed77c701e284c8b277d35a7d7720e55e4951d4fd2aaa1088767e79df04598ac",
+        "id": "243ad43522001d3577dac88b58ac48b40177582afa5764f6e737672bd4b81957",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "ec70b55aa51ba220f2991f39b3cef1ec03d813c48d60c31e875f5ad468502cf0",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "723de0dec0320d8f787a09aa098cd48f5f2ecec55b4a959fcb14371a04e899c6",
+        "classification": "declaration",
+        "owner": "ShortcutAction",
+        "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
+      },
+      {
+        "id": "da13c3315283843ad2a51b7eee105127efb8409eca7c04cf1ea73b59f02c5cb0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f079a1ff2ecaf8ee16ce4900ecca890d71553b1bff7c6ddd1537d7fbbb0785c1",
+        "id": "2e88f5a82c1271e0eac0d2bc1ef559f63af66003e14e5235a62fe6aee53ccce6",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ebefc1591f21fcb15eb88c42c9366cf33a45e6b208d4b98cc818b5bb0ca8c664",
+        "id": "af5f181498b3221c15f585db084b8bd320edc902b26118d69f995c51aa663dc6",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8a0c515937da84ee44c24b6a4d449b7fa2f5eae5d940b3937b6100faa496ebc9",
+        "id": "a96f2f5f89d77f371d3282ef0becb1f4655a5b714f368f0b8373fb01a98e8034",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cfad073cdce1153a4d21020f63013ad6003c2b179bdf8772899056943c25548c",
+        "id": "43eef1fd4d4d2ee7bb2cae18a0c8d96ee03e0f95f1d5148d9ff8141aebd6715c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "008fcac71fd3aa47ffa3920931f2c46abab86e3dd322a9d024ec650a04a2690e",
+        "id": "e3d04f55c87b9e323f60d3591097c909f6a3cba6e0e8d361c67285f8723847a0",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "21f145cd82a5c69b7ae316d64b958552021250fa6cc943d0f8a39b604b2689c7",
+        "id": "3d4003449fe22374ae05b9ab08c904cb43789ea805ec0077b4dfa7d86deb98f5",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "463f166dff00936ebc2e01d97a8b2b75a95f1dd208d83e50b29e5d0eb09212a1",
+        "id": "e53bf993bfd560c24c129d01566707d45f7f764b9bd0d531c54b381ae0a1dd3e",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "11f179837f907c6060116d0b2fdd3d9e2f2a02c5c98ee42ef32a3a0430b58fbe",
+        "id": "c576a14abb05e8f3ab089abc12c04c11b1c3008d53b95a1f819182295b989f3a",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "62d0c7d01ee5cae341ecd18051dda92a453cc0eea67924d5729289d867542503",
+        "id": "6a473f4293d200fec1f51d21f4a0a09087ce23f5495e415c05912e1391235547",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e6243a42a4044a79315aa7efb96363e6ce0008a2c9672f68922a5df092c12d24",
+        "id": "b7e4c1b9ce3dbe16e11c8aaf4922d9d6cd70a28d34c65dea63464145639d01b4",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f8205b799a17bfb7e97cec67bc471f466f5b81fff707b224abd513d004dd04b2",
+        "id": "a2bbbd4b4702f9394d556fdff277c2c7d4ccfabde1919fb001ab01a300da649c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "42eaaf5bb02f45270ddeaed2247fa0ccef75a0587892f7ff8409218991f7b58c",
+        "id": "a235d364158ba602408f4853d94dd6b6a10a8f87212abafc0778b654eb1ba5d1",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "81bf55fda0f7f91c6050e3af08087e18464f7d9844cc49195994028595a23596",
+        "id": "5f2d513a278784250512faee19f3741e13d4a5a4fc7099ebfadcab8e840bf805",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7229601c872b73f56df909e08ef22c9b2a882f38457e982d322f0a53110b2c00",
+        "id": "043d19f3c542cffcc02ffc770b0b53c16f17e5297b93bd22a7c8c88671764969",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c290c3ac2a53980ea60106380898ca8cd88ab7f9a3bd82598611d8a22c692759",
+        "id": "28d372367cdd5d45e9744faac76c18b41516d55915aa750b68490dd46c588153",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8cb2d95fc8418964b51c7859b5392ca4e8e97a07b31343cea9d6f268150f4c4b",
+        "id": "ec483e66c4276155cc23a987823cf66210e9b743269cbe041a024788c299ee6c",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8b0569fb7b3d31d70487c7333103b5feb27ae2107f4ed9372dad4a1ba419eba0",
+        "id": "3ceebb6cac7517cb4ae8027f5e349e075eb5cec8429580966965b9e751cac20d",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f50f254a5dbb8b32e6651f6f9b12430b48ce7fc428c6a779b4acc97eea788cbc",
+        "id": "af1bae18ffd59a93a53a963efd3e2f29f02ec290e87a477921a45359fb9e6d97",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "75c06491211f2daa811bc765390e2564fb070f69d12b5e47d1e24c94bf5b9ca6",
+        "id": "d1eb4c824f0763141f7e7f4a0d4ff5dedce85992266dc2de3ae12588e31de5c2",
         "classification": "declaration",
         "owner": "ShortcutAction",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "effaa2541a25b2d4a7ea3cbe51b160d56836e550fbe96bf5dfa89eab5ac42ce1",
+        "id": "37bb270d00ba1e2e764c9beb7b8df7cec5dba8c16e5b92e23243e18cc957fbd8",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bb91e18598c9af29fc65209bf7c028e60ecef7540304365859c1d4b8d7ce7072",
+        "id": "49c58108df4cf49d05cbef7b1b8cab7d8aa6de5d63c09cc6ec7c965579ec8cbf",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d2de6a79b21f9ffc42467c71bad866f68db80201596f2445668754c45a6eeb9a",
+        "id": "d6d3cbb0f31983101aa8c541f24d9674d6995a29b23da3ceb2a9d0269bb404ba",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f6c71dc5a2d068f5ddafaae4ad75d25570c4357511195a5ea4f0055d9f74988c",
+        "id": "8b492b75dd6f95509723825b6451fb874887be0bb6f9847b5ae78c00b32b71b9",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "91eb91bf74da75e4c06d5f69312718a5880f1898e20d8b2b3af627fd8e116246",
+        "id": "303470133777a259d3118c6dfc8825e0e987d58893f155dba02ccacb4f8c5339",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d2fb291bc5b37a2889c1b5131be6a9151afa2780b58615b8ca1ac4c2e577fa14",
+        "id": "bab1ddc4e4e5734eebe983729aa138eaa21d65e63011b58c23c4c494a81e7c9b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c45cf93d046e987e9cd42e2c4b0f01df0072f3672d8d9bcf37869e8dcbfc450d",
+        "id": "fce27a29a3b6dfce000f4fa35e34c24e3302549c42dd08d90a92e32d678f7e28",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3c0f881073d36389d8ae81b4e7ee90b60f5116280e4809a422cd98980ebf9ccc",
+        "id": "a2455ce0a0cf99545ae2dd581d9ae997a6745b2be2fab0293379180f245f829c",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2b8e5082053ddeef1352b2aeff37e847e8adbed444f730a39a3b98e054b71d13",
+        "id": "f0b4c6731ebe2817bcb61c605b6d3e99417630b8203e796f1460290ac2c05062",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fd2132e9830b78bf54717d5163d9ae9a1f45aa6a120e89d4f65375b0694276e2",
+        "id": "50d9fb9b2baf4e695ff4e158c48045720d56ca836596e24dafd50de15f93723f",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9524e9444b252b3355326f5f04175e337f51740235ee98cb9bd4e2ab55da8c09",
+        "id": "42ad7522517777f5c8750186a0c01f50cc7b68e65550b7b6a88c545cf42e6660",
+        "classification": "declaration",
+        "owner": "ShortcutLabel",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1a33c6eefd94480629a260bec4a968dc1a67ff5dd4f80110797dfa544391142a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "2df30563da3363bd9bc3010e1233e0a522f70643e074dce7a02c4a5b2fcfafb4",
+        "id": "988e0bec4be8a50dde3080137447c05d1f5aca6ab6c5ce0cce4785cd176cbb0b",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "bd61fcfeca768e713b212f23ce64894e60427e75a40ce9aa426df550d1ab4b82",
+        "id": "e5f8222b760fa8369d21a923dda32a82d8873eb3a4c474638e467fad987582d2",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "5831d381d7ef115b8c79f5ced4e414c5c01a337165a6df0e747d15761760d4a3",
+        "id": "e88e1055d88193cae4e9d26ff031110ca801bd0ab9d05ba649b407355005e7a6",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "97381bf74ca0875f0d293a01cc3eb54a8f00c999fc81759160b2435a7000c11f",
+        "id": "0933eeb007ec413697da91097aed0cd016e6e9b26f2030bdf497415d0a59b759",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "ecc031931e399b02a9f00a5e9f38e499fe0ddca7557c5c6d29ef02d8e9f46a4c",
+        "id": "10f78884a82880ebcd55405a38d32576cfdbd32bc8afeed1dc40e5e8c47e7ce4",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "PTK canonical enum values and retained public aliases, localized input actions and visible labels are declared once at the input boundary. Backend operations remain separate."
       },
       {
-        "id": "d3a699d434d1f34418d472fd9c8f0660995474aef0a23253459913a00f1fd179",
+        "id": "6ec00274e4084b6f5040d1de55c634e5883688ac558265eaf0c522fc64deb714",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "055ca85167368bc8c77f9982702eeff7049e87ed20c66a93c408f4dd672b2a34",
+        "id": "d00b08cdff5b04a971f53d426e8c693ab2ba8ccee85a2457f3b5aa8bd449c5a4",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4b950d601f6d625ac7a7f36b7c0a63acfe1b9ffdc8aeda8c5f6e1687751d6b5d",
+        "id": "3656430a01ac4df6f521688cd78f1e0188cf7b8b2a879b0af3c232191dad56a9",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "69f92873d5a48901c56445c0380372dd32af0481230c99cc816981831aeeeade",
+        "id": "85018d031a986e1b51cfd0856c336f83eb467f164bde2568f6605d9bef0a81f1",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "438570500e3c269ac7ea0d011d28adce1e6cd54504ef4f652ab50725ebe58d59",
+        "id": "70a20953b9cf606f614c85b06761113644ff21a21b081b8934fdc37812cd0315",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2f2d3a708d92d895168230b65f76cd2d346e22c27b60960d0387474fceb4049d",
+        "id": "72131262156544f4d070bcc70a54d2149a20892100c1cf54460d3b0f4a28a3d3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bbc3da18219b159d07a7af64f2ed136e7992c7a84da0f4d284ee772023920a68",
+        "id": "7bf39db4eb3ce76d564ddeda4a48befb0b827f1a36793f16716c38e7c3c5f2cc",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b92e16f18cd52f74ed3c822dc9930b55333b66c33045c8f69c638989d8268e9b",
+        "id": "53332f0c2a774b8e00968d3d788ef40201fb48401b97c2eda14b2bd03094090d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3040488761afa2521c070cdde6ac8754cac3286a7815fa0bee5326aabdbdefd6",
+        "id": "6687527aca30eb036666fc5d0f2580947d26cce0aa10f016c64bdcd1e4d34afe",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7899d75bc3a68b007933d127d547103f9aad74abdce0441cebcbc84c86bccdd1",
+        "id": "b20470a1b5faa56097d4c786572c7335c0b12ba0c60fc187298cdc43ce5316c3",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d04b11563aa8dc6162422aa46c144871bcf8226022ab2e07614c82fdbdf2ddbb",
+        "id": "8809b57da57fc02c6e878b67d05d36650e3cf744371fe7503dcb7f5bfa301a6a",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b14e6a31a7a01813234a60b697964b740ca8318a18d3e7f393fee4e5b5c204a3",
+        "id": "5d774d90bf8aa0ebcb84930b3d751b848081a54ead5885abeb1260c3f52afd3d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "bbd13bbdbb4fb9f74ddce2a1710053d9adafc36a305fa3ca0e1c862770c5ee7d",
+        "id": "3c82106fa93e56d92c2873dc3a03b61735676287b587601282486301c2a3ad81",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "83af03332fe29d7847aae8346edfa5abac7959342181518962e7bc1bf2a7e119",
+        "id": "05b7c598a268676c3a44420e7c4e13b90000c1a631d0ae3039adf8dbfd1d237d",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f0d0377976125337af3b9443b3e2b34c5b0814f41d55b61652b8c9837698bd76",
+        "id": "2db341a23999c6be8e4baa518bb00c426155be0b479df53752e712d0c19784ec",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "54fd58d93b2e02835bbd3e16703970bdf4034c19241e805a32369f50b0eece93",
+        "id": "dbedf3121abd3e5e4c279538bfb13722fb50e4829c5a383399b5f8f94a8bdf21",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "de0ab801f5e42117a5bfb7286a27194469bd5f7b003dec46bd5dfc7922f2698b",
+        "id": "1966a5736cece2f8733a6ca404da4840d19852c035e8531e34016d8ea3c921e8",
         "classification": "declaration",
         "owner": "ShortcutLabel",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -89601,9 +89663,15 @@
           "hub/widget/dialog.py",
           "hub/widget/feedback/notifications.py",
           "hub/widget/focus_region.py",
+          "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/manager_values.py",
           "hub/widget/forms/path_input.py",
+          "hub/widget/forms/rag_manager.py",
+          "hub/widget/forms/record_manager.py",
           "hub/widget/forms/request_history.py",
           "hub/widget/forms/settings.py",
+          "hub/widget/forms/tool_manager.py",
           "hub/widget/header.py",
           "hub/widget/mouse_contract.py",
           "hub/widget/output/reader.py",
@@ -89628,7 +89696,9 @@
           "tests/hub/test_chrome.py",
           "tests/hub/test_clipboard.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
           "tests/hub/test_composer_history.py",
+          "tests/hub/test_creation_contracts.py",
           "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_escape_navigation.py",
@@ -89641,6 +89711,8 @@
           "tests/hub/test_input_contract.py",
           "tests/hub/test_ish_integration.py",
           "tests/hub/test_live.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_memory_manager.py",
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_notifications.py",
@@ -89653,6 +89725,8 @@
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_preview.py",
           "tests/hub/test_question_card.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_reading_positions.py",
           "tests/hub/test_render_pipeline.py",
           "tests/hub/test_request_history.py",
@@ -89671,9 +89745,12 @@
           "tests/hub/test_text_editing.py",
           "tests/hub/test_tool_history.py",
           "tests/hub/test_turn_deletion.py",
+          "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_widget_chrome.py",
           "tests/hub/test_x11_clipboard.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_components.py",
           "tests/llm/test_configuration_results.py",
           "tests/llm/test_configuration_targets.py",
           "tests/llm/test_configuration_validation.py",
@@ -89684,9 +89761,12 @@
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_schema_ownership.py",
           "tests/llm/test_settings_consistency.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_tool_package_values.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_turn_deletion.py",
-          "tests/llm/test_usage_deletion.py"
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_workflow_format.py"
         ],
         "complete": false
       }
@@ -117097,7 +117177,7 @@
   {
     "path": "hub/backend/project/management_values.py",
     "sha256": "94a1ae41912be911ccf7cc60f0186bf433ca33c92be56839dd3eed199728e8d4",
-    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
+    "reason": "Host manager commands, editor records and list projections use explicit Owners. Memory/Document edit subsets and CAS observations remain domain-owned; ToolPaths exposes display timestamp after the existing snapshot read. Required/optional reads, raw JSON parsing, source preservation, ordering and effect calls match the original. Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -117384,6 +117464,8 @@
           "hub/backend/tools/management.py",
           "hub/widget/forms/component_manager.py",
           "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/manager_values.py",
+          "hub/widget/forms/rag_manager.py",
           "hub/widget/forms/record_manager.py",
           "hub/widget/forms/tool_manager.py"
         ],
@@ -117392,15 +117474,21 @@
           "tests/hub/test_component_managers.py",
           "tests/hub/test_components.py",
           "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_locale_keys.py",
           "tests/hub/test_memory_manager.py",
+          "tests/hub/test_popup_completion.py",
           "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_jobs.py",
           "tests/hub/test_rag_retention.py",
           "tests/hub/test_resource_tools.py",
+          "tests/hub/test_settings.py",
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_usage_definitions_system.py",
           "tests/llm/test_agent_skills.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_configuration_validation.py",
           "tests/llm/test_execution_boundaries.py",
           "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
@@ -117415,13 +117503,16 @@
           "tests/llm/test_rag_retention_policy.py",
           "tests/llm/test_rag_storage.py",
           "tests/llm/test_skill_packages.py",
+          "tests/llm/test_skill_record_values.py",
           "tests/llm/test_tool_package_integrity.py",
+          "tests/llm/test_tool_package_values.py",
           "tests/llm/test_tool_packages.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_vision.py"
+          "tests/llm/test_vision.py",
+          "tests/llm/test_workflow_format.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   },
@@ -117635,7 +117726,7 @@
   {
     "path": "hub/backend/project/rag_views.py",
     "sha256": "d7098cdd21cf87bfd2765064e8bc28e49f42330d0f8217cf3061b57c31c3c767",
-    "reason": "Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes.",
+    "reason": "Host RAG job projections and explicit management selection use current public observations. Stored Job, cleanup eligibility, CAS, image identity and model options remain with existing Owners; no retry/authority/default/cleanup selection changes. All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -117962,9 +118053,747 @@
         "owner": "RAGOperation / RAGEntry / JobDeleteReview / JobRetentionReview / ImageImport / DocumentExcerpt",
         "declaration": "hub/backend/project/rag_views.py",
         "consumers": [
+          "hub/backend/project/rag_import.py",
           "hub/backend/project/rag_management.py",
           "hub/backend/project/rag_progress.py",
-          "hub/backend/project/rag_import.py",
+          "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/manager_values.py",
+          "hub/widget/forms/rag_manager.py",
+          "hub/widget/forms/record_manager.py",
+          "hub/widget/forms/tool_manager.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_popup_completion.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_retention.py",
+          "tests/hub/test_resource_tools.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_rag_batch_identity.py",
+          "tests/llm/test_rag_input_integrity.py",
+          "tests/llm/test_rag_job_integrity.py",
+          "tests/llm/test_rag_job_retention.py",
+          "tests/llm/test_rag_job_state_integrity.py",
+          "tests/llm/test_rag_retention_policy.py",
+          "tests/llm/test_rag_storage.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_vision.py",
+          "tests/llm/test_workflow_format.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/component_manager.py",
+    "sha256": "1e1d0780ebffd7d3fdffde544e903c0951b102eecbb04aea5af69a06f86ee27f",
+    "reason": "All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "ComponentManager",
+        "declaration": "hub/widget/forms/component_manager.py",
+        "consumers": [
+          "hub/widget/forms/record_manager.py",
+          "hub/widget/forms/tool_manager.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/record_manager.py",
+    "sha256": "0382cea0d4cb36d6b56a5746f2e8de1a17a8f6fc570e066128fd4852d2515a66",
+    "reason": "All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "RecordManager",
+        "declaration": "hub/widget/forms/record_manager.py",
+        "consumers": [
+          "hub/widget/forms/definition_manager.py",
+          "hub/widget/forms/rag_manager.py",
+          "hub/ui/view.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/tool_manager.py",
+    "sha256": "f8d4aa9df5939531a01aaf8c81d3edc4194132951bca65f10b93bb7f6f538d18",
+    "reason": "All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "ToolManager",
+        "declaration": "hub/widget/forms/tool_manager.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "tests/hub/test_component_managers.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/definition_manager.py",
+    "sha256": "1f13d587b4d19bc8df7061f88651d1f278cca9d0d1fcf6c069cfa16b98f58905",
+    "reason": "All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "DefinitionManager / DefinitionEditor / initial_definition",
+        "declaration": "hub/widget/forms/definition_manager.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/rag_manager.py",
+    "sha256": "7cdea5777de4c8e3e0fec38f61abc16cc3eef3c50e0485f68860cebc3d02f056",
+    "reason": "All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [],
+    "contracts": [
+      {
+        "owner": "RAGManager",
+        "declaration": "hub/widget/forms/rag_manager.py",
+        "consumers": [
+          "hub/ui/view.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_rag_extensions.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_components.py",
+          "tests/hub/test_settings.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_popup_completion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/forms/manager_values.py",
+    "sha256": "cd53bfae744997ceb5f5444c8982163aedb7338ba2fd1ae57345c43bed425553",
+    "reason": "All management widgets consume current command, editor, entry, RAG plan and progress Owners. Application draft defaults are explicit; shared size/object parsing and ComponentName.matches preserve original validation order. Callback order, error observations, optimistic tokens and fresh draft values remain unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "cf4ea3393445e025c399a338c7481ca79055659d3ed39459a6a8efcda4c6e953",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "09edd082d94d3dca1c4951217c9d65765e7cf59436835f85b51622effda8e663",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "43835b94fbf010bab5c57bb328a59110160c01b6bb551a79e8ccd0f80de24c95",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "3bf3e58a77902c11e7e3eaee985bd629cce2d82861c35f3a16d32d04b7f25288",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "4b5de4defbff44b2817310504995d6865bc58c0a139b263f264054291f9f1969",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "d5a4ab3ac9479a198dcb4691386f51b22c842ae8f934ebac53f9bbcb2f278e93",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "9aab9d5a36ec5bc5b917abdfa377b62abb4be4188c54cd840faf3a6a4460484d",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "86e2b8363f124c89ba0f472b4084d5045d763247ce1dae956edc2b864bbe173b",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "0c332e80049e732732c050b31747dc641f021dfcc55ac81ee8c96dbfb2362c4f",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "da3c49aefec9b96d9066f2c418790ecdba7008d155803440d66049e40133abc8",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "9b4fe1e6a2070bb9218e3b72fae41017cbc2e243a668f7c98bcdfeb936d3472f",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "763b8f47e61fd03197c539d897ba049ed55c5d9984c5e25d708b085074dea18c",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "20123287509c9d28531b48ce8f84c6012d98bdf19420338ecb8c113e823141ab",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "545be81633805e777d70333912dfd56ec6ee8b9b85fef56db898c358468dd936",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "a3c51cd8bbef8826f9982da27cb626bf79faf0eaf5baa6e6b3f55a25c64ff7d9",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "19c8b59756dfd6a358cb211b1d2a46fd1a8dfbe3e451745b91f25f00a50d4403",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "e2481cc001d1274c544807d1eff2cd49f99c96dc7e5b39c4da73b7a9e9d0cf49",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "7385ca7185b587c1658da464337cffc2eaef18754e6cb8f9908f4dcf137a4824",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "ed0b25772896edafcb0f75946072b06cb5173a27b2bc73a1dab7f1e1546fd9e6",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "60ce99d428a2ecc2949804471549432c94d0197c8d3a018b85cbdb84377ce8ba",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "cb637f78833e72f0c3e3030479723a7d1b4ac19795e0514d320d9634057e91b8",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "9eb16db22d493df33abd99ba2c53e777df175d5ffae229a75ec34427db5a21c1",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "cc8d9a195598f38301e649839d284e1ec8b84ffb08dbfc2d122226873d1e05f7",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "5a51ab88236a55cb2380ba74e2c4875fba1bbf8b4fb90bbbcc3613931bb014e7",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "d89a5c961920fb9b9911f4be198bf93262316bfb3b9a880e78d5dc7ad1c0af47",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "0c1d3af7182a01d1826018b70332a50e567ee8aec13626524ce37d82ffbd1495",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "39368124125e9702b7d3856ca8b516816c876eb72396ae3a10510cbaf245548e",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "498761368f24fbaa8ea866687dc9bac9f7ac4c6695c0981755727647ed2e2f8e",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "c60a9e6d81f0427e563a645a91ff04990d6d4b58894677b1c7cf36b42cd357d2",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "585da06d870aca821fd7e85b9b6d8892e9c99a987e1c9b7491d80ad2668bb320",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "c4545b1d8fefdfea20103ebb85c8a4d3f5dd056cfb167c517765201558b82ba3",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "518f51a06a228ad6cb31331ce7dbd587d029edec5075716103dc5f6ef1e68970",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "5af5bfe0749a4ef69a157c65ed8732c59aca90fbf98c9a75c652fb73c0f9a7ee",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "81f54f78c5a43bf52a523c25dcb9bbdcbb4eaff43d5da80a0a64efe777c73d87",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "4ee8c3cf7f339e5a2ff1f2e436ce7d8eeac63c32f68aa4cf12d8855f83ddef25",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "9935c2367943ca5b763f822df261ca77b73bf44499b11bce59f811607e70af85",
+        "classification": "declaration",
+        "owner": "ManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "11e4d0c781abc5d0a38663c27c2b714e5c4ed197c3b4537a109d7006d826ecfb",
+        "classification": "declaration",
+        "owner": "ManagerCallbacks",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "642959f3da578d83f3c1ac9f505eb2dee3c58ad2f56006fc2aa06a0000ca3050",
+        "classification": "declaration",
+        "owner": "ManagerCallbacks",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "e2e487800567df20355ee30497239589f28f0a1becf9ace138a2fd977d5a221c",
+        "classification": "declaration",
+        "owner": "DefinitionDraft",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "86493403276497a0c7fee97a30163ea31f8fae63a8e3f8f15052987d3a5aac3e",
+        "classification": "declaration",
+        "owner": "DefinitionDraft",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "d5cbf558cf6eb3e0b333680d96c37fb61770ac21cf5f218d44e94b2b03a58b0d",
+        "classification": "declaration",
+        "owner": "DefinitionDraft",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "abf5bfb0a41cd9ea8afa246658cb40acd31c26b10384e1ac88ff902818e297ae",
+        "classification": "declaration",
+        "owner": "DefinitionDraft",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "ee1693b19f85b70d62f01567666a46a756abca85e50094c8f6fdd4f3f273a498",
+        "classification": "declaration",
+        "owner": "DefinitionDraft",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "708604f091a5ec5fb1c2b5e3f1421e979faa96b7ea9c63d33a1c68d038ea89ca",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "b767d18dc58572191082e9a7e16a45ed22d0339a4a566369aba63b827b4e5d2a",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "fa8e50163687d835134d2026263abaac74784237c4048d2e83e6834f61a926f3",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "7960a8a91b5016a5792fd34cbfaa25e9a757dcc153879a99269478cde477252e",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "b0d17b91ceb9bb9825224de1dc1c5e45af8ab2514164c57e10e8e67015c8a7b0",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "f00b60a1387b2f329101ae172f9241eb1f74a60a1d3339c5b82c6369d02da32b",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "f4837699f8a21f288233ac1daba22dfb7789435fe7a5378708971c5801829ca0",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "96c38e580f066d023d9bfd49f7bae3f94fbdf75b422419692533691d736154ab",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "2b0156590eaee650662a3377db0fcd384157a2ecdc57cdc13e71aa918a2f8e9a",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "02e95932e42394fb2ff8f59199678066b1313c949d3f005c178a5ac661c50834",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "5ec3b1ad4063a5f3cb6304c2df894f112c050af6cdd41037c5f3485c1520e3db",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "1654c12b84e07ac43d0bcd942dd71da977aac6a2318b6c93b00fd8a8417bb481",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "0c03107b4f52a0ea111ec18ac6622ac0004abaecd3070603c86b43c2d2d7446d",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "d7c4cd175d35becd90dfed36847a69c543175aaacdebf58956a15dde816d003c",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "a6d181aee5a8d16ce6f64c480e88a43e2e4530739b84029f04ddae321e0fc243",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "c2e4deb23ead96c7a2e2d6f2c7ec8023e968981f6a2d8915735a0c6fd3ba1f9d",
+        "classification": "declaration",
+        "owner": "DefinitionView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "d2ad36b55f6d7ee866adbaf3b6e8e607e009b1f8cf07ca09f3da0ba477455008",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "d947c461c5f931b56ca737af81e6e9765c3dab8d37abb8bfaa85fa73c99091ae",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "f64e984577ab5ef614a3e7c7b9e8202794fabf900c8426f40549a03da385ab41",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "8b1d80c5881340a41547feaa00cfcd77667871ec9e73074fa17a09e66d0bdf13",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "aec15c78c97e4ab15256b03dfdc1ff2da1b733e70c435ed72f43f825770ef6fe",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "ef0371d6b5c4c9777cf43161e672a4977fc36e78e215abf8999f1a5179139cb3",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "66dc469866e9e607aae403234de46570de11584fd1f21bbc4e7c051fcaaa49cc",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "3daa720e9c382043f49212b8fb61e4c29b99fd54cde468ec7fa012e78f01c202",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "7528957e986842c1de713ffd8a28f34c4e7280db73ee67c376a80fde441b89f4",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "9484a0b27914daf9b2d402d69387a1b9ba133950074036059f707d5c49105838",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "8abc5c38e97c74a2303c2b45022d8a797abdf0b93f5a6bdd86e9a1a32b1f639a",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "239cdfc2b0223d8ba1026043bbfea5112fc33ffad9b2a2e40d672c0f7e8dcd88",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "34f688d15c32185cd144e53a49f11cea2541fb6cb3cb3c269749265a288169ad",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "db29a6fdfdd7c9891448a7423800d30ff600905dcb81b173edc8917815629c91",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "550655ffb9876cf2c6aa3f171398790edbecb716268fd72985f5a2c85f96b1b4",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "1a6d7794fdff4392a912bcb4015d7d58b0f0b9a286f630664231fecf34a6eca0",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      },
+      {
+        "id": "783a85b0b8a45c6c68f0074c0c2b5987eaf35278bc0e931aeb406e66c712ff61",
+        "classification": "declaration",
+        "owner": "RAGManagerView",
+        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ManagerView / ManagerCallbacks / DefinitionDraft / DefinitionView / RAGManagerView",
+        "declaration": "hub/widget/forms/manager_values.py",
+        "consumers": [
+          "hub/widget/forms/component_manager.py",
+          "hub/widget/forms/record_manager.py",
+          "hub/widget/forms/tool_manager.py",
+          "hub/widget/forms/definition_manager.py",
           "hub/widget/forms/rag_manager.py"
         ],
         "tests": [
@@ -117975,23 +118804,24 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_execution_boundaries.py",
-          "tests/llm/test_rag_job_state_integrity.py",
-          "tests/llm/test_rag_job_integrity.py",
-          "tests/llm/test_rag_job_retention.py",
-          "tests/llm/test_rag_retention_policy.py",
-          "tests/llm/test_rag_storage.py",
-          "tests/llm/test_vision.py",
-          "tests/llm/test_rag_input_integrity.py",
-          "tests/llm/test_rag_batch_identity.py",
-          "tests/hub/test_rag_jobs.py",
-          "tests/hub/test_rag_extensions.py",
-          "tests/hub/test_rag_retention.py",
+          "tests/llm/test_components.py",
+          "tests/llm/test_component_storage_integrity.py",
+          "tests/llm/test_tool_package_values.py",
+          "tests/llm/test_skill_record_values.py",
+          "tests/llm/test_workflow_format.py",
+          "tests/llm/test_configuration_validation.py",
           "tests/hub/test_component_managers.py",
+          "tests/hub/test_memory_manager.py",
+          "tests/hub/test_rag_extensions.py",
+          "tests/hub/test_rag_jobs.py",
           "tests/hub/test_components.py",
-          "tests/hub/test_resource_tools.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/hub/test_settings.py",
+          "tests/hub/test_locale_keys.py",
+          "tests/hub/test_usage_definitions_system.py",
+          "tests/hub/test_creation_contracts.py",
+          "tests/hub/test_popup_completion.py"
         ],
-        "complete": false
+        "complete": true
       }
     ]
   }
