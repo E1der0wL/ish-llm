@@ -1,4 +1,7 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
+from ..output.search_index import SearchKey, SearchHighlight, IndexedLines
+from ..input_contract import ControlFragment
+
 from .identity import TranscriptIdentity
 
 from hub.ui.output.worker import RenderSlot
@@ -238,7 +241,7 @@ class ConversationControl(SelectableControl):
             apply(build())
 
     def _index_search(self) -> None:
-        key = (self._cache_key, self.search_query)
+        key = SearchKey(self._cache_key, self.search_query)
         if key == self._search_key:
             return
         self._search_key = key
@@ -252,7 +255,7 @@ class ConversationControl(SelectableControl):
         lines, query = self._lines, self.search_query
         app = self._application()
         def apply(result):
-            if self._search_key != key or self._cache_key != key[0]:
+            if self._search_key != key or self._cache_key != key.source:
                 return
             self.search_hits, self._search_lines = result
             self.search_index = min(self.search_index, len(self.search_hits) - 1)
@@ -260,7 +263,7 @@ class ConversationControl(SelectableControl):
                 self.move_search()
             app.invalidate()
         if self.render_worker and app.is_running:
-            self.render_worker.request(RenderSlot.SEARCH, lambda: index_lines(lines, query), apply, lambda _: ((), {}))
+            self.render_worker.request(RenderSlot.SEARCH, lambda: index_lines(lines, query), apply, lambda _: IndexedLines.empty())
         else:
             self.search_hits, self._search_lines = index_lines(lines, query)
             self.search_index = min(self.search_index, len(self.search_hits) - 1)
@@ -279,7 +282,7 @@ class ConversationControl(SelectableControl):
         self.search_index = (self.search_index + direction) % len(self.search_hits)
         row, start, _ = self.search_hits[self.search_index]
         self._scroll_to(row)
-        text = "".join(fragment[1] for fragment in self._lines[row])
+        text = "".join(ControlFragment.text(fragment) for fragment in self._lines[row])
         column = get_cwidth(text[:start])
         self.left_column = max(0, column - self._width + 1) if column >= self._width else 0
 
@@ -287,23 +290,7 @@ class ConversationControl(SelectableControl):
         hits = self._search_lines.get(row)
         if not hits:
             return self._lines[row]
-        result, offset = [], 0
-        for style, text in self._lines[row]:
-            stop = offset + len(text)
-            cursor = offset
-            for index, start, end in hits:
-                left, right = max(start, offset), min(end, stop)
-                if left >= right:
-                    continue
-                if cursor < left:
-                    result.append((style, text[cursor - offset:left - offset]))
-                highlight = "class:hub.search.current" if index == self.search_index else "class:hub.search.match"
-                result.append((style + " " + highlight, text[left - offset:right - offset]))
-                cursor = right
-            if cursor < stop:
-                result.append((style, text[cursor - offset:]))
-            offset = stop
-        return result
+        return SearchHighlight.apply(self._lines[row], hits, lambda: self.search_index)
 
     def scroll(self, key: str) -> None:
         # A snapshot can arrive between paints. Apply navigation to its current

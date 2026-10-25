@@ -9376,3 +9376,42 @@ Python 3.12.14/Clang, Host d833790959a76ac457fdeea3f21a6bea1eecfe12와 고정 �
 로컬 Clang 결과와 원격 실행 환경의 결과는 별도 실행 증거다. CI scope는 full이고 전체 discovery와 배정이 일치한다.
 이번 관련 Hub 변경 묶음의 통합·원격 검증을 완료했다. 전체 작업은 계속된다.
 동결 소스의 미검토 73파일·미완료 공유 계약 18건은 후속 Hub 작업으로 추적한다. 전체 DC3 완료가 아니다.
+
+
+## Hub 검색 인덱스·Inspector·일시 검색창
+
+search_index.py·output_inspector.py·transcript/search.py 세 파일을 전수 정리했다. SearchKey/Hit/
+Span/IndexedLines와 SearchCache/PreparedSearch가 고정 내부 결과·cache 구조를 명시한다.
+공통 TextRows/ControlFragment/Key/Theme/Dialog Owner를 재사용한다. 정규식의 기존 공백 확장,
+대소문자 무시·여러 행 일치·offset 계산과 각 요청의 독립 빈 결과를 유지했다.
+
+Inspector와 대화 출력의 중복 highlight를 SearchHighlight 하나로 모았다. 원래 fragment/span
+잘라내기와 현재 match index를 읽는 시점·횟수를 유지하며, 두 실제 소비 경로가 같은 구현을
+호출한다. 대화의 검색 key·실패 fallback·fragment Reader도 연결했다. conversation.py는 이
+경로만 변경했고 파일 전체 완료로 기록하지 않는다. query만 바뀔 때 Rich/image 렌더링을 다시
+수행하지 않는 기존 cache, raw/selection·취소/복원·키 수신기와 readonly body의 포커스 규칙,
+상위/하위 팝업의 원래 geometry를 유지했다. 고정 값은 명시 Owner 참조를 사용한다.
+
+기존 실제 indexing·viewport/render 횟수·대화·Inspector query/cancel/raw/status·SessionSearch의
+77개 관측과 Unicode/겹침/잘린 범위·동적으로 읽는 current index의 120개 비교가 원본과 같았다.
+공유 key/theme 두 파일은 새 선언을 제외한 AST가 같다. 변경한 highlight 구현 전체에 대한
+AST 동일성을 주장하지 않으며 기존 실제 소비자 비교와 아래 통합 검증을 사용한다. 비교 도구의
+TextArea buffer filter 및 Dimension 직렬화 접근은 수정한 뒤 고정 비교를 통과했고 초기 로그를
+보존했다. 제품 테스트나 Assertion을 수정하지 않았다.
+
+- `whole-hub-output-search-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.004044초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-output-search-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `95b6668dc729d2f889c6fb35c1bb72b90c077d3fc3f3ea445cb8ffb5f1442958`, input `4231dcf36608715874fc0697e966e7b82a0d5352803d027e0ac358225d700391`.
+
+- `whole-hub-output-search-l1-01`: discovered/started/pass 27/27/27, exit 0, 3.852264초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-output-search-l1-01/hub.json --modules tests.hub.test_output_interaction tests.hub.test_render_pipeline`. source `95b6668dc729d2f889c6fb35c1bb72b90c077d3fc3f3ea445cb8ffb5f1442958`, input `4231dcf36608715874fc0697e966e7b82a0d5352803d027e0ac358225d700391`.
+
+- `whole-hub-output-search-l2-01`: discovered/started/pass 39/39/39, exit 0, 20.63203초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-output-search-l2-01/hub.json --modules tests.hub.test_reading_positions tests.hub.test_output tests.hub.test_engine_output tests.hub.test_home_navigation tests.hub.test_mouse_widgets`. source `95b6668dc729d2f889c6fb35c1bb72b90c077d3fc3f3ea445cb8ffb5f1442958`, input `4231dcf36608715874fc0697e966e7b82a0d5352803d027e0ac358225d700391`.
+
+공통 안전성 84개·R3 Mutation, output interaction·render pipeline과 reading positions·output·
+engine output·home navigation·mouse를 검증했다. 발견/실행/통과 ID 일치, failure/error/skip/xfail/
+xpass/누락/추가/중복 0 및 동일 suite 선택 ID 중복 0이다. source/input 전후·실행 사이 동일성,
+실제 argv/exit·hash는 `hub-output-search-draft`의 selected-results.json, proof-commands.json,
+values-equivalence.json에 보존한다. Python 3.12.14/Clang·Host d833790·같은 의존성·실제 Linux
+환경이다. 정적 S1–S7 63개 ID·감사·문서 검사와 기존 핵심 안전성 Assertion을 유지했다.
+
+표시/검색 내부의 Owner 이동으로 Level 1·2를 적용했다. 관련 후속 Hub 소단계와 묶은 Level 3
+및 정확한 SHA의 원격 CI가 상위 완료 조건이다. Gate53 결과를 이 변경으로 승계하지 않으며,
+남은 Hub 전수 범위와 공통 계약의 미완료 표시는 계속 추적한다.

@@ -7,6 +7,7 @@ from .notifications import NotificationKind
 
 
 class ThemeSelector(StrEnum):
+    DIALOG = "dialog"
     ROOT = "hub"
     HEADER = "hub.header"
     HEADER_PROJECT = "hub.header.project"

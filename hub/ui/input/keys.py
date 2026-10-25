@@ -4,6 +4,11 @@ from prompt_toolkit.keys import Keys
 
 
 class KeyName:
+    N = "n"
+    N_UPPER = "N"
+    P = "p"
+    SLASH = "/"
+    CONTROL_N = Keys.ControlN.value
     # These aliases intentionally retain the spelling accepted by existing Hub
     # callbacks. PTK's canonical ControlI/ControlM names are not substituted.
     SPACE = " "
@@ -64,6 +69,10 @@ class KeyName:
 
 
 class ShortcutAction:
+    NEXT_MATCH = "next_match"
+    PREVIOUS_MATCH = "previous_match"
+    OBJECT_RAW = "object_raw"
+    CANCEL = "cancel"
     EXPAND = "expand"
     ACTIVATE = "activate"
     DELETE = "delete"
@@ -105,6 +114,13 @@ class ShortcutAction:
 
 
 class ShortcutLabel:
+    ESCAPE_CONTROL_T = "ESC/Ctrl+T"
+    CONTROL_F_SLASH = "Ctrl+F / /"
+    ENTER_TAB = "Enter/Tab"
+    CONTROL_T = "Ctrl+T"
+    N_CONTROL_N = "n/Ctrl+N"
+    N_CONTROL_P = "N/Ctrl+P"
+    ALT_P = "Alt+P"
     TAB_SPACE_ENTER = "Tab/Space/Enter"
     ENTER_SPACE = "Enter/Space"
     HIDDEN = ""
