@@ -1,6 +1,6 @@
 """Worker-owned caches and immutable prefix/tail display frames."""
 
-from .identity import TranscriptIdentity
+from .identity import TranscriptIdentity, TranscriptAnchor
 
 
 from hub.model import ReasoningMessage
@@ -316,8 +316,8 @@ class MessageRenderCache:
                 frame = Frame(
                     Joined(header, body.lines, tools, trace or ()),
                     (
-                        (identifier, MessageRenderCache.ORIGIN),
-                        *((name, row + offset) for name, row in body.anchors),
+                        TranscriptAnchor(identifier, MessageRenderCache.ORIGIN),
+                        *(TranscriptAnchor(name, row + offset) for name, row in body.anchors),
                     ),
                     tuple(
                         replace(
@@ -401,7 +401,7 @@ class MessageRenderCache:
                 parts.append(TranscriptLayout.MESSAGE_GAP)
                 offset += len(TranscriptLayout.MESSAGE_GAP)
             parts.append(frame.lines)
-            anchors.extend((name, row + offset) for name, row in frame.anchors)
+            anchors.extend(TranscriptAnchor(name, row + offset) for name, row in frame.anchors)
             objects.extend(
                 replace(
                     obj,

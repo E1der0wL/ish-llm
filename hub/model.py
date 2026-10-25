@@ -48,6 +48,7 @@ class RAGAction(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class ChatMessage:
+    DRAFT: ClassVar[str] = "draft"
     PREPARING: ClassVar[str] = "preparing"
 
     role: str

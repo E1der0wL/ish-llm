@@ -9561,3 +9561,54 @@ proof-commands.json, values-equivalence.json에 보존한다. Python 3.12.14/Cla
 표시 Owner와 현재 public 소비자만 바꿔 Level 1·2를 적용했다. 소단계 전체 회귀는 수행하지
 않았으며 Gate54 이후 관련 변경을 묶은 Level 3 및 정확한 SHA 원격 CI가 후속 게이트다.
 Backend 승인/권한/예산/효과/Checkpoint/Resume 정책은 변경하지 않았다.
+
+
+## Hub 대화 화면의 렌더·읽기 위치·수명주기
+
+conversation.py를 전수 정리했다. TranscriptPresentation/Layout·MessageRole/Status·ChatMessage.DRAFT·
+InterruptFeedback.PHASE·KeyName·ThemeSelector/ThemeStyle이 실제 표시 계약을 공급한다.
+TranscriptFrameKey와 DeferredScroll이 의미 있는 tuple 위치를 이름으로 표현한다. 같은 surface의
+이전 message revision을 progressive frame으로 받아들이는 기존 의미를 유지하며 width/renderer/
+loop와 현재 theme/language/root 불일치는 거부한다. revision 조건을 임의로 강화하지 않았다.
+
+TranscriptAnchor를 render/cache의 실제 Producer가 생성하고 읽기 위치는 Owner의 row projection을
+사용한다. anchor 문자열·offset·저장 ReadingPosition의 의미는 그대로다. View가 다른 Control의
+private 필드를 초기화하던 작업은 ConversationControl.replace_messages로 옮겼고, Window scroll
+초기화는 View callback으로 원래 순서에 실행한다. deferred timer 취소·selection/image/search
+초기화·message 교체·window scroll·pending frame 취소·position 복원 순서를 유지했다.
+
+원본과 실제 6개 message role/4개 section/다양한 폭의 렌더, 검색·스크롤·anchor·읽기 위치·중단
+표시·화면 교체·초기 frame 전 탐색 153개 관측이 일치했다. 별도로 실제 frame build/apply/fallback에
+동일/revision/width/renderer/loop/theme/language/root/취소/요청 theme만 변경한 상태를 주입한
+11개 비교도 일치했다. 이 비교는 제어된 worker facade이며 아래 실제 async worker·PTK 테스트를
+대체하지 않는다. 공유 4개 파일은 새 선언과 typed anchor를 확장하면 기존 AST가 같다.
+
+준비 단계의 문자열 이동 도구가 docstring 인용부호를 건드린 SyntaxError는 제품 적용 전에
+바로잡았다. 초기 frame 비교 도구가 RendererRegistry.version을 정수로 가정한 오류도 양쪽에서
+확인해 실제 tuple 계약으로 수정했고 타입 주석도 맞췄다. 실패 로그는 보존했고 고정 소스의
+전체 비교를 통과한 뒤 적용했다. 제품 테스트나 Assertion을 변경하지 않았다.
+
+- `whole-hub-conversation-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.300737초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-conversation-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `5e5e0aec10d76121f60564b5dd9bc12fae57d64063e4196f53f64da9bfa1a03e`, input `88f1749718a0682e785949df34f82c2c4c87df4f297cc5ec4ad2f82dfe324507`.
+
+- `whole-hub-conversation-l1-01`: discovered/started/pass 32/32/32, exit 0, 5.217356초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-conversation-l1-01/hub.json --modules tests.hub.test_reading_positions tests.hub.test_render_pipeline tests.hub.test_conversation`. source `5e5e0aec10d76121f60564b5dd9bc12fae57d64063e4196f53f64da9bfa1a03e`, input `88f1749718a0682e785949df34f82c2c4c87df4f297cc5ec4ad2f82dfe324507`.
+
+- `whole-hub-conversation-l2-01`: discovered/started/pass 42/42/42, exit 0, 8.36844초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-conversation-l2-01/hub.json --modules tests.hub.test_interrupt_feedback tests.hub.test_completion_display tests.hub.test_stream_output tests.hub.test_tag_index tests.hub.test_responsiveness tests.hub.test_engine_output tests.hub.test_output_interaction`. source `5e5e0aec10d76121f60564b5dd9bc12fae57d64063e4196f53f64da9bfa1a03e`, input `88f1749718a0682e785949df34f82c2c4c87df4f297cc5ec4ad2f82dfe324507`.
+
+공통 안전성 84개·R3 Mutation과 실제 reading positions·render pipeline·conversation·interrupt
+feedback·completion display·stream output·tag index·responsiveness·engine output·output interaction을
+검증했다. 발견/실행/pass ID 일치, failure/error/skip/xfail/xpass/누락/추가/중복 0, 동일 suite
+선택 ID 중복 0이며 source/input 전후·실행 사이 동일성을 확인했다. 실제 argv/exit/hash는
+`hub-conversation-draft`의 selected-results.json/proof-commands.json/values-equivalence.json에
+보존한다. Python 3.12.14/Clang·Host d833790·고정 의존성·실제 Linux 환경에서 정적 S1–S7·감사·
+문서 검사도 통과했다.
+
+표시/읽기 위치와 현재 Control 수명주기의 동일 이동으로 Level 1·2를 적용했다. 소단계 전체
+회귀는 수행하지 않았으며 Gate54 이후 관련 Hub 변경을 묶은 Level 3 및 정확한 SHA 원격 CI가
+후속 통합 게이트다. Backend 실행/승인/권한/예산/효과/Checkpoint/Resume 계약은 유지한다.
+
+커밋 사전 검사에서 render_contract.py 끝의 빈 줄 한 개가 발견돼 제거했다. 제품 AST가 동일하고
+다른 모든 Python 제품/테스트 파일·관련 Fixture·의존성·환경·발견 범위가 그대로임을 확인했다.
+위 집중 suite는 정리 전 파일 `23483821957f2ffad948c7146849969f72ea6182b7636d658e7b7ca76caa4bbf`에서 실행한 별도 결과이며, 정리 후
+`fc89dd27b1994198121ed0022631e35b4b2c99452ac4701dd719ce15261ca18c`에는 제한적으로 재사용한다. 새 전체 실행으로 합산하지 않는다.
+실제 byte/AST/전체 Python manifest·환경 비교와 변경 목록은 `hub-conversation-draft/format-only-reuse`에
+보존했다. 갱신한 감사/문서 증거는 정적·감사·문서 검사로 다시 검증한다.

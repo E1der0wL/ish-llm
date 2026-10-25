@@ -99436,8 +99436,8 @@
   },
   {
     "path": "hub/model.py",
-    "sha256": "ba9309993ac6b5a0b80f39f9ee85e1fb6797441b97bf7dd7e605306ff90776f8",
-    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "sha256": "d474a4a7e86493f8067197059c75e5024b294a662a874ea92a5f9512781de905",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -99537,565 +99537,565 @@
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "59c0338b1d2400f000aa9b75a07d9d8a6f2d4d3ef5c13b034c1e73492b1fd6b0",
+        "id": "ae9bf4c0e5b851d13906c6e289dca6f941c2377f82f69156109e222e52caa3a2",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7ea74fb3d93fe4e7702d68af25eb2492f80c0b2be3e6358b6ea32daea821dc11",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "04ed52cdeaadee2041d573c0ef57744e72fd7de76bc3c5acc950843dd8fa12eb",
+        "id": "2588c30933672ca85106ddec3bc6654a6b1e8d6f8f9a40c45c29fa8db6e428f8",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ce79e9828912b47a71d8b9f4ce40fcc18f420efe3eb4d024fe0b76836d50b211",
+        "id": "f7ac2acdbe46ad003d1acb35dd9d890cf6831ef0d25b8fd03ba9d03e4972d19d",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "f60ab494df6217f556baa0211b3888e41da1f17d73a110909ac98c80a296cd94",
+        "id": "66f05b7eae6e9221e48ee03cda56caf9f09b9d4b69128d84e74275662a12f181",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "17a8a9071f6319ae7d03405d747e5997f402af2d93161d1aced378585bb71eff",
+        "id": "65556a3e8c9eee84d8edc8b3a517da5366f080c7937324ff5b3a218e910a19b3",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c82449730ce1d26dfb84989e821890299eb50e96364ce42d1a2c5aa9f20c0af3",
+        "id": "e572961d463685d5eb2352a7871493bad2aae172583447025f55c57706838c97",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "9dd413d8e24e236ed35cee3c284e8d4686828e0fa06e777b7d46fa74362cfd46",
+        "id": "495f851fd868d4782c1f427a233dd5b649a7771f8b8b66caf2dc99884b9497d3",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "65b597acea773d7cd611afdef9e7c446dc977e04db3139aed74b71db893a7021",
+        "id": "1593f3186000bfd3e12d6bcd135fd76bbd543b478bc0309f0385b28e4856b040",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "fe9c7b6d4bf45b4de1fc281a1daf5d372b11c9de7e112a94eafc0885bec961e8",
+        "id": "c72ae157280a63578f257b8f3cbbe05798e8ec10ab6742a67e5c6271e3dfa449",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "38d5e5cafe64cbf40784c1cf308f67be152a313fe46491e0805713a6d80181f2",
+        "id": "e26956162f224cc17c7d153b707f1fb7de60a19578d63fa41b89466e284abe16",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "f3b4b60cd88fbd492318bcb801a72db81dfaee1f28fa18924766319c19cb0690",
+        "id": "0f5d594ac1b6604fb3af9a83224790239c8e21c67c428834a947be9d5a2f88a8",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "bbc52325310330498d3d315aa5d3f56d4ca3ed8345d3ed3db39611d849f0b0a3",
+        "id": "7e6b204804257ceaf7df1c2e5a5a0f19ee6e874bde03a5f0624957fde78f4fec",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "f79cf6fa0d1cd0f4f2b9c165e974572e79a66f9f8a720fee52f176ca8880ebfa",
+        "id": "33213487248f58c788a61aa20f1338fc7388902957ca27fc7a335a19a8a0994a",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c5085b895aac38e8dfbde28683b1f7898eeabe567fd1cea83974ddfdbb93d8be",
+        "id": "165179ee348559fba995fabf3ec62d7f3708932ccbd082037f8692b109380af1",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4f0fabda4533af61ef41afa1e9a6556e04a26b0ac2963c173ec0080e812c111e",
+        "id": "605f4b78d1efebbd0dd4ecf5f2793d26a3712a563ff96bfecda66614b101451e",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "28c693aebee79dc962606321a5ee125a6e774ef614ec55c7d9a1ef9b4dea25d9",
+        "id": "8eb6d151baa4bdce20daff06faa08dde1fa2c0933260f496afafaa638526cd44",
         "classification": "declaration",
         "owner": "ChatMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "8ef262187953bb3a5264ea44f1570e0ae5072fdba8dff706173ab76e40c5905a",
+        "id": "f6b45070ee57e63f188c33a50194cb40d786a5330c6075d2d5f0280a120a0e2b",
         "classification": "declaration",
         "owner": "ReasoningMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4e490b386c7cefc7fa012710925df5141478011c7742376833d1e6e62af0d1e2",
+        "id": "06fd2e109bc624cf4f0d1bbf59ce50e0c9cd24052d078dcb8482954417422c34",
         "classification": "declaration",
         "owner": "ReasoningMessage",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "157180afbf9ff3cbd7cfee63309b4a692e62d2a39a32b4bab8b65cc75fe1fa5e",
+        "id": "bb7c7fa80ab3443da638343bff115586ac376fbf7d4b04e479ce57880ae0a882",
         "classification": "non_contract",
         "owner": "TraceItem",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "9cf10db619d5daf3976f928c6dd59358b0c7ff21891f4d0c19780cdfbde7df8c",
+        "id": "19ff19a4f361767a8771b796d73107c5ef1edc411abb2954a79b30e462ffa394",
         "classification": "non_contract",
         "owner": "TraceItem",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "2c2de0b218e238da3f27376b96e90f957cb6eb15543c5280b4c5219bd71d9753",
+        "id": "56032d07d485a721a44be050d86b30db5b1743d3002c0480548025084dd51588",
         "classification": "declaration",
         "owner": "TraceItem",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "e5283606b672c7130d271016d81473f68d5f38645775c6919460c4fefff381ee",
+        "id": "971937ce797dfe1a08816f4c2174a5d78f04901c1584da6df018b5c80d7b2f41",
         "classification": "declaration",
         "owner": "TraceItem",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d95f6a8e41ac343245af322cc1ef393d5c4b9956b4fc023f21c80ffd8fb17276",
+        "id": "64639973e418aee3f6e83d69d4274ccc6c4040f5b89bd0bb9307e41b86548547",
         "classification": "declaration",
         "owner": "TraceItem",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "f42c6587cf5c3daca97d172049690f4c8f9915a2410da847a02399ee336df846",
+        "id": "b33d77ecdcb518664d5c5fe4b8c7159fd82e7f0ba96b08ab2ea9a06f81d0ec52",
         "classification": "declaration",
         "owner": "TraceItem",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "8581a1261ca63af727b18aa22953ac83d10502d44b37f8abfc1e57dbbd90262d",
+        "id": "0e1bff0a2e13287d1c79c112cc7cd5ea37731e63de3e53379794440db468dd40",
         "classification": "declaration",
         "owner": "TraceItem",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "15b5accc5e3135f2f20b14a43c9da7d7c78d0faa24297ce3f6facc06ed3af076",
+        "id": "d9d918618270829d92fddfb79d9122c3d805e9422efd0f691406d2d708d5dea9",
         "classification": "non_contract",
         "owner": "SessionView",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "46fa7a17e3392b2dce5e1a9d49bad8378ca2d7495dd427e835cdcc8da002cb70",
+        "id": "b892f9b70fe21235aea2cf2f533ffc4d9c28fbc16eec314d951e40948c9790b6",
         "classification": "non_contract",
         "owner": "SessionView",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "3774e88049db311a7c1828ce8c41e0833b42cf062ad34bd613f6983b998cb1b7",
+        "id": "f55a91fcd3892133d0d120ba6aadd82b25ef3ba6bf78322c89a32895ad364bf2",
         "classification": "declaration",
         "owner": "SessionView",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "3361671792643df52ceb9ff957aa3f4a477e586112d53410a263fd9d31fcfa91",
+        "id": "cf1feea395585c66a5200e2a548fa02e6d791c5f31bd2c6459f47ba4fbbd26a5",
         "classification": "declaration",
         "owner": "SessionView",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "5a7e09c6917f163e1f895de1c595a86cbd9a79b79953db38a3b820e8583516f7",
+        "id": "2e7eff38727c1d28cfeabf534323fcf6c7dac0a458fcdaa6c6e80d72f48ed900",
         "classification": "declaration",
         "owner": "SessionView",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c16b251eb0fa165fc2bc5c0a2808675a52af7b6550c8e45ffb6af6125499b55f",
+        "id": "aa5254e894b183201eff951e607f80b06708c058faf404fef97012e46f993888",
         "classification": "non_contract",
         "owner": "SubmissionResult",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "8cf4e683c7d325eb6cb10b7eca8f08784ef4d01d62fb2b977ae4629b09a534af",
+        "id": "0437a80400e347ff6943a084f2c8b1770d32aa540a29b89c1b112fdb00542733",
         "classification": "non_contract",
         "owner": "SubmissionResult",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "17c1b9ec8b6d8f2dbec741e89c054ccc7dfc63abe944a7a72fdd9305c75dba45",
+        "id": "a881c7bc300e557e3676bda914027b6bb52a889dbec7346e721de73dafaebb2e",
         "classification": "declaration",
         "owner": "SubmissionResult",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "9151ab38e829d36a1e3b9ab02d9d7595b47fca68e1d721d3410ec7ad947629ac",
+        "id": "1041698288801a18a57630333094e3c87cecfa47343473b1d2aac9821566de7a",
         "classification": "declaration",
         "owner": "SubmissionResult",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "af224b454abf34909643a9e71705ae183701c41cbbc681c09960f8390324621f",
+        "id": "5cdd7b7fe13047026eb2349ed8d6fb0f541f00e9f7c9ed1eb87ed8a6672c7b33",
         "classification": "declaration",
         "owner": "SubmissionResult",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "8826a5807ec0ec5a7d87e757e61563def16404e24d1949376a6b42b933d96bce",
+        "id": "a0a6383ff8ddb24e3bb5d3b544f63f0748f293ee0a5864e07cc1088ff35834e9",
         "classification": "declaration",
         "owner": "SubmissionResult",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "9984e351ad9d3fb8a0bd7a65f04e8fbc33f27d33e80d60b115872f7e0a9d4b63",
+        "id": "ac964a2e89bf375d1a3e0c3e13467dd67fb556dc4788b94032fb523463e0ef04",
         "classification": "non_contract",
         "owner": "SessionSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "25b68345236efd652ef4a614b0c8cab82769f822c9f0813e6e08282b62e81bad",
+        "id": "1e71dfc5fd91f12d098acb8ed6358aa54b2b932097ccf3608bf0fe50f6c4bf01",
         "classification": "non_contract",
         "owner": "SessionSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "23cd454f284fef01bb98ea093815727b8687796b86489775cc6a12173adf2655",
+        "id": "cf1153eea9869f00683762e192b5ff3657b6e04c71e11a5f4959f5d260cc72c2",
         "classification": "declaration",
         "owner": "SessionSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "a04bc7679b3ecbcf80a7756f4a40b32cb2843e255a1d84df5f9d80b90a0faa07",
+        "id": "b4203570a839c80e5919f5062a20fc0c9e3e44c1187f2800ba9ff98bdf73f795",
         "classification": "declaration",
         "owner": "SessionSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "1ed47d17ad54e85411da12ec2e3862b0cfc31ad9188bda54ad802b2c5f90d1d4",
+        "id": "3d36d992f70ef256adc607fecc72b836c140635caf03669c13266cedcc070bc5",
         "classification": "declaration",
         "owner": "SessionSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "53aacf42f804e96be978b03903868425f3c9d4c425a5fd3212a04784bb2970c1",
+        "id": "0f2e43b8d431ff31c7cc1a1c65c68abf62a481fea9bf7c58298ed4cd018327c7",
         "classification": "non_contract",
         "owner": "SessionNotification",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "f254eeb0a2947b3a940fef5a457585867331fbecc0f53f55b0bea690e0f5faf4",
+        "id": "d4b11857eac50b22793c3b9b359ad4844479b988602cc765550b218ae551d036",
         "classification": "non_contract",
         "owner": "SessionNotification",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "d4a5cde381e3ad2ba8acf790ed3ff582153869eca9e273934efe412e62b33a28",
+        "id": "847d9a0e048cf082828ff3ead632f987d05580880ec3a9525c4dc5926b5aa625",
         "classification": "non_contract",
         "owner": "StepSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "1b34c15bcf81a804a7b5925b6dce692302e6d2830840ce2bcdf0f17ea4c401d0",
+        "id": "a0c199c1af9834f228a2e5ba2dfaa808abf1f64fb408d66cb22fb450596b3d9c",
         "classification": "non_contract",
         "owner": "StepSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "aa441dd318744c8e924f45331a6cce43b64c0bbbef3bead889758ce4dcfac9da",
+        "id": "9eda328e671c06221174301bf4d44c465f6641956b0615594f3ea2e13391ba19",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "0c585abc498116c45236efcc8729594d05abf73fed9bbfd6feafb1d82bf563a1",
+        "id": "274dd64ff3aa3c2241d6c49274cc47c07afc57f7f7eafe3eac43aa71e0c22ef4",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c468294e8c014d052f0553203befe71d9741d6c7db1e530f90cd289e37a2b344",
+        "id": "c140b75b6d7199130009d18958dbde5ae86ef42e706e64c6bccad80f69c94e2b",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "11cac6da598a8ef8ee850ffd3adb9033f0858042d603389da2752ad4d6867996",
+        "id": "cad6f109db84a18b4a0e1de4ceecbcad1f912e8c353c764a17bad8ebf917f1f6",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "6dc7cfec431b0f695b87564515632c79122970bf82b99eaf91c9c984a98daeab",
+        "id": "dd0ce29412569aac95f6ab5ef52292e62ce4e05169ce168d5bddd37d168e7efb",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "34d88635322aaf86e12fa76388c981e851e35636f555d67775f0fdf6df8d2642",
+        "id": "b9bb850aee0393316597a4263540d6bd3d3f9e0941fde6cb2b5bb8c94918c774",
         "classification": "declaration",
         "owner": "StepSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4b7624036553d413fe8d3f44b4faa8a1466a85f6f4929fda14c211dff04a6edf",
+        "id": "5292b47d0a6d3834471324e61d1cc9745e2e4dc4c91ab6f44c0e6ed321960e80",
         "classification": "non_contract",
         "owner": "RetrySummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "68ef294a090b9f4d14bc36f58736015e297ddd9b80a8126247caa0f50c6b6140",
+        "id": "c5ebf605b5aeea27e93e5614444ff0c37d09f2613a9d6416384b4fdecf9c489f",
         "classification": "non_contract",
         "owner": "RetrySummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "bb269219d2e29b757426576e657b4e69b0fe643311821efcf8c7d5eecf3b341d",
+        "id": "17d517c3c325af82ce15c3f0ed9be645a8094cc64905cbb92d27206dc28acc3a",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "1614dcb547dbe5b5d8b01b5fc6b08d11c714537bd856d353d63ed555f6ad1e74",
+        "id": "6fad34b63fe00465dc9e406d1742cc29d7a298fb459c43a9cad031395c3a649f",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "e6bdae397288d6fd8ebd3df84aadbd71a85c4c1886675b1ad2714a216d8b8e7f",
+        "id": "cd9111e8d102da77eb638feb0c6ec55ca56e5795db9b81b755cfd3741b17a70c",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "a9abb8ebc2d8d8a9469c67736755b89706189b46bf64784dd01d375eb2acd58c",
+        "id": "7aff0eef2ac0e71b56e243ccf035bcf8fde848919872cf5c9b94aedad48c1bef",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "2bf9d97359d94bb4cea41f48227ea9f6533f170c220df05c60fb6c232d16f20f",
+        "id": "39f52f1eb2b40df4c50e5a3f01d19f4519a09488e13d5dfd3eab7459be7345ae",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "47c8123d0dcf9b230a827b3a2a9ff47d00472092d6bcea6383867c2559834675",
+        "id": "d4679e1d8b3091ca6364c4730a9263ace01530e62cf24fad35e1ce2e35908e97",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "69e0ab768cf3d250d35e5e8422d6370d7c9b86c762d91050a5d648b0975d233b",
+        "id": "b14ad56d7bc9c858be6e214c91b24bd6ce4ac89d011459937e0e16cfaa3e2bf3",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "6ddb065edd16f17d15a96e69f77e601dcc780d2cee1f99793479714056f24b43",
+        "id": "ed71648d08a7b1495158132899846c18750f65b4946750b83533cbdb661c2b5f",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "f6bdd72d101527b504dbb554ae964a051c7cec8c3939dd5e18d960900d2c8cdb",
+        "id": "acb72a56fa3784661500b9e7304b5bd4d9f07f70a196b2c2fb9c4d6faaaaf89a",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "168e95ed1fa68d11c031acfab46a2c7b59bb030602762769a2d843b6c2214072",
+        "id": "74165b610aa52261af87deca63a12c3bb36145c7b8f85b2cc6e2410598d26635",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "a5f1034e6eda63f2fd874cd2f2c7c417d2196c6080e2173af2b2900305808ce4",
+        "id": "3048d9df9e21e0f091a2235648f2bb86ba95201346084ea323da0c0b11df9b5a",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d091a47440f6c879f847a1fe0043637f6864d33dd7585fa170cff780db6d1d12",
+        "id": "7f13a816fa2e02d1d84981d71b8fcc9047421685c388495db2558c2add2ba6ae",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "3e0e91a347a770638520c44e4af037805e8b8a89a05f0ecac59e332b984bb8ee",
+        "id": "5db2f91655d2002644f580aadb22a00eeb65d4796eb1bb1bc5e227f12dd16124",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "fc3f8a598649ccecbfcc680295cf416b3162ed8d7ab953450ebab15c2c769fba",
+        "id": "41bd6bef8c35352af23cbcd97dc9c4eea9ba924994335e4cb44651160513aba3",
         "classification": "declaration",
         "owner": "RetrySummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "f941e5704305bfba7fcc2a0dcd1ecfadffb9f18f6855a4a92c47d565ea696e9b",
+        "id": "d38cb73b2ed980b4113921febb686bb66291e420b2b2787f6ddc0f109d050231",
         "classification": "non_contract",
         "owner": "AgentSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "1bacf4e727bb212065855cf3a325119fa8edcc93a0e5dd619e508df260db9acc",
+        "id": "c17db76a171c0202acf7c1f2ac3498d7566deb3b28539382715dd8c81bf425d7",
         "classification": "non_contract",
         "owner": "AgentSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "90ee3585dec0d69da16a41122d95e96d2623b40d89b073aa09e5b94bdfa69cf1",
+        "id": "8bfc858c93e95171925fd614924e35ac458a5450e88aa9abb4d30ae6224fad06",
         "classification": "declaration",
         "owner": "AgentSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "bbc3b28f3949d2117f34c84e7b6bbe374ef189b01ce85b34fd0da581d1d9e28a",
+        "id": "430246777c832e301515719f252a3ea05e7160d5d60d4688ee43c2d37287c607",
         "classification": "non_contract",
         "owner": "RunSummary",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "60dafba222dcfaf02a08e4288f049d0ffba87d512e4bfb5cf1aaefbd73a61e68",
+        "id": "3d1bdcd94bf3de91e739d6e46bc4d066e8320dc7bfa334b0e977c7bb28f59704",
         "classification": "non_contract",
         "owner": "RunSummary",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "8d072a7f50f66a12141c231c46b53f16c5b9178f135c46b5b04ed659d9f3c50a",
+        "id": "3ad86c5045a200f1ce792ffa5e6e1fdc49b3450c4cdc8ad64dca9f02125589fc",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "b8516f076f64efb1445531e0831c277d336c03b02c01cebfc30f8e67fc05ea21",
+        "id": "38af0974a512b49935a0546e8357a1338c1c562e8a0c2a4837b8155dfc16a4ab",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "a1e443bdb13e6d960171f89ef7ec828e900b9fd133945f9b8a5e65708cc23647",
+        "id": "c3fea53abcee05521f701f113e64dd59837171b016e1f923b874cf81741e0775",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "2175d54bbc1fac880d3ba1da384f4fe6a76cf3eaf39b7f6c2155f7ead35a949b",
+        "id": "8ae8adf77f8f1e5564a28e6780a79b2f73728b7b3c1d5e51dbfc16a2b981ff9b",
         "classification": "declaration",
         "owner": "RunSummary",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "a06b6e074d7d9cf2c2988a2bae64f4692267a92e397e924d9986a5b4d654ca35",
+        "id": "dca731e9b33cea9668674b35b8dce5481339a10b0970a3b1e019fbc1af99c28d",
         "classification": "non_contract",
         "owner": "HubSnapshot",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "f3bdf7c3215b027f931197d89b07c09e9e131cea7c01ccc6265e303cdb7174d1",
+        "id": "74b7392e25f3c3f60f5ad3e7b18d9a84e33c8e5024bfee5139fe25dadd4ac900",
         "classification": "non_contract",
         "owner": "HubSnapshot",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "72ead3985331ceb645871b8be047c864824b2f82027ed03d6a88f959b45688fa",
+        "id": "255dae20e96afab80b2f643fc08a91ab4988c8036a1b6cde3bc3165d57f99d49",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4c1ccc2688127a2b3cf6d8691df946fd818e1f6ed9c7f7e1c3693e502ed151bf",
+        "id": "62297464fbdcdf0fde26a1af305064f869cffbdd7ed61761a6853c54540a4f49",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "4befbc8cb6625119eae7da0be486597cf3e1b099fc791d659da2c577b2035d55",
+        "id": "62ad26ce1bf64cfd80e6a393e4b8d554e45794e29c42cff1863846877d60a036",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "cf3b5f5cfba1fc09caca977437988f913f0a3fc1b8cce1a94bc616461a531b4f",
+        "id": "5e274ee37dac75c8f325f31a4b6bf91ec834597ec4f61da3286c713ba78d9be7",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "5dfa27d603ff3a2ce261cf420c209e665c25777ebad11529b6ced12f7172beaa",
+        "id": "07808cfb04e64337f74b2e36f0d4a64eb62578d872e2469b50d75eca17be3736",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "705976c3a6a38ff322b86b098212cd456a81cc2b8833786e0a21c7eed9dd8c63",
+        "id": "23c03c8dc10873ec102da828132abd925801d9a99066439cf3a31af25e69548e",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "30d857110719c8ccf720913fd25595f36c9b72bed93f96fd35d98fbacc93ba88",
+        "id": "7de6e4e3184ebfd6cb0727a1a7c9e8e050ea22d72f4c6655a0600d643562cc0a",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "d8b405d4ef627fd7acaa8d722e90e16baac7dca472009edf99af6f85cc194f62",
+        "id": "2aba99f5443dc5e6f56eeafc0ac1c50bcebc53b24da87a4093fc58ee08949a3a",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "452cc13e4cf77f2b03d1fe0e171d2877de0de3aa2184c3d400d27c2e4f57cbaa",
+        "id": "83be08c189686768d6f9b4f86afafa18c9842e641674753c8b412c790c094046",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "c8971d8531b1194760a14d770da6bbbfc3585e833c68be092a45ba6a64fe7f7b",
+        "id": "493fd2f11f648f9251a62c7d97ce8ab3be2fc917c138effe1ddd4f3851ed3cd2",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ae686b0f7eb5938ef07eb70bdb2a9edb67ca01d2a32456b3cc28cd0f337b1148",
+        "id": "22b34e86a35f6c4c1869732e21c5dcf428c1977dd203ff45f96ec0d2fafa771a",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "60757e960c90aff0167ee291e98c466f47bcd3f1cbeb8965361c348b6d4fab9d",
+        "id": "c52aebd4d61d779e1758dbe9695497962c5fd90a02fc6fe08f3a161266e932d3",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "ec828c8d368f09389b939539fe9729613bc6c9aee4574caed85cc942d26bfa07",
+        "id": "42cd6db4940bf6debda5219b580f5deb090e7bf63239a06661c4c4e0b6170031",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "8baab87842ca280b62ec34bb1e75f2c293bdf995d5dca2de6638a75a0bc2e13a",
+        "id": "3e476565943c7ed8f4d88625c946e86a5bbf85e5899ee30662014951e4c4bcff",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "eb5cae19229eb11f0f8fc071ac58ac9fba9f867d1d4b1aa08677f530c1f97055",
-        "classification": "declaration",
-        "owner": "HubSnapshot",
-        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
-      },
-      {
-        "id": "7cb4b50774116f9a2c9985bfcf28a8ed188571b2e88333f06d01cde350dab0d9",
+        "id": "5fbcd51bfa9ead63deb92c747f8c58018c349f15e86a59fdf9b5ed382f96680d",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
@@ -100107,49 +100107,55 @@
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "fa1bf0f0a97ae693bd05c829b5bc55d3269294ac774c6b0767e2ca3b7f8ad3c5",
+        "id": "d8eaad5921c50d80164eee82f7be14a46aa345fc4769668391413f96d5539571",
         "classification": "declaration",
         "owner": "HubSnapshot",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "59868a59ea06a56c3b801ce106eba136f9c44ca6d5846b8c5c1ebabb34d6c767",
+        "id": "ac33c4c48a320a69b8271b41408c7d50ed4fc5943446df9564214cea43099fdd",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "ac6c668d2fe2229b95c8729b65397be1af6ab67bfed16b8d46f3fe4fbe50b988",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "724f9bc32371cd31f5caf57cb557d8ca81a93d359d36f63cc46253c00b594af2",
+        "id": "9905e9a1479a6a9ef77117e83cc4e289e90ce591db7f3278a157dccb7accb9b0",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "2df377f8d61a60c389c76a728cdbcc08763682aaf347f433d9ac8f1f1ac4787b",
+        "id": "c1c9f80b4020b6c10777016951d0c551d016c4fd52dfb956305d13417b70fa10",
         "classification": "declaration",
         "owner": "SessionIdentity",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "08c49d94f9e9e0ab84de4f578b13dbf1ef5b394dc98a741b131f2922dad7e7c6",
+        "id": "6b9612638a6e75b0bd67bda1a15020bc488de93dd09f9b0065f2058b10749af5",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass frozen object semantics."
       },
       {
-        "id": "c1aabf714f73a32b1fb793579395335867dcf0a5d595385011c49ba455f242d8",
+        "id": "a07b84239f9fe6a90be734371abba8539f3b1cdab02a6bafcb200d56994a6321",
         "classification": "non_contract",
         "owner": "QuestionPresentation",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "befcf658afdfeb00fdbd57c9fff7575b104021aeef52e20ee4c659e18590534c",
+        "id": "15679387de0bf6fbfdb437aea7df3e87960adf69d193f746bc7da45cfb452e0e",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
       },
       {
-        "id": "8cb2a359b417a26f687b965d953e75953c2bd6b003aa8cb37cd48745093ae0ec",
+        "id": "b12178612652f690a29691c9faf41bb8e517c70c115d1b8f3e68b1ef3553a199",
         "classification": "declaration",
         "owner": "QuestionPresentation",
         "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
@@ -100160,31 +100166,42 @@
         "owner": "Hub presentation models / TraceItem / QuestionPresentation / SessionIdentity",
         "declaration": "hub/model.py",
         "consumers": [
-          "hub/backend/observability/snapshot.py",
-          "hub/backend/observability/notifications.py",
           "hub/backend/execution/thinking.py",
           "hub/backend/interactions/questions.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/ui/live.py",
           "hub/ui/presentation.py",
-          "hub/ui/live.py"
+          "hub/widget/transcript/conversation.py"
         ],
         "tests": [
-          "tests/llm/test_agent_values.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_failure_diagnosis.py",
-          "tests/hub/test_notifications.py",
-          "tests/hub/test_log_retention.py",
-          "tests/hub/test_retry_observations.py",
           "tests/hub/test_history_alerts.py",
-          "tests/hub/test_tool_history.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
-          "tests/hub/test_approval_continuation.py"
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_stream_output.py",
+          "tests/hub/test_tag_index.py",
+          "tests/hub/test_tool_history.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -108954,18 +108971,18 @@
   },
   {
     "path": "hub/widget/transcript/identity.py",
-    "sha256": "5747998a6c53d621b963d67f57a5dd2cf9ab444a24cebdaeda38e6111d0eb39c",
-    "reason": "TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format.",
+    "sha256": "ff1333f045f04df3c1ee72d9abace6e766a0464f922f85e40f532b9f69eb8c06",
+    "reason": "TagBar/EngineOutput/LoopOutput own presentation, navigation and lifecycle defaults. TranscriptIdentity is shared by actual render/cache/tag producers and readers; the anchor projection avoids private-map interpretation while preserving the durable display identity format. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "237ab391542f7f20909962fd6ca6ed6431c14ca568c4e532ce85fd43f19a3a90",
+        "id": "9875c63cbc71ac8526444c6aa2d72b7b8b8bd259cd01d3dfb872a4cc3bda8c8b",
         "classification": "declaration",
         "owner": "TranscriptIdentity",
         "reason": "The existing index fallback and block suffix template; actual producer/cache/tag consumers share one formatting API and preserve explicit/falsey message identity behavior."
       },
       {
-        "id": "979165c9a58d756a151a7f0365c4dc9a31675b068c02a2df853006b7efd1659c",
+        "id": "6710ffd52a06884672cb97e23daa1fb105db9b891eb3dee84aa9bd5f6aa0034e",
         "classification": "declaration",
         "owner": "TranscriptIdentity",
         "reason": "The existing index fallback and block suffix template; actual producer/cache/tag consumers share one formatting API and preserve explicit/falsey message identity behavior."
@@ -108976,26 +108993,32 @@
         "owner": "TranscriptIdentity",
         "declaration": "hub/widget/transcript/identity.py",
         "consumers": [
+          "hub/widget/output/loop.py",
           "hub/widget/transcript/conversation.py",
-          "hub/widget/transcript/message_cache.py",
-          "hub/widget/output/loop.py"
+          "hub/widget/transcript/message_cache.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_output_interaction.py",
           "tests/hub/test_auxiliary.py",
-          "tests/hub/test_mouse_widgets.py",
-          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_engine_output.py",
           "tests/hub/test_home_navigation.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_reading_positions.py",
           "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_output.py"
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_stream_output.py",
+          "tests/hub/test_tag_index.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -110499,8 +110522,8 @@
   },
   {
     "path": "hub/widget/transcript/message_cache.py",
-    "sha256": "aaeebb0ad51aee9dbdd687afc071026acce45e2a276245d960aed2fe00bcca2a",
-    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place.",
+    "sha256": "877fb0026f4557f3a2483e7af356b3bea93f0c315a37cc1e869383a406821c63",
+    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -110702,25 +110725,28 @@
         "declaration": "hub/widget/transcript/message_cache.py",
         "consumers": [
           "hub/widget/transcript/conversation.py",
-          "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_interrupt_feedback.py"
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_render_pipeline.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_interrupt_feedback.py",
-          "tests/hub/test_conversation.py",
           "tests/hub/test_completion_display.py",
-          "tests/hub/test_responsiveness.py",
-          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_output.py",
-          "tests/hub/test_output_interaction.py"
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_stream_output.py",
+          "tests/hub/test_tag_index.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -110728,8 +110754,8 @@
   },
   {
     "path": "hub/widget/transcript/render_contract.py",
-    "sha256": "0f76d98f8e423a51a70b6741f4c00642b6be63bf766be812bff2c7c332f60683",
-    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place.",
+    "sha256": "fc89dd27b1994198121ed0022631e35b4b2c99452ac4701dd719ce15261ca18c",
+    "reason": "Transcript cache structure uses typed fields and context/body/header/trace keys; display-only section, geometry and redacted Tool captions have one Owner shared by actual render/cache/trace consumers. Original row identity and work-count assertions remain in place. Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved. Trailing EOF blank line removed with identical AST and original focused-result reuse evidence.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -110757,58 +110783,118 @@
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "8752b8946735dfb8bd9f5c912512b41c6cc146819af49e9d95394335df52fd1f",
+        "id": "7c677e0a9542c71fbc7d8e68d783619765e6116beef1490cfb32ceed427eeaec",
+        "classification": "declaration",
+        "owner": "TranscriptLayout",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "d6fa0d32448fc4a00c233aa69a436d7a893ee14eac54576eaf9f2f2770c5c318",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "618b5a889f3fe1f7e667344df87c93f216d654e2ae71036f9d294d6a7d8041b6",
+        "id": "863b6e4865e01c8561c3c4cf07dcede82c43bfcd8f8fbd11e7348325e19e1565",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "7677e332fceec828d4f33582629b89a1bfc58362d4b8de2e561602f19c7034fc",
+        "id": "e35d591adc6f0bb03773edc202990f8bf6c5791848253d324c63a83b3b5b17fd",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "09c25bc66c757617b0295cd1a013efdde033e5b7aa253f0eaacf301daad6d491",
+        "id": "d9b09aa6f1d29edbd17139d44b18138dfc2f37765ae9a7fef534284b6e313747",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "80c7bd9319572aa9616c7589dabaf3678321fb1b2dfc05c791f2d58a7684d1f4",
+        "id": "7c727960f7c154aa824ac2843eea08ad0f824cbc779729441fef326843512c18",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "882dcd0a8a4de83a7b0089118bcc51823c70e13f4fe42e58ca4c16b4a3984d55",
+        "id": "6dd0fbf343837bf76fa3a9a677f394db846bbd84b5960568e880306ef0a86bbc",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "66d696702812c6c16581daad5ff64caa3f7ec29ce734d1318d8e487793293bd9",
+        "id": "b0ab1b17fcbaa4de75f3f2691cc73bd3b50889167d9818652d784596b3dd5e43",
         "classification": "declaration",
         "owner": "TranscriptLayout",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "9cf3f653a7c3a420692962770679ed2eebb9a2c62a86bb55257ccfd8c0c18826",
+        "id": "0b1435b876b47da6d91383f333da6d7692d38e01aa02b94086fa9b19cd3c1f31",
         "classification": "declaration",
         "owner": "ToolCaption",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
       },
       {
-        "id": "4452b3eb664a3dc6c2de6de47b6e33c3d1ae0b601ee653f369e4a8ff0f63b773",
+        "id": "b63aee7eb4b76228433d3d2e5dd382425e0329ccc1708b11028fb6d13044f44a",
         "classification": "declaration",
         "owner": "ToolCaption",
         "reason": "Shared display sections, interior width, whitespace, blank gap, and bounded Tool name/status caption. These never carry arguments or payloads."
+      },
+      {
+        "id": "544ef001309239e992665d10864a1a0b222ce8858df59a18c115941d390333e6",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "eb6a1a99c5d1127d264ec4ab2d20612ad63acaf26ced2b39afa6acc7f52d597a",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "7015104b98a00968eb679992b8ec97a95b14d2336d2c105e562c1812fcef0062",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "1f6c7e72781fe0351fc99a26ae50af83281a58f2c78e5463426a8a4985c352dc",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a78e1f2840000b07731a55eaeb36ebe38e75614715f62afa5a2bd9f3a3824619",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "165b5488253df21a072d1abf0d2033662696fcdc229fc9b40af1e7581208b9f9",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "4e249596a3c59432bcb9c1d00a8c285e2824b37a96cc655a60571a095f2d1a97",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "05c4382a81dadd06364f8bce6e16c10a8e107280a06aa76fca28fb40e9cda2a8",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "3964482b60c934b0ad9ee9e5524a9558371b2fb9b1c8cfdf9bb2a211ad508812",
+        "classification": "declaration",
+        "owner": "TranscriptPresentation",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ],
     "contracts": [
@@ -110821,21 +110907,24 @@
           "hub/widget/transcript/thought_trace.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_interrupt_feedback.py",
-          "tests/hub/test_conversation.py",
           "tests/hub/test_completion_display.py",
-          "tests/hub/test_responsiveness.py",
-          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_output.py",
-          "tests/hub/test_output_interaction.py"
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_stream_output.py",
+          "tests/hub/test_tag_index.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -112140,6 +112229,340 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_output.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/widget/transcript/conversation.py",
+    "sha256": "35788d32257fea39643676ee8c69af74badf8405f1899a663d4ad0d816738279",
+    "reason": "Conversation rendering, typed frame/anchor/navigation state and Control-owned lifecycle consume current MessageRole/Status, interrupt, theme, key and rendering Owners. Window scroll reset stays with the View at the original point; progressive revision acceptance and stale-surface rejection are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "2ba2bb3686fa4f901ea4cdc52b75b89c3df3c19536c96c5a1da7abe627150436",
+        "classification": "non_contract",
+        "owner": "render_messages",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "c16297136477c32c95eb27476fecc0c315af116d58bdb225ca7c365f68e88c36",
+        "classification": "non_contract",
+        "owner": "render_messages",
+        "reason": "Read the immediately preceding message."
+      },
+      {
+        "id": "f53ee874de82a3e48591843e0c177c192d2cc68e45289a5ddb1e114e81961376",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "9a386bb095bf669335d91472f0be3dd451c044830e822547022513ab082a728a",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "53c6d2b539b6b0d7faabf3f080d625e5cfb606d86e352afad10f135612ba6b36",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "8e201c5afd406e1e7f14137eb7ecd8a7cd20d1d6881404e830c1b8af3886c9b7",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "455d8d546674adda1a6fbbfe837ad5c0ff9e6dc445f1092d74534a9435046eca",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "8c5719df51e7ee48e860027cb63c421b4bb815c01ea4aeb67528157e019c7c74",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "ebee82a3bd68a563692d26a517657d55f2420be749995d74e9890d88c62c28ee",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "2a3d5e044e7d2171e55fcc3430edf6453f4729d31b11a264d43fe561825cf2ec",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "b918ec753e0f37032c7c7000b6324469f72274432494ca4d6e2dcb32a91c6397",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "cfe1fc0e0df1c381aa427543ece66a0e765f63e916df7d2bd60a8eb8cd7a3521",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "9cec1509c5dc6ded33680f02f2e774b98802d00dab1a380c6eacf31d3dd483c8",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "c065b2ae9b5c09ac7d4eb6554fd5d7ef07f252198335b0b3bd6112680bee1cea",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "9dbaf92490bca480f71e7cf02c9b3f623240358dda8f5e0969ddc972d2fc7ae0",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "63960082b9a5a5256bfae0c28f88a60fe7667df4cdcd38d65744e3254f4f79b0",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "3bb4f10297e99a2211b9ce22fc7e9b65375cdd07e8e0cdc424da0ed8260a234b",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "828935d08a4eecb8cb3004f06c353f008ae5f38df1df4068b0bde17cb5a5ab30",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "58358a58440499d15021a466ca0d308caa7b6b01c7dbccdadfcc9ca4619f8ed7",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "71fb2ed3a5727a8f9a774967faeb31842883b84dc79e85d9f31c9e109749684b",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "ebcfd2ca82957dceda66fda38898e3af7d5561231bd0ef83c3d7c0bbc3dcb9a9",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "dfdcf1a298a0b19fafac1741976f289a10420c1c872b2993565a4357f96c399f",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "be17f075439b34850fb904b515b00e53239d2861718d15853d8290607416285d",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "5b8b59b59de717fdde3dee41557f5438e6b22b7c8c18e98b8aaacbb0d802c286",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "8e3e705fc0de3605876b5a4fd9733e007d6e20183e61a70b1c8d48f7e5731bb5",
+        "classification": "declaration",
+        "owner": "ConversationControl",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "d298bc7474efae9e722fc310c62f88299d28e134b8b24e7598ec91a85b72b7ab",
+        "classification": "non_contract",
+        "owner": "ConversationControl.__init__",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "954c05e9fa74ec3e1c872d126ea05e95c3e9f3ac76d5d3d7ead9a23ed6f9e8b8",
+        "classification": "non_contract",
+        "owner": "ConversationControl.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "ed391547c456fb63e8849fea15802f4dd760ae032be668e1aab9f32bd97b8a34",
+        "classification": "non_contract",
+        "owner": "ConversationControl._index_search",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "10bbfd32197c552c423ea290acacb3f8f9294e7d3f667939979f1f7f57e9ca06",
+        "classification": "non_contract",
+        "owner": "ConversationControl._index_search.apply",
+        "reason": "Last inclusive search hit index."
+      },
+      {
+        "id": "cb22c6bf66472bc0d22963bb21f0197d149ad781a64157391fc1e12d3d519d95",
+        "classification": "non_contract",
+        "owner": "ConversationControl._index_search",
+        "reason": "Last inclusive search hit index."
+      },
+      {
+        "id": "cc97aa958fa058e0a61537f67b2e042fc23e85170df59089038464c4f39d41dc",
+        "classification": "non_contract",
+        "owner": "ConversationControl.set_search",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "34a7411422669c7282e5b154ca5181c04c1eaea0bd8e080bee726d75c705edaa",
+        "classification": "non_contract",
+        "owner": "ConversationControl.move_search",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "d0b07038ba122521de4bdf02cee005649536f65527f7b355cffa9d52e492c6f8",
+        "classification": "non_contract",
+        "owner": "ConversationControl.move_search",
+        "reason": "Inclusive visible cell boundary from a zero-based column."
+      },
+      {
+        "id": "122adb9c429b70017012d3fe2599ddbadae7c04a1f408db8ec7792186dfdbf63",
+        "classification": "non_contract",
+        "owner": "ConversationControl.scroll",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "8148f3111e9dd76a544d9fb68abcf19c37bd2529b12cdf7dc07441f1765088ae",
+        "classification": "non_contract",
+        "owner": "ConversationControl.scroll",
+        "reason": "Last inclusive rendered line index."
+      },
+      {
+        "id": "f79a42590b5ff5ad49d9d4355914214742ef2a3e75cb250844a8695b8673ef7d",
+        "classification": "non_contract",
+        "owner": "ConversationControl.reading_position",
+        "reason": "Predecessor of the insertion point returned by bisect_right."
+      },
+      {
+        "id": "056ff134566f818fab8883f61022417c975519fdaaf47b41938a8c85a584cc22",
+        "classification": "non_contract",
+        "owner": "ConversationControl.reading_position",
+        "reason": "Nonnegative Python index boundary."
+      },
+      {
+        "id": "f4b67d9bb70046fac52abde39542fa7832061c3a263a35fde358fcbc17df01a2",
+        "classification": "non_contract",
+        "owner": "ConversationControl._urgent_headers",
+        "reason": "First header row of the already rendered message."
+      },
+      {
+        "id": "445c0f58d90eda2de2dd8ef12a9115259cfe4b37c86da73848fee97d2f9bc1e5",
+        "classification": "non_contract",
+        "owner": "ConversationControl._resolve_position",
+        "reason": "Last inclusive rendered line index."
+      },
+      {
+        "id": "db310914cb16f7af5719f98a9dd9026518c27d5ab06eec29dfaeadab89b3256f",
+        "classification": "non_contract",
+        "owner": "ConversationControl._resolve_position",
+        "reason": "Last inclusive rendered line index."
+      },
+      {
+        "id": "3d4a233d968b4bde3ac5c3bcfa959f9cf38ee21634171fc4d25c15a62b10db87",
+        "classification": "declaration",
+        "owner": "ConversationView",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "0bd1561aeba7627c420f201dde91d1ae375a0c450d6ae8348d0e50984d65eaae",
+        "classification": "declaration",
+        "owner": "ConversationView",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "56576a4d46c8960a2c210f2f1bb9661918f36629399c99d64c002509f81f3bbb",
+        "classification": "declaration",
+        "owner": "ConversationView",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "7c0ded774476e75553d44d8fb24b71008350beb5f5292f19607ecc39ca1a7675",
+        "classification": "declaration",
+        "owner": "ConversationView",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "9206cbd18a08e592aa4d216a8be1f49539e3cc602840fd1ba71f92333aa50e21",
+        "classification": "declaration",
+        "owner": "ConversationView",
+        "reason": "Original rendering/geometry/lifecycle/search/scroll/resize/progressive defaults. Typed frame fields and same_surface own context comparisons; TranscriptAnchor producers and row projection, TranscriptPresentation/Layout, ChatMessage.DRAFT, LLM roles and InterruptFeedback.PHASE remove local contract reinterpretation."
+      },
+      {
+        "id": "d6e53af1df2d3eb85ca640da4a6fffcadc2b1f8ead4d379cf71faded9a051b35",
+        "classification": "non_contract",
+        "owner": "ConversationView.__init__",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "354707dc837cd94698386a165c6306738e77bb3d2a21a44d95c48e81653827cc",
+        "classification": "non_contract",
+        "owner": "ConversationView.__init__",
+        "reason": "Return type annotation."
+      },
+      {
+        "id": "5cf05319a600b65da8c0ff041e585890ebba71b6ad99bf4cd975e76f2d60b86a",
+        "classification": "non_contract",
+        "owner": "ConversationView.set_messages",
+        "reason": "Variadic tuple type annotation."
+      },
+      {
+        "id": "89a656db178d6839b89bf98f69c6652f6d6d5138e51c81b4cf331f00780f4405",
+        "classification": "non_contract",
+        "owner": "ConversationView.set_messages",
+        "reason": "Return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ConversationControl / ConversationView / TranscriptFrameKey / DeferredScroll",
+        "declaration": "hub/widget/transcript/conversation.py",
+        "consumers": [
+          "hub/widget/output/loop.py",
+          "hub/ui/view.py",
+          "hub/widget/output_inspector.py",
+          "tests/hub/test_reading_positions.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_reading_positions.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_conversation.py",
+          "tests/hub/test_interrupt_feedback.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_stream_output.py",
+          "tests/hub/test_tag_index.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_output_interaction.py"
         ],
         "complete": true
       }

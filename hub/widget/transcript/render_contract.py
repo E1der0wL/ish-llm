@@ -9,6 +9,7 @@ class RenderSection:
 
 
 class TranscriptLayout:
+    ABSENT = None
     MIN_WIDTH = 1
     HORIZONTAL_MARGIN = 4
     EMPTY = ""
@@ -35,3 +36,15 @@ class ToolCaption:
             name=TranscriptLayout.SPACE.join(name.split())[: cls.MAX_NAME],
             status=language.status(status),
         )
+
+
+class TranscriptPresentation:
+    ORIGIN = 0
+    MIN_INSET_WIDTH = 3
+    USER_INSET = 1
+    NO_INSET = 0
+    USER_WIDTH_RATIO = 0.78
+    SIDES = 2
+    LABEL_SEPARATOR = " · "
+    SYSTEM_TIME_SEPARATOR = " • "
+    OVERFLOW = "fold"

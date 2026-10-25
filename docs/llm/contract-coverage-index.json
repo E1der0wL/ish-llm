@@ -2,14 +2,14 @@
   "complete": false,
   "counts": {
     "files": 631,
-    "unreviewed_files": 33,
+    "unreviewed_files": 32,
     "stale_files": 0,
-    "unclassified": 2129,
+    "unclassified": 1874,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 33,
+    "unreviewed_dynamic_paths": 32,
     "unreadable_files": 0,
-    "candidates": 16527,
+    "candidates": 16332,
     "issues": 0
   },
   "files": [
@@ -736,8 +736,8 @@
     {
       "path": "hub/model.py",
       "status": "reviewed",
-      "sha256": "ba9309993ac6b5a0b80f39f9ee85e1fb6797441b97bf7dd7e605306ff90776f8",
-      "candidates": 119
+      "sha256": "d474a4a7e86493f8067197059c75e5024b294a662a874ea92a5f9512781de905",
+      "candidates": 120
     },
     {
       "path": "hub/ui/__init__.py",
@@ -1467,27 +1467,27 @@
     },
     {
       "path": "hub/widget/transcript/conversation.py",
-      "status": "unreviewed",
-      "sha256": "16f59bb038d96a48ea45a602e07a12d0a8b9cbccc7bba44aa55fa18ca26e42ca",
-      "candidates": 255
+      "status": "reviewed",
+      "sha256": "35788d32257fea39643676ee8c69af74badf8405f1899a663d4ad0d816738279",
+      "candidates": 49
     },
     {
       "path": "hub/widget/transcript/identity.py",
       "status": "reviewed",
-      "sha256": "5747998a6c53d621b963d67f57a5dd2cf9ab444a24cebdaeda38e6111d0eb39c",
+      "sha256": "ff1333f045f04df3c1ee72d9abace6e766a0464f922f85e40f532b9f69eb8c06",
       "candidates": 2
     },
     {
       "path": "hub/widget/transcript/message_cache.py",
       "status": "reviewed",
-      "sha256": "aaeebb0ad51aee9dbdd687afc071026acce45e2a276245d960aed2fe00bcca2a",
+      "sha256": "877fb0026f4557f3a2483e7af356b3bea93f0c315a37cc1e869383a406821c63",
       "candidates": 32
     },
     {
       "path": "hub/widget/transcript/render_contract.py",
       "status": "reviewed",
-      "sha256": "0f76d98f8e423a51a70b6741f4c00642b6be63bf766be812bff2c7c332f60683",
-      "candidates": 13
+      "sha256": "fc89dd27b1994198121ed0022631e35b4b2c99452ac4701dd719ce15261ca18c",
+      "candidates": 23
     },
     {
       "path": "hub/widget/transcript/search.py",
