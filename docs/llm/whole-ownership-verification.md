@@ -9880,3 +9880,42 @@ Level 1·2 로컬 완료이며 전체 작업 완료는 아니다. 정책·저장
 중복 실행하지 않았다. 후속 Tool/Component 소비자 묶음의 Level 3에서 현재 통합 상태를 검증한
 뒤 Push하고 정확한 SHA의 원격 CI 결과를 기록한다. Gate56의 동결 SHA에는 이 후속 변경이
 포함되지 않으며 그 결과를 이번 변경의 전체 회귀 증거로 승계하지 않는다.
+
+
+## Hub Toolkit·Skill 조회 실행 경계
+
+HubBuiltinTools·HubSkillComponent와 binding/cache Projection을 전수 정리했다. Process/Shell
+Owner가 작업명·명령→argv 전달·env schema 확인을 소유한다. 전달 인자의 생략/None/빈 값과
+기존 확장 인자의 우선순위를 그대로 보존하며 이 Projection은 새 검증·권한 경계가 아니다.
+Host의 기존 shell prefix·네트워크 차단·기능 선택도 값/생성 시점을 유지한다.
+
+환경/계약 revision과 options/definitions/contracts cache key는 같은 필드·순서·참조로 생성한다.
+원래 tuple cache 형식과 handler identity를 유지하고, 반환 registry의 schema 변경은 cache에
+전파되지 않는다. Skill은 공식 Owner의 skill_list/skill_read 이름만 기존 worker 조회로 넘긴다.
+다른 Tool·live resource·효과 handler를 자동으로 worker 실행에 포함하지 않는다.
+
+독립 원본/제안 35개 관측에서 모든 Tool 정의/schema/contract, revision hash, shell 실제 전달
+인자와 closed 차단, cache 재사용/무효화/alias, Skill handler identity와 실행 thread가 일치했다.
+실제 Owner를 확장한 3개 기존 구현 AST도 같다. 외부 probe의 누락된 필수 Tool contract는 제품
+적용 전 수정하고 최초 오류 기록을 보존했다. 제품 테스트·Assertion은 변경하지 않았다.
+
+- `whole-hub-toolkit-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.476615초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-toolkit-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `2d263d8ecb662995963d90e97fb5f91b65dfd501b6a2644eb17f911d73d6c983`, input `c143da30472f90aff55f9bf76b833429ace9f7a8d69124059bab3f199ccaa055`.
+
+- `whole-hub-toolkit-l1-llm-01`: discovered/started/pass 45/45/45, exit 0, 6.235971초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-toolkit-l1-llm-01/llm.json --modules tests.llm.test_builtin_process_values tests.llm.test_builtin_catalog_values tests.llm.test_builtin_tools tests.llm.test_sandbox_contracts`. source `2d263d8ecb662995963d90e97fb5f91b65dfd501b6a2644eb17f911d73d6c983`, input `c143da30472f90aff55f9bf76b833429ace9f7a8d69124059bab3f199ccaa055`.
+
+- `whole-hub-toolkit-l1-01`: discovered/started/pass 38/38/38, exit 0, 219.444079초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-toolkit-l1-01/hub.json --modules tests.hub.test_shell_environment tests.hub.test_file_root_presence tests.hub.test_question_tools tests.hub.test_coding_skill tests.hub.test_resource_tools`. source `2d263d8ecb662995963d90e97fb5f91b65dfd501b6a2644eb17f911d73d6c983`, input `c143da30472f90aff55f9bf76b833429ace9f7a8d69124059bab3f199ccaa055`.
+
+- `whole-hub-toolkit-l2-01`: discovered/started/pass 29/29/29, exit 0, 119.942184초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-toolkit-l2-01/hub.json --modules tests.hub.test_tool_advice tests.hub.test_tool_retry tests.hub.test_approval_continuation tests.hub.test_components tests.hub.test_component_managers`. source `2d263d8ecb662995963d90e97fb5f91b65dfd501b6a2644eb17f911d73d6c983`, input `c143da30472f90aff55f9bf76b833429ace9f7a8d69124059bab3f199ccaa055`.
+
+R3 Mutation도 exit 0. 각 실행의 발견/실행/pass ID 일치, failure/error/Skip/xfail/xpass/누락/
+추가/중복 0, source/input 전후·실행 간 동일, suite별 선택 ID 중복 0을 확인했다. 공통 안전성,
+LLM Builtin Process/catalog/실제 Tool/sandbox, Hub shell 환경·파일 루트·질문·Skill·resource,
+위험도 설명·재시도·승인 연속 실행·Component 소비자를 포함한다. Python 3.12.14/Clang,
+Host d833790, 고정 의존성, 정상 namespace(NoNewPrivs=0)에서 실행했다. 실제 argv/exit/hash는
+외부 `hub-toolkit-draft` 증거에 보존한다. 공유 소스 hash를 재검토한 뒤 S1–S7·감사·문서 검사를
+통과했다. 이전 정적 실행 결과도 보존한다.
+
+여기까지 Level 1·2 로컬 완료다. 변경된 전달/승인 binding이 기존 AST·hash·효과/소비자 검증과
+같아 범위가 제한됨을 확인했다. 관련 위험도/authoring 소비자와 묶는 다음 Level 3에서 전체
+LLM/Hub 현재 통합 상태를 검증하고 Push·정확한 SHA 원격 CI를 확인한다. Gate56의 과거 동결
+SHA 결과를 이 변경의 전체 회귀로 표현하지 않는다.

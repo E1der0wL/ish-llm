@@ -4,14 +4,28 @@ import asyncio
 from dataclasses import replace
 from llm.components.skills import SkillComponent, SkillRecord, SkillName
 from llm.components.tools import ToolRegistry
+from llm.components.skills.views import SkillListRequest, SkillReadRequest
 
 
 class HubSkillComponent(SkillComponent):
+    DISCOVER_AUTHORING = False
+    SNAPSHOT_QUERIES = (SkillListRequest.NAME, SkillReadRequest.NAME)
+
     def resolve_runtime(self, project, capability, *, data_factory):
-        registry = super().resolve_runtime(project, capability, data_factory=data_factory)
+        registry = super().resolve_runtime(
+            project, capability, data_factory=data_factory
+        )
         if capability == ToolRegistry.CAPABILITY:
             from .resources import authoring_tools
-            for tool in authoring_tools(data_factory(self.name), self.name, self.schema, discover=False, source_field=SkillRecord.SOURCE, identifier_schema=SkillName.SCHEMA):
+
+            for tool in authoring_tools(
+                data_factory(self.name),
+                self.name,
+                self.schema,
+                discover=HubSkillComponent.DISCOVER_AUTHORING,
+                source_field=SkillRecord.SOURCE,
+                identifier_schema=SkillName.SCHEMA,
+            ):
                 registry.register(tool)
         return registry
 
@@ -27,9 +41,18 @@ class HubSkillComponent(SkillComponent):
                 # approvals or handlers with side effects this way.
                 def read():
                     return asyncio.run(handler(arguments))
+
                 return await asyncio.to_thread(read)
+
             return query
 
-        return ToolRegistry(tuple(replace(value.get(name), handler=off_loop(value.get(name).handler))
-                                  if name in ("skill_list", "skill_read") else value.get(name)
-                                  for name in value.names()))
+        return ToolRegistry(
+            tuple(
+                (
+                    replace(value.get(name), handler=off_loop(value.get(name).handler))
+                    if name in HubSkillComponent.SNAPSHOT_QUERIES
+                    else value.get(name)
+                )
+                for name in value.names()
+            )
+        )

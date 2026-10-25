@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 634,
-    "unreviewed_files": 17,
+    "files": 635,
+    "unreviewed_files": 15,
     "stale_files": 0,
-    "unclassified": 1094,
+    "unclassified": 1036,
     "violations": 0,
     "incomplete_contracts": 18,
-    "unreviewed_dynamic_paths": 17,
+    "unreviewed_dynamic_paths": 15,
     "unreadable_files": 0,
-    "candidates": 15891,
+    "candidates": 15849,
     "issues": 0
   },
   "files": [
@@ -483,9 +483,15 @@
     },
     {
       "path": "hub/backend/tools/builtin.py",
-      "status": "unreviewed",
-      "sha256": "4f060b9c239e72e278fe4618d97144a272c4ee7b4daf1adf6e2ee533d7e10f68",
-      "candidates": 55
+      "status": "reviewed",
+      "sha256": "eccf835534f69866b751019cb3aaab7c688f5d92b3889782a788582616ba1104",
+      "candidates": 9
+    },
+    {
+      "path": "hub/backend/tools/builtin_values.py",
+      "status": "reviewed",
+      "sha256": "3815bf9a03f2a2821fb0fa2e8bc42ff653b0326a176c69171600132f2e1f7dd7",
+      "candidates": 6
     },
     {
       "path": "hub/backend/tools/management.py",
@@ -537,9 +543,9 @@
     },
     {
       "path": "hub/backend/tools/skills.py",
-      "status": "unreviewed",
-      "sha256": "a8699ee32d5230cc72ab8c6da820f8d58077cfbc28e9ff9fec9c04171f3df045",
-      "candidates": 3
+      "status": "reviewed",
+      "sha256": "0737d73d342fa2411fd805e2bbea5f63ef3d383ac7345c19b2084044543a8a8b",
+      "candidates": 1
     },
     {
       "path": "hub/backend/tools/test_workspaces.py",
@@ -2428,7 +2434,7 @@
     {
       "path": "llm/components/tools/builtin/process_values.py",
       "status": "reviewed",
-      "sha256": "3489ae3d30ea56a91f84399c6d81743081d86090b183c8ccd42a4791da67dba6",
+      "sha256": "a2b2ea037906ac1c1754a63f58da31bed7eaaa1ef73ad5f666f8c0c35de11c01",
       "candidates": 117
     },
     {

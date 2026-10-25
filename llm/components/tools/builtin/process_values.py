@@ -32,8 +32,21 @@ class ProcessLimits(BuiltinArguments):
     INVALID_TIMEOUT = "Process timeout must be positive and finite"
     INVALID_OUTPUT = "max_output_bytes must be a positive integer"
 
-    timeout_seconds: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {"type": "number", "exclusiveMinimum": MINIMUM_TIMEOUT}})
-    max_output_bytes: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MINIMUM_OUTPUT}})
+    timeout_seconds: object = field(
+        default=UNSET,
+        metadata={
+            BuiltinArguments.SCHEMA: {
+                "type": "number",
+                "exclusiveMinimum": MINIMUM_TIMEOUT,
+            }
+        },
+    )
+    max_output_bytes: object = field(
+        default=UNSET,
+        metadata={
+            BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MINIMUM_OUTPUT}
+        },
+    )
 
     @property
     def timeout(self):
@@ -41,29 +54,55 @@ class ProcessLimits(BuiltinArguments):
 
     @property
     def output_limit(self):
-        return self.NO_LIMIT if self.max_output_bytes is UNSET else self.max_output_bytes
+        return (
+            self.NO_LIMIT if self.max_output_bytes is UNSET else self.max_output_bytes
+        )
 
     def validate_limits(self):
         seconds, maximum = self.timeout, self.output_limit
-        if seconds is not None and (type(seconds) not in (int, float) or not math.isfinite(seconds)
-                                    or seconds <= self.MINIMUM_TIMEOUT):
+        if seconds is not None and (
+            type(seconds) not in (int, float)
+            or not math.isfinite(seconds)
+            or seconds <= self.MINIMUM_TIMEOUT
+        ):
             raise ValueError(self.INVALID_TIMEOUT)
-        if maximum is not None and (type(maximum) is not int or maximum < self.MINIMUM_OUTPUT):
+        if maximum is not None and (
+            type(maximum) is not int or maximum < self.MINIMUM_OUTPUT
+        ):
             raise ValueError(self.INVALID_OUTPUT)
 
     def supplied(self):
-        return {item.name: deepcopy(getattr(self, item.name)) for item in fields(self)
-                if getattr(self, item.name) is not UNSET}
+        return {
+            item.name: deepcopy(getattr(self, item.name))
+            for item in fields(self)
+            if getattr(self, item.name) is not UNSET
+        }
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ProcessInvocation(ProcessLimits):
     """Internal argv request; only explicitly provided overrides are serialized."""
 
-    argv: list[str] = field(metadata={BuiltinArguments.SCHEMA: {"type": "array", "minItems": 1,
-        "items": {"type": "string", "minLength": 1}}})
-    cwd: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {"type": "string", "minLength": 1}})
-    env: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: ProcessEnvironment.schema()})
+    argv: list[str] = field(
+        metadata={
+            BuiltinArguments.SCHEMA: {
+                "type": "array",
+                "minItems": 1,
+                "items": {"type": "string", "minLength": 1},
+            }
+        }
+    )
+    cwd: object = field(
+        default=UNSET,
+        metadata={BuiltinArguments.SCHEMA: {"type": "string", "minLength": 1}},
+    )
+    env: object = field(
+        default=UNSET, metadata={BuiltinArguments.SCHEMA: ProcessEnvironment.schema()}
+    )
+
+    @classmethod
+    def accepts_environment(cls, parameters):
+        return cls.env.__name__ in parameters.get(SchemaKeyword.PROPERTIES, {})
 
     @classmethod
     def with_environment(cls, arguments, environment):
@@ -78,8 +117,15 @@ class ProcessStartArguments(ProcessInvocation):
     WORKING_ROOT = "."
     INVALID_STDIN = "stdin must be boolean"
 
-    stdin: bool = field(default=False, metadata={BuiltinArguments.SCHEMA: {"type": "boolean",
-        "description": "Explicitly open an input pipe for process_write. This is not a PTY."}})
+    stdin: bool = field(
+        default=False,
+        metadata={
+            BuiltinArguments.SCHEMA: {
+                "type": "boolean",
+                "description": "Explicitly open an input pipe for process_write. This is not a PTY.",
+            }
+        },
+    )
 
     @property
     def directory(self):
@@ -90,7 +136,11 @@ class ProcessStartArguments(ProcessInvocation):
             raise ValueError(self.INVALID_STDIN)
 
     def environment(self):
-        return {} if self.env is UNSET else {ProcessInvocation.env.__name__: ProcessEnvironment.copy(self.env)}
+        return (
+            {}
+            if self.env is UNSET
+            else {ProcessInvocation.env.__name__: ProcessEnvironment.copy(self.env)}
+        )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -112,10 +162,24 @@ class ProcessOutputArguments(ProcessReferenceArguments):
     MIN_OFFSET = 0
     MIN_COUNT = 1
 
-    stdout_offset: int = field(default=MIN_OFFSET, metadata={BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MIN_OFFSET}})
-    stderr_offset: int = field(default=MIN_OFFSET, metadata={BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MIN_OFFSET}})
-    max_chars: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MIN_COUNT,
-        "description": "Maximum characters per stream in this page."}})
+    stdout_offset: int = field(
+        default=MIN_OFFSET,
+        metadata={BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MIN_OFFSET}},
+    )
+    stderr_offset: int = field(
+        default=MIN_OFFSET,
+        metadata={BuiltinArguments.SCHEMA: {"type": "integer", "minimum": MIN_OFFSET}},
+    )
+    max_chars: object = field(
+        default=UNSET,
+        metadata={
+            BuiltinArguments.SCHEMA: {
+                "type": "integer",
+                "minimum": MIN_COUNT,
+                "description": "Maximum characters per stream in this page.",
+            }
+        },
+    )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -124,11 +188,20 @@ class ProcessWriteArguments(ProcessReferenceArguments):
     DESCRIPTION = "Send exact text to a process started here with stdin=true, or close its input. No automatic newline. Do not replay uncertain writes."
     INVALID_WRITE = "Provide text or explicitly close stdin"
 
-    text: str = field(default="", metadata={BuiltinArguments.SCHEMA: {"type": "string"}})
-    close: bool = field(default=False, metadata={BuiltinArguments.SCHEMA: {"type": "boolean"}})
+    text: str = field(
+        default="", metadata={BuiltinArguments.SCHEMA: {"type": "string"}}
+    )
+    close: bool = field(
+        default=False, metadata={BuiltinArguments.SCHEMA: {"type": "boolean"}}
+    )
 
     def validate_input(self):
-        if not isinstance(self.text, str) or type(self.close) is not bool or not self.text and not self.close:
+        if (
+            not isinstance(self.text, str)
+            or type(self.close) is not bool
+            or not self.text
+            and not self.close
+        ):
             raise ValueError(self.INVALID_WRITE)
 
 
@@ -137,13 +210,37 @@ class ShellArguments(ProcessLimits):
     NAME = "shell_execute"
     DESCRIPTION = "Execute a host shell command and wait for its result."
 
-    command: str = field(metadata={BuiltinArguments.SCHEMA: {"type": "string", "minLength": 1}})
-    cwd: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {"type": "string", "minLength": 1}})
-    env: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: ProcessEnvironment.schema()})
+    command: str = field(
+        metadata={BuiltinArguments.SCHEMA: {"type": "string", "minLength": 1}}
+    )
+    cwd: object = field(
+        default=UNSET,
+        metadata={BuiltinArguments.SCHEMA: {"type": "string", "minLength": 1}},
+    )
+    env: object = field(
+        default=UNSET, metadata={BuiltinArguments.SCHEMA: ProcessEnvironment.schema()}
+    )
+
+    @classmethod
+    def forward(cls, arguments, prefix):
+        """Project an admitted shell call without dropping explicit opaque overrides."""
+        return {
+            ProcessInvocation.argv.__name__: [*prefix, arguments[cls.command.__name__]],
+            **{
+                key: value
+                for key, value in arguments.items()
+                if key != cls.command.__name__
+            },
+        }
 
     def invocation(self, prefix):
-        return ProcessInvocation(argv=[*prefix, self.command], cwd=self.cwd, env=self.env,
-                                 timeout_seconds=self.timeout_seconds, max_output_bytes=self.max_output_bytes)
+        return ProcessInvocation(
+            argv=[*prefix, self.command],
+            cwd=self.cwd,
+            env=self.env,
+            timeout_seconds=self.timeout_seconds,
+            max_output_bytes=self.max_output_bytes,
+        )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -156,12 +253,17 @@ class CheckArguments(ProcessLimits):
     @classmethod
     def choices_schema(cls, commands):
         value = cls.schema()
-        value[SchemaKeyword.PROPERTIES][cls.name.__name__] = {SchemaKeyword.ENUM: list(commands)}
+        value[SchemaKeyword.PROPERTIES][cls.name.__name__] = {
+            SchemaKeyword.ENUM: list(commands)
+        }
         return value
 
     def invocation(self, commands):
-        return ProcessInvocation(argv=commands[self.name], timeout_seconds=self.timeout_seconds,
-                                 max_output_bytes=self.max_output_bytes)
+        return ProcessInvocation(
+            argv=commands[self.name],
+            timeout_seconds=self.timeout_seconds,
+            max_output_bytes=self.max_output_bytes,
+        )
 
 
 @dataclass(frozen=True, slots=True)
