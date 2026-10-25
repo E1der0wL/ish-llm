@@ -45,8 +45,10 @@ Skill·계약/Owner 경로 안내를 앞에 추가했다. 과거 main 사용법�
 마지막 관리 화면의 번역 key 집합 실패도 원래 Assertion을 유지해 수정했고, 원래 실패와
 수정된 소스의 재실행 증거를 별도로 기록했다.
 
-최종 교차 점검은 구현/분류의 완료다. DC3 전체 완료는 현재 통합 소스의 Gate57 Level 3와
-정확한 Push SHA의 원격 필수 CI가 통과해야 한다. 성공 결과는 검증 후 실행 기록에 추가한다.
+제품 SHA `3652bbba8878f0658a66fff3213b1976da075687`의 Gate57 Level 3와
+[정확한 SHA 원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/40173512551)를 실제 확인하여 DC3까지 완료했다.
+로컬/원격 각각 전체 LLM 2,502개·Hub 588개 통과, failure/error/Skip/누락/중복 0이다.
+명령·환경·hash·원격 결과와 기록 커밋의 검증 구분은 [실행 기록](whole-ownership-verification.md)에 남겼다.
 기존 전체 LLM/Hub·S1–S7·R3·Provider/실환경 검증은 유지한다. 여기에
 `python -m tests.llm.check_contract_coverage --reviews docs/llm/contract-coverage-reviews.json --require-complete --output artifacts/contract-coverage.json`
 검사를 GitHub Actions 양쪽 필수 Job에 추가했다. 새 파일·변경 후 오래된 근거·미완료 계약이
