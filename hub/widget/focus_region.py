@@ -22,16 +22,8 @@ class RegionTint:
     LUMINANCE_WEIGHTS = tuple(weight for _, weight in HubTheme.LUMINANCE_WEIGHTS)
     GRAY_FORMAT = HubTheme.HEX_PREFIX + HubTheme.HEX_CHANNEL_FORMAT * 3
     COLORS = " fg:{foreground} bg:{background}"
-    NEGATED_ATTRIBUTE = "no"
-    ATTRIBUTES = (
-        ThemeStyle.BOLD,
-        "italic",
-        "underline",
-        "strike",
-        "reverse",
-        "blink",
-        "hidden",
-    )
+    NEGATED_ATTRIBUTE = ThemeStyle.NEGATED_ATTRIBUTE
+    ATTRIBUTES = ThemeStyle.ATTRIBUTES
 
 
 @lru_cache(maxsize=RegionTint.CACHE_SIZE)

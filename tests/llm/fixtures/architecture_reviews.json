@@ -1477,31 +1477,6 @@
       ]
     },
     {
-      "id": "5258a7d297744b905160fc82f70c2021897bba6056009a54f790c584fdc37cde:1",
-      "rule": "S3",
-      "owner": "ImageRenderer.render",
-      "reason": "Two workers is the local bounded background image-rendering pool owned by ImageRenderer. It does not authorize network/file Tool effects or configure model concurrency. Existing path/artifact validation, pixel bounds, generation invalidation and close behavior remain intact. O0 ownership re-review: The image renderer owns its worker pool size; unrelated execution pools have independent resource contracts. Agent Skills re-review: Dependency re-review: only the declaration fingerprint changes for direct PyYAML; every pinned distribution and artifact hash is byte-identical. Typed-contract re-review: The added typed-structure contract does not change this individually classified default, kind or boundary occurrence. This classification is not evidence that surrounding raw-dict consumers have completed the new contract; TC follow-up scope is tracked separately. DC evidence re-review: The DC placement and whole-file completion gate is stricter than these bounded S1-S7 classifications. This existing occurrence and rule-specific reason remain unchanged; this review does not waive placement, raw-dict or dynamic-consumer work. The 441-file whole-audit inventory remains unreviewed and blocks overall completion independently. Translation ownership review: changed consumers have identical complete AST after expanding MessageKey/MessagePattern/LanguageCode references. Both full language tables retain exact string key/value types, order and text; Language validation, fallback and duration behavior matches the prior implementation on independent cases. Translation selection changes no backend policy, stored request, authority or effect boundary. Current UI consumers and core safety regression pass; no surrounding incomplete ownership is promoted.",
-      "contracts": [
-        "docs/llm/clean-refactor.md",
-        "docs/llm/architecture-reviews.md",
-        "docs/hub/completion-display.md",
-        "docs/llm/contract-ownership.md"
-      ],
-      "sources": {
-        "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
-        "docs/llm/architecture-reviews.md": "78fdb4d3d2e6a3288bf21c19efc9d693aa79dbb31a275177239b9cb129f137c3",
-        "docs/llm/clean-refactor.md": "e19ddcf73ae0b93a8346fdbece8fbdf8c673f7c0476ee94f5b93f4d4be86659e",
-        "hub/ui/output/images.py": "2eae9b06cdcc546a8dc65c5216522d73fd7e59e27f3cafc1c527a9b61ca8e0dc",
-        "hub/ui/output/registry.py": "0ff269d27499f8eae2b794f6198fb9f8d476457af55e36da967a9fa16aac3df3",
-        "tests/hub/test_output.py": "329b711cd68df2df272ced461a6163b4178235a9a1e19fc2a294256207a06535",
-        "tests/llm/dependencies-linux.lock": "0d66c698461ab88b9c910ace5801b43ec7eb105867e2fb88a218bcd1b0ba0176",
-        "docs/llm/contract-ownership.md": "269ccb7d5ccb42734f64bf65d1badb61d414564a108a4e69920d19b30d036b91"
-      },
-      "tests": [
-        "tests.hub.test_output.OutputTests.test_real_image_background_conversion_cached_width_and_error_fallback"
-      ]
-    },
-    {
       "id": "3ead4c2dfc185446ccc66901883e789734119b493125405b30a2dc3e072e806d:1",
       "rule": "S3",
       "owner": "bind_restart.restart",

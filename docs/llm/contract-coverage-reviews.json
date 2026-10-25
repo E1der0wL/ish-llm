@@ -86949,8 +86949,8 @@
   },
   {
     "path": "hub/config/theme_style.py",
-    "sha256": "ea7413b96c4905a922f70760b6dadedf0683cb4762e0e57bf7d91ec2be576939",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass.",
+    "sha256": "667c5109643f224dc93166c2366c2d508baee728c58e93e537b92821ddd5bc55",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: Remaining widgets/renderers still use literal theme selector references. Whole Theme implementation and ordered rendering declaration review. Exact palettes, defaults, validation order, real PTK style rules, subclass property override and per-property failure traces independently compared; original tests unchanged. Remaining raw Hub consumers are explicitly pending. Whole common-widget ownership review: actual cells, dimensions, keyboard callbacks, grouping identity, notification expiry/cancellation, cache reuse and waiting-session filtering are compared independently. Original tests unchanged. Narrow HubView/SessionSummary additions are not whole-file completion. Navigation widgets use canonical key/shortcut/theme and PTK container/mouse-result Owners; layout declarations stay at their owning classes. Actual prior/proposed rendering, mouse/focus/callback and error outcomes match; existing UI consumers and mandatory unchanged LLM safety checks pass. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -87368,457 +87368,511 @@
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "298e5c5bf1641c9c61bc01cb3f6cec6b58e03ee2babf7a89d3db27999ae41d71",
+        "id": "02f4ea4cda19cceb1df377ad82e58f3995f710bdd85538a506f6dd45b47db0e1",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e41e1dbc2916a33df7616b26cf6824e4ea1fba1b469e62d24b2f273e32911b67",
+        "id": "7fb222ec19345785ecc77b39415f00029eece9b11d1ebfd94483357a955f7bdb",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "9d572c473ce5c35e50c0e069e0c9ef78e63eaae753483c5755a09d705d1127a6",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "415a5f79eaf4ee55e002bfcba1f642009b4b26fd6dcec5706c13bb20197b3819",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f024ebc806f13a4e012a659558bce170dfacc3bb9b9513b821fdd8ff68eba259",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "b3256f961ded1866cdf4cf370563b6f755400759b2baad8b6a9c28c513e13e4c",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "81c10d381d13f7aa8754f3956a67b7b7b6ce96655ff147bc475576a17a1847bb",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "f53b42c6b03552cc0f6ac624264092aed5a023e01937635736b8fb4007dbce6a",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e2606c1ea23763d6feeca1c7d1d1a1bb695da55a41275a2ae9abef1062874cf6",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "09a19292f7d5aeb5876dd711fd0e9f4494c3334924b4ca13c53a1278d62e9bb4",
+        "classification": "declaration",
+        "owner": "ThemeStyle",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "121ba53f5afc07f92efbe30aaeeff95e935928ac790a86793c4a3b44e68e847c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical theme selectors and PTK class references; PTK_ member names distinguish descendant selectors from Hub class selectors. No palette or rendering behavior change in this stage."
       },
       {
-        "id": "6e2115288fb8652122a10a10592ade32ad686d56fbf8ca2ff900720277fedfdf",
+        "id": "4fe88862364e6d890c973d883ce68085a0005e9564033ec4184fa8ad357f6069",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "eeefd5929ad1b7b02d272396e3965194334c1c97f8ea1cc7855de7bb82df375b",
+        "id": "0e90984fac24e8ebd4d6b64adfb060e58ab5d57f7c2db881bf0394e62afa5834",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a5dce36904658193d5e65103fa89308092258b05e0b91a359b81f4ee120d5824",
+        "id": "0aac421e28ca440efecf19d58f7650e455bd8d59b0584bc34f5a379dca90e9de",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cfc2f643e4ea12c3e4eca6b06d17fe626c77734df987d76d57fdd37e0b71dfc4",
+        "id": "d4fa948f9b2697585317fb7ce7ac21ae8d119a41b18bab221196cfe2ad129e7e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "864d195ebdc9ab55b397bcffee0fc5be854e0e4e6a2da55ac474ff2fd4cb5a53",
+        "id": "e48bcf13ae73297ce937276168218a79639cb7194cc9601eb5d35506d375b813",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "4fa0cfb3c8d9ca91872fe2278d7338b5ee3814a6c4d3281981f6f58e06cbb49f",
+        "id": "370c0bf4d34da9bcded855af63f9fb161395a388dc942dea5c914962c0a979bb",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e961f14e2361321bb2800bd573ac86945c3fb2e4bc9c05bb0de23e04d17136df",
+        "id": "9bfc48c1cd09a80b98c50b143f38e2a543dd72be459f8f9c40f8c0e393875fd6",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "54e528e44a595c6a99f002a22166c836407bf5515c9cb495d61e87a5b56576ef",
+        "id": "a3b8790da66e29c2362d7b304cf7a756deeda69ef3717a1c8ed1009990b88212",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c9dc80b5193a869cfd5d50399425a9f1ba6dca3d58a27694e5d6d9982c019875",
+        "id": "a17db1881b997bfe08f72e605370e1e314995e24a2c8985c12330e9b2b03f2cb",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6af4aa1ae20a2f3e025f26303433f851333b49342a873d21db7611f50accadea",
+        "id": "bab2c67bd3fbbd0f7f28c1c0a63f7d85bced6ab05399b0011da168fccfde73a3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3acfb0b89eb08578da23c6c9a4f0114b83c5bd12a2c58741814970dfe2bc50ea",
+        "id": "3104a0942da92f9133344d556f8220c292c6e606780450b32d150817869ca81a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "48fab4b61ba8c98338f8307588ce0485dfe7766a29d3289966fcf094fddde538",
+        "id": "974ae85c4dff262954d59e4e91e60aada7dd0c08b695ed1a7c4a8199f0f001e7",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1e2e003cf614f0267dca5ade86d0f63b75347d3b89bd292490069f358013382a",
+        "id": "ec65697147aa800d8dbd7f0ab2e3d0caff912e136e5b80747933ab468eb1b8d5",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d65f896d1d1635427d8581ec073319171d4cb36a578d1602e8be071bfaa2c735",
+        "id": "0a38cacbc5459d4b8ff120b5ac935a628c3f28fbfa07808cc6f8ae48640dc903",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d454f83be0cb8b44a906c2e64f34d42c4bfc253486e76e3b2b332e60ec358195",
+        "id": "932787fc9067144f0748d85f1e72bde23c9153747f9d7e4c44d273631dfada2a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cc55a2eb8eb57c53ec77250fa41cf49a0ac105f40cdaa1d50c38fc983fc1f8b2",
+        "id": "2a5783432342c1078efc550c4d1615c3cd2f5eed0a4bebf8df6a8f9f422ee5e5",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2bec276776dcdb25818f7f1746442689e6e5a40927b8ea0be69293fc764c596e",
+        "id": "1942151683a3f0dddeef9da7d0cb017c6fea9f0f0c4db46fd7fcbcffb7e6940c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "54f3df7be3831ca02c334faa61a92389d6c3021e9799344cff35f3077bc91698",
+        "id": "e36e1d4a21004379f26d17b86523f3253430a773113d95ccd0ccd392ab153003",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "554c48b794a1c90a14a2bc805b311e5df3492d7a734e3f9074647bd9b2f80bcd",
+        "id": "ade87da487a448bb5df61e2d9ed7be0c697b3730f7ccd2270940cb65e8c935ba",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6324820872dba602116e5f1570df3c7cb3508897321fd6376bc028742fac78ac",
+        "id": "1041a490e61975788b498e9614e544b4edc3e5862d7874e5dbffcb8a4e5ccf81",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "693261561671385f5f2ec40127e69625dbfe5a1beb8510b5d1b601cc9effc80a",
+        "id": "a5479c3bcac5e08f60ce37b2539c017a156fdabcca098cd724fbc7f2c73ed275",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "92fba3a30c037228e2e49c844e31921014c3f3d1babf2288a06798eca60698d9",
+        "id": "afa221068c5bf681853135c6928a10b374055b5c1ce33fef1f9c0c466ca011d6",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "caea697fe8161342e1149662b09312d6db716ea2909fa0d070b407d8ec347032",
+        "id": "e6e7ddb616241c560873b1267356dae729297550158ce300f78bfc4c37510a4e",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "137da52825a67bc3943be4b0a8adf45829750bc7c8b32818133997551e158a50",
+        "id": "7ecfcb94bd3f79405b95a606ed4c2ff9fc8796826db284be4ca074ab42949a75",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d2eaa20c150a874545423ed246a946c7885f3279cfa127e0a7bf8f4b1876c55b",
+        "id": "1bf6ed22bc8d369cf3b8cb834f8a334c04592dbc8c93a85aedb8469fcf77c2cf",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "874b09cf3891ea4caa5ff96506f090b911dd30a021d1d5da5edd84a266bf5d87",
+        "id": "0f5ed5034472e7c03ff4d0576056bbaf5819f631193a8c27d6b41de376303e02",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fd358f582155f2fccd857ef0628100769f5e6737c4688b80c778f346bb1b288c",
+        "id": "6d3647d39506fdb8aa571f346b06b6f0b124b5354d634a108ab9b71ee4ec5be5",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "50d4e1007b574bd54cc0921f2084c7d17a332553e2010c0530ad8cee823b4178",
+        "id": "727507cafcefa161cf967851538bc586648bf7e042efdbc08d06508d4e1642da",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "562ccd1faf85661496a6a8736ec2cfe35e6b45a50462e3c32602fde4ecc43156",
+        "id": "11a469829b5e9a52a66a2d94efd70d8b25b3585d7830b7caff89249c2fed5d3f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "73f101b2953a63f939d4bcefb947243d618861a65e37574edef3550070335302",
+        "id": "46ece6d5d977512aa6c8ae82b89a60aa8bf83cb28e2208e6af5a69e6c06fa4f4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8a52885809b819ea89e1a078a55293d78d6d35786662953e3ccdd46d5fe7f17d",
+        "id": "1982d83f61d95741a470a65e9df978ad8df5ecabf0752732c8613f421586a075",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2db5a2c52fe944100e78665bc0d90984aa87ae6e78c4ff505f1162f83da7b211",
+        "id": "8d7660f58bfad54a0fb056428e16c80904f03495f057f37c4d53bd9b9475953f",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6f9b6aa1dccf646f69a463baa1a15f1fd4ee599e57a7133d74be7331a70065e6",
+        "id": "14ede45012d7c7c09cb4a0eb6987ee5802f603cc5f117f12d70f14cd5ee3e07d",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1fe4d818c8e667a54bbad2816a52c47df07b7109ab4c3da241a346eb81c7cc6d",
+        "id": "34fe018b1055091d98e6c70c02a6fd7cdae2da90b2dc73a5bb0222a54951d9be",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "6e7577d833ec0fa95aa1d70c8d938a04118dcdbb98363a0fe7350403fbb81bec",
+        "id": "3dde94b07bc91db38d1a7ab9b11e5c6d24d06676de695b308e0b60c70c865e01",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "441329da7536d4c80d46d86bb04139270e7bc94442e966b9da6170c6f3a5a503",
+        "id": "0cee90085cef81bfdde31c9be3a1b846b2aea4897095a0d26b61404e3d8197c0",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "92602c060a9fcb6d2b7663b79ad5b2f9992238fd5fc724c239df7bd094f3e9fc",
+        "id": "3c0e5fce6d3166236080a00759fcdc9087d84efb6e799426c73735319478e0f9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e1acb2dc4136d753805f4f316c0f48af9e64d2a938145d3c991a3b837eabf118",
+        "id": "adcffcfd105ec40a689039f3003a6d3fd2e0d9894638baf17270c1ab3aa22fec",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "a4760b5d8fa6b4c110f9b76b4b956036f26daa0996b2d1e12f02f515ff33c1a1",
+        "id": "60eae4943a42a808e03c6764bef5acdfd214a7d24a1b8418d7ff9937ef7e9b73",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "aef3daef5f5f447a716e73e8eb1fcf1aadd7d1909d475ede83179cac6fd9b975",
+        "id": "e9840d1a89e8e89dc797c1f32fc0f6f497ecc37b9cfc51c44253ee7ea463fd0b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f1c7708d8c7ab6aa1e4e8fe3605e7d81c9855a7948b4f801a53d836e2608f46b",
+        "id": "1c76fd2efa67313fafe5cc9207cd357e238cbaf15cc816e7495846697fd6f024",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9093243a66bed1bba96c69fd7d77b629fca264fa372dcfbb04a0ce60299da807",
+        "id": "383dff3e06769b3b26bd302e3d6d1ae7081906b9caf9e5b85f192c94840ed769",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c34fda68e5292691a70f95a7c91a502549b32e4e6f251ab45f6c42951285d8c2",
+        "id": "88d90d6fb40bcacdaf17d4379b6099caf4b10091903a1c7d48dabf22eb26e5f7",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9468e853336179ebd83348f7ea415f7cd71efc98f379d540e854b32b07f5e0a3",
+        "id": "c89692b5a31e553071e225e0c399a98e07ee1cb84858194026e64f7004c4e27b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "35c22a555161cabb9a8537e7eafb7a729c0cbe84b5ccdb847cfbd2f928deed44",
+        "id": "4edc15e4d87e563b1d5f9401dbd5608cb83a454aba46a8cda47cb8623796965c",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "b664843b5ce579a826ebfa5664e58acc80149965831eda012191679485f7c745",
+        "id": "4a28b54f212880f62d5013cc51c8207c889a5a37c7634cbb3895b7df735e1879",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "3e1b94d7b1fb372f3d75e972934ade37ffb44fb70c2adfeee83130ebab1c92bb",
+        "id": "6557d74be209b083590527b07c6921f4605b367a9b7aa3a9702632e6128080ce",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "93bd6e4767f7d32f86ae521cd37535acfc42501a71c3f0ff9e26986027442ea1",
+        "id": "28b132afde530f9e0ae3dad403bfa0bee8ed91550462eb9e691810d308c42718",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "d818f6d2d03facb6c18c1a0313fd9b3e6a0893a304a348d837dfc77a16f828ae",
+        "id": "aa5f09816cba36ce537930ea925369185dc6978873e17725c0c818ed7b03f3de",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "088b1e446bad6b9e093085af3416b8c979eebc74698cf8e357807d311c04afca",
+        "id": "b68ab8b2c3a02edcf2cc4a77df371d3f489c5cec3407ac9c845391240c3a6ccf",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "1245353c64a639348ada3cd72f6915f76763f341a46d1557fae5290c30417aeb",
+        "id": "e271bc0ef7c9e1aab0fe785f4588853eaa1dd7067eec59823df9ce8cf6afe698",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "f35db45cbad68d83a25d00ad8c8b79ca77268b4c47aaa7ac922258438e2a070c",
+        "id": "439df5f8a85ad54a3f10c8cf99d654e6262c8c42d9ad0d64b65362d4b205a4cd",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9400a81823e3e8c0fc1cf4af46251a3ea3a4edfbe0cdd54d3d8793f81e638519",
+        "id": "350459466d34561bf79a57bf5f10088eafe58333b8e5bc871a0120dadda2e9de",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "03954d503f773a0dde7eae77189f853d7bc5688952b391c9f19da2dd8d3990ed",
+        "id": "a33cc59e2a5d196d83ef7033c69043758bf8568d3af091c063cc12d2150918ca",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "cf6baf215eef513caf92944bb12fd87234687506d52ec7095d307cd3e938d702",
+        "id": "d493840415ae17093f8897af072b7a1afbdcd985b687a852f808eac9193864af",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "e36712f96be2a780bd52f5077df559fcade6e49303ff1069314f50cb3e443035",
+        "id": "61b0930758c6b560a214c43ba5c8714d9a4daea377d89adea8266b18d7809856",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9cebc45e445a8a1bc45188b4239cee4a37907d0a842843b4b24a09ce232691ef",
+        "id": "220ba58b148d403afbb7de3c0bbe3e0a7228b425798ae5764ba0712970e4feb9",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "fa80a18757687dedaa130ed030f3e439d07faf564a90c1aad54ee590c8a1cda1",
+        "id": "67e360f3f2636883f339d7d4211566d8efced7e873c13431914f070c814305f6",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "9d6121818c8cbcf525a9b7b26475f722a50a361b9851b52dc0d1d5c8610e7182",
+        "id": "6434417784c070ffbb145c376687f9761ef071bcdb25a94017ff2a2c42b50f4a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "62caae454476914ad022ad2c6a13fdd1a145edce34d51f02768754bb357b01ec",
+        "id": "441f48607145e3aee1ad20b3421370c496e748a8b36b7c9ccfeaf535fe08e6a0",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "0ca7d0c6d6ca7696d170635af47989ac821ca044c6a2090340e1e0e3e15886d0",
+        "id": "e409993369abb57c4b56db5fbb5eae42acc3769085d808f64429e102347ad3ce",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7ce582e4719f6684c87c635944004ee7c76f84baebd41b8deb56c100efd27232",
+        "id": "1098ba21e0458e4b09c89dc0231c60d04060f7afc54e980168c9b514ad7771df",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "49cc2c8ddcc600164263038148b1b02b62bf8e510b45aad8d1540b329de27d28",
+        "id": "d6bd1d886f5f9ea16a6ce1d7275a5ea15e5c8b9a5323e120dfe159f4db198b34",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "de5dfce92f1986dd01985f68259e329e4e3380220babe2ba4640ffbc3d8bb597",
+        "id": "ef0938e83d32240be44f2eacd516a602ca3ccf5743f35aeed2819a19f69b5066",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "55b91c17c7e1d71b709aaa752f499d7a83db8bd906e28d88e9b5317aba052925",
+        "id": "fb0aab3ef01aac4d6f06d8ab52c010d62b9e02d0f8dc705a9ee43ff9e8ed11d3",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "47f658c9bfcdde0d7f4775a6db03e2caf194cc28258e4b5a719c7656903b0880",
+        "id": "ac6da12c8c07b9945a6d95e9003d5d7ad15e7c3768ed7e39ea29c6d6cf83f2eb",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "ad34066d3a3581f4e071021349362f1a94bb461ad13c194d4cdefda9cf85002f",
+        "id": "a48289c34cfd1ecf3ef1f4cd2295cee5f5c0047d2f90d32998f42fe7a1747290",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "63bc52f74b54e3edbea90628a462d8dc5ca58400027e8d8ccea279974be486da",
+        "id": "b75f7a44a3e8acc02b445a9e1fbe076af5da4aca0e7ed75fab8b510a9517217b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "15f285e344129fdc3089eaafc9bdcfdd43face202943d8c1ddcc1e345317c4f5",
+        "id": "d97e06a2b9de33c36d077d81f0cf2801975f9584a3803117c9f97bf5b6a508e4",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8d8fb0ab747a04d25077b9e7d2c5ec4f27d3c6f83e008d914efc64072114bcc3",
+        "id": "ef0623578babff44153e612a0ed74f65a9b0ad3465934363ab283c6c9f3e2d80",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "2bd1e7cb05b7c93e49aef2907a902ac7fe289ff6749bdf0f69a9bcf1dcfa6f70",
+        "id": "aaad709aab7add043dc77e900036d80349d82762ca31b8ff1a97c347abef716a",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "7ad5b01601cc7cc264c44f221e43d65f902fb396d81c1596c6c263a0fb1830b0",
+        "id": "8b78793b463b77053465e1942b305419ee694f1b315bdd248c0f7fa519e886c8",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "8df18b87f59a6dd7e3591ad8c332713791e2ccb9f42f1bb90f5357180c5b5309",
+        "id": "733bcb8b5a240612b8437e7603adfb9fde861152b0ab0fa80f11ef54fcc36b7b",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       },
       {
-        "id": "c9f48ff55e1757f1c35c86a9fd3a2db47c0ace93e9f9192e3442a10c6b7e499f",
+        "id": "579c2db7387c1d6717c7e2747c838e0df9f01fa6c1101d519c49991abdb9c312",
         "classification": "declaration",
         "owner": "ThemeStyle",
         "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
@@ -87830,6 +87884,9 @@
         "declaration": "hub/config/theme_style.py",
         "consumers": [
           "hub/config/theme.py",
+          "hub/ui/output/images.py",
+          "hub/ui/output/markdown.py",
+          "hub/ui/output/registry.py",
           "hub/ui/settings/pages.py",
           "hub/widget/actions.py",
           "hub/widget/auxiliary.py",
@@ -87851,6 +87908,7 @@
           "tests/hub/test_auxiliary.py",
           "tests/hub/test_chrome.py",
           "tests/hub/test_coding_skill.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_component_managers.py",
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
@@ -87863,6 +87921,7 @@
           "tests/hub/test_mouse_widgets.py",
           "tests/hub/test_notifications.py",
           "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
           "tests/hub/test_page_layout.py",
           "tests/hub/test_presets_widgets.py",
           "tests/hub/test_preview.py",
@@ -87873,6 +87932,7 @@
           "tests/hub/test_render_intervals.py",
           "tests/hub/test_render_pipeline.py",
           "tests/hub/test_request_history.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_settings.py",
           "tests/hub/test_settings_editor.py",
           "tests/hub/test_settings_json.py",
@@ -103903,8 +103963,8 @@
   },
   {
     "path": "hub/widget/focus_region.py",
-    "sha256": "7ebbcd3d54e8265fa35c8bab3d99f8d8b16fe18a3b9f780f733644137089ecf0",
-    "reason": "Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged.",
+    "sha256": "1dd51066e483e14e184fa3e478e464020b5a470eaa716d1cbe6fef4c892d84fb",
+    "reason": "Hub mouse metadata has one Writer/Reader Owner across PTK app/window/control producers and consumers. Controls and focus tint reuse canonical keys/styles/theme color declarations; original raw observations, aliases, callbacks, focusability and event order remain unchanged. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -103944,61 +104004,19 @@
         "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
       },
       {
-        "id": "d4ad3fd3093a54f86b6b6b318e98006cc7ce3680ef6f38bcaf41adf8224893c4",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "cf44389ab89190c115f779fcf1a735f3ac537bd8c90dd91e539b2e3fbebcb2c2",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "fa86732b8123d9ace56ccb061ee71a46f05f3495e7eb312c2fc20263aef4ccb6",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "a0e90ceda13d1652c60a3b5b30733c84b720234da76ea58ef40ce0cb2bf56d83",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "041bda40fbacd78e73d11ffcb6827b6806826e210f58516a54ce28681f48d1e3",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "9491d9e6a65a4e95d1de9af754da46e26f39d2e2f1a8d910c3a5b0f0fd72f945",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "5a7f1becc263d6ee7d20a975cc7116dd7619a8d825126042fb5201e079f5d5ef",
-        "classification": "declaration",
-        "owner": "RegionTint",
-        "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
-      },
-      {
-        "id": "c672c74536f46afd8251ce92cc9485ede610f3709243531583db2f33996755a2",
+        "id": "a69d846f7fda76c1c5946800a3a81217e770faee5494138f0c4fd1c728b460db",
         "classification": "declaration",
         "owner": "FocusRegion",
         "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
       },
       {
-        "id": "abf2991096a888fb835b281a310f7eb33a4f74a81e3f8db7aae41edb2170d43f",
+        "id": "3a41e6f28157f6d0757d266de4abb823e28ac852e9ddfa96daf613b8226e0341",
         "classification": "declaration",
         "owner": "FocusRegion",
         "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
       },
       {
-        "id": "385eb441d867653b02ef0cefb6196f5b3728bfd10da60e464ee0f46483a4e5ce",
+        "id": "702154349f3e5278a1fb892ccd07eacf7c75c13e074f4415e6846346c2c35e59",
         "classification": "declaration",
         "owner": "FocusRegion",
         "reason": "Original cached resolved PTK color desaturation and inactive overlay, attribute preservation and layer ordering. Canonical Theme color/channel/luminance and selector declarations are reused; raw resolved RGB offsets account for the absent hex prefix."
@@ -104009,27 +104027,36 @@
         "owner": "RegionTint / FocusRegion",
         "declaration": "hub/widget/focus_region.py",
         "consumers": [
-          "hub/widget/profile.py",
+          "hub/ui/output/images.py",
+          "hub/ui/output/markdown.py",
+          "hub/ui/output/registry.py",
+          "hub/ui/view.py",
           "hub/widget/forms/settings.py",
-          "hub/ui/view.py"
+          "hub/widget/profile.py"
         ],
         "tests": [
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_mouse_widgets.py",
-          "tests/hub/test_input_contract.py",
           "tests/hub/test_auxiliary.py",
-          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_completion_display.py",
           "tests/hub/test_component_managers.py",
-          "tests/hub/test_page_layout.py",
-          "tests/hub/test_settings_viewport.py",
           "tests/hub/test_engine_output.py",
-          "tests/hub/test_output_interaction.py"
+          "tests/hub/test_input_contract.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_page_layout.py",
+          "tests/hub/test_presets_widgets.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_settings_viewport.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -106021,8 +106048,8 @@
   },
   {
     "path": "hub/ui/output/model.py",
-    "sha256": "cd4b9660a7df76efcacf4bdfc8e9629d3c5e12802545f92e6532655838afc66e",
-    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order.",
+    "sha256": "d2d08bf5d6d1745808f9de03c9262ff343292788c3899a97fb66ee9f925997fc",
+    "reason": "Markdown grammar and visible token kinds are shared across actual parser/table/code consumers. Typed display attribute fields supply both Writer pairs and permissive Reader defaults. Table/Chart Owners retain source/count/value validation; structured table rendering reuses already parsed JSON with identical source checks and validation order. Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -106128,103 +106155,103 @@
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "6829313455096442e025b911abfb32df4fe4194edc6ab8040d2179e865aa6053",
+        "id": "9d19cac972533029093531ebf9547aa8898af4905336a4c2888c183b166a3753",
         "classification": "non_contract",
         "owner": "CodeAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "dff08a9e1c0c45dd622f5107a3be5ef153ebcec1d3f93c9f2efe8a9fcaa5de7e",
+        "id": "769b63644310043f09db388de68e5cc1b55b44ede63de6edcde40297aaa12c80",
         "classification": "non_contract",
         "owner": "CodeAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "04c04bfc22821576461aab96044e3d51d6dd0ac1c995efce1ff63235faac958d",
+        "id": "a6beda5cd1b157b3fd1cab189a7622d472d3ff0ec0b330ea614c0ad2b04c5b5f",
         "classification": "declaration",
         "owner": "CodeAttributes",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "72aa9d8fd09f1d3b77515f35da556920a9794166a481f884f5a86bd1d4b90249",
+        "id": "8df5cdcabbbf42607ceba83151c6582f7060392452005399d12eee8c49f0e706",
         "classification": "non_contract",
         "owner": "TitleAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "e5e9a9104f8a629418be5f950e709bf182155a01141bde33b579aebe54002ff5",
+        "id": "12b715bd960afc49ac7f904539c42a5b076e2f96a01bf74c076104e5022a1c64",
         "classification": "non_contract",
         "owner": "TitleAttributes",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "cd67e957da7706712cdf0ac90ddc6f6baca24b2a334158a7c5c2fb523cc66888",
+        "id": "7731e2dd6be5ad6b410911514833b8dac5d92275b17726236c316e1d296105ee",
         "classification": "declaration",
         "owner": "TitleAttributes",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "ce20fdab178c1819309aea74db5edec1f281d0521d3d5ca09d2ef3ddd95ae46a",
+        "id": "eb6f1e3cb89c1eb450d423d97a962f41b0d9829cb85b6576a4fb8f2414f687e4",
         "classification": "non_contract",
         "owner": "OutputObject",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "07518122990130e1a3edc6fb1e7de91a9b77cea68a2ed7662e14b16477f732f5",
+        "id": "3930f71a5ebb14ce2706c6a5afd860eb85ee5faded74e371479459261baa57ff",
         "classification": "non_contract",
         "owner": "OutputObject",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "696cac4a289bef18951df6facc6bf7aa377e376b4c3c3b343af86d6c58bf4c8c",
+        "id": "1ad4b765d5d42cef67e6437eab9b8b8a0a6e284cef90dd8d729962cb835f171a",
         "classification": "declaration",
         "owner": "OutputObject",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "2b4bba68434ee428f6cbac2c37048c1c36dad2435c68a5f2aba4651e5aa0a90e",
+        "id": "95bf5a86656c91195399b0367a8f30a075bd7ff41d096a4c5de16e55c76ed039",
         "classification": "declaration",
         "owner": "OutputObject",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "5d5549aba78eace61531835aca4a531f521700ced64d225cc09fcf8e1b0254e7",
+        "id": "3cbced0d665b7be57708236d0c660a88bead37e5d0cd1e6a3ee45da77c5b2c51",
         "classification": "declaration",
         "owner": "OutputObject",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "7dc625520ec3368eeaaf282655ea4d82b0e6b607bf64533699c00e3c13a3d866",
-        "classification": "non_contract",
-        "owner": "RenderContext",
-        "reason": "Dataclass immutability/slots layout."
-      },
-      {
-        "id": "2b85dfc849e8638ae8e048c6e1d0ffef0b986ba4dfe788f5a36299ce6fd1877a",
+        "id": "fcb908cf3828062af335e71924ac16307514a70efbe255d77a2a16fe7dca0f8d",
         "classification": "non_contract",
         "owner": "RenderContext",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "db53dc5872effc2c873149e80fcccfcfd94a7a897c26d7178a4b14112e6a90b4",
+        "id": "0185f0be1bc8a3ac51c8bfab60a4ce760e94be7edfac93b43fd616b8562fefb6",
+        "classification": "non_contract",
+        "owner": "RenderContext",
+        "reason": "Dataclass immutability/slots layout."
+      },
+      {
+        "id": "2aea354f2248a02ee5315eafd7328622638c7821066f9620f68f2045475c9c2a",
         "classification": "declaration",
         "owner": "RenderContext",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
       },
       {
-        "id": "89751e6d044baac4233ba46db31be6c3b1bb97113f654c681b4ed670ad6f6cbe",
+        "id": "3fbe638467e97f96ca858aee36c6909ec1dac9ca2806d1aaf399169516224cd7",
         "classification": "non_contract",
         "owner": "OutputUIContext",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "f5ea8e0d16437f5ffd8096656295fa5d03306de0b9963d85c0fcee6660d40a18",
+        "id": "bedbf9d0853564e4cf5999bc766406359d04e949e0fb77ba6919f147e14db321",
         "classification": "non_contract",
         "owner": "OutputUIContext",
         "reason": "Dataclass immutability/slots layout."
       },
       {
-        "id": "6db4d04d433362bc59f7447be874e893c0fd4dbb8822700afc605f7f89d72933",
+        "id": "52f1f49fab1a2c788985c8d57b08b65d5d8ea7d07d5229796add571cf1476266",
         "classification": "declaration",
         "owner": "OutputUIContext",
         "reason": "Canonical output kind/tag/encoding and typed output/context/display fields. Fields drive display projection and preserve explicit values; RenderContext/OutputUIContext carry display capabilities without Backend execution authority."
@@ -106235,12 +106262,163 @@
         "owner": "OutputBlock / DisplayAttributes / CodeAttributes / TitleAttributes / OutputObject / RenderContext / OutputUIContext",
         "declaration": "hub/ui/output/model.py",
         "consumers": [
-          "hub/ui/output/parser.py",
-          "hub/ui/output/structured.py",
           "hub/ui/output/images.py",
-          "hub/widget/transcript/message_cache.py",
-          "hub/widget/transcript/conversation.py",
+          "hub/ui/output/markdown.py",
+          "hub/ui/output/parser.py",
+          "hub/ui/output/registry.py",
+          "hub/ui/output/structured.py",
+          "hub/widget/output/loop.py",
           "hub/widget/output/output_viewport.py",
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py"
+        ],
+        "tests": [
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_render_intervals.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/registry.py",
+    "sha256": "756b63c958e3b3a5102ba75abd1cccab778ed2be2f91f1a4bea9a11ca818c094",
+    "reason": "Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4ce5ec62f7732f8dd7f58b7ae12cde2e0a35a52b490a7539a54ca8d6bfca3cff",
+        "classification": "declaration",
+        "owner": "LiteralText",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "708acffa0904aa1323ad81eff7f4134139c7d4ab6a4dae449863edc4946521a8",
+        "classification": "declaration",
+        "owner": "LiteralText",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "7e0a44b7a48df58727efdee8f7b8ce04e0a3201848373ef7a74149af9e2c00bb",
+        "classification": "declaration",
+        "owner": "LiteralText",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "61c44b932eb7e8d2472f522e1e808b34df030b6b3a73e71a733550705ace3030",
+        "classification": "declaration",
+        "owner": "LiteralText",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "7f295d74a72e1a55363038cf53d71779ffe98f6a58312fc208723c9b24de4654",
+        "classification": "non_contract",
+        "owner": "literal_lines",
+        "reason": "Initial character-width accumulator."
+      },
+      {
+        "id": "e28bb30f3ee52d4cf7b41fe6c545d85f65791c8bf66d2f09db5b17325c7651d8",
+        "classification": "non_contract",
+        "owner": "literal_lines",
+        "reason": "Reset character-width accumulator after flushing a row."
+      },
+      {
+        "id": "efbbe40f6a08c9f88d213c5d59378def446a8527a85f6ff9d72f61b77f3a9970",
+        "classification": "non_contract",
+        "owner": "OutputRenderer.render",
+        "reason": "Protocol method body."
+      },
+      {
+        "id": "e6e7f6325b90461bd75ce05a360889b1cc874ba23c601a8e08b387b03b72a83e",
+        "classification": "declaration",
+        "owner": "RendererCapabilities",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "f0b45e5b03274c54468e11bda9970e02ced6ae186587ad88475bd529f0406019",
+        "classification": "declaration",
+        "owner": "RendererCapabilities",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "e2a2b19d8202c89fa44a349be2234aa6b32b64c30555af56c81072201b78d3c6",
+        "classification": "declaration",
+        "owner": "RendererCapabilities",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "4ad748133ef025a8dda90802faa26bf00b8199d03f1795445ea1c7959477e880",
+        "classification": "declaration",
+        "owner": "RendererCapabilities",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "0859fb4c07906c8eb2ca1895e76223c1202f67bbec4effa9db7352ab8d53c2ff",
+        "classification": "declaration",
+        "owner": "RendererCapabilities",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "0d62287c0588e98a83999da8d3de59c762edf74bb3d44a1b7e3f7b263c5b6940",
+        "classification": "declaration",
+        "owner": "RendererRegistry",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "17a8340035be703d2918fa00af75aab99f439aaceb55a7b9efb82b9428a0ff41",
+        "classification": "declaration",
+        "owner": "RendererRegistry",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "2ccb6a664a1b2e905d948828b2e8f64a2b306b06a98d05b65bee7c50b884d7d8",
+        "classification": "declaration",
+        "owner": "RendererRegistry",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "9f498eee40e2367daa378ea212edfcc470b9e229ff201f3bbdc08cf037e45bad",
+        "classification": "declaration",
+        "owner": "RendererRegistry",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "e7c3b0ffc2217a782706690537634f35013f325743d8d33237b187e05587e316",
+        "classification": "declaration",
+        "owner": "RendererRegistry",
+        "reason": "Original literal wrapping, registered renderer kinds/version/error messages and optional revision/block_revision/close protocol observation. Missing defaults and explicit None/falsey remain distinct; tags never identify importable classes."
+      },
+      {
+        "id": "e009644e5701bb237ce7d89406c7651471d46a0ed32f7ad4d9c9f212e081da57",
+        "classification": "non_contract",
+        "owner": "RendererRegistry.register",
+        "reason": "Return annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "LiteralText / OutputRenderer / RendererCapabilities / RendererRegistry",
+        "declaration": "hub/ui/output/registry.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py",
+          "hub/ui/output/images.py",
           "hub/widget/output/loop.py"
         ],
         "tests": [
@@ -106254,11 +106432,487 @@
           "tests/hub/test_output.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_render_pipeline.py",
-          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_auxiliary.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_question_card.py",
+          "tests/hub/test_responsiveness.py",
           "tests/hub/test_completion_display.py",
-          "tests/hub/test_stream_output.py"
+          "tests/hub/test_render_intervals.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/markdown.py",
+    "sha256": "3004faee43344c24541432d334d3245aa685ecf029c64ebbae59a913462ce2c0",
+    "reason": "Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0d5eecafb689ab5763a35f35655f14e57ce08a21c1aa18758f1ac248d92abded",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "e89431b3d245781369b59aa7d6cd89ea4a18acebdf278294d53c96088a1bf4f9",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "ea2d4cd546fca2638fbf4eff365e881026e2159d4254e031b5e48d6943edd8aa",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "365c93820574e76660592ccf263dd717d35372b5ae911628bdeaabcefdfda5ce",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "ee1b96fc4c0172c7e301d85ff6c3eb256448748f74311e87fdfb7bb5abf4a6a6",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "5c5027f893f0bbeff72baa61aaefc1c6da33448394983571422fa1814efe3730",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "131404ad1715083170b9d9cc6cf432cf51c421a1f9ce0c46231ab1284a9280c7",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "479020bba492074eff556f51e7b6799af68b159b93563e1873218f24b1fa46de",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "99468e81cb7d6383f81f9d5514cf734ec2f4a11320d1c70033756bd9872b4ef6",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "cf76c7d107f949b6443c62f7a5bf007d37f1b7cae9c00ad7f4833269558c50aa",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "8493a600999966d3e9b59575ad7ca252e324cb9ae284a86ddfa4427cd86e793a",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "de86d67d0bd9ecc4b7d95403c83db51d3a4a18a507d49d115dfa2ea745249bd6",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "00cb026251a55417ae4acd8854a873c88339005edc20f1d861ef9e88bfad867f",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "4110d2bc7dbfbd185801d6957b3f2f95ca3fe12f292d2922d1460b4a9fae24fe",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "42add1c8c241ab18e147c43cfcae27fce338a0bf3c470c77a004d2fa0ff61600",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "b219eba43d4993088715cc39582f365438ed648b49e4ba59f24fa68e2b81147b",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "d8422c1044d77c5e9042dc23754a44319a7cbb884b486774eef4f556158f3e70",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "f670eeab66630e31dec00110e88274cf2c0a884e029d4ef0a3aa026974b95e5f",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "11bc19f4e152a0384f8947432a05b271f1c8a08bc579e6e6cfef91abc9f9f49d",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "2b69644ff28d568584944d38d0220cf3bff0997917eb6face11c889a526be0ee",
+        "classification": "declaration",
+        "owner": "RichMarkdownStyle",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "4c7163bd5d3176494b9bdcadd6fefacf949697f12cb152253a52ed9aa09c9430",
+        "classification": "non_contract",
+        "owner": "HubSyntaxTheme.__init__",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "1f6abd0daa3a815a9d0a33d812b4da7a702a87ab5405a392cb8d39613d8f7072",
+        "classification": "non_contract",
+        "owner": "HubMarkdown.__init__",
+        "reason": "Return annotation."
+      },
+      {
+        "id": "60d365e5318772cc5b46e276b293937a7e34987fb58072efd83a517d6d39adfc",
+        "classification": "non_contract",
+        "owner": "_segment_style",
+        "reason": "Optional type annotation."
+      },
+      {
+        "id": "eb35fad656834d07c2d9e0e35455c5e26445e6e57cfbe38785ac3d5283b19f58",
+        "classification": "non_contract",
+        "owner": "_trim_right",
+        "reason": "Python -1 inspects the final fragment."
+      },
+      {
+        "id": "f9775c2a0a6f293d21d1ebc252745e0910cde9745e991a8309e7b544fb39af75",
+        "classification": "non_contract",
+        "owner": "_trim_right",
+        "reason": "Python -1 replaces the same final fragment after trimming."
+      },
+      {
+        "id": "8aaee77f75efb5b9db275f46f4b9126b35227736e13c489e44d403fe155be9dc",
+        "classification": "declaration",
+        "owner": "MarkdownRenderer",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      },
+      {
+        "id": "a420b6d1fae7bb121ded12df844718f338dce017ed273881f12718d23524af09",
+        "classification": "declaration",
+        "owner": "MarkdownRenderer",
+        "reason": "Original Rich theme keys, local rule override, code/background preservation and cache/render options. Declarative property projections preserve exact getter order and concatenation errors; ThemeStyle/HubTheme/RichTerminal own shared terminal contracts."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RichMarkdownStyle / HubSyntaxTheme / HubHorizontalRule / HubMarkdown / MarkdownRenderer",
+        "declaration": "hub/ui/output/markdown.py",
+        "consumers": [
+          "hub/ui/output/registry.py",
+          "hub/ui/output/structured.py",
+          "hub/widget/output/text_viewport.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_render_intervals.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/output/images.py",
+    "sha256": "2e82258fc852ea09b384ee1b1d5eaafcd2ceb0e1607b8ecc4aecf886eb92b945",
+    "reason": "Rich/Markdown and AsciiMagic-to-PTK adapters own their wire/style contracts. Renderer capability observations preserve absent versus explicit values; typed image attributes/cache entries retain existing limits, generation checks and path containment. Theme and display attribute APIs are reused by all changed producers/consumers.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "f1965a23ca7fb554bc96474dda3217eafbf553124b5274fb6a704215e9d22b48",
+        "classification": "non_contract",
+        "owner": "ImageAttributes",
+        "reason": "Dataclass immutability."
+      },
+      {
+        "id": "1c0c4d5ae0469b7f7757ecb967ab1ae65f8725de38887d54642b748662fd517d",
+        "classification": "non_contract",
+        "owner": "ImageAttributes",
+        "reason": "Dataclass slots layout."
+      },
+      {
+        "id": "226519108ac0289d80c24f19ebefa9149402714118a787540a284cff92f6506e",
+        "classification": "declaration",
+        "owner": "ImageAttributes",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "2bbe31505415b1247d56e7d45827740a6b55a0534e4b5cc5022ee92a5ac2ee67",
+        "classification": "declaration",
+        "owner": "ImageAttributes",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "2fb7bbb78e822c51fd59a9eb2fe24c465280887311e52936bd16a26a288040b2",
+        "classification": "declaration",
+        "owner": "ImageAttributes",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "f02e9c863e936401cc1812ebef0a56033b46e8f189d70e70f744b8a8687d71e2",
+        "classification": "declaration",
+        "owner": "ImageAttributes",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "7204afc872d4dfc6e64109c0337759986a51a962ce651fa1ae21effcafe731fe",
+        "classification": "declaration",
+        "owner": "ImageSource",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "0f29ada515149e91b62c24dcbb20bd77f445eaddf3e5466318425477a2fc3aed",
+        "classification": "declaration",
+        "owner": "ImageSource",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "8d61a53db304f0ed0c8c77406c84c5e9c187e6f7ceeb45de6b0d4ef22cf7e3c2",
+        "classification": "declaration",
+        "owner": "AsciiMagicCell",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "ea79b925e359c4698095148a6a52c694fee6f5b3278a3098fc05f1b88f7978ca",
+        "classification": "declaration",
+        "owner": "AsciiMagicCell",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "489c9e72a8814556633e654ff54207e5d0ac034ea7e604a30274a18ad9c54d9c",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "83a0b10097aff76a778db44036dc67df068c2df39c131fe1361fc15b3eea530f",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "24025f842d07e15f92a19e4a91442449b13d86e5b9778d67bf16e77304b4fa22",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "b4deaf6725fd5c30c1953c58622e1d3006d329553292306f01e101d9ec72cc86",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "b5a107f618260ccbe6b70d52c5e4f5c7e7f798d7e9e5897b02debc07ccbce9bf",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "6716250c10950c304721cc8c5df1206c6c205bf0bbd4dde9ed882a21182e841f",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "8ce8364ac55e8348d4bcbab658711dbf94347e0c71279a786bbfbfdeef01508d",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "1a31b8d1190e0febd32dce4e14f3dd05b436bf2119fca4e128b725dac773a6dd",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "633bfa3d295465d84de8048a61163d492196ff3877846c8f25a50b4d3b4b970f",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "d845caff2dc34bb05824b367604c146604d9bdb4592750fb3205b1fff498dcb3",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "4ebf87630b2c1641d8c35888cb647053cca48a7caaf6dbb3e595af303a11d062",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "3720a6407ad11c486fcced8d1bb29a9f7b867c6d91c831ad647ad442eb38465a",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "ec81cdb592ecae4656f6065cabfb9e72864824d7f4c14709852d678ead6618bb",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "128d0571c94fa6ace9a02b01aea15676d1b62b02ab13fc572f030b1623435af3",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "31e1ad210e4182b9baeefebb5dbd9bf876603c14613dd3a8cd670c7b920ab49d",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "da495105bd6efcd63b9d373c913656cac77e9013c1dfb8b06c74d6be973be019",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "73d90fe3787eaffa7bf3966833e152583b93b2b593907158e0ac6df166517fd0",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "bb7e27b45311af0f61a6d06514c629089530d97385a7733f3347f02238f043c8",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "d8e031ab94c2620006eba3baab9e0b05a7480a6f2ff6668072498a6e173e1229",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "6438bcb95c4e794aaf9c933749b36504cba50a87c59aef8b4b21fcec600a28f5",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "3943d4111a6b634b8c5d4ebedac6511db0f00ca2eb59d6899f1a9c9e083ca7dd",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "894aabfc1d6d45de7b871f0c35d519c7300774d0af47413a0f4d93655561addb",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "1bf5b774e71febe199c80fdf9c0bb152dda5149472a6f9e4046f81c7ad46113b",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "bacbd0ff3415257348c835aea715c93bbf1032885667e9f4e71b0399bebf2536",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "d613149baa9ae486a95820421b26967330541b7e7c856dfeaa0af2f9c9a6efbe",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "34af13a99c5751ba484cc981faa42f937ca40e65ba20c0f30911c6ece315a7ac",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "007ddf18e978388f2a6e15bdf3351be181e2e82894a5781a25e85c52b4cfd8a0",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "53efe1328b041583260fb467566b32e20a4ad3e30377f03f085528b3fe79d873",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      },
+      {
+        "id": "8c5b1c6efabc1a97b764115d6369f7e722771e16acc77f47462c2897bcc9338c",
+        "classification": "declaration",
+        "owner": "ImageRenderer",
+        "reason": "Canonical src/alt field descriptors and required-image validation; artifact prefix; AsciiMagic SDK cell fields; typed cache key/result; unchanged root/file/pixel/cache/pending/thread/lifecycle/render limits and diagnostics. Both actual source observation and conversion use these Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ImageAttributes / ImageSource / AsciiMagicCell / ImageCacheKey / ImageResult / ImageRenderer",
+        "declaration": "hub/ui/output/images.py",
+        "consumers": [
+          "hub/widget/transcript/conversation.py",
+          "hub/widget/transcript/message_cache.py",
+          "hub/widget/output/output_viewport.py"
+        ],
+        "tests": [
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_output.py",
+          "tests/hub/test_output_interaction.py",
+          "tests/hub/test_render_pipeline.py",
+          "tests/hub/test_mouse_widgets.py",
+          "tests/hub/test_auxiliary.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_question_card.py",
+          "tests/hub/test_responsiveness.py",
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_render_intervals.py"
         ],
         "complete": true
       }

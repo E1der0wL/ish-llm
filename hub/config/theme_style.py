@@ -87,6 +87,16 @@ class ThemeSelector(StrEnum):
 
 class ThemeStyle:
     BOLD = "bold"
+    ITALIC = "italic"
+    UNDERLINE = "underline"
+    STRIKE = "strike"
+    REVERSE = "reverse"
+    BLINK = "blink"
+    HIDDEN = "hidden"
+    ATTRIBUTES = (BOLD, ITALIC, UNDERLINE, STRIKE, REVERSE, BLINK, HIDDEN)
+    NEGATED_ATTRIBUTE = "no"
+    FOREGROUND_PREFIX = "fg:"
+    BACKGROUND_PREFIX = "bg:"
     MODIFIER_SEPARATOR = " "
     CLASS_REFERENCE = "class:{selector}"
 

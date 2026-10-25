@@ -38,7 +38,10 @@ class DisplayAttributes:
 
     @classmethod
     def from_pairs(cls, pairs):
-        values = dict(pairs)
+        return cls.from_record(dict(pairs))
+
+    @classmethod
+    def from_record(cls, values):
         return cls(**{field.name: values[field.name] for field in fields(cls) if field.name in values})
 
     def to_pairs(self):

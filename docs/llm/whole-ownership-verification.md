@@ -9153,3 +9153,49 @@ Host d833790·고정 의존성·실제 Linux 환경이다. 정적 S1–S7 68개 
 유지하며 기존 테스트·Assertion은 변경하지 않았다. 승인·예산·효과·Checkpoint·저장 계약 변경이
 없는 UI 출력 Owner 이동이므로 Level 1·2를 적용했다. 후속 관련 출력 단계와 묶은 Level 3·정확한
 SHA 원격 CI가 필요하며 Gate52 결과를 이 변경의 통합 완료로 승계하지 않는다.
+
+
+## Hub Rich·렌더러·이미지 표시 Adapter
+
+registry.py·markdown.py·images.py 세 파일을 전수 정리했다. RendererCapabilities가 기존 optional
+revision/block_revision/close 관측을 소유하며 누락의 0/None과 명시 NULL/falsey를 구분한다.
+등록된 tag/factory만 실행하고 unknown 출력의 원문 fallback, 오류 시 읽기 가능한 Inspector,
+local Markdown hr override와 Rich theme/segment의 명시 code background 보존을 유지한다.
+RichMarkdownStyle의 선언형 property projection은 원래 getter 순서·횟수와 문자열 연결 오류를
+그대로 유지한다. ThemeStyle이 공통 typography·색상 접두사를 소유하고 FocusRegion도 연결했다.
+
+DisplayAttributes의 동일 필드 Reader를 from_record로 공유하여 ImageAttributes의 src/alt 검증과
+기존 Code/Title projection이 한 선언을 사용한다. ImageSource의 artifact prefix·lookup,
+AsciiMagicCell의 실제 SDK 필드→PTK fragment, ImageCacheKey/ImageResult의 임시 tuple을
+Owner로 이동했다. 원래 루트 resolve/탈출·URL 거부, 16 MiB·8백만 pixel·100열/40행·2.2비율,
+cache+pending 32·pending 4·worker 2, 명시 등록 artifact, generation/종료 후 오래된 결과 폐기를
+유지했다. 추가 파일 접근 권한·원격 이미지 획득·Backend 실행/재시도 정책을 만들지 않았다.
+
+실제 Rich/Markdown·style·확장 renderer·명시 누락/NULL/falsey·attribute projection·Theme getter
+89개와 이미지 25개 관측이 원본/변경안에서 일치했다. 이미지 비교는 실제 PIL/AsciiMagic 변환,
+URL/상위 경로/외부 대상 symlink/과대 bytes/pixels 거부와 명시 artifact를 포함한다. 실제 파일
+hash가 전후 동일했다. cache/late/close 비교의 Executor facade는 실제 thread 실행과 구분하며
+아래 기존 output/render pipeline 테스트가 실제 background 변환·thread·cancel을 검증한다.
+공유 세 파일의 새 선언/Reader를 확장하면 기존 실행 AST가 같다. 초기 비교 도구의 괄호 오류는
+수정하고 로그를 보존했다. 고정 명령/Hash·fixture 원본은 `hub-render-adapters-draft`에 보존한다.
+
+- `whole-hub-render-adapters-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.087982초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-render-adapters-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `6d4327a251c96aa15977f5c137f33d7695a64495a6c190da3e1f5ef9ee8e3884`, input `315a6a6ff248b824ebef2ce20e9fda00b285459b0847a769de3b648408c010af`.
+
+- `whole-hub-render-adapters-l1-01`: discovered/started/pass 29/29/29, exit 0, 3.919978초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-render-adapters-l1-01/hub.json --modules tests.hub.test_output tests.hub.test_output_interaction tests.hub.test_render_pipeline`. source `6d4327a251c96aa15977f5c137f33d7695a64495a6c190da3e1f5ef9ee8e3884`, input `315a6a6ff248b824ebef2ce20e9fda00b285459b0847a769de3b648408c010af`.
+
+- `whole-hub-render-adapters-l2-01`: discovered/started/pass 54/54/54, exit 0, 23.904423초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-render-adapters-l2-01/hub.json --modules tests.hub.test_mouse_widgets tests.hub.test_auxiliary tests.hub.test_engine_output tests.hub.test_question_card tests.hub.test_responsiveness tests.hub.test_completion_display tests.hub.test_render_intervals`. source `6d4327a251c96aa15977f5c137f33d7695a64495a6c190da3e1f5ef9ee8e3884`, input `315a6a6ff248b824ebef2ce20e9fda00b285459b0847a769de3b648408c010af`.
+
+ImageRenderer의 worker 2가 정규 선언으로 이동해 사라진 기존 S3 finding 한 개만 fixture에서 제거했다.
+원문은 static-removed.json과 이전 커밋에 보존하며 나머지 67개 발견/검토 ID와 필수 검사 규칙은 같다.
+공통 안전성 84개·R3 Mutation, 실제 output/output interaction/render pipeline 및 mouse·auxiliary·
+engine output·question card·responsiveness·completion display·render interval을 검증했다.
+모든 suite의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0, source/input 전후·사이 동일성을 확인했다. argv/exit는
+`hub-render-adapters-draft/selected-results.json`, 비교 명령은 proof-commands.json에 보존한다.
+Python 3.12.14/Clang, Host d833790·고정 의존성·실제 Linux 환경이다. 정적 S1–S7 발견/검토 집합과
+감사·문서 검사를 유지하며 기존 테스트·실제 외부 효과/안전성 Assertion은 변경하지 않았다.
+
+표시 경계의 동일 이동으로 Level 1·2를 적용했다. InputWidgets·MouseWidgets·ResponseWidgets·
+RenderSurfaces·OutputGrammar와 이 변경을 묶은 다음 Level 3 전체 회귀·정확한 SHA 원격 CI가
+통합 완료 조건이다. Gate52를 이 변경의 증거로 승계하지 않는다. 기존 미완료 공유 계약 표시는
+유지하며 남은 Hub 전수 작업을 계속한다.
