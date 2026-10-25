@@ -40007,8 +40007,8 @@
   },
   {
     "path": "llm/core/agents.py",
-    "sha256": "f5be2f1f3db865f05fb12cc56af24dcccc90729906b1c925c214b1e5cb2fe1ad",
-    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history.",
+    "sha256": "6d9d489c0074e573f411cb2390ac38238733942e208063f44739ee38146dc73e",
+    "reason": "Read complete definition Schema/validation/revision/mode selection and Record/Catalog/Binding Writer/Reader/update guard. Canonical names are declared and Schema exports unchanged plain strings, preserving exact diagnostics and ordering. Resource categories remain local Agent inputs, schema references local-only, no default definition/authorization added. Records require every current field with exact integer version and recomputed identity/revision; catalog is immutable and requires a manifest. Admission binding remains separate from execution and current definition, optional request context remains explicit, and Run evidence cannot change. Whole-file candidate/dynamic review is complete, but raw definition consumers in Engine/lifecycle/Hub still need migration and that contract remains explicitly incomplete. Agent resource/profile review: added canonical capability identity or validated detached AgentProfile/Policy/ResourceSelection projection, retaining exact original Schema/Reader/revision and stored omission/null/explicit values. Prompt/Skill capability declarations now originate in their pure record Owner and Component names refer to it. ToolPolicyValues declares the same None unrestricted set and shares only the existing subset predicate with preflight and child scope creation. Old/new definition wire/revision, selection/binding/capabilities, input/output Schema and scope limits match; all earlier file contracts and incomplete consumer tracking remain. Engine factory/schema review: selected validation delegates unchanged AgentDefinition rules with the same diagnostic identifier; canonical SchemaExtension and EngineConfigurationKey share key selection/writing across Graph/Loop/Registry/settings. Original key scalar acceptance is preserved separately from typed response validation. ConfigurationView.resolver owns optional public resolution discovery; absence/default/explicit inputs are unchanged. Existing complete and incomplete contracts remain tracked. Agent execution closure: required-Tool completion shares one AgentPolicy validator. Pause reference owns only its event field, preserving storage existence validation and Engine-specific private pause keys. Selected resources retain pair unpacking with named access. Optional Engine hooks and graph parent-name fallback retain the existing protocol and missing/null distinction; no stored evidence is manufactured. Refinement binding delta: AgentResourceSelection now owns the explicit detached resources.skills edit Writer. Prior Agent methods are unchanged; actual full lifecycle/callback/failure comparisons and original Skill/Agent/approval/CAS tests agree. Prior complete/incomplete contracts and their evidence links are preserved. Connected original Run consumers to canonical admitted snapshot Writers, scalar checkpoint projection, explicit operation/plan values and public optional Engine/Capability hooks. No default, migration, runtime authority or persistence format change; existing incomplete Hub contracts remain tracked. HubTurnContext owns edit-source metadata; ConversationTurns owns ordered group request access; ReasoningMessage owns presentation identity. Original context borrowing, input preservation, continuation folding and Environment delegation/validation are preserved without changing admission, effects or saved history. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -40024,553 +40024,559 @@
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "aae323910e9c1004458e636683c341456e928be07f65fb211bec6d1d4ed09779",
+        "id": "ed5516190fd62db31bf48d6a73682340cc77bd24dde8e054630fc53e03d98df9",
+        "classification": "declaration",
+        "owner": "AgentDefinition",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a1a5a1a4dcf759ce1bc6e13fb7430663262ade405f3919b4a743af3919475104",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "b41a1d33d6082ea3bed8dcfe478d2540fcdd6a625bb20e00efc9d68d933adcc8",
+        "id": "21e4cb8883821aa44e7339bf1b167b07e11818ccc73153b49b2d82989bfc9970",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "b673aafc5a9b76547480cc099cf3c3daee4a74df3c883f09f5f8621b76d24e3b",
+        "id": "d69b5754b95731e2a92b5691d60b7de2c3834165e2a2fc9923380d23f66f71b6",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "3c2363b16d98444e936cfb02ab804d8ef9c2d4fdc62f5dcefdaf54abb125a6e8",
+        "id": "3b50938aa391f825a52f4cb75cc8450f480da60ddc07257d6021f35ac6a0297a",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d95e6cc7699cf4b9d12941495eadb19da7bf5baae0c1ed83a2713fd3796148ef",
+        "id": "02f7286f46a5650b92cc8a48798058b299a9725a303dca93753dc76e332a01c0",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "798798f35271e8b36ec859c23742f6b917cd4de709a0ff9a91515d219b8bbd00",
+        "id": "93aa915f366f5e76f6339bbac7e8c0e8aca6069b421b1f34282f5cd0a5687c03",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "47912073847e04468ded2172a9a8e53d858132349261362bff0009a8da68859b",
+        "id": "c387106f52ce87937160a46daba3da8fe0fa3b0717a15cf64c1de4435127aa83",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4e5d2317a258bcb8e11cbfb3a58f454b15e6b8492169d29c043c7698b5a717e4",
+        "id": "7b805d6c1ec544c48f2a0fc034576df7e57c473362b9e8e6c59e227d785d47a6",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "9a3aceab44341aeb0d2ce4328c7b0cafb591aa31d6ea58d5fec7946a43e009a1",
+        "id": "7fafadb83e9d2540d633168f5bf6c2205916b818e79080cc78343e19dc4f92d3",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4df65c00a2e6a9e9461ca2dacac769c2d468872331c8425c5e213380d9515cc7",
+        "id": "58879de1d83f4049ab227147ea5e691822c9f233de0c9d13c0bab9fc89625ec4",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "63237a125a1c5ecbe77a3cd6b4160e50628a1642ef9041572515dae14b73d941",
+        "id": "724fc1cb54d76d7d6f29cc725e03e018851a5fed091f1a8d7ec3be591b5287f2",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "964782169967a407585155437e875a27b9f15ea2086da9460403cdc60d06e710",
+        "id": "273dabc1631bf25d0199b34f8418083998da77ad10b48a7c1f07fb10f519a42a",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "081647f2734ee7300fb3ffa766e70906013f2e424dc549374b30b2fd793403fb",
+        "id": "0df7dff26ad2a4e7d459c26a716affb6df0876168bed5d6ec4aa1d4d5d483dd1",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "0d914da5f940bda5627e99638beed000e44174c4dd110f96d584ca7f51fb83e1",
+        "id": "38a3441c3197c02e1d5ed661f9be168a7d60b62ce67c8b2635f6a16c50898108",
         "classification": "declaration",
         "owner": "AgentDefinition.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d2e7ea3e1defc7f9ece84901c8806566d33318049646ec676e8cf5455e9f0b2c",
+        "id": "f6c8cdac47f72afe8af692d0bc22a414ccc70a3eddde0957093fd4be0eb5ab2e",
         "classification": "declaration",
         "owner": "AgentDefinition.ResourceField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ca84569a07016f382386c1c234576f1fae2978a7baa18fc2626ada65644c2d48",
+        "id": "ac73e534535729b6bc4b265cda24cd239196ff6c72e5eeafa7c5731a53b0d17c",
         "classification": "declaration",
         "owner": "AgentDefinition.ResourceField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "a08cf20782eeee19b8218e84208d767926f67a31e57780b1f8b53dbb67e67cda",
+        "id": "5446759e5eb99d1eeea66e47b0ea419a7d2d847366462f9594d45f111cc2b9d0",
         "classification": "declaration",
         "owner": "AgentDefinition.ResourceField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4f1f65af19f07bac7e9e41840d296f91ce33273539026cf8432fde5676b8e0c9",
+        "id": "a99a46c81240272e92ad9abe134b6c3b609a93163c652c89ab2daf770504d46f",
         "classification": "declaration",
         "owner": "AgentDefinition.ResourceField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d7fc63ff9788c158aabbbd7392b453896c9e32f317a0b5443289a1f2d065b9d6",
+        "id": "4066fdf76eb75bf0136071710098146b74882f97bd5028b41b5bab358d6f6a87",
         "classification": "declaration",
         "owner": "AgentDefinition.PolicyField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4a87b03d4a0cf69e3c396f82b5529b69b500c011ca3cfcbc8fedf057545ee70e",
+        "id": "6d56bd6e27b96304663a77139a675d9f924032e3862d2654a02537d4b6baf27e",
         "classification": "declaration",
         "owner": "AgentDefinition.PolicyField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "715a9015f34a15b37cc725ce2f18c9431d92708a3bd944ad95d4d0d2312b50cd",
+        "id": "f49cdf0a655b92d6007ee572db53f49ad1d35d7972f50ba0976023c21c0b9e3c",
         "classification": "declaration",
         "owner": "AgentDefinition.PolicyField",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "30b854afa3b188f54326d7dd2cfff8a9899748847185250c0cc382295b5c5f7b",
+        "id": "29599b1659652b063e14d08b95b1f1c40f401ae4a9da19f534c93648ed6691c5",
         "classification": "declaration",
         "owner": "AgentDefinition.OutputFormat",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "edda83f2b9d91abebb178786dfc2886b099d8a3e2317799bd9b53593bc7fe160",
+        "id": "6b8f4e3c51e6559dc8eb86e7682aa654c277e9263c915a9ba7ef870e08b8765e",
         "classification": "declaration",
         "owner": "AgentDefinition.OutputFormat",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "275b1904394bcea340e82de5497edd4d3c79acc9628d9e7e9e01830fae844450",
+        "id": "81e4b2cba2e7bd0a68ac3decad3a208190b0c3541d30e2cbc1230e9502770bc5",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "72d47da9f32d7483357e2cf8aa33efc820482d5b0b7c59781062ff5c8c1c50e5",
+        "id": "4fa4c8ad49182f365f2b844edcc6eaa5528442d39c38761db9006fe6d97a9ac5",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d825bc891260cb413d353028e5709c75d1f61f4ba8cda735d88616ef80dd9120",
+        "id": "17093941317dea713b44f394d32fe07f74ccd72ce8d203dc895eba233241ab7c",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "fb19d563a6d3267e029bedbd994f62803059f0975a59ce161b540e5189e4f21c",
+        "id": "770a967b9ab17ac0ad27663c0581c692b9a0d6bbc58911799ebeee4d9cfb119a",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "57714484b182acb00b9a9c54082980fbe434b1e681bd3fa200aeee0cfdca8e18",
+        "id": "e58c49d0b42ed3d354c9555c1ad3153ea50f4910d4db64d4f446898088644fc3",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "90062110ed38b1739fe6fb20a30882538e24cdd711155874f97f6e60dbccf370",
+        "id": "f1d53d446ec4b7b6914fa77798b08128a2e199eef5c7a45f00c57200b959b9a3",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "fb323b7d97cd34f450075491731078c5ec276033a1dd09c57b6c43ac405e453e",
+        "id": "24c48349b3076647181285298725cb86caa1cb2f8ebac0e9507e02e6e930ddda",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "db2eaa06bcfa0370534ddec5bae40fcdc95864269231e2142754663b3d5788f0",
+        "id": "631a4f38fe977fb090e97013f3107de536b6ce0e5f2e0eb5eb60f2861a6506f4",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "11e6510cee8fa915ffcb50aab55dd18d1830d68f3336255a46fd2c8cba32b652",
+        "id": "96d43d791f4a6990f93acf17d9ac2b5c4b9ee5845d4b7b6945591f67ac043e01",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "c0450c21ec507a72817ea0a2710a0590e2263cb363d3ebd86e36855be214eae5",
+        "id": "32d05749d892eeeb18cce96ec4556c91967d94b66624c85131c68093b6b09493",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "9eb90886cd4ea4151949472d0848f834cb59cfa220287636f658a971573120b5",
+        "id": "b5d8f289b14e13201016044f0657588dd6728550ce80808712912135eb1ac737",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d0658f3c099f1d2b864e44194dbcb40f302242791e416dd236d745a72645aec4",
+        "id": "c305dac9a64d329cc5b5d14ea5cf33148f1319caa5bd56bb49dcb01c5d63f397",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ab8723c8ffef940dd20cf1a32a9c6a3de2ecb20fb43f8a6461a8474fb7dcbea5",
+        "id": "74c7b846af97642e401ba236620641acbf2f68fa8680feaf9122dfd1ab428056",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "8b53c2b6337f3c917606e0dfc0605de8c592e3f5e3236f587950c1a44a4c0eb0",
+        "id": "6b7e227a9399ce10276af81e6c97ddb1241724f60e82990cc7b3946bbd131d24",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "c7c06618e815d93a36628ec9b7bb51af868abf0702b9ce9529a3834623ef5346",
+        "id": "936fa17cac066633d9d325ae4d49b8a380e1a8b22a540c29afd9c53d58ef9ab2",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "9f19aee7c3d70a22a06a3ae890de20f92927e911cdd7c1ece575c44988ede90d",
+        "id": "1a509df4ea11a48f9f4d77f52f1a561fa7e40e1d2256bb7ee9da86342f7b365c",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d8a8388c67a25fc20d01983c9f2d01ce099f314c7a77ec09ff8a63bd9c20289f",
+        "id": "46fcbb68e77ca78a281d71fb626713d28854e88bbc413fa2a6215cb1a33f91c9",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "25c498a49b083d29dd2ecdb441c162d04506141e0696a9e297ff587ddad620da",
+        "id": "24c094e59dad796eed3dbcb91c79de3165efbda3fc07691984c5c00867f107e3",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "7ba5157035dfffcdbd30461e1e4e1e160728e899ffb08161fdb11055628c302f",
+        "id": "98fae6838534492c163c680f54f9b75e66b78d82424aa2b3f0c866e4f759ef40",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "b1c9481400a4d5bd74fcad99ae7ae9e10a9a76ed68dc6aba5b3e83848e71cb6d",
+        "id": "5aeed783b28c6588a51492e2edbb5c836496e0c66a0464f8869278c99bad9977",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "64b05cb328bd3759fce538262c01918eeab25b5dfb60fcfd43a0e43a09957ce9",
+        "id": "d46ccb61904b7357cadc82cb4bb920de33af6c23b0efb5afbfe1291a73fab8e1",
         "classification": "declaration",
         "owner": "AgentDefinition",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "17a3a46a7ccab592733a9c25f95456608284199c5418d17dd7a715216f5a2339",
+        "id": "6d3310357041d829c219a9587757042468d25886c84ab6c5126063d88e788993",
         "classification": "non_contract",
         "owner": "AgentDefinition.validate",
         "reason": "Select the first already sorted validation error; positional indexing, not a domain default or threshold."
       },
       {
-        "id": "368f87785215c97fe79b694797b3118da5ad85998a355761be1dac856f489647",
+        "id": "8bdf2f022f864f63ada11e4c00c659f5fe07fa885c8c823f4fd63ea296b160a1",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "c3b9854b27576f6fbf80c1749f8a056c179abe996c130032780918ebdd6f7e70",
+        "id": "1285b5bf8928b0bb0d9a918093186458be9e040ad86b0ffd3770f3bee3e33f40",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "4c3d1b7a807a6c5ba72934806efdb5f387d3ecd60c86734ebee83c9ae82e66c7",
+        "id": "95833ae48cb5787c132c3d910b3951c0b3c2be952f5a6971960735959738e9ef",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e285cb994cc734101af44b4e2bd0678206415ecf47e783d1f67a8c82ae64c50b",
+        "id": "af57bf770471627b5aa582a41fb42bc02d92146afe476d8bac81e921b63934cf",
         "classification": "declaration",
         "owner": "AgentPolicy",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "736e948c2dc2bd2f508feeab9c58bf87b6fe88acb6118e4c3f758623c6091843",
+        "id": "2388d61349b9f22cb12f5ac4de93102d16433fdb463f9cf732b4f5a4a62d8310",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "8d8b6c247b82beb5de9adc21f98edcb8864f2b8e2432a4c1e3b3786ba173f15d",
+        "id": "afec9a673a2aa9a9ea8251d160607a066362d9b42e4d7ec07c01ae71b8b63e10",
         "classification": "declaration",
         "owner": "AgentResourceSelection",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "fc3497dc7b314cb2e2b052a7a8b40d5343caf0b85aeb5915b53f6fddb099c2b9",
+        "id": "1e9781e89b315bb982b36b0823d9a8658c305570184e2090a8cb6423805aa563",
         "classification": "non_contract",
         "owner": "AgentRecord",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "9b407039a71c16a8ac95264314c05b545ace81755846940bc0ecd6f233746f44",
+        "id": "fa12c01ad408c3fb76f64c9b89a2efb2ad04bedfdcec11c6ff4a5b290f3ae8d2",
         "classification": "non_contract",
         "owner": "AgentRecord",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "769737a142ba5754dbc3fa7597aed7fd677a8b99d78d0fcc8db9fb9be771210a",
+        "id": "5a6100617216ce3ddcf3afa7b0be26d12dd149930a215492af6fc93cae3dba71",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2f1aebc491a536b463980012df475b476fb8a0acf9c0529a2b44331c3883e2d2",
+        "id": "4858f88af5801a3a3891cae6d4e299960f03faeaa87b6b47695f52cc48193406",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "23b7e7de6fed79e24f9cf43861766f993b105b048cc2fe137cd899cb98c8d460",
+        "id": "d0d712555dd9954c8b1e4996410e26d8d81d7e9acae664e9193e36cadc50e1ba",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e8392e2a1e171f936b1648bcccdee287bccc997a95403719dea43ed87ae3e9c5",
+        "id": "f4319b8cb314b0f3dac9f9e010c6c2eef1baff7234bf2df59e16b4d6bd6ce7dd",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "e5fa48fe19b99bfeb9bafd08856c6aa4ed5af8dbdc1e2ad44a18ace92061431a",
+        "id": "8b934128970d45931856618a862dbe76fd73b31103f9e266adb235bbd113eb72",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "c31b8224133ec96dd5c490ce21390148c17042afe3d798142e7519d09828e6d5",
+        "id": "550b5187fd02e0bf0768f782de297c225be8871a2cb5c9b1b6398cf1664cfe87",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "3ea337371428f83129e4a6eccf478798e065697ed1225283631bcece2f63c29e",
+        "id": "4196dd4568fe856ddc595d5b2a121ffed1269d876e0640abb0975d4edd23ce64",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "a94988a40024ba73e8968ae1bd6a9e8531dd7145cff2c35893e4269c0ebb9072",
+        "id": "29714b88526330787a0ecf17af074732b1ca3dca390269ed15c7642da840a0bf",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ec568404a108e4f26118db56118a6ac1cd131e760455064b8e71c4a6a0770a82",
+        "id": "e62ede9dfdbb55cbb146d5748d8cca43d0084c40ee412e85404436830bd69f54",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "b813b1f7b81e7b4dc63341c3142e849ab3df1ca0d5b43eeeee7116c56943d3c8",
+        "id": "e51cc5b1a0050686ded59b89715ea82d0fe5e6382d1c61613eda3a62ac9ed24a",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "59257254d03365f98b463f15ae30eb3b546fa90b2ee63b80b56affef94f75940",
+        "id": "2593643d9e1453e009c85d130e4e6429c3e982e434453ebeb9411110a024e450",
         "classification": "declaration",
         "owner": "AgentRecord.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "18bc6de3c0d82360ff372e8103e1b66e656983b8b36cce5a9c56fa1b25632a51",
+        "id": "bc7e2b797c262c9e0d9ff7978a50e379759abeda6ae1bc0327109af5b650677f",
         "classification": "declaration",
         "owner": "AgentRecord",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "3ce5b391ffc367145010ac511cca12cc1eec7543b40ecbe7bca065f2b9f60982",
+        "id": "feb96831751cb19024f02a6c231b96a9534b6b7809c2805073709b79c02ed55d",
         "classification": "non_contract",
         "owner": "AgentCatalog",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "88d300522cd2e74a2167479d9621e5db517b21746f116b7ba91e0d67201e142a",
+        "id": "3afa65d0fe71c40eb7b911e6c00300578d9555cae12b976a313c9458a797cc98",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "dbe6df0428887a9ec764b02fa50802cfee1e879cd822cb66e2f2a4dd209c05db",
+        "id": "a1cbe61c4c4e191cc4a479c5ccb1050234ef20207167f384ba7a683fa0cc0cbe",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "1b70df0dc86be6c845ca91ed4b304b5d557a85bdc343771ab3ef60cc586dcc51",
+        "id": "240717b1e4e5b85f21ac78e9c55a56dc8326ebc6cc9a79f6cbc648bae48a26be",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "0ea58fc89860aa98448a9204b5ebbe6d4b6f17fc4beb75fd2ffb25e223364906",
+        "id": "83c130d9c3d073f9833daa8d9f4b35b3d81fa3ccea95b31529124e71842462c8",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "6534c717ead3213b07ffded93f8511a2401d196567f79e93af06c0f9566d1b94",
+        "id": "2c23ff04273ec93a5dc77a98e7e65fe0047dc95c80dc61cbf3ac3b4f3b7f77cb",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "fc7cabf97060a4070565843c02dd1e5782866f1361cfbb10969a681f70612bee",
+        "id": "0d57915c1735417e2ac89beea529e3686d951df22f0868608e0eb73632d1cda2",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ad082a995263d2264e386b20d106568bdcb1db3b498e97e643603472336433c7",
+        "id": "efd39593881378eba6c9acdf88cc9b5e79ce42b6b17588db507d5d608299a53f",
         "classification": "declaration",
         "owner": "AgentCatalog",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "55852bde9666e517d4cd8f80bcd5fc404ef5b92660f0b8ba73f39b062020052f",
+        "id": "365f05c725fd99affdf8fa7e0e699020303cc1e67673a45d8037b4d8c4ad41a7",
         "classification": "non_contract",
         "owner": "AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "8557a08e98bb2ff25d7ae2bb814330fd10975353884c1c932b667e5d5756890f",
+        "id": "98cb01ab9252b626d75d5a6b96a9ffd8399e74c9148b01e4ac1d518b4da9da7a",
         "classification": "non_contract",
         "owner": "AgentBinding",
         "reason": "Python dataclass frozen/custom-init construction. These flags do not encode stored state, admission or policy."
       },
       {
-        "id": "fa2379383e0911f12f37d5535bf148293a7bd4900b7c6fd4e2b4b79bfc6f074a",
+        "id": "4957685670ff7e2c639fdca0d5ed6c1578e580e41946f2cbb7a40d6c45c89007",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "32c1945086e79cacc5482f72dbc332c8e991f90297f8c2161364f5b275043a27",
+        "id": "c1bb4e96b599fb6fc5da743154b54c0bf842bd47037793499fa1e681252956c6",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "2e2ae3fe45a0a103297beae61c637cb044f78aaaad3a2602715c8fd618152c25",
+        "id": "ced38cde065cad1257d1fcd45fa0bb82bb279a1ca510ec0dc0a4ec469f51d854",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "ce62ca87a7108b11a2ec72dddc4a627d854c5d37745d2ff99e63e0c0a54f46de",
+        "id": "6c1d54407536d1068a691cb196579a81467d8e24b4ce5139c125bcac95cb00ff",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "f9706e15da6187f276e239c85637970be3784838f10b76725a59cea6c8c1440e",
+        "id": "647185c1b4dcca86eff53d590fd978b6f3e85e5c99e15dd379529a5c38223ebf",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "8a69b8db5c89d66a8edddd689d14950f2207d45f83532087c9756dc036068e32",
+        "id": "96c7d098726635eb91e1d60c238f7dda88b5134cd05d12e5435fca03832a5df1",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "f5aa53b9e5f57c60752789c15ba66c5ec850a796201ccbf07ea38dbb03eaa8eb",
+        "id": "5b52f85b5352cb353cc06151337dfe49aae5025553b367cdb8718c0e5516566e",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "6d9b870c8927689fd05f0b99aa5ee9e950815535398d376b15d7fb9f90684e8b",
+        "id": "e72fc22d17418e6939498983cd0205c91e7f43fbc25c66ce46d1b1186b7864cc",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "81da080796f3df6c3fbfb4d7db15a4baa3fd9b070d9e95645604812e2d82ab44",
+        "id": "9058ca4ce5d0d774f3e459fbdb385a28f8d2c18e3658cba1de36c196641fc3c8",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "1812dfd8ffa974a1d911e8fdd57be38f9ea8fe4eabe729bef50ae2d29141a14a",
+        "id": "1567986009be6504b38926daa45011ea190842e053166dcb60aac4618a97f249",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "81f3a3b4b2fc98f24625e95e28c9a16b8c67a60417aca39bfd3465e13bfb4fe8",
+        "id": "76034be6dce3df960a3bf93bac0795895761116be7be37c2dd961f8b7fdd83c0",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "715538479d3fbb1379fc4ae0ad8815a41d12727a118b16962f8eec78f0642f7f",
+        "id": "d59248f3401ebc4fc05343fe8bb89d977d9557e1ce20229ec776e5f7eceaca69",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "98aeb224897e7dd69606451da8b47f49b592511c4ba06d9bd40c78d7fd007114",
+        "id": "843334f53dce4d344cb3ae1d2f31c354728379a43458cd8fd99c9b774cc4a58a",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "949e279b9869db905ba13eaebed455d29886273b5cf698b9e11d9514c1ab8cf5",
+        "id": "6b5ab7e7a7e842b94a9ee129554b31cad98e20aa12b26748eb4f5b1fa6c45ac3",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "5b31a93853563c711deef959595899703db0ecc7bc6656c6bc7e0cb03a5eb071",
+        "id": "a585602e8d5e13540ebc71f69792592ebbe015f27a768efb0ce6da2635da38e3",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "feda5c9546092e4c750f95f9a0a3b3c9623d4a1f3452df191ad9f75ee23bc6e8",
+        "id": "e7e8aa6728ed231ed93db28cbb491dd6a06989dfc30043630bd8c0960559d20b",
         "classification": "declaration",
         "owner": "AgentBinding.Field",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
       },
       {
-        "id": "d05fabbe86c39ced2233bf99c8003bdcadf236f4ccbb4f8ce63042fce6d32e54",
+        "id": "5e45403857a8e3a79c203c5110b51122d7d521e05da046ecc5291caef213b26c",
         "classification": "declaration",
         "owner": "AgentBinding",
         "reason": "Preserved canonical Agent type/schema/state/resource fields; new detached Skill edit Writer consumes existing declarations and leaves validation/CAS to the owning API."
@@ -40586,7 +40592,12 @@
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
           "hub/backend/project/agents.py",
+          "hub/model.py",
           "llm/engines/agents.py",
           "llm/engines/loop/engine.py",
           "llm/services/api.py",
@@ -40602,14 +40613,19 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_domain.py",
@@ -40658,6 +40674,11 @@
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/model.py",
           "llm/core/models.py",
           "llm/services/api.py",
           "llm/services/lifecycle/agents.py",
@@ -40673,14 +40694,19 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_delegation.py",
@@ -40729,6 +40755,11 @@
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/model.py",
           "llm/components/refinement/targets.py",
           "llm/engines/agent_resources.py",
           "llm/engines/agents.py",
@@ -40743,14 +40774,19 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_delegation.py",
@@ -40802,6 +40838,11 @@
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/model.py",
           "llm/engines/base.py",
           "llm/engines/registry.py",
           "llm/services/api.py",
@@ -40815,14 +40856,19 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_execution.py",
@@ -40871,6 +40917,11 @@
           "hub/backend/execution/environment.py",
           "hub/backend/execution/turn_values.py",
           "hub/backend/execution/turns.py",
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/model.py",
           "llm/engines/agents.py",
           "llm/services/api.py",
           "llm/services/runtime/runs.py"
@@ -40883,14 +40934,19 @@
           "tests/hub/test_conversation.py",
           "tests/hub/test_engine_output.py",
           "tests/hub/test_execution.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_history_retention.py",
           "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_log_retention.py",
           "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
           "tests/hub/test_output_interaction.py",
           "tests/hub/test_request_history.py",
           "tests/hub/test_retry_observations.py",
           "tests/hub/test_settings_restart.py",
           "tests/hub/test_shell_environment.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_stream_output.py",
           "tests/hub/test_tool_history.py",
           "tests/llm/test_agent_execution.py",
@@ -94229,24 +94285,24 @@
   },
   {
     "path": "hub/errors/adapters.py",
-    "sha256": "384aeca2110444945e14918ec7343e3a75739efd419cfd91c73f3d5c3ddc32a8",
-    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "sha256": "d9827d02551271f371cd34106a69573574a39b0b75b71b089e4d16469bff067f",
+    "reason": "Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "8ff6a958fc50150480693b911f304ccd6f12193318767b92e489e37ac794c156",
+        "id": "d4d1fcadf64e3bb223b2183052d782f6c596774d34d600420f36253820893a03",
         "classification": "declaration",
         "owner": "ErrorProjection",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "e0239720173c72ba5ef4d9a952a6fbb2ddb317622d86b1944f3fbba7ecf200f2",
+        "id": "c2c389a6dd08cb73452cbc2928a8f954ec6bf4e73f05de7dcd5ffbd249fb839d",
         "classification": "declaration",
         "owner": "ErrorProjection",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
       },
       {
-        "id": "6a6ec499f5eb587944535c6eaf0819342dbcea96f99ee849fccdea53ff4561d0",
+        "id": "da1b97560a0bf535e2f59470c23df82ff5aa42ae3ecfeef28755dfc3b18ccbc3",
         "classification": "declaration",
         "owner": "ErrorProjection",
         "reason": "Error/Recovery data, field vocabulary, pure decision reasons and presentation declarations at their canonical Owners. Existing closed Backend classification remains authoritative; no hidden retry or stored-record fallback."
@@ -94257,32 +94313,47 @@
         "owner": "ErrorProjection / from_diagnostic / from_exception",
         "declaration": "hub/errors/adapters.py",
         "consumers": [
-          "hub/ui/requests.py",
           "hub/backend/execution/provider_recovery.py",
-          "hub/backend/tools/retry.py"
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/backend/tools/retry.py",
+          "hub/model.py",
+          "hub/ui/requests.py"
         ],
         "tests": [
-          "tests/llm/test_provider_diagnostics.py",
-          "tests/llm/test_builtin_diagnostic_values.py",
-          "tests/llm/test_error_boundaries.py",
-          "tests/hub/test_error_contract.py",
+          "tests/hub/test_approval_continuation.py",
           "tests/hub/test_backend_diagnostics.py",
-          "tests/hub/test_provider_activity.py",
-          "tests/hub/test_provider_stabilization.py",
-          "tests/hub/test_provider_recovery.py",
-          "tests/hub/test_tool_retry.py",
-          "tests/hub/test_live.py",
-          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_error_contract.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_interrupt_feedback.py",
-          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_live.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_provider_recovery.py",
+          "tests/hub/test_provider_stabilization.py",
           "tests/hub/test_rag_extensions.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
+          "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_retry_ui.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_tool_retry.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_error_boundaries.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_interaction_storage.py",
           "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_diagnostics.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py"
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -96863,8 +96934,8 @@
   },
   {
     "path": "hub/backend/execution/thinking.py",
-    "sha256": "3138d510d6f27cd7529df9f8cc034b6b03df807e36cfe919fd0bdf901461cec4",
-    "reason": "Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority.",
+    "sha256": "4c1f8e553bf48982db13639c217be73f1947b152ce1ef40181389ba4a7ba62aa",
+    "reason": "Transient reasoning state and Step display use typed state and canonical domain/Engine observations. Step reuse declaration is shared by actual Tool/Loop/Graph Writers without changing wire values, receipt reuse or execution authority. Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -96940,19 +97011,13 @@
         "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
       },
       {
-        "id": "d40d8f0a2cb2994e7ea28e5c2accb3ede6a04474bb8263eb02357d56284399bc",
-        "classification": "declaration",
-        "owner": "ThinkingPhases",
-        "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
-      },
-      {
         "id": "2a4beee981ca344bb2f38c48a62fe5c4be2dd6e8ba6067e10c93973df48eb771",
         "classification": "declaration",
         "owner": "ThinkingPhases",
         "reason": "Typed transient state, existing retention/absence/text declarations and canonical ResponseActivity vocabulary."
       },
       {
-        "id": "0f2c62deffc89d42c6d2fc22d15298de5993cc43104a417e55c18cdf92490129",
+        "id": "63612d42bfa7de5e5cd5b028d8c7c667a005ce3dd50f3b81273a0075a803b74d",
         "classification": "non_contract",
         "owner": "ThinkingPhases.activity",
         "reason": "Last element of the validated completion sequence (-1); ordinary sequence indexing."
@@ -96963,29 +97028,39 @@
         "owner": "ThinkingState / ThinkingPhases",
         "declaration": "hub/backend/execution/thinking.py",
         "consumers": [
-          "hub/backend/observability/snapshot.py"
+          "hub/backend/observability/failures.py",
+          "hub/backend/observability/logging.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/observability/snapshot.py",
+          "hub/model.py"
         ],
         "tests": [
-          "tests/llm/test_loop.py",
-          "tests/llm/test_graph_engine.py",
-          "tests/llm/test_graph_checkpoints.py",
-          "tests/llm/test_execution_observations.py",
-          "tests/llm/test_completion_integrity.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_transactions.py",
-          "tests/llm/test_execution_boundaries.py",
-          "tests/hub/test_completion_display.py",
-          "tests/hub/test_tool_history.py",
-          "tests/hub/test_interaction_updates.py",
-          "tests/hub/test_retry_observations.py",
           "tests/hub/test_agent_graph.py",
-          "tests/hub/test_execution.py",
           "tests/hub/test_approval_continuation.py",
-          "tests/hub/test_snapshot_projection.py"
+          "tests/hub/test_completion_display.py",
+          "tests/hub/test_execution.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_interaction_updates.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_tool_history.py",
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/llm/test_execution_observations.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_graph_engine.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_usage_deletion.py"
         ],
         "complete": true
       }
@@ -98396,6 +98471,1200 @@
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_overlays.py",
           "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/model.py",
+    "sha256": "ba9309993ac6b5a0b80f39f9ee85e1fb6797441b97bf7dd7e605306ff90776f8",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3f4d0d463343722afad39876db633bfbd096850eccea3c54b1c9c4bcf652e0a1",
+        "classification": "declaration",
+        "owner": "ResponseActivity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "2d73eedd27020e92588291ff6ffa95866ad5cd0f26eb329d4fb4ce941d59e636",
+        "classification": "declaration",
+        "owner": "ResponseActivity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "8c2793640f2e338f4246e1cd24153d256be411f0b815cdac96ffee17d6b44626",
+        "classification": "declaration",
+        "owner": "ResponseActivity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "1be46a8684d7576b1a128212ecb62d50ed3f82c66c2b880eb7c35fd2c864282a",
+        "classification": "declaration",
+        "owner": "ResponseActivity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "64924994782ce06da96d9632809d6a13a5d1241f3df4c00363ca6fa526f58f5e",
+        "classification": "declaration",
+        "owner": "ResponseActivity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "2f6677d2d2823382d00f5bf68fec2dc10d3232b0bcf6ef584303987cb12d6905",
+        "classification": "declaration",
+        "owner": "ResponseActivity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "27c55739472756aa7a615cfa58d9472082839d1ebd22f92ea22d6c8b1a1d0012",
+        "classification": "declaration",
+        "owner": "QuestionSource",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a64149dcc4a09dc41f8024ea54fc237ade49b35d7724bb056690391d37e5d051",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "2cc31dfdf1aece1f25ffe8cba1805dcf9718da33e93309d068f3f876e8ea4d57",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "c10b8e7d5a508ed8383b97628ef43746d0be46d680005eb24c1f2863babb0cc3",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "4de44b845647afe096c6dc92765996bc22fe0845e86d1477abd90fec2ddba9a8",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "9e97d7bf381e567aca2f8ebd0df151a5cd8e62790fde81e6ab1c4d702914d241",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a29d0f09a3b40b8aef36af4921a1cdf3b972c78193f8c76d03f5f795d7c98e98",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "fd08d50404b314180eaca76005f9cdbd7d4439637009cea48986d20d75d021f0",
+        "classification": "declaration",
+        "owner": "RAGAction",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "441c395168068468a9a8f96a3d6a080a3aa6af61b7e7a11bd72437edd9024a81",
+        "classification": "non_contract",
+        "owner": "ChatMessage",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "d24f55d08f4cd6e862db8ed289264a28116983a4890d728b74f607cb8cae381b",
+        "classification": "non_contract",
+        "owner": "ChatMessage",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "59c0338b1d2400f000aa9b75a07d9d8a6f2d4d3ef5c13b034c1e73492b1fd6b0",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "04ed52cdeaadee2041d573c0ef57744e72fd7de76bc3c5acc950843dd8fa12eb",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "ce79e9828912b47a71d8b9f4ce40fcc18f420efe3eb4d024fe0b76836d50b211",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "f60ab494df6217f556baa0211b3888e41da1f17d73a110909ac98c80a296cd94",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "17a8a9071f6319ae7d03405d747e5997f402af2d93161d1aced378585bb71eff",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "c82449730ce1d26dfb84989e821890299eb50e96364ce42d1a2c5aa9f20c0af3",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "9dd413d8e24e236ed35cee3c284e8d4686828e0fa06e777b7d46fa74362cfd46",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "65b597acea773d7cd611afdef9e7c446dc977e04db3139aed74b71db893a7021",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "fe9c7b6d4bf45b4de1fc281a1daf5d372b11c9de7e112a94eafc0885bec961e8",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "38d5e5cafe64cbf40784c1cf308f67be152a313fe46491e0805713a6d80181f2",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "f3b4b60cd88fbd492318bcb801a72db81dfaee1f28fa18924766319c19cb0690",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "bbc52325310330498d3d315aa5d3f56d4ca3ed8345d3ed3db39611d849f0b0a3",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "f79cf6fa0d1cd0f4f2b9c165e974572e79a66f9f8a720fee52f176ca8880ebfa",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "c5085b895aac38e8dfbde28683b1f7898eeabe567fd1cea83974ddfdbb93d8be",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "4f0fabda4533af61ef41afa1e9a6556e04a26b0ac2963c173ec0080e812c111e",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "28c693aebee79dc962606321a5ee125a6e774ef614ec55c7d9a1ef9b4dea25d9",
+        "classification": "declaration",
+        "owner": "ChatMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "8ef262187953bb3a5264ea44f1570e0ae5072fdba8dff706173ab76e40c5905a",
+        "classification": "declaration",
+        "owner": "ReasoningMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "4e490b386c7cefc7fa012710925df5141478011c7742376833d1e6e62af0d1e2",
+        "classification": "declaration",
+        "owner": "ReasoningMessage",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "157180afbf9ff3cbd7cfee63309b4a692e62d2a39a32b4bab8b65cc75fe1fa5e",
+        "classification": "non_contract",
+        "owner": "TraceItem",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "9cf10db619d5daf3976f928c6dd59358b0c7ff21891f4d0c19780cdfbde7df8c",
+        "classification": "non_contract",
+        "owner": "TraceItem",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "2c2de0b218e238da3f27376b96e90f957cb6eb15543c5280b4c5219bd71d9753",
+        "classification": "declaration",
+        "owner": "TraceItem",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "e5283606b672c7130d271016d81473f68d5f38645775c6919460c4fefff381ee",
+        "classification": "declaration",
+        "owner": "TraceItem",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "d95f6a8e41ac343245af322cc1ef393d5c4b9956b4fc023f21c80ffd8fb17276",
+        "classification": "declaration",
+        "owner": "TraceItem",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "f42c6587cf5c3daca97d172049690f4c8f9915a2410da847a02399ee336df846",
+        "classification": "declaration",
+        "owner": "TraceItem",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "8581a1261ca63af727b18aa22953ac83d10502d44b37f8abfc1e57dbbd90262d",
+        "classification": "declaration",
+        "owner": "TraceItem",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "15b5accc5e3135f2f20b14a43c9da7d7c78d0faa24297ce3f6facc06ed3af076",
+        "classification": "non_contract",
+        "owner": "SessionView",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "46fa7a17e3392b2dce5e1a9d49bad8378ca2d7495dd427e835cdcc8da002cb70",
+        "classification": "non_contract",
+        "owner": "SessionView",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "3774e88049db311a7c1828ce8c41e0833b42cf062ad34bd613f6983b998cb1b7",
+        "classification": "declaration",
+        "owner": "SessionView",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "3361671792643df52ceb9ff957aa3f4a477e586112d53410a263fd9d31fcfa91",
+        "classification": "declaration",
+        "owner": "SessionView",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "5a7e09c6917f163e1f895de1c595a86cbd9a79b79953db38a3b820e8583516f7",
+        "classification": "declaration",
+        "owner": "SessionView",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "c16b251eb0fa165fc2bc5c0a2808675a52af7b6550c8e45ffb6af6125499b55f",
+        "classification": "non_contract",
+        "owner": "SubmissionResult",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "8cf4e683c7d325eb6cb10b7eca8f08784ef4d01d62fb2b977ae4629b09a534af",
+        "classification": "non_contract",
+        "owner": "SubmissionResult",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "17c1b9ec8b6d8f2dbec741e89c054ccc7dfc63abe944a7a72fdd9305c75dba45",
+        "classification": "declaration",
+        "owner": "SubmissionResult",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "9151ab38e829d36a1e3b9ab02d9d7595b47fca68e1d721d3410ec7ad947629ac",
+        "classification": "declaration",
+        "owner": "SubmissionResult",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "af224b454abf34909643a9e71705ae183701c41cbbc681c09960f8390324621f",
+        "classification": "declaration",
+        "owner": "SubmissionResult",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "8826a5807ec0ec5a7d87e757e61563def16404e24d1949376a6b42b933d96bce",
+        "classification": "declaration",
+        "owner": "SubmissionResult",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "9984e351ad9d3fb8a0bd7a65f04e8fbc33f27d33e80d60b115872f7e0a9d4b63",
+        "classification": "non_contract",
+        "owner": "SessionSummary",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "25b68345236efd652ef4a614b0c8cab82769f822c9f0813e6e08282b62e81bad",
+        "classification": "non_contract",
+        "owner": "SessionSummary",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "23cd454f284fef01bb98ea093815727b8687796b86489775cc6a12173adf2655",
+        "classification": "declaration",
+        "owner": "SessionSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a04bc7679b3ecbcf80a7756f4a40b32cb2843e255a1d84df5f9d80b90a0faa07",
+        "classification": "declaration",
+        "owner": "SessionSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "1ed47d17ad54e85411da12ec2e3862b0cfc31ad9188bda54ad802b2c5f90d1d4",
+        "classification": "declaration",
+        "owner": "SessionSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "53aacf42f804e96be978b03903868425f3c9d4c425a5fd3212a04784bb2970c1",
+        "classification": "non_contract",
+        "owner": "SessionNotification",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "f254eeb0a2947b3a940fef5a457585867331fbecc0f53f55b0bea690e0f5faf4",
+        "classification": "non_contract",
+        "owner": "SessionNotification",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "d4a5cde381e3ad2ba8acf790ed3ff582153869eca9e273934efe412e62b33a28",
+        "classification": "non_contract",
+        "owner": "StepSummary",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "1b34c15bcf81a804a7b5925b6dce692302e6d2830840ce2bcdf0f17ea4c401d0",
+        "classification": "non_contract",
+        "owner": "StepSummary",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "aa441dd318744c8e924f45331a6cce43b64c0bbbef3bead889758ce4dcfac9da",
+        "classification": "declaration",
+        "owner": "StepSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "0c585abc498116c45236efcc8729594d05abf73fed9bbfd6feafb1d82bf563a1",
+        "classification": "declaration",
+        "owner": "StepSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "c468294e8c014d052f0553203befe71d9741d6c7db1e530f90cd289e37a2b344",
+        "classification": "declaration",
+        "owner": "StepSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "11cac6da598a8ef8ee850ffd3adb9033f0858042d603389da2752ad4d6867996",
+        "classification": "declaration",
+        "owner": "StepSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "6dc7cfec431b0f695b87564515632c79122970bf82b99eaf91c9c984a98daeab",
+        "classification": "declaration",
+        "owner": "StepSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "34d88635322aaf86e12fa76388c981e851e35636f555d67775f0fdf6df8d2642",
+        "classification": "declaration",
+        "owner": "StepSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "4b7624036553d413fe8d3f44b4faa8a1466a85f6f4929fda14c211dff04a6edf",
+        "classification": "non_contract",
+        "owner": "RetrySummary",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "68ef294a090b9f4d14bc36f58736015e297ddd9b80a8126247caa0f50c6b6140",
+        "classification": "non_contract",
+        "owner": "RetrySummary",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "bb269219d2e29b757426576e657b4e69b0fe643311821efcf8c7d5eecf3b341d",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "1614dcb547dbe5b5d8b01b5fc6b08d11c714537bd856d353d63ed555f6ad1e74",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "e6bdae397288d6fd8ebd3df84aadbd71a85c4c1886675b1ad2714a216d8b8e7f",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a9abb8ebc2d8d8a9469c67736755b89706189b46bf64784dd01d375eb2acd58c",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "2bf9d97359d94bb4cea41f48227ea9f6533f170c220df05c60fb6c232d16f20f",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "47c8123d0dcf9b230a827b3a2a9ff47d00472092d6bcea6383867c2559834675",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "69e0ab768cf3d250d35e5e8422d6370d7c9b86c762d91050a5d648b0975d233b",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "6ddb065edd16f17d15a96e69f77e601dcc780d2cee1f99793479714056f24b43",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "f6bdd72d101527b504dbb554ae964a051c7cec8c3939dd5e18d960900d2c8cdb",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "168e95ed1fa68d11c031acfab46a2c7b59bb030602762769a2d843b6c2214072",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a5f1034e6eda63f2fd874cd2f2c7c417d2196c6080e2173af2b2900305808ce4",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "d091a47440f6c879f847a1fe0043637f6864d33dd7585fa170cff780db6d1d12",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "3e0e91a347a770638520c44e4af037805e8b8a89a05f0ecac59e332b984bb8ee",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "fc3f8a598649ccecbfcc680295cf416b3162ed8d7ab953450ebab15c2c769fba",
+        "classification": "declaration",
+        "owner": "RetrySummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "f941e5704305bfba7fcc2a0dcd1ecfadffb9f18f6855a4a92c47d565ea696e9b",
+        "classification": "non_contract",
+        "owner": "AgentSummary",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "1bacf4e727bb212065855cf3a325119fa8edcc93a0e5dd619e508df260db9acc",
+        "classification": "non_contract",
+        "owner": "AgentSummary",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "90ee3585dec0d69da16a41122d95e96d2623b40d89b073aa09e5b94bdfa69cf1",
+        "classification": "declaration",
+        "owner": "AgentSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "bbc3b28f3949d2117f34c84e7b6bbe374ef189b01ce85b34fd0da581d1d9e28a",
+        "classification": "non_contract",
+        "owner": "RunSummary",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "60dafba222dcfaf02a08e4288f049d0ffba87d512e4bfb5cf1aaefbd73a61e68",
+        "classification": "non_contract",
+        "owner": "RunSummary",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "8d072a7f50f66a12141c231c46b53f16c5b9178f135c46b5b04ed659d9f3c50a",
+        "classification": "declaration",
+        "owner": "RunSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "b8516f076f64efb1445531e0831c277d336c03b02c01cebfc30f8e67fc05ea21",
+        "classification": "declaration",
+        "owner": "RunSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a1e443bdb13e6d960171f89ef7ec828e900b9fd133945f9b8a5e65708cc23647",
+        "classification": "declaration",
+        "owner": "RunSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "2175d54bbc1fac880d3ba1da384f4fe6a76cf3eaf39b7f6c2155f7ead35a949b",
+        "classification": "declaration",
+        "owner": "RunSummary",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "a06b6e074d7d9cf2c2988a2bae64f4692267a92e397e924d9986a5b4d654ca35",
+        "classification": "non_contract",
+        "owner": "HubSnapshot",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "f3bdf7c3215b027f931197d89b07c09e9e131cea7c01ccc6265e303cdb7174d1",
+        "classification": "non_contract",
+        "owner": "HubSnapshot",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "72ead3985331ceb645871b8be047c864824b2f82027ed03d6a88f959b45688fa",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "4c1ccc2688127a2b3cf6d8691df946fd818e1f6ed9c7f7e1c3693e502ed151bf",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "4befbc8cb6625119eae7da0be486597cf3e1b099fc791d659da2c577b2035d55",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "cf3b5f5cfba1fc09caca977437988f913f0a3fc1b8cce1a94bc616461a531b4f",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "5dfa27d603ff3a2ce261cf420c209e665c25777ebad11529b6ced12f7172beaa",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "705976c3a6a38ff322b86b098212cd456a81cc2b8833786e0a21c7eed9dd8c63",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "30d857110719c8ccf720913fd25595f36c9b72bed93f96fd35d98fbacc93ba88",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "d8b405d4ef627fd7acaa8d722e90e16baac7dca472009edf99af6f85cc194f62",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "452cc13e4cf77f2b03d1fe0e171d2877de0de3aa2184c3d400d27c2e4f57cbaa",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "c8971d8531b1194760a14d770da6bbbfc3585e833c68be092a45ba6a64fe7f7b",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "ae686b0f7eb5938ef07eb70bdb2a9edb67ca01d2a32456b3cc28cd0f337b1148",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "60757e960c90aff0167ee291e98c466f47bcd3f1cbeb8965361c348b6d4fab9d",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "ec828c8d368f09389b939539fe9729613bc6c9aee4574caed85cc942d26bfa07",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "8baab87842ca280b62ec34bb1e75f2c293bdf995d5dca2de6638a75a0bc2e13a",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "eb5cae19229eb11f0f8fc071ac58ac9fba9f867d1d4b1aa08677f530c1f97055",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "7cb4b50774116f9a2c9985bfcf28a8ed188571b2e88333f06d01cde350dab0d9",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "dcf06adab1f6194012d7bbd0bc96d85a02e4b7b7f0f4ab7b061ce2e5c43c1be4",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "fa1bf0f0a97ae693bd05c829b5bc55d3269294ac774c6b0767e2ca3b7f8ad3c5",
+        "classification": "declaration",
+        "owner": "HubSnapshot",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "59868a59ea06a56c3b801ce106eba136f9c44ca6d5846b8c5c1ebabb34d6c767",
+        "classification": "declaration",
+        "owner": "SessionIdentity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "724f9bc32371cd31f5caf57cb557d8ca81a93d359d36f63cc46253c00b594af2",
+        "classification": "declaration",
+        "owner": "SessionIdentity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "2df377f8d61a60c389c76a728cdbcc08763682aaf347f433d9ac8f1f1ac4787b",
+        "classification": "declaration",
+        "owner": "SessionIdentity",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "08c49d94f9e9e0ab84de4f578b13dbf1ef5b394dc98a741b131f2922dad7e7c6",
+        "classification": "non_contract",
+        "owner": "QuestionPresentation",
+        "reason": "Dataclass frozen object semantics."
+      },
+      {
+        "id": "c1aabf714f73a32b1fb793579395335867dcf0a5d595385011c49ba455f242d8",
+        "classification": "non_contract",
+        "owner": "QuestionPresentation",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "befcf658afdfeb00fdbd57c9fff7575b104021aeef52e20ee4c659e18590534c",
+        "classification": "declaration",
+        "owner": "QuestionPresentation",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      },
+      {
+        "id": "8cb2a359b417a26f687b965d953e75953c2bd6b003aa8cb37cd48745093ae0ec",
+        "classification": "declaration",
+        "owner": "QuestionPresentation",
+        "reason": "Each presentation type owns its exact fields, optional defaults, role/status/operation declarations and identity projections; these never authorize Backend execution."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "Hub presentation models / TraceItem / QuestionPresentation / SessionIdentity",
+        "declaration": "hub/model.py",
+        "consumers": [
+          "hub/backend/observability/snapshot.py",
+          "hub/backend/observability/notifications.py",
+          "hub/backend/execution/thinking.py",
+          "hub/backend/interactions/questions.py",
+          "hub/ui/presentation.py",
+          "hub/ui/live.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/snapshot.py",
+    "sha256": "945dc5103bab541f4e2c7b7c5e3f6eea678cbfaf10e936276d29400c23a4a12a",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "4fe6d94597a5782fec61eee8b050bbf3de8e472af3d8b7d65ffc834e72695aef",
+        "classification": "non_contract",
+        "owner": "SessionObservation",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "4386a784eb80a8e69533aa5178052c50b10b4ecf0f76f811c4ffe59240e6ab35",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "76cda79f6c0a2fb3b7b9e2ef2277d1a2ddd9113661586fc8bf9af99ef2f2a26a",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "a2ed3b35d09b658a29a89b8f97e467d23da0e93a72f057e47336a01e5275be2f",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "a7a5d98d0d80eafa46a6ea415b1bf4a814ec550029beb5d879e506d316db2b74",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "399e54dc17b6cc3afd9619caeadeac9f6ad8cb9dfd0a5fc7270c4c358a836a61",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "64fc53c02b22449fc831f0c32b0bebab015699e1ae1ccf2024417e5c26466cbc",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "4ecfefb540d526b59c63c45f14e8dce525298738203b5f1a49b7016187194a57",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "bf0b99269f603745faf31d6f73ec480b864501e42ba136b45ff0997d24f7b5d0",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "8c19a0ff1f78c891f3e7d566d5899037c665fbf7dbca80fa827f0bb8c77e1b33",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "59d054799045e56a3f9ac52c4f43f4c0dd2ede2f8837482d0a82a838841a54af",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "6e12def0e326bdaa617bb725ccbb0911f888a88b1a895a25380409b6929d71ba",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "c964a05d6d739f3348383a679a3cd09589c464b079fc5edd01b752934b88b60d",
+        "classification": "declaration",
+        "owner": "SnapshotReader",
+        "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
+      },
+      {
+        "id": "240db23e0178c038f6fb8bb685140fe3038220aac0feb58a81ddccf007e71ecc",
+        "classification": "non_contract",
+        "owner": "SnapshotReader.run_display",
+        "reason": "Optional elapsed type annotation."
+      },
+      {
+        "id": "7672d5a3d0e0b036540ca7cc10cfdb5534da1596faed52323f0a9455863daf30",
+        "classification": "non_contract",
+        "owner": "SnapshotReader.read",
+        "reason": "First handle from the explicitly bounded newest-Run query."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SnapshotReader / SessionObservation / CachedSessionObservation",
+        "declaration": "hub/backend/observability/snapshot.py",
+        "consumers": [
+          "hub/backend/runtime.py",
+          "hub/backend/history.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/notifications.py",
+    "sha256": "35b3022bf33b0911e6b985de68bbedf6b88e809412ab94c4dc2d7622c443f190",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "abfea3b9dc3cd5e62810a7f82929327dd880ed70f556e7cb13655334568da80d",
+        "classification": "declaration",
+        "owner": "NotificationBuffer",
+        "reason": "Original bounded notification/identity queues, sequence arithmetic, absent state and question identity namespace; request/internal-engine identity references canonical Owners."
+      },
+      {
+        "id": "703b8c31ae5b7b054d5e642c8c9f8c24be88fc952898087912312fc847ab3998",
+        "classification": "declaration",
+        "owner": "NotificationBuffer",
+        "reason": "Original bounded notification/identity queues, sequence arithmetic, absent state and question identity namespace; request/internal-engine identity references canonical Owners."
+      },
+      {
+        "id": "7376b149692a32352ed21e7c91b375f6487624913e98c5291074cd1ba931ad92",
+        "classification": "declaration",
+        "owner": "NotificationBuffer",
+        "reason": "Original bounded notification/identity queues, sequence arithmetic, absent state and question identity namespace; request/internal-engine identity references canonical Owners."
+      },
+      {
+        "id": "5b1c597cb8bcabe56734feb54dfbfb53f895457fb6c79c3949acd29f90fb1df6",
+        "classification": "declaration",
+        "owner": "NotificationBuffer",
+        "reason": "Original bounded notification/identity queues, sequence arithmetic, absent state and question identity namespace; request/internal-engine identity references canonical Owners."
+      },
+      {
+        "id": "70f7abb58cb48d1d1bfdf15f9be1b344844e45ddd591e0e65b96780553502e1b",
+        "classification": "declaration",
+        "owner": "NotificationBuffer",
+        "reason": "Original bounded notification/identity queues, sequence arithmetic, absent state and question identity namespace; request/internal-engine identity references canonical Owners."
+      },
+      {
+        "id": "0af1a8d3f3ae669c1064d5c473424bc2903103781856538a56761f4db524e360",
+        "classification": "declaration",
+        "owner": "NotificationBuffer",
+        "reason": "Original bounded notification/identity queues, sequence arithmetic, absent state and question identity namespace; request/internal-engine identity references canonical Owners."
+      },
+      {
+        "id": "78be11f1ef588030f2595fcc70c7ce03d9f6e0cfac120a196dd92ed80a0a0c06",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.__init__",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "be18ec04cb921611c4482e65cf21e4341a631c8738d2c2d901c6fcb1525be4e8",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.__init__",
+        "reason": "Optional cached-state type annotation."
+      },
+      {
+        "id": "e755f2bf593fca2529a8661354cb02810649e0fb034b8e300c5f6dc7113650a0",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer._record",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "9b1c67fa9a62f69e1740fbe52dbf70b8793dcefeb7e5ce1f87f304702e043bac",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer._record_run",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "f84035117c4e52bb672a85a1db56a2bf7fff748abe8c70bc85c88fdc2d9d0e06",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.register_session",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "c9d06e1a6d1957d6a871ae9d53c229158e78ccf324d9895638eff7af4cb52aee",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.forget_session",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "3fdb764e909ec2f559b8410af757cdf5ef4f6b71e1c81cd019e8f08ae95a3c0e",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.record_run",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "df26c2b628f934cefeb1411062814d61e40434751fe2f68201236626fcea7dfe",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.record_question",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "c1eb13e7dc58cd0d97bfa938b0619a6c5d416845625bd0f62ebf990b2d5072b2",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.observe_questions",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "665dd6c9cea11084f065dd9a9e85029f5819b8ec34b76d80cd3d89214f3ea5de",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.observe_session",
+        "reason": "Return annotation for a side-effecting observer, not a runtime fallback."
+      },
+      {
+        "id": "1da36ba3c4e293aa4e1e17f11b9dea75c4757a2c276f3b9dd09b3aae43c53178",
+        "classification": "non_contract",
+        "owner": "NotificationBuffer.items",
+        "reason": "Variadic tuple return type annotation."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "NotificationBuffer",
+        "declaration": "hub/backend/observability/notifications.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/failures.py",
+    "sha256": "59d370e1e852997c0f1e070386f6967dc59cdcec1a93014eea167b06039acc9c",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3fb670b66036aeab6e0895625c84861a03fcc3ac950854baaabd9aa6034f65d5",
+        "classification": "declaration",
+        "owner": "FailedStepEvidence",
+        "reason": "Original generic failure classification, read/cache bounds and absence. Source fields delegate to ErrorProjection and Provider code ownership to ProviderFailure."
+      },
+      {
+        "id": "5ad84ee0766f74590fce77633bccdac211510950749cb96ee1971713a80fa0a8",
+        "classification": "declaration",
+        "owner": "FailedStepEvidence",
+        "reason": "Original generic failure classification, read/cache bounds and absence. Source fields delegate to ErrorProjection and Provider code ownership to ProviderFailure."
+      },
+      {
+        "id": "af5e133f7a861e890dcf3ff996c15c3a88041f8d6f67d33affd27e3c729498ad",
+        "classification": "declaration",
+        "owner": "FailureDiagnostics",
+        "reason": "Original generic failure classification, read/cache bounds and absence. Source fields delegate to ErrorProjection and Provider code ownership to ProviderFailure."
+      },
+      {
+        "id": "7ee4303fed15e5a6847a73c22b3d247fa71699d151b61fdc799ed065730ed457",
+        "classification": "declaration",
+        "owner": "FailureDiagnostics",
+        "reason": "Original generic failure classification, read/cache bounds and absence. Source fields delegate to ErrorProjection and Provider code ownership to ProviderFailure."
+      },
+      {
+        "id": "bf3c56d050fddf88ce86a2c29d597db20d4102d751b244c083793de5173c12fe",
+        "classification": "declaration",
+        "owner": "FailureDiagnostics",
+        "reason": "Original generic failure classification, read/cache bounds and absence. Source fields delegate to ErrorProjection and Provider code ownership to ProviderFailure."
+      },
+      {
+        "id": "82cb1de68b9b5a59df29fb96eab68ff72248175175a83f980b23c8e263c4bcb9",
+        "classification": "declaration",
+        "owner": "FailureDiagnostics",
+        "reason": "Original generic failure classification, read/cache bounds and absence. Source fields delegate to ErrorProjection and Provider code ownership to ProviderFailure."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "FailedStepEvidence / FailureDiagnostics",
+        "declaration": "hub/backend/observability/failures.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/logging.py",
+    "sha256": "c4624529f834fec844706dc4f623b55c12fd0663a2c2ac9f926971368fa345ef",
+    "reason": "Presentation model/trace identities, bounded Snapshot and notification policies, failure-source projection and Application log rotation are owned at their boundaries. Source matching, original cause selection, cache behavior, input borrowing and all execution/approval contracts are preserved.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "d8af90428b59b960dab49fa774db0f8c8f4acf9041d7342cd3098571ca6f56d9",
+        "classification": "non_contract",
+        "owner": "RotatingLogSink",
+        "reason": "Dataclass frozen configuration semantics."
+      },
+      {
+        "id": "a8a2a3b2de2192642562abc48f9e38086d46e0028cf22cda60d3f83476b54b04",
+        "classification": "non_contract",
+        "owner": "RotatingLogSink",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "19db67ea2d0bde7303f0d982159b25e63a4c88069cf4a9c240f7c15f90afc101",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "2052ceb73c423b025f953c960923cbea00ec29117732019222e6c301c16bbc82",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "db63fe086dc56331e2d8dcd265ca9565a5f042a4840e37fad252f996ffa52828",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "b9ce705cbc542897be0f3ef0b551e41615e7fd263e48966f567723040628285d",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "d5b071fe62cac12cd569a4996e9bab442c13aff1a8fae3a5f8fee8dcb0f01e17",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "fb34cb47bee8374449d47074c82d9bbd5af7b8ae9771fa27f7e762fbc7c32cec",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "23492374aea707f9522834e8334b844c2d8c7ae876a6b5eeeb027fe50568927d",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      },
+      {
+        "id": "76982a65f577ed5984cd25eb97d6714a8b6a2d606ad0951c8186ffaf4dae701c",
+        "classification": "declaration",
+        "owner": "RotatingLogSink",
+        "reason": "Application-owned explicit rotation size/backup limits, backup naming and diagnostics; log encoding/error propagation reference the FileLogSink Owner."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "RotatingLogSink / _RaisingRotatingHandler",
+        "declaration": "hub/backend/observability/logging.py",
+        "consumers": [
+          "tests/hub/test_log_retention.py",
+          "llm/services/infrastructure/logging.py"
+        ],
+        "tests": [
+          "tests/llm/test_agent_values.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_notifications.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_retry_observations.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_tool_history.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_approval_continuation.py"
         ],
         "complete": true

@@ -1,4 +1,5 @@
 """Presentation data shared by Hub's backend adapter and widgets."""
+
 from llm.providers.diagnostic_values import ProviderAttempt
 
 from llm.core.models import SessionStatus
@@ -87,6 +88,8 @@ class ReasoningMessage:
 
 @dataclass(frozen=True, slots=True)
 class TraceItem:
+    THOUGHT_PREFIX: ClassVar[str] = "thought:"
+    NO_TIME: ClassVar[str] = ""
     TOOL: ClassVar[str] = "tool"
     REASONING: ClassVar[str] = "reasoning"
 
@@ -94,7 +97,13 @@ class TraceItem:
     kind: str
     text: str
     status: str = ""
-    started_at: str = ""
+    started_at: str = NO_TIME
+
+    @classmethod
+    def thought(cls, identifier, text, *, started_at=NO_TIME):
+        return cls(
+            cls.THOUGHT_PREFIX + identifier, cls.REASONING, text, started_at=started_at
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -255,13 +264,15 @@ class SessionIdentity:
 
     @classmethod
     def current(cls, view):
-        return cls((HubSnapshot.project_identifier(view), view.sessions[view.selected].id))
+        return cls(
+            (HubSnapshot.project_identifier(view), view.sessions[view.selected].id)
+        )
 
     def to_tuple(self):
         return self._pair
 
     def prefix(self):
-        return self._pair[:self.PAIR_SIZE]
+        return self._pair[: self.PAIR_SIZE]
 
 
 @dataclass(frozen=True, slots=True)
@@ -275,8 +286,15 @@ class QuestionPresentation:
 
     def to_record(self):
         cls = type(self)
-        return {cls.run_id.__name__: self.run_id, cls.live.__name__: self.live,
-                cls.request.__name__: self.request.to_dict()}
+        return {
+            cls.run_id.__name__: self.run_id,
+            cls.live.__name__: self.live,
+            cls.request.__name__: self.request.to_dict(),
+        }
+
+    @classmethod
+    def request_only(cls, request):
+        return {cls.request.__name__: request.to_dict()}
 
     @classmethod
     def live_request(cls, run_id, request):
@@ -315,4 +333,6 @@ class QuestionObservation:
 
     @property
     def request(self):
-        return InteractionRequestObservation(self._value[QuestionPresentation.request.__name__])
+        return InteractionRequestObservation(
+            self._value[QuestionPresentation.request.__name__]
+        )

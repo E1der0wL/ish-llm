@@ -8580,3 +8580,46 @@ Overlays·Deletion feedback·Approval continuation 소비자를 검증했다. �
 이 소단계의 전체 회귀는 유예했으며 전체/원격 완료로 기록하지 않는다. ResponseContext·Runtime
 Observation·StopIntent·ConversationLineage와 묶은 다음 Level 3 전체·정적/문서/R3·실환경·정확한
 SHA 원격 CI가 상위 게이트다. Gate50에는 이 변경이 포함되지 않는다.
+
+
+## Snapshot·알림·실패 원인·운영 로그 회전의 표시 계약
+
+Hub Model·Snapshot·Notifications·Failures·Logging 다섯 파일을 전수 정리했다. TraceItem.thought가
+Snapshot과 Thinking의 thought ID/REASONING 생산을 함께 소유하고, QuestionPresentation은
+알림에서 사용하는 최소 request 관찰을 생산한다. Snapshot의 Agent 설명도 기존 AgentDefinition
+Owner에서 선택한다. Session 관찰 캐시의 내부 tuple은 같은 두 값을 갖는 NamedTuple로 명명했다.
+공개 snapshot/메시지/로그/요청 저장 형식과 직렬화 값은 바뀌지 않는다.
+
+알림의 64개 항목·128개 ID·중복 억제·재관찰, Snapshot의 1024개 캐시·2초 비선택 Session 관찰,
+미완료 Run의 cache 제외와 UTC elapsed, 질문/일시정지 표시를 유지했다. 실패 진단은 원래의
+최종 실패 Step와 명시 code를 선택하고 다른 Project/Session/Run/Step 증거를 거부한다.
+ErrorProjection.execution_source가 원래 필드 집합만 생산하며 ProviderFailure의 기존 code
+분류를 재사용한다. 로그 회전은 Application이 명시적으로 주입하는 sink이며 자동 활성화하지 않는다. 기존
+LogRetention 소비자 테스트처럼 명시적 size/backup만 사용하고 링크된 backup 거부를 유지한다.
+
+독립 202개 관찰과 24개 실제 Snapshot 읽기 시나리오의 원본/제안 결과가 일치했다. Run 상태·
+종료/요청 시각·원본 metadata 불변성, reasoning/중단 표시, 알림 중복과 경계, 144개 code/Step
+상태/종류/소유권 조합, 실패 fallback/cache, 실제 로그 파일 회전과 링크 대상 원본 보존을 확인했다.
+Snapshot의 선택/비선택·실행 유무·purpose 생략/None/문자열·file root 조합에서 직렬화 출력,
+API 호출 수, 캐시 재사용·invalidate와 원본 Agent 정의 보존이 동일했다.
+
+- `whole-hub-snapshot-diagnostics-core-01`: discovered/started/pass 3/3/3, exit 0, 0.00076초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-snapshot-diagnostics-core-01/llm.json --modules tests.llm.test_agent_values`. source `a5d8a8d6b676064776074462d3943f34233085ce9aefa723c6f52414ef30aa5f`, input `6864fc5d1cd09f05679486fecf021dba7bf99121a7421c31df7d1b3e30abb7a0`.
+
+- `whole-hub-snapshot-diagnostics-safety-01`: discovered/started/pass 84/84/84, exit 0, 35.665311초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-snapshot-diagnostics-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `a5d8a8d6b676064776074462d3943f34233085ce9aefa723c6f52414ef30aa5f`, input `6864fc5d1cd09f05679486fecf021dba7bf99121a7421c31df7d1b3e30abb7a0`.
+
+- `whole-hub-snapshot-diagnostics-l1-01`: discovered/started/pass 26/26/26, exit 0, 15.733518초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-snapshot-diagnostics-l1-01/hub.json --modules tests.hub.test_snapshot_projection tests.hub.test_failure_diagnosis tests.hub.test_notifications tests.hub.test_log_retention tests.hub.test_retry_observations`. source `a5d8a8d6b676064776074462d3943f34233085ce9aefa723c6f52414ef30aa5f`, input `6864fc5d1cd09f05679486fecf021dba7bf99121a7421c31df7d1b3e30abb7a0`.
+
+- `whole-hub-snapshot-diagnostics-l2-01`: discovered/started/pass 19/19/19, exit 0, 48.149845초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-snapshot-diagnostics-l2-01/hub.json --modules tests.hub.test_history_alerts tests.hub.test_tool_history tests.hub.test_multi_agent tests.hub.test_approval_continuation`. source `a5d8a8d6b676064776074462d3943f34233085ce9aefa723c6f52414ef30aa5f`, input `6864fc5d1cd09f05679486fecf021dba7bf99121a7421c31df7d1b3e30abb7a0`.
+
+각 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0과 source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 argv/exit는
+`hub-snapshot-diagnostics-draft/selected-results.json`, 비교는 `proof-commands.json`이다.
+Agent 값·Snapshot projection·Failure diagnosis·Notifications·Log retention·Retry observations,
+실제 History alerts·Tool history·Multi Agent·Approval continuation과 공통 안전성 84개·R3 Mutation을
+검증했다. 기존 실패 원인·외부 효과 횟수·승인·예산·Checkpoint·Resume Assertion은 유지한다.
+
+관찰/표시/회전 선언과 동일 투영 이동이며 저장·실행 정책은 유지한다. 소단계 전체 회귀는 유예하고
+ResponseContext·RuntimeObservation·StopIntent·ConversationLineage·HistoryRecords와 묶는 다음
+Level 3 전체·정적/문서/R3·실환경·정확한 SHA 원격 CI를 상위 게이트로 삼는다. Gate50에는 이 변경이
+없고 이 기록은 전체/원격 완료를 의미하지 않는다. Provider logs/Activity UI 등의 후속 작업도 남아 있다.

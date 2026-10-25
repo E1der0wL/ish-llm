@@ -24,6 +24,8 @@ class AgentMode(StrEnum):
 class AgentDefinition:
     """A selected Engine is required; application descriptions remain optional."""
 
+    NO_PURPOSE = ""
+
     REFERENCE_COMPONENT = "agents"
     CAPABILITY = REFERENCE_COMPONENT
     class Field(StrEnum):
@@ -115,6 +117,10 @@ class AgentDefinition:
         },
     }
 
+
+    @classmethod
+    def purpose(cls, definition):
+        return definition.get(cls.Field.PURPOSE.value, cls.NO_PURPOSE)
 
     @classmethod
     def engine(cls, definition):

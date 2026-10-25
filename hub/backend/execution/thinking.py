@@ -31,7 +31,7 @@ class ThinkingPhases:
     REMOVE_NEWEST = False
     ABSENT = None
     NO_TIME = ""
-    THOUGHT_PREFIX = "thought:"
+    THOUGHT_PREFIX = TraceItem.THOUGHT_PREFIX
     PARAGRAPH = "\n\n"
     ACTIVE_STATES = Run.ACTIVE_STATES
     UNREPORTED_STATUS = RunStatus.RUNNING.value
@@ -54,9 +54,8 @@ class ThinkingPhases:
                 state.activity = ResponseActivity.THINKING
             text = completion.reasoning_content
             if text:
-                state.trace[completion.id] = TraceItem(
-                    self.THOUGHT_PREFIX + completion.id,
-                    TraceItem.REASONING,
+                state.trace[completion.id] = TraceItem.thought(
+                    completion.id,
                     text,
                     started_at=getattr(
                         completion, CompletionResult.started_at.__name__, self.ABSENT

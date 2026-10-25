@@ -6,6 +6,7 @@ from copy import deepcopy
 from dataclasses import replace
 import traceback
 
+from llm.core.configuration import UNSET
 from llm.core.contracts import Diagnostic, DiagnosticCode, ErrorReason, ResourceRef
 from llm.core.diagnostics import ClassificationEvidence
 from llm.providers.diagnostic_values import (
@@ -29,6 +30,15 @@ class ErrorProjection:
         ResourceRef.step_id.__name__,
         ProviderAttempt.call_id.__name__,
     )
+
+    @staticmethod
+    def execution_source(project_id, session_id, run_id, *, step_id=UNSET):
+        value = {ResourceRef.project_id.__name__: project_id,
+                 ResourceRef.session_id.__name__: session_id,
+                 ResourceRef.run_id.__name__: run_id}
+        if step_id is not UNSET:
+            value[ResourceRef.step_id.__name__] = step_id
+        return value
 
     @classmethod
     def references(cls, value, details, source):
