@@ -70264,8 +70264,8 @@
   },
   {
     "path": "llm/providers/runtime_values.py",
-    "sha256": "0dc54a44544c21f055328f7570eed1edaa7f72c0a1812b92964c8f2fa1546d74",
-    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass.",
+    "sha256": "1349a9d7858287386c7ec6d9c8952db9d64ae0a6b6c78d9da9359faba5bc7673",
+    "reason": "Whole runtime review covers opt-in privacy and ordering, endpoint redaction, call/result correlation counts, SDK cause/body classification, safe library records and exact native logging callback, LRU and write-error behavior, per-workspace/source contexts, observer isolation, lazy SDK import and unselected retry suppression. The existing broad observation failure boundary preserves original execution/cancellation. Only enumerated Python dataclass type syntax remains outside declarations. Canonical observational Diagnostic/Provider/Checkpoint/Recovery owners feed existing error presentation without changing classification, cancellation, cause-local HTTP evidence, privacy, retry admission or persisted Readers. Actual baseline/updated observations and existing consumers pass. Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -70353,313 +70353,355 @@
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "d3fb63b4f2239c7a3a8a6b93a61d7c4ce9e0944589dd039ae0cdd4e07a3ce107",
+        "id": "8957b86edb3f9ccad280cfd60582a0e3ccabf58a4f811c22bd709ac6a06f8979",
+        "classification": "declaration",
+        "owner": "ProviderLogPaths",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "5bf1228dc5b8522612e9dc68f3d3e2ea28e37242991eb6b3ecbd42d44af57b5b",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "2b4798c66acff82e0f46d4b517e28cd7f3c404aca729e1a4b97decc40d118516",
+        "id": "91ccaccab8c078f49f4d45b56ae9483b381a2c6882fce29d70ae804325ef7c94",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "952c64476a234b627beee96574eabc58b7f03629405a2577efeb886ed740c588",
+        "id": "c6b60c8345832f14b38fdbc0ee7906ac9d5f97a37cdf9ad2ce1b04c081ea3e3a",
         "classification": "declaration",
         "owner": "ProviderLogPaths",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "bde28281e110e78de96e414189d98c9d4021c22e56308eb8f3cf7e7f068c8d15",
+        "id": "26f221ccd47c9883c64761091064fd202201288f7d287ae39a53619529a7d1d9",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "21d4ade92b7b3afa3b38456554aa1ffd26f90cc7da10255f1aa9d6e3e034e784",
+        "id": "b512aa4dcec4e4dc4518723f683f2c44160b8b49838f280ff1e330a235891d31",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "c14b08c73e205f13d6d5469c815e2654aab19d33726626f3b8042e81d6f6b004",
+        "id": "8e5e33fb886775bf5bed59a0074ee1e86d8b59b43bf3e3cfac6b0148977f2604",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "971ed111e7fb054e4aa55e229cbe9956ee6559d063453fa068a38a2d9f8b6640",
+        "id": "d115e2dad2c6bc8750db11eb962c584822b6cb815dae6e155e6a269442f878c8",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "55080ea6783e7a5d1d1b2c78c2ff7f2e9751aeaa67bd5eeea0fd8bfd46b9ea48",
+        "id": "f66c1b8d55d975d47513fb90fdb21f4087383b9d7dd805775c96905b586a77dc",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "2b3f010a28f63b576e71b03ad23fe9a2cbde51ebbe706b4c2d7e2bbec1357b92",
+        "id": "22bb299213e876d4954d7c30a8e3d2e6c333a08ad10bbc7a3c87d34b116c192b",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "05b76adeea94f64502bf2038cad330855ade9c9a2f0a0e97f6668a20844282e3",
+        "id": "0aa4ad9b8959048c7505f363d547c706cf1b81581bc6b1a9cd7e3f06c3655b78",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "8f40d732f99fd9254231f407130db1ebe17bf888e9fbb136ab793b684291149c",
+        "id": "d40f5adc2406b7af58fc0ef645312145b440f5f7321eeb00b96aad077f59da70",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "bb1ad0a7f4fc78c747ba3cb4866e00e0b48c065949da1b4d7c0a1bf66db90163",
+        "id": "b5220217627f3f6e8cb53911d841a2dadca43a3736ec8f73e936a6b4ed04f425",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "1d4c8f2f94d032e563e861362b54d121d4ea264468daa36e9386bdc6b8f81f06",
+        "id": "794087f182e3763f8546a5175cbbc88dea131359a0132a92878bcf6d496812f8",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "539f47d9a92efbd5ed29eb6cc127d36bf825d1d0bdff585fdd5897fe8d4ae63a",
+        "id": "24fcaeaa413b4eb6688409ba41a77d9021026785a22c85f198ab18931defdb74",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "2331598a648377cd4005978616fb1fed4b3063b7493047056614b10f447791ab",
+        "id": "8dcd3e159e937d2963cfe54e77c2f829b0d323fa32c11145dba509f4cf588fdd",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "5dec2e6175bf9d245f14f7abcd85788a94e2f5a9f50aca65cbdd5d1c68ead1b8",
+        "id": "1ea844e11700b5e3eb83eacb2976365352ae897bd218871f20df0945756dbeec",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "3e6744700c55705e323fe5cc5af33bf0a7cadd8a9925e02cc4e2e9ca44e92f8f",
+        "id": "d9f3faa05c865ac1ea6281e8a601905a07e8f1d847a206ac75fa053671c5ab6a",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "3a1061f69ca4f7de3d05748807d2e60af188b32416178eaf9b3f74acbcf7e9dc",
+        "id": "dd38563bc0119d22d18799883e7872d96d6db712ce2d43ac0296013f3faba5d1",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "4aaad055b9286c94316605ea87781629e2cab1c26640126038d097a7bef558a5",
+        "id": "26290d47dd22fece0e779a1bd7fb6158ee08266b25179a3e4ca9670652ce4c6a",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "602cbbaea7f94a4e50b77430ecea5c9e17aed267e2af7269942b819454791b61",
+        "id": "1be39d9782892c65d2f5d8129f7e09578b0036ee320b27ba8a0633389d067820",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "18751ac93f6ae3d514a31bca36e1f2d8adaabed29fbe9016560399857e71ac33",
+        "id": "d1c6aded0df2af1696c08c4edcc844063571e2a6d041e51771d06b16b219a48a",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e560cf36b84af71966c258308be50b2168eb91d7b0f9a8ffa63662fb2d98f110",
+        "id": "952242092e5e6bd60ee98959c1f126f602e210c1fc005df69f795ecac9e3e1c9",
         "classification": "declaration",
         "owner": "ProviderLogging",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "0795257781c63c4b67e810e2635678d65da576ad97b29f564bcd9c42ee0ddce4",
+        "id": "bb67bc75fa55de930259b1fe7af98e77a1f6e598056e6252136d039cda7bfad1",
         "classification": "non_contract",
         "owner": "ProviderLogSource",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "d6459220542aa139d5d0d2c42663b096793b25cdee9e7bbddf104e6f41e07b54",
+        "id": "622813e1b392ec7233b770b99e5eec7495793fb16a6e8157a6669dcacd350e4c",
         "classification": "non_contract",
         "owner": "ProviderLogSource",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "900c5f631433c5baaf5f80b4cc7038ecb4f93cd23c0b49f5f04742eaecb1ed17",
+        "id": "403808c7947c0800594b1a3e3fafe174db6a0c33a2dca9d63c001bbb2a3bb45b",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "0dde5e4a459ea5183fbeb2a6655a00c8f3ce9859101a2be5b35c17804d7a3940",
+        "id": "5acfc6102537460374d127d56cbc8d3470bce221d8265def54da8c44f74eca99",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "55ff2d6611656621ae01ca880ffdec03cbb3499a1c0fcb649f9839a80f4245ee",
+        "id": "e9f1a33fb1f694bed0d2080ebc3afe435ac61c291f3893820803368f568e9eef",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "c351c68c4f761048c41f7a9732bc9dd36bc77fbe331f78bce9cb8fb2de1e5dc3",
+        "id": "156cd20a3bcfc4cefba73853eb19b34fa26c74b0023573ab1e26a9495e37bdc8",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "01ea582151ef645887eb2c1b310efcabaa8d548b5b5d6a18ca3c54e413455f88",
+        "id": "3184c41800bd3befcdbc6659b147a6282c530f854b1bb1cc7017a4d0eb9c3abf",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "e176a566c4b56b7faa77f6a0c5f1d947316aec0d2a6fa3cacce92c86e6ed7a74",
+        "id": "1e784fb3d2d3a26436b88632184cecb7b8bada6c36620eed9acf6450f41685dd",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "86678390af80e58dcb4508da16f0ca748a6fe2d0b2e8d6efc2483cca62f64f1c",
+        "id": "09087d850d05bcf206bb2c6f5bf07545f4d801e7b897dfed97be4e4aadeb33ad",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "5bae2d17b11da18cc893598dd2d105e6a49ce0d68105dfdcd85d510bec6f994b",
+        "id": "1c5832ce365444e87e2302be494d47934381d381480b0fd14f8df30526afb6a2",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "4572270bfecd737b12e1c3e8512ed044104eca2728d304118889fb23b2912cd7",
+        "id": "f61bcbf05fb430983d717926bbba49ba8619c5ed7c73a23832145b59fe7ff663",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "8c4bdceacb22e76771ac4787c47dda4954ee084783babad45c312e7f8dca308f",
+        "id": "a4ff3426fc8b3a9533e35d2c408efeb1ede6aea9bb747ac25b051ab4c3722733",
         "classification": "declaration",
         "owner": "ProviderLogSource",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "0bbb19e692eadd32a6151d3774f335570e1608019fdc20b1b079e21137d3f949",
+        "id": "ba12de92b2e634fb1e2aae350e3013fe494bf19f344854cd396690b7dd949a29",
         "classification": "non_contract",
         "owner": "ProviderLoggingStatus",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "3a6079cf73b4398da2a96607f36be821151be0cb7ed34c5579e95e99e9df9962",
+        "id": "196c313669377dd332ded6dcca4ca7745e6ce8335cadd5188036407ad396919e",
         "classification": "non_contract",
         "owner": "ProviderLoggingStatus",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "0f5618b921e8cb992a85708c84fce2736f0316e94f76cd24e416fc214a918966",
+        "id": "fc53fe18cd484c4c6b39a68ceb89963923f405ad37567403b663a86e1821e3be",
         "classification": "non_contract",
         "owner": "ProviderLibraryLog",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "bc9d1d3b42c8dd7a2b903829f99819f2ecd4a43ebaed6a13fc8f5849ea546cd0",
+        "id": "697d61d983756b62e62edf69c103efc306975f9139352a0ec3f854b7116e96e1",
         "classification": "non_contract",
         "owner": "ProviderLibraryLog",
         "reason": "Python dataclass frozen/slots type layout; not an execution policy or default."
       },
       {
-        "id": "31690ab6e3b78b5bad6ce4650e93b8d926e6ca14b701b707c3c80ac8783fdc06",
+        "id": "5c7adc36695120e82931db26d94a9cb72db1734accf02fdaa0eb702dc09cce7f",
         "classification": "declaration",
         "owner": "ProviderLibraryLog",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "207d689f05fae1aa22cd0174579219f0e1c9e35624a8ec4849c89b070929f606",
+        "id": "4ee0b35d68bffcb3de242f7f0170250f44277f191a07a0e2335c18dd8f1b7619",
+        "classification": "non_contract",
+        "owner": "ProviderLogLine",
+        "reason": "Dataclass frozen observation semantics."
+      },
+      {
+        "id": "1c556581cd7b7f2d5781328ba7a9b55cfa1dca86e52d5afdd557d0140b22acc9",
+        "classification": "non_contract",
+        "owner": "ProviderLogLine",
+        "reason": "Dataclass slots object layout."
+      },
+      {
+        "id": "bb0672de520306e2977b1b4f095826cf19946bd71e2d1948a9d8624ea8213a4b",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "cd87a1a457b38acb6be5d1af99610a021e268482aa92e74b61306e2778131a34",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "72db643ba60567539f4bfca0917f722464a20b18bbf2ac9f4cf68163ae408def",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "09bdfd1edbfd9f85cdc40512218d8203addc9bc02443e1e0ec387058ecac4f49",
+        "classification": "declaration",
+        "owner": "ProviderLogRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "64e78ea70b7ee298234f21b812ec6802cefd156fc92af6b89af5f6321d0fc931",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "ea19c714584aedf9aac3fd3f8672abf7678d4f4054542dd4bca9a699c2422de6",
+        "id": "5fa83107dab12c8edfbe84b18ca8d28b6dfa8f319c400bf90addcdfb7567bf29",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "f683d5394b7b8b8b22c7ee051b630f1db7ba4958bdbf4d2748c0311d3cffc11b",
+        "id": "2098e0b97ece093717c4040fea02586211b276b5c44f129706da9e4a19b0bd7d",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "1d01ca54086c72192976b0a37d315c3990bf602c7c76d678053f18793447ae2b",
+        "id": "1ccb15ee77b6f071d4def5cc62af906791ca94946079ad5015526ce94dd5a6c3",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "a82502a937ea27b6bb9d66bec6e577318b8596c5444183e74c039b6b7117d939",
+        "id": "a812dae3a69b0608e75f2aae780b875bbbcba0d4cc54e326e25df46aafb2703b",
         "classification": "declaration",
         "owner": "ProviderLogRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "47692e8a4e19b5f389cfa65c87256054bfb09a9bcb000c459e369e4d274fd9e9",
+        "id": "b24d28f838fa2e0a629d59d317c7cbf75da9d48df0dea4b5d999e126d1408b36",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "3ba10d069bf1914519e6038b2f69f933e803652f29021efd2c79ffe48b25d2b1",
+        "id": "1bc4a0208bb91d4e878e8dad3a92ee370ec9bbbe694da56029da37df5fddf66e",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "5a358e23a323c5f8b6c13e21c79f47d5d260a763fa466a207a86d50016bb0e45",
+        "id": "3d9c85480fe97d7d80ceaf86a8ff02ae9399881741488bbced7940a2ccfebc19",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "c6034c59c1ee88feb7954f754e0b7844cf52c082c0b3d278605fc3a2b58bb6f3",
+        "id": "b0f9db315cc0a783f90e2d2b19c47472fef0f9f9df3cfb3c6812bf03e4bc0f17",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "ff2d700de77b542ca2156da6096936a93bbb361df8c6335ab8ba75281d1900f0",
+        "id": "35578537079095959b5fa1a374da7fbef797b5f4d936626634821bbb978b24f1",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "0bc1e528bdcba08e889b607bf72886d46ff23f313c508ecaa0a02a8b2fabba9d",
+        "id": "2866ba1d058b46846f163e0d29573c1cc60ad0d3786b603b5f4558a9cd24a9b3",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "61627aa75f2db9f06ced1f445ac7cd9d7255a8718462825c637b477b72bc5c4a",
+        "id": "8618f04dd5b3b7d5ba72731a27c82811f4f5f784f9e641fe2defaff80e44ae1c",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
       },
       {
-        "id": "44741c097b1d642d1185cb8872d424b6f0d0fa7176a7f8fd09a8a84c089300f5",
+        "id": "f898b3d93db7afe322a3c73a9d05fb8d68bd27d64e386dc1d82ce6e6199c73d2",
         "classification": "declaration",
         "owner": "ProviderExceptionRecord",
         "reason": "Owner-head diagnostic/SDK/logging/path/counter declarations. Raw diagnostic JSON is assembled only by the designated observation Writer; SDK values use their existing projections and cannot create execution authority."
@@ -70671,8 +70713,12 @@
         "declaration": "llm/providers/runtime_values.py",
         "consumers": [
           "hub/backend/execution/provider_recovery.py",
+          "hub/backend/observability/activity_values.py",
+          "hub/backend/observability/provider_logs.py",
           "hub/errors/adapters.py",
+          "hub/ui/chat/history_ui.py",
           "hub/ui/error_presentation.py",
+          "hub/ui/submitted.py",
           "llm/llm.py",
           "llm/providers/litellm.py",
           "llm/providers/requests.py",
@@ -70680,16 +70726,23 @@
         ],
         "tests": [
           "tests/hub/test_backend_diagnostics.py",
+          "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_error_contract.py",
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_history_alerts.py",
           "tests/hub/test_interrupt_feedback.py",
           "tests/hub/test_live.py",
+          "tests/hub/test_multi_agent.py",
           "tests/hub/test_provider_activity.py",
           "tests/hub/test_provider_recovery.py",
           "tests/hub/test_provider_stabilization.py",
           "tests/hub/test_rag_extensions.py",
           "tests/hub/test_rag_jobs.py",
+          "tests/hub/test_request_history.py",
           "tests/hub/test_retry_ui.py",
+          "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_tool_retry.py",
+          "tests/hub/test_ui_requests.py",
           "tests/llm/test_builtin_diagnostic_values.py",
           "tests/llm/test_checkpoint_integrity.py",
           "tests/llm/test_common_provider_acceptance.py",
@@ -99666,6 +99719,456 @@
           "tests/hub/test_tool_history.py",
           "tests/hub/test_multi_agent.py",
           "tests/hub/test_approval_continuation.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/activity_values.py",
+    "sha256": "fbf1995cdc1c237ecee1a7a282be67f867e4d1f98b61d8afe15d8b10f50c3657",
+    "reason": "Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "0f912b6d0b702f3003ce84df3cefcf4ff2f9857186651a7d2307a2d30aa20df8",
+        "classification": "declaration",
+        "owner": "ActivitySource",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "85bcab807d0605f0708408991c9c692541d256ad4ea6c4a72f14e5819d425157",
+        "classification": "declaration",
+        "owner": "ActivitySource",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "1cfb5762c780da0bb335cc8da49255eacf6df053d5afbb4976769c528a29b2b3",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "ecc0f954d131afd27551be4a52cdf1ad6f73afd3bff19e415667858e32aa5a77",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "fc9b24f1f10c755f25341ec0e923b1cad21d48db9e80bca9196cd0b0f847df49",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "035ff4cc73194432ba36ede48c4fb17516ccb1130121af1c2641da775859c788",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "6bc2aa6946f4a8df4e793b06c17432807de4c534736453c0c0f508cb80437b8d",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "1809791a3ab8cf8965776049c8798b84fbdff17884ea858ea7fd8af10633f057",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "5ec515d525fc1b3556ffebab12d30ffe89588f18fe25ac68f67533005ee9e6b6",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "5118df31caee22976c4df9cd8aa43306559ba1734af79f14c38fc62bf1fcd320",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "7848bc2f56457aecbb886ce8f38792313b0831d162dabe753a94c12968b72ee0",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      },
+      {
+        "id": "dc214b879f6fe7db60cc404b3a5c9536eeb29a7294fbfae9531838a1762520f7",
+        "classification": "declaration",
+        "owner": "ActivityRecord",
+        "reason": "Canonical Hub activity extensions, Provider source placeholders, scope/diagnostic fields and read-error projection; lifecycle fields reference Backend Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ActivitySource / ActivityRecord",
+        "declaration": "hub/backend/observability/activity_values.py",
+        "consumers": [
+          "hub/backend/observability/provider_logs.py",
+          "hub/ui/chat/history_ui.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_failure_diagnosis.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/provider_logs.py",
+    "sha256": "19fcdb797ef9ffd0f1a21519f5ab4ade96c60073ef6e36dbf4c458fe85b87c33",
+    "reason": "Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "3285d26e36fd917850b4db53bb89ba630bf19753445a5dd3f5c4d746e863d1bf",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "4c7d25e980c37a51b11989c50671ec74e777cd4cbde012b875c9d7af708d4d1b",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "e2a88d867229c04d145a09a26a277fbb334cdeeb830f8732f22ad6ea6f4fffae",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "4ad7260b9564f7f24e115fd8ba5a732ab0fb5f322742b5bdf5f1132bfa7d6a3f",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "d91c38d6ef1da169235b38d59cd4f333b8d6ba81cc66ed78c540ffd63ae9a1ea",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "d67abb87c243a5037151bcadfc32fa05bb28ab6406341ef5d599b11ee1dc483b",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "ae82b0ce437af647ba4959f5e13bee8161cd951cc0930107722a3067372097f5",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "14893b040b1fb05a65cbb8fc5c0b48c7bdd1d16f59a7395ca7635cf07c267b37",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      },
+      {
+        "id": "b26b46fd4ed50247b30f4c9e502e98d420928413688b24f50ac15ab6b5f5e309",
+        "classification": "declaration",
+        "owner": "ProviderLogWindow",
+        "reason": "Original bounded log read/display policy; paths, payload syntax, source references and Activity records delegate to their Owners."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ProviderLogWindow / read_provider_logs / associate_provider_logs",
+        "declaration": "hub/backend/observability/provider_logs.py",
+        "consumers": [
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_failure_diagnosis.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/submitted.py",
+    "sha256": "bff7ac997381ee13cc1a250760f80cdcd92248d6f100c18fe936ec05d5395232",
+    "reason": "Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "b5c9fe5a9f646a1e80c34da9fb345aef3196dc061f654744d49cd608168227ec",
+        "classification": "declaration",
+        "owner": "SubmittedMessages",
+        "reason": "Existing UI receipt-bridge field and absent removal marker; Project/Session pair interpretation references SessionIdentity."
+      },
+      {
+        "id": "bed27329887de3eb0ceabf61b85bc40cc434c18d48e38e7856df779ffdfd7dab",
+        "classification": "declaration",
+        "owner": "SubmittedMessages",
+        "reason": "Existing UI receipt-bridge field and absent removal marker; Project/Session pair interpretation references SessionIdentity."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "SubmittedMessages",
+        "declaration": "hub/ui/submitted.py",
+        "consumers": [
+          "hub/ui/live.py",
+          "hub/ui/chat/history_ui.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_failure_diagnosis.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/ui/chat/history_ui.py",
+    "sha256": "a9ea6765a0260b3b62361c4c900b118c1f1b33b8ae336d9d69708c4a4aa55440",
+    "reason": "Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "08fdce6b660dd0d972b5ea23f034aa81a47738af49bf18e94344962ae82759bc",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "b3e3f407962448ce193757d0ec6fe27100805b240bcfbe87c160da4edcef41a9",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "139676a56dbe24940c3a2450f8d59befe1c316416502d248ccb09a82469c5f02",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "9ecbf430adb229393eba33e3f3e82737fe7681ae1a7873a1f2dc428025a8786f",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "60af0631ce84bc1e7fb53b003cdd5ea0f551bd0a0d8c7b05b4a8a7424aeda895",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "00d4705e35a95ef079ce94e0c7ebdbeed64012a763c6d43e970ed472a740b81c",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "aec080b44dbf43edb359f97ddf672beffb4d112f4194103dd81faf271c262a33",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "31bd9b249da4696771a5933d6d3a726d56fc8c918c8fdca81f4375e4d7e84b2b",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "22165c896c5ee59cc9b4b5cb5a20d70623130f1bd57a506c7b3347cb2f7cf8bf",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "23cbdd281feb50a71c2f68a33f996c5671fe8b2afd7f2114352e9bb86ff78a37",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "e629a7cb758fa3981e983a27f9b8ac8e63f027c9a819a294dbfd9d9c1bbc903d",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "b7cc6747cf81bbdd66bcbb3c7717ca4845949c4b5d99084bc26df83c06b8d57e",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "fc1e315d346530173e1e81cbb84fb066f0749dfc29bd94455b2d47d8465d50ec",
+        "classification": "declaration",
+        "owner": "ActivityDisplay",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "9f627c436535c48cfe026e460e5a9a70ad47e4c0f4a1a5ab6165f5ace0d82acf",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "89fa6265bcff9c5e670f414637e868eb37f628c00f5212a259f3c32d9de54b4a",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "7c680243f3a98198c0e75b9193d7ac232a61fcbbfe3251694ee94b9f464490b1",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "692f5f4c0fd0a724981f9e97088673823384ec5420040453898d3881647ca945",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "c720c481ef533a87e2376841fc7ee742d3a2baf79e0ee8e1219c3ab28e63774b",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "82294480a873b824494408d620ce6c911934b43d1784ea0abfe05a2d98a450c5",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "b445be4c98361cbb4c17c59a7af94897f2938be0d2124a5a922daf904081eb88",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "97f01b860152c49a735dff6e2bf16dd63a2467d8b9566ee18906e9cc342cd75d",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "c6a1f931ab00c56850ef551b7e4355b13fdfd684dc8d97cfb1da136ed992995d",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "6ab9f1feece32493015dbfb545fd3e2e2c6b2f9e8d150ae3bfcdd4aedc36ffaf",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "3167df1ca9bd6861395f3c64e41e2e9ab4e032069ebc874efea381322bbbd92e",
+        "classification": "declaration",
+        "owner": "HistoryUI",
+        "reason": "Existing presentation formats/status-icon mapping, geometry/selection/widget flags and public Runtime command references; history, diagnostic, Provider frame and source fields reference their canonical Owners."
+      },
+      {
+        "id": "8eb94c14df0815fdf54931f8904cbb8868f1213eb1c52f18b45b7b72f0ace4a4",
+        "classification": "non_contract",
+        "owner": "HistoryUI.show.execute",
+        "reason": "First identifier after exact-one selection check."
+      },
+      {
+        "id": "825849adfed583feab274872b20e18e8aae505ab21c978078aaec34a615318ed",
+        "classification": "non_contract",
+        "owner": "HistoryUI.show.execute",
+        "reason": "First candidate after exact-one retry candidate check."
+      },
+      {
+        "id": "5b0d284e042892f8bddebe0241ea7ad6d63c407bb9b71d276bdd9db88a04bacd",
+        "classification": "non_contract",
+        "owner": "HistoryUI.activity.ready",
+        "reason": "Built-in filter(None, values) removes false values using Python truthiness; no domain default or missing-record repair."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "ActivityDisplay / HistoryUI",
+        "declaration": "hub/ui/chat/history_ui.py",
+        "consumers": [
+          "hub/ui/live.py"
+        ],
+        "tests": [
+          "tests/llm/test_provider_runtime.py",
+          "tests/llm/test_provider_diagnostics.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_transactions.py",
+          "tests/llm/test_execution_boundaries.py",
+          "tests/hub/test_provider_activity.py",
+          "tests/hub/test_history_alerts.py",
+          "tests/hub/test_ui_requests.py",
+          "tests/hub/test_request_history.py",
+          "tests/hub/test_deletion_feedback.py",
+          "tests/hub/test_snapshot_projection.py",
+          "tests/hub/test_multi_agent.py",
+          "tests/hub/test_failure_diagnosis.py"
         ],
         "complete": true
       }

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from .request_values import SDKOperation, SDKRetryParameters
-from llm.core.contracts import ExceptionType
+from llm.core.contracts import ExceptionType, Diagnostic, DiagnosticExceptionDetails, ResourceRef
 
 
 class SDKRuntime:
@@ -43,6 +43,8 @@ class ProviderLogPaths:
     DEFAULT_DIRECTORY = "llm-provider-logs"
     WORKSPACE_DIRECTORY = "logs"
     FILE_TEMPLATE = "providers-{pid}.log"
+    ALL_PROCESSES = "*"
+    FILE_PATTERN = FILE_TEMPLATE.format(pid=ALL_PROCESSES)
     CREATE_PARENTS = True
     EXIST_OK = True
     ENCODING = "utf-8"
@@ -53,7 +55,11 @@ class ProviderLogPaths:
 
     @classmethod
     def workspace(cls, workspace):
-        return Path(workspace).absolute() / cls.WORKSPACE_DIRECTORY
+        return cls.scoped_directory(Path(workspace).absolute())
+
+    @classmethod
+    def scoped_directory(cls, workspace):
+        return Path(workspace) / cls.WORKSPACE_DIRECTORY
 
     @classmethod
     def process(cls, directory):
@@ -128,12 +134,58 @@ class ProviderLibraryLog:
         return {item.name: getattr(self, item.name) for item in fields(self)}
 
 
+@dataclass(frozen=True, slots=True)
+class ProviderLogLine:
+    timestamp: str
+    status: str
+    value: dict
+    details: dict
+
+    @property
+    def project_id(self):
+        return self.details.get(ProviderLogSource.project_id.__name__)
+
+    @property
+    def session_id(self):
+        return self.details.get(ProviderLogSource.session_id.__name__)
+
+    @property
+    def run_id(self):
+        return self.details.get(ProviderLogSource.run_id.__name__)
+
+    @property
+    def step_id(self):
+        return self.details.get(ResourceRef.step_id.__name__)
+
+    @property
+    def code(self):
+        return self.value.get(Diagnostic.code.__name__) or ProviderLibraryLog.CODE
+
+
 class ProviderLogRecord:
+    PAYLOAD_SEPARATOR = " {"
+    JSON_OBJECT_START = "{"
+    PREFIX_SPLITS = 2
+    TIMESTAMP = "{date} {time}"
     DIAGNOSTIC = "provider_diagnostic"
     UNSPECIFIED = None
     NO_PATH = ""
     NO_LINE = 0
     ENSURE_ASCII = False
+
+    @classmethod
+    def read_line(cls, line):
+        prefix, separator, payload = line.partition(cls.PAYLOAD_SEPARATOR)
+        if not separator:
+            return cls.UNSPECIFIED
+        value = json.loads(cls.JSON_OBJECT_START + payload)
+        date, time, level = prefix.split(maxsplit=cls.PREFIX_SPLITS)
+        if not isinstance(value, dict):
+            return cls.UNSPECIFIED
+        details = value.get(Diagnostic.details.__name__) or {}
+        if not isinstance(details, dict):
+            return cls.UNSPECIFIED
+        return ProviderLogLine(cls.TIMESTAMP.format(date=date, time=time), level.lower(), value, details)
 
     @classmethod
     def trusted_payload(cls, record):
@@ -199,3 +251,25 @@ class ProviderExceptionRecord:
     @classmethod
     def frame(cls, record, file, line, function):
         record[cls.FRAMES].append({cls.FILE: file, cls.LINE: line, cls.FUNCTION: function})
+
+
+class ProviderTraceObservation:
+    """Borrow only presentation diagnostics; no exception inference or retry policy."""
+
+    def __init__(self, value):
+        self._value = value
+        self._details = value.get(Diagnostic.details.__name__, {})
+
+    @property
+    def details(self):
+        return self._details
+
+    @property
+    def exceptions(self):
+        details = self.details
+        return details.get(DiagnosticExceptionDetails.exceptions.__name__, ()) if isinstance(details, dict) else ()
+
+    def summary(self):
+        return {**self._value, Diagnostic.details.__name__: {
+            key: value for key, value in self.details.items()
+            if key != DiagnosticExceptionDetails.exceptions.__name__}}

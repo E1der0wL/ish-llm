@@ -8623,3 +8623,52 @@ Agent 값·Snapshot projection·Failure diagnosis·Notifications·Log retention�
 ResponseContext·RuntimeObservation·StopIntent·ConversationLineage·HistoryRecords와 묶는 다음
 Level 3 전체·정적/문서/R3·실환경·정확한 SHA 원격 CI를 상위 게이트로 삼는다. Gate50에는 이 변경이
 없고 이 기록은 전체/원격 완료를 의미하지 않는다. Provider logs/Activity UI 등의 후속 작업도 남아 있다.
+
+
+## Provider 로그·Activity 표시와 제출 결과 표시 캐시
+
+ActivityValues·ProviderLogs·SubmittedMessages·HistoryUI 네 파일을 전수 정리했다. ProviderLogPaths가
+기존 process 파일 template/pattern과 scoped directory를 소유하고 ProviderLogRecord가 원래 로그
+한 줄 형식을 읽는다. 기존 SDK workspace 경로의 absolute 의미와 Hub 조회의 상대 경로 표시는
+각각 유지했다. ProviderExceptionRecord의 정규 필드를 사용하며 UI에 SDK별 분기를 추가하지 않았다.
+ActivityRecord/Source는 Backend lifecycle 필드를 참조하면서 기존 Hub provider/scope/log_path/
+provider_diagnostics 확장과 읽기 오류 표시를 생산·조회한다.
+
+최신 8개 파일·128KiB tail·기본 300행, 링크 파일 제외, 기존 잘린/잘못된 비권위 로그의 제외 규칙,
+Project 소유권 필터와 시간 정렬을 유지했다. Run 실패가 Step 실패보다 우선하는 연계·commit 순서·
+기존 nested diagnostics alias도 같다. 이 진단 로그 파서는 실행 영수증·예산·승인·Checkpoint의
+필수 기록 Reader가 아니며, 그들의 손상 거부 규칙이나 원본 저장 형식을 바꾸지 않았다.
+
+HistoryUI는 기존 이력/삭제 Owner와 Runtime 명령, ResumeTurnDetails 및 Provider 정규 필드를
+참조한다. 표시 문구·HTTP/traceback/알 수 없는 추가 필드·상태 아이콘·선택/확인/진행 콜백의 의미를
+유지했다. SubmittedMessages는 기존 _submitted_messages 캐시의 기억·권위 Snapshot에 포함된 ID
+제거·남은 표시 연결·다른 Project/사라진 Session 정리·삭제된 ID 제거를 소유한다. 실제 LiveHubView
+생산자도 그 API를 사용한다. 실행의 새 원본이나 누락된 저장 영수증의 대체물이 아니다.
+
+독립 Provider/Activity 56개 비교는 실제 파일 tail/프로젝트 필터/링크 대상·원본 보존, 읽기 오류,
+기존 nested alias, 한국어/영어·잘못된/확장된 예외/frame 표시를 포함했고 결과가 일치했다.
+표시 캐시 40개 비교도 일치했다. 실제 show_submitted 함수와 현재 apply_snapshot/삭제 콜백에서
+추출한 해당 생산 코드 구간을 각각 실행해 Project/Session·중복·기존/누락/잘못된 캐시의 값·예외·
+참조와 호출을 비교했다. 이 제한된 비교를 전체 Live UI 실행으로 표현하지 않으며 실제 전체 UI
+경로는 아래 기존 테스트가 검증한다.
+
+- `whole-hub-provider-activity-core-01`: discovered/started/pass 46/46/46, exit 0, 8.588988초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-provider-activity-core-01/llm.json --modules tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics`. source `e6974c0bf83a477a735a3728eb58213854e23248d1c06d67b5172498dd7a36cc`, input `1fff6acae4438558e26c2dbe1623bf92cac53fda6cb915540cb81948474df284`.
+
+- `whole-hub-provider-activity-safety-01`: discovered/started/pass 84/84/84, exit 0, 36.892389초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/b/whole-hub-provider-activity-safety-01/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_execution_boundaries`. source `e6974c0bf83a477a735a3728eb58213854e23248d1c06d67b5172498dd7a36cc`, input `1fff6acae4438558e26c2dbe1623bf92cac53fda6cb915540cb81948474df284`.
+
+- `whole-hub-provider-activity-l1-01`: discovered/started/pass 14/14/14, exit 0, 81.860715초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-provider-activity-l1-01/hub.json --modules tests.hub.test_provider_activity tests.hub.test_history_alerts tests.hub.test_ui_requests`. source `e6974c0bf83a477a735a3728eb58213854e23248d1c06d67b5172498dd7a36cc`, input `1fff6acae4438558e26c2dbe1623bf92cac53fda6cb915540cb81948474df284`.
+
+- `whole-hub-provider-activity-l2-01`: discovered/started/pass 26/26/26, exit 0, 60.084674초. 명령: `/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/b/whole-hub-provider-activity-l2-01/hub.json --modules tests.hub.test_request_history tests.hub.test_deletion_feedback tests.hub.test_snapshot_projection tests.hub.test_multi_agent tests.hub.test_failure_diagnosis`. source `e6974c0bf83a477a735a3728eb58213854e23248d1c06d67b5172498dd7a36cc`, input `1fff6acae4438558e26c2dbe1623bf92cac53fda6cb915540cb81948474df284`.
+
+모든 실행의 failure/error/skip/xfail/xpass/누락/추가/중복 0, 발견·실행·통과 ID 일치,
+동일 suite 선택 ID 중복 0과 source/input 전후·사이 동일성을 확인했다. Python 3.12.14/Clang,
+Host d833790·고정 의존성·실제 Linux/X11 환경이다. 실제 argv/exit는
+`hub-provider-activity-draft/selected-results.json`, 비교는 `proof-commands.json`에 보존한다.
+LLM Provider runtime/diagnostics와 공통 안전성 84개·R3 Mutation, Hub Provider activity·History
+alerts·UI requests, Request history·Deletion feedback·Snapshot projection·Multi Agent·Failure
+ diagnosis를 검증했다. 기존 실제 HTTP 호출·Tool 효과 횟수·원본 보존·승인·예산·Checkpoint·Resume
+Assertion은 유지했다.
+
+이 소단계는 원래 파서/투영/표시 캐시의 동일 이동이며 관련 소비자로 영향 범위를 확인했다.
+전체 회귀는 다음 관련 변경 묶음의 Level 3·정적/문서/R3·실환경·정확한 SHA 원격 CI로 유예한다.
+실행 중인 Gate51에는 이 변경이 없으며 이 기록을 상위/원격 완료로 표현하지 않는다.

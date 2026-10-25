@@ -23,6 +23,7 @@ from ..config.general import GeneralSettings
 from ..config.theme import HubTheme
 from ..backend.project.component_commands import component_commands
 from .chat.component_ui import ComponentCommands
+from .submitted import SubmittedMessages
 
 
 class LiveHubView(HubView):
@@ -36,7 +37,7 @@ class LiveHubView(HubView):
         self.agent_id = ""
         self.connected = False
         self.notice = self.t(MessageKey.CONNECTING_NOTICE)
-        self._submitted_messages = {}
+        SubmittedMessages.initialize(self)
         self._presentation_cache = MessagePresentationCache()
         self.failure_diagnoses = {}
 
@@ -49,7 +50,7 @@ class LiveHubView(HubView):
             if session.id == session_id:
                 if any(item.id == message.id for item in session.messages):
                     return
-                self._submitted_messages.setdefault(key, {})[message.id] = message
+                SubmittedMessages.remember(self, key, message)
                 messages = (*session.messages, present_message(message, self.t))
                 self.sessions[index] = replace(session, messages=messages)
                 if index == self.selected:
@@ -63,16 +64,11 @@ class LiveHubView(HubView):
         self.preparing.observe(snapshot)
         key = (snapshot.project_id, snapshot.selected_id)
         known = {message.id for message in snapshot.messages}
-        pending = self._submitted_messages.get(key, {})
-        pending = {identifier: message for identifier, message in pending.items() if identifier not in known}
+        pending = SubmittedMessages.unobserved(self, key, known)
         if pending:
-            self._submitted_messages[key] = pending
             snapshot = replace(snapshot, messages=(*snapshot.messages, *pending.values()))
-        else:
-            self._submitted_messages.pop(key, None)
         sessions = {session.id for session in snapshot.sessions}
-        self._submitted_messages = {key: value for key, value in self._submitted_messages.items()
-                                    if key[0] == snapshot.project_id and key[1] in sessions}
+        SubmittedMessages.retain(self, snapshot.project_id, sessions)
         snapshot = replace(snapshot, messages=tuple(replace(item, failure=self.failure_diagnoses.get(
             (snapshot.project_id, snapshot.selected_id, item.run_id))) if item.status == MessageStatus.FAILED else item
             for item in snapshot.messages))

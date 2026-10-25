@@ -1,60 +1,85 @@
 """Bounded, read-only projection of llm's existing provider diagnostic files."""
 
 from llm.core.contracts import ActivityEventType
+from llm.core.paths import BackendPaths
+from llm.providers.runtime_values import ProviderLogPaths, ProviderLogRecord
+from .activity_values import ActivityRecord
 
 from collections import deque
-import json
+import os
 from pathlib import Path
 
 
-READ_FAILURE_STATUS = "warning"
+READ_FAILURE_STATUS = ActivityRecord.READ_FAILURE_STATUS
 
 
-def read_provider_logs(workspace, project_id, *, limit=300):
+class ProviderLogWindow:
+    DEFAULT_LIMIT = 300
+    MAX_FILES = 8
+    MAX_BYTES = 128 * 1024
+    FIRST_BYTE = 0
+    NEWEST_FIRST = True
+    BINARY_READ = "rb"
+    DECODING_ERRORS = "replace"
+    ABSENT = None
+
+
+def read_provider_logs(workspace, project_id, *, limit=ProviderLogWindow.DEFAULT_LIMIT):
     root = Path(workspace).expanduser()
     # RunManager scopes logging to the ProjectRepository root (workspace/projects).
     # Direct provider calls and initialization use workspace/logs instead.
-    directories = (root / "projects" / "logs", root / "logs")
+    directories = (
+        ProviderLogPaths.scoped_directory(BackendPaths(root).projects),
+        ProviderLogPaths.scoped_directory(root),
+    )
     rows = []
     try:
-        paths = sorted((p for directory in directories for p in directory.glob("providers-*.log") if not p.is_symlink()),
-                       key=lambda p: p.stat().st_mtime, reverse=True)[:8]
+        paths = sorted(
+            (
+                p
+                for directory in directories
+                for p in directory.glob(ProviderLogPaths.FILE_PATTERN)
+                if not p.is_symlink()
+            ),
+            key=lambda p: p.stat().st_mtime,
+            reverse=ProviderLogWindow.NEWEST_FIRST,
+        )[: ProviderLogWindow.MAX_FILES]
     except OSError as error:
         return [_read_error(error)]
     for path in paths:
         try:
-            with path.open("rb") as stream:
-                stream.seek(0, 2)
-                start = max(0, stream.tell() - 128 * 1024)
+            with path.open(ProviderLogWindow.BINARY_READ) as stream:
+                stream.seek(ProviderLogWindow.FIRST_BYTE, os.SEEK_END)
+                start = max(
+                    ProviderLogWindow.FIRST_BYTE,
+                    stream.tell() - ProviderLogWindow.MAX_BYTES,
+                )
                 stream.seek(start)
                 if start:
                     stream.readline()  # Discard a truncated record.
-                lines = deque(stream.read(128 * 1024).decode("utf-8", errors="replace").splitlines(), maxlen=limit)
+                lines = deque(
+                    stream.read(ProviderLogWindow.MAX_BYTES)
+                    .decode(
+                        ProviderLogPaths.ENCODING,
+                        errors=ProviderLogWindow.DECODING_ERRORS,
+                    )
+                    .splitlines(),
+                    maxlen=limit,
+                )
             for line in lines:
-                prefix, separator, payload = line.partition(" {")
-                if not separator:
-                    continue
                 try:
-                    value = json.loads("{" + payload)
-                    date, time, level = prefix.split(maxsplit=2)
-                    if not isinstance(value, dict):
+                    value = ProviderLogRecord.read_line(line)
+                    if value is ProviderLogWindow.ABSENT:
                         continue
-                    details = value.get("details") or {}
-                    if not isinstance(details, dict):
-                        continue
-                    owner = details.get("project_id")
+                    owner = value.project_id
                     if owner and owner != project_id:
                         continue
-                    rows.append({"time": f"{date} {time}", "event": "provider", "status": level.lower(),
-                        "source": {"session_id": details.get("session_id") or "—", "run_id": details.get("run_id") or "—",
-                                   **({"step_id": details["step_id"]} if details.get("step_id") else {})},
-                        "code": value.get("code") or "provider_library_log", "provider": True,
-                        "scope": "project" if owner else "workspace", "details": value, "log_path": str(path)})
+                    rows.append(ActivityRecord.provider(value, path))
                 except (ValueError, TypeError):
                     continue
         except OSError as error:
             rows.append(_read_error(error))
-    return sorted(rows, key=lambda row: row["time"])[-limit:]
+    return sorted(rows, key=lambda row: ActivityRecord(row).time)[-limit:]
 
 
 def associate_provider_logs(activity, provider):
@@ -66,24 +91,28 @@ def associate_provider_logs(activity, provider):
     result = [dict(row) for row in activity]
     targets = {}
     for row in result:
-        if row["event"] not in (ActivityEventType.STEP_FAILED, ActivityEventType.RUN_FAILED):
+        if ActivityRecord(row).event not in (
+            ActivityEventType.STEP_FAILED,
+            ActivityEventType.RUN_FAILED,
+        ):
             continue
-        source = row["source"]
-        key = source.get("session_id"), source.get("run_id")
-        if all(key) and (key not in targets or row["event"] == ActivityEventType.RUN_FAILED):
+        source = ActivityRecord(row).source
+        key = source.identity
+        if all(key) and (
+            key not in targets
+            or ActivityRecord(row).event == ActivityEventType.RUN_FAILED
+        ):
             targets[key] = row
     remaining = []
     for row in provider:
-        source = row["source"]
-        target = targets.get((source.get("session_id"), source.get("run_id")))
-        if target is None or not row.get("provider"):
+        source = ActivityRecord(row).source
+        target = targets.get(source.identity)
+        if target is ProviderLogWindow.ABSENT or not ActivityRecord(row).is_provider:
             remaining.append(row)
         else:
-            target.setdefault("provider_diagnostics", []).append(row)
+            ActivityRecord(target).attach_provider(row)
     return result + remaining
 
 
 def _read_error(error):
-    return {"time": "", "event": "provider", "status": READ_FAILURE_STATUS, "source": {},
-            "code": "provider_log_read_failed", "provider": True, "scope": "workspace",
-            "details": {"error": str(error)}}
+    return ActivityRecord.read_error(error)
