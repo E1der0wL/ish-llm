@@ -2,7 +2,7 @@
 
 ## 등록과 검색 설정
 
-`/rag config` → **설정**에서 현재 프로젝트의 RAG 설정을 엽니다.
+`/rag` → **설정**에서 현재 프로젝트의 RAG 설정을 엽니다.
 설정 원본은 `config.parameters.components.rag`입니다. 사내 연결은 선택한 모델에 맞는
 `config.embedding_params`와 `config.rerank_params`의 model/api_base/api_key를 지정합니다.
 새 프로젝트는 hybrid 검색·리랭킹·청크 1200자·결과 5개·후보 20개를 기본으로 제공합니다.
@@ -13,7 +13,7 @@
 기본값 `disabled`는 관계 추출 모델을 호출하지 않습니다. 임베딩/추출의 재시도는 RAG 자체의
 `policy.provider`로 설정하며 Loop 재시도 설정을 상속하지 않습니다.
 
-`/rag config`에 문서 경로를 입력하고 Enter를 누릅니다. 실패한 Job은 목록에서 선택해
+`/rag`에 문서 경로를 입력하고 Enter를 누릅니다. 실패한 Job은 목록에서 선택해
 재시도하거나 삭제할 수 있습니다. 취소한 Job은 삭제만 가능합니다. 재시도 중 모델·청크 설정이
 변경되어 백엔드가 체크포인트 재사용을 거부하면 기존 작업을 삭제한 뒤 원문을 새로 등록합니다.
 [진행·삭제 계약](component-managers.md#rag-등록진행재개)을 참고하세요.

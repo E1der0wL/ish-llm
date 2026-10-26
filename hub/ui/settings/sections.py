@@ -2,6 +2,7 @@
 
 
 class SettingsSection:
+    DEBUGGING = "debugging"
     GENERAL = "project:general"
     ENGINE = "engine"
     COMPONENT = "component"

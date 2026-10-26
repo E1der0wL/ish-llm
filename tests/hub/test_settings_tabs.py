@@ -73,7 +73,7 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 page.set_section("engine:loop")
                 screen.page = page
                 field = page.fields()[0]
-                field.input.text = "draft value"
+                field.input.text = "128"
                 before = page.values()
                 self.assertTrue(page.fields())
                 self.assertTrue(all(page.field_tabs[f] == "config" for f in page.fields()))
@@ -89,7 +89,7 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(self.app):
                     screen.tabs.selected = "config"
                     screen.tab_changed("config")
-                self.assertEqual(field.input.text, "draft value")
+                self.assertEqual(field.input.text, "128")
                 self.assertEqual(page.values(), before)
             finally:
                 await runtime.close()

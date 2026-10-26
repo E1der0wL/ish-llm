@@ -34,5 +34,8 @@ class RagDefaultsTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(parameters["config"]["chunk_size"], 900)
                 self.assertEqual(parameters["policy"]["extraction"]["failure_policy"], "disabled")
                 self.assertNotIn("extraction_params", parameters["config"])
+                self.assertEqual(parameters["config"]["extraction"]["json_mode"], "auto")
+                self.assertIn("USES", parameters["config"]["extraction"]["relation_types"])
+                self.assertEqual(parameters["policy"]["extraction"]["repair_attempts"], 1)
             finally:
                 await runtime.close()

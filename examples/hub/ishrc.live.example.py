@@ -27,7 +27,7 @@ if hub_plugin is not None:
                 "system_prompt": "Review the user's work and explain concrete improvements."
             }}}}},
             # For a Gemini model that exposes reasoning, use e.g.
-            # Set parameters.engines.loop.config.completion.reasoning_effort explicitly.
+            # Set the saved Agent completion.reasoning_effort in the /agent editor.
             # auto_title=False,  # Disable the extra title-generation model call.
             # api_base="https://YOUR_SERVER/v1",
             # project_id="PROJECT_ID",

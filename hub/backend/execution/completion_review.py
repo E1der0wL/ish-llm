@@ -8,7 +8,7 @@ from llm.core.schema import SchemaKeyword, SchemaType
 
 class TaskCompletion:
     NAME = "hub_task_result"
-    REVISION = "hub-task-evidence-v1"
+    REVISION = "hub-task-evidence-v2"
     OUTCOME = "outcome"
     SUMMARY = "summary"
     EVIDENCE = "evidence"
@@ -28,6 +28,7 @@ class TaskCompletion:
     MISSING = "Review the completion conditions with hub_task_result before answering. Perform requested work rather than only describing it; report a concrete blocker if it cannot be done."
     INVALID = "A completed action needs evidence from this request's actual tool results. Do not invent call IDs or cite earlier turns."
     INVALID_REPORT = "Provide a valid completion report with outcome, nonempty summary, and evidence call IDs."
+    STALE = "Tool work continued after the completion report. Verify the latest result and record a fresh hub_task_result; do not repeat completed effects."
     ACCEPTED_FEEDBACK = ""
     LAST_REPORT = -1
     ENSURE_ASCII = False
@@ -58,13 +59,20 @@ class TaskCompletion:
                 or report[cls.OUTCOME] not in cls.OUTCOMES
                 or not isinstance(report[cls.SUMMARY], str) or not report[cls.SUMMARY].strip()
                 or not isinstance(report[cls.EVIDENCE], list)
-                or any(not isinstance(item, str) for item in report[cls.EVIDENCE])):
+                or any(not isinstance(item, str) for item in report[cls.EVIDENCE])
+                or len(set(report[cls.EVIDENCE])) != len(report[cls.EVIDENCE])):
             return CompletionReview(ReviewAction.CONTINUE, cls.INVALID_REPORT)
-        if report.get(cls.OUTCOME) == cls.COMPLETED:
-            evidence = report.get(cls.EVIDENCE, [])
-            if not evidence or any(identifier not in results or
-                                   calls[identifier].name == cls.NAME for identifier in evidence):
-                return CompletionReview(ReviewAction.CONTINUE, cls.INVALID)
+        evidence = report[cls.EVIDENCE]
+        if ((report[cls.OUTCOME] == cls.COMPLETED and not evidence)
+                or any(identifier not in results or calls[identifier].name == cls.NAME
+                       for identifier in evidence)):
+            return CompletionReview(ReviewAction.CONTINUE, cls.INVALID)
+        # A report is an observation after the cited results, not a promise about
+        # a later call in the same model response. Reuse receipts on continuation.
+        result_order = [m.result.call_id for m in observation.original_messages
+                        if m.role == ModelRole.TOOL and m.result.call_id in calls]
+        if result_order[-1] != reports[cls.LAST_REPORT].id:
+            return CompletionReview(ReviewAction.CONTINUE, cls.STALE)
         return CompletionReview(ReviewAction.ACCEPT, cls.ACCEPTED_FEEDBACK)
 
     @classmethod

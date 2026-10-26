@@ -27,7 +27,7 @@ class ActionFrame(Frame):
 
     PADDING_ROWS = 1
 
-    def __init__(self, actions, **kwargs):
+    def __init__(self, actions, *, hint=None, **kwargs):
         # Let the actual available width determine wrapped button rows. An
         # unbounded explicit height would reserve unused space below the frame.
         super().__init__(
@@ -35,7 +35,7 @@ class ActionFrame(Frame):
                 [
                     Window(height=self.PADDING_ROWS),
                     actions,
-                    Window(height=self.PADDING_ROWS),
+                    hint if hint is not None else Window(height=self.PADDING_ROWS),
                 ]
             ),
             **kwargs
@@ -79,14 +79,17 @@ class ActionBar(DynamicContainer):
     CENTER_WEIGHT = 1
     AVAILABLE_WIDTH = None
 
-    def __init__(self, buttons, width):
+    def __init__(self, buttons, width, *, bind_navigation=True):
         self.buttons, self.available_width = buttons, width
-        bind_button_navigation(buttons)
+        self.bind_navigation = bind_navigation
+        if bind_navigation:
+            bind_button_navigation(buttons)
         super().__init__(self._container)
 
     def insert(self, index, button):
         self.buttons.insert(index, button)
-        bind_button_navigation(self.buttons)
+        if self.bind_navigation:
+            bind_button_navigation(self.buttons)
 
     def rows(self, width=AVAILABLE_WIDTH):
         width = self.available_width() if width is self.AVAILABLE_WIDTH else width

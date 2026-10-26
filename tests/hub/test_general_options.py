@@ -97,7 +97,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                 default_project, first_default = runtime.project.id, runtime.selected_id
                 last_default = await runtime.new_session("new", "Default second")
                 other = await runtime.backend.projects.acreate("Other", components=["tools"],
-                    config={"parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}}, conversation_storage="file")
+                    conversation_storage="file")
                 await runtime.activate_project(other)
                 await runtime.new_session()
                 first_other = runtime.selected_id
@@ -149,7 +149,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                     manager = screen.page.general_form
                     manager.add_pack()
-                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor", "diagnostics", "recovery"))
+                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor"))
                 self.assertNotIn(("mouse_mode",), manager.form.fields)
                 app.current_buffer.text = "custom"
                 pipe.send_text("\t")

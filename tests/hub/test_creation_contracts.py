@@ -87,7 +87,7 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
             "tool_retry": {"max_retries": 0, "delay_seconds": None},
             "approval": {"enabled": False, "rules": []},
             "tools": {"allowed_tools": [], "max_calls": None},
-        }, "parameters": {"engines": {"loop": {"config": {"system_prompt": None}}}}}
+        }, "parameters": {"engines": {"loop": {"policy": {"request_timeout": None}}}}}
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, auto_title=False))
             await runtime.start()
@@ -99,7 +99,7 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
                 identifier = created["project"]["id"]
                 self.assertEqual(created["values"]["components"], [])
                 self.assertEqual(created["values"]["config"]["policies"], config["policies"])
-                self.assertIsNone(created["values"]["config"]["parameters"]["engines"]["loop"]["config"]["system_prompt"])
+                self.assertIsNone(created["values"]["config"]["parameters"]["engines"]["loop"]["policy"]["request_timeout"])
                 edited = deepcopy(created["values"])
                 edited["config"]["policies"]["tool_retry"] = {"max_retries": None, "delay_seconds": 0}
                 await service.save_project(identifier, edited, created["config_version"])

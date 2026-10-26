@@ -40,7 +40,8 @@ class CompletionChoices(RadioList):
         from ..ui.output.labels import ellipsize
 
         result = []
-        width = max(self.MINIMUM_WIDTH, self.menu_width - self.SCROLLBAR_WIDTH)
+        menu_width = self.menu_width() if callable(self.menu_width) else self.menu_width
+        width = max(self.MINIMUM_WIDTH, menu_width - self.SCROLLBAR_WIDTH)
         for index, (_, label) in enumerate(self.values):
             style = self.CURRENT if index == self._selected_index else self.NORMAL
 
@@ -72,7 +73,6 @@ class DropdownBox(FloatContainer):
     CHOICE_ROWS = 8
     MENU_BOTTOM = 1
     MENU_LEFT = 0
-    MENU_MIN_WIDTH = 24
     MENU_MAX_ROWS = 10
     MENU_BORDER_ROWS = 0
     MENU_MIN_ROWS = 1
@@ -99,7 +99,7 @@ class DropdownBox(FloatContainer):
         self.on_change, self.expanded = on_change, self.CLOSED
         self.width = width
         self.button = Button(self.caption, handler=self.open, width=width)
-        self.choices = CompletionChoices([(self.ABSENT, self.EMPTY_LABEL)], max(width, self.MENU_MIN_WIDTH))
+        self.choices = CompletionChoices([(self.ABSENT, self.EMPTY_LABEL)], self.rendered_width)
         self.choices.window.height = self.CHOICE_ROWS
         keys = ShortcutRegistry.require(self.choices.control)
         keys.add(
@@ -130,7 +130,7 @@ class DropdownBox(FloatContainer):
                     # preferred height alone is clipped to the button's own row.
                     bottom=self.MENU_BOTTOM,
                     left=self.MENU_LEFT,
-                    width=max(width, self.MENU_MIN_WIDTH),
+                    width=self.rendered_width,
                     height=lambda: min(
                         self.MENU_MAX_ROWS,
                         len(self.choices.values) + self.MENU_BORDER_ROWS,
@@ -161,6 +161,10 @@ class DropdownBox(FloatContainer):
         if self.expanded and get_app().layout.current_control not in self.controls:
             self.expanded = self.CLOSED
         return self.expanded
+
+    def rendered_width(self):
+        info = self.button.window.render_info
+        return info.window_width if info else self.width
 
     def caption(self):
         from ..ui.output.labels import ellipsize

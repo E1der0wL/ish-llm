@@ -59,7 +59,7 @@ class NamingContractTests(unittest.TestCase):
             (GoalComponent(), 'identifiers nested_agent_ids priority', 'inject write_tools'),
             (RefinementComponent(), '', 'apply_tools proposal_operations require_evaluation'),
             (WorkflowComponent(), '', ''),
-            (LoopEngine(), 'buffer_size system_prompt',
+            (LoopEngine(), 'buffer_size',
              'completion final_review max_argument_chars max_iterations max_output_chars max_tool_calls provider request_timeout tool_timeout'),
             (GraphEngine(handlers={}), 'buffer_size cleanup_timeout',
              'max_nested_depth max_parallelism max_steps timeout_seconds'),
@@ -243,11 +243,11 @@ class NamingContractTests(unittest.TestCase):
         registry = EngineRegistry()
         registry.register('chat', engine)
         self.assertIs(registry.get('chat'), engine)
-        config = ProjectConfig(parameters={'engines': {'shared': {'config': {'system_prompt': None}}}})
+        config = ProjectConfig(parameters={'engines': {'shared': {'policy': {'request_timeout': None}}}})
         self.assertEqual(engine.describe_config()['x-parameter-key'], 'shared')
         view = engine.resolve_config(config, 'chat')
-        self.assertIsNone(view['values']['config']['system_prompt'])
-        self.assertEqual(view['sources']['/config/system_prompt'], 'project')
+        self.assertIsNone(view['values']['policy']['request_timeout'])
+        self.assertEqual(view['sources']['/policy/request_timeout'], 'project')
         self.assertEqual(view['configuration_key'], 'shared')
 
     def test_removed_symbols_have_no_production_aliases(self):
@@ -270,7 +270,7 @@ class ConfigFacadeTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(root, components=[ToolComponent()], engines={'loop': LoopEngine()},
                     services=BackendServices(tool_runtime=ToolRuntime(), output_buffer=OutputBuffer())) as app:
                 project = await app.projects.acreate('Naming', components=['tools'], config=ProjectConfig(parameters={
-                    'engines': {'loop': {'config': {'system_prompt': 'project'}}}}))
+                    'engines': {'loop': {'config': {'buffer_size': 8}}}}))
                 tools = await project.components.aget('tools')
                 self.assertEqual(await tools.aget_config(), {})
                 await tools.aconfigure({'config': {'enabled': []}})
@@ -282,9 +282,9 @@ class ConfigFacadeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view['components']['tools']['configuration'], raw)
                 self.assertIn('schema', view)
                 self.assertEqual((await project.avalidate_config(view['project']['config']))['config_version'], view['config_version'])
-                session = await project.sessions.acreate(config={'parameters': {'engines': {'loop': {'config': {'system_prompt': None}}}}})
+                session = await project.sessions.acreate(config={'parameters': {'engines': {'loop': {'policy': {'request_timeout': None}}}}})
                 session_view = await session.adescribe_config()
-                self.assertIsNone(session_view['effective_engines']['loop']['values']['config']['system_prompt'])
-                self.assertEqual(session_view['effective_engines']['loop']['sources']['/config/system_prompt'], 'session')
+                self.assertIsNone(session_view['effective_engines']['loop']['values']['policy']['request_timeout'])
+                self.assertEqual(session_view['effective_engines']['loop']['sources']['/policy/request_timeout'], 'session')
                 self.assertIn('tool_runtime', app.describe_host()['values'])
                 self.assertIn('output_buffer', app.describe_host()['values'])

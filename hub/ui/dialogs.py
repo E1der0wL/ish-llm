@@ -9,11 +9,10 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.containers import to_container
 from prompt_toolkit.layout.layout import walk
-from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.utils import get_cwidth
 
 from ..widget.controls import Button
-from ..widget.dialog import Dialog
+from ..widget.dialog import Dialog, PopupSize
 from ..widget.focus import focus_control
 
 
@@ -26,10 +25,6 @@ class DialogController:
     SKIP_HIDDEN = True
     MARKDOWN_HELP = True
     BUTTON_PADDING = 2
-    PREFERRED_COLUMNS = 64
-    MIN_COLUMNS = 1
-    MAX_COLUMNS = 80
-    COLUMNS_MARGIN = 4
     PRIMARY_BUTTON = 0
     NO_FOCUS = -1
     REVERSE_STEP = -1
@@ -62,7 +57,7 @@ class DialogController:
         focus=ABSENT,
         *,
         validate=ABSENT,
-        width=ABSENT,
+        size=PopupSize.MEDIUM,
         accept_text=ABSENT,
         on_cancel=ABSENT
     ):
@@ -90,19 +85,7 @@ class DialogController:
             title=title,
             body=body,
             buttons=buttons,
-            width=width
-            or (
-                lambda: Dimension(
-                    preferred=DialogController.PREFERRED_COLUMNS,
-                    max=max(
-                        DialogController.MIN_COLUMNS,
-                        min(
-                            DialogController.MAX_COLUMNS,
-                            self.view._columns() - DialogController.COLUMNS_MARGIN,
-                        ),
-                    ),
-                )
-            ),
+            size=size,
         )
         dialog.on_cancel = on_cancel
         self.show(dialog, focus or buttons[DialogController.PRIMARY_BUTTON])

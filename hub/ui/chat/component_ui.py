@@ -1,26 +1,23 @@
 """Component managers and help share one small slash-command entry point."""
 
-from hub.locales.keys import MessageKey
 
-from ...backend.project.component_commands import parse_arguments, ComponentAction
-from ...widget.output.reader import ReadOnlyDialog
+from ...backend.project.component_commands import parse_arguments
 from ...components import component_spec, ManagerKind
 from .. import host
 from ..input.commands import CommandSyntax
 
 
 class ComponentCommands:
-    HELP_TITLE = "{command} {action}"
     NO_PROGRESS = None
     CONSUME_COMMAND = True
 
     def __init__(self, controller):
         self.controller, self.view = controller, controller.view
 
-    def open(self, command: str, argument: str, *, consume_input=CONSUME_COMMAND):
+    def open(self, command: str, argument: str, *, consume_input=CONSUME_COMMAND, edit_identifier=None):
         view = self.view
         try:
-            action = parse_arguments(argument, view.t)
+            parse_arguments(argument, view.t)
         except ValueError as error:
             self.controller._error(error)
             return
@@ -29,21 +26,6 @@ class ComponentCommands:
         project_id = view.project_id
         if consume_input:
             view.composer.text = CommandSyntax.EMPTY
-        if action == ComponentAction.HELP:
-            popup = ReadOnlyDialog(
-                self.HELP_TITLE.format(
-                    command=CommandSyntax.spelling(command),
-                    action=ComponentAction.HELP.value,
-                ),
-                view.t(MessageKey.COMPONENT_HELP, command=command),
-                view._rows,
-                view._columns,
-                view.close_dialog,
-                view.t,
-                render_worker=view.render_worker,
-            )
-            view.dialogs.show(popup, popup.receiver)
-            return
         from ...widget.forms.tool_manager import ToolManager
         from ...widget.forms.record_manager import RecordManager
         from ...widget.forms.rag_manager import RAGManager
@@ -83,4 +65,8 @@ class ComponentCommands:
             )
         )
         view.dialogs.show(popup, popup.path)
-        popup.reload()
+        if edit_identifier is not None and spec.manager == ManagerKind.AGENT:
+            popup.selected = edit_identifier
+            popup.open_item()
+        else:
+            popup.reload()

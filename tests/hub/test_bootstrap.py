@@ -33,8 +33,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(str((await run.aresult()).status), "completed")
                 self.assertEqual(provider.requests[0]["model"], "test/host")
                 self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT,
-                                     'completion': {'model': 'test/host'}}, 'policy': {'provider': provider_defaults()}}})
+                                 {"loop": {'policy': {'provider': provider_defaults()}}})
             finally:
                 await runtime.close()
 
@@ -43,12 +42,11 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.test_loop import ScriptedCompletion, chunk
         provider = ScriptedCompletion([chunk("hello", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
-            runtime = HubRuntime(HubConfig(root, agent_definition={"engine": "writer"}, auto_title=False,
+            runtime = HubRuntime(HubConfig(root, agent_definition={"engine": "writer", "completion": {"model": "test/session"}}, auto_title=False,
                 engine_factories={"writer": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
-                session = await runtime.project.sessions.acreate(config={"parameters": {
-                    "engines": {"writer": {'config': {'completion': {'model': 'test/session'}}}}}}, agent_ids=sorted(await runtime.project.agents.alist()))
+                session = await runtime.project.sessions.acreate(agent_ids=sorted(await runtime.project.agents.alist()))
                 await runtime.activate_project(runtime.project, session_id=session.id)
                 view = await runtime.snapshot()
                 self.assertEqual(view.model, "test/session")
@@ -57,7 +55,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.sessions[session.id].run.wait_idle()
                 self.assertEqual(provider.requests[0]["model"], "test/session")
                 self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}, 'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
+                                 {"loop": {'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
             finally:
                 await runtime.close()
 
@@ -70,14 +68,16 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(await a.projects.alist()), 1)
                 self.assertEqual(await first.sessions.alist(), [])
                 record = await first.aget_data()
-                record.config.parameters["engines"]["loop"]["config"]["completion"]["model"] = "test/edited"
+                agent = await first.agents.asnapshot('assistant')
+                agent['definition']['completion']['model'] = 'test/edited'
+                await first.agents.arevise('assistant', agent['definition'], expected_revision=agent['revision'])
                 await first.asave(title="Edited", config=record.config)
             async with create_backend(config) as app:
                 again = await select_or_create(app, config)
                 self.assertEqual(again.id, first.id)
                 record = await again.aget_data()
                 self.assertEqual(record.title, "Edited")
-                self.assertEqual(record.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "test/edited")
+                self.assertEqual((await again.agents.aload("assistant"))["completion"]["model"], "test/edited")
                 self.assertFalse(list(Path(root).rglob("default-project.json")))
 
     async def test_failed_create_releases_lock_without_reference_record(self):
@@ -90,7 +90,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(await app.projects.alist(), [])
                 project = await select_or_create(app, config)
                 self.assertEqual((await project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}, 'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
+                                 {"loop": {'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
                 self.assertEqual(await project.sessions.alist(), [])
 
     async def test_cancelled_lock_wait_does_not_create_and_future_start_works(self):

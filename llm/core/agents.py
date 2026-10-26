@@ -83,6 +83,7 @@ class AgentDefinition:
     REVISION_ENSURE_ASCII = False
     REVISION_ENCODING = "utf-8"
     SELECTED_VALIDATION_ID = "selected"
+    INVALID_SCHEMA = "Agent schema must use declared fields and require engine"
 
     schema = {
         SchemaKeyword.TYPE: SchemaType.OBJECT, SchemaKeyword.REQUIRED: [ENGINE_FIELD], SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
@@ -117,6 +118,27 @@ class AgentDefinition:
         },
     }
 
+
+    @classmethod
+    def describe(cls, *, fields=None, properties=None, required=()):
+        """Compose an Engine-owned Agent schema from the shared closed envelope.
+
+        Only selected implementation fields are specialized. This describes
+        accepted definitions, not values or a ready-to-execute default Agent.
+        """
+        from llm.core.schema import nest_schema
+
+        result = deepcopy(cls.schema)
+        available = result[SchemaKeyword.PROPERTIES]
+        selected = set(available) if fields is None else set(fields)
+        if (cls.ENGINE_FIELD not in selected or selected - available.keys()
+                or set(properties or {}) - selected or set(required) - selected):
+            raise ValueError(cls.INVALID_SCHEMA)
+        result[SchemaKeyword.PROPERTIES] = {key: value for key, value in available.items() if key in selected}
+        for key, value in (properties or {}).items():
+            result[SchemaKeyword.PROPERTIES][key] = nest_schema(value, (SchemaKeyword.PROPERTIES, key))
+        result[SchemaKeyword.REQUIRED] = list(dict.fromkeys((cls.ENGINE_FIELD, *required)))
+        return result
 
     @classmethod
     def purpose(cls, definition):

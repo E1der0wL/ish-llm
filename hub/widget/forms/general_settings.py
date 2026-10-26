@@ -41,6 +41,7 @@ class PackInput:
 
 
 class GeneralForm:
+    DEBUG_CATEGORIES = ("diagnostics", "recovery")
     LANGUAGE_CATEGORY = "language"
     BUTTON_WIDTH = 18
     SINGLE_LINE = 1
@@ -112,7 +113,13 @@ class GeneralForm:
             handler=self.delete_pack,
             width=self.BUTTON_WIDTH,
         )
+        self.set_debugging(False)
+
+    def set_debugging(self, debugging):
+        self.groups = {category: keys for category, keys in self.GROUPS.items()
+                       if (category in self.DEBUG_CATEGORIES) == debugging}
         children, self.widgets = [], []
+        screen = self.screen
         for category, keys in self.groups.items():
             children.append(
                 section(screen.t(MessagePattern.general_category(category)))

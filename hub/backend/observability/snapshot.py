@@ -6,6 +6,7 @@ from llm.core.steering import RunInstruction, is_instruction
 from llm.core.models import MessageRole, SessionStatus
 from llm.core.agents import AgentDefinition, AgentBinding
 from ..project.participants import AgentProfile
+from ..project.participant_groups import ParticipantGroups
 from .workflow import WorkflowObservation
 from ..execution.engine_selection import HubEngineIdentity
 
@@ -420,6 +421,7 @@ class SnapshotReader:
                 SessionSummary(
                     identifier, item.record.title, status, item.runtime.queued_count,
                     tuple(item.record.agent_ids),
+                    ParticipantGroups.read(item.record.metadata, item.record.agent_ids),
                 )
             )
         selected = next(
@@ -427,7 +429,6 @@ class SnapshotReader:
             self.ABSENT,
         )
         messages, summary, questions = (), self.ABSENT, ()
-        session_config = selected.record.config if selected else self.ABSENT
         if selected:
             session = sessions[selected_id]
             steps = await self.read_steps(selected.handle, selected.run) if selected.run else ()
@@ -478,7 +479,7 @@ class SnapshotReader:
             config.agent_id, next(iter(definitions.values()), self.ABSENT)
         )
         model, model_required = (
-            agent_model(engines, data.config, definition, session_config)
+            agent_model(engines, definition)
             if definition
             else (self.EMPTY_TEXT, self.NO_MODEL_REQUIRED)
         )

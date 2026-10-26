@@ -14,8 +14,7 @@ from hub.locales.keys import MessageKey
 
 
 class ManagerView:
-    # Existing untranslated label; this is not a public language-pack key.
-    DELETE_TEXT = "delete"
+    DELETE_TEXT = MessageKey.SETTINGS_DELETE
     EMPTY = ""
     ABSENT = None
     BUSY = True
@@ -33,9 +32,6 @@ class ManagerView:
     VERTICAL_CHROME = 14
     WRAP_LINES = True
     SCROLL_ARROWS = True
-    WIDTH = 100
-    MINIMUM_WIDTH = 1
-    HORIZONTAL_MARGIN = 4
     FIRST = 0
     NEXT = 1
     PREVIOUS = -1
@@ -135,8 +131,6 @@ class DefinitionView:
     MINIMUM_PREFERRED_HEIGHT = 8
     VERTICAL_MARGIN = 8
     MINIMUM_HEIGHT = 4
-    MINIMUM_WIDTH = 20
-    HORIZONTAL_MARGIN = 4
     PREVIEW_DELAY = 0.1
     NEWLINE = "\n"
 

@@ -131,7 +131,7 @@ class LoopEngine(BaseEngine):
             LoopExecutionBinding.create(
                 context.resolve_config(self.parameter_key),
                 LoopAgentOptions(self._agent_options).completion,
-                self.system_prompt,
+                LoopAgentOptions(self._agent_options).prompt,
                 self._agent_options,
                 LoopExecutionBinding.adapter_identity(self.completion_adapter),
                 context.tools.execution_binding(
@@ -262,7 +262,6 @@ class LoopEngine(BaseEngine):
         self.max_iterations = max_iterations
         self.request_timeout = request_timeout
         self.tool_timeout = tool_timeout
-        self.system_prompt = LoopParameters(values).system_prompt
 
     @classmethod
     def _option_schema(cls):
@@ -271,13 +270,19 @@ class LoopEngine(BaseEngine):
     def describe_config(self):
         return LoopParameters.describe(self)
 
+    def describe_agent(self):
+        from llm.core.agents import AgentDefinition
+
+        return AgentDefinition.describe(properties={
+            AgentDefinition.Field.COMPLETION: self.completion_adapter.describe_config(),
+            AgentDefinition.Field.ENGINE_OPTIONS: self.describe_config(),
+        })
+
     def resolve_config(self, config, name, *, session_config=BaseEngine.ABSENT):
         """실행과 UI가 공유하는 Project → Session → Agent 설정."""
         key = self.parameter_key or name
         agent = self._agent_options
         overrides = self.parameter_layout.unpack(LoopAgentOptions(agent).engine_options)
-        if LoopAgentOptions(agent).has_prompt:
-            LoopAgentOptions.set_prompt(overrides, LoopAgentOptions(agent).prompt)
         view = ConfigurationView.read(
             resolve_engine_config(
                 config,
@@ -311,17 +316,12 @@ class LoopEngine(BaseEngine):
         return ModelRequest(parameters=parameters, tools=definitions, tool_mode=mode)
 
     def with_instructions(self, context, *, before=(), after=()):
-        """Compose explicit Agent resources using this Engine's own prompt resolution."""
-        values = self.parameter_layout.unpack(
-            ConfigurationView.read(
-                self.resolve_config(
-                    context.project.config,
-                    self.parameter_key or context.run.engine,
-                    session_config=context.session.config,
-                )
-            ).values
-        )
-        prompt = LoopParameters(values).system_prompt
+        """Compose the selected Agent's Prompt, inline instructions and Skills.
+
+        Instructions are execution input, not Loop configuration. Project and
+        Session engine parameters cannot supply or override them.
+        """
+        prompt = LoopAgentOptions(self._agent_options).prompt
         parts = [*before, *([prompt] if prompt else []), *after]
         if any(not isinstance(part, str) for part in parts):
             raise TypeError(LoopAgentOptions.INVALID_INSTRUCTIONS)
@@ -398,7 +398,7 @@ class LoopEngine(BaseEngine):
         # These fields define the Loop transcript/tool execution contract.
         self.completion_adapter.validate_input_ownership(params)
         self.completion_adapter.validate_request(params)
-        prompt = self.system_prompt(context) if callable(self.system_prompt) else self.system_prompt
+        prompt = LoopAgentOptions(self._agent_options).prompt
         if prompt is not BaseEngine.ABSENT and not isinstance(prompt, str):
             raise ValueError(LoopEngine.INVALID_PROMPT)
         messages = [

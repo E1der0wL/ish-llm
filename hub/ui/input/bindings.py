@@ -1,7 +1,7 @@
 """Hub actions and their footer hints share these context predicates."""
 
 from hub.ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
-from hub.widget.dialog import DialogContext
+from hub.widget.dialog import DialogContext, Dialog
 from hub.widget.forms.path_input import PathInput
 
 
@@ -102,8 +102,10 @@ class HubBindings:
         r.add(
             [KeyName.ESCAPE],
             ShortcutLabel.ESCAPE,
-            ShortcutAction.CLOSE,
-            lambda e: view.close_dialog(),
+            lambda: (Dialog.navigation_for(view._dialog).escape_action if Dialog.navigation_for(view._dialog)
+                     else ShortcutAction.CLOSE),
+            lambda e: (Dialog.navigation_for(view._dialog).escape() if Dialog.navigation_for(view._dialog)
+                       else view.close_dialog()),
             when=lambda: c.dialog,
         )
         r.add(
@@ -367,6 +369,10 @@ class HubBindings:
         event.app.create_background_task(paste())
 
     def dialog_tab(self, event):
+        navigation = Dialog.navigation_for(self.view._dialog)
+        if navigation is not None:
+            navigation.cycle(event.key_sequence[-1].key == KeyName.SHIFT_TAB)
+            return
         control = event.app.layout.current_control
         if event.key_sequence[-1].key == KeyName.TAB and PathInput.accepts(control):
             buffer = control.buffer

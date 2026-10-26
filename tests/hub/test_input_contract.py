@@ -158,7 +158,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                             view._focus_composer()
                             view.composer.text = "hub draft"
                             if scope == "completion":
-                                view.composer.text = "/age"
+                                view.composer.text = "/hel"
                                 view.composer.buffer.cursor_position = len(view.composer.text)
                                 view.composer.buffer.start_completion(select_first=False)
                             elif scope == "sidebar":
@@ -257,7 +257,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 await paint()
                 settings_header = next(w.label for w in app.layout.walk() if isinstance(w, HeaderBar))
                 self.assertEqual(chat_header.style, settings_header.style)
-                self.assertEqual(chat_header.content.text()[0][1][:4], "   ")
+                self.assertEqual(chat_header.content.text()[0][1][:3], "  ")
                 with set_app(app):
                     self.assertNotIn("ESC", [key for key, _ in view.bindings.hints()])
                 await minimize(pipe, view)

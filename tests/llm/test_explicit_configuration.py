@@ -36,12 +36,12 @@ def chunks(text="ok"):
 
 class ConfigurationTests(unittest.TestCase):
     def test_host_override_metadata_matches_effective_values(self):
-        cases = [(LoopEngine(), "system_prompt", "project prompt"),
+        cases = [(LoopEngine(), "request_timeout", 300),
                  (GraphEngine(handlers={}), "timeout_seconds", 300)]
         for engine, key, value in cases:
             with self.subTest(engine=type(engine).__name__, key=key):
-                section = "config" if key == "system_prompt" else "policy"
-                config = {"parameters": {"engines": {"test": {section: {key: "project prompt" if key == "system_prompt" else 300}}}}}
+                section = "policy"
+                config = {"parameters": {"engines": {"test": {section: {key: value}}}}}
                 view = engine.resolve_config(config, "test")
                 self.assertEqual(view["values"][section][key], value)
                 self.assertEqual(view["sources"]["/" + section + "/" + key], "project")
@@ -83,14 +83,14 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_project_ui_exposes_explicit_null_host_override(self):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine()}) as app:
-                project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'system_prompt': None}}}}})
+                project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'policy': {'request_timeout': None}}}}})
                 view = await project.adescribe_config()
                 effective = view["effective_engines"]["loop"]
-                self.assertIsNone(effective["values"]["config"]["system_prompt"])
-                self.assertEqual(effective["sources"]["/config/system_prompt"], "project")
-                self.assertTrue(effective["editable"]["/config/system_prompt"])
+                self.assertIsNone(effective["values"]["policy"]["request_timeout"])
+                self.assertEqual(effective["sources"]["/policy/request_timeout"], "project")
+                self.assertTrue(effective["editable"]["/policy/request_timeout"])
                 schema = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["loop"]
-                self.assertNotIn("x-host-override", schema["properties"]["config"]["properties"]["system_prompt"])
+                self.assertNotIn("x-host-override", schema["properties"]["policy"]["properties"]["request_timeout"])
 
     async def test_loop_sdk_kwargs_and_wrapper_are_independent(self):
         for options, completion in (({}, {}), ({"request_timeout": .5}, {}),
@@ -272,22 +272,25 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             await invoke("aembedding", {}, slow, {"wall_timeout": .001})
         self.assertEqual(seen, [{}, {}])
 
-    async def test_agent_inherits_prompt_and_host_null_removes_it(self):
+    async def test_agent_prompt_does_not_enter_engine_configuration(self):
         definition = {"engine": "loop", "purpose": "business purpose", "completion": {"model": "test"}}
         engine = LoopEngine().for_agent(definition)
-        config = {"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt'}}}}}
-        self.assertEqual(engine.resolve_config(config, "loop")["values"]["config"]["system_prompt"], "project prompt")
-        host = LoopEngine().for_agent({**definition, "system_prompt": None})
-        self.assertIsNone(host.resolve_config(config, "loop")["values"]["config"]["system_prompt"])
+        self.assertEqual(engine.resolve_config({}, "loop")["values"], {})
+        for prompt in (None, "", "agent prompt"):
+            selected = LoopEngine().for_agent({**definition, "system_prompt": prompt})
+            self.assertEqual(selected.resolve_config({}, "loop")["values"], {})
 
     async def test_graph_agent_owns_completion_and_does_not_invent_prompt(self):
         from llm.core.agents import AgentDefinition
         from llm.components.skills import SkillComponent
         from llm.components.workflows import WorkflowComponent, WorkflowGraph
         from llm.engines.graph.agent import AgentNode
-        for overrides, expected_prompt in (({}, "project prompt"),
+        for overrides, expected_prompt in (({}, None),
                 ({"system_prompt": None}, None),
-                ({"resources": {"skills": ["review"]}}, "project prompt\n\nSkill review:\nCheck facts.")):
+                ({"system_prompt": ""}, None),
+                ({"system_prompt": "agent prompt"}, "agent prompt"),
+                ({"resources": {"skills": ["review"]}}, "Skill review:\nCheck facts."),
+                ({"system_prompt": "agent prompt", "resources": {"skills": ["review"]}}, "agent prompt\n\nSkill review:\nCheck facts.")):
             captured = []
             def call(**params):
                 captured.append(params)
@@ -297,7 +300,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": worker})})
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=components, engines={"loop": worker, "graph": graph}) as app:
-                    project = await app.projects.acreate(components=[c.name for c in components], config={"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt'}}}}})
+                    project = await app.projects.acreate(components=[c.name for c in components])
                     await project.agents.acreate({"engine": "loop", "purpose": "Not a system prompt",
                         "completion": {"model": "test", "temperature": 0, "top_p": 0.7}, **overrides}, identifier="worker")
                     prompt_view = await project.agents.aprompt("worker")

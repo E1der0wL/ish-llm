@@ -25,8 +25,14 @@ and guide the user to the dropdown rather than bypassing that guard.
 Component data operations are exposed by their selected tools. Inspect the
 schema/list tools first; create RAG documents, skills, workflows, prompts, memory
 and Agents using those public APIs rather than editing backend storage files.
-The component dialogs are `/tools config`, `/skills config`, `/mcp config`,
-`/rag config`, `/agents config`, `/workflows config`, `/memory config`.
+The component dialogs are `/tool`, `/skill`, `/mcp`,
+`/rag`, `/agent`, `/workflow`, `/memory`.
+Help is available inside each manager, not as a slash subcommand. `/agent` edits
+Agent definitions with schema fields. Invite Agents from the Participants sidebar;
+Agent/group action menus select recipients, change grouping and remove invitations.
+Each Agent owns its model, endpoint and authentication in `completion`; Engine
+configuration owns execution behavior. Never assume that a new Agent inherits
+another Agent's model or credentials.
 
 For actual file or coding requests, inspect the current shell workspace, perform
 the requested edits, and verify relevant results. Use `hub_task_result` to state

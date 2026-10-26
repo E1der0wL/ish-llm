@@ -31,7 +31,9 @@ ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다.
 
 Engine 옵션의 순서는 **Project → Session → Agent**다. 제한은 child가 더 좁힐 수만 있다. Host constructor는 구현 함수·handler·기술 revision만 제공한다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. 일반 `resolve_config`의 host 관찰 기능은 외부 adapter용이며 내장 Engine의 정책 계층에 사용하지 않는다.
 
-Agent completion은 model 없는 초안 저장도 허용하나 실제 호출에는 선택 Adapter가 요구하는 모델 값이 필요하다. 다른 Agent나 Project/Session에서 모델 인자를 상속하지 않는다. 미설정 SDK 옵션은 생략하며 명시적 null은 Adapter 계약으로 검증한다. Agent purpose를 system_prompt로 자동 변환하지 않으며, 명시적으로 선택한 Skill만 상속된 프롬프트에 결합한다. system_prompt=null은 상위 프롬프트를 해제한다. prompt 조회 API도 누락 키를 빈 문자열로 바꾸지 않으며 update_prompt(None)으로 명시적 해제가 가능하다.
+Agent completion은 model 없는 초안 저장도 허용하나 실제 호출에는 선택 Adapter가 요구하는 모델 값이 필요하다. 다른 Agent나 Project/Session에서 모델 인자를 상속하지 않는다. 미설정 SDK 옵션은 생략하며 명시적 null은 Adapter 계약으로 검증한다.
+
+시스템 지침은 선택한 Prompt → Agent의 명시적 system_prompt → 선택 Skill 순서로 구성한다. Agent purpose를 지침으로 자동 변환하지 않는다. Loop의 공개 config.system_prompt는 없으며 Project/Session의 Engine 설정에서도 지침을 상속하지 않는다. Agent system_prompt가 missing/null/빈 문자열이면 인라인 지침만 추가하지 않고 선택한 Prompt·Skill은 유지한다. prompt 조회 API는 누락 키를 빈 문자열로 채우지 않으며 update_prompt(None)은 Agent의 인라인 지침을 명시적으로 해제한다. Loop는 이 지침을 실행 입력과 승인·재개 binding에 사용하고 Engine의 effective values에는 넣지 않는다.
 
 Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client는 Project보다 낮은 명시적 baseline이며 숨은 ceiling이 아니다. Component는 Session 소유가 아니다. 서비스 정책은 Run 시작 시 스냅샷으로 저장한다. Tool 재시도는 Project policies.tool_retry만 사용한다. ProviderLimits는 Backend 전체 공유 자원 용량으로 별도 적용되며 describe_host()에서 읽기 전용으로 조회한다.
 
@@ -66,7 +68,7 @@ ProjectConfig
 
 | 구현체 | config | policy |
 |---|---|---|
-| Loop | system_prompt, buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
+| Loop | buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
 | Graph | buffer_size, cleanup_timeout | max_steps, max_parallelism, timeout_seconds, max_nested_depth |
 | RAG | chunk_size, embedding_params, extraction_params, rerank_params, document_kwargs, query_kwargs, search, graph, extraction_batch_size, index_batch_size, embedding_cache_max_bytes, search_cache_chars, extraction.json_mode/prompt_id/relation_types | embedding_concurrency, provider, ingestion.max_active, extraction.repair_attempts/failure_policy |
 | Memory | cache_records, search_status/search_limit, processing.completion/priority/extract_scope/summary_chars/recall_limit/recall_query_chars | tool_write_status, max_search_results, processing의 자동 실행 여부·입력/출력/시간 한도·실패 방식·provider |

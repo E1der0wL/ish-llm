@@ -50,7 +50,7 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
             with set_app(app):
                 view.dialogs.show(popup, popup.path)
                 text = "\n".join(render_container(popup, width=80, height=30))
-                for key in ("settings_reload", "settings_title", "history_retry", "rag_cancel_job", "delete", "search_close"):
+                for key in ("settings_title", "history_retry", "rag_cancel_job", "settings_delete", "search_close"):
                     self.assertIn(view.t(key), text)
                 popup.path.text = "screen.png"
                 popup.import_path(popup.path.buffer)

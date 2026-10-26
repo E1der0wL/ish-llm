@@ -14,15 +14,10 @@ if TYPE_CHECKING:
 
 class CoreCommand(StrEnum):
     HELP = "help"
-    AGENT = "agent"
     NEW = SessionMode.NEW.value
     CLONE = SessionMode.CLONE.value
     STOP = "stop"
     DETAILS = "details"
-
-
-class CommandArguments(StrEnum):
-    AGENTS = "agents"
 
 
 class CommandSyntax:
@@ -73,7 +68,6 @@ class CommandInput:
 class CommandSpec:
     name: str
     handler: Callable[["HubView", str], object]
-    arguments: str | None = CommandSyntax.UNREGISTERED
 
     @property
     def description_key(self) -> str:
@@ -84,11 +78,6 @@ class CommandSpec:
 # saved Project Agent choices shared by execution and completion.
 COMMANDS = (
     CommandSpec(CoreCommand.HELP.value, lambda view, argument: view.help_dialog()),
-    CommandSpec(
-        CoreCommand.AGENT.value,
-        lambda view, argument: view.choose_agent(argument),
-        arguments=CommandArguments.AGENTS.value,
-    ),
     CommandSpec(
         CoreCommand.NEW.value,
         lambda view, argument: view.session_dialog(SessionMode.NEW.value, argument),

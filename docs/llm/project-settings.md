@@ -81,6 +81,10 @@ await vision.aconfigure(
 동적 host factory는 runtime/host_runtime으로 표시하며 실행 전 값을 추측하지 않는다.
 Session override까지 보고 싶으면 `session.adescribe_config()`을 사용한다.
 Agent 모델은 Engine effective view에 섞지 않으며 Agent CRUD/snapshot으로 조회·수정한다.
+Agent 편집 폼은 `project.agents.adescribe(engine=등록이름)`의 선택 Engine 스키마를 사용한다.
+이 조회는 실행별 유효 설정을 계산하거나 현재 값을 반환하지 않는다. Project/Session의
+상속·editable 관찰은 기존 `adescribe_config()`를, Agent 값과 수정 충돌 검사는
+`agents.asnapshot()`과 `expected_revision`을 사용한다. [Agent 폼 계약](agents.md).
 자세한 상속·강제값은 [설정 계약](../../llm/CONFIGURATION.md)에 있다.
 
 ## 애플리케이션의 생성·선택 정책

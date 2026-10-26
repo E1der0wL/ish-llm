@@ -21,11 +21,7 @@ class ReadOnlyDialog(Dialog):
     ABSENT = None
     MIN_ROWS = 1
     MAX_ROWS = 30
-    ROW_MARGIN = 8
     RECEIVER_HEIGHT = 0
-    PREFERRED_COLUMNS = 100
-    MIN_COLUMNS = 1
-    COLUMN_MARGIN = 4
     CLOSE_KEYS = (
         (KeyName.ESCAPE, ShortcutLabel.ESCAPE),
         (KeyName.CONTROL_L, ShortcutLabel.CONTROL_L),
@@ -52,8 +48,8 @@ class ReadOnlyDialog(Dialog):
             tail=not markdown,
             render_worker=render_worker,
         )
-        self.output.window.height = lambda: Dimension.exact(
-            max(self.MIN_ROWS, min(self.MAX_ROWS, rows() - self.ROW_MARGIN))
+        self.output.window.height = Dimension(
+            min=self.MIN_ROWS, preferred=self.MAX_ROWS, max=self.MAX_ROWS
         )
         navigation = PopupInput()
         self.shortcuts = registry = navigation.shortcuts
@@ -83,8 +79,4 @@ class ReadOnlyDialog(Dialog):
                 [self.output, Window(self.receiver, height=self.RECEIVER_HEIGHT)]
             ),
             buttons=[self.close_button],
-            width=lambda: Dimension(
-                preferred=self.PREFERRED_COLUMNS,
-                max=max(self.MIN_COLUMNS, columns() - self.COLUMN_MARGIN),
-            ),
         )

@@ -74,6 +74,44 @@ UI에서는 같은 JSON을 생성/수정하면 된다. 일반 CRUD는 create/loa
 `<project>/workflows/records/<id>.json`이다. Agent는 Component 선택과 독립되며
 Component 설정만 ProjectConfig.parameters["components"]에 저장한다.
 
+## Engine별 설정 폼 조회
+
+```python
+# 공통 Agent 계약과 등록 Engine 이름 목록. 실행 가능한 기본 Agent를 만들지 않는다.
+catalog = await project.agents.adescribe()
+
+# 실제 등록 이름을 선택한다. for_agent/model/Tool 실행 없이 스키마만 조회한다.
+form = await project.agents.adescribe(engine="loop")
+schema = form["schema"]
+snapshot = await project.agents.asnapshot("reviewer")
+values = snapshot["definition"]
+```
+
+동기 API는 `project.agents.describe(engine=...)`다. 반환 외형은 계속
+`schema`, `storage_version`, `engines`이며 선택 스키마의 `properties.engine.const`가
+등록 이름을 지정한다. 이름을 생략하면 공통 스키마를 반환하고 특정 Engine을 선택하지 않는다.
+조회 스키마와 저장된 값은 별개다. 모델·API 키 등 현재 값은 snapshot으로 읽고,
+수정한 전체 정의는 `arevise(..., expected_revision=snapshot["revision"])`로 저장한다.
+
+Loop는 선택 Adapter의 모델 스키마를 `completion`에, 자신의 `describe_config()`를
+`engine_options`에 결합한다. Graph는 `purpose`, `description`, `engine`,
+`engine_options`, `metadata`만 공개하고 `engine_options.workflow`를 필수로 표시한다.
+Graph 폼에는 모델·Tool·behavior 설정을 넣지 않는다. 조회 결과는 독립 사본이며
+미설정값을 채우거나 설정·Agent·Run을 생성하지 않는다.
+
+선택 Engine이 순수 동기 `describe_agent()`를 제공하면 그 스키마는 UI 조회뿐 아니라
+실제 Agent binding에서도 검사한다. 공통 Agent 계약과의 교집합만 허용하며,
+추가 의미 검증은 기존 `for_agent()`가 계속 담당한다. 스키마 검증만으로 Project 상한,
+참조 존재, 승인·재개 적합성, 실제 서버의 모델 지원까지 보장하지 않는다.
+특히 Loop의 모델 미지정 초안은 계속 저장할 수 있으나 실제 호출에는 모델이 필요하다.
+
+Engine 전용 스키마를 제공하지 않는 사용자 정의 Engine은 기존 실행 계약을 유지한다.
+선택 폼 조회는 `Engine does not provide describe_agent`로 실패하며, Backend가 폼을
+추측하거나 내부 속성에서 옵션을 수집하지 않는다. 공통 목록 조회는 영향을 받지 않는다.
+Hub는 조회된 타입·enum·required·제약을 입력 UI로 표현하고, 생략/null을 구별해 저장한다.
+위젯·배치·번역·preset과 초기 입력값은 Application 책임이다. 열린 SDK 인자는
+`additionalProperties`와 ownership 정보를 유지하므로 추가 JSON 편집도 제공할 수 있다.
+
 AgentDefinition이 정의 필드·리소스 선택·자체 policy·출력 형식과 제약을 선언한다.
 공개 Schema에는 enum 객체 표현을 노출하지 않고 기존 문자열 키/값을 제공하여 검증 순서와
 진단을 유지한다. 정의 revision의 JSON 정렬·UTF-8·비 ASCII 처리와 바이트 의미는 바꾸지 않는다.
@@ -225,6 +263,54 @@ Graph 체크포인트는 Agent·Skill·MCP 정의와 어댑터 revision을 비�
 Agent가 별도 Run이나 체크포인트 수명주기를 만들지 않는다.
 
 ## 개발자 엔진 확장
+
+Agent 폼을 제공하려면 다음처럼 공통 외형을 재사용한다. `engine_options`의 내부 필드는
+선택 Engine만 해석한다. 아래 `strategy` 값은 이 예제 Engine의 명시적 계약이다.
+
+```python
+from llm.core.agents import AgentDefinition
+from llm.core.schema import object_schema
+
+def describe_agent(self):
+    return AgentDefinition.describe(
+        properties={"engine_options": object_schema({
+            "config": object_schema({"strategy": {"enum": ["local", "remote"]}},
+                                    required=["strategy"]),
+        }, required=["config"])},
+        required=("engine_options",),
+    )
+```
+
+`describe_agent()`는 JSON Schema만 반환하며 네트워크·모델·Tool·저장 I/O나 `for_agent()`를
+호출하지 않는다. 동기 함수, 닫힌 Agent 최상위, 필수 engine 및 알려진 최상위 필드를
+요구하며 schema default와 외부 reference는 거부한다. `AgentDefinition.describe()`는
+공통 필드를 선택하거나 구현체 소유 필드의 스키마를 결합하는 도우미이며 새 저장 계층이 아니다.
+중첩 스키마의 `$id`와 로컬 pointer·anchor·dynamic reference는 소유 스키마의 참조 범위를
+유지한다. 참조가 있지만 루트 `$id`가 없거나 빈 식별자(`""` 또는 `"#"`)인 스키마에는
+`nest_schema()`가 결정적인
+`https://schemas.ish-llm.invalid/nested/<hash>/` 식별자를 부여해 독립된 Schema resource로
+삽입한다. 계층형 주소이므로 서로 다른 소유자의 `inner.json` 같은 상대 `$id`가 같은 주소로
+겹치지 않는다. 이 식별자는 UI/검증용 스키마 조합 정보이며 사용자 설정·Agent 저장값·
+네트워크 조회 주소가 아니다. 스키마를 내려받지 않는다.
+참조 문자열을 변환하지 않으므로 같은 Python 스키마 객체를 여러 필드가 공유해도 이중 변환하지
+않는다. 참조 없는 스키마에는 식별자를 추가하지 않으며, 외부 reference와 schema default의
+거부 계약도 유지한다.
+
+공통 `checked_schema()`는 상대 `$id`를 부모 주소 기준으로 해석한 뒤 충돌을 검사한다.
+같은 resource 주소에 동일한 스키마가 반복되면 공유할 수 있지만, 서로 다른 스키마가 있으면
+조회·실행 전에 주소와 두 선언 위치를 포함한 `ValueError`로 거부한다. 동일 여부는 자신의
+`$id`를 해석된 주소로 비교한 정규 JSON 기준이며, 서로 다르게 작성한 규칙의 논리적 동등성을
+추측하지 않는다. 같은 resource 안의 `$anchor`·`$dynamicAnchor` 중복도 같은 원칙이다.
+명시한 `$id`를 임의로 바꾸지 않으므로 충돌이 있는 확장 구현체는 고유한 주소를 제공해야 한다.
+검사는 실제 스키마 선언만 순회하며 `const`·`enum`·예제 안의 데이터는 해석하지 않는다.
+UI 합성 오류를 피하려고 `EngineAgentBinding.bind()`나 `for_agent()` 검증을 생략하지 않는다.
+
+EngineRegistry는 등록 이름 조건을 루트 `allOf`에 추가한다. 원본 `properties.engine`이나
+그 아래 `$defs`의 위치·제약을 옮기거나 덮어쓰지 않으며 기존 `const`와 충돌하면 그대로
+거부한다. UI는 전체 JSON Schema의 교집합을 사용해야 한다. binding에서도 같은 소유 스키마를
+새로 검증하며 `for_agent()` 검증을 생략하거나 이전 검증 결과를 재사용하지 않는다.
+공통 Agent 외형을 교차 검증할 때에도 `allOf` 목록을 복사해 조합하므로 다른 필드가 공유하는
+목록의 제약이 바뀌지 않는다.
 
 Project의 EngineRegistry와 필요한 AgentNode(engines={"name": engine})에 등록하는 엔진은 순수 동기
 `for_agent(definition) -> Engine`과 `execute(context)`를 구현한다. for_agent는 선택·재개

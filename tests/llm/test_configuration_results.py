@@ -26,7 +26,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.sessions = SessionManager()
         self.engines = EngineRegistry()
         self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions, engines=self.engines)
-        self.project = self.projects.create("Project", config=ProjectConfig(data={"project_label": "test"}, parameters={"engines": {"loop": {'policy': {'max_iterations': 2}, 'config': {'system_prompt': 'project prompt'}}}}))
+        self.project = self.projects.create("Project", config=ProjectConfig(data={"project_label": "test"}, parameters={"engines": {"loop": {'policy': {'max_iterations': 2}, 'config': {'buffer_size': 16}}}}))
         self.session = self.sessions.create(self.project, "Session", config={"data": {"language": "ko"}})
         self.manager = RunManager(self.sessions, self.engines, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
@@ -59,23 +59,23 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
                 "total_tokens": prompt + answer, "prompt_tokens_details": {"cached_tokens": 1}}}
 
     async def test_flexible_config_persists_inherits_and_runtime_options_win(self):
-        self.session.config["parameters"] = {"engines": {"loop": {'config': {'system_prompt': 'session prompt'}, 'policy': {'max_iterations': 1}}}}
+        self.session.config["parameters"] = {"engines": {"loop": {'config': {'buffer_size': 8}, 'policy': {'max_iterations': 1}}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
         self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
-        self.projects.agents.create(self.project, {"engine": "loop", "completion": {"model": "openai/test", "top_p": 0.4, "extra_body": {"setting": 1}}}, identifier="loop")
+        self.projects.agents.create(self.project, {"engine": "loop", "system_prompt": "agent prompt", "completion": {"model": "openai/test", "top_p": 0.4, "extra_body": {"setting": 1}}}, identifier="loop")
         self.assertEqual(self.sessions.load(self.project, self.session.id).config, self.session.config)
         self.assertEqual(self.project.config, self.projects.load(self.project.id).config)
         run = await self.submit()
         request = provider.requests[0]
         self.assertEqual(request["top_p"], 0.4)
         self.assertEqual(request["extra_body"], {"setting": 1})
-        self.assertEqual(request["messages"][0]["content"], "session prompt")
+        self.assertEqual(request["messages"][0]["content"], "agent prompt")
         self.assertEqual(run.status, RunStatus.COMPLETED)
         self.assertEqual(self.session.config["data"]["language"], "ko")
         settings = self.project.config.resolve_engine_config("loop", self.session.config)
-        settings["parameters"]["engines"]["loop"]["config"]["system_prompt"] = "changed"
-        self.assertEqual(self.session.config["parameters"]["engines"]["loop"]["config"]["system_prompt"], "session prompt")
+        settings["parameters"]["engines"]["loop"]["config"]["buffer_size"] = 4
+        self.assertEqual(self.session.config["parameters"]["engines"]["loop"]["config"]["buffer_size"], 8)
 
     async def test_project_updates_reach_later_runs_without_mutating_active_snapshot(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])

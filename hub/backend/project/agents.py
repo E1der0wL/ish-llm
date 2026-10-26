@@ -33,7 +33,8 @@ async def apply_agents(project, definitions):
 
 
 async def initialize(
-    backend, project, *, identifier=DEFAULT_AGENT, definition=UNSPECIFIED_DEFINITION
+    backend, project, *, identifier=DEFAULT_AGENT, definition=UNSPECIFIED_DEFINITION,
+    completion=None,
 ):
     if definition is UNSPECIFIED_DEFINITION:
         from llm.components.tools.resolver import ComponentToolResolver
@@ -57,8 +58,13 @@ async def initialize(
         definition = AgentDefinition.selected(
             HubEngineIdentity.LOOP, tools=await asyncio.to_thread(selected_tools)
         )
+        from ...asset.guides import SYSTEM_PROMPT
+        definition[AgentDefinition.Field.SYSTEM_PROMPT] = SYSTEM_PROMPT
     else:
         definition = deepcopy(definition)
+    if completion:
+        definition[AgentDefinition.Field.COMPLETION] = {
+            **completion, **definition.get(AgentDefinition.Field.COMPLETION, {})}
     await project.agents.acreate(definition, identifier=identifier)
     from .naming import TITLE_ENGINE
 

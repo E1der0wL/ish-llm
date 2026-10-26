@@ -24,6 +24,14 @@ Engine은 실행 전략이며 영속 소유 계층의 중간 객체가 아니다
 재시도 등 실행 방식을 소유하며 Project/Session의 Loop 설정에서 모델 값을 상속하지 않는다.
 선택 Adapter가 SDK 인자를 검증·전달하고 Graph Agent는 모델 설정을 받지 않는다.
 Agent revision과 admission snapshot이 모델 변경도 보호한다. [모델 설정 계약](agent-models.md).
+Agent는 `system_prompt`와 선택한 Prompt·Skill 지침도 소유한다. Loop는 구성된 지침을
+실행 입력과 승인·재개 binding에 사용하며 공개 `config.system_prompt`나 Project/Session
+프롬프트 상속을 제공하지 않는다. Loop의 공개 `config`는 `buffer_size`만 포함한다.
+
+선택 Engine의 순수 동기 `describe_agent()`는 Agent 설정 폼과 binding 검증이 공유하는
+스키마를 제공한다. Agent 서비스는 `describe(engine=...)`로 이를 전달하고 최상위 공통
+계약을 확대하지 못하게 한다. Engine/Adapter가 내부 필드의 스키마를 소유하며 UI 배치·
+preset·기본 입력값은 Application에 남는다. 조회가 실행·저장·설정 resolution을 대신하지 않는다.
 
 | 경계 | 소유 코드 | 책임 |
 |---|---|---|

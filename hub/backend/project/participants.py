@@ -52,3 +52,24 @@ async def invite(
     runtime.snapshot_reader.invalidate(session_id)
     runtime.dirty.set()
     return tuple(participants)
+
+
+async def change(runtime, project_id, session_id, action, identifier, value):
+    from .participant_groups import ParticipantGroups
+    project = await runtime.backend.projects.aload(project_id)
+    session = await project.sessions.aload(session_id)
+    status = await session.run.astatus()
+    if status.active_runs or status.queued_count or session_id in runtime.namer.tasks:
+        raise ValueError(runtime.t(MessageKey.PARTICIPANTS_BUSY))
+    await session.run.shutdown()
+    try:
+        record = await session.aget_data()
+        metadata, participants = ParticipantGroups.change(
+            record.metadata, record.agent_ids, action, identifier, value)
+        await session.asave(metadata=metadata, agent_ids=participants)
+    finally:
+        if runtime.session_is_open(session_id):
+            await session.run.start()
+    runtime.snapshot_reader.invalidate(session_id)
+    runtime.dirty.set()
+    return True

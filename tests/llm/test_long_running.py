@@ -22,6 +22,38 @@ from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class LongRunningTests(unittest.IsolatedAsyncioTestCase):
+    async def test_agent_instructions_remain_bound_through_approval_and_resume(self):
+        from dataclasses import replace
+        effects = []
+        async def act(arguments):
+            effects.append('once')
+            return 'effect completed'
+        app, session, model = await self.setup_app(act, [
+            [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
+            [chunk('done', finish='stop')]],
+            tool_contract=replace(TEST_CONTRACT, approval_required=True))
+        agents = session.project.agents
+        before = await agents.asnapshot('loop')
+        await agents.aupdate_prompt('loop', 'Keep these instructions', expected_revision=before['revision'])
+        paused = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
+        self.assertEqual(paused.data.status, 'paused', paused.data.error)
+        self.assertEqual(effects, [])
+        original = await agents.asnapshot('loop')
+        await agents.aupdate_prompt('loop', 'Different instructions', expected_revision=original['revision'])
+        with self.assertRaisesRegex(Exception, 'changed'):
+            await session.run.resume(paused.id, agent_id='loop', decisions={'tool:1:call_1': True})
+        self.assertEqual(effects, [])
+        self.assertEqual(len(model.requests), 1)
+        changed = await agents.asnapshot('loop')
+        await agents.aupdate_prompt('loop', 'Keep these instructions', expected_revision=changed['revision'])
+        resumed = (await (await session.run.resume(paused.id, agent_id='loop', decisions={'tool:1:call_1': True})).wait())[0]
+        self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
+        self.assertEqual(effects, ['once'])
+        self.assertEqual(len(model.requests), 2)
+        for request in model.requests:
+            self.assertEqual(request['messages'][0], {'role': 'system', 'content': 'Keep these instructions'})
+        self.assertIn('effect completed', str(model.requests[-1]['messages']))
+
     async def test_missing_retry_evidence_rejects_resume_without_repeating_effect(self):
         with tempfile.TemporaryDirectory() as root:
             effect = Path(root) / "effect.txt"

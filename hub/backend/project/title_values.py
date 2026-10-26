@@ -3,15 +3,16 @@
 import hashlib
 import json
 from llm.core.model_protocol import ModelRole
+from llm.core.agents import AgentDefinition
 from llm.core.schema import object_schema, implementation_schema, SchemaBoolean
 from llm.engines.loop.configuration import LoopParameters
 from llm.providers.requests import provider_schema
 
 
 class TitleCompletion:
-    """The title Engine's explicit configuration and source completion observation."""
+    """Title execution policy; model parameters belong to the title Agent."""
 
-    COMPLETION = LoopParameters.COMPLETION
+    COMPLETION = AgentDefinition.Field.COMPLETION
     PROVIDER = LoopParameters.PROVIDER
     ABSENT = None
 
@@ -19,28 +20,13 @@ class TitleCompletion:
         self._value = value
 
     @property
-    def completion(self):
-        return self._value.get(self.COMPLETION, {})
-
-    @property
-    def optional_completion(self):
-        return self._value.get(self.COMPLETION)
-
-    @property
     def provider(self):
         return self._value.get(self.PROVIDER, {})
 
     @classmethod
-    def configuration(cls, completion):
-        return {cls.COMPLETION: completion}
-
-    @classmethod
     def schema(cls, adapter):
         return implementation_schema(
-            config=object_schema(
-                {cls.COMPLETION: adapter.describe_config()},
-                additionalProperties=SchemaBoolean.REJECT,
-            ),
+            config=object_schema({}, additionalProperties=SchemaBoolean.REJECT),
             policy=object_schema(
                 {cls.PROVIDER: provider_schema()},
                 additionalProperties=SchemaBoolean.REJECT,

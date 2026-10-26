@@ -47,7 +47,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("shell draft\x11")
                 await eventually(lambda: view.visible)
                 view.project_title = "Renamed project"
-                self.assertEqual(view.header.fragments()[0][1], "   홈")
+                self.assertEqual(view.header.fragments()[0][1], "  홈")
                 view.project_id = "p"
                 view.projects.selected = "p"
                 view.projects.items = [{"id": "p", "title": "Project"}]
@@ -90,7 +90,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[B")
                 await asyncio.sleep(.08)
                 self.assertIs(app.layout.current_control, view.settings.global_list)
-                self.assertEqual(view.settings.selected, "general")
+                self.assertEqual(view.settings.selected, "debugging")
                 pipe.send_text("\t")
                 await eventually(lambda: app.layout.current_control is view.settings.project_list)
                 pipe.send_text("\x1b[A")

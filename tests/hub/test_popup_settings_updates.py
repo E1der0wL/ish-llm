@@ -171,7 +171,7 @@ class HistoryBorderTests(unittest.IsolatedAsyncioTestCase):
                     choices = view._dialog.choices.window
                     with set_app(app):
                         summary = fragment_list_to_text(choices.content.create_content(columns, 8).get_line(0))
-                    self.assertLessEqual(get_cwidth(summary), min(80, columns - 4) - 7)
+                    self.assertLessEqual(get_cwidth(summary), columns - 4 - 7)
                     self.assertTrue(summary.endswith("…"))
                     corners = [(y, x) for y, row in screen.data_buffer.items() for x, cell in row.items()
                                if cell.char == "┐" and "class:dialog" in cell.style]

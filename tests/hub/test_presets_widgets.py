@@ -56,7 +56,7 @@ class PresetBackendTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("_hub_title", value["project"]["config"]["parameters"]["engines"])
                 value["global"]["profile"]["display_name"] = "Preset User"
                 value["global"]["appearance"]["sidebar_width"] = 32
-                value["project"]["config"]["parameters"]["engines"]["loop"]["config"]["completion"] = {"model": "test/preset"}
+                value["project"]["agents"]["assistant"]["completion"] = {"model": "test/preset"}
                 await settings.execute("preset_save", "Work", value)
                 with self.assertRaises(ValueError):
                     await settings.execute("preset_save", "Work", value)
@@ -66,7 +66,7 @@ class PresetBackendTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result["project"]["values"]["title"], "Hub")
                 self.assertEqual(PreferencesStore(root).load()["profile"]["display_name"], "Preset User")
                 self.assertEqual(PresetStore(root).read()["selected"], "Work")
-                self.assertEqual(PresetStore(root).selected_project()["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["model"], "test/preset")
+                self.assertEqual(PresetStore(root).selected_project()["agents"]["assistant"]["completion"]["model"], "test/preset")
                 self.assertEqual(len(await runtime.project.sessions.alist()), 0)
                 # A malformed project must fail before any global preference write.
                 invalid = deepcopy(value)
@@ -81,7 +81,7 @@ class PresetBackendTests(unittest.IsolatedAsyncioTestCase):
             await fresh.start()
             try:
                 config = (await fresh.project.aget_data()).config
-                self.assertEqual(config.parameters["engines"]["loop"]["config"]["completion"]["model"], "test/preset")
+                self.assertEqual((await fresh.project.agents.aload("assistant"))["completion"]["model"], "test/preset")
             finally:
                 await fresh.close()
 
@@ -111,11 +111,11 @@ class PresetBackendTests(unittest.IsolatedAsyncioTestCase):
                 page = ProjectPage(view.settings, record, suggest_defaults=False)
                 page.set_section("engine:loop")
                 before = page.values()
-                self.assertGreaterEqual(len(page.groups), 2)
+                self.assertEqual(len(page.groups), 1)
                 for path, field in page.visible_forms()[0].fields.items():
                     self.assertFalse(field.label.startswith("config.parameters.engines.loop"))
                     self.assertTrue(field.schema.get("description"), path)
-                page.filter("reasoning_effort")
+                page.filter("buffer_size")
                 self.assertEqual(len(page.fields()), 1)
                 self.assertEqual(len(page.container.children), 2)  # one heading + one field
                 page.filter("no-such-option-ever")

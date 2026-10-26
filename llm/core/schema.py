@@ -1,7 +1,9 @@
 """UI에서 공유할 JSON Schema. 공급자의 열린 인자를 닫힌 목록으로 제한하지 않는다."""
 
 from copy import deepcopy
+import hashlib
 import json
+from urllib.parse import urldefrag, urljoin
 from jsonschema import Draft202012Validator
 from .implementation_parameters import ImplementationParameters
 from .json_data import JsonObject, JsonPointer
@@ -125,6 +127,12 @@ class SchemaTraversal:
 class SchemaReference:
     LOCAL_KEYS = (SchemaKeyword.REF, SchemaKeyword.DYNAMIC_REF)
     RESOURCE_KEYS = (SchemaKeyword.ID, SchemaKeyword.ANCHOR, SchemaKeyword.DYNAMIC_ANCHOR, SchemaKeyword.DYNAMIC_REF)
+    ANCHOR_KEYS = (SchemaKeyword.ANCHOR, SchemaKeyword.DYNAMIC_ANCHOR)
+    ANONYMOUS_IDS = (None, "", JsonPointer.FRAGMENT)
+    NESTED_ID_PREFIX = "https://schemas.ish-llm.invalid/nested/"
+    NESTED_ID_SUFFIX = "/"
+    ID_ENCODING = "utf-8"
+    ID_SORT_KEYS = True
     DEFINITION_PREFIXES = tuple(JsonPointer.reference((key,)) + JsonPointer.SEPARATOR
                                 for key in (SchemaKeyword.DEFS, SchemaKeyword.DEFINITIONS))
 
@@ -146,6 +154,8 @@ class SchemaError:
     IMPLEMENTATION_FIELDS = "Implementation configuration schema fields belong under config/policy"
     NON_NULL_SECTION = "Implementation {name} schema must describe a non-null object"
     NARROWING_PATH = "x-narrowing requires an inline numeric property path: "
+    RESOURCE_CONFLICT = "Conflicting schema resource {identity!r}: {first} and {second}"
+    ANCHOR_CONFLICT = "Conflicting schema anchor {identity!r}: {first} and {second}"
 
 def field(kind, description=SchemaInput.EMPTY_DESCRIPTION, **constraints):
     return {SchemaKeyword.TYPE: kind, SchemaKeyword.DESCRIPTION: description, **constraints}
@@ -212,6 +222,31 @@ def mark_host_overrides(schema, values):
         schema[SchemaExtension.HOST_OVERRIDE] = SchemaExtension.HOST_FIXED
 
 
+def _schema_children(value):
+    """Share the structural vocabulary, retaining declaration paths for errors."""
+    for key in SchemaTraversal.MAPPINGS:
+        mapping = value.get(key)
+        if isinstance(mapping, dict):
+            for name, child in mapping.items():
+                yield (key, name), child
+    for key in SchemaTraversal.SINGLE:
+        child = value.get(key)
+        if isinstance(child, list):
+            for index, item in enumerate(child):
+                yield (key, str(index)), item
+        else:
+            yield (key,), child
+    for key in SchemaTraversal.ARRAYS:
+        children = value.get(key)
+        if isinstance(children, list):
+            for index, child in enumerate(children):
+                yield (key, str(index)), child
+    dependencies = value.get(SchemaKeyword.DEPENDENCIES)
+    if isinstance(dependencies, dict):
+        for name, child in dependencies.items():
+            yield (SchemaKeyword.DEPENDENCIES, name), child
+
+
 def schema_nodes(value):
     """Yield only JSON Schema objects, never instance data or annotation payloads.
 
@@ -222,27 +257,8 @@ def schema_nodes(value):
     if not isinstance(value, dict):
         return
     yield value
-    for key in SchemaTraversal.MAPPINGS:
-        mapping = value.get(key)
-        if isinstance(mapping, dict):
-            for child in mapping.values():
-                yield from schema_nodes(child)
-    for key in SchemaTraversal.SINGLE:
-        child = value.get(key)
-        if isinstance(child, list):
-            for item in child:
-                yield from schema_nodes(item)
-        else:
-            yield from schema_nodes(child)
-    for key in SchemaTraversal.ARRAYS:
-        children = value.get(key)
-        if isinstance(children, list):
-            for child in children:
-                yield from schema_nodes(child)
-    dependencies = value.get(SchemaKeyword.DEPENDENCIES)
-    if isinstance(dependencies, dict):
-        for child in dependencies.values():
-            yield from schema_nodes(child)  # Property dependency lists are not schemas.
+    for _, child in _schema_children(value):
+        yield from schema_nodes(child)
 
 
 def validate_local_refs(value):
@@ -251,6 +267,47 @@ def validate_local_refs(value):
         for key in SchemaReference.LOCAL_KEYS:
             if key in item and (not isinstance(item[key], str) or not item[key].startswith(JsonPointer.FRAGMENT)):
                 raise ValueError(SchemaError.LOCAL_REFERENCE)
+
+
+def _validate_schema_resources(value):
+    """Reject ambiguous resource/anchor declarations before a resolver picks one.
+
+    Resolve relative IDs with the same URI joining used by jsonschema. Traverse
+    each occurrence, including aliases under different bases. Equality here is
+    canonical JSON identity (with the resource's own ID resolved), not an attempt
+    to infer equivalence between different validation rules. Nothing is fetched.
+    """
+    resources, anchors = {}, {}
+
+    def canonical(node, uri):
+        definition = {**node, SchemaKeyword.ID: uri} if SchemaKeyword.ID in node else node
+        return json.dumps(definition, sort_keys=SchemaReference.ID_SORT_KEYS,
+                          allow_nan=JsonObject.ALLOW_NON_FINITE)
+
+    def declare(index, identity, node, path, uri, error):
+        if identity in index:
+            previous, previous_path = index[identity]
+            if canonical(previous, uri) != canonical(node, uri):
+                raise ValueError(error.format(identity=identity, first=JsonPointer.reference(previous_path),
+                                              second=JsonPointer.reference(path)))
+        else:
+            index[identity] = node, path
+
+    def visit(node, path, base):
+        if not isinstance(node, dict):
+            return
+        identifier = node.get(SchemaKeyword.ID)
+        uri = urldefrag(urljoin(base, identifier)).url if identifier is not None else base
+        if not path or identifier is not None:
+            declare(resources, uri, node, path, uri, SchemaError.RESOURCE_CONFLICT)
+        for keyword in SchemaReference.ANCHOR_KEYS:
+            if keyword in node:
+                declare(anchors, uri + JsonPointer.FRAGMENT + node[keyword], node, path, uri,
+                        SchemaError.ANCHOR_CONFLICT)
+        for location, child in _schema_children(node):
+            visit(child, (*path, *location), uri)
+
+    visit(value, (), JsonPointer.ROOT)
 
 
 def checked_schema(value):
@@ -262,7 +319,30 @@ def checked_schema(value):
     for item in schema_nodes(value):
         if SchemaKeyword.DEFAULT in item:
             raise ValueError(SchemaError.IMPLICIT_DEFAULT)
+    _validate_schema_resources(value)
     return deepcopy(value)
+
+
+def nest_schema(value, path):
+    """Keep an owner's reference resource intact when embedding its schema.
+
+    A nonempty resource $id already establishes that boundary. Anonymous schemas with
+    references/anchors get a deterministic hierarchical resource identity instead of
+    rewritten pointers: nested $id, anchors and dynamic scope keep their native
+    JSON Schema meaning. No reference (or aliased schema node) is mutated.
+    The generated URI is schema composition identity, not a configured value or
+    a location to fetch; checked_schema still rejects non-local references.
+    """
+    result = checked_schema(value)
+    if (isinstance(result, dict) and result.get(SchemaKeyword.ID) in SchemaReference.ANONYMOUS_IDS
+            and any(key in node for node in schema_nodes(result)
+                    for key in (*SchemaReference.LOCAL_KEYS, *SchemaReference.RESOURCE_KEYS))):
+        identity = json.dumps((tuple(path), result), sort_keys=SchemaReference.ID_SORT_KEYS,
+                              allow_nan=JsonObject.ALLOW_NON_FINITE).encode(SchemaReference.ID_ENCODING)
+        result[SchemaKeyword.ID] = (SchemaReference.NESTED_ID_PREFIX + hashlib.sha256(identity).hexdigest()
+                                    + SchemaReference.NESTED_ID_SUFFIX)
+        _validate_schema_resources(result)
+    return result
 
 
 def checked_implementation_schema(value):

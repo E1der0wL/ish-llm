@@ -260,6 +260,23 @@ class SkillIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await install_guides(project)
                 self.assertEqual(await project.components.skills.aload("code-change"), {"markdown": skill_markdown('code-change', "my guide")})
 
+    async def test_example_request_passes_agent_instructions_to_loop(self):
+        from argparse import Namespace
+        from unittest.mock import patch
+        from examples.llm.developer_assistant import run_request
+        config = Path(__file__).parents[2] / "examples/llm/developer_assistant.config.example.json"
+        settings = json.loads(config.read_text())
+        work = self.root / "work"
+        work.mkdir()
+        model = ScriptedCompletion([chunk('done', finish='stop')])
+        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
+        args = Namespace(config=config, workdir=work, workspace=self.root / 'workspace',
+                         project_id=None, install_guides=False, agent_id='developer', prompt='Inspect the work')
+        with patch('examples.llm.developer_assistant.LoopEngine', return_value=engine), patch('builtins.print'):
+            self.assertEqual(await run_request(args), 0)
+        self.assertEqual(model.requests[0]['messages'][0],
+                         {'role': 'system', 'content': settings['agent']['system_prompt']})
+
 
 if __name__ == "__main__":
     unittest.main()

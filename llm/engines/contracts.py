@@ -24,6 +24,7 @@ class EngineHooks:
     BIND_EXECUTION = "bind_execution"
     WITH_INSTRUCTIONS = "with_instructions"
     DESCRIBE_CONFIG = "describe_config"
+    DESCRIBE_AGENT = "describe_agent"
     ABSENT = None
     NO_CAPABILITIES = ()
     INVALID_CAPABILITIES = "Engine required_capabilities must be a tuple of distinct names"
@@ -158,6 +159,9 @@ class EngineContextBinding:
 
 class EngineAgentBinding:
     INVALID_CHECKPOINT = "Steerable Agent engine requires checkpoint_name and validate_resume"
+    INVALID_DESCRIBER = "Engine describe_agent must be callable"
+    ASYNC_SCHEMA = "Engine describe_agent must be synchronous"
+    INVALID_SCHEMA = "Engine Agent schema must preserve the closed Agent envelope"
     CONTRACT = EngineBindingContract(
         method="for_agent", unsupported="Agent engines must implement for_agent(definition)",
         asynchronous="Engine for_agent must be synchronous", invalid_engine="for_agent must return an Engine",
@@ -166,8 +170,43 @@ class EngineAgentBinding:
         changed_checkpoint="Agent binding must preserve Engine checkpoint name")
 
     @classmethod
+    def describe(cls, engine):
+        """Optional pure schema hook; absence is not a guessed Engine contract."""
+        from llm.core.schema import checked_schema, SchemaKeyword, SchemaType, SchemaBoolean
+
+        describe = getattr(engine, EngineHooks.DESCRIBE_AGENT, None)
+        if describe is None:
+            return None
+        if not callable(describe):
+            raise TypeError(cls.INVALID_DESCRIBER)
+        value = describe()
+        if inspect.isawaitable(value):
+            if inspect.iscoroutine(value):
+                value.close()
+            raise TypeError(cls.ASYNC_SCHEMA)
+        schema = checked_schema(value)
+        if (not isinstance(schema, dict) or schema.get(SchemaKeyword.TYPE) != SchemaType.OBJECT
+                or schema.get(SchemaKeyword.ADDITIONAL_PROPERTIES) is not SchemaBoolean.REJECT
+                or AgentDefinition.ENGINE_FIELD not in schema.get(SchemaKeyword.REQUIRED, ())
+                or AgentDefinition.ENGINE_FIELD not in schema.get(SchemaKeyword.PROPERTIES, {})
+                or schema.get(SchemaKeyword.PROPERTIES, {}).keys() - AgentDefinition.schema[SchemaKeyword.PROPERTIES].keys()):
+            raise ValueError(cls.INVALID_SCHEMA)
+        # Engine-specific declarations may narrow the shared contract, never
+        # widen it. The same intersection is shown to clients and validated at
+        # binding; semantic checks in for_agent remain authoritative as well.
+        schema[SchemaKeyword.ALL_OF] = [*schema.get(SchemaKeyword.ALL_OF, ()), AgentDefinition.describe()]
+        return schema
+
+    @classmethod
     def bind(cls, engine, definition):
         AgentDefinition.validate_mode(definition, agent_mode(engine))
+        schema = cls.describe(engine)
+        if schema is not None:
+            from jsonschema import Draft202012Validator
+
+            error = next(Draft202012Validator(schema).iter_errors(definition), None)
+            if error is not None:
+                raise ValueError(error.message)
         bound = cls.CONTRACT.bind(engine, definition)
         if steering_mode(bound) == SteeringMode.CONSUME:
             checkpoint = EngineHooks.checkpoint_name(bound)

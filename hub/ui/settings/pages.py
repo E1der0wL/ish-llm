@@ -116,17 +116,12 @@ class Page:
             lambda: any(page.dirty for page in self.screen.drafts.active_pages()),
             self.screen.save,
         )
-        self.reload = Button(
-            self.screen.t(MessageKey.SETTINGS_RELOAD),
-            handler=lambda: self.screen.reload(self),
-            width=self.ACTION_WIDTH,
-        )
         self.cancel = Button(
             self.screen.t(MessageKey.SETTINGS_DISCARD),
             handler=self.screen.discard,
             width=self.ACTION_WIDTH,
         )
-        self.buttons = [self.save, self.reload, self.cancel]
+        self.buttons = [self.save, self.cancel]
         self.bottom = ActionBar(
             self.buttons,
             lambda: max(
@@ -436,6 +431,7 @@ class GlobalPage(Page):
 
     def __init__(self, screen, name, values):
         self.screen, self.name = screen, name
+        self.location = name
         values = GlobalSettingsSchema.initial_values(name, values)
         self.original = deepcopy(values)
         schema = GlobalSettingsSchema.describe(
@@ -539,6 +535,24 @@ class GlobalPage(Page):
 
     def forms(self):
         return [self.form]
+
+    def set_section(self, location):
+        self.location = location
+        self.general_form.set_debugging(location == SettingsSection.DEBUGGING)
+        self.groups = [
+            (self.screen.t(MessagePattern.general_category(category)),
+             [self.form.fields[(key,)] for key in keys])
+            for category, keys in self.general_form.groups.items()
+        ]
+        self.container = self._unfiltered = self.general_form.container
+
+    def section_fields(self):
+        fields = super().section_fields()
+        if self.general_form is not self.NO_GENERAL_FORM:
+            keys = {key for group in self.general_form.groups.values() for key in group}
+            fields = [field for path, field in self.form.fields.items()
+                      if field in fields and path[0] in keys]
+        return fields
 
     @property
     def dirty(self):

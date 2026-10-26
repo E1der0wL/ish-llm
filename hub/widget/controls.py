@@ -197,16 +197,20 @@ class Button(PTKButton):
         self._text = value
 
     def _get_text_fragments(self):
-        provider = self._text
-        if not callable(provider):
-            return super()._get_text_fragments()
-        # PTK reads text repeatedly to measure and center it. Resolve draft-state
-        # labels only once per render, even for forms with many settings fields.
-        self._text = provider()
-        try:
-            return super()._get_text_fragments()
-        finally:
-            self._text = provider
+        from prompt_toolkit.mouse_events import MouseEventType
+
+        def activate(event):
+            if self.handler and event.event_type == MouseEventType.MOUSE_UP:
+                self.handler()
+
+        # WindowAlign.CENTER is the sole alignment owner. Never pre-pad to the
+        # preferred width: the parent may allocate a different number of cells.
+        return [
+            ("class:button.arrow", self.left_symbol, activate),
+            ("[SetCursorPosition]", ""),
+            ("class:button.text", self.text, activate),
+            ("class:button.arrow", self.right_symbol, activate),
+        ]
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)

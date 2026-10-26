@@ -31,6 +31,13 @@ async def until(predicate):
 
 
 class ControlledEngine(BaseEngine):
+    # Test-only host action: deliberately consumes Agent selection without a provider.
+    def for_agent(self, definition):
+        from copy import copy
+        from llm.core.agents import AgentDefinition
+        AgentDefinition.validate_selected(definition)
+        return copy(self)
+
     def resolve_config(self, config, registered_name=None, *, session_config=None):
         from llm.core.configuration import resolve_engine_config
         return resolve_engine_config(config, registered_name, session_config=session_config,
@@ -39,7 +46,7 @@ class ControlledEngine(BaseEngine):
     def describe_config(self):
         from llm.core.schema import object_schema, implementation_schema
         from llm.providers.schema import completion_schema
-        return implementation_schema(config=object_schema({"completion": completion_schema()}))
+        return implementation_schema(config=object_schema({"system_prompt": {"type":"string"}, "completion": completion_schema()}))
 
     def __init__(self, gate):
         super().__init__("Controlled")

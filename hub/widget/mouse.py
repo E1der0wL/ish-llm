@@ -480,6 +480,7 @@ class MouseController:
                     self.ABSENT
                 )  # The terminal may have lost a release outside its window.
         window, rect = self._hit(event.position)
+        pressed_control = self.app.layout.current_control
         modal = self._scope()
         if event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT:
             for region, area in reversed(self.regions):
@@ -527,6 +528,11 @@ class MouseController:
         )
         target = pane_bar.target if pane_bar else window
         moved = self.INACTIVE
+        from .sidebar import SidebarList
+
+        if (window is not self.ABSENT and isinstance(window.content, SidebarList)
+                and event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT):
+            window.content.begin_click(pressed_control is window.content)
         if event.event_type in (M.MOUSE_MOVE, M.MOUSE_DOWN) and event.button in (
             MouseButton.NONE,
             MouseButton.LEFT,
@@ -615,8 +621,6 @@ class MouseController:
                 self._select_input(window, event, native)
                 self.app.invalidate()
                 return MouseResult.HANDLED
-        from .sidebar import SidebarList
-
         if (
             window is not self.ABSENT
             and isinstance(window.content, SidebarList)

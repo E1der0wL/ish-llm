@@ -243,9 +243,10 @@ class AgentManager:
         return values
 
     @workspace_locked
-    def describe(self, project):
+    def describe(self, project, *, engine=None):
         self.access.require(project)
-        return AgentDescription(AgentDefinition.schema, AgentRecord.STORAGE_VERSION, list(self.engines.names())).to_dict()
+        schema = AgentDefinition.describe() if engine is None else self.engines.describe_agent(engine)
+        return AgentDescription(schema, AgentRecord.STORAGE_VERSION, list(self.engines.names())).to_dict()
 
     @workspace_locked
     def create(self, project, definition, *, identifier=None):
@@ -369,8 +370,8 @@ class AgentHandle:
             self._access_check()
         return getattr(self.manager, name)(self.project, *args, **kwargs)
 
-    def describe(self):
-        return self._call(AgentManager.describe.__name__)
+    def describe(self, *, engine=None):
+        return self._call(AgentManager.describe.__name__, engine=engine)
 
     def create(self, definition, *, identifier=None):
         return self._call(AgentManager.create.__name__, definition, identifier=identifier)

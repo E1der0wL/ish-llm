@@ -13,6 +13,7 @@ from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.application.current import set_app
 
 from hub.backend.runtime import HubConfig, HubRuntime
+from hub.components import component_spec
 from hub.ui.application import create_application
 from llm.components.rag import RAGComponent, EmbeddingModel
 from tests.hub.test_live import until
@@ -45,7 +46,7 @@ class ComponentUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 for name in ("rag", "skills"):
-                    view.composer.text = f"/{name} config"
+                    view.composer.text = "/" + component_spec(name).tool_prefix
                     view.composer.buffer.cancel_completion()
                     pipe.send_text("\r")
                     await until(lambda: view._dialog is not None and not view._dialog.busy)
@@ -55,10 +56,11 @@ class ComponentUITests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(screen.selected, "component:" + name)
                     self.assertEqual(screen.navigation.left_key, "component:" + name)
                     form = screen.page.component_forms[name]
-                    expected = next(iter(form.fields.values())).input if form.fields else screen.page.body_widgets()[0]
+                    expected = next(iter(form.fields.values())).input if form.fields else screen.page.save
                     self.assertIs(app.layout.current_control, expected.control)
-                    self.assertEqual(screen.navigation.main_zone, 0)
-                    pipe.send_text("\t")
+                    self.assertEqual(screen.navigation.main_zone, 0 if form.fields else 1)
+                    if form.fields:
+                        pipe.send_text("\t")
                     await until(lambda: app.layout.current_control == screen.page.save.control)
                     pipe.send_text("\r")
                     await open_home(app, view)

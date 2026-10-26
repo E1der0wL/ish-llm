@@ -129,7 +129,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_saved_agent_executes_in_parent_run(self):
         agents = self.runtime.project.agents
-        await agents.acreate({"purpose": "Review supplied text", "engine": "loop", "tools": []}, identifier="reviewer")
+        await agents.acreate({"purpose": "Review supplied text", "engine": "loop", "completion": {"model": "test/model"}, "tools": []}, identifier="reviewer")
         self.provider.responses.extend([
             [chunk(calls=[call(json.dumps({"agent_id": "reviewer", "input": {"task": "Review"}}), name="agent_run")], finish="tool_calls")],
             [chunk("Agent checked the supplied text", finish="stop")],

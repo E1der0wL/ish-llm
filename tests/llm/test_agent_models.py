@@ -33,11 +33,42 @@ class AgentModelContractTests(unittest.TestCase):
         engine = LoopEngine()
         schema = engine.describe_config()
         self.assertNotIn('completion', schema['properties']['config']['properties'])
+        self.assertNotIn('system_prompt', schema['properties']['config']['properties'])
         self.assertIn('max_iterations', schema['properties']['policy']['properties'])
         # Input budgeting remains distinct from SDK max_tokens.
         self.assertIn('completion', schema['properties']['policy']['properties'])
         self.assertEqual(engine.resolve_config({}, 'loop')['values'], {})
         self.assertFalse(hasattr(engine, 'completion_kwargs'))
+        self.assertFalse(hasattr(engine, 'system_prompt'))
+
+    def test_prompt_is_agent_input_and_removed_engine_paths_fail_fast(self):
+        registry = EngineRegistry()
+        engine = LoopEngine()
+        registry.register('writer', engine)
+        for prompt in (None, '', 'instructions'):
+            with self.subTest(prompt=prompt):
+                options = {'config': {'system_prompt': prompt}}
+                with self.assertRaises(ValueError):
+                    registry.validate_config(ProjectConfig(parameters={'engines': {'writer': options}}))
+                with self.assertRaises(ValueError):
+                    registry.validate_config(ProjectConfig(), session_config={'parameters': {'engines': {'writer': options}}})
+                with self.assertRaises(ValidationError):
+                    engine.for_agent({'engine': 'writer', 'system_prompt': 'valid agent prompt', 'engine_options': options})
+                selected = engine.for_agent({'engine': 'writer', 'system_prompt': prompt})
+                self.assertEqual(selected.resolve_config({}, 'writer')['values'], {})
+                self.assertEqual(selected.resolve_config({}, 'writer')['sources'], {})
+                self.assertEqual(selected.resolve_config({}, 'writer')['editable'], {})
+        self.assertIn('system_prompt', engine.describe_agent()['properties'])
+
+    def test_resource_instructions_compose_without_engine_configuration_lookup(self):
+        from unittest.mock import patch
+        from llm.engines.loop.configuration import LoopAgentOptions
+        engine = LoopEngine().for_agent({'engine': 'loop', 'system_prompt': 'inline'})
+        with patch.object(engine, 'resolve_config', side_effect=AssertionError('instructions are not Engine config')):
+            composed = engine.with_instructions(None, before=('prompt resource',), after=('skill resource',))
+        self.assertEqual(LoopAgentOptions(composed._agent_options).prompt,
+                         'prompt resource\n\ninline\n\nskill resource')
+        self.assertEqual(LoopAgentOptions(engine._agent_options).prompt, 'inline')
 
     def test_model_values_rejected_in_project_session_and_agent_engine_options(self):
         engine = LoopEngine()
@@ -83,6 +114,27 @@ class AgentModelExecutionTests(unittest.IsolatedAsyncioTestCase):
     async def run_agent(self, agent_id):
         session = await self.project.sessions.acreate(agent_ids=[agent_id])
         return (await (await session.run.submit('request', recipients=[agent_id])).wait(timeout=15))[0]
+
+    async def test_shared_engine_uses_only_selected_agent_instructions(self):
+        definitions = [
+            {'engine': 'loop', 'completion': {'model': 'openai/missing'}},
+            {'engine': 'loop', 'completion': {'model': 'openai/null'}, 'system_prompt': None},
+            {'engine': 'loop', 'completion': {'model': 'openai/empty'}, 'system_prompt': ''},
+            {'engine': 'loop', 'completion': {'model': 'openai/first'}, 'system_prompt': 'first instructions'},
+            {'engine': 'loop', 'completion': {'model': 'openai/second'}, 'system_prompt': 'second instructions'},
+        ]
+        for index, definition in enumerate(definitions):
+            await self.project.agents.acreate(definition, identifier=f'agent-{index}')
+        runs = await asyncio.gather(*(self.run_agent(f'agent-{index}') for index in range(len(definitions))))
+        self.assertTrue(all(run.data.status == RunStatus.COMPLETED for run in runs), [run.data.error for run in runs])
+        requests = {request['model']: request for request in self.model.requests}
+        for index, definition in enumerate(definitions):
+            request = requests[definition['completion']['model']]
+            prompts = [message['content'] for message in request['messages'] if message['role'] == 'system']
+            self.assertEqual(prompts, [definition['system_prompt']] if definition.get('system_prompt') else [])
+            self.assertIn({'role': 'user', 'content': 'request'}, request['messages'])
+            self.assertEqual(await self.project.agents.aload(f'agent-{index}'), definition)
+        self.assertEqual(self.engine.resolve_config({}, 'loop')['values'], {})
 
     async def test_shared_engine_uses_independent_agent_models_and_exact_sdk_values(self):
         options = [

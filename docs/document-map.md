@@ -37,6 +37,7 @@
 | [hub/shell-environment.md](hub/shell-environment.md) | ish 작업 환경 연결 |
 | [hub/structure.md](hub/structure.md) | Hub 구조와 정리 내역 |
 | [hub/tool-retry.md](hub/tool-retry.md) | Tool 인자 수정 재시도 |
+| [hub/ui-consistency.md](hub/ui-consistency.md) | 공통 UI 규격 |
 | [hub/usage-and-system-messages.md](hub/usage-and-system-messages.md) | 일별 사용량과 시스템 메시지 |
 | [llm/README.md](llm/README.md) | LLM 개발 문서 안내 |
 | [llm/agent-skills.md](llm/agent-skills.md) | 표준 Agent Skills와 Skills 운영 기록 |

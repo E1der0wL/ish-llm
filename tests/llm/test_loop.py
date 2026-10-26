@@ -115,6 +115,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         tools = kwargs.pop("tools", None)
         if tools is not None:
             self.enable_tools(tools)
+        instructions = {"system_prompt": kwargs.pop("system_prompt")} if "system_prompt" in kwargs else {}
         completion = {"model": "openai/test-model", **kwargs.pop("completion", {})}
         config = self.project.config
         config.parameters["engines"]["loop"] = ProjectConfig.merge(
@@ -123,7 +124,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion_fn))
         self.registry.register("loop", engine)
         selected = self.projects.component(self.project, "tools").get_config()["config"].get("enabled", []) if "tools" in self.project.components else []
-        self.projects.agents.create(self.project, {"engine": "loop", "completion": completion, "tools": selected}, identifier="loop")
+        self.projects.agents.create(self.project, {"engine": "loop", "completion": completion, "tools": selected, **instructions}, identifier="loop")
         self.session.agent_ids = sorted(self.projects.agents.list(self.project))
         self.sessions.save(self.session)
         return engine

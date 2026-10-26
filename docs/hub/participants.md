@@ -1,17 +1,41 @@
 # Named Agents and session participants
 
-`/agents config` uses the shared definition manager. Create an Agent with a stable
-identifier, a display name, and its Engine/Tool/Prompt configuration. Display names
+`/agent` uses the shared definition manager. Create an Agent with a stable
+identifier, a display name, and its Engine/Tool/Prompt configuration. The editor
+queries `project.agents.adescribe(engine=...)` and renders the selected schema
+through `SchemaForm`: labels, descriptions, types and editable values. Engine
+selection keeps a separate unsaved draft per Engine; Graph has no model fields.
+Root schema intersections are projected into individual inputs for display only;
+the complete original schema, including `allOf` and Engine selection constraints,
+is validated before saving and again by the backend. Invalid edits remain drafts.
+Reads use `asnapshot`, writes use `arevise(expected_revision=...)`. Display names
 are application metadata (`metadata.title`); execution still uses the Agent ID.
 The internal title-generation Agent is excluded from the picker and manager list.
 
 Open **Participants** from the Home composer auxiliary buttons. It occupies the
 same output sidebar as Tags; opening either closes the other. The sidebar captures
 keyboard and mouse focus until closed. Up/Down highlights a participant;
-Space/Enter toggles the sole recipient. With no sole recipient, the request goes
+Space/Enter opens actions: edit Agent, move group, change recipient or expel.
+A group offers change recipient and delete group. With no selected recipient, the request goes
 to everyone invited to the current session. The composer title shows the target.
-Tab moves to **Add agent**, which lists project Agents not already invited and
-also provides access to the Agent manager. Escape closes the sidebar.
+Tab moves to **Add agent**. Left/Right selects the adjacent **Add group** button.
+Add agent lists project Agents not already invited and opens their manager.
+Escape closes the sidebar. Both sidebars use the same width and inset.
+
+Groups live in Hub-owned `Session.metadata.hub_participant_groups`, written only
+through the public Session API. A group has a name and invited Agent IDs; one
+Agent belongs to at most one group. Moving to “Ungrouped” removes its grouping.
+Deleting a group keeps its Agents invited; expelling removes session membership,
+not the Project Agent definition. Group targeting expands current members into
+explicit backend recipients. An empty group does not silently broadcast. External
+membership changes cannot cause metadata to re-invite an Agent.
+
+Model, endpoint and authentication belong to `Agent.completion`. Engine Project
+settings describe execution only. The newly created `assistant` owns Hub's system
+prompt and allowed Tools; credentials and model names remain unset unless supplied
+explicitly. Existing stored definitions are never automatically rewritten.
+Automatic titles use a private Agent per source session with explicitly copied
+auxiliary model settings, so concurrent naming jobs cannot share mutable models.
 
 New sessions start with the configured default Agent (or the first available
 public Agent). Invitations are explicit and persist in `Session.agent_ids` using

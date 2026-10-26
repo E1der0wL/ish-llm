@@ -35,6 +35,10 @@ class ThemeSelector(StrEnum):
     QUESTION_CHOICE_SELECTED = "hub.question-choice-selected"
     PTK_AUTO_SUGGESTION = "hub auto-suggestion"
     FOOTER = "hub.footer"
+    SHORTCUT_SEGMENT = "hub.shortcut-segment"
+    SHORTCUT_KEY = "hub.shortcut-key"
+    SHORTCUT_EDGE = "hub.shortcut-edge"
+    SHORTCUT_LEADING = "hub.shortcut-leading"
     PTK_FRAME_BORDER = "hub frame.border"
     NOTICE = "hub.notice"
     USER = "hub.user"
@@ -129,6 +133,10 @@ class ThemeStyle:
             ThemeSelector.QUESTION_CHOICE_SELECTED.value: "fg:{theme.accent} bold",
             ThemeSelector.PTK_AUTO_SUGGESTION.value: "fg:{theme.muted} nobold",
             ThemeSelector.FOOTER.value: "fg:{theme.bar_foreground} bg:{theme.footer_background}",
+            ThemeSelector.SHORTCUT_SEGMENT.value: "fg:{theme.button_foreground} bg:{theme.button_background} bold",
+            ThemeSelector.SHORTCUT_KEY.value: "fg:{theme.accent3} bg:{theme.button_background} bold",
+            ThemeSelector.SHORTCUT_EDGE.value: "fg:{theme.button_background} bg:{theme.footer_background}",
+            ThemeSelector.SHORTCUT_LEADING.value: "fg:{theme.footer_background} bg:{theme.button_background}",
             ThemeSelector.PTK_FRAME_BORDER.value: "fg:{theme.muted}",
             ThemeSelector.NOTICE.value: "fg:{theme.notice}",
             ThemeSelector.USER.value: "fg:{theme.user}",

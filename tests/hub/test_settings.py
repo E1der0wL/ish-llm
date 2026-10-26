@@ -47,7 +47,7 @@ def settings_backend(config, gate=None):
 
 class SettingsFormTests(unittest.TestCase):
     def test_effective_values_are_observation_only_and_host_leaves_are_readonly(self):
-        engine = LoopEngine()
+        engine = ControlledEngine(threading.Event())
         from llm.core.models import ProjectConfig
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {
             "system_prompt": "stored prompt", "completion": {"extra_body": {"sibling": 2}}}}}})
@@ -81,7 +81,7 @@ class SettingsFormTests(unittest.TestCase):
 
     def test_partial_host_json_is_guarded_without_locking_unrelated_keys(self):
         from llm.core.models import ProjectConfig
-        engine = LoopEngine()
+        engine = ControlledEngine(threading.Event())
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {
             "completion": {"response_format": {"type": "text", "other": 1}}}}}})
         original = config.parameters["engines"]["loop"]
@@ -110,7 +110,7 @@ class SettingsFormTests(unittest.TestCase):
             form.values()
 
     def test_runtime_host_and_client_values_are_not_materialized(self):
-        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=lambda **kwargs: iter(())))
+        engine = ControlledEngine(threading.Event())
         view = engine.resolve_config({}, "loop")
         form = SchemaForm(engine.describe_config(), {}, Language("en"), effective={"loop": view})
         model = form.fields[("config", "completion", "model")]
@@ -128,7 +128,7 @@ class SettingsFormTests(unittest.TestCase):
     def test_shared_settings_key_uses_all_engine_locks_and_views(self):
         engines = {"a": LoopEngine(parameter_key="shared"), "b": LoopEngine(parameter_key="shared")}
         from llm.core.models import ProjectConfig
-        project = ProjectConfig(parameters={"engines": {"shared": {"config": {"system_prompt": "stored"}}}})
+        project = ProjectConfig(parameters={"engines": {"shared": {"config": {"buffer_size": 16}}}})
         schema = {"allOf": [engine.describe_config() for engine in engines.values()]}
         original = project.parameters["engines"]["shared"]
         views = {name: engine.resolve_config(project, "shared") for name, engine in engines.items()}
@@ -136,8 +136,8 @@ class SettingsFormTests(unittest.TestCase):
         field = form.fields[("shared",)]
         self.assertEqual(field.observations, ())
         self.assertEqual(form.values(), {"shared": original})
-        field.input.text = '{"config":{"system_prompt":"changed"}}'
-        self.assertEqual(form.values()["shared"]["config"]["system_prompt"], "changed")
+        field.input.text = '{"config":{"buffer_size":8}}'
+        self.assertEqual(form.values()["shared"]["config"]["buffer_size"], 8)
         self.assertNotIn(("shared", "policy", "tool_timeout"), form.locked)
 
     def test_missing_null_nested_and_unknown_values_survive(self):
@@ -171,7 +171,8 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     config=HubConfig(directory, auto_title=False), t=Language()))
                 schema = service._schema()
                 engine = schema["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["custom"]
-                request = engine["properties"]["config"]["properties"]["completion"]
+                project = await backend.projects.acreate("Schema", components=[], conversation_storage="file")
+                request = (await project.agents.adescribe(engine="custom"))["schema"]["properties"]["completion"]
                 self.assertEqual(set(request["properties"]), {"model", "output_cap", "wait"})
                 self.assertNotIn("reasoning_effort", request["properties"])
                 self.assertFalse(request["additionalProperties"])
@@ -190,10 +191,10 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("demo", catalog["schema"]["properties"]["components"]["items"]["enum"])
                 record = await service.load_project(runtime.project.id)
                 values = deepcopy(record["values"])
-                values["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"] = "bad"
+                values["config"]["parameters"].setdefault("engines", {}).setdefault("loop", {}).setdefault("config", {}).setdefault("completion", {})["temperature"] = "bad"
                 with self.assertRaises(Exception):
                     await service.save_project(runtime.project.id, values, record["config_version"])
-                self.assertNotIn("temperature", (await runtime.project.aget_data()).config.parameters["engines"]["loop"]["config"]["completion"])
+                self.assertNotIn("temperature", (await runtime.project.aget_data()).config.parameter_targets.engine("loop").config.get("completion", {}))
                 values["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"] = 0.4
                 values["config"]["parameters"].setdefault("components", {})["demo"] = {"config": {"count": 3, "label": None}}
                 saved = await service.save_project(runtime.project.id, values, record["config_version"])
@@ -213,6 +214,10 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 deleted = next(project for project in await runtime.backend.projects.alist(include_deleted=True)
                                if project.id == clone_id)
                 self.assertTrue((await deleted.aget_data()).deleted)
+                project = await runtime.backend.projects.aload(identifier)
+                agent = await project.agents.asnapshot('assistant')
+                agent['definition']['completion'] = {'model':'test/other'}
+                await project.agents.arevise('assistant', agent['definition'], expected_revision=agent['revision'])
                 await service.activate_project(identifier)
                 await runtime.new_session()
                 self.assertEqual(runtime.project.id, identifier)
@@ -257,14 +262,15 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
 
 class SettingsUITests(unittest.IsolatedAsyncioTestCase):
-    async def test_project_form_policy_is_editable_and_reaches_engine(self):
+    async def test_project_form_execution_config_and_agent_instructions_are_separate(self):
         calls = []
         def provider(**kwargs):
             calls.append(kwargs)
             yield {"choices": [{"index": 0, "delta": {"content": "Done"}, "finish_reason": "stop"}]}
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="test/model", auto_title=False,
-                project_config={"parameters": {"engines": {"loop": {"config": {"system_prompt": "stored prompt"}}}}},
+                agent_definition={"engine": "loop", "system_prompt": "agent instructions"},
+                project_config={"parameters": {"engines": {"loop": {"config": {"buffer_size": 16}}}}},
                 engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view, screen = controller.view, controller.view.settings
@@ -280,23 +286,23 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
                 page = screen.page
                 prefix = ("config", "parameters", "engines", "loop", "config")
-                field = page.engine_forms["loop"].fields[(*prefix, "system_prompt")]
+                self.assertNotIn((*prefix, "system_prompt"), page.engine_forms["loop"].fields)
+                field = page.engine_forms["loop"].fields[(*prefix, "buffer_size")]
                 self.assertFalse(field.readonly)
-                self.assertEqual(field.input.text, "stored prompt")
+                self.assertEqual(field.input.text, "16")
                 self.assertEqual(field.observations, ())
-                field.input.text = "edited prompt"
-                page.engine_forms["loop"].fields[(*prefix, "completion", "temperature")].input.text = "0.3"
+                field.input.text = "8"
                 page.save.handler()
                 await until(lambda: screen.page is not page and not screen.busy)
                 stored = screen.page.record["project"]["config"]["parameters"]["engines"]["loop"]["config"]
-                self.assertEqual(stored["system_prompt"], "edited prompt")
-                self.assertEqual(stored["completion"]["temperature"], 0.3)
+                self.assertEqual(stored["buffer_size"], 8)
+                self.assertNotIn("system_prompt", stored)
+                self.assertNotIn("completion", stored)
                 settings_button(app, pipe, view, "save")
                 await open_home(app, view)
                 pipe.send_text("hello\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.output.transcript.control.messages))
-                self.assertEqual(calls[0]["temperature"], 0.3)
-                self.assertEqual(calls[0]["messages"][0], {"role": "system", "content": "edited prompt"})
+                self.assertEqual(calls[0]["messages"][0], {"role": "system", "content": "agent instructions"})
             finally:
                 app.exit()
                 await task
@@ -306,62 +312,50 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
         calls = []
         def provider(**kwargs):
             calls.append(kwargs)
-            yield {"choices": [{"index": 0, "delta": {"reasoning_content": "Provider summary"}, "finish_reason": None}]}
-            yield {"choices": [{"index": 0, "delta": {"content": "Done"}, "finish_reason": "stop"}]}
-        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
+            yield {"choices":[{"index":0,"delta":{"content":"Done"},"finish_reason":"stop"}]}
+        with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
+            config = HubConfig(root, model='test/model', auto_title=False,
+                engine_factories={'loop':lambda:LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
-            view, screen = controller.view, controller.view.settings
-            path = ("config", "parameters", "engines", "loop", "config", "completion", "reasoning_effort")
-            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            view = controller.view
+            task = asyncio.create_task(app.run_async(pre_run=lambda:view.show(app)))
             try:
-                await until(lambda: view.connected and not view.projects.busy)
-                if view.no_sessions:
-                    pipe.send_text("/new\r\r")
-                    await until(lambda: not view.no_sessions and view._dialog is None)
-                pipe.send_text('\x10\r')
-                await until(lambda: screen.page is not None and not screen.busy)
-                screen.choose("engine:loop")
-                await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
-                page = screen.page
-                field = page.engine_forms["loop"].fields[path]
-                self.assertEqual(field.input.text, "")
-                self.assertNotIn("reasoning_effort", page.values()["config"]["parameters"]["engines"]["loop"]["config"]["completion"])
-                app.layout.focus(field.input)
-                with patch("hub.ui.host.edit_text", new=AsyncMock(return_value="low")) as editor:
-                    pipe.send_text("e")
-                    await until(lambda: field.input.text == "low" and not field.editing)
-                    editor.assert_awaited_once()
-                app.layout.focus(page.save)
-                pipe.send_text("\r")
-                await until(lambda: screen.page is not page and not screen.busy)
-                self.assertEqual(screen.page.engine_forms["loop"].fields[path].input.text, "low")
-                await open_home(app, view)
-                pipe.send_text("Explain\r")
-                await until(lambda: any(m.role == "assistant" and m.status == "completed"
-                                       for m in view.output.transcript.control.messages))
-                self.assertEqual(calls[0]["reasoning_effort"], "low")
-                self.assertFalse(any(m.role == "reasoning" and m.text == "Provider summary"
-                                    for m in view.output.transcript.control.messages))
+                await until(lambda:view.connected)
+                with set_app(app):
+                    controller.component_commands.open('agent', '', consume_input=False, edit_identifier='assistant')
+                from hub.widget.forms.agent_editor import AgentEditor
+                await until(lambda:isinstance(view._dialog, AgentEditor) and not view._dialog.busy)
+                editor = view._dialog
+                self.assertIn(('completion','reasoning_effort'), editor.form.fields, list(editor.form.fields))
+                field = editor.form.fields[('completion','reasoning_effort')]
+                self.assertEqual(field.input.text, '')
+                with set_app(app):
+                    field.input.text = 'low'
+                    editor.save()
+                await until(lambda:view._dialog is editor.manager)
+                with set_app(app):
+                    view.close_dialog()
+                pipe.send_text('/new\r\r')
+                await until(lambda:not view.no_sessions and view._dialog is None)
+                pipe.send_text('Explain\r')
+                await until(lambda:any(m.role=='assistant' and m.status=='completed' for m in view.output.transcript.control.messages))
+                self.assertEqual(calls[0]['reasoning_effort'],'low')
             finally:
                 app.exit()
                 await task
                 await asyncio.to_thread(controller.close)
-            reopened = HubRuntime(config)
+            runtime=HubRuntime(config)
             try:
-                await reopened.start()
-                record = await reopened.settings_service.load_project(reopened.project.id)
-                self.assertEqual(record["project"]["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["reasoning_effort"], "low")
-                form = SchemaForm(record["schema"], record["values"], Language("ko"))
-                form.fields[path].input.text = ""
-                await reopened.settings_service.save_project(reopened.project.id, form.values(), record["config_version"])
-                await reopened.submit(reopened.selected_id, "Use model default")
-                await reopened.sessions[reopened.selected_id].run.wait_idle()
-                self.assertNotIn("reasoning_effort", calls[-1])
-                self.assertNotIn("reasoning_effort", (await reopened.project.aget_data()).config.parameters["engines"]["loop"]["config"]["completion"])
+                await runtime.start()
+                saved=await runtime.project.agents.asnapshot('assistant')
+                self.assertEqual(saved['definition']['completion']['reasoning_effort'],'low')
+                saved['definition']['completion'].pop('reasoning_effort')
+                await runtime.project.agents.arevise('assistant',saved['definition'],expected_revision=saved['revision'])
+                await runtime.submit(runtime.selected_id,'Use model default')
+                await runtime.sessions[runtime.selected_id].run.wait_idle()
+                self.assertNotIn('reasoning_effort',calls[-1])
             finally:
-                await reopened.close()
+                await runtime.close()
 
     async def test_ctrl_q_then_ctrl_s_connects_backend_on_first_open(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:

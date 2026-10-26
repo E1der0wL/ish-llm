@@ -146,6 +146,7 @@ class SessionSummary:
     status: str
     queued_count: int = 0
     participant_ids: tuple[str, ...] = ()
+    participant_groups: tuple = ()
 
 
 @dataclass(frozen=True, slots=True)

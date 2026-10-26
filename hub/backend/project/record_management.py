@@ -238,6 +238,12 @@ class SkillManagement(RecordManagement):
 
 
 class AgentManagement(RecordManagement):
+    async def execute(self, action, argument=ManagementOperation.EMPTY_ARGUMENT,
+                      expected_version=ManagementOperation.ABSENT):
+        if action == ManagementAction.DESCRIBE:
+            return await self.data.adescribe(engine=argument or None)
+        return await super().execute(action, argument, expected_version)
+
     async def list(self):
         from ..execution.engine_selection import HubEngineIdentity
         entries = []

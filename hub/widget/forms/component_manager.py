@@ -5,13 +5,10 @@ from hub.ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from .manager_values import (
     ManagerView,
     ManagerCallbacks,
-    DefinitionView,
-    RAGManagerView,
 )
 from hub.backend.project.management_values import (
     ManagementAction,
     ManagementEntry,
-    EditorRecord,
 )
 from hub.components import ManagedComponents
 
@@ -26,8 +23,9 @@ from prompt_toolkit.widgets import Label
 from ..controls import Button, ScrollbarMargin
 from .path_input import PathInput
 from ..input_field import InputField
-from ..dialog import Dialog
+from ..dialog import Dialog, PopupSize
 from ..sidebar import SidebarItem, SidebarList
+from ..actions import ActionBar
 from ...ui.input.registry import ShortcutRegistry
 
 
@@ -101,6 +99,15 @@ class ComponentManager(Dialog):
             key_bindings=registry.bindings,
         )
         registry.attach(self.list)
+        self.buttons = [
+            *([Button(view.t(MessageKey.SETTINGS_TITLE), handler=self.open_settings,
+                      width=button_width)] if component_settings else []),
+            *extra_buttons,
+            Button(view.t(MessageKey.HELP_TITLE), handler=self.help, width=button_width),
+            Button(view.t(MessageKey.SEARCH_CLOSE), handler=view.close_dialog, width=button_width),
+        ]
+        self.actions = ActionBar(self.buttons, lambda: self.view._columns())
+        self.status_line = view.progress.container(self.hint)
         super().__init__(
             title=view.t(MessagePattern.component_title(name)),
             body=HSplit(
@@ -111,8 +118,9 @@ class ComponentManager(Dialog):
                     Label(view.t(MessageKey.TOOLS_COLUMNS)),
                     Window(
                         self.list,
-                        height=lambda: Dimension.exact(
-                            max(
+                        height=lambda: Dimension(
+                            min=1,
+                            preferred=max(
                                 ManagerView.MINIMUM_LIST_HEIGHT,
                                 min(
                                     ManagerView.MAXIMUM_LIST_HEIGHT,
@@ -127,48 +135,31 @@ class ComponentManager(Dialog):
                             ScrollbarMargin(display_arrows=ManagerView.SCROLL_ARROWS)
                         ],
                     ),
-                    Label(self.hint),
+                    self.actions,
+                    self.status_line,
                 ]
             ),
-            buttons=[
-                Button(
-                    view.t(MessageKey.SETTINGS_RELOAD),
-                    handler=self.reload,
-                    width=button_width,
-                ),
-                *(
-                    [
-                        Button(
-                            view.t(MessageKey.SETTINGS_TITLE),
-                            handler=self.open_settings,
-                            width=button_width,
-                        )
-                    ]
-                    if component_settings
-                    else []
-                ),
-                *extra_buttons,
-                Button(
-                    view.t(MessageKey.SEARCH_CLOSE),
-                    handler=view.close_dialog,
-                    width=button_width,
-                ),
-            ],
-            width=lambda: Dimension(
-                preferred=ManagerView.WIDTH,
-                max=max(
-                    ManagerView.MINIMUM_WIDTH,
-                    view._columns() - ManagerView.HORIZONTAL_MARGIN,
-                ),
-            ),
+            size=PopupSize.MEDIUM,
         )
 
-    def hint(self):
-        return self.status or self.view.t(
-            MessageKey.TOOLS_HINT
-            if self.name == ManagedComponents.TOOLS.name
-            else MessageKey.MANAGER_HINT
+    def help(self):
+        from ..output.reader import ReadOnlyDialog
+        from ...components import component_spec
+
+        def close():
+            self.view.dialogs.show(self, self.list)
+
+        popup = ReadOnlyDialog(
+            self.view.t(MessageKey.HELP_TITLE),
+            self.view.t(MessageKey.COMPONENT_HELP, command=component_spec(self.name).tool_prefix)
+            + "\n\n" + self.view.t(MessagePattern.component_help(self.name)),
+            self.view._rows, self.view._columns, close, self.view.t,
+            render_worker=self.view.render_worker,
         )
+        self.view.dialogs.show(popup, popup.receiver)
+
+    def hint(self):
+        return self.status
 
     def open_settings(self):
         if not self.component_settings:

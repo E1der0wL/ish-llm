@@ -1,19 +1,25 @@
 # 컴포넌트 관리 팝업
 
 프로젝트에서 선택한 tools·skills·mcp·rag·agents·workflows·prompts·memory만 명령과 자동완성에 나타납니다.
-등록된 컴포넌트 이름을 그대로 사용하며 단수 별칭은 제공하지 않습니다.
-명령은 `config`와 `help`만 지원하며 나머지 데이터 작업은 관리 창 또는 모델 도구를 사용합니다.
+명령 이름은 단수 명사이며 `/tool`, `/skill`, `/mcp`, `/rag`, `/agent`, `/workflow`, `/prompt`, `/memory`를 사용합니다.
+인자 없이 관리 창을 열고 도움말은 팝업 안의 도움말 버튼으로 봅니다. `config`, `help` 하위 명령과
+`/agent ID` 초대 명령은 제공하지 않습니다. 초대는 대화 상대 목록에서 처리합니다.
+
+관리 창은 보통 크기로 통일합니다. 가져오기 입력 위에는 컴포넌트와 파일/경로 종류만
+표시하며, 별도 불러오기 버튼 없이 창을 열거나 데이터를 변경할 때 목록을 갱신합니다.
+버튼은 테두리 안에 모으고 조작 안내는 그 안의 왼쪽 하단에 주석색으로 표시합니다.
+진행 바와 작업 상태는 창 최하단의 한 줄을 공유합니다. Workflow·Agent 생성/편집은 큰 창입니다.
 
 | 명령 | 가져오기 |
 | --- | --- |
-| `/tools config` | Python Tool 패키지 디렉토리 |
-| `/skills config` | Markdown·텍스트 지침 또는 Skill JSON |
-| `/mcp config` | transport와 command 또는 url을 포함한 서버 JSON |
-| `/rag config` | UTF-8 텍스트·Markdown·PNG·JPEG |
-| `/agents config` | Agent JSON |
-| `/memory config` | 메모리 JSON 또는 팝업에서 직접 생성 |
-| `/prompts config` | messages 배열을 포함한 Prompt JSON |
-| `/workflows config` | schema_version 1 Workflow JSON |
+| `/tool` | Python Tool 패키지 디렉토리 |
+| `/skill` | Markdown·텍스트 지침 또는 Skill JSON |
+| `/mcp` | transport와 command 또는 url을 포함한 서버 JSON |
+| `/rag` | UTF-8 텍스트·Markdown·PNG·JPEG |
+| `/agent` | Agent JSON |
+| `/memory` | 메모리 JSON 또는 팝업에서 직접 생성 |
+| `/prompt` | messages 배열을 포함한 Prompt JSON |
+| `/workflow` | schema_version 1 Workflow JSON |
 
 경로 입력 후 Enter로 가져옵니다. 상대 경로는 ish의 현재 작업 디렉토리 기준입니다.
 원본 파일을 변경하지 않고 기존 ID를 덮어쓰지 않습니다. 파일 이름에서 ID를 만들고
@@ -21,7 +27,7 @@
 
 Tab으로 목록에 이동하고 방향키로 선택합니다. Tool은 Enter로 파일 탐색기를 엽니다.
 Prompt·Agent·Workflow는 **생성 / 편집 / 삭제** 버튼을 제공합니다. 생성 시 고유 이름을
-입력하고 팝업의 JSON 편집창에서 정의를 작성합니다. Workflow는 옆의 노드·연결선 그림이
+입력합니다. Prompt·Workflow는 팝업의 JSON 편집창에서 정의를 작성합니다. Workflow는 옆의 노드·연결선 그림이
 타이핑 후 0.1초에 갱신됩니다. 진입 노드는 ▶, 연결선 아래에는 포트·분기 이름도 표시합니다.
 잘못된 JSON이나 누락된 연결 대상은 미리보기에 오류를 표시하며, 저장 시 백엔드가
 전체 스키마와 참조 계약을 검증합니다. 미리보기는 실행하지 않으며, 중첩 Workflow와 loop
@@ -43,9 +49,16 @@ CRUD를, `DocumentManagement`는 RAG 문서 API를, `AgentManagement`는 snapsho
 컴포넌트 내부 파일을 직접 수정하거나 지우지 않습니다. 관리 요청은 프로젝트 핸들을 고정하며,
 다른 세션의 스트리밍을 위한 Hub 화면 잠금을 점유하지 않습니다.
 
+Agent는 `AgentEditor`가 엔진별 `agents.adescribe(engine=...)`의 공개 스키마를 조회해
+기존 `SchemaForm`의 제목·설명·입력칸으로 편집합니다. 엔진을 바꾸면 해당 스키마만 표시하며
+다른 엔진의 초안은 자동 변환하지 않습니다. 모델·API 키·주소는 Agent의 completion에 저장합니다.
+Agent 편집은 홈/설정과 같은 패널 너비를 사용하고 `에이전트 • 현재 페이지`와
+`에이전트 : 이름` 제목을 표시합니다. 설정 필드에서 ↑↓로 항목 이동, ←로 패널 복귀,
+Enter로 직접 편집, d로 비우기, e로 외부 에디터 편집을 사용합니다.
+
 ## Memory 관리
 
-`/memory config`는 프로젝트·세션 범위의 candidate/confirmed 메모리를 함께 표시합니다.
+`/memory`는 프로젝트·세션 범위의 candidate/confirmed 메모리를 함께 표시합니다.
 생성, JSON 본문 편집, 삭제를 공통 정의 편집 팝업에서 제공합니다. 새 메모리는 기본적으로
 프로젝트 범위의 confirmed note이며 content에 내용을 입력합니다. session 범위를 사용할 때는
 해당 session_id를 지정합니다. 수정·삭제는 마지막 조회의 generation/revision을 검증하며,
@@ -54,7 +67,7 @@ CRUD를, `DocumentManagement`는 RAG 문서 API를, `AgentManagement`는 snapsho
 
 ## RAG 등록·진행·재개
 
-`/rag config`의 등록은 `aenqueue_document` → `arun_job`을 사용합니다. 완료 문서 외에
+`/rag`의 등록은 `aenqueue_document` → `arun_job`을 사용합니다. 완료 문서 외에
 대기·실행·실패·취소 작업을 목록에서 볼 수 있습니다. 실패 항목도 유지하며 **재시도**로 같은 Job ID의
 저장된 원문·완료 청크·추출 체크포인트를 재사용합니다. 원본 파일을 다시 읽거나 새로운 Job을 만들지
 않습니다. 실패 항목과 같은 ID로 새로 등록하려면 기존 작업을 먼저 삭제합니다.

@@ -178,10 +178,12 @@ class HubView:
         self._default_agent_id = DEFAULT_AGENT
         self.agents = (DEFAULT_AGENT,)
         self._participant_sets = {}
+        self._participant_groups = {}
         self._default_participants = (DEFAULT_AGENT,)
         self.agent_titles = {}
         self._recipients = {}
         self.on_invite_agent = HubView.ABSENT
+        self.on_change_participants = HubView.ABSENT
         self.agent_engines = {DEFAULT_AGENT: HubEngineIdentity.LOOP}
         self.engines = (HubEngineIdentity.LOOP,)
         self.file_root = Path.cwd()
@@ -226,7 +228,6 @@ class HubView:
 
         self.toasts = SessionToasts(self)
         completer = HubCompleter(
-            lambda: self.participant_ids,
             lambda: self.file_root,
             self.t,
             components=lambda: self.component_commands,
@@ -284,6 +285,7 @@ class HubView:
             ),
             lambda: self._draft_key(self.selected),
             self._select_sidebar_session,
+            on_activate=self._focus_composer,
         )
         from .chat.projects import ChatProjects
         from ..widget.sidebar_panel import SidebarPanel
@@ -616,16 +618,6 @@ class HubView:
     def help_dialog(self):
         self.dialogs.help()
 
-    def choose_agent(self, name=NO_AGENT):
-        if name in self.participant_ids:
-            self.agent_id = name
-            self.recipient_id = name
-        else:
-            self.notice = self.t(
-                MessageKey.AGENT_COMMAND_USAGE,
-                agents=HubView.AGENT_SEPARATOR.join(self.participant_ids),
-            )
-
     @property
     def participant_ids(self):
         return self._participant_sets.get(self._draft_key(self.selected), self._default_participants)
@@ -644,11 +636,20 @@ class HubView:
 
     @property
     def recipients(self):
+        for group in self.participant_groups:
+            if group.id == self.recipient_id:
+                return group.members
         return (self.recipient_id,) if self.recipient_id else self.participant_ids
+
+    @property
+    def participant_groups(self):
+        return self._participant_groups.get(self._draft_key(self.selected), ())
 
     def recipient_title(self):
         target = (self.agent_titles.get(self.recipient_id, self.recipient_id)
                   if self.recipient_id else self.t(MessageKey.PARTICIPANTS_ALL))
+        target = next((group.title for group in self.participant_groups
+                       if group.id == self.recipient_id), target)
         return self.t(MessageKey.RECIPIENT_TITLE, target=target)
 
     @property

@@ -213,7 +213,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
 
                 buffer.completer = DelayedCompleter()
                 try:
-                    pipe.send_text("/age")
+                    pipe.send_text("/hel")
                     await asyncio.wait_for(started.wait(), 3)
                     # PTK publishes an empty state before the threaded results
                     # arrive. That is not yet a menu the user can select from.
@@ -225,7 +225,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[B\t")
                 await eventually(lambda: replacement.view.composer.buffer.complete_state is None)
                 buffer.completer = original_completer
-                self.assertEqual(replacement.view.composer.text, "/agent")
+                self.assertEqual(replacement.view.composer.text, "/help")
                 self.assertIsNone(replacement.view._dialog)
                 replacement.view.composer.text = "ui draft"
                 pipe.send_text("\x1b")  # ESC

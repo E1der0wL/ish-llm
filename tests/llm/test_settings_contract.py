@@ -39,18 +39,18 @@ class SettingsContractTests(unittest.TestCase):
 
     def test_project_session_agent_sources_and_limits_are_identical(self):
         project = ProjectConfig(parameters={"engines": {"writer": {
-            "config": {"system_prompt": "project"},
+            "config": {"buffer_size": 8},
             "policy": {"request_timeout": 300, "completion": {"max_tokens": 100, "counter": "test"}},
         }}})
         session = {"parameters": {"engines": {"writer": {"policy": {"request_timeout": 60}}}}}
         engine = LoopEngine().for_agent({"completion": {"timeout": 70}, "engine": "writer", "system_prompt": None,
             "engine_options": {"policy": {"completion": {"max_tokens": 50}}}})
         view = engine.resolve_config(project, "writer", session_config=session)
-        self.assertIsNone(view["values"]["config"]["system_prompt"])
+        self.assertNotIn("system_prompt", view["values"]["config"])
         self.assertEqual(view["values"]["policy"]["request_timeout"], 60)
         self.assertNotIn("completion", view["values"]["config"])
         self.assertEqual(view["values"]["policy"]["completion"], {"max_tokens": 50, "counter": "test"})
-        for path in ("/config/system_prompt", "/policy/completion/max_tokens"):
+        for path in ("/policy/completion/max_tokens",):
             self.assertEqual(view["sources"][path], "agent")
             self.assertTrue(view["editable"][path])
             schema = engine.describe_config()

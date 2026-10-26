@@ -56,7 +56,7 @@ RAG는 `aconfigure`에 명시된 분할·동시성·검색·모델 옵션을 해
 없는 키는 values에도 없다. `ComponentData.aconfigure`와 `ProjectHandle.asave`는 같은 저장
 원본·잠금·버전 비교를 사용한다. Component별 설정 파일이나 이중 저장소는 없다.
 
-Engine view의 sources/editable/overridden은 `/policy/request_timeout`, `/config/system_prompt`처럼
+Engine view의 sources/editable/overridden은 `/policy/request_timeout`, `/config/buffer_size`처럼
 구현체 기준 JSON Pointer다. Host 구현 객체는 별도 읽기 전용 describe_host으로
 표시하고 실행하지 않는다. Component 모델 클라이언트는 client 출처로 구분한다.
 관련 회귀는 test_project_creation, test_configuration_validation, test_settings_consistency,

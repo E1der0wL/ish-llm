@@ -139,13 +139,13 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[D\x1b[A\x1b[B")
                 await asyncio.sleep(0.1)
                 self.assertIs(app.layout.current_control, screen.page.save.control)
-                for index in (1, 2, 2):
+                for index in (1, 1):
                     pipe.send_text("\x1b[C")
                     await until(lambda: app.layout.current_control == screen.page.buttons[index].control)
                 pipe.send_text("\x1b[A\x1b[B")
                 await asyncio.sleep(0.1)
-                self.assertIs(app.layout.current_control, screen.page.buttons[2].control)
-                for index in (1, 0):
+                self.assertIs(app.layout.current_control, screen.page.buttons[1].control)
+                for index in (0, 0):
                     pipe.send_text("\x1b[D")
                     await until(lambda: app.layout.current_control == screen.page.buttons[index].control)
                 pipe.send_text("\t")
@@ -168,8 +168,8 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
                 page = screen.page
                 self.assertFalse(hasattr(page, "activate_button"))
-                self.assertEqual([button.text for button in page.buttons], ["저장", "불러오기", "취소"])
-                self.assertEqual([button.width for button in page.buttons], [10, 10, 10])
+                self.assertEqual([button.text for button in page.buttons], ["저장", "취소"])
+                self.assertEqual([button.width for button in page.buttons], [10, 10])
                 count = page.component_forms["demo"].fields[("config", "parameters", "components", "demo", "config", "count")]
                 count.input.text = "7"
                 self.assertTrue(page.dirty)

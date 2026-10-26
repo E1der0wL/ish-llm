@@ -13,14 +13,12 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 
 from ..controls import Button, CheckboxList, TextArea
-from ..dialog import Dialog
+from ..dialog import Dialog, PopupSize, PopupGeometry
 from ..summary import clipped_summary, turn_label
 
 
 class RequestHistoryDialog(Dialog):
     MIN_DIMENSION = 1
-    MAX_WIDTH = 80
-    OUTER_PADDING = 4
     VERTICAL_OVERHEAD = 17
     EDITOR_ROWS = 4
     RESPONSE_ROWS = 7
@@ -45,10 +43,7 @@ class RequestHistoryDialog(Dialog):
         self.view, self.rows = view, {HistoryRow(row).id: row for row in rows}
         self.drafts = {HistoryRow(row).id: HistoryRow(row).text for row in rows}
         self.current = HistoryRow(rows[0]).id
-        width = lambda: max(
-            self.MIN_DIMENSION,
-            min(self.MAX_WIDTH, view._columns() - self.OUTER_PADDING),
-        )
+        width = lambda: PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
         self.editor = TextArea(
             text=HistoryRow(rows[0]).text,
             multiline=self.MULTILINE,
@@ -146,9 +141,6 @@ class RequestHistoryDialog(Dialog):
                 ),
                 self.response,
             ],
-            width=lambda: Dimension.exact(
-                max(self.MIN_DIMENSION, width() - self.OUTER_PADDING)
-            ),
         )
         buttons = [
             Button(
@@ -169,7 +161,7 @@ class RequestHistoryDialog(Dialog):
             body=body,
             buttons=buttons,
             shortcut_context=self.SHORTCUT_CONTEXT,
-            width=lambda: Dimension.exact(width()),
+            size=PopupSize.LARGE,
         )
 
     def select(self, identifier):

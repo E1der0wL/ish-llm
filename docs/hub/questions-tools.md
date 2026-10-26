@@ -7,7 +7,7 @@ Hub 기본 백엔드는 llm의 `BuiltinTools`를 `builtin_tools` Component로 �
 Component 선택 및 Tool 활성화 변경은 설정 편집에서 명시적으로 저장합니다.
 Python 패키지 `tools`와는 별도 저장소입니다. 가져온 Python 패키지를 자동 활성화하지 않습니다.
 
-`/tools config`에서 내장 도구를 선택하고 Space로 활성/비활성을 바꿉니다.
+`/tool`에서 내장 도구를 선택하고 Space로 활성/비활성을 바꿉니다.
 
 중복 별칭 `/tool`은 제공하지 않습니다. 빈 대화 입력창에서 ↑/↓를 누르면
 현재 세션에 보낸 사용자 요청을 이전/다음 순서로 불러옵니다. 최신 요청 다음은
@@ -41,7 +41,7 @@ Bubblewrap으로 명령을 실행합니다. `test_workspace_create/list/execute/
 승인·중단·재개 UI는 그대로이고, 종료 후 파일은 명시적 삭제까지 유지됩니다.
 기존 enabled 목록은 자동 변경하지 않습니다. [세부 계약](../llm/test-workspaces.md)을 참고하세요.
 Bubblewrap이 없으면 새 Project의 최초 목록에서 `test_workspace_execute`를 제외합니다.
-설치 후 `/tools config`에서 활성화합니다. 명시적으로 선택한 Tool이 사용할 수 없으면
+설치 후 `/tool`에서 활성화합니다. 명시적으로 선택한 Tool이 사용할 수 없으면
 기존 Backend 계약대로 Run 사전 검증에서 오류를 반환하며 호스트 실행으로 바꾸지 않습니다.
 
 ## 질문과 답변

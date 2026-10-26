@@ -1243,6 +1243,15 @@ class GraphEngine:
         worker._configured = GraphParameters.UNCONFIGURED
         return worker
 
+    def describe_agent(self):
+        from llm.core.agents import AgentDefinition
+
+        return AgentDefinition.describe(
+            fields=AgentDefinition.WORKFLOW_FIELDS,
+            properties={AgentDefinition.Field.ENGINE_OPTIONS: GraphAgentOptions.describe(self.describe_config())},
+            required=(AgentDefinition.Field.ENGINE_OPTIONS,),
+        )
+
     def for_agent(self, definition: dict):
         """Agent가 지정한 Workflow를 부모 Graph 실행 범위에 연결한다."""
         options = GraphAgentOptions.from_definition(definition)

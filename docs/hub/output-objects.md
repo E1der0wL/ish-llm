@@ -164,7 +164,7 @@ installation.view.output.renderers.register(
 
 ## Tool 관리
 
-현재 프로젝트에 tools 컴포넌트가 등록되어 있으면 `/tools config`로 엽니다.
+현재 프로젝트에 tools 컴포넌트가 등록되어 있으면 `/tool`로 엽니다.
 경로 입력 후 Enter를 누르면 다음 디렉토리의 내용을 복사 등록합니다.
 
 ```text

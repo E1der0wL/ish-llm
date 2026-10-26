@@ -19,6 +19,7 @@ class EngineRegistry:
     ASYNC_CONFIGURATION = "Engine configuration must be synchronous"
     INVALID_CONFIGURATION = "Invalid Engine configuration ({name}): {error}"
     UNREGISTERED_AGENT = "Unregistered Agent engine: {name}"
+    MISSING_AGENT_SCHEMA = "Engine does not provide describe_agent: {name}"
 
     def __init__(self) -> None:
         self._engines: dict[str, Engine] = {}
@@ -78,6 +79,26 @@ class EngineRegistry:
 
     def get(self, name: str) -> Engine:
         return self._engines[name]
+
+    def describe_agent(self, name: str) -> dict:
+        """Describe only the selected Engine, without binding or executing it."""
+        from llm.core.agents import AgentDefinition
+        from llm.core.schema import SchemaKeyword
+
+        try:
+            engine = self.get(name)
+        except KeyError:
+            raise ValueError(self.UNREGISTERED_AGENT.format(name=name)) from None
+        schema = EngineAgentBinding.describe(engine)
+        if schema is None:
+            raise ValueError(self.MISSING_AGENT_SCHEMA.format(name=name))
+        # Intersect selection at root without moving or mutating the owner's
+        # property: pointers, resource IDs, existing consts and shared schemas
+        # must keep their original meaning for every other field as well.
+        schema[SchemaKeyword.ALL_OF] = [*schema[SchemaKeyword.ALL_OF], {
+            SchemaKeyword.PROPERTIES: {AgentDefinition.ENGINE_FIELD: {SchemaKeyword.CONST: name}},
+        }]
+        return schema
 
     def resolve_agent(self, definition: dict) -> Engine:
         """Validate one selected, synchronous and effect-free Agent factory."""

@@ -1,17 +1,14 @@
-"""Explicit completion of UI commands, Agent IDs and paths beneath a project."""
+"""Explicit completion of UI commands and paths beneath a project."""
 
-from hub.locales.keys import MessageKey, MessagePattern
+from hub.locales.keys import MessageKey
 
 from pathlib import Path
 import re
 
 from prompt_toolkit.completion import Completer, Completion
 
-from ...backend.project.component_commands import ACTIONS
 from ..input.commands import (
     COMMANDS,
-    find_command,
-    CommandArguments,
     CommandInput,
     CommandSyntax,
 )
@@ -21,10 +18,9 @@ class HubCompleter(Completer):
     PATH_PATTERN = r"(?:^|\s)@([^\n]*)$"
     PATH_SEPARATOR = "/"
     EMPTY_PARTIAL = ""
-    NO_COMMAND = None
 
-    def __init__(self, agents, root, language, *, components=lambda: {}) -> None:
-        self.agents, self.root, self.t = agents, root, language
+    def __init__(self, root, language, *, components=lambda: {}) -> None:
+        self.root, self.t = root, language
         self.components = components
 
     def get_completions(self, document, complete_event):
@@ -46,29 +42,6 @@ class HubCompleter(Completer):
                         value,
                         -len(before),
                         display_meta=self.t(MessageKey.COMMAND_COMPONENT, name=name),
-                    )
-            return
-        separator, prefix = parsed.separator, parsed.argument
-        if separator and parsed.name in self.components() and parsed.prefixed:
-            for action in ACTIONS:
-                if action.startswith(prefix):
-                    yield Completion(
-                        action,
-                        -len(prefix),
-                        display_meta=self.t(MessagePattern.component_action(action)),
-                    )
-            return
-        spec = find_command(parsed.name) if parsed.prefixed else self.NO_COMMAND
-        if (
-            separator
-            and spec is not self.NO_COMMAND
-            and spec.arguments == CommandArguments.AGENTS
-            and parsed.single_line
-        ):
-            for name in self.agents():
-                if name.startswith(prefix):
-                    yield Completion(
-                        name, -len(prefix), display_meta=self.t(MessageKey.AGENT)
                     )
             return
         match = re.search(self.PATH_PATTERN, before)

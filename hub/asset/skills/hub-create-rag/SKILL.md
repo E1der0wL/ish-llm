@@ -15,7 +15,7 @@ Use when the user wants material registered for later retrieval.
 3. Call `rag_add_document` with identifier, title, content, a short factual description and optional source metadata. This
    public API builds the corpus index; writing JSON files in component storage does not.
 4. Wait for the actual result. If embedding configuration is missing, explain which model
-   needs configuration via `/rag config` → Settings. Do not guess a model or API key.
+   needs configuration via `/rag` → Settings. Do not guess a model or API key.
 5. Check retrieval with `rag_search`, using an explicit query that should find the document.
    Use `rerank=false` when no reranker is configured. Distinguish successful storage from
    successful retrieval and report a failed verification honestly.

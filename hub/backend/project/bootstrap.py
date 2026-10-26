@@ -1,6 +1,5 @@
 """Hub의 최초 작업 공간 선택 정책. llm에는 일반 Project CRUD만 요구한다."""
 
-from hub.backend.execution.engine_selection import HubEngineIdentity
 
 import asyncio
 import fcntl
@@ -8,7 +7,6 @@ import os
 from hub.config.store import WorkspaceJSONStore
 from hub.config.preset_records import PresetProject
 from llm.providers.request_values import LiteLLMParameters
-from llm.engines.loop.configuration import LoopParameters
 
 from llm.core.models import ProjectConfig
 from .defaults import CONVERSATION_STORAGE, create_project
@@ -71,15 +69,6 @@ async def select_or_create(backend, config):
         supplied = LiteLLMParameters.connection_options(
             model=config.model, api_base=config.api_base
         )
-        if supplied:
-            # Title generation resolves the current source settings at execution
-            # time; copying them here would leave a stale, independent title model.
-            parameters = project_config.parameter_targets.engine(HubEngineIdentity.LOOP)
-            values = parameters.config
-            LoopParameters(values).update_completion(supplied)
-            project_config.set_engine_parameters(
-                HubEngineIdentity.LOOP, parameters.with_config(values).to_dict()
-            )
         project = await create_project(
             backend,
             ProjectStartup.TITLE,
@@ -96,6 +85,7 @@ async def select_or_create(backend, config):
             ),
             agent_id=config.agent_id,
             agent_definition=config.agent_definition,
+            agent_completion=supplied,
         )
         if preset:
             from .agents import apply_agents

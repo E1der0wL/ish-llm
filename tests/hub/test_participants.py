@@ -175,42 +175,6 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
             finally:
                 view.close()
 
-    async def test_agent_editor_saves_friendly_name_without_replacing_configuration(self):
-        import json
-        from examples.hub.preview import create_preview
-        from hub.widget.forms.definition_manager import DefinitionManager
-        with create_pipe_input() as pipe:
-            app, view, _ = create_preview(input=pipe, output=SizedOutput())
-            saved = []
-            def request(action, argument, revision, done):
-                saved.append((action, argument))
-                done([{'name': argument['name'], 'version': 'v', 'description': ''}])
-            manager = DefinitionManager(view, request, name='agents', edit_text=None)
-            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
-            try:
-                await eventually(lambda: app.is_running)
-                with set_app(app):
-                    view.dialogs.show(manager, manager.path)
-                    manager.create_item()
-                    editor = view._dialog
-                    editor.identifier.text = 'reviewer'
-                    editor.display_name.text = '코드 검토자'
-                    editor.input.text = '{"engine":"graph","metadata":null}'
-                    editor.save()
-                    self.assertEqual(saved, [])
-                    self.assertIn('metadata', editor.status)
-                    editor.input.text = '{"engine":"graph","engine_options":{"workflow":"review"}}'
-                    editor.save()
-                self.assertIs(view._dialog, manager)
-                value = json.loads(saved[0][1]['text'])
-                self.assertEqual(value['metadata']['title'], '코드 검토자')
-                self.assertEqual(value['engine_options'], {'workflow': 'review'})
-                self.assertEqual(value['engine'], 'graph')
-            finally:
-                app.exit()
-                await task
-                view.close()
-
     async def test_sidebar_selection_toggle_exclusivity_and_focus(self):
         from examples.hub.preview import create_preview
         with create_pipe_input() as pipe:
@@ -225,14 +189,21 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                     view.output.participants.open()
                     view.composer.text = 'keep draft'
                 bar = view.output.participants
+                self.assertEqual(bar.width(), view.output.tags.width())
+                self.assertEqual(bar.container.content.preferred_width(100).preferred,
+                                 view.output.tags.container.content.preferred_width(100).preferred)
                 self.assertFalse(view.output.tags.visible)
                 pipe.send_text('\x1b[B')
                 await eventually(lambda: bar.selected == 'b')
                 self.assertEqual(view.recipient_id, '')
                 pipe.send_text(' ')
+                await eventually(lambda: view._dialog is not None)
+                pipe.send_text('\x1b[B\x1b[B\r')
                 await eventually(lambda: view.recipient_id == 'b')
                 self.assertIn('Reviewer', view.recipient_title())
                 pipe.send_text('\r')
+                await eventually(lambda: view._dialog is not None)
+                pipe.send_text('\x1b[B\x1b[B\r')
                 await eventually(lambda: view.recipient_id == '')
                 self.assertEqual(view.recipients, ('a', 'b'))
                 with set_app(app):
@@ -240,6 +211,15 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(bar.selected, 'b')
                     lines = render_container(view.output, 100, 25)
                     self.assertTrue(any(view.t('participants_add') in line for line in lines))
+                    available = view.output.available_width
+                    try:
+                        for width in (14, 18, 24):
+                            view.output.available_width = width * bar.AVAILABLE_FRACTION
+                            lines = render_container(bar.container, width, 8)
+                            self.assertFalse(any('Window too' in line for line in lines))
+                            self.assertTrue(any(view.t('participants_title') in line for line in lines))
+                    finally:
+                        view.output.available_width = available
                 pipe.send_text('\t')
                 await eventually(lambda: app.layout.current_control is bar.add_button.control)
                 pipe.send_text('\x1b')

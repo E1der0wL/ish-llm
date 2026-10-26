@@ -87,7 +87,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                     "invite_agent", view.project_id, view.sessions[view.selected].id, "settings-graph"))
                 await until(lambda: "settings-graph" in view.participant_ids)
                 for identifier, engine in (("assistant", "loop"), ("settings-graph", "graph")):
-                    view.choose_agent(identifier)
+                    view.output.participants.target(identifier)
                     with set_app(app):
                         screen.open_engine()
                     try:
@@ -107,7 +107,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIs(app.layout.current_control, screen.page.save.control)
                     settings_button(app, pipe, view, "cancel")
                     await open_home(app, view)
-                view.composer.text = "/tools config"
+                view.composer.text = "/tool"
                 view.composer.buffer.cancel_completion()
                 pipe.send_text("\r")
                 await eventually(lambda: isinstance(view._dialog, ToolManager) and not view._dialog.busy)

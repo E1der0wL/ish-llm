@@ -47,9 +47,12 @@ async def run_request(args):
             if not args.project_id:
                 selection = await (await project.components.aget("computer")).aget_config()
                 selected = selection.get("config", {}).get("enabled", [])
-                await project.agents.acreate({"engine": "loop",
+                definition = {"engine": "loop",
                     "completion": config["agent"]["completion"],
-                    "tools": [*selected, "skill_list", "skill_read", "skill_read_resource"]}, identifier=args.agent_id)
+                    "tools": [*selected, "skill_list", "skill_read", "skill_read_resource"]}
+                if "system_prompt" in config["agent"]:
+                    definition["system_prompt"] = config["agent"]["system_prompt"]
+                await project.agents.acreate(definition, identifier=args.agent_id)
             session = await project.sessions.acreate("Programming / diagnosis", agent_ids=[args.agent_id])
             print(f"Project: {project.id}\nSession: {session.id}")
             run = (await (await session.run.submit(args.prompt, recipients=[args.agent_id])).wait())[0]

@@ -46,7 +46,8 @@ Checkpoint가 참조하는 Agent의 삭제도 보호한다. Clone은 정의를 �
 Run의 agent_id, 선택 Engine, 정의·revision binding은 필수 불변 증거다. 재개는 원본 요청·실행
 binding·Checkpoint와 현재 선택 정의를 검증한다. 필수 증거가 없으면 현재 설정으로 보완하지 않는다.
 
-Behavioral Agent의 지침은 참조 Prompt → 명시/상속 system_prompt → 선택 Skill 순서로 구성한다.
+Behavioral Agent의 지침은 참조 Prompt → Agent의 명시적 system_prompt → 선택 Skill 순서로 구성한다.
+Loop의 config.system_prompt나 Project/Session Engine 설정에서 지침을 상속하지 않는다.
 purpose를 시스템 프롬프트로 대체하지 않는다. 설정은 Project → Session → Agent 순서다.
 Workflow Agent는 선택 Graph 소유자의 실행 계약을 사용한다.
 

@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from llm.core.models import ConversationStorage
-from llm.components.rag.prompts import ExtractionFailurePolicy
+from llm.components.rag.prompts import ExtractionFailurePolicy, ExtractionJSONMode, RELATION_TYPES
 from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
 
 from llm.core.implementation_parameters import ImplementationParameters
@@ -54,6 +54,10 @@ class HubDefaults:
             RAGConfiguration.Field.EXTRACTION_BATCH_SIZE: 8,
             RAGConfiguration.Field.SEARCH_CACHE_CHARS: 1_000_000,
             RAGConfiguration.Field.INDEX_BATCH_SIZE: 64,
+            ExtractionOptions.KEY: {
+                ExtractionOptions.Field.JSON_MODE: ExtractionJSONMode.AUTO.value,
+                ExtractionOptions.Field.RELATION_TYPES: list(RELATION_TYPES),
+            },
             SearchOptions.CONFIG_KEY: {
                 SearchOptions.Field.METHOD: SearchMethod.HYBRID.value,
                 SearchOptions.Field.EXPAND: SearchExpansion.CHUNK.value,
@@ -71,10 +75,12 @@ class HubDefaults:
             },
         },
         ImplementationParameters.POLICY: {
+            RAGConfiguration.Field.PROVIDER: deepcopy(PROVIDER),
             RAGConfiguration.Field.EMBEDDING_CONCURRENCY: 2,
             JobAdmission.KEY: {JobAdmission.MAX_ACTIVE: 1},
             ExtractionOptions.KEY: {
-                ExtractionOptions.Field.FAILURE_POLICY: ExtractionFailurePolicy.DISABLED.value
+                ExtractionOptions.Field.FAILURE_POLICY: ExtractionFailurePolicy.DISABLED.value,
+                ExtractionOptions.Field.REPAIR_ATTEMPTS: 1,
             },
         },
     }
@@ -102,6 +108,7 @@ class HubDefaults:
                 MemoryConfiguration.Field.TOOL_WRITE_STATUS: MemoryRecord.CANDIDATE,
                 MemoryConfiguration.Field.MAX_SEARCH_RESULTS: 20,
                 MemoryProcessingConfig.KEY: {
+                    MemoryProcessingConfig.Field.PROVIDER: deepcopy(PROVIDER),
                     MemoryProcessingConfig.Field.RECALL: True,
                     MemoryProcessingConfig.Field.CONTEXT_CHARS: 4000,
                     MemoryProcessingConfig.Field.FAILURE_MODE: MemoryProcessingConfig.CONTINUE,

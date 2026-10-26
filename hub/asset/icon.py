@@ -65,6 +65,9 @@ class IconContract:
 
 class IconGlyphs:
     SELECTED = "▶"
+    SHORTCUT_CHEVRON = ""
+    AGENT_UNICODE = "♙"
+    AGENT_NERD = ""
     HEADER_MARK = ""
     SCROLL_UP = "△"
     SCROLL_DOWN = "▽"
@@ -194,6 +197,7 @@ class IconSet:
     minimize: str = "⊘"
     dropdown: str = "▾"
     recipient: str = "✓"
+    agent: str = IconGlyphs.AGENT_UNICODE
     auxiliary: Mapping[str, str] = field(
         default_factory=lambda: MappingProxyType(dict(IconGlyphs.AUXILIARY_UNICODE))
     )
@@ -244,6 +248,7 @@ class IconPalettes:
         restart="",
         minimize="",
         dropdown="",
+        agent=IconGlyphs.AGENT_NERD,
         auxiliary=MappingProxyType(
             {
                 AuxiliaryIcon.HISTORY.value: "",

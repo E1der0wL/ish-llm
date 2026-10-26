@@ -37,7 +37,7 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.wrap_future(self.controller.worker.call('invite_agent', self.view.project_id,
             self.view.sessions[self.view.selected].id, 'settings-graph'))
         await until(lambda: 'settings-graph' in self.view.participant_ids)
-        self.view.choose_agent('settings-graph')
+        self.view.output.participants.target('settings-graph')
         await auxiliary(self.app, self.pipe, self.view, 'settings')
         await until(lambda: not self.screen.busy and self.screen.page is not None and self.view.settings_open)
 
@@ -66,15 +66,15 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
     async def test_json_project_edit_save_cancel_unknown_keys_and_hidden_engine(self):
         screen = self.screen
         before = screen.page.values()
-        hidden = {'config': {'completion': {'model': 'private/title'}}}
+        hidden = {'policy': {'provider': {'max_attempts': 2}}}
         def completion(values):
-            return values['config']['parameters']['engines']['loop']['config']['completion']
+            return values['config'].setdefault('data', {})
         for form in screen.page.forms():
             form.original.setdefault('config', {}).setdefault('parameters', {}).setdefault('engines', {})[TITLE_ENGINE] = deepcopy(hidden)
         def modify(text):
             values = json.loads(text)
             self.assertNotIn(TITLE_ENGINE, values['config']['parameters']['engines'])
-            values['config']['parameters']['engines']['loop']['config'].setdefault('completion', {})['model'] = 'edited/model'
+            values['config']['parameters']['engines']['loop'].setdefault('config', {})['buffer_size'] = 256
             completion(values)['extra_body'] = {'vendor_extension': None}
             return json.dumps(values)
         await self.edit(modify)
@@ -129,11 +129,11 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
     async def test_host_fixed_json_leaves_cannot_be_changed(self):
         screen = self.screen
         page = screen.page
-        path = ('config', 'parameters', 'engines', 'loop', 'config', 'completion', 'model')
+        path = ('config', 'parameters', 'engines', 'loop', 'config', 'buffer_size')
         page.engine_forms['loop'].locked.add(path)
         def modify(text):
             values = json.loads(text)
-            values['config']['parameters']['engines']['loop']['config'].setdefault('completion', {})['model'] = 'forbidden/model'
+            values['config']['parameters']['engines']['loop'].setdefault('config', {})['buffer_size'] = 256
             return json.dumps(values)
         await self.edit(modify)
         self.assertIs(screen.page, page)

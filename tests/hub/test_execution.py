@@ -18,7 +18,7 @@ from tests.hub.test_overlays import screen_text
 
 def config(directory, handlers=None):
     return HubConfig(directory, agent_id="alpha", agent_definition={"engine": "graph", "engine_options": {"workflow": "alpha"}},
-        model="test/model", auto_title=False, language="en",
+        auto_title=False, language="en",
         engine_factories={"graph": lambda: GraphEngine(handlers=handlers or {})},
         component_factories=(WorkflowComponent,))
 
@@ -91,20 +91,20 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(any(binding.keys == ("c-e",) for binding in
                     view.navigation_keys.get_bindings_for_keys(("c-e",))))
                 with set_app(app):
-                    view.choose_agent("alpha")
+                    view.output.participants.target("alpha")
                     view.selected = 1
                     self.assertEqual(view.agent_id, "assistant")
                     view.selected = 0
                     self.assertEqual(view.agent_id, "alpha")
-                pipe.send_text("/agent assistant\r")
+                with set_app(app):
+                    view.output.participants.target("assistant")
                 await until(lambda: view.engine == "loop")
                 self.assertEqual(view.agent_id, "assistant")
-                pipe.send_text("/agent alpha\r")
+                with set_app(app):
+                    view.output.participants.target("alpha")
                 await until(lambda: view.engine == "graph")
                 self.assertEqual(view.agent_id, "alpha")
-                pipe.send_text("/agent\r")
-                await until(lambda: "assistant, alpha" in view.notice)
-                self.assertIsNone(view._dialog)
+                self.assertEqual(view.recipients, ("alpha",))
             finally:
                 app.exit()
                 await task

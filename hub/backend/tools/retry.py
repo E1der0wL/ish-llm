@@ -1,6 +1,5 @@
 """Select bounded argument repairs; llm owns eligibility, execution and approval."""
 
-from llm.core.configuration_views import ConfigurationView
 
 from llm.core.model_protocol import copy_model
 
@@ -24,7 +23,7 @@ from ...errors.adapters import from_diagnostic, from_exception
 from ...errors.contracts import ErrorInfo, ErrorOrigin, ErrorRepairProjection
 from ...errors.policy import Effects, RecoveryAction, RecoveryFacts, RecoveryPolicy
 from ..execution.recovery_model import model_events
-from ..execution.engine_selection import HubEngineIdentity, EngineSelection
+from ..execution.engine_selection import EngineSelection
 from llm.providers.request_values import ModelParameters
 from .retry_values import ToolRepairMetadata, ToolModelReply, FailedInvocation
 
@@ -91,12 +90,10 @@ class ToolRetrySelector:
         *,
         chooser: Callable | None = ABSENT,
         evidence=ABSENT,
-        fallback_engine=ABSENT,
         builtins=ABSENT
     ):
         self.chooser = chooser
         self.evidence = dict(evidence or {})
-        self.fallback_engine = fallback_engine
         self.builtins = builtins
         self.context = ContextVar(self.FRAME_CONTEXT, default=self.ABSENT)
         self.failed_call = ContextVar(self.FAILURE_CONTEXT, default=self.ABSENT)
@@ -243,34 +240,14 @@ class ToolRetrySelector:
         return await value if inspect.isawaitable(value) else value
 
     async def _model_choice(self, payload, frame, parent_step_id):
-        engine, name = frame.engine, frame.context.run.engine
-        resolve = getattr(engine, ConfigurationView.RESOLVE_METHOD, self.ABSENT)
-        values = (
-            ConfigurationView.read(
-                resolve(
-                    frame.context.project.config,
-                    name,
-                    session_config=frame.context.session.config,
-                )
-            ).values
-            if resolve
-            else {}
-        )
-        if not ModelParameters(EngineSelection.completion(values)).optional_model:
-            engine, name = self.fallback_engine, HubEngineIdentity.LOOP
-            if engine is self.ABSENT:
-                return self.ABSENT
-            values = ConfigurationView.read(
-                engine.resolve_config(
-                    frame.context.project.config,
-                    name,
-                    session_config=frame.context.session.config,
-                )
-            ).values
-        params = copy_model(EngineSelection.completion(values))
-        if not ModelParameters(
-            params
-        ).optional_model or not BaseEngine.has_completion_adapter(engine):
+        from llm.core.agents import AgentBinding
+        from llm.engines.agent_values import AgentExecutionBinding
+        engine = frame.engine
+        selected = AgentExecutionBinding.selected_in_state(frame.context.state)
+        definition = (selected[AgentExecutionBinding.Field.AGENT] if selected is not None
+                      else AgentBinding.definition_from_metadata(frame.context.run.metadata))
+        params = copy_model(EngineSelection.completion(definition))
+        if not ModelParameters(params).optional_model or not BaseEngine.has_completion_adapter(engine):
             return self.ABSENT
         # The chooser keeps full local evidence; the model receives the Owner's bounded projection.
         document = payload.model_document()

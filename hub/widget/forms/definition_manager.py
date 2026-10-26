@@ -1,28 +1,20 @@
 """Prompt/Agent/Workflow CRUD with inline JSON and live graph preview."""
 
-from hub.backend.execution.engine_selection import HubEngineIdentity
 
 from hub.locales.keys import MessageKey, MessagePattern
 from .manager_values import (
     ManagerView,
-    ManagerCallbacks,
     DefinitionView,
-    RAGManagerView,
 )
 from hub.backend.project.management_values import (
     ManagementAction,
-    ManagementEntry,
     EditorRecord,
 )
 from hub.components import ManagedComponents
 from .manager_values import DefinitionDraft
 
-import json
 from ...ui.input.json_document import JsonDocument
-import re
 
-from llm.components.memory.component import MemoryComponent
-from llm.components.workflows.graph import WorkflowGraph
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
@@ -31,7 +23,7 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Frame, Label
 
 from ..controls import Button, TextArea
-from ..dialog import Dialog
+from ..dialog import Dialog, PopupSize
 from ..workflow_graph import workflow_diagram
 from .record_manager import RecordManager
 
@@ -43,7 +35,7 @@ def initial_definition(name):
 class DefinitionManager(RecordManager):
     def __init__(self, view, request, *, name, edit_text):
         self.create_button = Button(
-            view.t(MessageKey.CREATE),
+            view.t(MessageKey.COMPONENT_CREATE),
             handler=self.create_item,
             width=DefinitionView.BUTTON_WIDTH,
         )
@@ -66,11 +58,11 @@ class DefinitionManager(RecordManager):
             button_width=DefinitionView.BUTTON_WIDTH,
         )
 
-    def hint(self):
-        return self.status or self.view.t(MessageKey.DEFINITION_MANAGER_HINT)
-
     def create_item(self):
         if not self.busy:
+            if self.name == ManagedComponents.AGENTS.name:
+                self.agent_editor()
+                return
             editor = DefinitionEditor(self)
             self.view.dialogs.show(editor, editor.identifier)
 
@@ -81,10 +73,19 @@ class DefinitionManager(RecordManager):
 
         def ready(record):
             if self.view._dialog is self:
+                if self.name == ManagedComponents.AGENTS.name:
+                    self.agent_editor(name, record)
+                    return
                 editor = DefinitionEditor(self, name, record)
                 self.view.dialogs.show(editor, editor.input)
 
         self.call(ManagementAction.READ, name, completed=ready)
+
+    def agent_editor(self, name="", record=None):
+        from .agent_editor import AgentEditor
+        editor = AgentEditor(self, name, record)
+        self.view.dialogs.show(editor, editor.workspace.sidebar)
+        editor.load()
 
 
 class DefinitionEditor(Dialog):
@@ -117,12 +118,6 @@ class DefinitionEditor(Dialog):
             wrap_lines=DefinitionView.WRAP_LINES,
             read_only=Condition(lambda: self.busy),
         )
-        from ...backend.project.participants import AgentProfile
-        self.display_name = (TextArea(
-            text=AgentProfile.title(name, json.loads(text)),
-            multiline=DefinitionView.SINGLE_LINE, height=DefinitionView.IDENTIFIER_HEIGHT,
-            read_only=Condition(lambda: self.busy),
-        ) if manager.name == ManagedComponents.AGENTS.name else None)
         self.preview = TextArea(
             read_only=DefinitionView.READ_ONLY,
             scrollbar=DefinitionView.SCROLLBAR,
@@ -147,8 +142,6 @@ class DefinitionEditor(Dialog):
                 [
                     Label(self.view.t(MessageKey.DEFINITION_NAME)),
                     self.identifier,
-                    *([Label(self.view.t(MessageKey.AGENT_DISPLAY_NAME)), self.display_name]
-                      if self.display_name is not None else []),
                     content,
                     Label(lambda: self.status),
                 ],
@@ -161,12 +154,8 @@ class DefinitionEditor(Dialog):
                 ),
             ),
             buttons=self.buttons,
-            width=lambda: Dimension(
-                preferred=max(
-                    DefinitionView.MINIMUM_WIDTH,
-                    self.view._columns() - DefinitionView.HORIZONTAL_MARGIN,
-                )
-            ),
+            size=(PopupSize.LARGE if manager.name == ManagedComponents.WORKFLOWS.name
+                  else PopupSize.MEDIUM),
         )
         self.on_close = self.close
         self.input.buffer.on_text_changed += self.schedule_preview
@@ -206,10 +195,6 @@ class DefinitionEditor(Dialog):
             DefinitionDraft.require_size(self.input.text, self.view.t)
             DefinitionDraft.require_name(name, self.view.t)
             definition = DefinitionDraft.parse_object(self.input.text, self.view.t)
-            if self.display_name is not None:
-                from ...backend.project.participants import AgentProfile
-                definition = AgentProfile.rename(definition, self.display_name.text or name)
-                self.input.text = JsonDocument.render(definition, allow_non_finite=JsonDocument.STRICT_NON_FINITE)
         except ValueError as error:
             self.status = self.view.t(MessageKey.ERROR, error=error)
             return

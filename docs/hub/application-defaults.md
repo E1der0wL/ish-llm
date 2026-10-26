@@ -9,11 +9,35 @@ win. Opening an existing Project never reapplies defaults. Backend configuration
 schemas, validators, execution policies and storage remain owned by llm.
 
 No model name, credential or endpoint is supplied by this profile. Users still
-choose their Loop model and connection, RAG embedding/reranker models, optional
+choose their Loop Agent model and connection, RAG embedding/reranker models, optional
 extraction model, MCP servers and workflow definitions. Defaults do not install an
 OCR executable or make a remote service available. RAG extraction remains disabled
 until explicitly configured, so an unconfigured extractor cannot block document
 registration. These choices can all be captured in a preset.
+
+The Agent owns `completion`, while its Engine owns execution limits and policies.
+A Graph Agent chooses a saved Workflow; model-using nodes reference separately
+configured Loop Agents. The default `assistant` receives the selected built-in
+tools, not an invented model or connection.
+
+| Capability | Ready from the Hub creation profile | User/host prerequisite |
+|---|---|---|
+| Files, shell, Skills, Goals | Tools, starter skills, active-goal context | Agent model/connection; normal approvals and working-root permissions |
+| Memory | Keyword recall, candidate writes | Model-based summarization/extraction additionally need their own completion settings |
+| Refinement | Evidence/proposal tools and approved application | Actual evidence, target revisions, approval; evaluation when explicitly required |
+| RAG | Hybrid search, chunk/index limits, extraction protocol | Embedding model; reranker or explicit rerank=false; extraction model and non-disabled failure policy for relations |
+| MCP | Component and Agent resource integration | Reachable server definitions and their own authentication/dependencies |
+| Graph | Engine and Workflow tooling | A valid Workflow and its referenced Agents/tools |
+| Image OCR | Tesseract selection and timeout | Installed executable and required language data |
+
+RAG uses the backend's automatic JSON mode, suggested relation types and one
+structured-output repair attempt when extraction is enabled. Host extractors
+that only implement `extract(chunks)` retain their own protocol; model-specific
+options are defaulted only when the public extraction-configuration capability
+is supported. Explicit user configuration still goes through backend validation.
+RAG and Memory processing receive separate copies of the Hub provider retry
+template (four attempts, 10-second initial and 60-second maximum delay); neither
+inherits a Loop caller's runtime policy. These are new-Project defaults only.
 
 ## Named JSON presets
 
@@ -74,10 +98,37 @@ causes bounded continuation with corrective feedback. Explanation-only requests
 may report information; concrete blockers must be disclosed. Explicit Agent
 selections that exclude the report tool opt out of this application review.
 
+Every cited call must have an actual result, including citations in information
+and blocked reports. Duplicate citations are rejected. A report must also follow
+the latest tool result: additional work invalidates a stale report and requests a
+fresh verification/report without repeating effects. The review revision is
+`hub-task-evidence-v2`.
+
+`asset/prompts/work-cycle.md` is transient completion context when the report tool
+is available. It explains active-goal reuse, candidate Memory, evidence-based
+Refinement, and checking saved files/diffs/test results before claiming completion.
+This also reaches existing Hub Loop projects without overwriting their saved
+prompts, skills or Agent tool selections. It does not silently enable final review
+in an existing Project that has disabled or omitted that policy.
+
 This is an evidence gate and model self-assessment, not proof that arbitrary code
 is correct. Relevant tests and actual tool results remain necessary. It never
 grants approval, retries uncertain effects, or resets backend budgets. The backend
 owns candidate visibility, review receipts, cancellation and resume behavior.
+
+## Setting and component guidance
+
+`backend/project/settings_help.py` maps scoped, declared public schema paths to
+localized display descriptions. Project settings and Agent forms share this
+presentation layer. Known terse descriptions are expanded with purpose, units,
+prerequisites and consequences; unknown extension descriptions remain unchanged.
+Descriptions never change required fields, ranges, enums, defaults, missing/null
+semantics or backend validation. Tests check every guidance path against current
+public Project and Loop/Graph Agent schemas and compare all non-description data.
+
+Each component manager has its own Korean/English Markdown help, including
+import shape, setup, actual use and limitations. The short import-field hints
+remain short; the extra explanation lives in the help reader.
 
 ## Shared UI surfaces
 
@@ -126,3 +177,48 @@ test IDs and source hashes are in the local ignored
 controlled fixtures/local HTTP; these results do not certify a remote model's
 instruction following. X11 uses a private display. No product file in `llm/`
 was modified.
+
+## Defaults and guidance verification — 2026-10-27
+
+The current update adds scoped friendly descriptions, independent Component retry
+defaults, and the fresh-evidence work cycle described above. WSL Linux Python
+3.12.14 runs use normalized source snapshots on the Linux filesystem. The initial
+focused run exposed an unsupported default for a host-supplied extractor and a
+wrong help-key suffix; both were corrected. Agent UI snapshots now wait for PTK's
+next render after an editor change. Component-manager startup tests allow ten
+seconds for backend connection (a measured normal startup was 3.56 seconds), while
+ordinary UI waits retain their three-second bound. All 46 affected-area tests pass,
+including the actual public Goal/Memory/Refinement/Tool execution paths with
+deterministic model responses. Existing user configuration remains authoritative.
+
+With explicit user permission, a supplied credential was passed to a temporary
+WSL process for live synthetic tests. Credentials were not put in source, reports,
+presets or persistent Hub workspaces. Temporary data was removed after each run.
+
+| Live check | Result and scope |
+|---|---|
+| RAG Markdown ingestion and search | Passed: 163-character synthetic document, `gemini-embedding-001`, hybrid retrieval; registration finished and the expected document was returned (38.8 seconds total). Reranking and relation extraction were disabled for this smoke test. |
+| Graph Agent with a saved Workflow | Passed: `gemini-3.8-flash` Loop Agent inside a Graph Agent Workflow, completed Agent/LLM/end-node Steps and the expected `LANTERN-42` response (115.37 seconds including preparation). |
+
+The first Graph setup incorrectly supplied `tools` on a Graph Agent and was
+rejected by the public schema; the test definition was corrected. A subsequent
+attempt with `gemini-2.5-flash` failed with provider HTTP 404 saying the model was
+no longer available to new users of that account, despite its presence in model
+discovery. Step diagnostics exposed that precise cause. The successful test used
+the replacement model explicitly; Hub does not silently switch user models or
+persist that model as a default. These smoke tests verify the named paths, not
+all providers, all Workflow structures or arbitrary model instruction following.
+
+Local ignored evidence is under `tests/hub/reports/defaults-guidance/`: original
+focused/full-run output, final affected-area checks, public schema inventory,
+redacted live results, contract gates and source-integrity checks. Original failed
+runs are retained separately from corrected rechecks.
+
+The full Hub run executed 635 tests: 631 passed initially, and the four UI
+timing/render synchronization failures passed after correction in the 46-test
+affected-area run. The final unframed component-button change passed all 17
+popup/widget tests. Architecture/documentation/contract tests passed (44 tests),
+and static contract gates report no unresolved issues. The full backend run was
+stopped at the user's request because this task did not edit `llm/`; it is not
+reported as a completed backend-suite pass. Pre-existing backend changes are
+included unchanged in the explicitly authorized publication.

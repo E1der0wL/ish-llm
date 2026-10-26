@@ -27,10 +27,10 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
             try:
                 settings, project = runtime.settings_service, runtime.project
                 value = await settings.execute('preset_export', project.id)
-                completion = value['project']['config']['parameters']['engines']['loop']['config'].get('completion', {})
+                completion = value['project']['agents']['assistant'].get('completion', {})
                 self.assertFalse(completion)
                 self.assertEqual(value['global']['appearance']['comment2'], '#3A3A3A')
-                value['project']['config']['parameters']['engines']['loop']['config']['completion'] = {
+                value['project']['agents']['assistant']['completion'] = {
                     'model': 'test/chosen', 'api_key': 'test-secret', 'api_base': 'https://example.invalid'}
                 value['project']['agents']['reviewer'] = {'engine': 'loop', 'tools': [],
                                                           'completion': {'model': 'test/reviewer'}}
@@ -98,7 +98,7 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(HubConfig(root, auto_title=False))
             await runtime.start()
             try:
-                await runtime.project.agents.acreate({'engine':'loop','tools':[]}, identifier='peer')
+                await runtime.project.agents.acreate({'engine':'loop','completion':{'model':'test/peer'},'tools':[]}, identifier='peer')
                 sid = await runtime.new_session()
                 await runtime.invite_agent(runtime.project.id, sid, 'peer')
                 application = runtime.builtin_tools.application
@@ -141,7 +141,7 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
                     completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             await runtime.start()
             try:
-                await runtime.project.agents.acreate({'engine':'loop','tools':[]}, identifier='peer')
+                await runtime.project.agents.acreate({'engine':'loop','completion':{'model':'test/peer'},'tools':[]}, identifier='peer')
                 sid = await runtime.new_session()
                 await runtime.invite_agent(runtime.project.id, sid, 'peer')
                 session = runtime.sessions[sid]
@@ -214,5 +214,5 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
         dropdown.choices.values = [('long', '아주 긴 프리셋 이름 ' * 20)]
         from prompt_toolkit.formatted_text import fragment_list_width
         clipped = dropdown.choices._get_text_fragments()
-        self.assertEqual(fragment_list_width(clipped), dropdown.choices.menu_width - 1)
+        self.assertEqual(fragment_list_width(clipped), dropdown.rendered_width() - 1)
         self.assertIn('…', ''.join(item[1] for item in clipped))

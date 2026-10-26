@@ -279,7 +279,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
-                await runtime.project.agents.acreate({"engine": "loop", "tools": ["shell_execute"]}, identifier="shell-agent")
+                await runtime.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["shell_execute"]}, identifier="shell-agent")
                 session = await runtime.project.sessions.acreate("Environment", agent_ids=sorted(await runtime.project.agents.alist()))
                 project_id, session_id = runtime.project.id, session.id
                 options = {ENVIRONMENT_OPTION: snapshot(work, "captured-secret-value").to_dict()}

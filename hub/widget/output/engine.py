@@ -150,6 +150,7 @@ class EngineOutput(HSplit, ABC):
             self.participants.control,
             self.participants.collapse.control,
             self.participants.add_button.control,
+            self.participants.group_button.control,
         )
         if self.view._dialog is not EngineOutput.ABSENT and self.view._dialog in (
             self.floating_dialog,

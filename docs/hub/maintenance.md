@@ -120,10 +120,9 @@ UI는 한국어·영어 안내와 finish_reason을 투영하며 실행·재시�
 ## 컴포넌트 관리
 
 기본 `/` 명령은 `ui/input/commands.py`의 불변 `CommandSpec` 목록이 이름·설명 키·실행 함수·
-인자 후보 종류를 소유합니다. 실행과 `HubCompleter`가 같은 목록을 사용하며, 컴포넌트 명령은
-아래 목록과 `config/help` 계약을 따릅니다. 등록되지 않은 `/` 입력은 일반 요청으로 전달합니다.
-`/engine`, 요청별 `engine_options`, Workflow 조회와 Graph 실행 경로는 유지합니다.
-Graph 전용 페이지가 추가되기 전에는 Workflow를 백엔드 실행 옵션으로 지정합니다.
+실행 계약을 소유합니다. 실행과 `HubCompleter`가 같은 목록을 사용하며, 컴포넌트 명령은
+단수 이름만 받아 관리 창을 엽니다. 도움말은 관리 창 내부에 있습니다. 등록되지 않은 `/` 입력은 일반 요청으로 전달합니다.
+Workflow 조회와 Graph 실행 경로는 유지하며 Graph Agent의 `engine_options.workflow`로 지정합니다.
 
 `hub/components.py`의 불변 ComponentSpec 목록이 정식 이름·모델 도구 접두사·후보 순서·관리 방식·
 가져오기 형식·백엔드 데이터 계약을 정의합니다. 이 모듈을 UI에서 읽어도 llm/PTK를 로드하지

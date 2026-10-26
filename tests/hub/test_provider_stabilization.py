@@ -52,6 +52,7 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("provider_error_details", defaults)
         self.assertTrue(defaults["provider_request_summary"])
         form = GeneralForm(NS(t=Language()), defaults)
+        form.set_debugging(True)
         changed = dict(defaults, provider_request_summary=False,
                        provider_max_detail_chars=1000)
         for name in form.groups["diagnostics"]:

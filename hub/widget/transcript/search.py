@@ -101,9 +101,7 @@ class SessionSearch:
                 Button(view.t(MessageKey.SEARCH_NEXT), handler=self.move),
                 Button(view.t(MessageKey.SEARCH_CLOSE), handler=view.close_dialog),
             ],
-            width=Dimension(
-                preferred=SessionSearch.PREFERRED_WIDTH, max=SessionSearch.MAX_WIDTH
-            ),
+
             with_background=Dialog.DEFAULT_BACKGROUND,
             modal=Dialog.DEFAULT_MODAL,
         )

@@ -190,9 +190,10 @@ class LiveHubView(HubView):
         self.agent_engines = {agent.id: agent.engine for agent in snapshot.agents}
         self.agent_titles = {agent.id: agent.title or agent.id for agent in snapshot.agents}
         self._participant_sets.update({item.id: item.participant_ids for item in snapshot.sessions})
+        self._participant_groups.update({item.id: item.participant_groups for item in snapshot.sessions})
         if self.sessions[self.selected].id == snapshot.selected_id:
             self.participant_ids = snapshot.participant_ids
-        if self.recipient_id not in self.participant_ids:
+        if self.recipient_id not in (*self.participant_ids, *(group.id for group in self.participant_groups)):
             self.recipient_id = self.NO_AGENT
         if self.agent_id not in self.agents:
             self.agent_id = next(iter(self.agents), HubView.NO_AGENT)
@@ -248,6 +249,7 @@ class LiveController:
         HubRuntime.execution_catalog.__name__, HubRuntime.approval_details.__name__,
         HubRuntime.snapshot.__name__,
         HubRuntime.invite_agent.__name__,
+        HubRuntime.change_participants.__name__,
     })
 
     def __init__(
@@ -309,6 +311,7 @@ class LiveController:
         self.component_commands = ComponentCommands(self)
         self.view.on_component = self.component_commands.open
         self.view.on_invite_agent = self.invite_agent
+        self.view.on_change_participants = self.change_participants
         self.view.on_interrupt = self.interrupt
         from .chat.history_ui import HistoryUI
 
@@ -948,6 +951,16 @@ class LiveController:
             completed(result)
         self._call(HubRuntime.invite_agent.__name__, project_id, session_id, identifier,
                    completed=invited)
+
+    def change_participants(self, action, identifier, value, completed):
+        view = self.view
+        project_id, session_id = view.project_id, view.sessions[view.selected].id
+        def changed(result):
+            if result is not None:
+                self._call(HubRuntime.snapshot.__name__, completed=self._snapshot)
+            completed(result)
+        self._call(HubRuntime.change_participants.__name__, project_id, session_id,
+                   action, identifier, value, completed=changed)
 
     def new_session(
         self,

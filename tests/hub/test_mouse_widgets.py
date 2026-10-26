@@ -37,6 +37,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(bar.selected, 'b')
         self.assertEqual(self.view.recipient_id, '')
         self.pipe.send_text(' ')
+        await eventually(lambda: self.view._dialog is not None)
+        self.pipe.send_text('\x1b[B\x1b[B\r')
         await eventually(lambda: self.view.recipient_id == 'b')
         await self.mouse(0, x, y + 4)
         await self.mouse(0, x, y + 4, release=True)
@@ -82,8 +84,12 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         tag = next(w for w, _ in self.view.mouse.windows if w.content is self.view.output.tags.control)
         await self.mouse(0, *self.at(tag))
         await self.mouse(0, *self.at(tag), release=True)
-        self.assertIsNone(self.view._dialog)
+        # The nearest item was already focused when the bar opened: repeat
+        # activation has the same effect as Enter/Space.
+        self.assertIsInstance(self.view._dialog, CodeViewer)
         self.assertEqual(self.view.output.tags.selected, self.view.output.transcript.control.objects[0].id)
+        self.pipe.send_text("\x1b")
+        await eventually(lambda: self.view._dialog is None)
         self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
         for key in ("\t", " ", "\r"):
             self.pipe.send_text(key)

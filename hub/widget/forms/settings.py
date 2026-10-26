@@ -377,6 +377,10 @@ class SchemaForm:
             return
         schema = schema if isinstance(schema, dict) else {}
         properties = schema.get(SchemaKeyword.PROPERTIES, {})
+        if (schema.get(SchemaKeyword.TYPE) == SchemaType.OBJECT and not properties
+                and schema.get(SchemaKeyword.ADDITIONAL_PROPERTIES) is SchemaBoolean.REJECT
+                and not any(name in schema for name in self.OPAQUE_FIELDS)):
+            return
         # Nullable objects, unions and refs stay JSON editors so their semantics
         # are not lost by flattening an arbitrary branch of the schema.
         if (

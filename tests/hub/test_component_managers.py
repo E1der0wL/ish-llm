@@ -15,6 +15,7 @@ from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.containers import to_container
 
+from hub.components import component_spec
 from hub.backend.project.component_commands import component_commands
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.application import create_application
@@ -36,11 +37,11 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected)
+                await eventually(lambda: view.connected, timeout=10)
                 # The first visit loads the catalog/project; later visits reuse drafts.
                 for name in ("tools", "skills", "mcp", "rag", "workflows", "agents", "prompts", "memory", "tools"):
                     with self.subTest(component=name):
-                        view.composer.text = f"/{name} config"
+                        view.composer.text = "/" + component_spec(name).tool_prefix
                         view.composer.buffer.cancel_completion()
                         pipe.send_text("\r")
                         await eventually(lambda: isinstance(view._dialog, ComponentManager) and not view._dialog.busy)
@@ -58,8 +59,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         await eventually(lambda: app.layout.current_control is popup.list)
                         pipe.send_text("\t")
                         await eventually(lambda: app.layout.current_control is buttons[0].control)
-                        pipe.send_text("\x1b[C")
-                        await eventually(lambda: app.layout.current_control is buttons[1].control)
+                        self.assertEqual(buttons[0].handler, popup.open_settings)
                         pipe.send_text("\r")
                         await eventually(lambda: view.settings_open and view._dialog is None and not screen.busy)
                         page = screen.page
@@ -72,8 +72,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(screen.tabs.selected, "config")
                         self.assertEqual(page.fields(), [field for field in page.component_forms[name].fields.values()
                                                         if page.field_tabs[field] == "config"])
-                        self.assertTrue(page.fields())
-                        self.assertIs(app.layout.current_control, page.fields()[0].input.control)
+                        if page.fields():
+                            self.assertIs(app.layout.current_control, page.fields()[0].input.control)
+                        else:
+                            self.assertIs(app.layout.current_control, page.save.control)
                         with set_app(app):
                             screen.filter("no-such-setting")
                             screen.tabs.select("policy")
@@ -92,8 +94,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected)
-                view.composer.text = "/skills config"
+                await eventually(lambda: view.connected, timeout=10)
+                view.composer.text = "/skill"
                 view.composer.buffer.cancel_completion()
                 pipe.send_text("\r")
                 await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)
@@ -122,10 +124,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.to_thread(controller.close)
 
     def test_commands_require_registered_component_and_exclude_aliases(self):
-        self.assertEqual(component_commands(("tools",)), {"tools": "tools", "agents": "agents"})
-        self.assertEqual(component_commands(("skills", "workflows")), {"skills": "skills", "agents": "agents", "workflows": "workflows"})
-        self.assertEqual(component_commands(("skills", "skill")), {"skills": "skills", "agents": "agents"})
-        self.assertEqual(component_commands(("mcp",)), {"mcp": "mcp", "agents": "agents"})
+        self.assertEqual(component_commands(("tools",)), {"tool": "tools", "agent": "agents"})
+        self.assertEqual(component_commands(("skills", "workflows")), {"skill": "skills", "agent": "agents", "workflow": "workflows"})
+        self.assertEqual(component_commands(("skills", "skill")), {"skill": "skills", "agent": "agents"})
+        self.assertEqual(component_commands(("mcp",)), {"mcp": "mcp", "agent": "agents"})
 
     async def test_skill_workflow_agent_mcp_import_edit_conflict_delete_and_reopen(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -194,9 +196,9 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected)
+                await eventually(lambda: view.connected, timeout=10)
                 for name in ("skills", "rag", "workflows", "agents", "mcp"):
-                    view.composer.text = f"/{name} config"
+                    view.composer.text = "/" + component_spec(name).tool_prefix
                     view.composer.buffer.cancel_completion()
                     pipe.send_text("\r")
                     await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)

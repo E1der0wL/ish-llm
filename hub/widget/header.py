@@ -22,7 +22,7 @@ class HeaderButton(Button):
 class HeaderBar(VSplit):
     HEIGHT = 1
     EMPTY_STYLE = ""
-    ICON_FRAGMENT = " {icon}  "
+    ICON_FRAGMENT = "{icon}  "
 
     BUTTON_GAP = 1
 

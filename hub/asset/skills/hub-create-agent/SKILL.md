@@ -10,8 +10,10 @@ Use when a recurring, bounded task needs a reusable agent definition.
 
 1. Inspect existing definitions using `agent_list` and `agent_read`. Define a specific purpose,
    input/output contract, expected checks and limits. Avoid unnecessary delegation.
-2. Read `agent_schema`. Hub normally supports the `loop` engine for saved agents. Leave model
-   and provider values unset to inherit project configuration unless the user specifies them.
+2. Read `agent_schema` for the selected engine. Loop Agents own their model and provider
+   parameters in `completion`; Engine settings control execution. Ask for required choices
+   or explicitly reuse user-authorized Agent settings. Missing model values are not inherited
+   from the project or another Agent. Graph Agents select a workflow and have no model fields.
 3. Declare only the tools/resources the task needs. Verify referenced skill and agent IDs.
    Agent permissions cannot exceed the owning project's policies or the parent Run's authority.
 4. Call `agent_create` with a new identifier and the definition, then verify with `agent_read`.

@@ -56,7 +56,7 @@ interaction을 취소하고 Session metadata의 `hub_stopped_runs`에 중단 시
 
 ## 컴포넌트 설정 이동과 버튼 키 점검
 
-`/tools config`, `/skills config`, `/mcp config`, `/rag config`, `/agents config`, `/workflows config`의
+`/tool`, `/skill`, `/mcp`, `/rag`, `/agent`, `/workflow`의
 설정 버튼은 현재 프로젝트의 해당 컴포넌트 항목을 선택하고 첫 입력칸으로 이동합니다.
 처음 프로젝트 설정을 불러오는 경우와 기존 설정 초안을 재사용하는 경우를 모두 검사합니다.
 이 바로가기와 홈의 Loop 설정 보조 버튼은 이전 검색 필터를 해제하고 해당 페이지 전체를 보여줍니다.

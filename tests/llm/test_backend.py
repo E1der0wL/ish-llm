@@ -135,7 +135,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             tools.enable("search")
 
     async def test_project_and_session_lifecycle(self):
-        self.project.save(title="renamed", config={"data": {"custom": 7}, "parameters": {"engines": {"loop": {'config': {'system_prompt': 'test'}}}}})
+        self.project.save(title="renamed", config={"data": {"custom": 7}, "parameters": {"engines": {"loop": {'config': {'buffer_size': 8}}}}})
         self.session.save(title="new title", config={"data": {"custom": 8}})
         self.assertEqual(self.app.projects.load(self.project.id).data.title, "renamed")
         self.assertEqual(self.project.sessions.load(self.session.id).data.config["data"]["custom"], 8)

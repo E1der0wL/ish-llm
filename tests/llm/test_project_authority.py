@@ -20,15 +20,15 @@ class OwnershipTests(unittest.TestCase):
             with self.assertRaises(TypeError):
                 ToolRuntime(**kwargs)
 
-    def test_session_narrowing_and_prompt_null(self):
+    def test_session_narrowing_and_config_override(self):
         engine = LoopEngine()
         project = {"parameters": {"engines": {"loop": {
-            "config": {"system_prompt": "project"}, "policy": {"request_timeout": 300}}}}}
+            "config": {"buffer_size": 16}, "policy": {"request_timeout": 300}}}}}
         session = {"parameters": {"engines": {"loop": {
-            "config": {"system_prompt": None}, "policy": {"request_timeout": 60}}}}}
+            "config": {"buffer_size": 8}, "policy": {"request_timeout": 60}}}}}
         view = engine.resolve_config(project, "loop", session_config=session)
         self.assertEqual(view["sources"]["/policy/request_timeout"], "session")
-        self.assertIsNone(view["values"]["config"]["system_prompt"])
+        self.assertEqual(view["values"]["config"]["buffer_size"], 8)
         for value in (301, None):
             session["parameters"]["engines"]["loop"]["policy"]["request_timeout"] = value
             with self.assertRaisesRegex(ValueError, "widens"):

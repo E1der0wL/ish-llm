@@ -15,10 +15,10 @@ class ComponentCatalogTests(unittest.TestCase):
         subprocess.run([sys.executable, "-c", "import sys; import hub.components; "
             "assert 'llm' not in sys.modules; assert 'prompt_toolkit' not in sys.modules"], check=True)
         commands = component_commands(tuple(spec.name for spec in COMPONENTS))
-        self.assertEqual(list(commands), ["tools", "skills", "mcp", "rag", "agents", "workflows", "prompts", "memory"])
-        self.assertTrue(all(command == name for command, name in commands.items()))
+        self.assertEqual(list(commands), ["tool", "skill", "mcp", "rag", "agent", "workflow", "prompt", "memory"])
+        self.assertTrue(all(component_spec(name).tool_prefix == command for command, name in commands.items()))
         self.assertEqual(component_commands(("memory", "goals", "refinement", "skills")),
-                         {"skills": "skills", "agents": "agents", "memory": "memory"})
+                         {"skill": "skills", "agent": "agents", "memory": "memory"})
         with self.assertRaises(ValueError):
             component_spec("unregistered")
         with self.assertRaises(FrozenInstanceError):

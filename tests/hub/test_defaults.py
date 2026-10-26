@@ -34,7 +34,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 project_id = runtime.project.id
                 config = (await runtime.project.aget_data()).config
-                self.assertEqual(config.parameters["engines"]["loop"]["config"]["system_prompt"], SYSTEM_PROMPT)
+                self.assertEqual((await runtime.project.agents.aload("assistant"))["system_prompt"], SYSTEM_PROMPT)
                 self.assertNotIn("completion", config.parameters["engines"]["loop"])
                 skills = await runtime.project.components.aget("skills")
                 self.assertEqual(set(await skills.alist()), {item[0] for item in SKILLS})
@@ -45,16 +45,16 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(document.frontmatter["description"], description)
                     self.assertEqual(guide["markdown"], instructions)
                     self.assertEqual(document.frontmatter["metadata"]["hub-template-version"], str(TEMPLATE_VERSION))
-                record = await runtime.settings_service.load_project(project_id)
-                values = deepcopy(record["values"])
-                values["config"]["parameters"]["engines"]["loop"]["config"]["system_prompt"] = "My project prompt"
-                await runtime.settings_service.save_project(project_id, values, record["config_version"])
+                record = await runtime.project.agents.asnapshot("assistant")
+                definition = record["definition"]
+                definition["system_prompt"] = "My project prompt"
+                await runtime.project.agents.arevise("assistant", definition,
+                                                    expected_revision=record["revision"])
                 await skills.aupdate("hub-code-change", {"markdown": skill_markdown("hub-code-change", "My project rules")})
                 await skills.adelete("hub-document")
-                created = await runtime.settings_service.create_project({"title": "Custom", "config": {
-                    "parameters": {"engines": {"loop": {'config': {'system_prompt': None}}}}}})
-                self.assertIsNone(created["values"]["config"]["parameters"]["engines"]["loop"]["config"]["system_prompt"])
+                created = await runtime.settings_service.create_project({"title": "Custom", "config": {}})
                 other = await runtime.backend.projects.aload(created["project"]["id"])
+                self.assertEqual((await other.agents.aload("assistant"))["system_prompt"], SYSTEM_PROMPT)
                 self.assertEqual(len(await (await other.components.aget("skills")).alist()), len(SKILLS))
             finally:
                 await runtime.close()
@@ -62,7 +62,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await reopened.start()
                 config = (await reopened.project.aget_data()).config
-                self.assertEqual(config.parameters["engines"]["loop"]["config"]["system_prompt"], "My project prompt")
+                self.assertEqual((await reopened.project.agents.aload("assistant"))["system_prompt"], "My project prompt")
                 skills = await reopened.project.components.aget("skills")
                 self.assertEqual((await skills.aload("hub-code-change"))["markdown"], skill_markdown("hub-code-change", "My project rules"))
                 self.assertNotIn("hub-document", await skills.alist())
@@ -135,7 +135,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("assistant", await runtime.project.agents.alist())
                 self.assertEqual((await runtime.snapshot()).engines, ("loop", "graph"))
                 session = runtime.sessions[runtime.selected_id]
-                with self.assertRaisesRegex(ValueError, r"parameters\.engines\.loop\.config\.completion\.model"):
+                with self.assertRaisesRegex(ValueError, r"completion\.model"):
                     await runtime.submit(session.id, "preserve draft")
                 self.assertEqual(await session.aconversation(), [])
                 # A pure Graph workflow must execute without any Loop/model configuration.

@@ -241,10 +241,10 @@ class CompletionRecoveryTests(unittest.IsolatedAsyncioTestCase):
         backend = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model),
             recover_completion=decide)}, components=[tools])
         self.addAsyncCleanup(backend.shutdown)
-        config = {"parameters": {"engines": {"loop": {"config": {"system_prompt": "keep instructions"}, "policy": {"provider": provider or {}}}},
+        config = {"parameters": {"engines": {"loop": {"policy": {"provider": provider or {}}}},
             "components": {"tools": {"config": {"enabled": ["read"]}}}}}
         project = await backend.projects.acreate(config=config, components=["tools"])
-        await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "tools": ["read"]}, identifier="loop")
+        await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "system_prompt": "keep instructions", "tools": ["read"]}, identifier="loop")
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         handle = (await (await session.run.submit("fix A; keep API", recipients=["loop"])).wait(timeout=10))[0]
         return await handle.aresult(), await handle.steps.alist(), model, effects, session
@@ -350,7 +350,7 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
                     project = await backend.projects.acreate(components=["tools"], config={"parameters": {
                         "engines": {"loop": {"config": {}}},
                         "components": {"tools": {"config": {"enabled": ["read"]}}}}})
-                    await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "tools": ["read"]}, identifier="loop")
+                    await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "system_prompt": "keep instructions", "tools": ["read"]}, identifier="loop")
                     session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     run = (await (await session.run.submit("read", recipients=["loop"])).wait(timeout=10))[0]
                     result = await run.aresult()

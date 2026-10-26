@@ -8,6 +8,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.utils import get_cwidth
 
 from ..sidebar import SidebarItem, SidebarList
@@ -90,6 +91,7 @@ class TagBar:
             lambda: self.selected,
             self.select,
             key_bindings=registry.bindings,
+            on_activate=self.expand,
         )
         registry.attach(self.control)
         self.control.modal = TagBar.MODAL
@@ -122,7 +124,7 @@ class TagBar:
                     ),
                     self.contents,
                 ],
-                width=self.width,
+                width=lambda: Dimension.exact(self.width()),
             ),
             Condition(lambda: self.visible),
         )

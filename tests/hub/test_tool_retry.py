@@ -264,19 +264,20 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(set(seen), {str(Path(root) / "first"), str(Path(root) / "second")})
             await runtime.close()
 
-    async def test_graph_tool_uses_generic_selector_and_loop_model(self):
+    async def test_graph_tool_uses_explicit_chooser_without_borrowing_another_agents_model(self):
         from llm.components.workflows import WorkflowGraph
-        provider = ScriptedCompletion([chunk('{"changes":{"path":"data.txt"}}', finish="stop")])
-        with tempfile.TemporaryDirectory() as root:
-            (Path(root) / "data.txt").write_text("graph data")
-            runtime = await self.runtime(Path(root) / "storage", provider, file_root=root)
-            graph = (WorkflowGraph(entry="read").node("read", "tool", tool="file_read", arguments={"path": "lost/data.txt"})
-                     .node("end", "end").connect("read", "end"))
-            await (await runtime.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="reader")
-            await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="graph-reader")
-            session = await runtime.project.sessions.acreate("graph", agent_ids=sorted(await runtime.project.agents.alist()))
-            result = (await (await session.run.submit("read", recipients=["graph-reader"])).wait())[0]
-            self.assertEqual(str(result.data.status), "completed", result.data.error)
-            self.assertEqual(len(provider.requests), 1)
-            self.assertEqual(len(result.data.metadata["completions"]), 1)
-            await runtime.close()
+        for enabled in (False, True):
+            with self.subTest(chooser=enabled), tempfile.TemporaryDirectory() as root:
+                provider = ScriptedCompletion([])
+                (Path(root) / "data.txt").write_text("graph data")
+                runtime = await self.runtime(Path(root) / "storage", provider, file_root=root,
+                    tool_retry_chooser=(lambda request: RetryDecision({"path":"data.txt"})) if enabled else None)
+                graph = (WorkflowGraph(entry="read").node("read", "tool", tool="file_read", arguments={"path": "lost/data.txt"})
+                         .node("end", "end").connect("read", "end"))
+                await (await runtime.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="reader")
+                await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="graph-reader")
+                session = await runtime.project.sessions.acreate("graph", agent_ids=sorted(await runtime.project.agents.alist()))
+                result = (await (await session.run.submit("read", recipients=["graph-reader"])).wait())[0]
+                self.assertEqual(str(result.data.status), "completed" if enabled else "failed", result.data.error)
+                self.assertEqual(provider.requests, [])
+                await runtime.close()

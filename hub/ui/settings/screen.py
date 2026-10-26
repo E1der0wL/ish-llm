@@ -54,7 +54,7 @@ class SettingsScreen:
     STATUS_SEPARATOR = " · "
     DIRTY_PREFIX = "* "
     ERROR_OPERATION = "settings"
-    GLOBAL_KEYS = tuple(section.value for section in PreferenceSection)
+    GLOBAL_KEYS = (*tuple(section.value for section in PreferenceSection), SettingsSection.DEBUGGING)
     EMPTY_PAGE_HEIGHT = 1
     MINIMUM_WIDTH = 1
     MAIN_INSET = 1
@@ -253,7 +253,7 @@ class SettingsScreen:
         if self.page is self.NO_PAGE:
             return self.EMPTY_TEXT
         if isinstance(self.page, GlobalPage):
-            category, key = MessageKey.SETTINGS_GLOBAL, self.page.name
+            category, key = MessageKey.SETTINGS_GLOBAL, self.page.location
         else:
             category, key = MessageKey.SETTINGS_PROJECTS, self.page.section
         return self.t(category) + self.TITLE_SEPARATOR + self._item_title(key)
@@ -304,6 +304,8 @@ class SettingsScreen:
         get_app().invalidate()
 
     def _caption(self, key, title):
+        if key == SettingsSection.DEBUGGING:
+            key = PreferenceSection.GENERAL.value
         page = self.drafts.pages.get(key)
         return (self.DIRTY_PREFIX if page and page.dirty else self.EMPTY_TEXT) + title
 
@@ -550,13 +552,12 @@ class SettingsScreen:
             and self.navigation.focused_key() is not SettingsNavigation.NO_KEY
         ):
             get_app().layout.focus(self.navigation.left_control())
-        if key in self.global_keys and key in self.drafts.pages:
-            self.show_page(self.drafts.pages[key])
-        elif key in self.global_keys:
-            self.drafts.pages[key] = GlobalPage(
-                self, key, self.drafts.preference_values(key)
-            )
-            self.show_page(self.drafts.pages[key])
+        if key in self.global_keys:
+            storage = PreferenceSection.GENERAL.value if key == SettingsSection.DEBUGGING else key
+            if storage not in self.drafts.pages:
+                self.drafts.pages[storage] = GlobalPage(
+                    self, storage, self.drafts.preference_values(storage))
+            self.show_page(self.drafts.pages[storage])
         else:
             page = self.drafts.pages.get(self.drafts.current_project_id)
             if page is not self.NO_PAGE:
@@ -572,6 +573,8 @@ class SettingsScreen:
     def show_page(self, page):
         left = self.navigation.focused_key() is not SettingsNavigation.NO_KEY
         self.page = page
+        if isinstance(page, GlobalPage) and page.general_form is not page.NO_GENERAL_FORM:
+            page.set_section(self.selected)
         page.filter(self.query)
         self.main.vertical_scroll = self.SCROLL_TOP
         self.navigation.reset_positions()

@@ -73,7 +73,12 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                         for x in range(columns):
                             style = screen.data_buffer[y][x].style
                             attrs = app._merged_style.get_attrs_for_style_str(style)
-                            self.assertEqual(attrs.bgcolor, expected[1:], (columns, rows, x, y))
+                            cell_background = (theme.button_background
+                                if y == rows - 1 and any(name in style for name in (
+                                    "class:hub.shortcut-segment", "class:hub.shortcut-key",
+                                    "class:hub.shortcut-leading"))
+                                else expected)
+                            self.assertEqual(attrs.bgcolor, cell_background[1:], (columns, rows, x, y))
                     positions = screen.visible_windows_to_write_positions
                     windows = [view.composer.window]
                     for window in windows:

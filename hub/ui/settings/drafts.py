@@ -109,7 +109,7 @@ class SettingsDrafts:
             return
         if not requests:
             self.screen.status = self.screen.t(MessageKey.SETTINGS_SAVED)
-            self.prompt_restart(self.screen.global_keys)
+            self.prompt_restart(tuple(PreferenceSection))
             return
 
         def saved(batch):
@@ -130,7 +130,7 @@ class SettingsDrafts:
             else:
                 self.screen.choose(selected)
                 self.screen.status = self.screen.t(MessageKey.SETTINGS_SAVED)
-                self.prompt_restart(self.screen.global_keys)
+                self.prompt_restart(tuple(PreferenceSection))
 
         self.screen.call(SettingsOperation.SAVE_ALL, requests, completed=saved)
 

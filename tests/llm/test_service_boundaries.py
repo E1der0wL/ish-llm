@@ -358,8 +358,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         manager = self.manager()
         stale = deepcopy(self.project)
         await manager.start()
-        self.project.config.parameters["engines"] = {"loop": {"config": {"system_prompt": "updated"}}}
+        self.project.config.parameters["engines"] = {"loop": {"config": {"buffer_size": 8}}}
         self.projects.save(self.project)
         await manager.submit("test", recipients=["fake"])
         await manager.wait_idle()
-        self.assertEqual(self.engines.get("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["system_prompt"], "updated")
+        self.assertEqual(self.engines.get("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["buffer_size"], 8)

@@ -39,8 +39,6 @@ from typing import Callable
 from ..model import ChatMessage, HubSnapshot, SubmissionResult, SessionSummary
 from ..locales import Language
 from ..config.profile import UserProfile
-from .execution.engine_selection import requires_model, selected_engines
-from ..config.general import GeneralSettings
 from ..config.view_state import ViewStateStore
 from ..config.workspace import WorkspaceSelection
 from .observability.notifications import NotificationBuffer
@@ -670,6 +668,10 @@ class HubRuntime:
         from .project.participants import invite
         return await invite(self, project_id, session_id, agent_id)
 
+    async def change_participants(self, project_id, session_id, action, identifier, value):
+        from .project.participants import change
+        return await change(self, project_id, session_id, action, identifier, value)
+
     async def _submit_recipients(self, session_id, text, recipients, request_context):
         """Application-selected recipients share one durable Backend admission."""
         if not text.strip():
@@ -679,8 +681,6 @@ class HubRuntime:
         if not recipients:
             raise ValueError(self.t(MessageKey.PARTICIPANTS_REQUIRED))
         session = self.sessions[session_id]
-        project = await session.project.aget_data()
-        config = (await session.aget_data()).config
         from .execution.engine_selection import agent_model
 
         for selected in recipients:
@@ -688,7 +688,7 @@ class HubRuntime:
                 raise ValueError(HubRuntime.INTERNAL_RECIPIENT)
             definition = await session.project.agents.aload(selected)
             if EngineSelection.model_required(
-                agent_model(self.backend.engines, project.config, definition, config)
+                agent_model(self.backend.engines, definition)
             ):
                 raise ValueError(self.t(MessageKey.MODEL_REQUIRED))
         request = await session.run.submit(

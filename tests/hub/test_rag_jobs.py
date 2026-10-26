@@ -333,7 +333,7 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await wait_for(lambda: view.connected)
-                view.composer.text = "/rag config"
+                view.composer.text = "/rag"
                 pipe.send_text("\r")
                 await wait_for(lambda: isinstance(view._dialog, RAGManager) and not view._dialog.busy)
                 popup = view._dialog
@@ -366,7 +366,7 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await wait_for(lambda: view.connected)
-                view.composer.text = "/rag config"
+                view.composer.text = "/rag"
                 pipe.send_text("\r")
                 await wait_for(lambda: isinstance(view._dialog, RAGManager) and not view._dialog.busy)
                 popup = view._dialog
@@ -403,7 +403,7 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await wait_for(lambda: view.connected)
-                view.composer.text = "/rag config"
+                view.composer.text = "/rag"
                 pipe.send_text("\r")
                 await wait_for(lambda: isinstance(view._dialog, RAGManager) and not view._dialog.busy)
                 popup = view._dialog
@@ -415,12 +415,15 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     # PTK caches formatted controls for each rendered frame;
                     # a backend callback may arrive before the next frame.
-                    await wait_for(lambda: "0/1" in "\n".join(render_container(popup, width=100, height=32)))
-                    rendered = "\n".join(render_container(popup, width=100, height=32))
+                    size = app.output.get_size()
+                    def paint_popup():
+                        return "\n".join(render_container(popup, width=size.columns, height=size.rows))
+                    await wait_for(lambda: "0/1" in paint_popup())
+                    rendered = paint_popup()
                     self.assertIn("재시도", rendered)
                     self.assertIn("0/1", rendered)
                     view.close_dialog()
-                view.composer.text = "/rag config"
+                view.composer.text = "/rag"
                 pipe.send_text("\r")
                 await wait_for(lambda: isinstance(view._dialog, RAGManager) and view._dialog is not popup and not view._dialog.busy)
                 reopened = view._dialog

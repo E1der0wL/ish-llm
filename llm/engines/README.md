@@ -83,6 +83,14 @@ engines = {"assistant": LoopEngine()}
 
 Graph AgentNode에서도 사용할 Engine은 `for_agent(definition)`이 호출별 Engine을 반환하도록 구현하고 AgentNode의 엔진 맵에 등록합니다. 일반 `execute` 계약만 구현했다고 Agent 설정이 자동 적용되지는 않습니다. 명시적 재개까지 지원하려면 Engine별 체크포인트 생성과 `validate_resume` 검증도 구현해야 합니다. BaseEngine의 Tool helper가 체크포인트를 대신 생성하지는 않습니다.
 
+UI에서 Engine별 Agent 폼을 만들려면 순수 동기 `describe_agent()`로 전체 Agent JSON Schema를
+제공합니다. `AgentDefinition.describe()`로 공통 외형을 재사용하며, Loop/Graph는 자기 설정
+스키마를 결합합니다. 이 스키마는 선택 Agent binding에서도 검증하고 `for_agent()`의 의미 검증을
+대체하지 않습니다. 조회는 factory·모델·Tool을 실행하지 않으며 값을 만들거나 저장하지 않습니다.
+외부 API는 `project.agents.describe(engine=...)`와 `adescribe(engine=...)`입니다.
+hook이 없는 Engine의 기존 실행은 유지되지만 선택 폼 조회는 명시적으로 실패합니다.
+상세 제약과 예제는 [Agent 문서](../../docs/llm/agents.md)를 참고하세요.
+
 `for_agent()`가 반환한 Engine의 `steering_mode`는 등록 Engine의 선언과 같아야 합니다.
 미시작 Agent의 지시 예약은 등록 선언으로 탐색하고, 실제 선택·승인 대기·재개 시 이
 일치 조건을 검증합니다. 선택하지 않은 Agent의 factory나 자원은 미리 평가하지 않습니다.

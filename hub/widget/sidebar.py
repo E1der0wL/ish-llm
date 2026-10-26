@@ -59,6 +59,7 @@ class SidebarList(FormattedTextControl):
     ):
         self.items, self.selected, self.on_select = items, selected, on_select
         self.on_activate = on_activate
+        self._click_focused = None
         super().__init__(
             self.fragments,
             focusable=self.FOCUSABLE,
@@ -90,12 +91,19 @@ class SidebarList(FormattedTextControl):
             line += self.DETAIL_HEIGHT if item.detail else self.ROW_HEIGHT
         return Point(x=self.CURSOR_COLUMN, y=0)
 
+    def begin_click(self, focused):
+        """Capture focus before the host mouse router focuses the pressed Window."""
+        self._click_focused = focused
+
     def mouse_handler(self, event):
         # Handle the entire row, including whitespace beyond its title.
         if (
             event.event_type == MouseEventType.MOUSE_UP
             and event.button == MouseButton.LEFT
         ):
+            was_focused = (get_app().layout.current_control is self
+                           if self._click_focused is None else self._click_focused)
+            self._click_focused = None
             get_app().layout.focus(self)
             row = 0
             for item in self.items():
@@ -107,8 +115,9 @@ class SidebarList(FormattedTextControl):
                     < row
                     + (self.DETAIL_CLICK_HEIGHT if item.detail else self.ROW_HEIGHT)
                 ):
+                    repeated = item.key == self.selected()
                     self.on_select(item.key)
-                    if self.on_activate:
+                    if was_focused and repeated and self.on_activate:
                         self.on_activate()
                     return MouseResult.HANDLED
                 row += height

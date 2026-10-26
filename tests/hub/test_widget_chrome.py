@@ -47,7 +47,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running and view.output.transcript.window.render_info is not None)
                 self.assertNotIn("Ctrl+E", keys())
                 self.assertNotIn("c", keys())
-                self.assertEqual(view.header.fragments()[0][1], "   홈")
+                self.assertEqual(view.header.fragments()[0][1], "  홈")
                 # Keep the input help, remove only the separate sidebar hint row.
                 self.assertEqual(len(view._sidebar.content.sections), 2)
                 self.assertIs(view._sidebar.content.children[-1], view.profile_bar)
@@ -137,7 +137,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view._dialog is None)
                 with set_app(app):
                     view.set_theme(replace(view.theme, icon_style="unicode"))
-                    self.assertEqual(view.header.fragments()[0][1], " •  홈")
+                    self.assertEqual(view.header.fragments()[0][1], "•  홈")
                     for width in (20, 80, 132):
                         bar = view.shortcut_bar()
                         bar.width_available = lambda: width

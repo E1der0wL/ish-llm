@@ -8,6 +8,8 @@
 
 [기본 설정·프리셋·Agent API](application-defaults.md)는 생성 프로필, 이름별 JSON
 내보내기, 세션 내 Agent 메시지와 완료 조건 검토의 현재 계약을 설명한다.
+[Agent 설정·그룹 연결 검토](agent-settings-review.md)는 모델 설정 소유권, 스키마 폼,
+대화 상대 그룹과 단수 명령의 현재 경계를 설명한다.
 
 Hub는 모델·prompt·실행 제한·검색 전략 등 제품 선택을 새 Project의 명시 설정에 기록한다.
 Backend는 그 계약을 검증·집행한다. Host ceiling으로 저장된 Project 권한을 덮어쓰지 않으며
@@ -48,6 +50,8 @@ P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 s
 적용한 완전한 section을 저장한다. 환경 없는 구 Run fallback은 C의 실행 binding 전환 대상이다.
 
 ## 사용법·검증 기록
+
+- [공통 UI 규격](ui-consistency.md): 버튼 정렬·팝업 크기·Agent 편집·디버깅·승인 정책.
 
 - [Agent와 대화 상대](participants.md): 이름·초대·수신 대상·동시 응답·실시간 Workflow 표시.
 - [초대·관측 계약 검증](observation-contract-review.md): canonical 초대, 반복 조회 제거, 단계 전달 Owner와 검증 증거.

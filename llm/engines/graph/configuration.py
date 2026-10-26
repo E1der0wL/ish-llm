@@ -124,9 +124,18 @@ class GraphAgentOptions:
     ABSENT = None
     INVALID = "Unsupported Graph Agent engine_options"
     INVALID_WORKFLOW = "Graph Agent workflow must be a nonempty ID"
+    WORKFLOW_PATTERN = r"\S"
 
     def __init__(self, value):
         self._value = value
+
+    @classmethod
+    def describe(cls, configuration):
+        schema = deepcopy(configuration)
+        schema[SchemaKeyword.PROPERTIES][cls.WORKFLOW] = field(
+            SchemaType.STRING, minLength=AgentDefinition.MINIMUM_TEXT_LENGTH, pattern=cls.WORKFLOW_PATTERN)
+        schema[SchemaKeyword.REQUIRED] = [*schema.get(SchemaKeyword.REQUIRED, ()), cls.WORKFLOW]
+        return schema
 
     @classmethod
     def from_definition(cls, definition):

@@ -12,6 +12,7 @@ import unittest
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import CompleteEvent
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.application.current import set_app
 
 from hub.ui.chat.completion import HubCompleter
 from hub.locales import Language, en, ko
@@ -46,7 +47,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 gate.wait(10)
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, agent_id="chat", agent_definition={"engine": 'chat'}, model="openai/test", auto_title=False, project_config={"parameters": {"engines": {"chat": {'config': {'completion': {'model': 'openai/test'}}}, "review": {'config': {'completion': {'model': 'openai/test'}}}}}},
+            config = HubConfig(directory, agent_id="chat", agent_definition={"engine": 'chat', "completion":{"model":"openai/test"}}, model="openai/test", auto_title=False,
                 engine_factories={"chat": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)),
                                   "review": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
@@ -55,7 +56,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 if not runtime.sessions:
                     await runtime.new_session()
                 identifier = runtime.selected_id
-                await runtime.project.agents.acreate({"engine": "review"}, identifier="review")
+                await runtime.project.agents.acreate({"engine": "review", "completion":{"model":"openai/test"}}, identifier="review")
                 await runtime.submit(identifier, "first", "chat")
                 async with asyncio.timeout(10):
                     while not any(m.role == "reasoning" for m in (await runtime.snapshot()).messages):
@@ -153,11 +154,11 @@ class CompletionTests(unittest.TestCase):
             root = Path(directory)
             (root / "notes.md").write_text("not read by completion")
             (root / "sub folder").mkdir()
-            completer = HubCompleter(lambda: ("loop", "review"), lambda: root, Language("en"))
+            completer = HubCompleter(lambda: root, Language("en"), components=lambda: {"agent":"agents"})
             def values(text):
                 return list(completer.get_completions(Document(text), CompleteEvent(completion_requested=True)))
-            self.assertEqual([v.text for v in values("/age")], ["/agent"])
-            self.assertEqual([v.text for v in values("/agent r")], ["review"])
+            self.assertEqual([v.text for v in values("/hel")], ["/help"])
+            self.assertEqual([v.text for v in values("/agent r")], [])
             self.assertEqual([v.text for v in values("Please read @no")], ["notes.md"])
             self.assertEqual([v.text for v in values("@sub f")], ["sub folder/"])
             self.assertEqual(values("@../"), [])
@@ -185,7 +186,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                             and len(state.completions) >= minimum)
             try:
                 await until(lambda: app.is_running)
-                for prefix, expected in (("/age", "/agent"), ("/agent r", "review"),
+                for prefix, expected in (("/hel", "/help"),
                                          ("Read @no", "notes.md")):
                     view.composer.text = ""
                     pipe.send_text(prefix)
@@ -220,19 +221,19 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.composer.text, chosen)
                 # Tab without an arrow selection accepts the first displayed item.
                 view.composer.text = ""
-                pipe.send_text("/age")
-                await candidates("/age")
+                pipe.send_text("/hel")
+                await candidates("/hel")
                 pipe.send_text("\t")
                 await until(lambda: view.composer.buffer.complete_state is None)
-                self.assertEqual(view.composer.text, "/agent")
+                self.assertEqual(view.composer.text, "/help")
                 # Newline cancels an unconfirmed suggestion and never sends a request.
                 view.composer.text = ""
-                pipe.send_text("/age")
-                await candidates("/age")
+                pipe.send_text("/hel")
+                await candidates("/hel")
                 pipe.send_text("\x1b[B")
                 await until(lambda: view.composer.buffer.complete_state.current_completion is not None)
                 pipe.send_text("\x00")
-                await until(lambda: view.composer.text == "/age\n"
+                await until(lambda: view.composer.text == "/hel\n"
                             and view.composer.buffer.complete_state is None)
                 self.assertIsNone(view.composer.buffer.complete_state)
                 view.composer.buffer.document = Document("firstsecond", cursor_position=5)
@@ -255,7 +256,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 gate.wait(10)
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, model="openai/test", language="en", auto_title=False, project_config={"parameters": {"engines": {"review": {'config': {'completion': {'model': 'openai/test'}}}}}},
+            config = HubConfig(directory, model="openai/test", language="en", auto_title=False,
                 engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)),
                                   "review": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
@@ -264,7 +265,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected and not view.projects.busy)
                 await asyncio.wrap_future(controller.worker.call("manage_records", view.project_id,
-                    "agents", "create", {"name": "review", "text": '{"engine":"review"}'}))
+                    "agents", "create", {"name": "review", "text": '{"engine":"review","completion":{"model":"openai/test"}}'}))
                 await until(lambda: "review" in view.agents)
                 previous = None if view.no_sessions else view.sessions[view.selected].id
                 pipe.send_text("/new\r\r")
@@ -273,7 +274,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wrap_future(controller.worker.call(
                     "invite_agent", view.project_id, view.sessions[view.selected].id, "review"))
                 await until(lambda: "review" in view.participant_ids)
-                view.choose_agent("assistant")
+                view.output.participants.target("assistant")
                 pipe.send_text("start\r")
                 await until(lambda: any(m.role == "reasoning" for m in view.output.transcript.control.messages))
                 pipe.send_text("redirect\r")
@@ -291,8 +292,10 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("queued request\r")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("\r")  # Confirm same-Agent follow-up.
-                await until(lambda: view.composer.text == "")
-                pipe.send_text("/agent review\r")
+                await until(lambda: view._dialog is None and view.composer.text == ""
+                            and not controller._submitting and not controller._choosing_submission)
+                with set_app(app):
+                    view.output.participants.target("review")
                 await until(lambda: view.engine == "review" and view.composer.text == ""
                             and not controller._submitting and not controller._choosing_submission)
                 pipe.send_text("next request\r")
@@ -301,6 +304,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                                             for m in view.output.transcript.control.messages))
                 except TimeoutError:
                     self.fail(repr({"notice": view.notice, "agent": view.agent_id,
+                        "focus": str(app.layout.current_control), "recipient": view.recipients,
+                        "pending": (controller._submitting, controller._choosing_submission),
                         "composer": view.composer.text, "dialog": view._dialog is not None,
                         "calls": len(calls), "messages": [(m.role, m.text, m.status)
                             for m in view.output.transcript.control.messages]}))
@@ -402,7 +407,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNone(view._dialog)
                 app.layout.focus(view.composer)
                 view.composer.text = ""
-                pipe.send_text("/agent review\r")
+                with set_app(app):
+                    view.output.participants.target("review")
                 await until(lambda: view.engine == "review")
                 app.layout.focus(view._session_control)
                 pipe.send_text("c")
@@ -413,14 +419,14 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(task.done())
                 app.layout.focus(view.composer)
                 view.composer.text = ""
-                pipe.send_text("/age")
+                pipe.send_text("/hel")
                 await until(lambda: view.composer.buffer.complete_state is not None)
-                self.assertEqual(view.composer.buffer.complete_state.completions[0].text, "/agent")
+                self.assertEqual(view.composer.buffer.complete_state.completions[0].text, "/help")
                 pipe.send_text("\x1b[B\r")
-                await until(lambda: view.composer.text == "/agent")
+                await until(lambda: view.composer.text == "/help")
                 self.assertIsNone(view._dialog)
                 header = "".join(part[1] for part in view.header.fragments())
-                self.assertEqual(header, "   홈")
+                self.assertEqual(header, "  홈")
             finally:
                 app.exit()
                 await task

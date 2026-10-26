@@ -28,8 +28,8 @@ class SizedOutput(DummyOutput):
         return Size(rows=self.rows, columns=self.columns)
 
 
-async def eventually(predicate):
-    async with asyncio.timeout(3):
+async def eventually(predicate, *, timeout=3):
+    async with asyncio.timeout(timeout):
         while not predicate():
             await asyncio.sleep(0.01)
 

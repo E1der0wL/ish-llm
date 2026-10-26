@@ -289,11 +289,11 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
                                       [chunk("beta", finish="stop"), usage])
         shared = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         self.app.engines.register("alpha", shared)
-        await self.project.agents.acreate({"completion": {'model': 'openai/test'}, "engine": "alpha"}, identifier="alpha")
+        await self.project.agents.acreate({"completion": {'model': 'openai/test'}, "engine": "alpha", "system_prompt": "agent alpha"}, identifier="alpha")
         self.app.engines.register("beta", shared)
-        await self.project.agents.acreate({"completion": {'model': 'openai/test'}, "engine": "beta"}, identifier="beta")
-        await self.project.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'project alpha'}, 'policy': {'request_timeout': 12}}, "beta": {'config': {'system_prompt': 'project beta'}, 'policy': {'request_timeout': 23}}, "loop": {'config': {'system_prompt': 'must not use'}, 'policy': {'request_timeout': 99}}}}})
-        await self.session.asave(agent_ids=["alpha", "test"], config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'session alpha'}}}}})
+        await self.project.agents.acreate({"completion": {'model': 'openai/test'}, "engine": "beta", "system_prompt": "agent beta"}, identifier="beta")
+        await self.project.asave(config={"parameters": {"engines": {"alpha": {'policy': {'request_timeout': 12}}, "beta": {'policy': {'request_timeout': 23}}, "loop": {'policy': {'request_timeout': 99}}}}})
+        await self.session.asave(agent_ids=["alpha", "test"], config={"parameters": {"engines": {"alpha": {'policy': {'request_timeout': 6}}}}})
         other = await self.project.sessions.acreate("other", agent_ids=sorted(await self.project.agents.alist()))
         a, b = await asyncio.gather(self.session.run.submit("a", recipients=["alpha"]),
                                     other.run.submit("b", recipients=["beta"]))
@@ -301,7 +301,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([len(group) for group in groups], [1, 1])
         runs = [group[0] for group in groups]
         self.assertEqual({r["messages"][0]["content"] for r in provider.requests},
-                         {"session alpha", "project beta"})
+                         {"agent alpha", "agent beta"})
         self.assertTrue(all("timeout" not in r for r in provider.requests))
         self.assertIsNone(shared.parameter_key)
         for run in runs:
@@ -314,14 +314,17 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
     async def test_engine_can_choose_explicit_parameter_key(self):
         provider = ScriptedCompletion([chunk('one', finish='stop')])
         await self.project.asave(config={'parameters': {'engines': {
-            'stage': {'config': {'system_prompt': 'inner'}}}}})
+            'stage': {'policy': {'max_iterations': 2}}}}})
         self.app.engines.register('explicit', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider), parameter_key='stage'))
-        await self.project.agents.acreate({"engine": "explicit", "completion": {"model": "openai/test"}}, identifier="explicit")
+        await self.project.agents.acreate({"engine": "explicit", "system_prompt": "inner", "completion": {"model": "openai/test"}}, identifier="explicit")
         await self.session.asave(agent_ids=["explicit", "test"])
         run = (await (await self.session.run.submit('go', recipients=['explicit'])).wait(timeout=5))[0]
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
         self.assertEqual(provider.requests[0]['messages'][0]['content'], 'inner')
         self.assertEqual([step.kind for step in await run.steps.alist()], ['llm'])
+        view = self.app.engines.get('explicit').resolve_config(self.project.data.config, 'explicit')
+        self.assertEqual(view['values']['policy']['max_iterations'], 2)
+        self.assertEqual(view['configuration_key'], 'stage')
         for invalid in ('', ' ', 1):
             with self.assertRaises(ValueError):
                 LoopEngine(parameter_key=invalid)

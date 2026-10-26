@@ -7,6 +7,7 @@ from .followup import INSTRUCTION, split_followup
 from ..tools.advice import INSTRUCTION as RISK_INSTRUCTION
 from .completion_review import TaskCompletion
 from ..tools.application import HubApplicationTools
+from ...asset.guides import WORK_CYCLE
 
 
 class FollowupSession(CompletionSession):
@@ -25,7 +26,7 @@ class FollowupSession(CompletionSession):
         )
         HubInputContext.insert(request, HubApplicationTools.DISCOVERY_INSTRUCTION)
         if any(tool.name == TaskCompletion.NAME for tool in request.tools):
-            HubInputContext.insert(request, TaskCompletion.INSTRUCTION)
+            HubInputContext.insert(request, TaskCompletion.INSTRUCTION + HubInputContext.SEPARATOR + WORK_CYCLE)
         if False:
             yield
 

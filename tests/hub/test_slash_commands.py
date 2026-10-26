@@ -13,7 +13,7 @@ from prompt_toolkit.input import create_pipe_input
 from hub.backend.runtime import HubConfig
 from hub.ui.application import create_application
 from hub.ui.input.commands import HubCommands
-from hub.backend.project.component_commands import ACTIONS, component_commands, parse_arguments
+from hub.backend.project.component_commands import component_commands, parse_arguments
 from hub.ui.chat.completion import HubCompleter
 from hub.locales import Language
 from prompt_toolkit.document import Document
@@ -27,11 +27,10 @@ from tests.hub.test_live import until
 class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
     def test_builtin_completion_and_dispatch_share_the_public_commands(self):
         language = Language("en")
-        completer = HubCompleter(lambda: ("loop", "graph"), lambda: ".", language)
+        completer = HubCompleter(lambda: ".", language)
         suggestions = list(completer.get_completions(Document("/"), CompleteEvent()))
         cases = (
             ("/help", "help_dialog", ()),
-            ("/agent graph", "choose_agent", ("graph",)),
             ("/new   New session  ", "session_dialog", ("new", "New session")),
             ("/clone Copy", "session_dialog", ("clone", "Copy")),
             ("/stop", "on_interrupt", ("session",)),
@@ -48,44 +47,25 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.composer.text, "")
                 view.on_submit.assert_not_called()
         self.assertEqual([item.text for item in completer.get_completions(
-            Document("/agent gr"), CompleteEvent())], ["graph"])
+            Document("/agent gr"), CompleteEvent())], [])
 
-    def test_only_managed_components_and_two_actions_are_exposed(self):
-        commands = component_commands(("tools", "rag", "skills", "workflows", "agents", "memory", "goals", "refinement", "mcp"))
-        self.assertEqual(set(commands), {"tools", "rag", "skills", "workflows", "agents", "mcp", "memory"})
-        self.assertEqual(set(commands), set(commands.values()))
+    def test_only_singular_manager_commands_without_subcommands(self):
+        commands = component_commands(("tools", "rag", "skills", "workflows", "agents", "memory", "mcp"))
+        self.assertEqual(set(commands), {"tool", "rag", "skill", "workflow", "agent", "mcp", "memory"})
         language = Language("ko")
-        completer = HubCompleter(lambda: (), lambda: ".", language, components=lambda: commands)
-        suggestions = [item.text for item in completer.get_completions(Document("/"), CompleteEvent())]
-        for alias in ("tool", "skill", "workflow"):
-            self.assertNotIn("/" + alias, suggestions)
-            view = Mock(component_commands=commands)
-            self.assertFalse(HubCommands(view).execute(f"/{alias} config"))
-            view.on_component.assert_not_called()
-        self.assertIn("/agent", suggestions)
-        view = Mock(component_commands=commands)
-        self.assertTrue(HubCommands(view).execute("/agent config"))
-        view.choose_agent.assert_called_once_with("config")
-        view.on_component.assert_not_called()
-        for command in commands:
-            self.assertEqual(suggestions.count("/" + command), 1)
-            view = Mock(component_commands=commands)
-            self.assertTrue(HubCommands(view).execute(f"/{command} config"))
-            view.on_component.assert_called_once_with(command, "config")
-            values = [item.text for item in completer.get_completions(Document(f"/{command} "), CompleteEvent())]
-            self.assertEqual(values, list(ACTIONS))
-        for action in ("list", "get id", "create id {}", "update id {}", "delete id", "settings", "install id", "config extra"):
+        for argument in ("config", "help", "list", "reviewer"):
             with self.assertRaises(ValueError):
-                parse_arguments(action, language)
-        self.assertEqual(parse_arguments("", language), "help")
+                parse_arguments(argument, language)
+        self.assertIsNone(parse_arguments("", language))
+
     def test_registered_commands_keep_their_actions(self):
         view = Mock(component_commands={"rag": "RAG"})
         commands = HubCommands(view)
         self.assertTrue(commands.execute("/help"))
         view.help_dialog.assert_called_once_with()
         self.assertEqual(view.composer.text, "")
-        self.assertTrue(commands.execute("/rag config"))
-        view.on_component.assert_called_once_with("rag", "config")
+        self.assertTrue(commands.execute("/rag"))
+        view.on_component.assert_called_once_with("rag", "")
         view.on_submit.assert_not_called()
 
     async def test_unknown_slash_input_reaches_provider_unchanged(self):

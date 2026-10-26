@@ -33,7 +33,6 @@ class LoopRegistration:
 
 
 class LoopParameters:
-    SYSTEM_PROMPT = "system_prompt"
     BUFFER_SIZE = "buffer_size"
     MAX_ITERATIONS = "max_iterations"
     REQUEST_TIMEOUT = "request_timeout"
@@ -47,9 +46,8 @@ class LoopParameters:
     INPUT_POLICY_PATH = "policy.completion"
     TIMEOUT_SUFFIX = "timeout"
     POSITIVE_MINIMUM = 0
-    PROMPT_DESCRIPTION = "시스템 프롬프트"
     LAYOUT = ParameterLayout(
-        config=(SYSTEM_PROMPT, BUFFER_SIZE),
+        config=(BUFFER_SIZE,),
         policy=(
             MAX_ITERATIONS,
             REQUEST_TIMEOUT,
@@ -96,18 +94,10 @@ class LoopParameters:
     def final_review(self):
         return self._value.get(self.FINAL_REVIEW)
 
-    def default_system_prompt(self, prompt):
-        self._value.setdefault(self.SYSTEM_PROMPT, prompt)
-        return self._value
-
     @classmethod
     def default_provider(cls, policy, value):
         policy.setdefault(cls.PROVIDER, value)
         return policy
-
-    @property
-    def system_prompt(self):
-        return self._value.get(self.SYSTEM_PROMPT)
 
     @classmethod
     def option_schema(cls, names):
@@ -130,10 +120,6 @@ class LoopParameters:
     @classmethod
     def describe(cls, engine):
         properties = engine._option_schema()
-        properties[cls.SYSTEM_PROMPT] = {
-            SchemaKeyword.TYPE: [SchemaType.STRING, SchemaType.NULL],
-            SchemaKeyword.DESCRIPTION: cls.PROMPT_DESCRIPTION,
-        }
         properties[cls.INPUT_POLICY] = CompletionPolicy.describe_config()
         properties[cls.PROVIDER] = {
             **provider_schema(),
@@ -197,7 +183,7 @@ class LoopAgentOptions:
 
     @property
     def prompt(self):
-        return self._value[self.SYSTEM_PROMPT]
+        return self._value.get(self.SYSTEM_PROMPT)
 
     @property
     def require_tool(self):
@@ -214,10 +200,6 @@ class LoopAgentOptions:
     @classmethod
     def with_prompt(cls, options, prompt):
         return {**options, cls.SYSTEM_PROMPT: prompt}
-
-    @classmethod
-    def set_prompt(cls, overrides, prompt):
-        overrides[cls.SYSTEM_PROMPT] = prompt
 
     @classmethod
     def join_prompt(cls, parts):

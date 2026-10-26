@@ -151,7 +151,6 @@ def create_backend(config: "HubConfig"):
             **({FileReadArguments.NAME: file_candidates} if builtins else {}),
             **config.tool_retry_evidence,
         },
-        fallback_engine=engines[HubEngineIdentity.LOOP],
         builtins=builtins,
     )
     engines = {

@@ -32,6 +32,13 @@ engines = {"assistant": LoopEngine()}
 
 등록 이름에 맞춰 `ProjectConfig.parameters["engines"]["assistant"]`에 설정합니다. `parameter_key`을 명시하면 별도 설정 키를 사용할 수 있습니다. 요청마다 저장 Agent ID를 지정합니다.
 
+Loop의 공개 `config` 항목은 `buffer_size`입니다. 시스템 지침은 Agent의
+`system_prompt`와 선택한 Prompt·Skill에서 구성하며 Loop가 실행 입력으로 사용합니다.
+구성 순서는 Prompt → Agent의 인라인 지침 → Skill입니다. Agent의 지침이 없거나
+`null`/빈 문자열이면 인라인 지침을 추가하지 않으며, 선택한 Prompt·Skill은 그대로 적용합니다.
+Project/Session/Agent `engine_options`의 `config.system_prompt`는 거부합니다.
+자동 이관이나 숨은 기본 지침은 없고, 지침은 승인·재개 실행 binding에 계속 포함됩니다.
+
 ## 한 반복의 흐름
 
 1. 반복 경계에서 추가 지시를 선택하고 Session 문맥과 completion processor로 입력을 구성합니다.

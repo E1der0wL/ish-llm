@@ -121,19 +121,19 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("writer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=first)))
         self.app.engines.register("reviewer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=second)))
         project = await self.app.projects.acreate(components=["notes"], config=ProjectConfig(parameters={
-            "engines": {"writer": {'config': {'system_prompt': None}},
+            "engines": {"writer": {'config': {'buffer_size': 8}},
                         "reviewer": {}},
             "components": {"notes": {'config': {'model': 'notes/data', 'temperature': 999}}},
         }))
         view = await project.adescribe_config()
         effective = view["effective_engines"]["writer"]
-        for path in ("/config/system_prompt",):
+        for path in ("/config/buffer_size",):
             self.assertEqual(effective["sources"][path], "project")
             self.assertTrue(effective["editable"][path])
-        self.assertIsNone(effective["values"]["config"]["system_prompt"])
+        self.assertEqual(effective["values"]["config"]["buffer_size"], 8)
         self.assertNotIn("completion", effective["values"]["config"])
         fields = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["writer"]["properties"]
-        self.assertNotIn("x-host-override", fields["config"]["properties"]["system_prompt"])
+        self.assertNotIn("x-host-override", fields["config"]["properties"]["buffer_size"])
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         for name in ("writer", "reviewer"):
             await project.agents.acreate({"engine": name, "completion": {

@@ -9,7 +9,7 @@ from llm.core.models import ProjectConfig
 from llm.services.schema import ProjectConfiguration
 from llm.components.tools.selection import ToolSelection
 
-from ...asset.guides import STARTER_SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
+from ...asset.guides import STARTER_SKILLS
 from .agents import DEFAULT_AGENT
 from .title_contract import TitleEngineIdentity
 from llm.core.implementation_parameters import ImplementationParameters
@@ -39,9 +39,21 @@ def provider_defaults():
     return deepcopy(HubDefaults.PROVIDER)
 
 
-def rag_defaults():
+def rag_defaults(*, extractor=None):
     """Model-independent defaults; graph extraction is an explicit later opt-in."""
-    return deepcopy(HubDefaults.RAG)
+    from llm.components.rag.configuration import RAGConfiguration
+    from llm.components.rag.prompts import ExtractionOptions
+
+    values = deepcopy(HubDefaults.RAG)
+    # A host-supplied extractor owns its protocol. Only the public extraction
+    # configuration capability admits JSON-mode/repair options; never force
+    # model-client options into a custom extract(chunks) implementation.
+    if extractor is not None and not callable(
+        getattr(extractor, RAGConfiguration.CLIENT_EXTRACTION_METHOD, None)
+    ):
+        values[ImplementationParameters.CONFIG].pop(ExtractionOptions.KEY)
+        values[ImplementationParameters.POLICY][ExtractionOptions.KEY].pop(ExtractionOptions.Field.REPAIR_ATTEMPTS)
+    return values
 
 
 async def create_project(
@@ -53,6 +65,7 @@ async def create_project(
     conversation_storage,
     agent_id=DEFAULT_AGENT,
     agent_definition=HubDefaults.UNSPECIFIED_AGENT,
+    agent_completion=None,
 ):
     from ..progress import OperationProgress
     from ...locales.keys import MessageKey
@@ -71,7 +84,8 @@ async def create_project(
             RAGComponent.name
         ).to_dict()
         project_config.set_component_parameters(
-            RAGComponent.name, ProjectConfig.merge(rag_defaults(), current)
+            RAGComponent.name, ProjectConfig.merge(
+                rag_defaults(extractor=backend.project_manager.components.get(RAGComponent.name).extractor), current)
         )
     ToolRetryPolicy.apply_defaults(
         project_config.policies,
@@ -98,18 +112,6 @@ async def create_project(
     engines = ProjectConfiguration.engine_parameter_schemas(
         backend.describe_project_config()
     )
-    if ProjectConfiguration.engine_supports(
-        engines,
-        HubEngineIdentity.LOOP,
-        ImplementationParameters.CONFIG,
-        LoopParameters.SYSTEM_PROMPT,
-    ):
-        parameters = project_config.parameter_targets.engine(HubEngineIdentity.LOOP)
-        values = parameters.config
-        LoopParameters(values).default_system_prompt(SYSTEM_PROMPT)
-        project_config.set_engine_parameters(
-            HubEngineIdentity.LOOP, parameters.with_config(values).to_dict()
-        )
     for name in (HubEngineIdentity.LOOP, TitleEngineIdentity.NAME):
         if ProjectConfiguration.engine_supports(
             engines, name, ImplementationParameters.POLICY, LoopParameters.PROVIDER
@@ -135,7 +137,8 @@ async def create_project(
 
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_TOOLS)
         await initialize(
-            backend, project, identifier=agent_id, definition=agent_definition
+            backend, project, identifier=agent_id, definition=agent_definition,
+            completion=agent_completion,
         )
         if SkillComponent.name in components:
             skills = await project.components.aget(SkillComponent.name)

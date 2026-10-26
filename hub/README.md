@@ -79,7 +79,7 @@ python -m hub \
 
 OpenAI 호환 서버라면 `--api-base https://YOUR_SERVER/v1`을 추가합니다.
 `--model`에는 LiteLLM의 provider/model 형식을 사용합니다. 환경변수 인증을 사용할 수 있습니다.
-설정 화면에서 `config.parameters.engines.loop.config.completion.api_key`를 직접 입력하면 다른 Project 설정과 함께 저장됩니다.
+Agent 편집 화면에서 `completion.api_key`를 직접 입력하면 해당 Agent 정의에 저장됩니다.
 
 설정 화면에는 저장할 초안만 표시하며, 저장값·현재 적용값의 별도 표시 행은 없습니다.
 호스트가 고정한 필드는 읽기 전용입니다. JSON 객체 일부만 고정된 경우 나머지 키는 수정할
@@ -92,7 +92,7 @@ Project 설정으로 자동 복사하지 않습니다.
 이후 같은 workspace로 실행하면 기존 Project와 대화를 다시 엽니다.
 **model/api-base 인자는 기본 Project를 처음 만들 때만 적용**합니다. 기존 설정을
 조용히 덮어쓰지 않습니다. 다른 모델을 처음 시험하려면 새 workspace를 지정하거나
-설정 보조 버튼의 Project 설정 또는 llm의 Project 설정 API로 기존 Project를 수정하세요.
+/agent 관리 창 또는 llm의 Agent API로 해당 Agent를 수정하세요.
 
 특정 Project와 Session을 열 수도 있습니다. ID는 프로젝트 로그와 백엔드 조회 API로 확인할 수 있습니다.
 
@@ -111,8 +111,8 @@ if hub_plugin is not None:
 
 기본 저장소는 `~/.ish/hub-workspace`입니다. 모델이 없는 첫 실행에서도 Hub와 설정을 열 수 있습니다.
 홈의 프로젝트 목록에서 프로젝트를 선택하고 설정 보조 버튼 또는 프로필 영역의 설정 버튼을 누르세요.
-엔진 · loop에서 `config.parameters.engines.loop.config.completion.model`을 지정하고 저장한 뒤 홈 버튼으로 돌아가 대화하세요.
-제공자 인증은 환경변수 또는 Project의 `config.parameters.engines.loop.config.completion.api_key`로 설정합니다.
+/agent 관리 창의 assistant에서 `completion.model`을 지정하고 저장한 뒤 홈 버튼으로 돌아가 대화하세요.
+제공자 인증은 환경변수 또는 Agent의 `completion.api_key`로 설정합니다.
 기존 workspace와 모델을 지정하는 `install(prompt, config=HubConfig(...))`도 지원합니다.
 
 ### OpenAI 모델로 시험하기
@@ -124,8 +124,8 @@ WSL에서 **ish를 실행하기 전** 환경변수로 지정합니다.
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
-ish를 실행하고 Ctrl+Q로 Hub를 연 다음 `/agent assistant`로 저장된 Agent를 지정합니다. 입력창에서
-설정 보조 버튼에서 엔진 · loop를 선택해 프로젝트의 `config.parameters.engines.loop.config.completion` 설정을 엽니다.
+ish를 실행하고 Ctrl+Q로 Hub를 연 다음 `/agent`로 관리 창을 열고 assistant를 편집합니다. 입력창에서
+모델·주소·인증은 해당 Agent의 `completion` 항목에서 설정합니다.
 
 | 항목 | 시험 설정 |
 | --- | --- |
@@ -137,8 +137,7 @@ ish를 실행하고 Ctrl+Q로 Hub를 연 다음 `/agent assistant`로 저장된 
 지원하는 모델 예시입니다. 계정에서 사용 가능한 다른 모델 ID도 `openai/모델_ID` 형식으로
 지정할 수 있습니다. 문자열 필드는 따옴표 없이 입력합니다. 기존 Gemini API 키·주소·전용 옵션을
 함께 제거하고 저장 버튼으로 저장합니다. 새 세션을 만들어 간단한 요청부터 시험하세요.
-Session의 별도 모델 설정이나 `.ishrc.py`의 호스트 고정 completion 옵션이 있다면 해당 설정도
-확인해야 합니다. 기존 프로젝트의 모델 변경은 `HubConfig.model` 대신 위 프로젝트 설정으로 합니다.
+기존 프로젝트의 모델 변경은 `HubConfig.model` 대신 해당 Agent 편집 화면에서 합니다.
 
 기본 Engine은 `loop`, `graph`이고 Graph에는 AgentNode와 ToolNode 처리기가 연결됩니다.
 새 Project에는 `tools`, `skills`, `mcp`, `rag`, `vision`, `agents`, `workflows`, `memory`, `goals`, `refinement`, `prompts` 및 Hub 내장 도구가 등록됩니다.
@@ -231,12 +230,12 @@ Tab/Shift+Tab으로 항목을 이동합니다.
 메인 모델로 제목을 생성합니다. 이름 없는 복제는 복제된 대화로 제목을 생성합니다.
 자동 이름 생성은 별도 모델 호출 한 번을 사용하며 `auto_title=False`로 끌 수 있습니다.
 제목 생성용 Session은 UI 목록에서 제외하고 작업 후 소프트 삭제합니다. 사용자 대화에는
-제목 요청이 들어가지 않습니다. 제목 모델·접속 인자는 완료된 대화의 Engine/Session 설정에서 가져오며,
-`config.parameters.engines._hub_title.config.completion`의 명시적 값이 우선합니다.
+제목 요청이 들어가지 않습니다. 제목 모델·접속 인자는 완료된 대화를 담당한 Agent에서 가져오며,
+내부 `_hub_title` Agent의 `completion`의 명시적 값이 우선합니다.
 대화의 JSON 출력 형식·종료 문자열·출력 토큰 제한은 제목에 자동으로 복사하지 않습니다.
 실패하면 알리고 같은 설정·같은 응답으로 반복 호출하지 않습니다. 모델·접속 설정을 수정하거나
-새 응답이 완료되면 다시 시도합니다. Graph처럼 직접 모델 설정이 없는 엔진은 loop 설정을 사용하며,
-그것도 없거나 호스트 런타임 클라이언트만 사용하는 경우 제목 전용 completion을 설정해야 합니다.
+새 응답이 완료되면 다시 시도합니다. Graph처럼 직접 모델 설정이 없는 Agent는 제목 전용 Agent의
+completion을 설정해야 합니다. 다른 Agent의 모델을 임의로 가져오지 않습니다.
 복제는 원본의 실행과 대기열이 비었을 때 가능하며, 대화/설정은 복사하고 Run은 복사하지 않습니다.
 
 ## ish에서 실제 대화 사용
@@ -347,7 +346,7 @@ Hub가 열린 동안 들어온 셸 출력은 원래 셸 화면에 남습니다.
 ## 엔진 등록과 언어팩
 
 `.ishrc.py`에서 엔진 인스턴스를 만드는 함수를 등록합니다. 생성은 백엔드 스레드에서
-수행되며 `/agent ID`로 다음 요청의 저장 Agent를 지정합니다. 이미 접수된 요청의 binding은
+수행되며 대화 상대 목록의 **수신 대상 변경**으로 다음 요청의 Agent를 지정합니다. 이미 접수된 요청의 binding은
 바뀌지 않습니다. `agent_id`는 기본 선택 ID이며 `agent_definition`은 새 Project에 저장할
 명시적 정의입니다. 생략하면 Hub의 생성 프리셋을 저장합니다. 기존 Project에는 재주입하지 않습니다.
 
@@ -360,26 +359,27 @@ config = hub_plugin.HubConfig(
     agent_id="assistant",
     language="ko",
     file_root=Path.cwd(),
+    agent_definition={
+        "engine": "loop",
+        "completion": {"reasoning_effort": "low"},
+        "system_prompt": "Inspect the workspace and complete the requested work.",
+    },
     engine_factories={
-        "loop": lambda: LoopEngine(completion_kwargs={"reasoning_effort": "low"}),
-        "review": lambda: LoopEngine(
-            system_prompt="코드를 검토하고 오류와 개선점을 설명하세요.",
-            completion_kwargs={"reasoning_effort": "low"},
-        ),
+        "loop": LoopEngine,
+        "review": LoopEngine,
     },
 )
 hub = hub_plugin.install(prompt, config=config)
 ```
 
 Gemini의 thinking/reasoning 설정은 [LiteLLM 공식 문서](https://docs.litellm.ai/docs/providers/gemini)에
-따릅니다. 위 `completion_kwargs`는 엔진의 호출 옵션이므로 기존 Project에도 적용됩니다.
+따릅니다. 위 `agent_definition`은 새 Project의 assistant 정의이며 기존 Project에는 덮어쓰지 않습니다.
 
-설정 창에서도 **설정 보조 버튼 → 엔진 · loop → `config.parameters.engines.loop.config.completion.reasoning_effort`**로
+설정 창에서도 **/agent → Agent 편집 → `completion.reasoning_effort`**로
 지정할 수 있습니다. `e`로 외부 에디터를 열어 `low` 등의 모델이 지원하는 값을 따옴표 없이 입력한 뒤
 에디터에서 저장·종료하고 설정 화면에서 **저장**하세요. 저장한 프로젝트 옵션은 이후 새 Run에 적용되며 재시작 후에도 유지됩니다.
 빈칸으로 저장하면 이 프로젝트의 옵션을 제거합니다. 이는 thinking 비활성화가 아니라 기본 동작으로 돌아가는 것입니다.
-Session·Agent의 별도 completion 설정이나 `.ishrc.py`의 `completion_kwargs`가 있으면 해당 설정이 우선합니다.
-설정 창에서 관리하려면 `.ishrc.py`에 고정한 `reasoning_effort`는 제거하세요.
+모델·인증·주소·추론 옵션은 Agent가 소유하고 Engine에는 실행 정책만 저장합니다.
 모델의 thinking 동작과 텍스트 반환은 별개이며, Hub는 응답에 포함된 `reasoning_content`만 표시합니다.
 
 모델 자체는 기존 Project의 저장된 모델을 유지합니다. 다른 Engine 구현도 같은 방식으로
@@ -408,18 +408,18 @@ Enter → 방향키 → Enter로 선택을 마친 뒤 저장하면 즉시 적용
 ### 컴포넌트 데이터와 설정
 
 현재 프로젝트에서 선택한 tools·skills·mcp·rag·agents·workflows·prompts만 명령과 자동완성에 표시합니다.
-각 컴포넌트는 등록된 이름 그대로 `config`와 `help`를 지원하며 단수 별칭은 제공하지 않습니다.
+컴포넌트 명령은 단수형 이름으로 관리 창을 엽니다. 도움말은 관리 창 안에 있으며 하위 명령은 없습니다.
 
 ```text
-/tools config
-/skills config
-/mcp config
-/rag config
-/agents config
-/workflows config
-/prompts config
-/memory config
-/agents help
+/tool
+/skill
+/mcp
+/rag
+/agent
+/workflow
+/prompt
+/memory
+/agent
 ```
 
 관리 창에서 경로를 가져오고 항목을 편집·삭제합니다.
@@ -439,7 +439,7 @@ RAG는 문서 API로 원문과 색인을 함께 관리합니다. 새 프로젝�
 [RAG 설정·이미지 사용법](../docs/hub/rag.md)을 참고하세요.
 
 Memory·Goals·Refinement는 작업 중 모델 도구와 정책으로 사용합니다.
-사용자는 `/memory config`로 프로젝트·세션 메모리를 조회·생성·수정·삭제할 수 있습니다.
+사용자는 `/memory`로 프로젝트·세션 메모리를 조회·생성·수정·삭제할 수 있습니다.
 새 프로젝트에는 기억 회상·목표 문맥 주입·개선안 도구 정책과 네 종류의 생성 스킬이 들어갑니다.
 기존 프로젝트의 선택·설정·스킬은 재열기 시 변경하지 않습니다.
 [연결 방식과 도구](../docs/hub/resource-authoring.md),
@@ -475,11 +475,11 @@ Ctrl+Q로 셸 프롬프트에 돌아가 있어도 알림이 표시되며 입력 
 
 ### 저장된 Agent로 Graph Workflow 선택
 
-`/agents config`에서 Project의 Agent 정의와 표시 이름을 관리합니다.
+`/agent`에서 Project의 Agent 정의와 표시 이름을 관리합니다.
 홈의 대화 상대 보조 버튼에서 **에이전트 추가**로 현재 세션에 초대합니다.
-목록에서 방향키로 선택한 뒤 Space/Enter를 누르면 해당 Agent만 수신하고,
-다시 누르면 초대한 모두에게 전송합니다. 입력창 제목에 수신 대상이 표시됩니다.
-`/agent ID`도 초대한 대화 상대 한 명을 지정합니다.
+목록에서 방향키로 선택한 뒤 Space/Enter의 **수신 대상 변경**을 선택하면 해당 Agent만 수신하고,
+같은 대상을 다시 지정하면 초대한 모두에게 전송합니다. 그룹을 만들고 Agent를 배정하여 그룹 단위로
+수신할 수도 있습니다. 입력창 제목에 수신 대상이 표시됩니다.
 Agent별 동시 응답은 이름으로 구분하며 Graph Agent의 생각 영역에는 Workflow와
 노드 진행 상태가 표시됩니다. 자세한 동작은 [대화 상대 문서](../docs/hub/participants.md)를 참고하세요.
 Engine 등록은 실행 전략을 제공하며, 등록만으로 Agent가 생성되지는 않습니다.
@@ -504,7 +504,7 @@ await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": 
 
 Workflow는 [공개 정의 API](../llm/components/workflows/README.md)로 저장합니다.
 Agent는 Component 선택과 독립된 Project 도메인입니다. 등록한 Workflow는
-`/workflows config`에서 편집합니다. 필요한 Component 선택은 `project.components.aselect()`로 변경합니다.
+`/workflow`에서 편집합니다. 필요한 Component 선택은 `project.components.aselect()`로 변경합니다.
 
 Hub 확장에서는 `view.choose_agent("coordinator")`로 선택합니다. 전송은
 `session.run.submit(text, recipients=[...], request_context=...)`를 사용합니다.
@@ -512,9 +512,10 @@ Hub 확장에서는 `view.choose_agent("coordinator")`로 선택합니다. 전�
 선택은 Project·Session별로 유지하고 접수된 요청은 Agent 정의·revision·Engine binding을 고정합니다.
 실행·재개 전 필수 증거를 검증하며 선택된 정의가 달라지면 실행을 거부합니다.
 
-입력창 명령은 `/help`, `/agent`, `/agents`, `/new`, `/clone`, `/stop`, `/details`입니다.
+입력창 공통 명령은 `/help`, `/new`, `/clone`, `/stop`, `/details`입니다. 컴포넌트 관리는
+`/agent`, `/tool`, `/skill`, `/mcp`, `/rag`, `/workflow`, `/prompt`, `/memory`로 엽니다.
 `/new 이름`, `/clone 이름`은 이름이 채워진 확인 창을 엽니다. `/`는 명령,
-`/agent `는 초대한 Agent, `@src/`는 지정한 루트 아래 경로 후보를 표시합니다.
+`/`는 명령어, `@src/`는 지정한 루트 아래 경로 후보를 표시합니다. 도움말은 각 관리 창 안에서 엽니다.
 방향키 ↑↓로 완성 후보를 선택하고 Tab으로 확정합니다. 후보를 고르기 전 Tab을 누르면
 첫 후보를 확정합니다. Ctrl+Space는 미확정 후보를 취소하고 원래 입력에 줄바꿈을 넣습니다.
 ESC로 좌측 패널에 이동하면
@@ -859,7 +860,7 @@ Project 순으로 선택하며, 활성 Project가 없을 때만 `projects.acreat
 `.hub/startup.lock`으로 동시 Hub 시작을 직렬화합니다. llm의 default-project 포인터는 없습니다.
 Session은 사용자가 생성합니다. Session 설정은 `parameters.engines.<이름>`에서 명시적으로
 덮어쓰고 Project 값을 생성 시 복사하지 않습니다. 프로젝트 공용 전달 인자는 대상별
-딕셔너리이며, Loop 모델 설정은 `config.parameters.engines.loop.config.completion`에 둡니다.
+딕셔너리이며, 모델 설정은 각 Agent의 `completion`에 둡니다. Engine에는 실행 설정만 둡니다.
 
 HubConfig.model/api_base는 **신규 Project**의 loop에 적용하는
 Hub 템플릿입니다. 다른 사용자 엔진에는 자동 전파하지 않습니다. 이름이 다른 엔진은
@@ -885,7 +886,7 @@ project_config.parameters.engines에 명시하세요. 자동 제목은 내부 `_
 시스템 프롬프트는 `config.parameters.engines.loop.config.system_prompt`에 저장하며 설정 화면에서
 편집할 수 있습니다. 생성 시 명시한 값(빈 문자열·null 포함)을 유지합니다. 프롬프트는 사용자의
 언어로 응답하고, 실제 가능한 작업을 수행·검증하며, 관련 Skill을 먼저 찾아 읽도록 안내합니다.
-등록된 Skill은 `/skills config` 관리 창으로
+등록된 Skill은 `/skill` 관리 창으로
 관리합니다. 수정·삭제한 내용을 다시 열 때 복원하거나 덮어쓰지 않습니다.
 
 일반 Loop는 llm이 제공하는 `skill_list`·`skill_read` Tool로 필요한 지침을 읽을 수 있습니다.
@@ -963,14 +964,14 @@ RAG 관리 창의 가져오기·수정은 같은 진행 표시를 사용합니�
 
 ## 내장 도구와 질문 입력
 
-`/tools config`에서 내장 도구를 Space로 켜고 끌 수 있습니다.
+`/tool`에서 내장 도구를 Space로 켜고 끌 수 있습니다.
 내장 도구는 기본 활성화이며, 직접 비활성화한 상태는 유지합니다.
 `ask_user` 질문이 오면 기존 입력창이 답변 모드가 되고, 텍스트나 선택지 번호를 입력한 뒤
 Enter를 누르면 같은 작업이 이어집니다. 도구 승인은 같은 입력창에서 명시적으로 선택합니다.
 자세한 수명·저장·실행 정책은 [질문·내장 도구](../docs/hub/questions-tools.md)를 참고하세요.
 
 `test_workspace_create/list/execute/delete`로 테스트 공간을 만들고 OS 샌드박스 명령을 실행할 수
-있습니다. 기존 Project에는 `/tools config`에서 필요한 새 도구를 선택하세요.
+있습니다. 기존 Project에는 `/tool`에서 필요한 새 도구를 선택하세요.
 파일 도구에 `workspace_id`를 주면 테스트 파일을 작성·확인합니다. 생성·실행·삭제는 기존
 승인 경로를 거치며, Run 종료 후에도 산출물은 명시적 삭제까지 남습니다. Linux Bubblewrap이
 필요하고 네트워크는 차단됩니다. [설정과 격리 범위](../docs/llm/test-workspaces.md)를 참고하세요.
