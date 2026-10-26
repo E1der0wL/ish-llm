@@ -126,14 +126,14 @@ class SkillIntegrationTests(unittest.IsolatedAsyncioTestCase):
         async with BuiltinTools(work, checks={"verify": [sys.executable, "-c",
                 "from sample import add; assert add(2, 3) == 5; print('verified')"]}) as toolkit:
             components = [BuiltinToolComponent(toolkit, name="computer"), SkillComponent()]
-            config = ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}, "components": {
+            config = ProjectConfig(parameters={"engines": {"loop": {'config': {}}}, "components": {
                 "computer": {'config': {'enabled': ['file_search', 'file_read', 'file_patch', 'test_run']}}}})
             async with LargeLanguageModel(self.root / "workspace", components=components,
                     engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))}) as app:
                 project = await app.projects.acreate("Developer", config=config, components=["computer", "skills"])
                 guide = {"markdown": skill_markdown('code', "Read source, make the requested edit, then run verify. Never claim success without evidence.")}
                 await project.components.skills.acreate(guide, identifier="code")
-                await project.agents.acreate({"engine": "loop", "engine_options": {"policy": {"max_iterations": 8}},
+                await project.agents.acreate({"completion": {'model': 'test/model'}, "engine": "loop", "engine_options": {"policy": {"max_iterations": 8}},
                     "tools": ["skill_list", "skill_read", "file_search", "file_read", "file_patch", "test_run"]}, identifier="loop")
                 session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 run = (await (await session.run.submit("Fix addition", recipients=["loop"])).wait(timeout=20))[0]

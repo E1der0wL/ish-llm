@@ -59,7 +59,7 @@ class NamingContractTests(unittest.TestCase):
             (GoalComponent(), 'identifiers nested_agent_ids priority', 'inject write_tools'),
             (RefinementComponent(), '', 'apply_tools proposal_operations require_evaluation'),
             (WorkflowComponent(), '', ''),
-            (LoopEngine(), 'buffer_size completion system_prompt',
+            (LoopEngine(), 'buffer_size system_prompt',
              'completion final_review max_argument_chars max_iterations max_output_chars max_tool_calls provider request_timeout tool_timeout'),
             (GraphEngine(handlers={}), 'buffer_size cleanup_timeout',
              'max_nested_depth max_parallelism max_steps timeout_seconds'),
@@ -202,11 +202,14 @@ class NamingContractTests(unittest.TestCase):
 
     def test_current_binding_vocabulary_and_complete_payload_are_explicit(self):
         config = ProjectConfig(self.before['project_config'])
+        # Historical storage fixture stays intact; the current Engine contract
+        # accepts execution options only and the Agent owns model parameters.
+        config.parameters['engines']['loop']['config'] = {}
         scope = ToolExecutionScope(ToolRuntime(revision='host-1'), policy={'max_calls': 5})
         context = EngineContext(NS(config=config, components=()), NS(config={}), NS(engine='loop'), (), tool_scope=scope)
         self.assertEqual(scope.binding(), self.before['scope_binding'])
-        loop = LoopEngine()
-        loop._configure({'completion': {'model': 'test/model', 'temperature': None}, 'max_iterations': 3})
+        loop = LoopEngine().for_agent({'engine': 'loop', 'completion': {'model': 'test/model', 'temperature': None}})
+        loop._configure({'max_iterations': 3})
         # Capture the complete current payload: do not strip the adapter field
         # to compare against a historical digest.
         original_hash = hashlib.sha256
@@ -214,11 +217,11 @@ class NamingContractTests(unittest.TestCase):
             binding = loop.bind_execution(context)
         payload = json.loads(tracked.call_args.args[0])
         expected = {
-            'settings': {'engine': deepcopy(self.before['project_config']['parameters']['engines']['loop']),
-                         'parameters': deepcopy(self.before['project_config']['parameters']),
+            'settings': {'engine': deepcopy(config.parameters['engines']['loop']),
+                         'parameters': deepcopy(config.parameters),
                          'policies': {'tools': {'max_calls': 5}}, 'data': {}},
             'completion': {'model': 'test/model', 'temperature': None},
-            'prompt': None, 'agent': {}, 'tools': [], 'tool_contracts': {},
+            'prompt': None, 'agent': {'engine_options': {}, 'completion': {'model': 'test/model', 'temperature': None}}, 'tools': [], 'tool_contracts': {},
             'adapter': {'type': 'llm.providers.litellm.LiteLLMCompletionAdapter', 'binding': None},
             'tool_policy': deepcopy(self.before['scope_binding']),
         }
@@ -229,7 +232,7 @@ class NamingContractTests(unittest.TestCase):
             'workflow': deepcopy(self.before['workflow']), 'workflow_id': 'flow', 'revision': '1',
             'handler_bindings': [], 'nested_graphs': [], 'handlers': [],
             'max_steps': None, 'max_parallelism': None, 'timeout_seconds': None,
-            'project_config': deepcopy(self.before['project_config']), 'session_config': {},
+            'project_config': config.to_dict(), 'session_config': {},
             'components': [], 'tools': [], 'tool_contracts': {},
             'tool_policy': deepcopy(self.before['scope_binding']),
         }

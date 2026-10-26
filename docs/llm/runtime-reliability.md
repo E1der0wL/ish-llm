@@ -58,7 +58,7 @@ counter는 동시 Session에서도 사용할 수 있게 스레드 안전하게 �
 `context_budget_exceeded`로 실패하며 다음 모델 호출은 하지 않는다. 기록된 원문은
 삭제하지 않는다. Memory 처리기를 명시적으로 설정하면 현재 작업의 오래된 Tool 교환도
 요약할 수 있다. Loop는 저장된 회차/Tool 영수증으로 명시적 재개를 지원한다.
-Graph Agent는 선택한 Engine의 policy.completion을 상속·재정의한다. 새 Engine은 필요할 때
+Workflow 안의 Loop Agent는 선택한 Engine의 policy.completion을 상속·축소한다. 모델 설정은 Agent의 completion만 사용한다. 새 Engine은 필요할 때
 `CompletionPolicy.from_config(명시한_설정, context.token_counters)`로 알고리즘을 구성한다.
 서비스가 모든 Engine에 같은 CompletionPolicy를 주입하지 않는다.
 

@@ -5,6 +5,9 @@ Agent는 Project의 독립 도메인이며 나머지 Component는 Project에서 
 Component API는 자체 처리를 수행한다. Engine/Tool에서 호출한 작업의 관찰 결과는 기존
 Run → Step 경로를 이용하며 별도 실행 도메인을 만들지 않는다.
 
+대화 모델 인자는 저장 Agent의 `completion`에 둔다. Loop의 Project/Session 설정과
+`engine_options`에는 반복·제한 등 실행 설정만 전달한다. [모델 설정 계약](agent-models.md).
+
 ## 등록과 선택
 
 `LargeLanguageModel`은 [Component 목록](../../llm/components/README.md)의 구현을 기본 등록한다.

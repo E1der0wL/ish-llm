@@ -14,7 +14,8 @@ Backend는 Hub 프리셋의 이름·선택 규칙을 알지 못한다.
 | --- | --- | --- |
 | 서비스 | policies.context/run/approval/tools/tool_retry/usage/output, conversation_storage | 저장소, Conversation factory, context builder, token counter, policy resolver, logger, events, backups, observability sink |
 | Tool | allowed_tools, max_calls, timeout_seconds, max_output_chars, argument_constraints, retry 횟수/지연 | ToolRuntime.authorize/runner/operation_key/operation_probe/classify/retry_safe_tools/revision |
-| Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_adapter, parameter_key |
+| Loop | config.system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_adapter, parameter_key |
+| Agent | 저장 정의의 completion: 모델명·인증·추론 인자. Loop 설정에서 상속하지 않음 | 선택 Engine의 Adapter가 검증·전달 |
 | Graph | workflow 선택; config.buffer_size/cleanup_timeout; policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth | handlers, revision, config_keys, parameter_key |
 | RAG | chunk/search/extraction/ingestion/cache/index 값; model params, provider 정책 | embedding/reranker/extractor, schema/validator/factory 구현 |
 | Memory | 검색·처리·추출·보관 정책, config.processing.extract_prompt_id | completion_adapter/token_counter/search_fn |

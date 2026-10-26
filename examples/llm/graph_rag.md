@@ -3,21 +3,21 @@
 # 사내 GraphEngine + RAG 통합 테스트
 
 `graph_rag.py`는 실제 LiteLLM 모델과 Chroma/BM25/Kuzu를 함께 실행한다.
-API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서 읽는다.
+모델·API 키는 JSON의 `project_config`(RAG)와 `agent.completion`(답변)에서 읽는다.
 각 실행은 별도 테스트 Project를 만들며 기존 Project와 원본 Markdown 파일은 변경하지 않는다.
-`llm/` 안에 있으므로 이 폴더만 ish에 배포해도 사용할 수 있다.
+배포 플러그인 밖의 `examples/llm/`에 있으므로 테스트할 때 예제도 함께 가져온다.
 
 ## 설정
 
 `graph_rag.config.example.json`을 로컬의 `~/graph-rag-config.json`으로 복사한 뒤
 다음 네 곳의 model, api_base, api_key를 수정한다. 실제 값은 생성된 Project에도 저장된다.
 
-| ProjectConfig 위치 | 용도 |
+| 예제 설정 위치 | 용도 |
 | --- | --- |
-| `parameters.engines.loop.config.completion` | Graph 노드의 Agent가 사용하는 Loop 모델. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
-| `parameters.components.rag.config.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
-| `parameters.components.rag.config.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
-| `parameters.components.rag.config.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
+| `agent.completion` | Graph 노드의 Agent가 소유하는 모델·인증·SDK 인자. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
+| `project_config.parameters.components.rag.config.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
+| `project_config.parameters.components.rag.config.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
+| `project_config.parameters.components.rag.config.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
 
 OpenAI 호환 서버는 `openai/모델명`을 사용한다. 다른 provider는 해당 LiteLLM 모델명을
 사용하고 필요 없는 api_base를 삭제한다. 임베딩과 대화 모델은 서로 다른 서버·키를 써도 된다.

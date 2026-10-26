@@ -277,7 +277,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def test_two_projects_share_loop_engine_but_not_enabled_tools(self):
         self.projects.set_components(self.project, ("tools",))
         self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
-        self.project.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "openai/test-model"}}}}
+        self.project.config.parameters["engines"] = {"loop": {}}
         self.projects.save(self.project)
         other = self.projects.create("Other", config=self.project.config)
         other_session = self.sessions.create(other, "Other")
@@ -291,8 +291,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
                     "function": {"name": "add", "arguments": "{}"}}]}, "tool_calls"
             yield {"choices": [{"index": 0, "delta": delta, "finish_reason": reason}]}
         self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
-        self.projects.agents.create(self.project, {"engine": "loop", "tools": ["add"]}, identifier="loop")
-        self.projects.agents.create(other, {"engine": "loop"}, identifier="loop")
+        self.projects.agents.create(self.project, {"engine": "loop", "completion": {"model": "openai/test-model"}, "tools": ["add"]}, identifier="loop")
+        self.projects.agents.create(other, {"engine": "loop", "completion": {"model": "openai/test-model"}}, identifier="loop")
         manager = self.manager(capabilities=self.components)
         await manager.submit("allowed", recipients=["loop"])
         other_manager = self.manager(session=other_session, capabilities=self.components)
@@ -358,8 +358,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         manager = self.manager()
         stale = deepcopy(self.project)
         await manager.start()
-        self.project.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "updated"}}}}
+        self.project.config.parameters["engines"] = {"loop": {"config": {"system_prompt": "updated"}}}
         self.projects.save(self.project)
         await manager.submit("test", recipients=["fake"])
         await manager.wait_idle()
-        self.assertEqual(self.engines.get("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "updated")
+        self.assertEqual(self.engines.get("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["system_prompt"], "updated")

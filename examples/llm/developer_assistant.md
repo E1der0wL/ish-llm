@@ -6,7 +6,7 @@ Skill을 읽었다는 것과 실제 검증 통과는 구분한다. 작은 모델
 ## 실행
 
 Linux Python 3.12.14에서 [설정 예제](developer_assistant.config.example.json)를 복사하고
-실제 completion.model과 필요한 api_base/api_key를 지정한다. builtin은 호스트의 기능 제공,
+실제 agent.completion.model과 필요한 api_base/api_key를 지정한다. builtin은 호스트의 기능 제공,
 project_config.parameters["components"].computer.enabled는 Project의 선택이다.
 예제는 파일 변경과 셸 실행을 제공한다. 읽기 전용 작업에는 해당 이름을 enabled에서 제외한다.
 

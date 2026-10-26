@@ -27,11 +27,11 @@ private 옵션을 복제하지 않는다. 모든 열린 객체에는 명시적�
 - **null**: null을 허용하는 필드의 명시값이다. Project timeout에서는 제한 없음이다. Session/Agent는 유한한 부모 제한을 null로 해제할 수 없다. 일반 설정과 SDK 옵션의 null은 그대로 전달한다(지원 여부는 SDK 계약에 따른다).
 - **value**: 검증한 명시값을 사용한다. 0/False/빈 문자열을 truthiness fallback으로 바꾸지 않는다.
 
-ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop의 SDK 인자는 `parameters.engines.<설정 이름>.config.completion`에 둔다. Project의 최상위 completion은 없다.
+ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop가 호출할 모델·인증·SDK 인자는 저장 Agent의 `completion`에 둔다. Project/Session의 Loop 설정과 Agent의 `engine_options`에는 모델 인자를 넣지 않는다.
 
 Engine 옵션의 순서는 **Project → Session → Agent**다. 제한은 child가 더 좁힐 수만 있다. Host constructor는 구현 함수·handler·기술 revision만 제공한다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. 일반 `resolve_config`의 host 관찰 기능은 외부 adapter용이며 내장 Engine의 정책 계층에 사용하지 않는다.
 
-Agent completion은 model 없는 부분 설정도 허용한다. 모델이 모든 계층에서 없으면 호출 전에 오류다. Agent purpose를 system_prompt로 자동 변환하지 않으며, 명시적으로 선택한 Skill만 상속된 프롬프트에 결합한다. system_prompt=null은 상위 프롬프트를 해제한다. prompt 조회 API도 누락 키를 빈 문자열로 바꾸지 않으며 update_prompt(None)으로 명시적 해제가 가능하다.
+Agent completion은 model 없는 초안 저장도 허용하나 실제 호출에는 선택 Adapter가 요구하는 모델 값이 필요하다. 다른 Agent나 Project/Session에서 모델 인자를 상속하지 않는다. 미설정 SDK 옵션은 생략하며 명시적 null은 Adapter 계약으로 검증한다. Agent purpose를 system_prompt로 자동 변환하지 않으며, 명시적으로 선택한 Skill만 상속된 프롬프트에 결합한다. system_prompt=null은 상위 프롬프트를 해제한다. prompt 조회 API도 누락 키를 빈 문자열로 바꾸지 않으며 update_prompt(None)으로 명시적 해제가 가능하다.
 
 Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client는 Project보다 낮은 명시적 baseline이며 숨은 ceiling이 아니다. Component는 Session 소유가 아니다. 서비스 정책은 Run 시작 시 스냅샷으로 저장한다. Tool 재시도는 Project policies.tool_retry만 사용한다. ProviderLimits는 Backend 전체 공유 자원 용량으로 별도 적용되며 describe_host()에서 읽기 전용으로 조회한다.
 
@@ -57,7 +57,7 @@ ProjectConfig
 ├─ policies                       서비스가 집행하는 공통 정책
 └─ parameters
    ├─ engines.<등록 이름>
-   │  ├─ config                   기능·모델·SDK 인자
+   │  ├─ config                   실행 방식의 기능 설정
    │  └─ policy                   해당 Engine의 실행 결정·제한
    └─ components.<이름>
       ├─ config                   기능·입력·검색·backend 선택
@@ -66,7 +66,7 @@ ProjectConfig
 
 | 구현체 | config | policy |
 |---|---|---|
-| Loop | completion(SDK dict), system_prompt, buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
+| Loop | system_prompt, buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
 | Graph | buffer_size, cleanup_timeout | max_steps, max_parallelism, timeout_seconds, max_nested_depth |
 | RAG | chunk_size, embedding_params, extraction_params, rerank_params, document_kwargs, query_kwargs, search, graph, extraction_batch_size, index_batch_size, embedding_cache_max_bytes, search_cache_chars, extraction.json_mode/prompt_id/relation_types | embedding_concurrency, provider, ingestion.max_active, extraction.repair_attempts/failure_policy |
 | Memory | cache_records, search_status/search_limit, processing.completion/priority/extract_scope/summary_chars/recall_limit/recall_query_chars | tool_write_status, max_search_results, processing의 자동 실행 여부·입력/출력/시간 한도·실패 방식·provider |
@@ -76,7 +76,7 @@ ProjectConfig
 
 숫자라는 이유로 policy에 넣지는 않는다. search.limit은 원하는 검색 결과의 크기이고,
 embedding_concurrency는 실제 동시 실행 상한이다. SDK의 timeout/num_retries/max_retries는
-SDK 인자이므로 config의 모델 dict에 남는다. provider.wall_timeout/max_attempts는
+SDK 인자이므로 Agent의 completion 또는 모델을 소유한 Component의 모델 dict에 남는다. provider.wall_timeout/max_attempts는
 ish가 집행하는 제한이므로 policy에 둔다. 서로 복사하거나 자동 연동하지 않는다.
 
 독립 Agent/Workflow의 **정의 레코드**와 Tool parameter schema는
@@ -146,7 +146,7 @@ Loop policy.completion/policy.provider 전체의 null은 상속값을 해제한�
 | Memory processing | recall/summarize/extract/compress가 명시적으로 활성화될 때만 실행 |
 | RAG | 아래 필요한 알고리즘 설정은 사용 시 명확한 오류. 미설정 cache는 비활성, rerank/repair는 비활성 |
 
-Loop의 `config.completion.timeout`, `policy.request_timeout`, `policy.provider.wall_timeout`, Component의 자체 provider 기한,
+Agent의 `completion.timeout`, Loop의 `policy.request_timeout`, `policy.provider.wall_timeout`, Component의 자체 provider 기한,
 Run/Graph/node/Tool timeout은 서로 독립이다. Wrapper 시간을 SDK 인자에 복사하지 않는다.
 
 Backend `provider.max_attempts`는 최초 호출을 포함한 최대 시도 횟수이며 기존 RetryPolicy가 단일 해석을 소유한다. SDK 재시도까지 생략하면 실제 HTTP는 1회, `provider.max_attempts=2`만 명시하면 최대 2회다. 명시 SDK 재시도가 있으면 Backend 중첩 재시도를 막으며 max_attempts는 하위 HTTP 총수가 아닌 Backend 시도의 상한이다. 부분 응답 후 자동 재시도·취소 후 추가 호출 금지와 사용량 예약 계약을 유지한다. [재시도 계약](../docs/llm/retry.md)을 참고한다.
@@ -222,7 +222,6 @@ llm은 기본 Project/Session·마지막 선택·UI 엔진 선택 정책을 소�
 config = ProjectConfig(parameters={
     "engines": {
         "loop": {
-            "config": {"completion": {"model": "openai/my-model"}},
             "policy": {"request_timeout": 300, "tool_timeout": None},
         },
     },
@@ -244,6 +243,10 @@ config = ProjectConfig(parameters={
         },
     },
 })
+project = await backend.projects.acreate(config=config, components=["rag"])
+await project.agents.acreate({
+    "engine": "loop", "completion": {"model": "openai/my-model"},
+}, identifier="assistant")
 ```
 
 숫자는 이 예제의 명시적 선택이며 라이브러리 기본값이 아니다. Session/Agent는 Project의 유한한 request_timeout을 더 좁힐 수만 있고 null로 해제할 수 없다. Project가 자신의 제한을 변경한다.

@@ -96,9 +96,9 @@ def relative_path(root, name):
 
 
 def build_config(value):
-    """예제 호스트 설정을 검사한다. 모델·RAG 설정은 ProjectConfig가 검증한다."""
+    """예제 호스트 설정과 명시 Agent 모델, Project의 RAG 설정을 검사한다."""
     value = deepcopy(value)
-    validate_config(ProjectConfig.from_dict(value["project_config"]))
+    validate_config(ProjectConfig.from_dict(value["project_config"]), completion=value["agent"]["completion"])
     value.setdefault("reference_files", {})
     value.setdefault("validators", [])
     value.setdefault("max_attempts", 3)
@@ -422,7 +422,7 @@ async def plan(workspace, config, request, *, report_only=False, completion_adap
                 await rag.aadd_document(identifier=identifier, **document)
             await (project.agents).acreate({"engine": "loop",
                 "purpose": "Propose evidence-based configuration changes", "system_prompt": AGENT_PROMPT,
-                "completion": dict(config["project_config"]["parameters"]["engines"]["loop"]["config"]["completion"]), "tools": [], "resources": {"rag": True},
+                "completion": dict(config["agent"]["completion"]), "tools": [], "resources": {"rag": True},
                 "policy": {"require_tool": True}}, identifier="configuration-editor")
             await (await project.components.aget("workflows")).acreate(make_workflow(config["max_attempts"]),
                                                                        identifier="configuration-review")

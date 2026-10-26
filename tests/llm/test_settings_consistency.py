@@ -93,17 +93,17 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(view["values"]["policy"]["timeout_seconds"])
         self.assertEqual(agent.workflow, "child")
 
-    async def test_agent_actual_completion_matches_project_session_agent_host_order(self):
+    async def test_agent_completion_is_independent_of_engine_execution_policy(self):
         provider = ScriptedCompletion([chunk("ok", finish="stop")])
         worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         app = self.backend(engines={"writer": worker, "graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
                            components=[WorkflowComponent()])
-        project = await app.projects.acreate(components=['workflows'], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}, 'config': {'completion': {'model': 'project', 'temperature': 0.9}}}}}})
+        project = await app.projects.acreate(components=['workflows'], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}}}}})
         await (project.agents).acreate({"engine": "writer", "purpose": "write",
             "completion": {"model": "agent", "temperature": 0.3}}, identifier="writer")
         await (await project.components.aget("workflows")).acreate(WorkflowGraph(entry="a").node("a", "agent", agent="writer")
             .node("end", "end").connect("a", "end").to_dict(), identifier="flow")
-        session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.5}}}}}}, agent_ids=sorted(await project.agents.alist()))
+        session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 5}}}}}, agent_ids=sorted(await project.agents.alist()))
         await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
         await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"graph"}))
         run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]

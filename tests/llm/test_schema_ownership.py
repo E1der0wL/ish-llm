@@ -124,7 +124,7 @@ class DefinitionOwnershipTests(unittest.TestCase):
         from llm.engines.loop import LoopEngine
         from llm.core.policies import describe_policies
         schemas = [describe_policies(), LoopEngine().describe_config(), GraphEngine(handlers={}).describe_config(),
-                   LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"extra_body": {"adapter_private": 3}}})}).describe_config(),
+                   LoopEngine().for_agent({"engine": 'loop', "completion": {"extra_body": {"adapter_private": 3}}}).completion_adapter.describe_config(),
                    MemoryComponent.content_schema]
         for component in (SkillComponent(), PromptComponent(), GoalComponent(), MCPComponent(),
                           WorkflowComponent(), RefinementComponent(), RAGComponent(), MemoryComponent(), VisionComponent(), ToolComponent()):

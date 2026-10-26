@@ -14,6 +14,13 @@ async def configure_engine(project, name, **settings):
     await project.asave(config=config)
 
 
+async def configure_agent(project, identifier, **completion):
+    """Explicit model fixture update through the ordinary Agent CAS API."""
+    snapshot = await project.agents.asnapshot(identifier)
+    parameters = {**snapshot["definition"].get("completion", {}), **completion}
+    await project.agents.aupdate(identifier, {"completion": parameters}, expected_revision=snapshot["revision"])
+
+
 def rag_settings(changes=None):
     return ProjectConfig.merge(RAGComponent.parameter_layout.pack({
         "chunk_size": 2000, "embedding_concurrency": 2,

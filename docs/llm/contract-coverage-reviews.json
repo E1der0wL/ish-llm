@@ -67852,8 +67852,8 @@
   },
   {
     "path": "llm/engines/loop/engine.py",
-    "sha256": "5cd54ff4537511d23c5e70ae5a1635fdf8ea7adb17a14988a7e689b81dad6894",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged.",
+    "sha256": "a3d74db021acfbfe1f6b0c6bdcb35dafe9cda930fdf6be87bb1cb46d74883ba6",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -67977,13 +67977,13 @@
         "reason": "Python return annotation only."
       },
       {
-        "id": "34e75e7dd2a36fa5675d5c12ff3a3e18449f37bc76b4da4fe6c4f3d14cc9cc75",
+        "id": "001437562a92f410f4f827735f012c19fb0d27d45dc25af6158c6508aeb34f7c",
         "classification": "non_contract",
         "owner": "LoopEngine._execute",
         "reason": "Insert the selected system message at the start of an existing ordered list; pure list position, not a policy/usage limit."
       },
       {
-        "id": "e4ab042bbe2d9d7f003d37a11957fdb0813bb81808967066cbe4ab158c3f3c0c",
+        "id": "58b42dec349cfbd867615aad966396f9c27c5bd17950216636a55331b1617ff3",
         "classification": "non_contract",
         "owner": "LoopEngine._iterate.complete",
         "reason": "Read the one captured completed response from its ordered local container; not default reconstruction."
@@ -68046,150 +68046,144 @@
   },
   {
     "path": "llm/engines/loop/configuration.py",
-    "sha256": "dfb472d94e16602bd6784f5b5746ea42f9fdd474eb7ac9dbfb73946549b88543",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup.",
+    "sha256": "7f9426fe645bc42fd4c30917697f2ab80d6986dbaa8172428d766dbff3d9042c",
+    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "37410bef1f54103bd7c1ee926b9218a64195db9223fcbbde447c0f3baf9b67ec",
+        "id": "f6990bfb466c74c435c9662599db49c08e957d64b7f1993e4d1662c9bce2e330",
         "classification": "declaration",
         "owner": "LoopRegistration",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "fc7db743fa6ef1c59990973a015048e005581d7aa8a168ed032541ebf2b0703d",
+        "id": "ff3d10a939d8eab8ab99f927bf9daeb4fbd51dffede85ce7b6fef3cbfc871aec",
         "classification": "declaration",
         "owner": "LoopRegistration",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "a74d69ddac42504e2876690046fb4a83732e6c326057f7458cbe54fac06c2e55",
+        "id": "9f75fd821a1ed5ed994ed624474082f29f89a23be893af7a9f03a0386f9a6782",
         "classification": "declaration",
         "owner": "LoopRegistration",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "cb99298362f6bd3968d6333bfcfb0a6499d715060e1bf7232ed9f1946f4967b3",
+        "id": "22d410da55f795240f94212d12299c8f7acd873879cd06d9e7bfc1b6116151af",
         "classification": "declaration",
         "owner": "LoopRegistration",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "adeeb7969fd86ab1f5de8c83ee2e7116459db5c246a6ab9600c441afff9b414d",
+        "id": "0f60e850159dc85113d1d7b32ecf4734a7a8730de72bd60533011334147161d1",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "d77ede432952f453c96cd69573f78ed0c56c8533f6f96e07f0f7f0ac21e1acea",
+        "id": "474dc00f31e8a41c2e41eb3b1541b0af55ff9e6ca85d95520bda439236077a5e",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "1652bbd2bce22e72e60520ae9c0c7d1a32d5c40c45d63d7207716f96a96f2a4e",
+        "id": "4ebc63b0496f7a26439593b407ac8b12260ae3786a70358019121d6e118027e3",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "498ebe571cbda79d0bcfeaa7791a864054f4c6e1123fa784dff2b1cd6c9d3982",
+        "id": "583422e0edff0ff2b7f8bef4c3e3e0b55949230c572daba64a079ac3961c017b",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "ee75bc0e590a89e2a7e4aaef55362b97ae68aba208e567ec81b60fe7d9d1f21a",
+        "id": "05bfdd81a6b108a987a5543aba7c168b7cc84b3e440d417efa3e9dd444dffebf",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "42ce09d52b687c205b743981651e9f3d7e2a7fa09a6b7c1cae8daf5186f4cce1",
+        "id": "6c3b0d47efc1b6257f4acbd18359f494cc898442fdf46196235cec22c891e8fa",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "a1fc717a00cb09803c58a741858050c981a614e5bb2c7abde9b78f51b89a9dc3",
+        "id": "dac2f158e0546eb85a54edd31ef3cf8a02cd4e7f58cc1bb1d23f226cacf67d61",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "961f4384cd280407499161c1cdc481d726b7e11ce5a4c71bdc7e801bf9ad2ec1",
+        "id": "be4acbe15951841f77a583912a48f43afe5ab9e7f6a9d8a28ebcc10fb5468a01",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "01c6052e5f77c2e3172dd541e5470c0db19bf14f89fa0ebd879e51c2781644a1",
+        "id": "59ea88187534bc06dac05c0451a3699cf8181b0de3867b3e52047731210d9306",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "711324aec6cfd5f772c70f747823a06ebfe4da1ba22bbcd3f42169e28ec885a2",
+        "id": "2b9b3998a09937a7634db1613bdc9f4322e70230a1f0e1337eed6fdd8eccd1a3",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "561436cb29456dca0df058186e9e20b96cff362d0eaa262f42a834b96b4f0a39",
+        "id": "e20a94a1a8daf3aed23105a9b2bd43b53b00d854db92111a118f89891abd5c20",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "30cfdf5317c6404cc99b217c35ba89a07961732f570002212a6da3252d757ea7",
+        "id": "ee5e9ee19a0e2eac700c54baf1ad83508c45d8b3cdf6127d8474b05022d58d67",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "801935003ae62087fc04279a3d5d74c32e2fbc2e061c6d724a001f9b9febba7e",
+        "id": "e458eeb06e6b85bf20f15f30ca6421f93331bf578b1f8dc24ba9f0635da293c7",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "8def39bce61748cde69914b11083b1a8840ecce67bf96d89e597fa2c0bc70b11",
+        "id": "2df62d7fc72266f2f5d1fd37ecbcc08fcba505bac6a8270f228e477974b4446f",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "de51b75ad56db0d676d73972f0b3b70f9df4a0f4976ce3c48f22e891b73b65e1",
+        "id": "a89412705918dcf6c9d4cc192a97644eab00c7bc2e044cfed8e048979aa4df10",
         "classification": "declaration",
         "owner": "LoopParameters",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "c87502d56e1a59466ae355dfb46f01ce9800e14d0f32e712a514378c57d99fde",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "262585e71389f5140d2488bcf703f58c1bfd0e62e59f5a2c2b20a52229b31959",
+        "id": "8c7dd1b19773438813fb82c38af5472199fea27bfa7f712079bdf882bbfe361b",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "dcb0f474ca2d9bb354963823817082c26bd983743bdc673688e11877ce9c4531",
+        "id": "c5e24ecfd05a87d924a9d90335e9f6fbc319b1738668cb813975b59e235ab6a1",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "fd3408c6802004de253c47e64fbea0fad0b4c5619f9b572894844b9f2fafd411",
+        "id": "5a6bdd657a1ddc5f2f65419eb5fe638a8300dd55ab709d48fd8f3513adc11afe",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "2dc9aba8fbfc0e85c3299e2a1be090462d9321f16451d394636a07be68a5fd37",
+        "id": "c4dd7570e71bfa49c8818d0b3cb09559f858501f6b931feacb63da1ae77d8265",
         "classification": "declaration",
         "owner": "LoopAgentOptions",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
@@ -68910,10 +68904,10 @@
   },
   {
     "path": "llm/engines/loop/README.md",
-    "sha256": "cbfb8520ff7df3f9d01588f0fe1ad4f17725d846ea766533399073c585de1f3f",
+    "sha256": "613099259baf5a4cc2489648ac21f2b8a320f3ad4fbbf11715f457853fa48b42",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Whole guide checked against common Adapter input, explicit policy precedence, original Tool authority, review/steering/resume evidence and actual storage ownership. Added Owner file map and typed payload boundaries; independent wire examples retained.",
+    "reason": "Whole guide checked against common Adapter input, explicit policy precedence, original Tool authority, review/steering/resume evidence and actual storage ownership. Added Owner file map and typed payload boundaries; independent wire examples retained. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added.",
     "contracts": [
       {
         "owner": "Loop runtime guide",
@@ -86172,8 +86166,8 @@
   },
   {
     "path": "llm/services/command_line.py",
-    "sha256": "ac299e6e740e47b34d907633f6f83189ced2bf607264840530883779bbc0e57d",
-    "reason": "Full public handle, Facade and CLI implementation plus dynamic injection/after-commit/async cleanup paths reviewed. Only execution coordination remains here: required domain Readers and active/resume/quota/effect checks stay at their original boundaries. Source-matched public signatures, values, failure ordering and real Host/CLI/storage safety tests pass; CLI options and payload construction have their explicit Owner.",
+    "sha256": "62e1b6616ba40f6ea1e0b178efdd0b134605a9a52df3e278ba2c3b6b2f1313d0",
+    "reason": "Full public handle, Facade and CLI implementation plus dynamic injection/after-commit/async cleanup paths reviewed. Only execution coordination remains here: required domain Readers and active/resume/quota/effect checks stay at their original boundaries. Source-matched public signatures, values, failure ordering and real Host/CLI/storage safety tests pass; CLI options and payload construction have their explicit Owner. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86459,10 +86453,10 @@
   },
   {
     "path": "llm/CONFIGURATION.md",
-    "sha256": "d70551d1d5b06ada8c412dade5dedbcb9220e5a672942186f267487db2ccbd77",
+    "sha256": "631f3d6b11daa917b6d43225bcf8c1d01aaf232cbc76c511bd2e0f769ca783a0",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Reviewed whole missing/null/value, configuration ownership/narrowing, SDK transport vs original request, client injection, Provider limits, RAG/Vision and retention contracts. Corrected current retry omission and independent Agent descriptions; preserved examples and established safety choices.",
+    "reason": "Reviewed whole missing/null/value, configuration ownership/narrowing, SDK transport vs original request, client injection, Provider limits, RAG/Vision and retention contracts. Corrected current retry omission and independent Agent descriptions; preserved examples and established safety choices. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added.",
     "contracts": [
       {
         "owner": "Developer guide — llm/CONFIGURATION.md",
@@ -86485,10 +86479,10 @@
   },
   {
     "path": "llm/README.md",
-    "sha256": "3617e45d7ec42e876540dda82138ff9b62edee1e86a78869b99673871aed25e5",
+    "sha256": "c1e6b7c52ce7bb1a58b962a04c836b43fe89eb7ba06e201e2393f686a885bf7b",
     "decisions": [],
     "dynamic_paths_reviewed": true,
-    "reason": "Reviewed whole public async API, actual deployment/CLI, recipients/Session membership, factory extensions, steering, settings and lifecycle. Corrected obsolete Session serialization and retention/retry wording; examples retain independent literals. Documentation-only review 2026-10-26: entry links now target main contracts and the scope validation report; API examples, execution policies and product assets unchanged.",
+    "reason": "Reviewed whole public async API, actual deployment/CLI, recipients/Session membership, factory extensions, steering, settings and lifecycle. Corrected obsolete Session serialization and retention/retry wording; examples retain independent literals. Documentation-only review 2026-10-26: entry links now target main contracts and the scope validation report; API examples, execution policies and product assets unchanged. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added.",
     "contracts": [
       {
         "owner": "Developer guide — llm/README.md",

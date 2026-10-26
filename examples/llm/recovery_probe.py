@@ -271,7 +271,8 @@ async def connection_failure(root, spec):
     server.daemon_threads = True
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    config = ProjectConfig(parameters={"engines": {"loop": {'policy': {'provider': {'max_attempts': 1}}, 'config': {'completion': {'model': 'openai/probe', 'api_key': 'local-test-only', 'api_base': f'http://127.0.0.1:{server.server_port}/v1', 'num_retries': 0}}}}})
+    model_params = {'model': 'openai/probe', 'api_key': 'local-test-only', 'api_base': f'http://127.0.0.1:{server.server_port}/v1', 'num_retries': 0}
+    config = ProjectConfig(parameters={'engines': {'loop': {'policy': {'provider': {'max_attempts': 1}}}}})
     config.parameters["engines"]["loop"]["policy"].update(request_timeout=spec["timeout"], max_iterations=2)
     engine = LoopEngine()
     observed = []
@@ -280,12 +281,12 @@ async def connection_failure(root, spec):
         # 준비 호출도 로컬 서버로만 보내고 요청 횟수에 명시적으로 포함한다.
         def warmup():
             from llm.providers.litellm import completion
-            return list(completion(**config["parameters"]["engines"]["loop"]["config"]["completion"], stream=True,
+            return list(completion(**model_params, stream=True,
                 timeout=spec["timeout"], messages=[{"role": "user", "content": "warmup"}]))
         await asyncio.to_thread(warmup)
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:
             project = await app.projects.acreate("Connection probe", config=config, components=[])
-            await project.agents.acreate({"engine": "loop"}, identifier="connection-agent")
+            await project.agents.acreate({"engine": "loop", "completion": model_params}, identifier="connection-agent")
             session = await project.sessions.acreate(agent_ids=['connection-agent'])
             for prompt in ("disconnect-before", "disconnect-mid"):
                 failed = await session.run.submit(prompt, recipients=["connection-agent"])

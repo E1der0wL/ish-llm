@@ -64,12 +64,12 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
     def test_missing_targeted_settings_report_error_without_materializing(self):
         config = ProjectConfig()
         before = config.to_dict()
-        with self.assertRaisesRegex(ValueError, "parameters.engines.loop.config.completion.model is required"):
+        with self.assertRaisesRegex(ValueError, "agent.completion.model is required"):
             validate_config(config)
         self.assertEqual(config.to_dict(), before)
 
     def config(self):
-        return ProjectConfig(parameters={"engines": {"loop": {'policy': {'max_iterations': 3, 'request_timeout': 20}, 'config': {'completion': {'model': 'test/chat'}}}}, "components": {"rag": ProjectConfig.merge(rag_settings({'config': {'search': {'rerank': True}}}), {'config': {'embedding_params': {'model': 'test/embed'}, 'extraction_params': {'model': 'test/extract'}, 'rerank_params': {'model': 'test/rerank'}}})}})
+        return ProjectConfig(parameters={"engines": {"loop": {'policy': {'max_iterations': 3, 'request_timeout': 20}}}, "components": {"rag": ProjectConfig.merge(rag_settings({'config': {'search': {'rerank': True}}}), {'config': {'embedding_params': {'model': 'test/embed'}, 'extraction_params': {'model': 'test/extract'}, 'rerank_params': {'model': 'test/rerank'}}})}})
 
     async def exercise(self, root, model, *, rerank_fn=reranking, config=None, **options):
         # SDK 경계만 대체하여 실제 provider_request/retry 진단을 함께 검사한다.
@@ -79,7 +79,7 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
                            extractor=TripleExtractor(adapter=LiteLLMOperations(call=extraction)),
                            reranker=RerankModel())
         with patch("llm.providers.runtime.litellm_sdk", return_value=SimpleNamespace(arerank=call, cache=None)):
-            return await run_demo(Path(root), config or self.config(), completion_adapter=LiteLLMCompletionAdapter(completion_fn=model),
+            return await run_demo(Path(root), config or self.config(), completion={"model": "test/chat"}, completion_adapter=LiteLLMCompletionAdapter(completion_fn=model),
                                   rag_component=rag, display=False, **options)
 
     async def test_crud_search_graph_tool_repair_and_reopen(self):
@@ -170,7 +170,7 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "unused"
             with self.assertRaisesRegex(ValueError, "embedding_params.model"):
-                await run_demo(path, ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/chat'}}}}}), display=False)
+                await run_demo(path, ProjectConfig(), completion={"model": "test/chat"}, display=False)
             self.assertFalse(path.exists())
 
     async def test_missing_reranker_fails_before_workspace_creation(self):
@@ -179,7 +179,7 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
             config = self.config()
             config.parameters.setdefault("components", {})["rag"]["config"].pop("rerank_params")
             with self.assertRaisesRegex(ValueError, "rerank_params.model"):
-                await run_demo(path, config, display=False)
+                await run_demo(path, config, completion={"model": "test/chat"}, display=False)
             self.assertFalse(path.exists())
 
     async def test_rerank_rate_limit_is_preserved_in_run_and_report(self):
@@ -213,7 +213,7 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             rag = RAGComponent(embedding=EmbeddingModel(adapter=LiteLLMOperations(call=unavailable)),
                                extractor=TripleExtractor(adapter=LiteLLMOperations(call=extraction)))
-            report = await run_demo(Path(root), self.config(), completion_adapter=LiteLLMCompletionAdapter(completion_fn=AnswerModel()),
+            report = await run_demo(Path(root), self.config(), completion={"model": "test/chat"}, completion_adapter=LiteLLMCompletionAdapter(completion_fn=AnswerModel()),
                                     rag_component=rag, display=False)
             self.assertEqual(report["status"], "failed")
             self.assertEqual(report["stage"], "register_document")

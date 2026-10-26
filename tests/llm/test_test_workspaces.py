@@ -357,7 +357,7 @@ asyncio.run(main())
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=["builtin"], config={
             "parameters": {"components": {"builtin": {"config": {"enabled": ["test_workspace_execute"]}}},
-                           "engines": {"loop": {"config": {"completion": {"model": "test/model"}}}}},
+                           "engines": {"loop": {"config": {}}}},
             "policies": {"approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
                 {"id": "sandbox", "category": "test.execute", "max_risk": 1}]}}})
         with self.owner(project.id):
@@ -365,7 +365,7 @@ asyncio.run(main())
         args = {"workspace_id": identifier, "env": {"ISH_APPROVED_VALUE": "ok"},
                 "argv": self.python("import os; from pathlib import Path; p=Path('count'); p.write_text(p.read_text()+'x' if p.exists() else 'x'); print(os.environ['ISH_APPROVED_VALUE'])")}
         model.responses.extend([[chunk(calls=[call(json.dumps(args), name="test_workspace_execute")], finish="tool_calls")], [chunk("done", finish="stop")]])
-        await project.agents.acreate({"engine": "loop", "tools": ['test_workspace_execute']}, identifier="loop")
+        await project.agents.acreate({"completion": {"model": "test/model"}, "engine": "loop", "tools": ['test_workspace_execute']}, identifier="loop")
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         original = ProcessToolRunner.execute
         invocations = []
@@ -437,9 +437,9 @@ asyncio.run(main())
         async with LargeLanguageModel(self.root / "lifecycle", components=[BuiltinToolComponent(self.tools,name="builtin")],
                 engines={"loop":LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=ToolRuntime(runner=BuiltinToolRunner()))) as app:
             project = await app.projects.acreate(components=["builtin"],config={"parameters":{
-                "engines":{"loop":{"config":{"completion":{"model":"test/model"}}}},
+                "engines":{"loop":{"config":{}}},
                 "components":{"builtin":{"config":{"enabled":["test_workspace_create","test_workspace_delete"]}}}}})
-            await project.agents.acreate({"engine": "loop", "tools": ['test_workspace_create', 'test_workspace_delete']}, identifier="loop")
+            await project.agents.acreate({"completion": {"model":"test/model"}, "engine": "loop", "tools": ['test_workspace_create', 'test_workspace_delete']}, identifier="loop")
             session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
             identifier = None
             for name in ("test_workspace_create","test_workspace_delete"):
@@ -464,13 +464,13 @@ asyncio.run(main())
         async with LargeLanguageModel(self.root / "interrupt", components=[BuiltinToolComponent(self.tools,name="builtin")],
                 engines={"loop":LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},services=BackendServices(tool_runtime=ToolRuntime(runner=BuiltinToolRunner()))) as app:
             project = await app.projects.acreate(components=["builtin"],config={"parameters":{
-                "engines":{"loop":{"config":{"completion":{"model":"test/model"}}}},
+                "engines":{"loop":{"config":{}}},
                 "components":{"builtin":{"config":{"enabled":["test_workspace_execute"]}}}}})
             with self.owner(project.id):
                 identifier = await self.create()
             args = {"workspace_id":identifier,"argv":self.python("import pathlib,time; pathlib.Path('ready').touch(); time.sleep(2); pathlib.Path('orphan').touch(); time.sleep(60)")}
             model.responses.append([chunk(calls=[call(json.dumps(args),name="test_workspace_execute")],finish="tool_calls")])
-            await project.agents.acreate({"engine": "loop", "tools": ['test_workspace_execute']}, identifier="loop")
+            await project.agents.acreate({"completion": {"model":"test/model"}, "engine": "loop", "tools": ['test_workspace_execute']}, identifier="loop")
             session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
             paused = (await (await session.run.submit("test",recipients=["loop"])).wait())[0]
             self.assertEqual(paused.data.status,RunStatus.PAUSED,paused.data.error)

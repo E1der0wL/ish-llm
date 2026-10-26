@@ -24,12 +24,12 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                                  components=[] if tools is None else [RuntimeTools(ToolRegistry(tools))])
         self.addAsyncCleanup(app.shutdown)
-        parameters = {"engines": {"loop": {"config": {"completion": {"model": "test", "max_tokens": 5}}}}}
+        parameters = {"engines": {"loop": {"config": {}}}}
         if tools is not None:
             parameters["components"] = {"tools": {"config": {"enabled": [tool.name for tool in tools]}}}
         project = await app.projects.acreate(components=[] if tools is None else ["tools"],
                                             config={"policies": {"usage": usage}, "parameters": parameters})
-        await project.agents.acreate({"engine": "loop", "tools": [] if tools is None else [tool.name for tool in tools]}, identifier="loop")
+        await project.agents.acreate({"completion": {"model": "test", "max_tokens": 5}, "engine": "loop", "tools": [] if tools is None else [tool.name for tool in tools]}, identifier="loop")
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         return app, project, session, model
 

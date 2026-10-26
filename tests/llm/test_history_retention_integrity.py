@@ -202,9 +202,9 @@ class HistoryRetentionIntegrityTests(unittest.IsolatedAsyncioTestCase):
                 yield chunk('answer', finish='stop')
             async def main():
                 async with LargeLanguageModel(root / 'workspace', engines={'custom': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))}) as app:
-                    project = await app.projects.acreate(config=ProjectConfig(parameters={'engines': {
-                        'custom': {'config': {'completion': {'model': 'test'}}}}}))
-                    await project.agents.acreate({'engine': 'custom'}, identifier='custom')
+                    project = await app.projects.acreate()
+                    await project.agents.acreate({'engine': 'custom',
+                        'completion': {'model': 'test'}}, identifier='custom')
                     session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     runs = []
                     for _ in range(3):

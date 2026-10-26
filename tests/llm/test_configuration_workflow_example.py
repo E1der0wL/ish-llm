@@ -69,13 +69,13 @@ class ConfigurationWorkflowTests(unittest.IsolatedAsyncioTestCase):
         (self.source / "extra.conf").write_text("sample fixture\n")
         self.manual = self.root / "manual.md"
         self.manual.write_text("# Configuration\n\n" + QUOTE)
-        self.config = {"source_root": str(self.source), "files": ["settings.conf", "*.conf"],
+        self.config = {"agent": {"completion": {"model": "test/chat"}}, "source_root": str(self.source), "files": ["settings.conf", "*.conf"],
             "documents": [str(self.manual)], "max_attempts": 2,
             "validators": [{"name": "fixture-check", "argv": [sys.executable, "-c",
                 "from pathlib import Path; import sys; p=Path(sys.argv[1]); "
                 "assert (p/'extra.conf').read_text() == 'sample fixture\\n'; "
                 "assert (p/'settings.conf').read_text() == 'include extra.conf\\nmode=current\\n'", "{candidate}"]}],
-            "project_config": {"parameters": {"engines": {"loop": {'policy': {'max_iterations': 3, 'request_timeout': 20}, 'config': {'completion': {'model': 'test/chat'}}}}, "components": {"rag": ProjectConfig.merge(rag_settings(), {'config': {'embedding_params': {'model': 'test/embed'}, 'extraction_params': {'model': 'test/extract'}, 'graph': {'buffer_pool_size': 67108864, 'max_num_threads': 2}}})}}}}
+            "project_config": {"parameters": {"engines": {"loop": {'policy': {'max_iterations': 3, 'request_timeout': 20}}}, "components": {"rag": ProjectConfig.merge(rag_settings(), {'config': {'embedding_params': {'model': 'test/embed'}, 'extraction_params': {'model': 'test/extract'}, 'graph': {'buffer_pool_size': 67108864, 'max_num_threads': 2}}})}}}}
 
     async def plan(self, model=None, **kwargs):
         return await example.plan(self.root / "workspace", self.config, "Replace legacy with current",

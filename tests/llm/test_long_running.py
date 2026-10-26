@@ -13,7 +13,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from tests.llm.support.runtime_tools import RuntimeTools
-from tests.llm.configuration_fixtures import configure_engine
+from tests.llm.configuration_fixtures import configure_agent, configure_engine
 from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, Tool, ToolRegistry, ToolComponent, BackendServices
 from llm.services.runtime.tools import ToolRuntime, ToolExecutionError, ToolApprovalRequired
 from llm.services.infrastructure.storage import atomic_domain_json, record as domain_record
@@ -105,8 +105,8 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, _ = await self.setup_app(act, [])
         model = InterruptedCompletion()
         app.engines.register('partial', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
-        await configure_engine(session.project, 'partial', completion={'model': 'test/model'})
-        await session.project.agents.acreate({'engine': 'partial', 'tools': ['act']}, identifier='partial')
+        await configure_engine(session.project, 'partial')
+        await session.project.agents.acreate({"completion": {'model': 'test/model'}, 'engine': 'partial', 'tools': ['act']}, identifier='partial')
         await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"partial"}))
         handle = await session.run.submit('go', recipients=['partial'])
         self.assertTrue(await asyncio.to_thread(started.wait, 5))
@@ -252,7 +252,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app.policy_resolver.token_counters['fixed'] = lambda request: 10
         project = app.projects.load(session.data.project_id)
         config = project.data.config
-        config.parameters["engines"]["loop"]["config"]["completion"]['max_tokens'] = 5
+        await configure_agent(project, "loop", max_tokens=5)
         config.configure_policies({'usage': {'counter': 'fixed', 'max_tokens': 20, 'project_max_calls': 1}})
         await project.asave(config=config)
         failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
@@ -366,9 +366,9 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
             engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate("resume", config=ProjectConfig(policies=policies or {}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
+        project = await app.projects.acreate("resume", config=ProjectConfig(policies=policies or {}, parameters={"engines": {"loop": {'config': {}}}}), components=["tools"])
         project.components.tools.enable("act")
-        await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
+        await project.agents.acreate({"completion": {'model': 'test/model'}, "engine": "loop", "tools": ["act"]}, identifier="loop")
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         return app, session, model
 

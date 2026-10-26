@@ -9,7 +9,7 @@
     "incomplete_contracts": 0,
     "unreviewed_dynamic_paths": 0,
     "unreadable_files": 0,
-    "candidates": 15424,
+    "candidates": 15423,
     "issues": 0
   },
   "files": [
@@ -1624,13 +1624,13 @@
     {
       "path": "llm/CONFIGURATION.md",
       "status": "reviewed",
-      "sha256": "d70551d1d5b06ada8c412dade5dedbcb9220e5a672942186f267487db2ccbd77",
+      "sha256": "631f3d6b11daa917b6d43225bcf8c1d01aaf232cbc76c511bd2e0f769ca783a0",
       "candidates": 0
     },
     {
       "path": "llm/README.md",
       "status": "reviewed",
-      "sha256": "3617e45d7ec42e876540dda82138ff9b62edee1e86a78869b99673871aed25e5",
+      "sha256": "c1e6b7c52ce7bb1a58b962a04c836b43fe89eb7ba06e201e2393f686a885bf7b",
       "candidates": 0
     },
     {
@@ -3184,7 +3184,7 @@
     {
       "path": "llm/engines/loop/README.md",
       "status": "reviewed",
-      "sha256": "cbfb8520ff7df3f9d01588f0fe1ad4f17725d846ea766533399073c585de1f3f",
+      "sha256": "613099259baf5a4cc2489648ac21f2b8a320f3ad4fbbf11715f457853fa48b42",
       "candidates": 0
     },
     {
@@ -3202,13 +3202,13 @@
     {
       "path": "llm/engines/loop/configuration.py",
       "status": "reviewed",
-      "sha256": "dfb472d94e16602bd6784f5b5746ea42f9fdd474eb7ac9dbfb73946549b88543",
-      "candidates": 24
+      "sha256": "7f9426fe645bc42fd4c30917697f2ab80d6986dbaa8172428d766dbff3d9042c",
+      "candidates": 23
     },
     {
       "path": "llm/engines/loop/engine.py",
       "status": "reviewed",
-      "sha256": "5cd54ff4537511d23c5e70ae5a1635fdf8ea7adb17a14988a7e689b81dad6894",
+      "sha256": "a3d74db021acfbfe1f6b0c6bdcb35dafe9cda930fdf6be87bb1cb46d74883ba6",
       "candidates": 22
     },
     {
@@ -3442,7 +3442,7 @@
     {
       "path": "llm/services/command_line.py",
       "status": "reviewed",
-      "sha256": "ac299e6e740e47b34d907633f6f83189ced2bf607264840530883779bbc0e57d",
+      "sha256": "62e1b6616ba40f6ea1e0b178efdd0b134605a9a52df3e278ba2c3b6b2f1313d0",
       "candidates": 39
     },
     {

@@ -39,16 +39,16 @@ class SettingsContractTests(unittest.TestCase):
 
     def test_project_session_agent_sources_and_limits_are_identical(self):
         project = ProjectConfig(parameters={"engines": {"writer": {
-            "config": {"system_prompt": "project", "completion": {"timeout": 70}},
+            "config": {"system_prompt": "project"},
             "policy": {"request_timeout": 300, "completion": {"max_tokens": 100, "counter": "test"}},
         }}})
         session = {"parameters": {"engines": {"writer": {"policy": {"request_timeout": 60}}}}}
-        engine = LoopEngine().for_agent({"engine": "writer", "system_prompt": None,
+        engine = LoopEngine().for_agent({"completion": {"timeout": 70}, "engine": "writer", "system_prompt": None,
             "engine_options": {"policy": {"completion": {"max_tokens": 50}}}})
         view = engine.resolve_config(project, "writer", session_config=session)
         self.assertIsNone(view["values"]["config"]["system_prompt"])
         self.assertEqual(view["values"]["policy"]["request_timeout"], 60)
-        self.assertEqual(view["values"]["config"]["completion"], {"timeout": 70})
+        self.assertNotIn("completion", view["values"]["config"])
         self.assertEqual(view["values"]["policy"]["completion"], {"max_tokens": 50, "counter": "test"})
         for path in ("/config/system_prompt", "/policy/completion/max_tokens"):
             self.assertEqual(view["sources"][path], "agent")
@@ -104,8 +104,7 @@ class SettingsContractTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "context_budget_exceeded")
 
     def test_layout_roundtrip_preserves_explicit_null_and_sdk_options(self):
-        options = {"completion": {"timeout": None, "num_retries": 3, "custom": {"x": 1}},
-                   "input_policy": None, "request_timeout": None}
+        options = {"input_policy": None, "request_timeout": None}
         layout = LoopEngine.parameter_layout
         self.assertEqual(layout.unpack(layout.pack(options)), options)
         self.assertEqual(layout.pack({}), {})
@@ -141,9 +140,9 @@ class SettingsContractTests(unittest.TestCase):
                     engine.resolve_config(ProjectConfig(parameters={"engines": {"loop": supplied}}), "loop")
         supplied = {"config": {"completion": {"input_policy": "provider-extension"}},
                     "policy": {"completion": None}}
-        self.assertTrue(Draft202012Validator(engine.describe_config()).is_valid(supplied))
-        self.assertEqual(engine.parameter_layout.unpack(supplied),
-                         {"completion": {"input_policy": "provider-extension"}, "input_policy": None})
+        self.assertFalse(Draft202012Validator(engine.describe_config()).is_valid(supplied))
+        # Provider-private options remain valid only on the Agent boundary.
+        engine.for_agent({"engine": "loop", "completion": {"input_policy": "provider-extension"}})
 
     def test_layout_required_and_local_references_keep_their_meaning(self):
         layout = ParameterLayout(config=("connection", "peers"), policy=("limit",))
@@ -179,17 +178,16 @@ class SettingsContractTests(unittest.TestCase):
             "allOf": [{"required": ["a"]}], "properties": {"a": {"type": "integer"}}}}})
         self.assertFalse(Draft202012Validator(spec).is_valid({"config": {"value": {}}}))
 
-    def test_nested_agent_metadata_matches_leaf_merge_including_empty_null_and_array(self):
-        engine = LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}}})})
-        config = ProjectConfig(parameters={"engines": {"loop": {"config": {"completion": {
-            "extra_body": {"b": 2, "unset": 3, "items": [2], "empty": {"inherited": True}}}}}}})
-        view = engine.resolve_config(config, "loop")
+    def test_nested_agent_model_values_are_detached_and_excluded_from_engine_config(self):
+        from llm.engines.loop.configuration import LoopAgentOptions
+        params = {"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}}
+        engine = LoopEngine().for_agent({"engine": "loop", "completion": params})
+        params["extra_body"]["items"].append(2)
+        view = engine.resolve_config(ProjectConfig(), "loop")
         self.assertNotIn("x-host-override", json.dumps(engine.describe_config()))
-        for name in ("a", "unset", "items"):
-            self.assertEqual(view["sources"]["/config/completion/extra_body/" + name], "agent")
-            self.assertTrue(view["editable"]["/config/completion/extra_body/" + name])
-        self.assertTrue(view["editable"]["/config/completion/extra_body/b"])
-        self.assertTrue(view["editable"]["/config/completion/extra_body/empty/inherited"])
+        self.assertEqual(view["values"], {})
+        self.assertEqual(LoopAgentOptions(engine._agent_options).completion,
+                         {"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}})
 
     def test_engine_layout_preserves_local_reference_scope(self):
         from llm.core.configuration import resolve_engine_config

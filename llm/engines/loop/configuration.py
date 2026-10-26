@@ -3,7 +3,6 @@
 from copy import deepcopy
 from llm.core.agents import AgentDefinition
 from llm.core.configuration_views import EngineConfigurationKey
-from llm.core.model_protocol import copy_model
 from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, field, SchemaKeyword, SchemaType, SchemaExtension, SchemaNarrowing
 from llm.policies import CompletionPolicy
@@ -34,7 +33,6 @@ class LoopRegistration:
 
 
 class LoopParameters:
-    COMPLETION = "completion"
     SYSTEM_PROMPT = "system_prompt"
     BUFFER_SIZE = "buffer_size"
     MAX_ITERATIONS = "max_iterations"
@@ -51,7 +49,7 @@ class LoopParameters:
     POSITIVE_MINIMUM = 0
     PROMPT_DESCRIPTION = "시스템 프롬프트"
     LAYOUT = ParameterLayout(
-        config=(COMPLETION, SYSTEM_PROMPT, BUFFER_SIZE),
+        config=(SYSTEM_PROMPT, BUFFER_SIZE),
         policy=(
             MAX_ITERATIONS,
             REQUEST_TIMEOUT,
@@ -98,10 +96,6 @@ class LoopParameters:
     def final_review(self):
         return self._value.get(self.FINAL_REVIEW)
 
-    def update_completion(self, supplied):
-        self._value.setdefault(self.COMPLETION, {}).update(supplied)
-        return self._value
-
     def default_system_prompt(self, prompt):
         self._value.setdefault(self.SYSTEM_PROMPT, prompt)
         return self._value
@@ -110,14 +104,6 @@ class LoopParameters:
     def default_provider(cls, policy, value):
         policy.setdefault(cls.PROVIDER, value)
         return policy
-
-    @classmethod
-    def has_completion(cls, value):
-        return cls.COMPLETION in value
-
-    @property
-    def completion(self):
-        return self._value.get(self.COMPLETION, {})
 
     @property
     def system_prompt(self):
@@ -148,7 +134,6 @@ class LoopParameters:
             SchemaKeyword.TYPE: [SchemaType.STRING, SchemaType.NULL],
             SchemaKeyword.DESCRIPTION: cls.PROMPT_DESCRIPTION,
         }
-        properties[cls.COMPLETION] = engine.completion_adapter.describe_config()
         properties[cls.INPUT_POLICY] = CompletionPolicy.describe_config()
         properties[cls.PROVIDER] = {
             **provider_schema(),
@@ -215,14 +200,6 @@ class LoopAgentOptions:
         return self._value[self.SYSTEM_PROMPT]
 
     @property
-    def required_completion(self):
-        return self._value[self.COMPLETION]
-
-    @property
-    def optional_completion(self):
-        return self._value.get(self.COMPLETION)
-
-    @property
     def require_tool(self):
         return self._value.get(self.POLICY, {}).get(self.REQUIRE_TOOL, self.NO_REQUIRED_TOOL)
 
@@ -241,10 +218,6 @@ class LoopAgentOptions:
     @classmethod
     def set_prompt(cls, overrides, prompt):
         overrides[cls.SYSTEM_PROMPT] = prompt
-
-    @classmethod
-    def set_completion(cls, overrides, completion):
-        overrides[cls.COMPLETION] = completion
 
     @classmethod
     def join_prompt(cls, parts):

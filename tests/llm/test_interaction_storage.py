@@ -339,9 +339,9 @@ class InteractionStorageTests(unittest.IsolatedAsyncioTestCase):
                     services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize))) as app:
                 project = await app.projects.acreate(components=["tools"], config={
                     "parameters": {
-                        "engines": {"loop": {"config": {"completion": {"model": "test"}}}},
+                        "engines": {"loop": {"config": {}}},
                         "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
-                await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
+                await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "tools": ["effect"]}, identifier="loop")
                 session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                 self.assertEqual(paused.data.status, "paused", paused.data.error)

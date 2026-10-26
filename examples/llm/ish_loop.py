@@ -28,11 +28,14 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
                    else await backend.projects.acreate("ish LoopEngine test", conversation_storage="file"))
         config = (await project.aget_data()).config
         config.parameters.setdefault("engines", {})["loop"] = {
-            "config": {"completion": dict(completion)},
             "policy": {"max_iterations": max_iterations, "request_timeout": request_timeout}}
         await project.asave(config=config)
         if not args.project_id:
-            await project.agents.acreate({"engine": "loop"}, identifier=args.agent_id)
+            await project.agents.acreate({"engine": "loop", "completion": dict(completion)}, identifier=args.agent_id)
+        elif completion:
+            snapshot = await project.agents.asnapshot(args.agent_id)
+            await project.agents.aupdate(args.agent_id, {"completion": dict(completion)},
+                                        expected_revision=snapshot["revision"])
         session = (await project.sessions.aload(args.session_id) if args.session_id
                 else await project.sessions.acreate("ish LoopEngine test", agent_ids=[args.agent_id]))
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
@@ -61,8 +64,8 @@ def main(*argv: str, workspace: Optional[str] = None,
          max_iterations: int = 8, request_timeout: float = 120) -> None:
     """ish가 pickle로 전달하는 동기 진입점. 반환값 대신 프로세스 종료 코드를 사용한다.
 
-    completion은 LiteLLM 인자이며 Project/Session 설정보다 우선한다. 생략한 항목은
-    기존 Project/Session 설정을 따른다. api_key_env는 실행 시점의 셸에서 읽으므로
+    completion은 선택한 Agent에 저장할 모델 호출 인자 전체다. 비어 있으면 기존
+    Agent 모델 설정을 유지한다. api_key_env는 실행 시점의 셸에서 읽으므로
     ish 안에서 export한 키도 다음 호출에 적용된다. None이면 별도로 읽지 않는다.
     --session-id 생략 시 새 Session, 지정 시 같은 Session의 이전 대화를 이어간다.
     """

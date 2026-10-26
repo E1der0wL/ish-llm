@@ -413,8 +413,8 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
         model = Model([chunk("done", finish="stop")], gate=False)
         with tempfile.TemporaryDirectory() as directory:
             async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as app:
-                project = await app.projects.acreate("test", components=[], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
-                await project.agents.acreate({"engine": "loop"}, identifier="loop")
+                project = await app.projects.acreate("test", components=[], config=ProjectConfig(parameters={"engines": {"loop": {'config': {}}}}))
+                await project.agents.acreate({"completion": {'model': 'test'}, "engine": "loop"}, identifier="loop")
                 session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 accepted = []
                 async def on_run(event):

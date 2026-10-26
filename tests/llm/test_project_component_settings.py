@@ -103,14 +103,14 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         tools = ToolRegistry((Tool("echo", "Echo", {"type": "object"}, lambda args: args, contract=TEST_CONTRACT),))
         provider = ScriptedCompletion([chunk("done", finish="stop")])
         app = self.backend(components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
-        project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"tools": {'config': {'enabled': []}}}}))
+        project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {}}}, "components": {"tools": {'config': {'enabled': []}}}}))
         data = await project.components.aget("tools")
         path = project.paths.root / "tools" / "component.json"
         self.assertFalse(path.exists())
         await data.aenable("echo")
         self.assertEqual((await project.aget_data()).config.parameters.setdefault("components", {})["tools"]['config']['enabled'], ["echo"])
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
-        await session.project.agents.acreate({'engine': 'loop', 'tools': ['echo']}, identifier="loop")
+        await session.project.agents.acreate({"completion": {'model': 'test'}, 'engine': 'loop', 'tools': ['echo']}, identifier="loop")
         await session.asave(agent_ids=["loop"])
         run = (await (await session.run.submit("hello", recipients=["loop"])).wait())[0]
         self.assertEqual((await run.aget_data()).status, "completed")
@@ -199,15 +199,15 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([chunk("one"), chunk("two", finish="stop")], [chunk("other", finish="stop")])
         host = OutputBuffer(batch_size=2, max_delay=.04, max_chars=1000)
         app = self.backend(services=BackendServices(output_buffer=host), engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
-        project = await app.projects.acreate(config=ProjectConfig(policies={"output": {"batch_size": 4, "max_chars": 50}}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
-        other = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
+        project = await app.projects.acreate(config=ProjectConfig(policies={"output": {"batch_size": 4, "max_chars": 50}}, parameters={"engines": {"loop": {'config': {}}}}))
+        other = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'config': {}}}}))
         seen = []
         async def consume(events, batching, handler):
             seen.append(batching)
             return await consume_events(events, batching, handler)
         with patch("llm.services.runtime.runs.consume_events", side_effect=consume):
             for item in (project, other):
-                await item.agents.acreate({'engine': 'loop'}, identifier="loop")
+                await item.agents.acreate({"completion": {'model': 'test'}, 'engine': 'loop'}, identifier="loop")
                 session = await item.sessions.acreate(agent_ids=["loop"])
                 run = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                 self.assertEqual((await run.aget_data()).status, "completed")

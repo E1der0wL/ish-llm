@@ -149,9 +149,9 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": "item", **expected(old)}),
             name="memory_delete")], finish="tool_calls")], [chunk("done", finish="stop")])
         self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
-        await configure_engine(self.project, "loop", completion={"model": "test/model"})
+        await configure_engine(self.project, "loop")
         session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
-        await self.project.agents.acreate({"engine": "loop", "tools": ["memory_delete"]}, identifier="loop")
+        await self.project.agents.acreate({"completion": {"model": "test/model"}, "engine": "loop", "tools": ["memory_delete"]}, identifier="loop")
         await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"loop"}))
         paused = (await (await session.run.submit("delete", recipients=["loop"])).wait())[0]
         self.assertEqual(paused.data.status, "paused", paused.data.error)

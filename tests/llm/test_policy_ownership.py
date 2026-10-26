@@ -19,7 +19,7 @@ from llm.engines.graph.agent import AgentNode
 from llm.core.agents import AgentDefinition
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.core.policies import normalize_policies
-from tests.llm.configuration_fixtures import configure_engine
+from tests.llm.configuration_fixtures import configure_engine, configure_agent
 from tests.llm.test_loop import ScriptedCompletion, chunk
 
 
@@ -83,7 +83,8 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk("done", finish="stop")])
         app, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
             counters={"input": lambda r: 1, "usage": lambda r: 5})
-        await configure_engine(project, "writer", completion={"model": "test", "max_tokens": 2},
+        await configure_agent(project, "writer", model="test", max_tokens=2)
+        await configure_engine(project, "writer",
             input_policy={"max_tokens": 100, "counter": "input"})
         await project.aconfigure_policies({"usage": {"max_tokens": 6, "counter": "usage"}})
         run = (await (await session.run.submit("hello", recipients=["writer"])).wait(timeout=10))[0]
@@ -110,7 +111,8 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
     async def test_missing_counter_fails_only_selected_engine_before_model(self):
         model = ScriptedCompletion([chunk("done", finish="stop")])
         _, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
-        await configure_engine(project, "writer", completion={"model": "test"},
+        await configure_agent(project, "writer", model="test")
+        await configure_engine(project, "writer",
             input_policy={"max_tokens": 10, "counter": "missing"})
         run = (await (await session.run.submit("hello", recipients=["writer"])).wait(timeout=10))[0]
         self.assertEqual(run.data.error_code, "policy_unavailable")
@@ -128,10 +130,9 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         implementation = InspectLoop(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
         graph = GraphEngine(handlers={"agent": AgentNode(engines={"writer": implementation})})
         _, project, session = await self.backend({"writer": implementation, "graph": graph}, components=[WorkflowComponent()])
-        await configure_engine(project, "writer", completion={"model": "test"},
-            input_policy={"max_tokens": 400, "counter": "count"}, provider={"max_attempts": 2})
+        await configure_engine(project, "writer", input_policy={"max_tokens": 400, "counter": "count"}, provider={"max_attempts": 2})
         for name, size in (("a", 200), ("b", 300)):
-            await project.agents.acreate({"engine": "writer", "purpose": name,
+            await project.agents.acreate({"completion": {"model": "test"}, "engine": "writer", "purpose": name,
                 "engine_options": {'policy': {'completion': {'max_tokens': size}, 'provider': {'max_attempts': 2}}}}, identifier=name)
         workflow = (WorkflowGraph(entry="a").node("a", "agent", agent="a")
             .node("b", "agent", agent="b").node("end", "end").connect("a", "b").connect("b", "end"))
@@ -148,7 +149,8 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
             raise ConnectionError("offline")
             yield
         _, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=offline))})
-        await configure_engine(project, "writer", completion={"model": "test"},
+        await configure_agent(project, "writer", model="test")
+        await configure_engine(project, "writer",
             input_policy={"max_tokens": 100, "counter": "count"})
         for change in ({"input_policy": {"max_tokens": 200}}, {"provider": {"max_attempts": 2}}):
             with self.subTest(change=change):

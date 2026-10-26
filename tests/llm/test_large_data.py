@@ -71,7 +71,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         name = "loop" + str(self.serial)
         self.serial += 1
         self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
-        await configure_engine(self.project, name, completion={"model": "test/main"})
+        await configure_engine(self.project, name)
         from llm.components.tools.resolver import ComponentToolResolver
         manager = self.app.project_manager
         def selected_tools():
@@ -80,7 +80,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
                 return list(ComponentToolResolver(manager.components,
                     data_factory=manager.component, agents=manager.agents,
                     engines=self.app.engines).resolve_tools(project).names())
-        await self.project.agents.acreate({"engine": name,
+        await self.project.agents.acreate({"completion": {"model": "test/main"}, "engine": name,
             "tools": [*(await asyncio.to_thread(selected_tools)), "memory_tool_result"]}, identifier=name)
         await self.session.run.shutdown()
         await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {name}))

@@ -20,6 +20,11 @@ Engine은 실행 전략이며 영속 소유 계층의 중간 객체가 아니다
 자료를 소유한다. Run/Step의 생성·상태·출력·사용량·수명은 서비스가 저장한다. Component를 등록하거나
 정의를 저장하는 것만으로 선택·설치·모델 호출·Tool 실행이 시작되지 않는다.
 
+저장 Agent가 모델명·인증·추론 인자를 `completion`으로 소유한다. Loop는 반복·Tool·문맥 예산·
+재시도 등 실행 방식을 소유하며 Project/Session의 Loop 설정에서 모델 값을 상속하지 않는다.
+선택 Adapter가 SDK 인자를 검증·전달하고 Graph Agent는 모델 설정을 받지 않는다.
+Agent revision과 admission snapshot이 모델 변경도 보호한다. [모델 설정 계약](agent-models.md).
+
 | 경계 | 소유 코드 | 책임 |
 |---|---|---|
 | 공개 API·조립 | `llm/llm.py`, `services/api.py`, `services/composition.py` | 수명 관리와 핸들, 구현·저장소·Host 자원 연결 |

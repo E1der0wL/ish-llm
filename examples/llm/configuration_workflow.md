@@ -30,7 +30,8 @@ Agent에는 검색 Tool만 제공하고, 적용 Tool은 검증 후 Graph의 마�
 | `max_attempts` | 변경안 작성·검증 시도 상한 |
 | `max_source_bytes` | 모델에 전달할 선택 파일·참고 파일의 전체 바이트 상한 |
 | `validator_timeout`, `validator_output_bytes` | 검증 명령당 시간·출력 상한 |
-| `project_config` | ProjectConfig JSON. 대화 모델과 RAG embedding/extraction의 모델·API 키 등 |
+| `project_config` | ProjectConfig JSON. Engine 실행 정책과 RAG embedding/extraction의 모델·API 키 등 |
+| `agent.completion` | 답변 Agent의 모델·API 키·SDK 인자. Engine에서 상속하지 않음 |
 
 모든 자료는 UTF-8이어야 한다. 기존 파일만 변경하며 생성·삭제·숨김 경로·심볼릭 링크는
 이 예제에서 지원하지 않는다. 프로그램별 파일 의존성을 자동 해석하지 않으므로 검증에

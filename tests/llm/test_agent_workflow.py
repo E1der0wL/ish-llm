@@ -273,12 +273,12 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                             for s in await interrupted.steps.alist()))
         self.assertEqual(((await second.wait(timeout=10))[0]).data.status, RunStatus.COMPLETED)
 
-    async def test_absent_allowlist_exposes_no_tools_and_project_model_is_overridden(self):
+    async def test_absent_allowlist_exposes_no_tools_and_agent_owns_model(self):
         self.profile.pop("tools")
         model = ScriptedCompletion(answer("ok"))
         await self.setup_graph(agent_graph(), model)
         data = await self.project.aget_data()
-        data.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "project/default", "temperature": 0.9}}}}
+        data.config.parameters["engines"] = {"loop": {"policy": {"max_iterations": 3}}}
         await self.project.asave(config=data.config)
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED)

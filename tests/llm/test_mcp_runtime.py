@@ -54,14 +54,14 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=["mcp"], config={"policies": {"approval": {
             "enabled": True, "risk_scheme": "test", "rules": [{"id": "allow", "category": "remote.call", "max_risk": 1}]}},
-            "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test/model"}}}}}})
+            "parameters": {"engines": {"loop": {"config": {}}}}})
         data = project.components.mcp
         await data.acreate({"transport": "stdio", "command": sys.executable,
             "args": [str(Path(__file__).parent / "support/mcp_server.py")],
             "env": {"MCP_TEST_MARKER": str(self.root / "marker")}}, identifier="server")
         await data.aprepare("server")
         await data.aconfigure({"config": {"tools": {"remote_echo": {"server": "server", "tool": "echo"}}}})
-        await project.agents.acreate({"engine": "loop", "tools": ["remote_echo"]}, identifier="loop")
+        await project.agents.acreate({"completion": {"model": "test/model"}, "engine": "loop", "tools": ["remote_echo"]}, identifier="loop")
         return app, project, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), data
 
     async def test_incomplete_discovery_evidence_cannot_restore_defaults_or_connect(self):

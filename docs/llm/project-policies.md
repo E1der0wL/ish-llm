@@ -39,14 +39,14 @@ project = await backend.projects.acreate("개발 작업", config=ProjectConfig(
         "usage": {"max_tokens": 200000, "counter": "model_default"},
     },
     parameters={"engines": {"assistant": {
-        "config": {"completion": {"model": model_name, "max_tokens": 4000}},
         "policy": {
             "completion": {"max_tokens": 32000, "reserve_tokens": 4000, "counter": "model_default"},
             "provider": {"max_attempts": 3, "delay_seconds": 1, "max_delay_seconds": 10},
         },
     }}},
 ))
-await project.agents.acreate({"engine": "assistant"}, identifier="assistant")
+await project.agents.acreate({"engine": "assistant",
+    "completion": {"model": model_name, "max_tokens": 4000}}, identifier="assistant")
 session = await project.sessions.acreate()
 await session.asave(agent_ids=['assistant'])
 run, = await (await session.run.submit("작업해줘", recipients=["assistant"])).wait()

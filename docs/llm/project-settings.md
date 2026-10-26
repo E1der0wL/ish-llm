@@ -12,13 +12,17 @@ Project는 SDK 옵션을 해석하거나 이름이 같은 인자를 여러 대�
 config = ProjectConfig(
     policies={"run": {"timeout_seconds": 1800}},
     parameters={
-        "engines": {"loop": {'policy': {'request_timeout': 300}, 'config': {'completion': {'model': 'openai/company-model', 'temperature': 0.2}}}},
+        "engines": {"loop": {'policy': {'request_timeout': 300}}},
         "components": {"vision": {'config': {'ocr': {'backend': 'tesseract'}}}},
     },
 )
 project = await backend.projects.acreate(
     "작업 공간", config=config, components=["vision"], conversation_storage="file",
 )
+await project.agents.acreate({
+    "engine": "loop",
+    "completion": {"model": "openai/company-model", "temperature": 0.2},
+}, identifier="loop")
 session = await project.sessions.acreate("대화", config={
     "parameters": {"engines": {"loop": {'policy': {'request_timeout': 60}}}},
 })
@@ -28,7 +32,7 @@ request = await session.run.submit("안녕하세요", recipients=["loop"])
 
 숫자와 모델은 예제의 명시적 선택이다. Session은 Project의 300초 제한을 60초로 좁힌다.
 부모의 유한한 제한을 child의 null로 해제하거나 더 큰 값으로 늘리면 거부한다.
-Session에서 생략한 모델은 실행 시 Project 설정을 상속한다. 생성 시 복사하지 않는다.
+모델 인자는 선택한 Agent의 completion에서만 읽는다. Project/Session에서 상속하거나 복사하지 않는다.
 Project의 최상위 completion/engines/component_configurations/session_defaults/default_engine은
 지원하지 않으며 자동 변환도 하지 않는다. 기존 파일은 오류가 나도 그대로 보존한다.
 
@@ -40,8 +44,12 @@ Component는 자신의 디렉토리 아래 자료를 관리하고 별도 설정 
 ```python
 view = await project.adescribe_config()
 config = ProjectConfig(view["project"]["config"])
-config.parameters["engines"]["loop"]["config"]["completion"]["temperature"] = 0.1
+config.parameters["engines"]["loop"]["policy"]["request_timeout"] = 240
 await project.asave(config=config, expected_version=view["config_version"])
+
+agent = await project.agents.asnapshot("loop")
+completion = {**agent["definition"]["completion"], "temperature": 0.1}
+await project.agents.aupdate("loop", {"completion": completion}, expected_revision=agent["revision"])
 
 vision = await project.components.aget("vision")
 await vision.aconfigure(
@@ -72,6 +80,7 @@ await vision.aconfigure(
 조회가 없는 값을 채우거나 모델·준비 작업을 실행하지 않는다. JSON Schema default도 없다.
 동적 host factory는 runtime/host_runtime으로 표시하며 실행 전 값을 추측하지 않는다.
 Session override까지 보고 싶으면 `session.adescribe_config()`을 사용한다.
+Agent 모델은 Engine effective view에 섞지 않으며 Agent CRUD/snapshot으로 조회·수정한다.
 자세한 상속·강제값은 [설정 계약](../../llm/CONFIGURATION.md)에 있다.
 
 ## 애플리케이션의 생성·선택 정책

@@ -16,7 +16,7 @@ Linux의 **ish에서 사용하는 AI 실행 백엔드 플러그인**입니다. �
 
 Engine·Component의 설정은 `parameters.engines[이름]` 또는
 `parameters.components[이름]` 아래 **config**(기능·SDK 인자)와 **policy**(실행 결정·한도)로
-구분합니다. 예를 들어 Loop 모델은 `config.completion.model`, 입력 예산은
+구분합니다. 예를 들어 Loop 모델은 저장 Agent의 `completion.model`, 입력 예산은
 `policy.completion`, 외부 재시도는 `policy.provider`입니다. 직접 컴포넌트 설정 API도
 같은 형태를 저장합니다. 전체 분류와 구현체 확장 계약은 [CONFIGURATION.md](CONFIGURATION.md),
 재사용 정책 알고리즘은 [policies/](policies/README.md)를 참고하세요.
@@ -165,9 +165,6 @@ async def main():
             config=ProjectConfig(parameters={
                 "engines": {
                     "loop": {
-                        "config": {"completion": {
-                            "model": "openai/YOUR_MODEL", "api_key": "YOUR_API_KEY",
-                        }},
                         "policy": {"max_iterations": 4},
                     },
                 },
@@ -175,7 +172,10 @@ async def main():
             components=[],
             conversation_storage="file",
         )
-        await project.agents.acreate({"engine": "loop"}, identifier="loop")
+        await project.agents.acreate({
+            "engine": "loop",
+            "completion": {"model": "openai/YOUR_MODEL", "api_key": "YOUR_API_KEY"},
+        }, identifier="loop")
         session = await project.sessions.acreate("첫 대화", agent_ids=["loop"])
         request = await session.run.submit("안녕하세요.", recipients=["loop"])
         run, = await request.wait()
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
 `submit()`의 결과는 **RequestHandle**입니다. `await request.wait()`는 모든 수신자의 종료를 기다려 **RunHandle 목록**을 반환합니다. 수신자가 하나여도 목록이며, 예제의 `run, = ...`는 그 한 건을 꺼냅니다. 완료 여부는 `ExecutionResult.status`로 확인합니다. Graph의 구조화된 최종 결과는 `result.output`의 `data`로 조회할 수 있습니다.
 
-`ProjectConfig`의 최상위 계약은 `policies`, `parameters`, `data`로 닫혀 있습니다. 구현체 인자는 `parameters.engines`/`parameters.components`의 선택 구현체가 검증하고, Application 데이터는 `data`에 둡니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다. [설정 소유권과 확장 경계](../docs/llm/schema-ownership.md)를 참고하세요.
+`ProjectConfig`의 최상위 계약은 `policies`, `parameters`, `data`로 닫혀 있습니다. 구현체 인자는 `parameters.engines`/`parameters.components`의 선택 구현체가 검증하고, Application 데이터는 `data`에 둡니다. 대화 모델은 Agent `completion`에 저장합니다. API 키도 Agent 정의와 실행 정의 snapshot에 포함됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다. [모델 설정 경계](../docs/llm/agent-models.md)를 참고하세요.
 
 공통 실행·사용량·출력 정책은 `policies`, 구현체별 인자는 `parameters`에 둡니다. 보관 대상·시점·한도는 Application이 정하여 명시적 HistoryRetentionPolicy와 정리 API로 전달합니다.
 Loop 입력 예산은 `parameters.engines[이름].policy.completion`, 모델 호출 재시도는
@@ -278,7 +278,7 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 ### 설정과 UI 연결
 
 - `policies`: 문맥, Run, Tool 허용·승인·조건부 재시도, 사용량·출력 정책. Host의 기술적 허가·실행 어댑터는 BackendServices/ToolRuntime로 연결합니다.
-- `parameters.engines.<parameter_key 또는 등록 이름>`: 해당 Engine이 해석할 전달 인자. Loop는 `config.completion`에서 LiteLLM 모델·인증·추론 옵션을, `policy.completion`에서 입력·완료 토큰 정책을 읽습니다.
+- `parameters.engines.<parameter_key 또는 등록 이름>`: 해당 Engine이 해석할 실행 인자. Loop는 `policy.completion`에서 입력 토큰 정책을 읽습니다. 모델·인증·추론 옵션은 저장 Agent의 `completion`에서만 읽습니다.
 - `parameters.components.<이름>`: 해당 Component가 해석할 전달 인자. RAG 모델 설정은 `rag.config.embedding_params` 등 RAG의 스키마를 따릅니다.
 
 최상위 공용 `completion`은 없습니다. 같은 `model` 키라도 다른 엔진·컴포넌트에 자동 전달하지 않습니다. `project.components.rag.aconfigure(...)`와 `project.asave(config=...)`는 동일한 ProjectConfig 저장 위치를 수정합니다. `await project.adescribe_config()`으로 선택한 모든 컴포넌트의 설정·스키마·출처와 엔진별 최종 설정을 계속 한 번에 조회할 수 있습니다.

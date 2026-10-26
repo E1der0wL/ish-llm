@@ -93,19 +93,19 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
     async def test_session_stores_only_its_explicit_overrides(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
         self.app.engines.register("writer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
-        config = ProjectConfig(parameters={"engines": {"writer": {'config': {'completion': {'model': 'test', 'temperature': 0.3}}, 'policy': {'request_timeout': 300}}}})
+        config = ProjectConfig(parameters={"engines": {"writer": {'config': {}, 'policy': {'request_timeout': 300}}}})
         project = await self.app.projects.acreate(config=config)
         session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 60}}}}}, agent_ids=sorted(await project.agents.alist()))
         self.assertNotIn("completion", (await session.aget_data()).config["parameters"]["engines"]["writer"])
-        await project.agents.acreate({"engine": "writer"}, identifier="writer")
+        await project.agents.acreate({"completion": {'model': 'test', 'temperature': 0.3}, "engine": "writer"}, identifier="writer")
         await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"writer"}))
         first = (await (await session.run.submit("one", recipients=["writer"])).wait())[0]
         self.assertEqual(str((await first.aresult()).status), "completed")
-        config.parameters["engines"]["writer"]["config"]["completion"]["temperature"] = .7
+        config.parameters["engines"]["writer"]["policy"]["request_timeout"] = 200
         await project.asave(config=config)
         second = (await (await session.run.submit("two", recipients=["writer"])).wait())[0]
         self.assertEqual(str((await second.aresult()).status), "completed")
-        self.assertEqual([p["temperature"] for p in provider.requests], [.3, .7])
+        self.assertEqual([p["temperature"] for p in provider.requests], [.3, .3])
         self.assertTrue(all("timeout" not in p for p in provider.requests))
 
     async def test_policy_and_component_override_cannot_be_smuggled_through_session(self):
@@ -121,22 +121,23 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("writer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=first)))
         self.app.engines.register("reviewer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=second)))
         project = await self.app.projects.acreate(components=["notes"], config=ProjectConfig(parameters={
-            "engines": {"writer": {'config': {'system_prompt': None, 'completion': {'model': 'test/writer', 'temperature': None}}},
-                        "reviewer": {'config': {'completion': {'model': 'test/reviewer', 'temperature': 0.8}}}},
+            "engines": {"writer": {'config': {'system_prompt': None}},
+                        "reviewer": {}},
             "components": {"notes": {'config': {'model': 'notes/data', 'temperature': 999}}},
         }))
         view = await project.adescribe_config()
         effective = view["effective_engines"]["writer"]
-        for path in ("/config/system_prompt", "/config/completion/temperature"):
+        for path in ("/config/system_prompt",):
             self.assertEqual(effective["sources"][path], "project")
             self.assertTrue(effective["editable"][path])
         self.assertIsNone(effective["values"]["config"]["system_prompt"])
-        self.assertIsNone(effective["values"]["config"]["completion"]["temperature"])
+        self.assertNotIn("completion", effective["values"]["config"])
         fields = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["writer"]["properties"]
         self.assertNotIn("x-host-override", fields["config"]["properties"]["system_prompt"])
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         for name in ("writer", "reviewer"):
-            await project.agents.acreate({"engine": name}, identifier=name)
+            await project.agents.acreate({"engine": name, "completion": {
+                "model": "test/" + name, "temperature": None if name == "writer" else 0.8}}, identifier=name)
             await session.run.shutdown()
             await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {name}))
             run = (await (await session.run.submit(name, recipients=[name])).wait())[0]
@@ -151,8 +152,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
     async def test_unconfigured_engine_does_not_borrow_another_engines_model(self):
         provider = ScriptedCompletion([chunk("must not run", finish="stop")])
         self.app.engines.register("other", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
-        project = await self.app.projects.acreate(config=ProjectConfig(parameters={
-            "engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
+        project = await self.app.projects.acreate()
         self.assertEqual((await project.adescribe_config())["effective_engines"]["other"]["values"], {})
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         await project.agents.acreate({"engine": "other"}, identifier="other")

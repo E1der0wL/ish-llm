@@ -76,11 +76,11 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(self.root / f"backend-{risk}-{change_environment}", components=[component],
                         engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime)) as backend:
                     project = await backend.projects.acreate(components=["builtin"], config={
-                        "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test/model"}}}},
+                        "parameters": {"engines": {"loop": {"config": {}}},
                                        "components": {"builtin": {"config": {"enabled": ["file_create"]}}}},
                         "policies": {"approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
                             {"id": "write", "category": "file.write", "max_risk": 20}]}}})
-                    await project.agents.acreate({"engine": "loop", "tools": ["file_create"]}, identifier="loop")
+                    await project.agents.acreate({"completion": {"model": "test/model"}, "engine": "loop", "tools": ["file_create"]}, identifier="loop")
                     session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     run = (await (await session.run.submit("create", recipients=["loop"])).wait())[0]
                     self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)

@@ -271,7 +271,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         # 테스트가 생성하는 Engine별 Project 설정의 read-modify-save만 직렬화한다.
         async with self.config_lock:
-            await configure_engine(self.project, name, completion={"model": "test/main"})
+            await configure_engine(self.project, name)
         # Application fixture saves the selected Tool catalogue explicitly.
         from llm.components.tools.resolver import ComponentToolResolver
         manager = self.app.project_manager
@@ -281,7 +281,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
                 return list(ComponentToolResolver(manager.components,
                     data_factory=manager.component, agents=manager.agents,
                     engines=self.app.engines).resolve_tools(project).names())
-        await self.project.agents.acreate({"engine": name,
+        await self.project.agents.acreate({"completion": {"model": "test/main"}, "engine": name,
             "tools": [*(await asyncio.to_thread(selected_tools)),
                 *(["memory_tool_result"] if "memory" in self.project.data.components else [])]}, identifier=name)
         await (session or self.session).run.shutdown()

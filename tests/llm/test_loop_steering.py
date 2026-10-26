@@ -53,15 +53,14 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         self.addCleanup(model.release.set)
         project = await app.projects.acreate("test", config=ProjectConfig(ProjectConfig.merge(
-            {"parameters": {"engines": {"worker": ProjectConfig.merge({'config': {'completion': {'model': 'test/model'}}},
-                LoopEngine.parameter_layout.pack(options or {}))}}}, config or {})),
+            {"parameters": {"engines": {"worker": LoopEngine.parameter_layout.pack(options or {})}}}, config or {})),
             components=[v.name for v in (components or [])])
         for component in components or []:
             if isinstance(component, RuntimeTools):
                 await (await project.components.aget("tools")).aconfigure({'config': {'enabled': list(component.registry.names())}})
         selected = [name for component in components or [] if isinstance(component, RuntimeTools)
                     for name in component.registry.names()]
-        await project.agents.acreate({"engine": "worker", "tools": selected}, identifier="worker")
+        await project.agents.acreate({"engine": "worker", "completion": {"model": "test/model"}, "tools": selected}, identifier="worker")
         session = await project.sessions.acreate("test", agent_ids=sorted(await project.agents.alist()))
         request = await session.run.submit("original", recipients=["worker"])
         self.assertTrue(await asyncio.to_thread(model.entered.wait, 10))

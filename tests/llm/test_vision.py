@@ -333,9 +333,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 [chunk("Check the server."), chunk(finish="stop")])
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()})],
                     engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=complete))}) as app:
-                project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
+                project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                 await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
-                await project.agents.acreate({"engine": "loop", "engine_options": {"policy": {"max_iterations": 2}}, "tools": ["image_ocr"]}, identifier="loop")
+                await project.agents.acreate({"completion": {'model': 'test'}, "engine": "loop", "engine_options": {"policy": {"max_iterations": 2}}, "tools": ["image_ocr"]}, identifier="loop")
                 session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 run = (await (await session.run.submit("Read probe", recipients=["loop"])).wait(timeout=20))[0]
                 self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)

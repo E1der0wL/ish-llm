@@ -168,13 +168,13 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
         engines["graph"] = GraphEngine(handlers={"agent": AgentNode(engines=engines)})
         async with LargeLanguageModel(directory.name, engines=engines, components=[WorkflowComponent()]) as app:
             project = await app.projects.acreate(components=['workflows'], config={"parameters": {"engines": {
-                name: {"config": {"completion": {"model": "test"}}} for name in ("parent", "leaf")}}})
+                name: {} for name in ("parent", "leaf")}}})
             await project.components.workflows.acreate(WorkflowGraph(entry="leaf").node("leaf", "agent", agent="leaf")
                 .node("end", "end").connect("leaf", "end").to_dict(), identifier="flow")
             agents = project.agents
             await agents.acreate({"purpose": "graph", "engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph-worker")
-            await agents.acreate({"purpose": "leaf", "engine": "leaf"}, identifier="leaf")
-            await agents.acreate({"engine": "parent", "tools": ["agent_run"]}, identifier="parent-agent")
+            await agents.acreate({"purpose": "leaf", "engine": "leaf", "completion": {"model": "test"}}, identifier="leaf")
+            await agents.acreate({"engine": "parent", "completion": {"model": "test"}, "tools": ["agent_run"]}, identifier="parent-agent")
             session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
             run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
             self.assertEqual(run.data.status, "failed", run.data.error)
@@ -256,7 +256,8 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"agent_id":"leaf","input":{}}', name="agent_run")], finish="tool_calls")],
             [chunk("leaf done", finish="stop")], [chunk("worker done", finish="stop")]])
         agents = session.project.agents
-        await agents.acreate({"purpose": "leaf", "engine": "child"}, identifier="leaf")
+        await agents.acreate({"purpose": "leaf", "engine": "child",
+                             "completion": {"model": "test/child"}}, identifier="leaf")
         parent.responses[1] = [ConnectionError("after completed children")]
         run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
         self.assertEqual(run.data.status, "failed", run.data.error)

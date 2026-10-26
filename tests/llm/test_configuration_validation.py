@@ -173,11 +173,11 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
     async def test_custom_configuration_receives_detached_values(self):
         class MutatingEngine(SchemaEngine):
             def resolve_config(self, config, name, *, session_config=None):
-                config.parameters["engines"]["loop"]["config"]["completion"]["model"] = "changed"
+                config.parameters["engines"]["loop"]["config"]["system_prompt"] = "changed"
                 session_config["changed"] = True
                 return {}
         app = self.backend(engines={"custom": MutatingEngine(1, 10)})
-        project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'model': 'original'}}}}}})
+        project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'system_prompt': 'original'}}}}})
         session = await project.sessions.acreate(config={"data": {"purpose": "original"}})
-        self.assertEqual(project.data.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "original")
+        self.assertEqual(project.data.config.parameters["engines"]["loop"]["config"]["system_prompt"], "original")
         self.assertNotIn("changed", session.data.config)

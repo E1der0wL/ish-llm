@@ -16,7 +16,9 @@ from unittest.mock import AsyncMock, patch
 from llm import llm as entry
 from llm.core.results import EngineDelta
 from llm.services.infrastructure.locking import WorkspaceOwnership
-from tests.llm.support.fake_engine import FakeStreamingEngine
+from llm.engines.loop import LoopEngine
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from tests.llm.test_loop import ScriptedCompletion, chunk
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -90,7 +92,11 @@ main('--help')
         for fail_after in (None, 1):
             with self.subTest(fail_after=fail_after), tempfile.TemporaryDirectory() as tmp:
                 output, errors = io.StringIO(), io.StringIO()
-                engine = FakeStreamingEngine(chunks=("hello", " world"), fail_after=fail_after)
+                response = [chunk("hello"),
+                            chunk(" world", finish="stop") if fail_after is None
+                            else RuntimeError("Intentional completion failure")]
+                model = ScriptedCompletion(response)
+                engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
                 with patch.object(entry, "LoopEngine", return_value=engine) as build_engine, \
                         redirect_stdout(output), redirect_stderr(errors), \
                         self.assertRaises(SystemExit) as exited:
@@ -103,6 +109,9 @@ main('--help')
                 self.assertEqual(len(runs), 1)
                 run = json.loads(runs[0].read_text(encoding="utf-8"))
                 self.assertEqual(run["status"], "completed" if fail_after is None else "failed")
+                self.assertEqual(model.requests[0]['model'], 'test/model')
+                self.assertEqual(run['metadata']['agent_binding']['definition']['completion'],
+                                 {'model': 'test/model'})
                 # Shutdown releases the workspace even when the Engine fails.
                 with WorkspaceOwnership(Path(tmp) / "projects").scope():
                     pass

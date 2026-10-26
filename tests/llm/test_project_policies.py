@@ -24,13 +24,13 @@ from tests.llm.configuration_fixtures import configure_engine
 
 class ProjectConfigPolicyTests(unittest.TestCase):
     def test_partial_update_preserves_settings_and_detaches_input_and_result(self):
-        config = ProjectConfig(policies={"context": {"mode": "recent"}}, data={"future": {"value": 1}}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}})
+        config = ProjectConfig(policies={"context": {"mode": "recent"}}, data={"future": {"value": 1}}, parameters={"engines": {"loop": {'config': {'system_prompt': 'test'}}}})
         changes = {"context": {"max_turns": 3}}
         result = config.configure_policies(changes)
         self.assertEqual(config.policies["context"],
                          {"mode": "recent", "max_turns": 3})
         self.assertEqual(result["context"], {"mode": "recent", "max_turns": 3})
-        self.assertEqual(config.parameters["engines"]["loop"]["config"]["completion"], {"model": "test/model"})
+        self.assertEqual(config.parameters["engines"]["loop"]["config"]["system_prompt"], "test")
         self.assertEqual(config.data["future"], {"value": 1})
         changes["context"]["max_turns"] = 8
         result["context"]["max_turns"] = 9
@@ -88,7 +88,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(before["project"]["config"]["policies"], {})
         self.assertEqual(before["policy_schema"], ProjectConfig.describe_policies())
         config = before["project"]["config"]
-        config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "test/model"}}}}
+        config["parameters"]["engines"] = {"loop": {"config": {"system_prompt": "test"}}}
         config["data"] = {"future": {"value": 1}}
         await project.asave(config=config)
         await asyncio.gather(project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 2}}),
@@ -96,7 +96,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         saved = (await project.aget_data()).config
         self.assertEqual(saved.policies["context"]["max_turns"], 2)
         self.assertEqual(saved.policies["run"]["max_queued"], 3)
-        self.assertEqual(saved.parameters["engines"]["loop"]["config"]["completion"], {"model": "test/model"})
+        self.assertEqual(saved.parameters["engines"]["loop"]["config"]["system_prompt"], "test")
         self.assertEqual(saved.data["future"], {"value": 1})
         disk = json.loads((project.paths.root / "project.json").read_text())
         self.assertEqual(disk["config"]["policies"], saved.policies)

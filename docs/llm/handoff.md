@@ -1,5 +1,74 @@
 # 최신 작업 인계 — 2026-10-26
 
+## Agent 모델 설정과 Loop 실행 설정 분리
+
+기준 HEAD: `c7d9bfafe3aab261684fe26ac3bbf010b38135d8`.
+모델·인증·SDK 인자는 저장 Agent의 `completion`, 반복/Tool/문맥 예산/외부 재시도는 Loop의
+실행 설정으로 분리했다. [소유권·수동 변경 계약](agent-models.md)을 따른다.
+
+제품 Python 변경은 `engines/loop/configuration.py`, `engines/loop/engine.py`,
+`services/command_line.py`다. Agent CRUD와 기존 definition/revision snapshot을 재사용하며,
+새 저장 도메인·설정 계층·호환 alias·자동 migration을 추가하지 않았다.
+Run/Step/ToolExecutor/승인 저장/Provider 구현과 저장 형식 버전은 변경하지 않았다.
+
+모델 미설정 시 다른 Agent나 Project/Session의 모델을 빌리지 않는다. 예제·CLI와 회귀 fixture는
+각 Agent에 모델 인자를 명시한다. 모델 변경으로 Agent revision이 달라지면 이전 승인·재개를
+거부하며 완료 Tool 효과를 다시 실행하지 않는다. API 키를 직접 저장하면 Agent와 admission/Run
+definition snapshot에도 포함되는 기존 저장 계약을 명시했다.
+
+### 이번 검증 결과
+
+Linux Python **3.12.14**, Linux 파일시스템의 소스 스냅샷에서 실행했다.
+아래 검사는 서로 겹치므로 합산하지 않는다.
+
+| 검사 | Passed | Failed/Error | Skipped | 근거 |
+|---|---:|---:|---:|---|
+| 설정·모델·승인·재개 focused | 209 | 0 | 0 | `corrected.json`, 15개 모듈 |
+| CLI와 실제 ish loader | 7 | 0 | 0 | `plugin.json` |
+| 최종 전체 LLM | 2,519 | 0 | 0 | `final.json`, 1,793.66초 |
+
+새 회귀는 Agent 모델 격리, SDK 명시값과 생략/null 보존, Engine의 옛 모델 경로 거부,
+CLI 소유권, 모델 변경 후 기존 효과/승인 재사용 금지를 검사한다.
+초기 스냅샷에서 발견한 옛 모델 상속 fixture를 수정한 뒤 전체를 다시 실행했다.
+초기 `full.txt`는 중단한 진단 실행이며 최종 결과가 아니다.
+
+최종 실행 스냅샷: `/home/user/.cache/ish-agent-models-w_qzpivs`.
+Python: `/home/user/.cache/ish-scope-deps-69rd8deo/.venv-linux312/bin/python`.
+원본 로그와 소스 hash는 `tests/llm/reports/agent-models-20261026/`에 보존하며 Git/배포에서 제외한다.
+실행한 Python 파일 993개를 작업 소스의 LF 정규화본과 바이트 비교해 불일치 0을 확인했다.
+최종 문서 수정 후 `check_docs`, S1–S7 `check_architecture`,
+`check_contract_coverage --require-complete`도 모두 통과했다. 이 정적 검사는 외부 모델 호출을
+검증한 결과가 아니며 실행 회귀와 구분한다.
+
+```sh
+# 위 Linux 소스 스냅샷에서 실행한 전체 회귀 명령
+.venv-linux312/bin/python -m tests.llm.run_regression --suite llm \
+  --output /mnt/d/WorkSpace/ish/tests/llm/reports/agent-models-20261026/final.json
+```
+
+### Hub 영향 — 수정하지 않음
+
+사용자의 범위 제한에 따라 `hub/`, `tests/hub/`는 변경하지 않았다.
+공개 API 연결 검사는 발견 단계에서 실패했다. 103개 모듈이 같은
+`AttributeError: LoopParameters.COMPLETION`으로 import되지 않아 실행 검증까지 진행하지 못했다.
+이는 103개 테스트 실행 실패나 Hub 통과를 의미하지 않는다.
+
+- `hub/backend/project/title_values.py`: 제거한 Loop 모델 상수를 import 시 참조하여 시작 차단.
+- `hub/backend/project/bootstrap.py`: 모델을 Loop 설정에 쓰는 옛 `update_completion` 경로.
+- `hub/backend/execution/engine_selection.py`: Loop effective view와 제거한 모델 조회 API 사용.
+- `hub/backend/project/naming.py`: 제목 생성에 사용할 모델을 옛 Engine 설정에서 조회.
+
+Hub는 생성/preset·Agent 모델 선택·모델 표시·제목 생성 경로를 새 계약에 연결해야 한다.
+현재 Hub와 함께 그대로 실행 가능한 상태라고 보고하지 않는다. Backend에 Hub 전용 fallback은 없다.
+실제 외부 모델/사내 endpoint 호출과 원격 CI는 이번 검증 범위에 포함하지 않는다.
+
+---
+
+## 이전 Tool scope 인계 기록
+
+아래는 이전 변경 당시의 기록이다. 아래 LLM/Hub 통과 수를 위 Agent 모델 설정 분리의
+결과로 재사용하지 않는다.
+
 기준 main: `b4bd478f7f8ccc7326a25173e9bbae6398b69bd4` 및 이번 필수 Tool scope 보강.
 main과 origin/main이 같은 기준 커밋임을 확인한 뒤 작업했습니다.
 리팩터링 전 누적 인계 내용은 [고정 커밋 원문](https://github.com/E1der0wL/ish-llm/blob/b4bd478f7f8ccc7326a25173e9bbae6398b69bd4/docs/llm/handoff.md)에 보존합니다.

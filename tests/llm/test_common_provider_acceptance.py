@@ -172,13 +172,13 @@ class IndependentProviderAcceptanceTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(root, engines={'loop': LoopEngine(completion_adapter=adapter)}, components=components)
         self.addAsyncCleanup(app.shutdown)
         app.policy_resolver.token_counters['independent'] = lambda request: 1 if isinstance(request, ModelRequest) else -1
-        config = {'parameters': {'engines': {'loop': {'config': {'completion': {
-            'model': 'independent-model', 'output_cap': 2}}}}, 'components': {
+        config = {'parameters': {'engines': {'loop': {'config': {}}}, 'components': {
             'tools': {'config': {'enabled': ['write_effect']}}}}}
         if usage is not None:
             config['policies'] = {'usage': {**usage, 'counter': 'independent'}}
         project = await app.projects.acreate(components=[c.name for c in components], config=config)
-        await project.agents.acreate({"engine": "loop", "tools": ["write_effect"]}, identifier="loop")
+        await project.agents.acreate({"completion": {
+            'model': 'independent-model', 'output_cap': 2}, "engine": "loop", "tools": ["write_effect"]}, identifier="loop")
         session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         return app, project, session, adapter, effect
 

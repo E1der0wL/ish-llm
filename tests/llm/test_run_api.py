@@ -309,7 +309,8 @@ class OpenComponentTests(unittest.TestCase):
         config = ProjectConfig(data={"editor": {"font_size": 14}, "theme": "dark"})
         self.assertFalse(is_dataclass(config))
         config.data["password"] = "ordinary-example-value"
-        config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "example", "api_key": "example-value"}}}}
+        config.parameters["engines"] = {"loop": {"config": {"system_prompt": "explicit prompt"}}}
+        config.data["api_key"] = "ordinary-example-value"
         config.data["new_section"] = {"custom": [1, True]}
         config.data["model"] = {"workspace_setting": True}
         config.data["__deepcopy__"] = "ordinary mapping key"

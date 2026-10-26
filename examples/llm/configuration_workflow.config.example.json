@@ -24,15 +24,6 @@
     "parameters": {
       "engines": {
         "loop": {
-          "config": {
-            "completion": {
-              "model": "openai/YOUR_CHAT_MODEL",
-              "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
-              "api_key": "YOUR_API_KEY",
-              "timeout": 120,
-              "num_retries": 0
-            }
-          },
           "policy": {
             "max_iterations": 8,
             "request_timeout": 120
@@ -87,6 +78,15 @@
           }
         }
       }
+    }
+  },
+  "agent": {
+    "completion": {
+      "model": "openai/YOUR_CHAT_MODEL",
+      "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
+      "api_key": "YOUR_API_KEY",
+      "timeout": 120,
+      "num_retries": 0
     }
   }
 }

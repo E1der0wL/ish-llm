@@ -243,8 +243,8 @@ async def probe(root):
         server.embedding_delay = 0
         source = root / "public-165-lines.md"
         source.write_text(text)
-        config = ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': server.params}}}, "components": {"rag": ProjectConfig.merge(rag_settings({'config': {'search': {'rerank': True}}}), {'config': {'embedding_params': server.params, 'extraction_params': server.params, 'rerank_params': {**server.params, 'model': 'cohere/probe', 'api_base': server.params['api_base'] + '/rerank'}, 'extraction_batch_size': 4, 'chunk_size': 512, 'extraction': {'json_mode': 'auto'}}, 'policy': {'embedding_concurrency': 2, 'provider': {'wall_timeout': 15, 'max_attempts': 2}, 'extraction': {'failure_policy': 'required'}}})}})
-        report = await run_demo(root / "workspace", config, markdown=source, require_relations=True, display=False)
+        config = ProjectConfig(parameters={"components": {"rag": ProjectConfig.merge(rag_settings({'config': {'search': {'rerank': True}}}), {'config': {'embedding_params': server.params, 'extraction_params': server.params, 'rerank_params': {**server.params, 'model': 'cohere/probe', 'api_base': server.params['api_base'] + '/rerank'}, 'extraction_batch_size': 4, 'chunk_size': 512, 'extraction': {'json_mode': 'auto'}}, 'policy': {'embedding_concurrency': 2, 'provider': {'wall_timeout': 15, 'max_attempts': 2}, 'extraction': {'failure_policy': 'required'}}})}})
+        report = await run_demo(root / "workspace", config, completion=server.params, markdown=source, require_relations=True, display=False)
         output.update(status=report["status"], checks=report["checks"], timing=report["timings"],
                       rag_ingestion=report["rag_ingestion"], lines=165, report=report["report"])
         assert report["status"] == "passed", (report.get("error"), report["stage"], report["checks"])

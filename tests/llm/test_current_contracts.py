@@ -276,9 +276,9 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                                                engines={"loop": engine}, services=services) as app:
                     project = await app.projects.acreate(components=["tools"], config={
                         "policies": {"tools": {"max_calls": 1}},
-                        "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
+                        "parameters": {"engines": {"loop": {"config": {}}},
                                        "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
-                    await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
+                    await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "tools": ["effect"]}, identifier="loop")
                     session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                     self.assertEqual(paused.data.status, "paused", paused.data.error)
@@ -349,9 +349,9 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                     project = await app.projects.acreate(components=["tools"], config={
                         "policies": {"tools": {"max_calls": 1}},
-                        "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
+                        "parameters": {"engines": {"loop": {"config": {}}},
                                        "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
-                    await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
+                    await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "tools": ["effect"]}, identifier="loop")
                     session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                     self.assertEqual(failed.data.status, "failed")
@@ -404,9 +404,9 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                 project = await app.projects.acreate(components=["tools"], config={
                     "policies": {"tools": {"max_calls": 1}},
-                    "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
+                    "parameters": {"engines": {"loop": {"config": {}}},
                                    "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
-                await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
+                await project.agents.acreate({"completion": {"model": "test"}, "engine": "loop", "tools": ["effect"]}, identifier="loop")
                 session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                 self.assertEqual(failed.data.status, "failed", failed.data.error)

@@ -63,14 +63,14 @@ from llm.llm import ProjectConfig
 config = ProjectConfig(
     policies={"tools": {"max_calls": 1}},
     parameters={"engines": {"loop": {
-        "config": {"completion": {"model": "openai/YOUR_MODEL"}},
         "policy": {"max_tool_calls": 1, "provider": {"max_attempts": 2}},
     }}},
     data={"label": "Application-owned example"},
 )
 ```
 
-위 수치는 호출자가 선택한 예제이지 backend 기본값이 아니다. SDK 인자는 Provider가 검증한다.
+모델은 `project.agents.acreate({"engine": "loop", "completion": {"model": "openai/YOUR_MODEL"}}, identifier="assistant")`로 Agent에 지정한다.
+위 수치는 호출자가 선택한 예제이지 backend 기본값이 아니다. SDK 인자는 선택 Adapter가 검증한다.
 엔진은 Project→Session→Agent, Component는 명시 client→Project 순서로 해석하며 제한 확대는 거부한다.
 `project.adescribe_config()`는 원본 값·Schema·출처·CAS를 설명한다. `ComponentData.aconfigure()`는
 해당 설정 전체를 교체하므로 기존 설정을 읽어 명시적으로 수정한다.

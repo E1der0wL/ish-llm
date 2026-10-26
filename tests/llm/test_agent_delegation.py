@@ -33,12 +33,12 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate("delegate", components=[c.name for c in components], config={
             "policies": policies or {}, "parameters": {"engines": {
-                name: {"config": {"completion": {"model": "test/" + name}}} for name in engines}}})
-        await project.agents.acreate({"purpose": "work", "engine": "child", "tools": list(child_tools),
+                name: {} for name in engines}}})
+        await project.agents.acreate({"purpose": "work", "engine": "child", "completion": {"model": "test/child"}, "tools": list(child_tools),
                                                 **(definition or {})}, identifier="worker")
         if registry:
             await project.components.tools.aenable(*registry.names())
-        await project.agents.acreate({"engine": "parent", "tools": ["agent_run", *(registry.names() if registry else ())]},
+        await project.agents.acreate({"engine": "parent", "completion": {"model": "test/parent"}, "tools": ["agent_run", *(registry.names() if registry else ())]},
                                      identifier="parent-agent")
         session = await project.sessions.acreate("one", agent_ids=sorted(await project.agents.alist()))
         return app, session, parent, child
@@ -186,7 +186,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"agent_id":"leaf","input":{}}', name="agent_run")], finish="tool_calls")],
             [chunk("leaf done", finish="stop")], [chunk("worker done", finish="stop")]])
         project = (await app.projects.alist())[0]
-        await project.agents.acreate({"purpose": "leaf", "engine": "child", "tools": []}, identifier="leaf")
+        await project.agents.acreate({"purpose": "leaf", "engine": "child", "completion": {"model": "test/child"}, "tools": []}, identifier="leaf")
         run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(len(await session.run.alist()), 1)
@@ -208,13 +208,13 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
         async with LargeLanguageModel(directory.name, engines=engines,
                 components=[WorkflowComponent()]) as app:
             project = await app.projects.acreate(components=['workflows'], config={"parameters": {
-                "engines": {"parent": {"config": {"completion": {"model": "test/model"}}}}}})
+                "engines": {"parent": {"config": {}}}}})
             await project.components.workflows.acreate(WorkflowGraph(entry="echo").node("echo", "echo")
                 .node("after", "echo", pause_before=True).node("end", "end")
                 .connect("echo", "after").connect("after", "end").to_dict(), identifier="flow")
             await project.agents.acreate({"engine": "graph", "purpose": "graph",
                 "engine_options": {"workflow": "flow"}}, identifier="graph-worker")
-            await project.agents.acreate({"engine": "parent", "tools": ["agent_run"]}, identifier="parent-agent")
+            await project.agents.acreate({"completion": {"model": "test/model"}, "engine": "parent", "tools": ["agent_run"]}, identifier="parent-agent")
             session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
             run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait(timeout=10))[0]
             self.assertEqual(run.data.status, "paused", run.data.error)

@@ -267,7 +267,7 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
             engines = EngineRegistry()
             projects = ProjectManager(ProjectRepository(Path(temporary)), sessions, components=registry, engines=engines)
             project = projects.create("Test", components=('tools',),
-                                      config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/test'}}}}}))
+                                      config=ProjectConfig(parameters={"engines": {"loop": {'config': {}}}}))
             data = projects.component(project, "tools")
             from llm.core.model_protocol import ToolDefinition
             definition = ToolDefinition("add", "new", {"type": "object", "properties": {"a": {"type": "number"}},
@@ -290,7 +290,7 @@ async def main(a: float):
             completion = ScriptedCompletion([chunk(calls=[call('{"a":2}')], finish="tool_calls")],
                                             [chunk("done", finish="stop")])
             engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
-            projects.agents.create(project, {"engine": "loop", "tools": ["add"]}, identifier="loop")
+            projects.agents.create(project, {"completion": {'model': 'openai/test'}, "engine": "loop", "tools": ["add"]}, identifier="loop")
             session = sessions.create(project, "Test", agent_ids=["loop"])
             manager = RunManager(sessions, engines, session=session, capabilities=registry)
             try:

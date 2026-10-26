@@ -33,15 +33,15 @@ async def main():
         ) as backend:
             project = await backend.projects.acreate(components=["computer"], config={
                 "parameters": {
-                    "engines": {"loop": {"config": {"completion": {"model": "openai/your-model"}}}},
                     "components": {"computer": {"config": {"enabled": list(toolkit.registry.names())}}},
                 },
             })
-            await project.agents.acreate({"engine": "loop", "tools": list(toolkit.registry.names())},
+            await project.agents.acreate({"engine": "loop", "completion": {"model": "openai/your-model"},
+                                         "tools": list(toolkit.registry.names())},
                                          identifier="assistant")
-            session = await project.sessions.acreate()
+            session = await project.sessions.acreate(agent_ids=["assistant"])
             handle = await session.run.submit(
-                "빈 테스트 공간에 테스트를 작성하고 실행해줘. 결과는 남겨둬.", agent_id="assistant")
+                "빈 테스트 공간에 테스트를 작성하고 실행해줘. 결과는 남겨둬.", recipients=["assistant"])
             result = await handle.wait()
             # PAUSED이면 기존 interaction API로 응답을 저장하고 명시적으로 resume한다.
             # 후속 Tool에도 승인이 필요할 수 있으므로 UI는 동일 절차를 반복한다.

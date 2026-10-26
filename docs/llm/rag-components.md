@@ -25,8 +25,7 @@ async with LargeLanguageModel(
     engines={"loop": LoopEngine()},
 ) as backend:
     project = await backend.projects.acreate("설명서", components=["rag"], config={
-        "parameters": {"engines": {"loop": {"config": {"completion": {
-            "model": completion_model, "api_key": api_key}}}}, "components": {"rag": {
+        "parameters": {"components": {"rag": {
             "config": {"chunk_size": 1000,
                 "extraction_batch_size": 4, "search_cache_chars": 200000,
                 "index_batch_size": 64,

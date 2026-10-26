@@ -230,8 +230,8 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
         with tempfile.TemporaryDirectory() as directory:
             async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}) as app:
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
-                    "loop": {"config": {"completion": {"model": "test/model"}}}}}})
-                await project.agents.acreate({"engine": "loop"}, identifier="loop")
+                    "loop": {"config": {}}}}})
+                await project.agents.acreate({"completion": {"model": "test/model"}, "engine": "loop"}, identifier="loop")
                 session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 run = (await (await session.run.submit("fail", recipients=["loop"])).wait())[0]
                 self.assertEqual(run.data.status, RunStatus.FAILED)

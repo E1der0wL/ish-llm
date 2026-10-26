@@ -73,10 +73,10 @@ async def child(root,boundary):
     app,_=backend(root,boundary)
     async with app:
         project=await app.projects.acreate(components=['tools','review_test'],config={
-            'parameters':{'engines':{'loop':{'config':{'completion':{'model':'independent-model','output_cap':2}},
+            'parameters':{'engines':{'loop':{'config':{},
                                            'policy':{'final_review':POLICY}}},
                           'components':{'tools':{'config':{'enabled':['write']}}}}})
-        await project.agents.acreate({'engine':'loop','tools':['write']},identifier='writer')
+        await project.agents.acreate({"completion": {'model':'independent-model','output_cap':2}, 'engine':'loop','tools':['write']},identifier='writer')
         session=await project.sessions.acreate(agent_ids=['writer'])
         marker(root,project_id=project.id,session_id=session.id)
         run,=await (await session.run.submit('write once then answer',recipients=['writer'])).wait(timeout=15)

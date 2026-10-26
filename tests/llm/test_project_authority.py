@@ -90,9 +90,9 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
             policies={"approval": {"enabled": True, "risk_scheme": "app", "rules": [
                 {"id": "read", "category": "read", "max_risk": 10}]}})
         project = await app.projects.acreate(components=["tools"], config={"parameters": {
-            "engines": {"loop": {"config": {"completion": {"model": "test/model"}}}}}})
+            "engines": {"loop": {"config": {}}}}})
         await project.components.tools.aenable("act")
-        await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
+        await project.agents.acreate({"completion": {"model": "test/model"}, "engine": "loop", "tools": ["act"]}, identifier="loop")
         second = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         a = (await (await first.run.submit("go", recipients=["loop"])).wait())[0]
         b = (await (await second.run.submit("go", recipients=["loop"])).wait())[0]

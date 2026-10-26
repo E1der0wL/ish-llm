@@ -289,10 +289,10 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
                                       [chunk("beta", finish="stop"), usage])
         shared = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         self.app.engines.register("alpha", shared)
-        await self.project.agents.acreate({"engine": "alpha"}, identifier="alpha")
+        await self.project.agents.acreate({"completion": {'model': 'openai/test'}, "engine": "alpha"}, identifier="alpha")
         self.app.engines.register("beta", shared)
-        await self.project.agents.acreate({"engine": "beta"}, identifier="beta")
-        await self.project.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'project alpha', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 12}}, "beta": {'config': {'system_prompt': 'project beta', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 23}}, "loop": {'config': {'system_prompt': 'must not use', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 99}}}}})
+        await self.project.agents.acreate({"completion": {'model': 'openai/test'}, "engine": "beta"}, identifier="beta")
+        await self.project.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'project alpha'}, 'policy': {'request_timeout': 12}}, "beta": {'config': {'system_prompt': 'project beta'}, 'policy': {'request_timeout': 23}}, "loop": {'config': {'system_prompt': 'must not use'}, 'policy': {'request_timeout': 99}}}}})
         await self.session.asave(agent_ids=["alpha", "test"], config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'session alpha'}}}}})
         other = await self.project.sessions.acreate("other", agent_ids=sorted(await self.project.agents.alist()))
         a, b = await asyncio.gather(self.session.run.submit("a", recipients=["alpha"]),
@@ -314,9 +314,9 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
     async def test_engine_can_choose_explicit_parameter_key(self):
         provider = ScriptedCompletion([chunk('one', finish='stop')])
         await self.project.asave(config={'parameters': {'engines': {
-            'stage': {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
+            'stage': {'config': {'system_prompt': 'inner'}}}}})
         self.app.engines.register('explicit', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider), parameter_key='stage'))
-        await self.project.agents.acreate({"engine": "explicit"}, identifier="explicit")
+        await self.project.agents.acreate({"engine": "explicit", "completion": {"model": "openai/test"}}, identifier="explicit")
         await self.session.asave(agent_ids=["explicit", "test"])
         run = (await (await self.session.run.submit('go', recipients=['explicit'])).wait(timeout=5))[0]
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)

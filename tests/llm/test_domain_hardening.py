@@ -267,7 +267,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         completed = (await (await session.run.submit("after cleanup", recipients=["graph"])).wait())[0]
         self.assertEqual(completed.data.status, "completed", completed.data.error)
 
-    async def test_selected_config_binding_allows_ui_but_rejects_model_change(self):
+    async def test_selected_config_binding_allows_ui_but_rejects_execution_change(self):
         async def work(node):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work", pause_before=True).node("end", "end").connect("work", "end").to_dict()
@@ -280,7 +280,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         config.setdefault("data", {})["ui_color"] = "blue"
         await self.project.asave(config=config)
         self.assertTrue((await self.session.run.resume_plan(run.id, agent_id="graph")).can_resume)
-        config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "changed/model"}}}}
+        config["parameters"]["engines"] = {"loop": {"policy": {"max_iterations": 3}}}
         await self.project.asave(config=config)
         plan = await self.session.run.resume_plan(run.id, agent_id="graph")
         self.assertFalse(plan.can_resume)

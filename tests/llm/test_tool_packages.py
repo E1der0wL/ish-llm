@@ -299,11 +299,11 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(temporary.name, components=[ToolComponent()],
             engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate(config={"policies": policies or {}, "parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}}, components=["tools"])
+        project = await app.projects.acreate(config={"policies": policies or {}, "parameters": {"engines": {"loop": {'config': {}}}}}, components=["tools"])
         await project.components.tools.acreate({"source": source}, identifier="act")
         await project.components.tools.aprepare("act")
         await project.components.tools.aenable("act")
-        await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
+        await project.agents.acreate({"completion": {'model': 'test/model'}, "engine": "loop", "tools": ["act"]}, identifier="loop")
         return project, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), model
 
     async def test_file_tool_retry_step_and_normal_none_completion(self):

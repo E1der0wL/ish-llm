@@ -2,7 +2,7 @@
 
 python -m examples.llm.rag_components --model gemini/gemini-3.1-flash-lite
 --ask를 주면 내장 검색 Tool을 사용하는 LoopEngine도 실행한다.
-키는 GEMINI_API_KEY 환경변수에서 읽는다. --ask 실행 시에는 명시 Loop Project 설정에도 저장한다.
+키는 GEMINI_API_KEY 환경변수에서 읽는다. --ask 실행 시에는 명시 Agent completion에도 저장한다.
 """
 
 import argparse
@@ -41,9 +41,10 @@ async def run(args: argparse.Namespace) -> dict:
         if args.ask:
             config = (await project.aget_data()).config
             config.parameters.setdefault("engines", {})["loop"] = {
-                "config": {"completion": {"model": args.model, "api_key": key}}, "policy": {"max_iterations": 8}}
+                "policy": {"max_iterations": 8}}
             await project.asave(config=config)
-            await project.agents.acreate({"engine": "loop", "resources": {"rag": True}}, identifier="document-agent")
+            await project.agents.acreate({"engine": "loop", "completion": {"model": args.model, "api_key": key},
+                                         "resources": {"rag": True}}, identifier="document-agent")
             session = await project.sessions.acreate("Document question", agent_ids=['document-agent'])
             run = (await (await session.run.submit(args.ask, recipients=["document-agent"])).wait())[0]
             result = await run.aresult()

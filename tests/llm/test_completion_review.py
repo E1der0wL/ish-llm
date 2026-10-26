@@ -107,14 +107,14 @@ class CompletionReviewTests(unittest.IsolatedAsyncioTestCase):
         self.app.policy_resolver.token_counters["review_test"] = lambda request: 1
         self.events=[]
         self.app.events.subscribe(lambda run,event:self.events.append((run.id,event)))
-        config={"parameters":{"engines":{"loop":{"config":{"completion":{"model":"independent-model","output_cap":2}}}},
+        config={"parameters":{"engines":{"loop":{"config":{}}},
                               "components":{"tools":{"config":{"enabled":["write"]}}}}}
         if review:config["parameters"]["engines"]["loop"]["policy"]={"final_review":deepcopy(POLICY if policy is None else policy)}
-        if completion is not None:config["parameters"]["engines"]["loop"]["config"]["completion"].update(completion)
         if usage is not None:config["policies"]={"usage":{**usage,"counter":"review_test"}}
         if run_policy is not None:config.setdefault("policies",{})["run"]=run_policy
         self.project=await self.app.projects.acreate(config=config,components=[c.name for c in components])
-        definition={"engine":"loop","tools":["write"]}
+        definition={"completion": {"model":"independent-model","output_cap":2}, "engine":"loop","tools":["write"]}
+        if completion is not None:definition["completion"].update(completion)
         if agent_policy is not None:definition["policy"]=agent_policy
         await self.project.agents.acreate(definition,identifier="writer")
         self.session=await self.project.sessions.acreate(agent_ids=["writer"])
@@ -389,7 +389,11 @@ class CompletionReviewTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(provider.requests[0].parameters['credential'],secret)
         self.assertNotIn(secret,json.dumps(observed))
         self.assertNotIn(secret,json.dumps(await run.acheckpoint('loop')))
-        self.assertNotIn(secret,json.dumps(run.data.metadata))
+        # The admitted Agent definition is durable execution evidence, including
+        # its explicit model options. Review/usage observations must not copy it.
+        self.assertEqual(run.data.metadata['agent_binding']['definition']['completion']['credential'],secret)
+        self.assertNotIn(secret,json.dumps(run.data.metadata['completions']))
+        self.assertNotIn(secret,json.dumps(run.data.metadata['agent_execution']))
 
     async def test_nested_graph_review_resume_reuses_candidate_in_original_scope(self):
         from llm.components.workflows import WorkflowComponent, WorkflowGraph
@@ -436,7 +440,8 @@ class CompletionReviewTests(unittest.IsolatedAsyncioTestCase):
                 return CompletionReview(ReviewAction.ACCEPT,'')
         provider=IndependentAdapter(answer('first'),answer('second'))
         await self.make(provider,[reviewer(Review)])
-        await self.project.agents.acreate({'engine':'loop','tools':['write']},identifier='other')
+        await self.project.agents.acreate({'engine':'loop','tools':['write'],
+            'completion':{'model':'independent-model','output_cap':2}},identifier='other')
         self.session=await self.project.sessions.acreate(agent_ids=['other','writer'])
         runs=await (await self.session.run.submit('shared input',recipients='all')).wait(timeout=15)
         self.assertEqual([r.data.status for r in runs],['completed','completed'])

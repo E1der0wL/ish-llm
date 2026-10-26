@@ -130,7 +130,7 @@ class LoopEngine(BaseEngine):
         values = LoopExecutionBinding.portable(
             LoopExecutionBinding.create(
                 context.resolve_config(self.parameter_key),
-                self.completion_kwargs,
+                LoopAgentOptions(self._agent_options).completion,
                 self.system_prompt,
                 self._agent_options,
                 LoopExecutionBinding.adapter_identity(self.completion_adapter),
@@ -262,7 +262,6 @@ class LoopEngine(BaseEngine):
         self.max_iterations = max_iterations
         self.request_timeout = request_timeout
         self.tool_timeout = tool_timeout
-        self.completion_kwargs = copy_model(LoopParameters(values).completion)
         self.system_prompt = LoopParameters(values).system_prompt
 
     @classmethod
@@ -279,8 +278,6 @@ class LoopEngine(BaseEngine):
         overrides = self.parameter_layout.unpack(LoopAgentOptions(agent).engine_options)
         if LoopAgentOptions(agent).has_prompt:
             LoopAgentOptions.set_prompt(overrides, LoopAgentOptions(agent).prompt)
-        if LoopAgentOptions(agent).optional_completion:
-            LoopAgentOptions.set_completion(overrides, LoopAgentOptions(agent).required_completion)
         view = ConfigurationView.read(
             resolve_engine_config(
                 config,
@@ -341,8 +338,9 @@ class LoopEngine(BaseEngine):
         등록할 수 있다. 준비 작업을 구현한 Loop 서브클래스의 메서드도 유지한다.
         """
         params = copy_model(LoopAgentOptions(definition).completion)
-        # Agent는 부분 설정이다. 누락된 model은 Project/Session에서 상속한다.
-        # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
+        # Model options belong only to this Agent. Missing values are never
+        # inherited from an Engine configuration or another Agent.
+        # Drafts may omit a model; the adapter requires it before invocation.
         self.completion_adapter.validate_request(params)
         self.completion_adapter.validate_input_ownership(params)
         options = LoopAgentOptions(definition).engine_options
@@ -391,13 +389,9 @@ class LoopEngine(BaseEngine):
                 yield event
 
     async def _execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
-        # Evaluate factories after preparation, once per Run. No shared per-Run
-        # state lives on the Engine; each provider call gets fresh containers.
-        supplied = (
-            self.completion_kwargs(context) if callable(self.completion_kwargs) else self.completion_kwargs
-        )
-        if supplied is BaseEngine.ABSENT:
-            supplied = {}
+        # Agent selection is snapshotted at admission. Copy its explicit model
+        # parameters per execution; the registered Engine owns no model values.
+        supplied = LoopAgentOptions(self._agent_options).completion
         if not isinstance(supplied, Mapping) or any(not isinstance(key, str) for key in supplied):
             raise ValueError(LoopEngine.INVALID_PARAMETERS)
         params = copy_model(dict(supplied))

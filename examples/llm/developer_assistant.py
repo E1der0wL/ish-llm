@@ -48,6 +48,7 @@ async def run_request(args):
                 selection = await (await project.components.aget("computer")).aget_config()
                 selected = selection.get("config", {}).get("enabled", [])
                 await project.agents.acreate({"engine": "loop",
+                    "completion": config["agent"]["completion"],
                     "tools": [*selected, "skill_list", "skill_read", "skill_read_resource"]}, identifier=args.agent_id)
             session = await project.sessions.acreate("Programming / diagnosis", agent_ids=[args.agent_id])
             print(f"Project: {project.id}\nSession: {session.id}")

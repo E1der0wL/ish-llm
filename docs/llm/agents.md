@@ -135,7 +135,7 @@ Step·Checkpoint와 soft delete한 Session 참여까지 계속 보호한다.
 | --- | --- |
 | engine | 필수 EngineRegistry 등록 이름. 선택 Engine이 자신의 필수 인자를 검증 |
 | purpose | 선택적인 업무 설명 |
-| completion | Loop 모델 인자. model 필수, messages/tools는 엔진이 관리 |
+| completion | 선택 Agent의 모델·인증·SDK 인자. Loop Adapter는 실제 호출 전에 model을 요구하며 messages/tools는 엔진이 관리. Project/Session/다른 Agent에서 모델 값을 상속하지 않음 |
 | engine_options | 선택 엔진의 설정. Loop 반복/응답/Tool 시간 등 |
 | tools | 일반 Tool 허용 목록. Project에서 사용 가능한 Tool만 선택 |
 | resources.skills | 저장된 Skill ID 배열. SKILL.md 본문을 system prompt에 추가 |
@@ -154,8 +154,9 @@ Step·Checkpoint와 soft delete한 Session 참여까지 계속 보호한다.
 특정 Tool 이름의 사용을 강제하는 정책은 아니다. RAG는 문서 ID별 접근 제한이 아닌 Project
 단위 corpus 검색이다. corpus 내용은 검색 시점에 읽으며 검색 결과/근거는 Tool Step에 남는다.
 
-Loop에 숨은 반복/모델/Tool 시간 제한은 없다. Project → Session → Agent의 명시값만
-적용한다. Agent policy와 부모 Run/ToolExecutionScope의 Project 한도는
+Loop에 숨은 반복/모델/Tool 시간 제한은 없다. 실행 설정은 Project → Session → Agent의 명시값만
+적용한다. 모델 인자는 Agent `completion`만 사용한다. [모델 설정과 실행 설정의 경계](agent-models.md).
+Agent policy와 부모 Run/ToolExecutionScope의 Project 한도는
 동시에 적용하며 Agent가 부모 권한이나 예산을 늘릴 수 없다. require_tool이 설정되면 Loop는
 첫 성공 전 tool_choice=required를 사용하고, 모델이 무시하면 성공으로 처리하지 않는다.
 출력 검증 실패나 정책 위반 후 자동 모델/Tool 재시도는 없다. 업무상 재수정은 Workflow의

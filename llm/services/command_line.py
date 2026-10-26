@@ -87,24 +87,21 @@ class CommandLine:
                 if value is not cls.UNSPECIFIED
             }
         )
-        return parameters.with_config(
-            {
-                LoopParameters.COMPLETION: {
-                    key: value
-                    for key, value in {
-                        LiteLLMParameters.MODEL: args.model,
-                        LiteLLMParameters.TEMPERATURE: args.temperature,
-                        LiteLLMParameters.API_BASE: args.api_base,
-                    }.items()
-                    if value is not cls.UNSPECIFIED
-                }
-            }
-        )
+        return parameters
 
     @classmethod
     def agent_definition(cls, args):
         return {
             AgentDefinition.Field.ENGINE.value: args.engine,
+            AgentDefinition.Field.COMPLETION.value: {
+                key: value
+                for key, value in {
+                    LiteLLMParameters.MODEL: args.model,
+                    LiteLLMParameters.TEMPERATURE: args.temperature,
+                    LiteLLMParameters.API_BASE: args.api_base,
+                }.items()
+                if value is not cls.UNSPECIFIED
+            },
             AgentDefinition.Field.TOOLS.value: [cls.TOOL_ID] if args.with_tools else [],
         }
 

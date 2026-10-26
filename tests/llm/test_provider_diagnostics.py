@@ -266,11 +266,11 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 tool_runtime=ToolRuntime(classify=lambda _: ToolClassification("file.write", "test", 10))))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"loop": {
-            "config": {"completion": {"model": "openai/test"}}, "policy": {"provider": provider or {}, **(limits or {})}}}},
+            "config": {}, "policy": {"provider": provider or {}, **(limits or {})}}}},
             "policies": {"approval": {"enabled": True, "risk_scheme": "test", "rules": [
                 {"id": "write", "category": "file.write", "max_risk": 10}]}}})
         await project.components.tools.aenable("act")
-        await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
+        await project.agents.acreate({"completion": {"model": "openai/test"}, "engine": "loop", "tools": ["act"]}, identifier="loop")
         return app, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), model, effects
 
     async def test_approval_retry_and_durable_resume_never_replay_effect(self):

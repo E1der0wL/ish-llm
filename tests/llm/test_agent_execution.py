@@ -2,6 +2,7 @@
 
 import asyncio
 from copy import copy
+from dataclasses import replace
 import json
 from pathlib import Path
 import tempfile
@@ -141,7 +142,7 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(effects.exists())
         self.assertEqual(run.data.metadata['agent_binding']['definition'], original['definition'])
 
-    async def setup_effect(self, model):
+    async def setup_effect(self, model, *, contract=TEST_CONTRACT):
         self.effect_file = self.root / 'effects.txt'
         async def effect(arguments):
             with self.effect_file.open('a') as output:
@@ -149,7 +150,7 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
             return {'written': arguments['value']}
         tools = RuntimeTools(ToolRegistry([Tool('effect', 'effect', {
             'type': 'object', 'properties': {'value': {'type': 'string'}},
-            'required': ['value'], 'additionalProperties': False}, effect, contract=TEST_CONTRACT)]))
+            'required': ['value'], 'additionalProperties': False}, effect, contract=contract)]))
         await self.setup_app(LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)),
                              components=[tools])
         await (await self.project.components.aget('tools')).aenable('effect')
@@ -169,6 +170,41 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
                          'new Tool effect escaped the root Agent budget')
         self.assertEqual(run.data.status, RunStatus.FAILED, run.data.error)
         self.assertEqual(len(model.requests), 2)
+
+    async def test_changed_agent_model_rejects_resume_without_replaying_effect(self):
+        model = ScriptedCompletion(self.tool('first', 'one'), [RuntimeError('interrupted')])
+        await self.setup_effect(model)
+        run = await self.submit()
+        self.assertEqual(run.data.status, RunStatus.FAILED)
+        self.assertEqual(self.effect_file.read_text().splitlines(), ['first'])
+        self.assertTrue((await self.session.run.resume_plan(run.id, agent_id='selected')).can_resume)
+        snapshot = await self.project.agents.asnapshot('selected')
+        await self.project.agents.aupdate('selected', {'completion': {'model': 'test/changed'}},
+                                         expected_revision=snapshot['revision'])
+        plan = await self.session.run.resume_plan(run.id, agent_id='selected')
+        self.assertFalse(plan.can_resume)
+        with self.assertRaises(ValueError):
+            await self.session.run.resume(run.id, agent_id='selected')
+        self.assertEqual(len(model.requests), 2)
+        self.assertEqual(self.effect_file.read_text().splitlines(), ['first'])
+
+    async def test_model_change_invalidates_pending_tool_approval(self):
+        model = ScriptedCompletion(self.tool('first', 'one'))
+        await self.setup_effect(model, contract=replace(TEST_CONTRACT, approval_required=True))
+        run = await self.submit()
+        self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
+        request, = await run.ainteractions()
+        await run.arespond(request.respond('approve'))
+        self.assertFalse(self.effect_file.exists())
+        self.assertTrue((await self.session.run.resume_plan(run.id, agent_id='selected')).can_resume)
+        snapshot = await self.project.agents.asnapshot('selected')
+        await self.project.agents.aupdate('selected', {'completion': {'model': 'test/changed'}},
+                                         expected_revision=snapshot['revision'])
+        self.assertFalse((await self.session.run.resume_plan(run.id, agent_id='selected')).can_resume)
+        with self.assertRaises(ValueError):
+            await self.session.run.resume(run.id, agent_id='selected')
+        self.assertFalse(self.effect_file.exists())
+        self.assertEqual(len(model.requests), 1)
 
     async def test_resume_preserves_root_budget_and_missing_binding_is_not_repaired(self):
         model = ScriptedCompletion(self.tool('first', 'one'), [RuntimeError('injected interruption')],
