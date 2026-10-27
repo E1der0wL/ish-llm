@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.layout import HSplit
+from prompt_toolkit.widgets import Label
 
 from examples.hub.preview import install_preview
 from hub.model import ChatMessage
@@ -185,6 +186,48 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(0, *self.at(view.output.transcript.window), release=True)
         self.assertIs(app.layout.current_control, view.composer.control)
         self.assertFalse(view.output.transcript.control.is_focusable())
+
+    async def test_auxiliary_hover_focus_preserves_return_target_and_modal_scope(self):
+        app, view = self.app, self.view
+        calls = []
+        view.on_history = lambda: calls.append('history')
+        buttons = view.auxiliary.buttons
+        for key in ('history', 'tags', 'history'):
+            await self.mouse(35, *self.at(buttons[key].window))
+            self.assertIs(app.layout.current_control, buttons[key].control)
+        self.assertEqual(calls, [])
+        self.pipe.send_text('\x1b')
+        await eventually(lambda: app.layout.current_control is view.composer.control)
+
+        await self.mouse(35, *self.at(buttons['history'].window))
+        self.pipe.send_text('\r')
+        await eventually(lambda: calls == ['history'])
+        with set_app(app):
+            view.open_dialog('Modal', Label('Explanation'))
+        await self.paint()
+        modal_control = app.layout.current_control
+        await self.mouse(35, *self.at(buttons['tags'].window))
+        self.assertIs(app.layout.current_control, modal_control)
+        with set_app(app):
+            view.close_dialog()
+            view.participant_ids = view.agents = ('a',)
+            view.agent_titles = {'a': 'Worker'}
+            view.output.participants.open()
+        await self.paint()
+        await self.mouse(35, *self.at(buttons['history'].window))
+        self.assertIs(app.layout.current_control, view.output.participants.control)
+
+    async def test_auxiliary_hover_does_not_restore_a_closed_dropdown(self):
+        app, view = self.app, self.view
+        dropdown = view.profile_bar.presets
+        dropdown.items = [('one', 'One'), ('two', 'Two')]
+        with set_app(app):
+            dropdown.open()
+        await self.paint()
+        await self.mouse(35, *self.at(view.auxiliary.buttons['history'].window))
+        self.assertFalse(dropdown.expanded)
+        self.pipe.send_text('\x1b')
+        await eventually(lambda: app.layout.current_control is view.composer.control)
 
     async def test_inactive_page_region_overrides_rich_colors_without_tinting_popups(self):
         self.view.output.transcript.set_messages((ChatMessage("assistant", "**accent**\n\n```python\nprint('bright')\n```"),))

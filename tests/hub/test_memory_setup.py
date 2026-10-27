@@ -161,6 +161,9 @@ class MemorySetupIntegrationTests(unittest.IsolatedAsyncioTestCase):
             values = deepcopy(record['values'])
             values['config']['parameters']['components']['memory']['config']['processing'][
                 'completion'] = {'model': 'test/summary'}
+            # The Hub admission guard must follow Memory even at a custom priority.
+            values['config']['parameters']['components']['memory']['config']['processing'][
+                'priority'] = 2000
             saved = await service.save_project(runtime.project.id, values, record['config_version'])
             memory_config = saved['values']['config']['parameters']['components']['memory']
             self.assertTrue(memory_config['policy']['processing']['compact_active'])

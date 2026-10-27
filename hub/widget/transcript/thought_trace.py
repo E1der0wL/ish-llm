@@ -1,7 +1,7 @@
 """One independently cached thought or Tool row in an execution timeline."""
 
 from ...model import TraceItem
-from .render_contract import TranscriptLayout, ToolCaption
+from .render_contract import TranscriptLayout, TranscriptPresentation, ToolCaption
 from ...config.theme_style import ThemeSelector
 from ...locales.keys import MessageKey
 
@@ -13,8 +13,12 @@ from ...ui.output.markdown import HubMarkdown, make_console, _segment_style, _tr
 def render_trace_item(item, width, theme, language):
     console = make_console(TranscriptLayout.inner_width(width), theme)
     if item.kind in (TraceItem.TOOL, TraceItem.SUMMARY):
-        label = (language(MessageKey.CONTEXT_SUMMARIZING) if item.kind == TraceItem.SUMMARY
-                 else ToolCaption.render(item.text, item.status, language))
+        if item.kind == TraceItem.SUMMARY:
+            label = language(MessageKey.CONTEXT_SUMMARIZING)
+            if item.status:
+                label += TranscriptPresentation.LABEL_SEPARATOR + language.status(item.status)
+        else:
+            label = ToolCaption.render(item.text, item.status, language)
         rows = console.render_lines(
             Text(label), console.options, pad=TranscriptLayout.PAD
         )

@@ -401,7 +401,8 @@ def validate_reviews(report, document, root):
         for name, expected in sources.items():
             if not isinstance(expected, str) or not re.fullmatch(r"[a-f0-9]{64}", expected):
                 raise ValueError(f"Invalid review source hash: {name}")
-            if hashlib.sha256(source_file(name).read_bytes()).hexdigest() != expected:
+            from tests.source_tree import source_hash
+            if source_hash(source_file(name)) != expected:
                 raise ValueError(f"Changed review evidence requires re-review: {name}")
         for kind in ("contracts", "tests"):
             values = entry[kind]

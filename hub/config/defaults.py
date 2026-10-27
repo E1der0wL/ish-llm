@@ -28,6 +28,8 @@ from llm.components.goals.records import GoalSettings
 from llm.components.refinement import RefinementComponent
 from llm.components.refinement.records import ProposalOperation, RefinementPolicy
 from llm.components.review import ReviewPolicy
+from llm.core.agents import AgentDefinition
+from llm.engines.graph.configuration import GraphAgentOptions
 
 
 CONVERSATION_STORAGE = ConversationStorage.FILE.value
@@ -37,6 +39,16 @@ class HubDefaults:
     """Application choices for new Projects; selected Backend Owners validate them."""
 
     UNSPECIFIED_AGENT = None
+    PLANNER_AGENT_ID = "planner"
+    CODING_WORKFLOW_ID = "hub-code-workflow"
+    PLANNER_AGENT = {
+        AgentDefinition.Field.ENGINE: "graph",
+        AgentDefinition.Field.PURPOSE: "Inspect, modify, debug and test project code through a staged Workflow.",
+        AgentDefinition.Field.DESCRIPTION:
+            "Coordinates the coding Workflow using the project's initial behavioral Agent. "
+            "Configure that Agent's model and connection; planner has no model settings of its own.",
+        AgentDefinition.Field.ENGINE_OPTIONS: {GraphAgentOptions.WORKFLOW: CODING_WORKFLOW_ID},
+    }
     PROVIDER = {
         ProviderOptions.Field.MAX_ATTEMPTS: 4,
         ProviderOptions.Field.DELAY_SECONDS: 10,
@@ -44,6 +56,21 @@ class HubDefaults:
     }
     TOOL_RETRIES = 2
     TOOL_RETRY_DELAY = 0
+    # Product choices; the backend owns storage, path enforcement and paging.
+    TOOL_OUTPUT_SOURCE = "hub_command_outputs"
+    TOOL_OUTPUT_PREVIEW_CHARS = 2000
+    # A product ceiling for accumulated Tool bodies, not a model token limit.
+    TOOL_CONTEXT_CHARS = 24000
+    TOOL_READ_ACCESS = {"roots": ["/"], "follow_symlinks": True}
+    TOOL_PAGE_CONSTRAINTS = {
+        "process_output": {"max_chars": {"mode": "fixed", "value": 8000}},
+        "file_read": {"max_chars": {"mode": "fixed", "value": 8000}},
+        "file_search": {
+            "max_chars": {"mode": "fixed", "value": 400},
+            "limit": {"mode": "fixed", "value": 20},
+        },
+        "file_list": {"limit": {"mode": "fixed", "value": 200}},
+    }
     APPROVAL_MAX_RISK = 20
     FINAL_REVIEW = {
         ReviewPolicy.Field.MAX_CONTINUATIONS: 2,

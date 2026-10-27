@@ -2,7 +2,7 @@
 name: hub-create-workflow
 description: "Define and validate graph execution workflows."
 metadata:
-  hub-template-version: "7"
+  hub-template-version: "8"
 ---
 # Create a Workflow
 

@@ -13,6 +13,16 @@ from hub.hub import install
 from .sample_data import SAMPLES
 
 
+class PreviewApplication(Application):
+    """A standalone preview owns its render workers for one application run."""
+
+    async def run_async(self, *args, **kwargs):
+        try:
+            return await super().run_async(*args, **kwargs)
+        finally:
+            self.hub_view.close()
+
+
 def populate_preview(view):
     """Inject demonstration content explicitly, outside the deployment root."""
     view.sessions = list(SAMPLES)
@@ -54,11 +64,12 @@ def create_preview(*, input=None, output=None, theme=None):
     def exit_preview(event):
         event.app.exit()
 
-    app = Application(
+    app = PreviewApplication(
         layout=Layout(root, focused_element=shell), key_bindings=keys,
         style=DynamicStyle(lambda: view.style),
         full_screen=True, mouse_support=Condition(lambda: view.visible), input=input, output=output,
     )
+    app.hub_view = view
     return app, view, shell
 
 
@@ -67,11 +78,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
     app, view, _ = create_preview()
-    try:
-        app.run(pre_run=lambda: view.show(app))
-    finally:
-        view.close()
-        view.progress.close()
+    app.run(pre_run=lambda: view.show(app))
 
 
 if __name__ == "__main__":

@@ -59,7 +59,8 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 messages = provider.requests[-1]["messages"]
                 guide = next(body for identifier, _, _, body in SKILLS if identifier == "hub-code-change")
                 tool_results = [json.loads(message["content"]) for message in messages if message["role"] == "tool"]
-                self.assertTrue(any(value.get("definition", {}).get("markdown") == guide for value in tool_results))
+                self.assertTrue(any(value.get("definition", {}).get("markdown", "").replace('\r\n', '\n')
+                                    == guide for value in tool_results))
                 self.assertTrue(any(value.get("text") == content for value in tool_results))
                 # Chat-only examples can complete without manufacturing a file operation.
                 response = (await (await session.run.submit("파일은 바꾸지 말고 사용 예시만 보여줘.",

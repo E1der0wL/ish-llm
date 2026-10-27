@@ -15,6 +15,8 @@ import re
 import subprocess
 import tomllib
 
+from tests.source_tree import source_hash
+
 
 ROOT = Path(__file__).resolve().parents[2]
 LOCK = ROOT / "tests/llm/dependencies-linux.lock"
@@ -50,8 +52,10 @@ def lock_inputs(root=ROOT):
     return {
         "python": project["requires-python"],
         "platform": PLATFORM,
-        "host_revision": subprocess.check_output(
-            ["git", "-C", str(host), "rev-parse", "HEAD"], text=True).strip(),
+        # The reference host need not be a Git checkout. git -C would otherwise
+        # silently resolve the *parent* repository and pin an unrelated commit.
+        "host_source": {path.relative_to(host).as_posix(): source_hash(path)
+                        for path in sorted([host / 'pyproject.toml', *host.joinpath('src').rglob('*.py')])},
         "requirements": sorted(set(
             [spec.split("|", 1)[0] for spec in projected + hub["dependencies"]]
             + host_project["dependencies"])),

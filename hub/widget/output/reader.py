@@ -14,6 +14,7 @@ from prompt_toolkit.key_binding import merge_key_bindings
 from .text_viewport import TextViewport
 from ...ui.input.registry import MOVEMENT_KEYS
 from ...ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
+from ...config.theme_style import ThemeSelector
 
 
 class ReadOnlyDialog(Dialog):
@@ -51,6 +52,7 @@ class ReadOnlyDialog(Dialog):
         self.output.window.height = Dimension(
             min=self.MIN_ROWS, preferred=self.MAX_ROWS, max=self.MAX_ROWS
         )
+        self.output.window.style = ThemeSelector.POPUP_OUTPUT.style
         navigation = PopupInput()
         self.shortcuts = registry = navigation.shortcuts
         self.receiver = navigation.receiver

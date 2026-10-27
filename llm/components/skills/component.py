@@ -65,6 +65,14 @@ class SkillComponent(DefinitionComponent):
         with FileComponent.content_stream(content) as stream:
             self.storage(project).write_file(identifier, path, stream)
 
+    def write_stream(self, project, identifier, path, stream):
+        self.storage(project).write_file(identifier, path, stream)
+
+    def read_text(self, project, identifier, path, *, expected_revision, offset, limit):
+        from llm.services.infrastructure.storage import check_revision
+        check_revision(self.load(project, identifier), expected_revision)
+        return self.storage(project).read_text(identifier, path, offset=offset, limit=limit)
+
     def import_file(self, project, identifier, path, source):
         source = self._checked(Path(source).absolute())
         with FileComponent._stream(source) as stream:

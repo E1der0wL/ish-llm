@@ -49,12 +49,15 @@ class FilePathArguments(FileLimits):
 @dataclass(frozen=True, slots=True, kw_only=True)
 class FileReadArguments(FilePathArguments):
     NAME = 'file_read'
-    DESCRIPTION = 'Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.'
+    DESCRIPTION = 'Read UTF-8 source or logs within the configured read roots. Use line ranges, tail_lines, or offset/max_chars (mutually exclusive). expected_sha256 checks the whole-file hash; character pages return next_offset.'
 
     start_line: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 1}})
     max_lines: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 1}})
     tail_lines: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 1}})
     expected_sha256: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'string', 'pattern': FileArgumentFormats.SHA256}})
+    offset: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 0}})
+    max_chars: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 1,
+        'description': 'Character page size. Cannot be combined with line selection; use returned next_offset.'}})
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -69,7 +72,7 @@ class FileTraversalArguments(FileLimits):
 @dataclass(frozen=True, slots=True, kw_only=True)
 class FileListArguments(FileTraversalArguments):
     NAME = 'file_list'
-    DESCRIPTION = 'List working directory entries without following links. include/exclude are pathlib relative-path glob patterns; excluded directories are not traversed.'
+    DESCRIPTION = 'List entries within configured read roots. Symbolic links require explicit read permission. include/exclude are pathlib path glob patterns; excluded directories are not traversed.'
 
 
 
@@ -82,6 +85,8 @@ class FileSearchArguments(FileTraversalArguments):
     case_sensitive: bool = field(metadata={BuiltinArguments.SCHEMA: {'type': 'boolean'}})
     offset: int = field(default=0, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 0}})
     context_lines: int = field(default=0, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 0}})
+    max_chars: object = field(default=UNSET, metadata={BuiltinArguments.SCHEMA: {'type': 'integer', 'minimum': 1,
+        'description': 'Maximum returned characters per matching/context line; search still scans the whole line.'}})
 
     @classmethod
     def schema(cls):
@@ -129,7 +134,7 @@ class FileDeleteArguments(FilePathArguments):
 @dataclass(frozen=True, slots=True, kw_only=True)
 class FileRestoreArguments(FilePathArguments):
     NAME = 'file_restore'
-    DESCRIPTION = 'Restore a trash item to an unused relative path.'
+    DESCRIPTION = 'Restore a trash item to an unused path within the configured write roots.'
 
     trash_id: str = field(metadata={BuiltinArguments.SCHEMA: {'type': 'string', 'pattern': FileTrashIdentifier.PATTERN}})
 
@@ -184,6 +189,15 @@ class FileSearchResult(FileObservation):
     scanned: int
     truncated: bool
     next_offset: int | None = None
+    max_chars_per_line: int | None = None
+
+    def to_dict(self):
+        value = asdict(self)
+        if self.max_chars_per_line is None:
+            value.pop("max_chars_per_line")
+        else:
+            value["line_previews"] = True
+        return value
 
 
 @dataclass(frozen=True, slots=True)

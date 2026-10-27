@@ -92,7 +92,9 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         preferences = PreferencesStore(temp.name)
         preferences.save("general", asdict(GeneralSettings(**settings)))
         source = SourceTools()
-        source.content = "large command output; records=120; errors=0\n" * 200
+        # Stay below Hub's pre-call reference threshold so these tests exercise
+        # provider repair. Oversized admission is covered independently below.
+        source.content = "large command output; records=120; errors=0\n" * 150
         runtime = HubRuntime(HubConfig(temp.name, model="test/model", auto_title=False,
             engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
             component_factories=(lambda: source, *components),
@@ -200,6 +202,24 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 if enabled:
                     diagnosis = (await runtime.diagnose_failures(runtime.project.id, session.id, [run.id]))[run.id]
                     self.assertEqual(diagnosis.recovery, "exhausted")
+
+    async def test_preflight_reference_does_not_trigger_an_identical_provider_retry(self):
+        from hub.backend.execution.tool_references import ToolReferences
+
+        model = Model(always_fail=True)
+        runtime, session, source = await self.runtime(model)
+        source.content *= 2
+        run = await self.execute(runtime, session)
+        self.assertEqual(str((await run.aget_data()).status), "failed")
+        self.assertEqual((model.main, source.calls), (2, 1))
+        request = [r for r in model.requests if "tools" in r][-1]
+        body = next(m["content"] for m in request["messages"] if m["role"] == "tool")
+        self.assertIn(ToolReferences.NOTICE, body)
+        self.assertLess(len(body), len(source.content))
+        diagnosis = (await runtime.diagnose_failures(runtime.project.id, session.id, [run.id]))[run.id]
+        self.assertEqual(diagnosis.recovery, "no_correction")
+        tool = next(step for step in await run.steps.alist() if step.kind == "tool")
+        self.assertEqual(tool.output.data, source.content)
 
     async def test_no_model_call_for_authentication_transient_or_partial_output(self):
         for status, partial in ((401, False), (403, False), (429, False), (503, False), (400, True)):

@@ -39,6 +39,29 @@ class SummaryAnswer:
         return text
 
 
+@dataclass(frozen=True, slots=True)
+class SummarySource:
+    """Caller-owned immutable text reader; no storage or Component knowledge.
+
+    read(offset, count) returns exactly that character range. The caller verifies
+    identity on each read. read_chars is explicit and independent of token budgets.
+    """
+
+    total_chars: int
+    identity: str
+    read_chars: int
+    read: Callable[[int, int], Awaitable[str]]
+
+    def __post_init__(self):
+        if type(self.total_chars) is not int or self.total_chars < 0 or not isinstance(self.identity, str) or not self.identity:
+            raise ValueError("Summary source requires a length and immutable identity")
+        if type(self.read_chars) is not int or self.read_chars <= 0 or not callable(self.read):
+            raise ValueError("Summary source requires an explicit read size and reader")
+
+    def __len__(self):
+        return self.total_chars
+
+
 class SummaryValidation:
     MINIMUM_POSITIVE = 1
     MINIMUM_SIZE = 0
@@ -146,7 +169,7 @@ async def summarize(*, prompt: str, payload: dict, max_chars: int,
     result.text, result.calls, result.complete = text, SummaryResult.SINGLE_CALL, SummaryResult.COMPLETE
 
 
-async def summarize_fragments(text: str, *, offset: int, previous_summary: str,
+async def summarize_fragments(text: str | SummarySource, *, offset: int, previous_summary: str,
                               prompt: str, max_input_size: int, max_summary_chars: int,
                               max_calls: int, build_payload: FragmentPayload,
                               measure: Measure, invoke: ModelCall, result: SummaryResult,
@@ -165,7 +188,7 @@ async def summarize_fragments(text: str, *, offset: int, previous_summary: str,
                        (SummaryValidation.MAX_SUMMARY_CHARS, max_summary_chars),
                        (SummaryValidation.MAX_CALLS, max_calls)):
         _positive(value, name)
-    if not isinstance(text, str) or not isinstance(previous_summary, str):
+    if not isinstance(text, (str, SummarySource)) or not isinstance(previous_summary, str):
         raise ValueError(SummaryValidation.INVALID_TEXT)
     if type(offset) is not int or not SummaryValidation.MINIMUM_OFFSET <= offset <= len(text):
         raise ValueError(SummaryValidation.INVALID_OFFSET)
@@ -173,9 +196,18 @@ async def summarize_fragments(text: str, *, offset: int, previous_summary: str,
     result.complete, result.blocked = offset == len(text), SummaryResult.UNBLOCKED
     while not result.complete and result.calls < max_calls:
         start = result.offset
+        if isinstance(text, SummarySource):
+            count = min(text.read_chars, len(text) - start)
+            fragment = await text.read(start, count)
+            if not isinstance(fragment, str) or len(fragment) != count:
+                raise ValueError("Summary source returned an inconsistent range")
+            stop = start + len(fragment)
+        else:
+            fragment, stop = None, len(text)
         def build(end):
-            return build_payload(text[start:end], start, len(text), result.text)
-        end = fit_prefix(start, len(text), build=build, measure=measure, maximum=max_input_size)
+            value = fragment[:end - start] if fragment is not None else text[start:end]
+            return build_payload(value, start, len(text), result.text)
+        end = fit_prefix(start, stop, build=build, measure=measure, maximum=max_input_size)
         if end == start:
             result.blocked = SummaryResult.BLOCKED
             return

@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from hub.backend.runtime import HubConfig, HubRuntime
+from hub.config.defaults import HubDefaults
 from llm.engines.base import BaseEngine
 
 
@@ -55,7 +56,8 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('file_read', definitions['assistant']['tools'])
         catalog = await runtime.execution_catalog(next(iter(runtime.sessions)))
         self.assertEqual(set(catalog), {'agents'})
-        self.assertEqual(set(catalog['agents']), {'assistant'})
+        self.assertEqual(set(catalog['agents']), {'assistant', 'planner'})
+        self.assertEqual(definitions['planner'], HubDefaults.PLANNER_AGENT)
         with self.assertRaisesRegex(ValueError, 'Internal Agent'):
             await runtime.submit(next(iter(runtime.sessions)), 'hello', '_hub_title')
 
@@ -67,6 +69,9 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         for session in first.sessions.values():
             await session.run.shutdown()
             await session.asave(agent_ids=[])
+        planner = await first.project.agents.asnapshot('planner')
+        await first.project.agents.adelete('planner', expected_revision=planner['revision'])
+        await first.project.components.workflows.adelete(HubDefaults.CODING_WORKFLOW_ID)
         snapshot = await first.project.agents.asnapshot('assistant')
         await first.project.agents.adelete('assistant', expected_revision=snapshot['revision'])
         project_id = first.project.id

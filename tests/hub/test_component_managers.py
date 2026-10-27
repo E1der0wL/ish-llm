@@ -61,7 +61,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         await eventually(lambda: app.layout.current_control is buttons[0].control)
                         self.assertEqual(buttons[0].handler, popup.open_settings)
                         pipe.send_text("\r")
-                        await eventually(lambda: view.settings_open and view._dialog is None and not screen.busy)
+                        # The first visit resolves the full backend schemas,
+                        # including path grants and retained-output options.
+                        await eventually(lambda: view.settings_open and view._dialog is None and not screen.busy,
+                                         timeout=10)
                         page = screen.page
                         self.assertEqual(page.identifier, view.project_id)
                         self.assertEqual(page.section, "component:" + name)
@@ -179,7 +182,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(source.read_text(), skill_markdown("guide", "Run relevant tests."))
                 self.assertTrue((root / "flow.json").exists())
                 self.assertTrue((root / "server.json").exists())
-                await runtime.project.components.aselect(["tools"])
+                # The starter planner retains its Workflow component reference.
+                with self.assertRaisesRegex(ValueError, 'referenced by saved Agents'):
+                    await runtime.project.components.aselect(["tools"])
+                await runtime.project.components.aselect(["tools", "workflows"])
                 with self.assertRaises(ValueError):
                     await runtime.manage_records(project_id, "skills", "list")
             finally:

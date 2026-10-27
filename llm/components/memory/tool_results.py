@@ -9,7 +9,7 @@ from llm.core.model_protocol import ModelRole
 from contextlib import aclosing
 import json
 
-from llm.components.summarization import SummaryResult
+from llm.components.summarization import SummaryResult, SummarySource
 from llm.services.infrastructure.storage import revision_token
 from .compaction import Compactions, CompactionStopped, summarize_request
 from .compaction_values import CompactionOptions
@@ -50,8 +50,13 @@ async def prepare_tool_results(session, request):
                 outcome = ToolSummaryOutcome()
                 async def action(result, source):
                     summary = SummaryResult()
+                    reference = pending.reference_record
+                    async def read(offset, count):
+                        return await data._async_call(data._read_source, reference, offset=offset, limit=count)
+                    original = SummarySource(len(text), revision_token(reference),
+                        options[CompactionOptions.Field.MODEL_INPUT_CHARS], read)
                     try:
-                        async with aclosing(summarize_request(session, pending.to_record(), text, ToolSummaryExecution.EMPTY_SUMMARY, summary,
+                        async with aclosing(summarize_request(session, pending.to_record(), original, ToolSummaryExecution.EMPTY_SUMMARY, summary,
                                                              scope=ToolSummaryExecution.SCOPE, tool_id=identity)) as events:
                             async for event in events:
                                 yield event

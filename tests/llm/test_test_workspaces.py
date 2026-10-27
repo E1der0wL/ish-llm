@@ -111,6 +111,12 @@ class WorkspaceTests(unittest.IsolatedAsyncioTestCase):
         with self.owner():
             self.assertEqual((await self.spaces.list({}))["workspaces"], [])
 
+    async def test_explicit_whole_source_copy_is_allowed_without_internal_storage(self):
+        (self.source / "a").write_text("selected")
+        with self.owner():
+            identifier = await self.create(["."])
+        self.assertEqual((self.files(identifier) / "a").read_text(), "selected")
+
     async def test_no_owner_foreign_owner_and_invalid_ids_are_rejected(self):
         with self.assertRaisesRegex(ValueError, "owning Project"):
             await self.spaces.create({"source_paths": []})

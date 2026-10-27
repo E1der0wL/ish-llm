@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.general import GeneralSettings
+from hub.config.defaults import HubDefaults
 from hub.config.preferences import PreferencesStore
 from hub.config.presets import PresetStore
 from hub.config.profile import UserProfile
@@ -37,6 +38,15 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
                 try:
                     project = runtime.project
                     identifier = project.id
+                    # Remove the explicit workflow references before testing an
+                    # empty component selection; reopening must not seed them again.
+                    planner = await project.agents.asnapshot(HubDefaults.PLANNER_AGENT_ID)
+                    await project.agents.adelete(HubDefaults.PLANNER_AGENT_ID,
+                                                expected_revision=planner['revision'])
+                    await project.components.workflows.adelete(HubDefaults.CODING_WORKFLOW_ID)
+                    # Release the creation preset's output destination before
+                    # deselecting Data; its reference protection must remain active.
+                    await project.components.builtin_tools.aconfigure({"config": options})
                     record = await project.aget_data()
                     values = record.config.to_dict()
                     values["parameters"]["components"] = (

@@ -22,6 +22,8 @@
 | [process_environment.py](process_environment.py) | 명시 자식 환경의 검증·사본·공개 Schema를 소유합니다. |
 | [process_command.py](process_command.py) | 격리 명령의 절대 executable·argv 판별을 공유합니다. |
 | [process_result.py](process_result.py) | 명령 종료 코드·출력의 decoding과 결과 직렬화를 담당합니다. |
+| [captured_text.py](captured_text.py) | 임시 파일에 프로세스 출력을 수집하고 Unicode 문자 cursor를 유지합니다. |
+| [text_stream.py](text_stream.py) | 고정 I/O buffer로 UTF-8을 해독하고 명시한 문자 범위만 반환합니다. |
 | [linux_sandbox.py](linux_sandbox.py) | Bubblewrap 인자·보호 경로·mount·명시 환경 배치를 소유합니다. |
 | [backups.py](backups.py) | Project 백업 manifest, 무결성 확인, 복원 경계를 담당합니다. |
 | [OBSERVABILITY.md](OBSERVABILITY.md) | 누적 통계의 의미, UI 조회와 계측 위치를 설명합니다. |

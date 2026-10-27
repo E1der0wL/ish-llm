@@ -152,6 +152,11 @@ RAG는 분할·검색·세대 공개를, 선택 model client는 SDK 인자·벡�
 청크별 요청이며 ordinal을 애플리케이션이 대응시킨다. Memory·Goal·Refinement·Skill·Data·Vision은
 각자의 자료·참조·generation/revision·승인 경계를 유지한다. 중앙 실행/승인 저장소를 새로 만들지 않는다.
 
+Builtin 명령의 선택적 영속 출력은 Builtin Component가 관측 레코드·파일 참조를,
+선택한 file Component가 원문을 소유한다. 참조와 파일은 기존 workspace transaction으로
+확정하며 Run/Step/operation receipt를 복제하지 않는다. 읽기 grant는 작업 cwd와 분리하고
+쓰기·sandbox 권한을 확대하지 않는다. [대용량 파일 계약](large-data-files.md)을 참고한다.
+
 ## 검증 상태
 
 현재 기준선은 [작업 인계](handoff.md), 문서 변경은 [검토 기록](documentation-review.md), 운영상 한계는

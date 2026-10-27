@@ -2,7 +2,7 @@
 name: hub-document
 description: "Write and review evidence-based documentation for its audience and purpose."
 metadata:
-  hub-template-version: "7"
+  hub-template-version: "8"
 ---
 Use for creating or editing documentation. Establish the audience, purpose, requested format and
 available source material. Follow existing terminology and templates. Organize the content around the

@@ -88,7 +88,7 @@ class ContractCoverageTests(unittest.TestCase):
                 self.assertEqual(candidates(source)[0]['area'], 'implementation')
 
     def test_recorded_inventory_covers_current_product_files_and_bytes(self):
-        import hashlib
+        from tests.source_tree import source_hash
         import json
         from tests.llm.check_contract_coverage import product_files
         root = Path(__file__).resolve().parents[2]
@@ -98,7 +98,7 @@ class ContractCoverageTests(unittest.TestCase):
         self.assertEqual(sorted(files), product_files(root))
         for path, item in files.items():
             with self.subTest(path=path):
-                self.assertEqual(hashlib.sha256((root / path).read_bytes()).hexdigest(), item['sha256'])
+                self.assertEqual(source_hash(root / path), item['sha256'])
 
     def test_recorded_reviews_are_current_and_match_inventory_without_approving_remaining_files(self):
         import json

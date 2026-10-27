@@ -2,7 +2,7 @@
 name: hub-create-skill
 description: "Write and save reusable task instructions."
 metadata:
-  hub-template-version: "7"
+  hub-template-version: "8"
 ---
 # Create a Skill
 

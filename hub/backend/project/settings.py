@@ -170,6 +170,8 @@ class SettingsService:
             expected_components=previous,
         )
         await MemorySetup.ensure_sources(project)
+        from .tool_data_setup import ToolDataSetup
+        await ToolDataSetup.ensure_sources(project)
         return await self.load_project(identifier)
 
     async def rename_project(self, identifier, title):

@@ -111,12 +111,12 @@ async def create_project(
                 HubBuiltinTools.NAME
             )
             defaults = builtin.select_tools()
-            selection = ToolSelection.read(parameters.config, scope=builtin.name)
+            selection = builtin.selection(parameters)
             if not selection.configured:
                 selection = ToolSelection.selected(defaults, scope=builtin.name)
             project_config.set_component_parameters(
                 HubBuiltinTools.NAME,
-                parameters.with_config(selection.to_dict()).to_dict(),
+                parameters.with_config({**parameters.config, **selection.to_dict()}).to_dict(),
             )
     OperationProgress.report(MessageKey.PROGRESS_BACKEND_SCHEMA)
     engines = ProjectConfiguration.engine_parameter_schemas(
@@ -137,7 +137,11 @@ async def create_project(
             )
     OperationProgress.report(MessageKey.PROGRESS_BACKEND_PROJECT)
     from .memory_setup import MemorySetup
+    from .tool_data_setup import ToolDataSetup
     project_config, components = MemorySetup.prepare(project_config.to_dict(), components)
+    builtins = (backend.project_manager.components.get(HubBuiltinTools.NAME)
+                if HubBuiltinTools.NAME in components else None)
+    project_config = ToolDataSetup.creation_defaults(project_config, components, builtins)
     project = await backend.projects.acreate(
         title,
         config=project_config,
@@ -146,6 +150,7 @@ async def create_project(
     )
     try:
         await MemorySetup.ensure_sources(project)
+        await ToolDataSetup.ensure_sources(project)
         from .agents import initialize
 
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_TOOLS)
@@ -153,6 +158,9 @@ async def create_project(
             backend, project, identifier=agent_id, definition=agent_definition,
             completion=agent_completion,
         )
+        from .starter_workflow import initialize as initialize_workflow
+
+        await initialize_workflow(backend, project, agent_id)
         if SkillComponent.name in components:
             skills = await project.components.aget(SkillComponent.name)
             for index, skill in enumerate(STARTER_SKILLS):

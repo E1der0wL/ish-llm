@@ -1,14 +1,16 @@
 """현재 소스를 Linux 파일시스템에 복사해 Python 3.12.14로 검증한다. 호스트 파일은 수정하지 않는다."""
 
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import tempfile
 import sys
+
+# This file is also invoked directly from outside the repository root.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from tests.source_tree import copy_snapshot
 
 
 def main():
@@ -30,34 +32,14 @@ def main():
     report_root = args.source / "tests/llm/reports"
     report = report_root / target.name
     report.mkdir(parents=True, exist_ok=True)
-    files = {}
-    directories = ("llm", "tests/llm", "examples/llm", "docs/llm", "ish.platform/src")
-    if args.hub:
-        directories += ("hub", "tests/hub", "examples/hub", "docs/hub")
-    for directory in directories:
-        for folder, dirs, names in os.walk(args.source / directory):
-            dirs[:] = [name for name in dirs if name not in ("__pycache__", "reports", "manual")]
-            for name in names:
-                path = Path(folder) / name
-                if path.suffix not in (".py", ".md", ".json"):
-                    continue
-                relative = path.relative_to(args.source)
-                destination = target / relative
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(path, destination)
-                files[str(relative)] = hashlib.sha256(path.read_bytes()).hexdigest()
-    for name in ("pyproject.toml", ".python-version", "README.md", "AGENTS.md",
-                 "tests/__init__.py", "examples/__init__.py"):
-        if (args.source / name).exists():
-            shutil.copy2(args.source / name, target / name)
+    files = copy_snapshot(args.source, target)
     (target / ".venv-linux312").symlink_to(Path(args.python).parent.parent, target_is_directory=True)
     (report / "snapshot.json").write_text(json.dumps({"root": str(target), "python": args.python, "files": files}, indent=2))
     env = dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION")
     # UI tests use dummy terminals; never let native kill/copy bindings replace
     # the developer's desktop clipboard. Transport tests inject their own env.
-    if args.hub:
-        for name in ("WSL_DISTRO_NAME", "WSL_INTEROP", "DISPLAY", "WAYLAND_DISPLAY"):
-            env.pop(name, None)
+    for name in ("WSL_DISTRO_NAME", "WSL_INTEROP", "DISPLAY", "WAYLAND_DISPLAY"):
+        env.pop(name, None)
     print(target, flush=True)
     modules = args.modules or ["tests.llm.test_provider_runtime", "tests.llm.test_rag_resilience",
                                "tests.llm.test_explicit_configuration", "tests.llm.test_error_boundaries",
@@ -66,14 +48,16 @@ def main():
                                "tests.llm.test_run_transitions", "tests.llm.test_graph_decisions",
                                "tests.llm.test_interaction_decisions"]
     failed = False
-    suites = [("focused", modules)]
+    suites = [("focused", ["--suite", "all", "--modules", *modules])]
     if args.full:
-        suites.append(("suite", ["discover", "-s", "tests/llm", "-t", "."]))
+        suites.append(("suite", ["--suite", "llm"]))
     if args.hub:
-        suites.append(("hub", ["discover", "-s", "tests/hub", "-t", "."]))
+        suites.append(("hub", ["--suite", "hub"]))
     for name, command in suites:
         with (report / (name + ".txt")).open("w") as output:
-            result = subprocess.run([args.python, "-m", "unittest", *command, "-v"], cwd=target, env=env,
+            result = subprocess.run([args.python, "-m", "tests.llm.run_regression",
+                                     "--output", str(report / (name + ".json")),
+                                     "--progress", str(report / (name + "-progress.jsonl")), *command], cwd=target, env=env,
                                     stdout=output, stderr=subprocess.STDOUT)
         failed |= result.returncode != 0
         print(name, result.returncode, flush=True)

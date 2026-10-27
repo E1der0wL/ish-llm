@@ -24,6 +24,7 @@ from llm.components.tools.builtin.process_values import (
     ProcessOutputArguments,
 )
 from llm.core.agents import AgentDefinition
+from ...config.defaults import HubDefaults
 
 from ..interactions.questions import QuestionBroker
 from ..interactions.question_values import QuestionTool
@@ -58,6 +59,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         self.application = HubApplicationTools()
         self.toolkits = {}
         self._resolved = {}
+        self._project_data = {}
         self._toolkit_lock = Lock()
         # Schema discovery needs an existing host directory, not a Project.
         super().__init__(
@@ -85,6 +87,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         )
         toolkit = BuiltinTools(
             root,
+            read_access=deepcopy(HubDefaults.TOOL_READ_ACCESS),
             allow_commands=HubBuiltinTools.COMMANDS_ENABLED,
             shell=list(HubBuiltinTools.SHELL_PREFIX),
             git=HubBuiltinTools.GIT_ENABLED,
@@ -153,9 +156,6 @@ class HubBuiltinTools(BuiltinToolComponent):
         toolkit.registry.register(TaskCompletion.tool())
         for item in self.application.tools():
             toolkit.registry.register(item)
-        from .paths import bind_paths
-
-        bind_paths(toolkit)
         from .advice import bind_advice
 
         bind_advice(toolkit)
@@ -173,9 +173,7 @@ class HubBuiltinTools(BuiltinToolComponent):
                     environment.cwd, dict(environment.variables)
                 )
             toolkit = self.toolkits[key]
-        registry = BuiltinToolComponent(toolkit, name=self.name).resolve(
-            project, ToolRegistry.CAPABILITY
-        )
+        registry = self._bind_registry(project, toolkit, ToolRegistry.CAPABILITY)
         # All defaults that can alter effects participate in approval binding.
         return ToolRegistry(
             tuple(
@@ -217,11 +215,27 @@ class HubBuiltinTools(BuiltinToolComponent):
             or LinuxSandbox.locate() is not HubBuiltinTools.ABSENT
         ]
 
+    def selection(self, parameters):
+        from llm.components.tools.selection import ToolSelection
+
+        self.validate_config(parameters.to_dict())
+        field = ToolSelection.enabled.__name__
+        return ToolSelection.read(
+            {field: parameters.config[field]} if field in parameters.config else {}, scope=self.name)
+
+    def _bind_registry(self, project, toolkit, capability):
+        """Bind public lifecycle handles without duplicating backend output storage."""
+        component = BuiltinToolComponent(toolkit, name=self.name)
+        data = self._project_data.get(project.id)
+        if data is None:
+            return component.resolve(project, capability)
+        return component.resolve_runtime(project, capability, data_factory=data.related)
+
     def resolve(self, project, capability):
         if capability == COMPLETION_PROCESSORS:
             from ..execution.completion import FollowupProcessor
 
-            return FollowupProcessor(postprocess=self.postprocess)
+            return FollowupProcessor.for_project(project, postprocess=self.postprocess)
         if capability != ToolRegistry.CAPABILITY:
             return super().resolve(project, capability)
         toolkit = self.for_project(project)
@@ -244,9 +258,7 @@ class HubBuiltinTools(BuiltinToolComponent):
                 cached is HubBuiltinTools.ABSENT
                 or ResolvedToolkit.revision(cached) != key
             ):
-                registry = BuiltinToolComponent(toolkit, name=self.name).resolve(
-                    project, capability
-                )
+                registry = self._bind_registry(project, toolkit, capability)
                 self._resolved[project.id] = ResolvedToolkit.create(key, registry)
             else:
                 registry = ResolvedToolkit.registry(cached)
@@ -256,6 +268,10 @@ class HubBuiltinTools(BuiltinToolComponent):
             return deepcopy(registry, {id(handler): handler for handler in handlers})
 
     def resolve_runtime(self, project, capability, *, data_factory):
+        if capability == ToolRegistry.CAPABILITY:
+            # Handles are runtime-only and Project-scoped; related() rechecks
+            # lifecycle/ownership. Engine environment binding shares this owner.
+            self._project_data[project.id] = data_factory(self.name)
         registry = self.resolve(project, capability)
         if capability == ToolRegistry.CAPABILITY:
             from llm.core.agents import AgentDefinition
@@ -273,5 +289,6 @@ class HubBuiltinTools(BuiltinToolComponent):
         self.questions.close()
         self.application.runtime = None
         self._resolved.clear()
+        self._project_data.clear()
         for toolkit in (self.toolkit, *self.toolkits.values()):
             await toolkit.close()

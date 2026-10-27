@@ -29,6 +29,23 @@ from llm.core.models import now
 
 
 class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
+    def test_compaction_uses_observed_status_and_event_only_fallback(self):
+        from hub.config.theme_style import ThemeSelector
+        from hub.widget.transcript.thought_trace import render_trace_item
+        for code in ('ko', 'en'):
+            language = Language(code)
+            for status in ('running', 'completed', 'failed', 'interrupted', 'cancelled'):
+                item = TraceItem('summary', TraceItem.SUMMARY, '', status)
+                rows = render_trace_item(item, 80, HubTheme(), language)
+                fragments = [fragment for row in rows for fragment in row if fragment[1].strip()]
+                self.assertTrue(''.join(p[1] for p in fragments).endswith(' • ' + language.status(status)))
+                self.assertTrue(all(p[0] == ThemeSelector.MUTED.style for p in fragments))
+            message = ChatMessage('reasoning', '', id='thought', phase=ResponseActivity.SUMMARIZING)
+            displayed = present_message(message, language)
+            self.assertEqual([(item.kind, item.status) for item in displayed.trace], [(TraceItem.SUMMARY, 'running')])
+            recorded = TraceItem('step', TraceItem.SUMMARY, '', 'running')
+            self.assertEqual(present_message(replace(message, trace=(recorded,)), language).trace, (recorded,))
+
     def test_compaction_trace_is_muted_but_assistant_header_remains_accent(self):
         from hub.asset.icon import for_style
         from hub.config.theme_style import ThemeSelector

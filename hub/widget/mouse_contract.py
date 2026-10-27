@@ -8,6 +8,7 @@ class MouseBinding:
     PANE = "hub_mouse_pane"
     SCROLL = "hub_mouse_scroll"
     FOCUS = "hub_click_focus"
+    HOVER_FOCUS = "hub_hover_focus"
     INTERACTIVE = "hub_interactive"
     ABSENT = None
     INACTIVE = False
@@ -60,6 +61,14 @@ class MouseBinding:
     @classmethod
     def set_focus(cls, target, value):
         setattr(target, cls.FOCUS, value)
+
+    @classmethod
+    def hover_focus(cls, target):
+        return getattr(target, cls.HOVER_FOCUS, cls.ABSENT)
+
+    @classmethod
+    def set_hover_focus(cls, target, value):
+        setattr(target, cls.HOVER_FOCUS, value)
 
     @classmethod
     def interactive(cls, target):

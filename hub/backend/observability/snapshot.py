@@ -285,12 +285,19 @@ class SnapshotReader:
                 if message.run_id in self.authors:
                     authors[message.run_id] = self.authors[message.run_id]
                 summarizing = active and self.thinking.activity(current_run, steps_for_run) == ResponseActivity.SUMMARIZING
-                if reasoning or tools or workflow or summarizing:
+                summaries = tuple(
+                    TraceItem(step.id, TraceItem.SUMMARY, self.EMPTY_TEXT, step.status, step.started_at)
+                    for step in display_steps(
+                        step for step in steps_for_run if self.thinking.summary_step(step)
+                    )
+                ) if active else ()
+                if reasoning or tools or workflow or summarizing or summaries:
                     trace = merge_trace(
                         self.thinking.trace(
                             message.run_id, self.trace_history.get(message.run_id, ())
                         ),
                         tool_trace(tools),
+                        summaries,
                     )
                     visible.append(
                         ReasoningMessage.create(

@@ -37,7 +37,6 @@ class WorkspaceRepository:
     COPY_RACE = 'Source changed while copying test workspace'
     RESERVED_SELECTION = 'Selected directory includes reserved Tool storage'
     INVALID_SELECTION = 'source_paths must be a list of relative paths'
-    WHOLE_ROOT = 'Select files/directories explicitly instead of the whole source root'
     STORAGE_SELECTION = 'Cannot copy test workspace storage'
     OVERLAP = 'Selected source paths overlap'
     UNSAFE_DELETE = 'Safe recursive deletion is unavailable'
@@ -141,8 +140,6 @@ class WorkspaceRepository:
             raise ValueError(self.INVALID_SELECTION)
         for value in paths:
             source = self.source.path(value)
-            if source == self.source.root:
-                raise ValueError(self.WHOLE_ROOT)
             if source == self.root or self.root in source.parents or source in self.root.parents:
                 raise ValueError(self.STORAGE_SELECTION)
             if any(source == other or source in other.parents or other in source.parents for other in selected):
@@ -157,18 +154,20 @@ class WorkspaceRepository:
                     [path.relative_to(self.source.root).as_posix() for path in selected])
                 atomic_json(directory / self.RECORD_FILE, record.to_dict())
                 files = directory / self.FILES_DIRECTORY
-                files.mkdir()
+                if self.source.root not in selected:
+                    files.mkdir()
                 for source in selected:
                     relative = source.relative_to(self.source.root)
                     target = files / relative
                     target.parent.mkdir(parents=self.CREATE_PARENTS, exist_ok=self.ALLOW_EXISTING)
-                    fd = os.open(self.source.root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+                    base = self.source.root if relative.parts else self.source.root.parent
+                    fd = os.open(base, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
                     try:
                         for part in relative.parts[:-1]:
                             child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
                             os.close(fd)
                             fd = child
-                        self._copy(fd, relative.name, target)
+                        self._copy(fd, relative.name if relative.parts else self.source.root.name, target)
                     finally:
                         os.close(fd)
                 # 파일과 중간 디렉터리가 durable해진 뒤에만 실행 가능한 공간으로 게시한다.

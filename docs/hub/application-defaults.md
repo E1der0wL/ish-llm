@@ -20,7 +20,7 @@ schemas, validators, execution policies and storage remain owned by llm.
 
 No model name, credential or endpoint is supplied by this profile. Users still
 choose their Loop Agent model and connection, RAG embedding/reranker/extraction
-models, MCP servers and workflow definitions. Defaults do not install an
+models, MCP servers and custom workflow definitions. Defaults do not install an
 OCR executable or make a remote service available. New Projects require RAG
 relation extraction, so document registration needs an extraction model or an
 explicit choice to disable extraction. These choices can all be captured in a preset.
@@ -28,16 +28,27 @@ explicit choice to disable extraction. These choices can all be captured in a pr
 The Agent owns `completion`, while its Engine owns execution limits and policies.
 A Graph Agent chooses a saved Workflow; model-using nodes reference separately
 configured Loop Agents. The default `assistant` receives the selected built-in
-tools, not an invented model or connection.
+tools, not an invented model or connection. New Projects also receive a `planner`
+Graph Agent and `hub-code-workflow`: inspect → implement → verify → report. Its
+Agent nodes delegate to the initial behavioral Agent (`assistant` normally), so
+the user configures that Agent's model/connection once. The Graph Agent contains
+only execution selection and descriptions, with no duplicate completion/tool settings.
+Creation skips these resources when Workflows or Graph Agent-node execution is
+unavailable, or when the explicit primary Agent is workflow-based, named `planner`,
+or uses an Engine outside the registered Agent-node handler's execution registry.
+Existing Projects are never reseeded, and saved edits/deletions are retained.
+Instructions live under `asset/prompts/coding-workflow/`; the public WorkflowGraph
+builder in `asset/coding_workflow.py` produces editable schema-version-1 data.
 
 | Capability | Ready from the Hub creation profile | User/host prerequisite |
 |---|---|---|
 | Files, shell, Skills, Goals | Tools, starter skills, active-goal context | Agent model/connection; normal approvals and working-root permissions |
+| Large Tool output | Data-backed command originals, 2,000-character stream previews, explicit page policies | Selected Data and built-in Tools; disk space, normal approvals |
 | Memory | Keyword recall, candidate writes | Model-based summarization/extraction additionally need their own completion settings |
 | Refinement | Evidence/proposal tools and approved application | Actual evidence, target revisions, approval; evaluation when explicitly required |
 | RAG | Hybrid search, chunk/index limits, required relation extraction | Embedding model; reranker or explicit rerank=false; extraction model or explicit failure_policy=disabled |
 | MCP | Component and Agent resource integration | Reachable server definitions and their own authentication/dependencies |
-| Graph | Engine and Workflow tooling | A valid Workflow and its referenced Agents/tools |
+| Graph | Engine, `planner` and staged coding Workflow | Initial behavioral Agent's model/connection, selected tools and project toolchains |
 | Image OCR | Tesseract selection and timeout | Installed executable and required language data |
 
 RAG uses the backend's automatic JSON mode, suggested relation types and one
@@ -60,6 +71,15 @@ interactions that the public resume plan permits, retaining the checkpoint and
 partial output. It never invents decisions or `retry_nodes`, never replays old
 pauses on startup, and skips denied/cancelled/uncertain interactions. Restart and
 shutdown cancel pending continuation scheduling.
+
+`ToolDataSetup` owns only creation choices and explicit-save preparation for the
+default output package. `HubBuiltinTools` binds lifecycle handles through the public
+runtime capability API; the backend owns captures, retained references and range
+reads. The default read grant permits OS-readable external paths and symlink
+targets, independently of write/cwd and sandbox permissions. Explicit grants and
+constraint maps (including empty maps) are preserved. Existing projects are never
+reseeded. See [large-data setup](large-data-tools.md) for the activation fields,
+page-mode restrictions and storage limits.
 
 ## Named JSON presets
 

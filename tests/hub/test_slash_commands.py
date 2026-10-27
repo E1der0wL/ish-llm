@@ -90,7 +90,12 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
                                               "/경로/파일.txt", "/not-registered list", "/", "/preview"), 1):
                     with self.subTest(text=text):
                         pipe.send_text(text + "\r")
+                        # A completed message can precede Run teardown. This
+                        # sequential test must wait until Enter submits a new
+                        # request rather than opening the active-Run choice.
                         await until(lambda: len(requests) == index and not controller._submitting
+                                    and not view._last_snapshot.active_run_ids
+                                    and not (view._last_snapshot.run and view._last_snapshot.run.active)
                                     and any(m.role == "assistant" and m.text == text and m.status == "completed"
                                             for m in view.output.transcript.control.messages))
                         self.assertEqual(requests[-1], text)

@@ -12,7 +12,7 @@ from hub.asset.icon import NERD, UNICODE
 from hub.backend.observability.snapshot import SnapshotReader
 from hub.backend.execution.recovery_model import RecoveryStepMetadata
 from llm.components.memory.processing import MemorySession
-from hub.model import ResponseActivity
+from hub.model import ResponseActivity, TraceItem
 from hub.ui.presentation import present_message
 from hub.widget.transcript.thought_trace import render_trace_item
 from hub.config.theme import HubTheme
@@ -53,9 +53,21 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
             text = ''.join(fragment[1] for item in displayed.trace
                 for row in render_trace_item(item, 80, HubTheme(), language) for fragment in row)
             self.assertIn(expected, text)
+            self.assertIn(' • ' + language.status('running'), text)
+            self.assertEqual(len(displayed.trace), 1)
+            self.assertEqual(displayed.trace[0].id, 'summary')
             self.assertNotIn('Internal error', text)
         self.assertIn('Internal error', str(run.metadata))  # Preserve durable diagnostic receipts.
-        steps[1].status = 'completed'
+        for status in ('completed', 'failed', 'interrupted', 'cancelled'):
+            steps[1].status = status
+            # A new reader reconstructs the same status from durable Steps.
+            for projection in (reader, SnapshotReader()):
+                messages = await projection.messages(None, [record], latest=run, latest_steps=steps)
+                self.assertEqual([m.role for m in messages], ['reasoning', 'assistant'])
+                displayed = present_message(messages[0], Language('ko'))
+                self.assertEqual(displayed.trace, (TraceItem('summary', TraceItem.SUMMARY, '', status, start),))
+                self.assertNotIn('Internal error', str(displayed))
+        record.status = run.status = 'completed'
         messages = await reader.messages(None, [record], latest=run, latest_steps=steps)
         self.assertEqual([m.role for m in messages], ['assistant'])
 

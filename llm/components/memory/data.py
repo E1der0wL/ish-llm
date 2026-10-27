@@ -215,8 +215,8 @@ class MemoryData(ComponentData):
             raise ValueError(CompactionSourceRead.STALE_FILE)
         if limit == CompactionSourceRead.VERIFY_ONLY:
             return CompactionSourceRead.EMPTY_TEXT
-        text = files.read_file(selected.identifier, selected.path, expected_revision=snapshot.version).decode(CompactionSourceRead.TEXT_ENCODING)
-        return text[offset:] if limit is CompactionSourceRead.TO_END else text[offset:offset + limit]
+        return files.read_text(selected.identifier, selected.path, expected_revision=snapshot.version,
+                               offset=offset, limit=limit)
 
     @workspace_locked
     def _prepare_tool_summary(self, session_id, identifier, text, options, destination, mode, call_id):

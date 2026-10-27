@@ -24,6 +24,7 @@ from llm.components.goals.records import GoalSettings
 from llm.components.refinement import RefinementComponent
 from llm.components.refinement.records import RefinementPolicy
 from llm.components.tools.selection import ToolSelection
+from llm.components.tools.builtin.component import BuiltinParameter
 from ..tools.builtin import HubBuiltinTools
 
 from ...locales.keys import MessageKey
@@ -280,6 +281,13 @@ class SettingsHelp:
         )),
         *_under((*BUILTINS, ImplementationParameters.CONFIG,), (
             (ToolSelection.enabled.__name__, MessageKey.OPTION_HELP_BUILTIN_ENABLED),
+            (BuiltinParameter.OUTPUT, MessageKey.OPTION_HELP_TOOL_OUTPUT),
+        )),
+        *_under((*BUILTINS, ImplementationParameters.POLICY,), (
+            (BuiltinParameter.OUTPUT_PREVIEW_CHARS, MessageKey.OPTION_HELP_TOOL_PREVIEW),
+            (BuiltinParameter.READ_ACCESS, MessageKey.OPTION_HELP_READ_ACCESS),
+            (BuiltinParameter.WRITE_ACCESS, MessageKey.OPTION_HELP_WRITE_ACCESS),
+            (BuiltinParameter.CWD_ACCESS, MessageKey.OPTION_HELP_CWD_ACCESS),
         )),
         *_under((PROJECT, ProjectConfigForm.config.__name__, ProjectConfig.POLICIES, PolicySection.TOOL_RETRY,), (
             (ToolRetryPolicy.max_retries.__name__, MessageKey.OPTION_HELP_TOOL_RETRIES),

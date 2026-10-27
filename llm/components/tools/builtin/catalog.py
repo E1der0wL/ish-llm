@@ -67,10 +67,11 @@ class BuiltinTools:
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
                  adapters: Optional[Mapping[str, Callable]] = None,
                  shell: Optional[Sequence[str]] = None,
-                 test_workspaces: Optional[TestWorkspaces] = None):
+                 test_workspaces: Optional[TestWorkspaces] = None,
+                 read_access=None, write_access=None, cwd_access=None):
         if any(type(value) is not bool for value in (allow_commands, git, diagnostics)):
             raise TypeError(self.INVALID_SWITCHES)
-        self.files = FileTools(Path(root))
+        self.files = FileTools(Path(root), read_access=read_access, write_access=write_access, cwd_access=cwd_access)
         self.processes = ProcessTools(self.files)
         self.registry = ToolRegistry()
         self.closed = self.OPEN_STATE
@@ -81,7 +82,8 @@ class BuiltinTools:
         # 저장하지 않는다. 외부 어댑터의 내부 상태는 여전히 해당 호스트가 관리한다.
         self._execution_binding = BuiltinExecutionBinding(str(self.files.root),
             list(shell) if shell is not None else None, deepcopy(dict(checks or {})),
-            test_workspaces.binding() if test_workspaces is not None else None)
+            test_workspaces.binding() if test_workspaces is not None else None,
+            self.files.read_access.to_dict(), self.files.write_access.to_dict(), self.files.cwd_access.to_dict())
         # 효과를 낼 수 있는 Tool은 항상 결정이 필요하다. 자동 응답의 위험 기준은
         # Project가 소유하며, 이 계약은 사람의 승인만을 강제하는 정책이 아니다.
         mutation = self.MUTATION_CONTRACT
@@ -90,11 +92,7 @@ class BuiltinTools:
             name, parameters = declaration.NAME, declaration.schema()
             if test_workspaces is not None:
                 parameters = WorkspaceSelection.add_to_file_schema(parameters)
-            async def file_call(args, operation=name):
-                # 승인된 파일 변경은 완료를 기다린 뒤 취소를 전달한다.
-                if WorkspaceSelection.read(args).selected:
-                    return await self.test_workspaces.file_call(operation, args)
-                return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
+            file_call = self.file_handler(name, self.files)
             self._register(name, declaration.DESCRIPTION, parameters, file_call,
                            contract=mutation if name in self.FILE_MUTATIONS else
                            self.FILE_READ_CONTRACT if name == FileReadArguments.NAME else self.READ_CONTRACT)
@@ -158,8 +156,24 @@ class BuiltinTools:
             self._register(name, HostAdapters.description(name), spec.parameters, handler,
                            contract=execution if spec.execution else self.QUERY_CONTRACT)
 
-    def binding_revision(self, contract):
-        return self._execution_binding.revision(contract)
+    def file_handler(self, operation, files):
+        async def invoke(args):
+            if self.closed:
+                raise RuntimeError(self.CLOSED)
+            if WorkspaceSelection.read(args).selected:
+                return await self.test_workspaces.file_call(operation, args)
+            from .path_access import current_path_access
+            access = current_path_access()
+            selected = files if access is None else files.with_access(access)
+            return await drain_on_cancel(asyncio.to_thread(getattr(selected.for_arguments(args), operation), args))
+        return invoke
+
+    def binding_revision(self, contract, *, read_access=None, write_access=None, cwd_access=None):
+        binding = self._execution_binding
+        for name, value in (("read_access", read_access), ("write_access", write_access), ("cwd_access", cwd_access)):
+            if value is not None:
+                binding = replace(binding, **{name: deepcopy(value)})
+        return binding.revision(contract)
 
     def _register(self, name, description, parameters, handler, *, contract):
         async def guarded(args):

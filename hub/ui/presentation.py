@@ -4,7 +4,7 @@ from hub.model import ResponseActivity
 
 from hub.locales.keys import MessageKey, MessagePattern
 
-from llm.core.models import MessageStatus, RunStatus, MessageRole, ConversationStorage
+from llm.core.models import MessageStatus, RunStatus, MessageRole, ConversationStorage, StepStatus
 from typing import NamedTuple
 from dataclasses import dataclass, replace
 from datetime import datetime
@@ -55,10 +55,13 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
         )
         trace = item.trace or ((TraceItem.thought(item.id, item.text),) if item.text else ())
         item = replace(item, trace=(graph, *trace))
-    if item.role == ReasoningMessage.ROLE and item.phase == ResponseActivity.SUMMARIZING:
+    if (item.role == ReasoningMessage.ROLE and item.phase == ResponseActivity.SUMMARIZING
+            and not any(trace.kind == TraceItem.SUMMARY and trace.status == StepStatus.RUNNING
+                        for trace in item.trace)):
         trace = item.trace or ((TraceItem.thought(item.id, item.text),) if item.text else ())
         item = replace(item, trace=(*trace, TraceItem(
-            item.id + PresentationFormat.SUMMARY_SUFFIX, TraceItem.SUMMARY, PresentationFormat.EMPTY)))
+            item.id + PresentationFormat.SUMMARY_SUFFIX, TraceItem.SUMMARY,
+            PresentationFormat.EMPTY, StepStatus.RUNNING)))
     text = item.text
     if item.role == MessageRole.ASSISTANT:
         text = split_followup(

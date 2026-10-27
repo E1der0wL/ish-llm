@@ -233,6 +233,19 @@ class FileComponent(DefinitionComponent):
         with self.content_stream(content) as stream:
             self._write_file(project, identifier, file_path(path), stream)
 
+    def write_stream(self, project, identifier, path, stream):
+        """Consume a binary reader incrementally; its lifetime belongs to the caller."""
+        self._write_file(project, identifier, file_path(path), stream)
+
+    def read_text(self, project, identifier, path, *, expected_revision, offset, limit):
+        from llm.services.infrastructure.text_stream import read_text_range
+        value = self.load(project, identifier)
+        check_revision(value, expected_revision)
+        if file_path(path) not in FileManifest(value).entries:
+            raise FileNotFoundError(path)
+        with self._stream(self._file(project, identifier, path)) as stream:
+            return read_text_range(stream, offset=offset, limit=limit)
+
     def import_file(self, project, identifier, path, source):
         source = self._checked(Path(source).absolute())
         with self._stream(source) as stream:
@@ -272,7 +285,7 @@ class FileData(ComponentData):
     def supports_file_operations(cls, value):
         """The structural read/write/snapshot interface, without invoking effects."""
         return all(callable(getattr(value, method.__name__, cls.MISSING_METHOD))
-                   for method in (cls.read_file, cls.write_file, cls.snapshot))
+                   for method in (cls.read_file, cls.read_text, cls.write_file, cls.snapshot))
 
     def _edit(self, identifier, expected_revision):
         if not isinstance(expected_revision, str) or not expected_revision:
@@ -298,6 +311,26 @@ class FileData(ComponentData):
         return self.snapshot(identifier)
 
     @workspace_locked
+    def write_stream(self, identifier, path, stream, *, expected_revision):
+        project, component = self._edit(identifier, expected_revision)
+        component.write_stream(project, identifier, path, stream)
+        return self.snapshot(identifier)
+
+    @workspace_locked
+    def import_files(self, identifier, sources, *, expected_revision):
+        """Publish completed files and their manifest in one existing transaction."""
+        project, component = self._edit(identifier, expected_revision)
+        for path, source in sources.items():
+            component.import_file(project, identifier, path, source)
+        return self.snapshot(identifier)
+
+    @workspace_locked
+    def read_text(self, identifier, path, *, expected_revision, offset, limit):
+        project, component = self._current()
+        return component.read_text(project, identifier, path, expected_revision=expected_revision,
+                                   offset=offset, limit=limit)
+
+    @workspace_locked
     def import_file(self, identifier, path, source, *, expected_revision):
         project, component = self._edit(identifier, expected_revision)
         component.import_file(project, identifier, path, source)
@@ -313,5 +346,8 @@ class FileData(ComponentData):
     alist_files = async_method(list_files)
     aread_file = async_method(read_file)
     awrite_file = async_method(write_file)
+    awrite_stream = async_method(write_stream)
+    aimport_files = async_method(import_files)
+    aread_text = async_method(read_text)
     aimport_file = async_method(import_file)
     adelete_file = async_method(delete_file)

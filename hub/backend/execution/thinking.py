@@ -14,6 +14,7 @@ from llm.components.memory.tool_result_values import ToolSummaryExecution
 from ...model import TraceItem, ResponseActivity
 from .trace import merge_trace
 from .recovery_model import RecoveryStepMetadata
+from .working_context import WorkingContext
 
 
 @dataclass(slots=True)
@@ -42,7 +43,7 @@ class ThinkingPhases:
     ACTIVE_STATES = Run.ACTIVE_STATES
     UNREPORTED_STATUS = RunStatus.RUNNING.value
     SUMMARY_STEPS = (MemorySession.SUMMARIZE_STEP, MemorySession.ACTIVE_STEP,
-                     ToolSummaryExecution.STEP)
+                     ToolSummaryExecution.STEP, WorkingContext.STEP)
     TERMINAL_STEPS = (EngineEventType.STEP_COMPLETED, EngineEventType.STEP_FAILED,
                       EngineEventType.STEP_INTERRUPTED, EngineEventType.STEP_CANCELLED)
 

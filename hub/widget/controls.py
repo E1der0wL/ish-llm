@@ -1,5 +1,7 @@
 """Hub-local widget appearance without changing host or PTK defaults."""
 
+from time import monotonic
+
 from prompt_toolkit.layout import ScrollablePane as PTKScrollablePane
 from prompt_toolkit.layout.margins import ScrollbarMargin as PTKScrollbarMargin
 from prompt_toolkit.layout.margins import ConditionalMargin
@@ -210,6 +212,7 @@ class Button(PTKButton):
     RIGHT_SYMBOL = "right_symbol"
     NO_SYMBOL = ""
     SHOW_CURSOR = False
+    ACTIVATION_FEEDBACK_SECONDS = 0.15
 
     @property
     def text(self):
@@ -220,26 +223,33 @@ class Button(PTKButton):
         self._text = value
 
     def _get_text_fragments(self):
-        from prompt_toolkit.mouse_events import MouseEventType
+        from prompt_toolkit.mouse_events import MouseButton, MouseEventType
 
         def activate(event):
-            if self.handler and event.event_type == MouseEventType.MOUSE_UP:
-                self.handler()
+            if event.button == MouseButton.LEFT:
+                if event.event_type == MouseEventType.MOUSE_DOWN:
+                    self._feedback()
+                elif event.event_type == MouseEventType.MOUSE_UP:
+                    self._activate()
+
+        text_style = 'class:button.text'
+        if monotonic() < self._pressed_until:
+            text_style += ' ' + ThemeSelector.BUTTON_PRESSED.style
 
         # WindowAlign.CENTER is the sole alignment owner. Never pre-pad to the
         # preferred width: the parent may allocate a different number of cells.
         return [
             ("class:button.arrow", self.left_symbol, activate),
             ("[SetCursorPosition]", ""),
-            ("class:button.text", self.text, activate),
+            (text_style, self.text, activate),
             ("class:button.arrow", self.right_symbol, activate),
         ]
 
     def __init__(self, *args, **kwargs):
+        self._pressed_until = 0.0
         kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)
         kwargs.setdefault(self.RIGHT_SYMBOL, self.NO_SYMBOL)
         super().__init__(*args, **kwargs)
-
         self.control.show_cursor = self.SHOW_CURSOR
         ControlRole.register(self.control, ControlRole.BUTTON)
         hover_style(self.window)
@@ -248,12 +258,26 @@ class Button(PTKButton):
             [KeyName.ENTER, KeyName.SPACE],
             ShortcutLabel.ENTER_SPACE,
             ShortcutAction.ACTIVATE,
-            lambda e: self.handler and self.handler(),
+            lambda e: self._activate(),
         )
         registry.attach(self.control)
         self.control.key_bindings = merge_key_bindings(
             [self.control.key_bindings, registry.bindings]
         )
+
+    def _activate(self):
+        self._feedback()
+        if self.handler:
+            return self.handler()
+
+    def _feedback(self):
+        self._pressed_until = monotonic() + self.ACTIVATION_FEEDBACK_SECONDS
+        app = get_app()
+        app.invalidate()
+        # Terminals have no keyboard-release event. Feedback never delays the
+        # action and expires equally for Enter, Space and a mouse activation.
+        if app.is_running:
+            app.loop.call_later(self.ACTIVATION_FEEDBACK_SECONDS, app.invalidate)
 
 
 class ChoiceBinding:

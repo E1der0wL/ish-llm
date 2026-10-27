@@ -1,5 +1,7 @@
 """Shared popup defaults and shortcut context for the page footer."""
 
+from functools import partial
+
 from prompt_toolkit.widgets import Dialog as PTKDialog, Box, Shadow
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.keys import Keys
@@ -8,7 +10,7 @@ from prompt_toolkit.layout.containers import to_container, Window, HSplit, Dynam
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.filters import Condition, to_filter
-from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer
+from prompt_toolkit.layout import ConditionalContainer
 from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
 from enum import StrEnum
 
@@ -84,15 +86,29 @@ class PopupBody(DynamicContainer):
         super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
 
-class PopupSurface(FloatContainer):
+class PopupSurface(DynamicContainer):
     """Erase the whole allocated popup rectangle before drawing its children."""
 
     def __init__(self, content):
         self.popup = to_container(content)
-        super().__init__(
-            Window(char=" ", style="class:dialog.body"),
-            floats=[Float(content=self.popup, left=0, right=0, top=0, bottom=0)],
-        )
+        self.background = Window(char=" ", style="class:dialog.body")
+        super().__init__(lambda: self.popup)
+
+    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
+        # Render the surface as one operation at the parent's layer. A nested
+        # Float may run before its background; ScrollablePane copies its cells
+        # immediately even when ordinary Windows defer their drawing.
+        draw = partial(self._draw, screen, mouse_handlers, write_position, parent_style, erase_bg)
+        if z_index is None or z_index <= 0:
+            draw()
+        else:
+            screen.draw_with_z_index(z_index, draw)
+
+    def _draw(self, screen, mouse_handlers, write_position, parent_style, erase_bg):
+        self.background.write_to_screen(
+            screen, mouse_handlers, write_position, parent_style, True, None)
+        super().write_to_screen(
+            screen, mouse_handlers, write_position, parent_style, erase_bg, None)
 
     def preferred_width(self, max_available_width):
         return self.popup.preferred_width(max_available_width)

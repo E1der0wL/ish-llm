@@ -6,7 +6,7 @@ from .input_context import HubInputContext
 from .followup import INSTRUCTION, split_followup
 from ..tools.advice import INSTRUCTION as RISK_INSTRUCTION
 from .completion_review import TaskCompletion, ConversationalInput
-from .tool_references import ToolReferences
+from .working_context import WorkingContext
 from ..tools.application import HubApplicationTools
 from ...asset.guides import WORK_CYCLE
 
@@ -22,7 +22,6 @@ class FollowupSession(CompletionSession):
                 for message in context.messages))
 
     async def prepare(self, request):
-        ToolReferences.prepare(self.context, request)
         if self.conversational and any(
                 message.continuation and message.source_id is not None
                 and message.source_id != self.request_id
@@ -49,8 +48,8 @@ class FollowupSession(CompletionSession):
                 if any(tool.name == TaskCompletion.NAME for tool in request.tools):
                     instructions.extend((TaskCompletion.INSTRUCTION, WORK_CYCLE))
             HubInputContext.insert(request, HubInputContext.SEPARATOR.join(instructions))
-        if False:
-            yield
+        async for event in WorkingContext.prepare(self.context, request):
+            yield event
 
     async def review_final(self, observation):
         return TaskCompletion.review(observation)
@@ -64,6 +63,19 @@ class FollowupProcessor:
 
     def __init__(self, *, postprocess=False):
         self.postprocess = postprocess
+
+    @classmethod
+    def for_project(cls, project, *, postprocess=False):
+        from llm.components.memory import MemoryComponent
+        from llm.components.memory.configuration import MemoryProcessingConfig
+
+        processor = cls(postprocess=postprocess)
+        if MemoryComponent.name in project.components:
+            settings = project.config.parameter_targets.component(MemoryComponent.name)
+            priority = MemoryProcessingConfig.from_config_section(settings.to_dict()).priority_or(None)
+            if priority is not None:
+                processor.priority = max(cls.priority, priority + 1)
+        return processor
 
     def session(self, context):
         return FollowupSession(context, self.postprocess)

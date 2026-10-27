@@ -15,6 +15,7 @@ from llm.components.tools.builtin.processes import ProcessSession, OutputPage, P
 from llm.components.tools.builtin.files import FileTools
 from llm.services.infrastructure.process_environment import ProcessEnvironment
 from llm.core.configuration import UNSET
+from llm.services.infrastructure.captured_text import CapturedText
 
 
 class BuiltinProcessValuesTests(unittest.TestCase):
@@ -60,31 +61,37 @@ class BuiltinProcessValuesTests(unittest.TestCase):
 
     def test_session_snapshot_preserves_exact_wire_and_detaches_argv(self):
         process=SimpleNamespace(pid=77,returncode=None,stdin=None)
-        session=ProcessSession(process,["/bin/echo","text"],"/work","start",stdout=bytearray(b"ok\n"),
-            stderr=bytearray(b"\xff"))
-        snapshot=session.snapshot("id").to_dict()
+        session=ProcessSession(process,["/bin/echo","text"],"/work","start")
+        self.addCleanup(session.stdout.close);self.addCleanup(session.stderr.close)
+        session.stdout.extend(b"ok\n");session.stderr.extend(b"\xff")
+        snapshot=session.snapshot("id")
         self.assertEqual(snapshot,{"process_id":"id","status":"running","returncode":None,"pid":77,
             "argv":["/bin/echo","text"],"cwd":"/work","started_at":"start","ended_at":None,
             "stdin_open":False,"stdout":"ok\n","stderr":"\ufffd","truncated":False})
         snapshot["argv"].clear()
         self.assertEqual(session.argv,["/bin/echo","text"])
         session.status=ProcessStatus.CANCELLED;session.ended_at="end"
-        self.assertEqual(session.snapshot("id").to_dict()["status"],"cancelled")
+        self.assertEqual(session.snapshot("id")["status"],"cancelled")
 
     def test_output_cursor_does_not_consume_partial_utf8_or_rewrite_explicit_count(self):
         data="한".encode()
-        waiting=OutputPage.read(data[:1],0,UNSET,final=False)
+        buffer=CapturedText();self.addCleanup(buffer.close)
+        buffer.extend(data[:1])
+        waiting=OutputPage.read(buffer,0,UNSET,final=False)
         self.assertEqual((waiting.text,waiting.next_offset,waiting.remaining),("",0,0))
-        complete=OutputPage.read(data,0,UNSET,final=False)
+        buffer.extend(data[1:])
+        complete=OutputPage.read(buffer,0,UNSET,final=False)
         self.assertEqual((complete.text,complete.next_offset,complete.remaining),("한",1,0))
-        truncated=OutputPage.read(data[:1],0,UNSET,final=True)
+        partial=CapturedText();self.addCleanup(partial.close)
+        partial.extend(data[:1]);partial.finish()
+        truncated=OutputPage.read(partial,0,UNSET,final=True)
         self.assertEqual((truncated.text,truncated.next_offset),("\ufffd",1))
         for count in (None,True,0,-1):
             with self.subTest(count=count),self.assertRaisesRegex(ValueError,"positive integer"):
-                OutputPage.read(data,0,count,final=True)
+                OutputPage.read(buffer,0,count,final=True)
         for offset in (True,-1,2):
             with self.subTest(offset=offset),self.assertRaisesRegex(ValueError,"outside"):
-                OutputPage.read(data,offset,UNSET,final=True)
+                OutputPage.read(buffer,offset,UNSET,final=True)
 
 
 class ProcessExtensionTests(unittest.IsolatedAsyncioTestCase):
@@ -111,7 +118,8 @@ class ProcessExtensionTests(unittest.IsolatedAsyncioTestCase):
                 async def observed():
                     while not session.stdout:await asyncio.sleep(.005)
                 await asyncio.wait_for(observed(),5)
-                self.assertEqual(bytes(session.stdout),b"captured\n")
+                identifier=next(iter(tools.sessions))
+                self.assertEqual((await tools.output({"process_id":identifier,"max_chars":100}))["stdout"],"captured\n")
                 self.assertIsNone(session.process.returncode)
                 pending.cancel()
                 with self.assertRaises(asyncio.CancelledError):await pending

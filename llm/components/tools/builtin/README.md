@@ -10,8 +10,12 @@
 | [catalog.py](catalog.py) | Tool schema와 구현을 조립하고 명시적으로 주입한 서비스 어댑터를 연결합니다. |
 | [catalog_values.py](catalog_values.py) | Git·prompt·Host 어댑터 선언과 실행 환경/계약 지문 투영을 소유합니다. |
 | [component.py](component.py) | 호스트 Toolkit을 Project의 명시적 enabled 선택에 연결합니다. |
-| [files.py](files.py) | 지정한 root 범위의 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
+| [files.py](files.py) | 명시한 경로 권한에 따른 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
 | [file_values.py](file_values.py) | 파일 Tool의 공통·작업별 입력 Schema, 조회·변경 결과와 휴지통 ID 계약을 선언합니다. |
+| [path_access.py](path_access.py) | 작업 디렉터리와 독립된 읽기·쓰기·cwd 권한과 안전한 파일 열기를 검증합니다. |
+| [file_text.py](file_text.py) | 전체 원문을 메모리에 올리지 않는 파일 해시·줄 위치·범위 조회를 제공합니다. |
+| [output.py](output.py) | 명시한 Data 목적지에 명령 출력·참조를 함께 저장하고 재시작 후 범위 조회합니다. |
+| [capture.py](capture.py) | 호출별 출력 저장 연결을 다른 동시 실행과 분리합니다. |
 | [processes.py](processes.py) | 명령 실행·pipe 입력·출력 cursor와 프로세스 종료를 관리합니다. |
 | [process_values.py](process_values.py) | 프로세스 상태·입력 Schema·명시적 실행 인자·공개 결과를 선언합니다. |
 | [diagnostics.py](diagnostics.py) | Linux 시스템·프로세스·표준 I/O 연결을 읽기 전용으로 조회합니다. |
@@ -59,7 +63,9 @@ process_start에 stdin=true를 주면 process_write로 정확한 문자열 또�
 stderr_offset, max_chars를 받고 next_stdout_offset/next_stderr_offset을 반환합니다.
 offset은 Unicode 문자 단위이며 분할 도착한 UTF-8 문자는 완성 후 공개합니다.
 max_output_bytes에 의해 버린 출력은 truncated로 표시하고 복원된 것처럼 반환하지 않습니다.
-프로세스 ID와 출력은 Toolkit 수명에 한정됩니다. 재시작 후 자동 재실행하지 않습니다.
+영속 출력을 선택하지 않은 프로세스 ID와 출력은 Toolkit 수명에 한정됩니다.
+`config.output`과 `policy.output_preview_chars`를 함께 지정하면 출력 원문을 Data에 저장하고
+재시작 후에도 `process_output`으로 조회합니다. 재시작 후 자동 재실행하지 않습니다.
 상태는 `process_values.py`의 `ProcessStatus`가 소유하며 생성·감시·취소·출력·입력 경계가
 같은 선언을 사용합니다. snapshot은 기존 문자열 상태를 반환합니다.
 
@@ -69,6 +75,11 @@ shell_execute/process_start/test_workspace_execute는 선택적 문자열 딕셔
 sandbox는 선택한 테스트 공간에서 실행합니다. 명시 env도 승인·재개 binding의 Tool 인자에 포함됩니다.
 
 BuiltinTools의 async 수명을 닫아 자식 프로세스를 정리해야 합니다. 파일 root 검사는 셸 전체를 격리하는 sandbox가 아닙니다. 승인·retry·실행 이력은 여전히 공통 ToolExecutor를 통과합니다.
+
+`policy.read_access={"roots": [...], "follow_symlinks": true}`는 명시한 범위의 외부 파일·링크
+읽기를 허용합니다. 수정·삭제와 sandbox 권한은 바뀌지 않습니다. `file_read.offset/max_chars`,
+`file_search.max_chars`는 큰 텍스트의 반환 범위를 제한합니다. 생략한 제한을 자동 생성하지
+않습니다. 자세한 설정·범위 단위·성능 한계는 [대용량 파일 계약](../../../../docs/llm/large-data-files.md)을 참고하세요.
 
 등록 코드와 개별 Tool 목록은 [기본 Tool 안내](../../../../docs/llm/builtin-tools.md), Project Python Tool은 [상위 폴더](../README.md)를 참고하세요.
 

@@ -43,7 +43,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                     document = SkillDocument.parse(guide["markdown"])
                     self.assertEqual(document.name, identifier)
                     self.assertEqual(document.frontmatter["description"], description)
-                    self.assertEqual(guide["markdown"], instructions)
+                    self.assertEqual(guide["markdown"].replace('\r\n', '\n'), instructions)
                     self.assertEqual(document.frontmatter["metadata"]["hub-template-version"], str(TEMPLATE_VERSION))
                 record = await runtime.project.agents.asnapshot("assistant")
                 definition = record["definition"]

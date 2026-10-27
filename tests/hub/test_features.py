@@ -44,7 +44,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             calls.append(kwargs)
             if len(calls) == 1:
                 yield chunk(reasoning="**Consider** the request.")
-                gate.wait(10)
+                gate.wait()  # The test releases this in finally, not on a wall-clock race.
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, agent_id="chat", agent_definition={"engine": 'chat', "completion":{"model":"openai/test"}}, model="openai/test", auto_title=False,
@@ -253,7 +253,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             calls.append(kwargs)
             if len(calls) == 1:
                 yield chunk(reasoning="Working on it")
-                gate.wait(10)
+                gate.wait()  # Remain active until steering/queued delivery was observed.
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="openai/test", language="en", auto_title=False,
@@ -341,7 +341,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
         def provider(**kwargs):
             calls.append(kwargs)
             yield chunk(reasoning="Working")
-            gate.wait(10)
+            gate.wait()  # The choice-race test explicitly determines when completion occurs.
             yield chunk(content="Done", finish="stop")
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="openai/test", auto_title=False,

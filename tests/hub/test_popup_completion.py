@@ -22,6 +22,8 @@ class PopupCompletionTests(unittest.IsolatedAsyncioTestCase):
             root = Path(folder)
             (root / "sample-directory").mkdir()
             (root / "sample-file.txt").write_text("example")
+            for index in range(20):
+                (root / f'sample-{index}.txt').write_text('example')
             size = SizedOutput()
             prompt = Prompt(input=pipe, output=size)
             installation = install_preview(prompt)
@@ -59,6 +61,8 @@ class PopupCompletionTests(unittest.IsolatedAsyncioTestCase):
                         window = app.layout.current_window
                         pipe.send_text("sa")
                         await eventually(lambda: field.buffer.complete_state is not None and bool(menus()))
+                        pipe.send_text('\x1b[B')
+                        await eventually(lambda: field.buffer.complete_state.complete_index is not None)
                         for columns, rows in ((132, 40), (80, 24)):
                             size.columns, size.rows = columns, rows
                             app._on_resize()
@@ -71,6 +75,20 @@ class PopupCompletionTests(unittest.IsolatedAsyncioTestCase):
                             self.assertEqual(rect.xpos, min(cursor.x, columns - rect.width))
                             self.assertTrue(rect.ypos == cursor.y + 1 or rect.ypos + rect.height == cursor.y,
                                             (name, rect, cursor))
+                            cells = [screen.data_buffer[y][x]
+                                     for y in range(rect.ypos, rect.ypos + rect.height)
+                                     for x in range(rect.xpos, rect.xpos + rect.width)]
+                            selected = [cell for cell in cells if 'class:completion-menu.completion.current' in cell.style]
+                            self.assertTrue(selected)
+                            for cell in selected:
+                                attrs = app._merged_style.get_attrs_for_style_str(cell.style)
+                                self.assertEqual((attrs.color, attrs.bgcolor),
+                                                 (view.theme.accent5[1:], view.theme.accent4[1:]))
+                                self.assertFalse(attrs.bold)
+                            thumbs = [cell for cell in cells if 'class:hub-scrollbar-thumb' in cell.style]
+                            self.assertTrue(thumbs)
+                            self.assertTrue(all(app._merged_style.get_attrs_for_style_str(cell.style).bgcolor
+                                                == view.theme.accent1[1:] for cell in thumbs))
                         pipe.send_text("\x1b[B\t")
                         await eventually(lambda: field.buffer.text.startswith("sample-"))
                         self.assertIs(app.layout.current_control, field)

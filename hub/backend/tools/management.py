@@ -12,7 +12,6 @@ from llm.core.editable_snapshot import EditableSnapshot
 
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.components.tools.package_values import ToolPackageSource
-from llm.components.tools.selection import ToolSelection
 from llm.components.tools.packages import ToolPaths
 from ..project.management_values import ManagementAction, ManagementEntry
 
@@ -105,10 +104,7 @@ class ToolManagement:
         ):
             settings = await self.project.components.aget(self.builtin.name)
             snapshot = EditableSnapshot.read(await settings.asnapshot())
-            selected = ToolSelection.read(
-                ImplementationParameters.read(snapshot.data).config,
-                scope=self.builtin.name,
-            ).names
+            selected = self.builtin.selection(ImplementationParameters.read(snapshot.data)).names
             for name in self.builtin.toolkit.registry.names():
                 tool = self.builtin.toolkit.registry.get(name)
                 entries.append(
@@ -170,14 +166,14 @@ class ToolManagement:
         if current.version != expected_version:
             raise ValueError(ToolManagementContract.SETTINGS_CHANGED)
         parameters = ImplementationParameters.read(current.data)
-        selection = ToolSelection.read(parameters.config, scope=self.builtin.name)
+        selection = self.builtin.selection(parameters)
         selection = (
             selection.remove((name,), scope=self.builtin.name)
             if name in selection.names
             else selection.add((name,), scope=self.builtin.name)
         )
         await settings.aconfigure(
-            parameters.with_config(selection.to_dict()).to_dict(),
+            parameters.with_config({**parameters.config, **selection.to_dict()}).to_dict(),
             expected_version=expected_version,
         )
         return await self.list()

@@ -23,6 +23,7 @@ UI effective values를 새 설정 기본값으로 저장하지 않는다.
 | bootstrap/config/Project 서비스 | 구현 주입, 앱 생성 preset, 설정·선택·CAS | [구조](structure.md), [설정/재개](presets-and-resume.md) |
 | backend worker | 이벤트 루프, 공개 llm API와 실행 수명 | [초기 연결·단계 표시](backend-progress.md), [렌더링 파이프라인](rendering-performance.md), [유지보수 경계](maintenance.md) |
 | 요청 환경 | Enter 시점 cwd/env 사본, Tool·path revision binding | [셸 환경](shell-environment.md) |
+| 대용량 Tool 데이터 | 생성 preset·공개 저장 연결·범위 조회 지침 | [원문 저장과 외부 읽기](large-data-tools.md) |
 | backend 오류 계약 소비 | Diagnostic 보존·backend admission·앱 선택 | [오류](error-handling.md), [Provider 복구](provider-recovery.md), [작업 복구](operation-recovery.md) |
 | Tool UI/선택기 | 승인·질문 표시, 허용된 인자 수정 제안 | [질문과 Tool](questions-tools.md), [Tool retry](tool-retry.md) |
 | 자원 편집 | 현재 Project의 Schema·CRUD·CAS·참조 보호 | [관리 창](component-managers.md), [authoring](resource-authoring.md), [RAG](rag.md) |
@@ -50,6 +51,10 @@ P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 s
 적용한 완전한 section을 저장한다. 환경 없는 구 Run fallback은 C의 실행 binding 전환 대상이다.
 
 ## 사용법·검증 기록
+
+- [검사 자료와 UI 대기 검증](verification-stability.md): Linux 복사본·검토 해시·미리보기 정리·검사 진행 기록.
+
+- [Tool 누적 문맥 관리](working-context.md): Memory 요약 실패의 참조 대체와 CompletionPolicy 재검사.
 
 - [공통 UI 규격](ui-consistency.md): 버튼 정렬·팝업 크기·Agent 편집·디버깅·승인 정책.
 

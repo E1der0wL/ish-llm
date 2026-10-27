@@ -7,6 +7,15 @@
 
 현재 CLI는 저장 Agent를 `--agent`로 선택합니다. Engine 등록만으로 Agent가 생성되지는 않습니다.
 
+Hub의 새 프로젝트 기본값은 `assistant`와 Graph 에이전트 `planner`를 제공합니다.
+`planner`의 `hub-code-workflow`는 환경 확인 → 코드 수정 → 테스트·보완 → 결과 정리로
+진행하며, 각 단계에서 `assistant`의 모델·연결·도구 설정을 사용합니다.
+사용법과 적용 범위는 [코딩 Workflow](../docs/hub/coding-workflow.md)를 참고하세요.
+
+새 프로젝트의 명령 출력은 Data에 원문을 보관하고 모델에는 미리보기만 전달합니다.
+외부 파일·심볼릭 링크 읽기와 기존 프로젝트의 활성화 방법은
+[대용량 데이터 처리](../docs/hub/large-data-tools.md)에 정리했습니다.
+
 ```sh
 python -m hub --workspace /path/to/workspace --agent assistant --model openai/YOUR_MODEL
 ```

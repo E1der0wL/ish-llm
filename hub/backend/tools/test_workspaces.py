@@ -1,6 +1,7 @@
 """Give the model actionable feedback for malformed sandbox commands before effects."""
 
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from llm.components.tools.builtin import TestWorkspaces
 from llm.components.tools.builtin.workspace_values import WorkspaceExecuteArguments
 
@@ -19,6 +20,20 @@ class InvalidSandboxArguments:
 
 
 class HubTestWorkspaces(TestWorkspaces):
+
+    async def create(self, args):
+        # The sandbox source selection still uses root-relative paths. Normal
+        # file Tools now delegate absolute paths and read grants to the backend.
+        values = dict(args)
+        if 'source_paths' in values:
+            paths = []
+            for value in values['source_paths']:
+                path = Path(value)
+                if path.is_absolute():
+                    path = path.relative_to(self.source.root)
+                paths.append(str(path))
+            values['source_paths'] = paths
+        return await super().create(values)
 
     async def __call__(self, args):
         from .advice import execution_arguments

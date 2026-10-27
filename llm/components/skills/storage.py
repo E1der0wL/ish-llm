@@ -253,6 +253,14 @@ class SkillStorage:
             stream.seek(selection.offset)
             return stream.read(selection.read_size)
 
+    def read_text(self, identifier, path, *, offset, limit):
+        from llm.services.infrastructure.text_stream import read_text_range
+        record = Record.read(self.load(identifier))
+        if Record.resource_path(path) not in record.files:
+            raise FileNotFoundError(path)
+        with FileComponent._stream(self.checked(self.package(identifier) / path)) as stream:
+            return read_text_range(stream, offset=offset, limit=limit)
+
     def delete_file(self, identifier, path):
         path = Record.resource_path(path)
         catalog, records = self.inventory()

@@ -71,6 +71,9 @@ class BuiltinExecutionBinding:
     shell: list[str] | None
     checks: dict
     test_workspaces: WorkspaceBinding | None = None
+    read_access: dict | None = None
+    write_access: dict | None = None
+    cwd_access: dict | None = None
 
     def to_dict(self):
         return {item.name: value.to_dict() if isinstance(value, WorkspaceBinding) else deepcopy(value)
@@ -108,7 +111,8 @@ class HostAdapterSchemas:
 
     WEB_SEARCH = object_schema({"query": {"type": "string", "minLength": 1},
         "limit": {"type": "integer", "minimum": 1}}, required=["query"])
-    URL = object_schema({"url": {"type": "string", "pattern": "^https?://"}}, required=["url"])
+    # URI schemes and expansion vocabulary belong to the selected adapter.
+    URL = object_schema({"url": {"type": "string", "minLength": 1}}, required=["url"])
     SESSION = object_schema({"session_id": {"type": "string"}}, required=["session_id"])
     BROWSER_ACT = object_schema({"session_id": {"type": "string"},
         "action": open_schema("host browser adapter", category=OpenSchemaKind.ADAPTER)}, required=["session_id", "action"])
@@ -118,7 +122,7 @@ class HostAdapterSchemas:
     GRAPH_RAG = object_schema({"corpus": {"type": "string"}, "query": {"type": "string", "minLength": 1},
         "options": open_schema("host GraphRAG adapter", category=OpenSchemaKind.ADAPTER)}, required=["corpus", "query"])
     CONTEXT = object_schema({"reference": {"type": "string"},
-        "scope": {"enum": ["chunk", "section", "topic", "document"]}}, required=["reference", "scope"])
+        "scope": {"type": "string", "minLength": 1}}, required=["reference", "scope"])
 
 
 @dataclass(frozen=True, slots=True)

@@ -11,6 +11,29 @@ from tests.llm.run_regression import Result, flatten, main, select_modules, summ
 
 
 class RegressionRunnerTests(unittest.TestCase):
+    def test_progress_is_durable_and_preserves_failure_result(self):
+        from functools import partial
+
+        class Failing(unittest.TestCase):
+            def runTest(self):
+                self.fail('visible failure')
+
+        with tempfile.TemporaryDirectory() as directory, \
+                patch('tests.llm.run_regression.faulthandler.dump_traceback_later') as trace, \
+                patch('tests.llm.run_regression.faulthandler.cancel_dump_traceback_later') as cancel:
+            path = Path(directory) / 'progress.jsonl'
+            test = Failing()
+            result = unittest.TextTestRunner(stream=io.StringIO(),
+                resultclass=partial(Result, progress_path=path)).run(unittest.TestSuite([test]))
+            records = [json.loads(line) for line in path.read_text().splitlines()]
+            self.assertEqual([item['state'] for item in records], ['started', 'finished'])
+            self.assertEqual([item['test'] for item in records], [test.id(), test.id()])
+            self.assertGreaterEqual(records[-1]['seconds'], 0)
+            self.assertGreaterEqual(records[-1]['threads'], 1)
+            self.assertFalse(summarize([test.id()], result)['ok'])
+            trace.assert_called_once_with(120, repeat=True)
+            cancel.assert_called_once_with()
+
     def run_cases(self, cases, expected=None):
         suite = unittest.TestSuite(cases)
         ids = [test.id() for test in flatten(suite)]

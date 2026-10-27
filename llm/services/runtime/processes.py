@@ -15,6 +15,7 @@ from llm.services.infrastructure.process_result import ProcessResult
 from llm.services.infrastructure.process_command import ProcessCommand
 from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 from llm.services.infrastructure.storage import drain_on_cancel
+from llm.services.infrastructure.captured_text import CapturedText
 from llm.policies import ExecutionLimitError
 from llm.core.tool_contracts import ToolIsolation
 from ._worker import ProcessGate, ProcessLaunch
@@ -104,7 +105,7 @@ class ProcessToolRunner:
             read_only_paths=self.read_only_paths, env=self.env, allow_network=self.allow_network,
             trusted_runner=Path(__file__).resolve())
 
-    async def _launch(self, command, input_value, *, pass_fds=NO_INHERITED_FDS):
+    async def _launch(self, command, input_value, *, pass_fds=NO_INHERITED_FDS, output_sink=None):
         env = ProcessGate.environment() if self.isolation == ToolIsolation.SANDBOX else copy_env(self.env)
         data = ProcessLaunch(command, str(self.cwd), env, input_value, self.memory_bytes)
         payload = data.encode()
@@ -113,22 +114,24 @@ class ProcessToolRunner:
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
             env=ProcessGate.environment(), start_new_session=self.NEW_SESSION,
             pass_fds=pass_fds))
-        process, readers = None, []
+        process, readers, captures = None, [], []
         try:
             process = await asyncio.shield(pending)
             total = 0
 
             async def read(stream):
                 nonlocal total
-                chunks = []
+                capture = CapturedText()
+                captures.append(capture)
                 while True:
                     chunk = await stream.read(self.READ_CHUNK_BYTES)
                     if not chunk:
-                        return b"".join(chunks)
+                        capture.finish()
+                        return capture
                     total += len(chunk)
                     if self.max_output_bytes is not None and total > self.max_output_bytes:
                         raise ExecutionLimitError(RunErrorCode.PROCESS_FAILED, self.OUTPUT_LIMIT)
-                    chunks.append(chunk)
+                    await drain_on_cancel(asyncio.to_thread(capture.extend, chunk))
 
             readers = [asyncio.create_task(read(process.stdout)), asyncio.create_task(read(process.stderr))]
             process.stdin.write(payload)
@@ -136,7 +139,12 @@ class ProcessToolRunner:
             process.stdin.close()
             stdout, stderr = await asyncio.gather(*readers)
             code = await process.wait()
-            return code, stdout, stderr
+            if output_sink is not None:
+                return await output_sink(code, stdout, stderr)
+            def raw(capture):
+                capture.stream.seek(0)
+                return capture.stream.read()
+            return code, await asyncio.to_thread(raw, stdout), await asyncio.to_thread(raw, stderr)
         finally:
             async def cleanup():
                 # 취소가 생성과 겹친 경우에도 프로세스 핸들을 회수한다. 입력 전 게이트는 실행하지 않는다.
@@ -160,7 +168,11 @@ class ProcessToolRunner:
                     await asyncio.gather(*drains, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
                 if process.stdin is not None:
                     process.stdin.close()
-            await drain_on_cancel(cleanup())
+            try:
+                await drain_on_cancel(cleanup())
+            finally:
+                for capture in captures:
+                    capture.close()
 
     async def _execute(self, call):
         code, stdout, stderr = await self._launch(self._command(call.name), call.to_dict())
@@ -180,7 +192,7 @@ class ProcessToolRunner:
             raise RuntimeError(self.WRONG_LOOP)
         return self._slots
 
-    async def execute(self, argv: Sequence[str], *, pass_fds: Sequence[int] = NO_INHERITED_FDS) -> dict:
+    async def execute(self, argv: Sequence[str], *, pass_fds: Sequence[int] = NO_INHERITED_FDS, output_sink=None) -> dict:
         """일반 명령의 출력과 종료 코드를 반환한다. 격리·회수는 JSON Tool 경로와 같다.
 
         pass_fds는 호스트 수명 잠금이다. 시작 게이트만 상속하며 사용자 명령에는 전달하지 않는다.
@@ -188,6 +200,9 @@ class ProcessToolRunner:
         ProcessCommand.validate(argv)
         slots = self._admission()
         async def invoke():
+            if output_sink is not None:
+                return await self._launch(self._sandbox(list(argv)), ProcessLaunch.NO_PAYLOAD,
+                                          pass_fds=tuple(pass_fds), output_sink=output_sink)
             code, stdout, stderr = await self._launch(self._sandbox(list(argv)), ProcessLaunch.NO_PAYLOAD,
                                                     pass_fds=tuple(pass_fds))
             return ProcessResult.decoded(code, stdout, stderr).to_dict()

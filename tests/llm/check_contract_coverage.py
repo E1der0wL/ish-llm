@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 import subprocess
 
+from tests.source_tree import source_bytes
+
 
 ROOTS = ('llm', 'hub')
 CLASSIFICATIONS = {'declaration', 'non_contract', 'violation'}
@@ -22,10 +24,12 @@ CONTRACT_FIELDS = {'owner', 'declaration', 'consumers', 'tests', 'complete'}
 
 
 def product_files(root):
-    """Tracked and new product files, including non-Python assets and deleted paths."""
+    """Current tracked/new product files, including assets; deleted reviews are orphans."""
     result = subprocess.run(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', *ROOTS],
                             cwd=root, check=True, capture_output=True)
-    return sorted(set(result.stdout.decode().split('\0')) - {''})
+    deleted = subprocess.run(['git', 'ls-files', '--deleted', '-z', '--', *ROOTS],
+                             cwd=root, check=True, capture_output=True)
+    return sorted(set(result.stdout.decode().split('\0')) - set(deleted.stdout.decode().split('\0')) - {''})
 
 
 def candidates(source):
@@ -88,7 +92,7 @@ def inspect(root, paths, reviews):
         try:
             if target.is_symlink():
                 raise ValueError('symlink requires explicit external-source scope')
-            raw = target.read_bytes()
+            raw = source_bytes(target)
             item['sha256'] = hashlib.sha256(raw).hexdigest()
             if target.suffix == '.py':
                 item['candidates'] = candidates(raw.decode())

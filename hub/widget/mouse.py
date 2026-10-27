@@ -552,6 +552,15 @@ class MouseController:
                     self.app.layout.focus(window)
                     self.app.invalidate()
                     moved = self.ACTIVE
+            elif (not bar and window is not self.ABSENT
+                  and window.content.is_focusable() and event.event_type == M.MOUSE_MOVE
+                  and event.button == MouseButton.NONE
+                  and self.app.layout.current_control is not window.content):
+                focus = MouseBinding.hover_focus(window)
+                if focus is not self.ABSENT:
+                    focus()
+                    self.app.invalidate()
+                    moved = self.ACTIVE
         if event.event_type in (M.SCROLL_UP, M.SCROLL_DOWN):
             binding = (
                 pane_bar.target

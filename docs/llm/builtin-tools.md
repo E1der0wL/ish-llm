@@ -16,6 +16,12 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 유지한다. Toolkit을 backend보다 바깥 async with로 관리하여 Run 종료 후 프로세스를 정리한다.
 작업 루트와 llm workspace를 분리하고 서로 다른 작업 루트에는 별도 Toolkit을 연결한다.
 
+경로 권한은 Component의 `policy.read_access`, `write_access`, `cwd_access`에
+각 roots/follow_symlinks를 명시한다. 읽기·변경·명령 시작 위치는 독립적이다.
+큰 파일은 `file_read.offset/max_chars`, 긴 명령 출력은 `config.output`과
+`policy.output_preview_chars`로 Data 저장·범위 읽기를 선택한다.
+[대용량 파일·출력 계약](large-data-files.md)에 설정 예제와 성능·취소·삭제 경계를 정리했다.
+
 [실행 가능한 개발·진단 예제](../../examples/llm/developer_assistant.md)와
 [Component 공개 계약](../../llm/components/tools/builtin/README.md)을 참고한다.
 빈 공간·선택 파일 복사와 OS 샌드박스 실행은 [테스트 공간 안내](test-workspaces.md)를 참고한다.
@@ -38,7 +44,8 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 {"command": "my-program --check", "cwd": "checks", "env": {"PATH": "/usr/bin:/bin", "LM_LICENSE_FILE": "27000@license-server"}}
 ```
 
-`cwd`는 shell/process의 기존 작업 루트 상대 경로다. `PWD` 환경값으로 cwd를 바꾸지 않는다.
+`cwd`는 shell/process의 시작 위치다. cwd_access로 외부 경로와 링크를 명시적으로
+허용할 수 있다. `PWD` 환경값으로 cwd를 바꾸지 않는다.
 실행 프로그램이나 셸이 PWD/locale 등의 변수를 자체 생성·수정하는 동작은 그대로 따른다.
 샌드박스 cwd는 선택한 테스트 공간이며 호출별 cwd를 받지 않는다. 환경 전달이 파일 mount나
 네트워크 권한을 추가하지 않는다. 따라서 Hub의 네트워크 차단 sandbox는 라이선스 주소를
@@ -85,8 +92,9 @@ process_cancel의 모델 호출에는 승인 결정이 필요하지만 Run 취�
 
 ## 소스·로그와 파일 변경
 
-파일은 작업 루트 상대 경로와 UTF-8 텍스트를 사용한다. 상위 경로·절대 경로·symlink·내부
-.llm-* 경로는 거부한다. max_file_bytes를 명시하면 큰 파일을 읽기/변경에서 거부하고 검색에서
+읽기에는 read_access, 변경에는 write_access를 적용한다. 각각 허용한 외부 경로와
+링크도 사용할 수 있다. 미지정 권한은 호출자가 지정한 Toolkit root의 기존 범위를 유지한다.
+내부 .llm-* 경로는 그대로 보호한다. max_file_bytes를 명시하면 큰 파일을 읽기/변경에서 거부하고 검색에서
 skipped로 표시한다. 미설정이면 추가 바이트 제한은 없다.
 
 - file_list/file_search의 include/exclude는 루트 상대 경로의 pathlib glob이다.
@@ -97,6 +105,7 @@ skipped로 표시한다. 미설정이면 추가 바이트 제한은 없다.
   다음 페이지의 next_offset을 반환한다. 매번 현재 파일을 읽으므로 변경 후에는 다시 검색한다.
   limit이 없으면 일치 결과 전체를 반환한다.
 - file_read는 start_line/max_lines 또는 tail_lines를 받는다. 두 방식을 함께 지정하지 않는다.
+  매우 긴 줄에는 별도 offset/max_chars 문자 페이지를 사용한다.
   sha256은 전체 파일의 버전이며 expected_sha256으로 같은 버전을 확인할 수 있다.
   next_line은 남은 페이지의 다음 줄 번호다. tail도 현재 파일 읽기 제한을 따른다.
 - file_patch는 expected_sha256과 old_text의 정확히 한 번 일치를 확인한다.

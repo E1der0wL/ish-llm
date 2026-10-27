@@ -16,6 +16,10 @@ raw = await data.aread_file("experiment", "examples/input.csv",
 
 - create/load/list/save/update/delete와 a 접두사 API는 기존 Component 계약을 따른다.
 - list_files/read_file/write_file/import_file/delete_file과 비동기 API를 제공한다.
+- write_stream은 binary reader를 buffer 단위로 저장한다. import_files는 여러 source 파일을
+  한 workspace transaction에서 저장한다. reader 수명은 호출자가 관리한다.
+- read_text는 필수 expected_revision/offset/limit으로 UTF-8 문자 범위를 조회한다.
+  byte 범위 read_file과 cursor를 섞지 않는다. 앞부분 해독과 기존 manifest 검증 I/O는 남는다.
 - import_file의 source는 명시한 로컬 파일 경로다. 바이너리 파일도 buffer 단위로 복사한다.
 - 파일 변경은 snapshot의 version을 expected_revision으로 전달해야 한다.
 - read_file은 bytes를 반환하며 offset/length로 부분 조회할 수 있다. 생략하면 전체를 읽는다.
@@ -31,6 +35,8 @@ raw = await data.aread_file("experiment", "examples/input.csv",
 Skill이 참조하는 파일·패키지는 삭제할 수 없습니다. 내용을 바꾸면 기존 참조는 stale 상태가
 되며 Skill에서 기대 revision을 명시적으로 갱신해야 다시 사용할 수 있습니다.
 Memory에서 명시적으로 이 패키지를 Tool/MCP 원문 저장 대상으로 선택할 수도 있습니다.
+BuiltinToolComponent도 명시한 패키지에 명령 출력을 streaming 저장할 수 있습니다.
+설정·참조·정리 계약은 [대용량 파일 안내](../../../docs/llm/large-data-files.md)를 참고하세요.
 Memory가 요약 요청·원문 참조를 소유하고 Data는 파일·manifest·CAS만 소유합니다.
 Memory의 참조가 남아 있으면 삭제를 차단합니다. 명시적으로 참조를 해제한 뒤 Data API로
 삭제해야 하며 자동 정리는 없습니다. 모델의 부분 조회 Tool은 Memory가 제공합니다.

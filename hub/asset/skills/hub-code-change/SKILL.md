@@ -2,7 +2,7 @@
 name: hub-code-change
 description: "Inspect existing behavior and boundaries, then verify the necessary changes."
 metadata:
-  hub-template-version: "7"
+  hub-template-version: "8"
 ---
 # Coding: inspect, implement, verify, deliver
 
@@ -23,6 +23,11 @@ Use for implementing or modifying code, including adding regression tests.
    behavior and risk; trivial edits do not require a new test that merely repeats the implementation.
    Keep tests/examples in the repository's designated locations, outside deployment plugin roots.
    Record commands, exit codes and relevant output. Diagnose a failed assertion instead of weakening it.
+   Large command results may contain only previews plus output_sources and process_id. Use process_output
+   pages or streaming analysis of a saved task file; do not paste the original into another model call.
+   Use file_read character pages and returned next_offset/expected_sha256, not line-selection arguments
+   with Hub's default max_chars policy. For very large logs, aggregate/filter first, retain evidence
+   locations, and distinguish sampled evidence from complete coverage.
 4. When an experiment needs an isolated copy, discover the actual schemas of test_workspace_create, test_workspace_list,
    test_workspace_execute, test_workspace_delete and file tools. Create a separate workspace
    with only the required source_paths.

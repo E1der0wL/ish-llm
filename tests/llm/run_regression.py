@@ -7,9 +7,11 @@ an entire tree; explicit modules select whole discovered modules for local gates
 
 import argparse
 from collections import Counter
+import faulthandler
 import json
 from pathlib import Path
 import sys
+import threading
 import time
 import unittest
 
@@ -28,14 +30,30 @@ def flatten(suite):
 
 
 class Result(unittest.TextTestResult):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, progress_path=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.started_ids = []
         self.failed_ids = set()
+        self.progress_path = progress_path
 
     def startTest(self, test):
         self.started_ids.append(test.id())
         super().startTest(test)
+        if self.progress_path:
+            self.started_at = time.monotonic()
+            self.record_progress(test, 'started')
+            faulthandler.dump_traceback_later(120, repeat=True)
+
+    def stopTest(self, test):
+        if self.progress_path:
+            faulthandler.cancel_dump_traceback_later()
+            self.record_progress(test, 'finished', seconds=round(time.monotonic() - self.started_at, 3))
+        super().stopTest(test)
+
+    def record_progress(self, test, state, **values):
+        with self.progress_path.open('a', encoding='utf-8') as output:
+            output.write(json.dumps({'test': test.id(), 'state': state,
+                                     'threads': threading.active_count(), **values}) + '\n')
 
     def addFailure(self, test, error):
         self.failed_ids.add(test.id())
@@ -111,6 +129,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--suite", choices=(*SUITES, "all"), required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--progress", type=Path, help="Per-test JSONL and periodic stall traces")
     parser.add_argument("--modules", nargs="+", help="Exact discovered module names for a local partial gate")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
@@ -133,7 +152,11 @@ def main():
             parser.error(str(error))
     ids = [test.id() for test in flatten(suite)]
     start = time.monotonic()
-    result = unittest.TextTestRunner(verbosity=2, resultclass=Result).run(suite)
+    from functools import partial
+    if args.progress:
+        args.progress.parent.mkdir(parents=True, exist_ok=True)
+        args.progress.write_text('', encoding='utf-8')
+    result = unittest.TextTestRunner(verbosity=2, resultclass=partial(Result, progress_path=args.progress)).run(suite)
     report = summarize(ids, result)
     report.update(suite=args.suite, python=sys.version, seconds=time.monotonic() - start,
                   scope="selected" if args.modules is not None else "full",

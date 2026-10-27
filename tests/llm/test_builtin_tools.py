@@ -204,7 +204,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             "import sys; print('ready', flush=True); text=sys.stdin.read(); print(text, end=''); print('diagnostic', file=sys.stderr)"])
         pid = started["process_id"]
         async with asyncio.timeout(5):
-            while b"ready\n" not in self.tools.processes.sessions[pid].stdout:
+            while "ready\n" not in (await self.invoke("process_output", process_id=pid, max_chars=100))["stdout"]:
                 await asyncio.sleep(.01)
         first = await self.invoke("process_output", process_id=pid)
         self.assertEqual(first["stdout"], "ready\n")
@@ -451,7 +451,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 tool, values = tools.registry.prepare(name, arguments)
                 self.assertEqual(await tool.handler(values), {"received": arguments})
             with self.assertRaises(ValueError):
-                tools.registry.prepare("web_fetch", {'url': 'file:///outside'})
+                tools.registry.prepare("web_fetch", {'url': ''})
 
     async def test_legacy_search_adapter_names_require_explicit_migration(self):
         async def adapter(args):

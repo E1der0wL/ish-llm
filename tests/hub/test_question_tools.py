@@ -99,8 +99,8 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 component = runtime.builtin_tools
                 project = await runtime.project.aget_data()
-                original = BuiltinToolComponent.resolve
-                with patch.object(BuiltinToolComponent, "resolve", autospec=True, side_effect=original) as resolve:
+                original = BuiltinToolComponent.resolve_runtime
+                with patch.object(BuiltinToolComponent, "resolve_runtime", autospec=True, side_effect=original) as resolve:
                     first = component.resolve(project, "tools")
                     first.register(Tool("test_extra", "local only", {"type": "object"},
                         AsyncMock(spec=lambda arguments: None), contract=TEST_CONTRACT))

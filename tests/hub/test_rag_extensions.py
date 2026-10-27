@@ -202,12 +202,12 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
             await runtime.start()
             try:
                 project = runtime.project
-                await project.components.aselect(["rag", "tools"])
+                await project.components.aselect(["rag", "tools", "workflows"])
                 before = await project.aget_data()
                 result = await runtime.manage_records(project.id, "rag", "vision_settings")
                 after = await project.aget_data()
                 self.assertEqual(result, {"component": "vision"})
-                self.assertEqual(list(after.components), ["rag", "tools", "vision"])
+                self.assertEqual(list(after.components), [*before.components, "vision"])
                 self.assertEqual(after.config.to_dict(), before.config.to_dict())
                 self.assertEqual(after.title, before.title)
             finally:

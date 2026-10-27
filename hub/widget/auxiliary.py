@@ -1,7 +1,4 @@
 """One-row icon actions shared by the composer and settings footer."""
-import asyncio
-from time import monotonic
-
 from hub.ui.input.registry import ShortcutRegistry
 
 
@@ -15,62 +12,29 @@ from ..asset.icon import IconSet
 from .controls import Button
 from .actions import bind_button_navigation
 from .focus import focus_control
+from .mouse_contract import MouseBinding
 
 
 class AuxiliaryButton(Button):
     """Compact icon action with an explicitly transparent terminal background."""
 
     WIDTH = 3
-    ACTIVATION_FEEDBACK_SECONDS = 0.15
 
-    def __init__(self, text, handler):
-        self._pressed_until = 0.0
-
-        def activate():
-            self._feedback()
-            if handler:
-                return handler()
-
-        super().__init__(text, handler=activate, width=self.WIDTH)
+    def __init__(self, text, handler, *, before_focus=None):
+        self.before_focus = before_focus
+        super().__init__(text, handler=handler, width=self.WIDTH)
         original = self.window.style
         self.window.style = (
             lambda: (original() if callable(original) else original)
             + ThemeStyle.MODIFIER_SEPARATOR
             + ThemeSelector.AUXILIARY.style
         )
+        MouseBinding.set_hover_focus(self.window, self.focus_from_hover)
 
-    def _feedback(self):
-        self._pressed_until = monotonic() + self.ACTIVATION_FEEDBACK_SECONDS
-        app = get_app()
-        app.invalidate()
-        # Terminals do not report keyboard release; show the same short
-        # activation feedback for Enter, Space and a mouse click.
-        asyncio.get_running_loop().call_later(self.ACTIVATION_FEEDBACK_SECONDS, app.invalidate)
-
-    def _get_text_fragments(self):
-        from prompt_toolkit.mouse_events import MouseButton, MouseEventType
-
-        fragments = super()._get_text_fragments()
-
-        def mouse(event):
-            if event.button == MouseButton.LEFT:
-                if event.event_type == MouseEventType.MOUSE_DOWN:
-                    self._feedback()
-                elif event.event_type == MouseEventType.MOUSE_UP:
-                    self.handler()
-
-        pressed = monotonic() < self._pressed_until
-        result = []
-        for fragment in fragments:
-            if len(fragment) != 3:
-                result.append(fragment)
-                continue
-            style, text, _ = fragment
-            if pressed and style == 'class:button.text':
-                style += ' ' + ThemeSelector.AUXILIARY_PRESSED.style
-            result.append((style, text, mouse))
-        return result
-
+    def focus_from_hover(self):
+        if self.before_focus:
+            self.before_focus()
+        focus_control(self)
 
 class AuxiliaryBar(VSplit):
     NO_PREVIOUS = None
@@ -85,7 +49,8 @@ class AuxiliaryBar(VSplit):
         self.previous = self.NO_PREVIOUS
         for name, handler in actions:
             button = AuxiliaryButton(
-                lambda name=name: IconSet.action(icons(), name), handler=handler
+                lambda name=name: IconSet.action(icons(), name), handler=handler,
+                before_focus=self.remember_focus,
             )
             self.buttons[name] = button
             registry = ShortcutRegistry.require(button.control)
@@ -127,13 +92,17 @@ class AuxiliaryBar(VSplit):
 
     def focus(self):
         app = get_app()
-        self.previous = app.layout.current_control
+        self.remember_focus()
         app.layout.focus(next(iter(self.buttons.values())))
         app.invalidate()
 
+    def remember_focus(self):
+        if not self.focused:
+            self.previous = get_app().layout.current_control
+
     def leave(self):
         app = get_app()
-        if self.previous in list(app.layout.find_all_controls()):
+        if any(window.content is self.previous for window in app.layout.get_visible_focusable_windows()):
             focus_control(self.previous)
         else:
             self.restore()
