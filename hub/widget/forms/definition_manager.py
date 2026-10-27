@@ -143,7 +143,7 @@ class DefinitionEditor(Dialog):
                     Label(self.view.t(MessageKey.DEFINITION_NAME)),
                     self.identifier,
                     content,
-                    Label(lambda: self.status),
+                    self.view.progress.container(lambda: self.status, surface=self),
                 ],
                 height=lambda: Dimension(
                     preferred=max(

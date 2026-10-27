@@ -81,6 +81,7 @@ class MessageKey:
     OPTION_HELP_RAG_ACTIVE = 'option_help_rag_active'
     OPTION_HELP_MEMORY_RECALL = 'option_help_memory_recall'
     OPTION_HELP_MEMORY_SUMMARIZE = 'option_help_memory_summarize'
+    OPTION_HELP_MEMORY_SUMMARY_MODEL = 'option_help_memory_summary_model'
     OPTION_HELP_MEMORY_EXTRACT = 'option_help_memory_extract'
     OPTION_HELP_MEMORY_STATUS = 'option_help_memory_status'
     OPTION_HELP_MEMORY_WRITE = 'option_help_memory_write'

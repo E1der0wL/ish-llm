@@ -24,6 +24,12 @@ PTK's context variable cannot accidentally enter the synchronous path.
 
 ## Bounded work and delivery
 
+Completed reasoning belongs to the immutable history prefix along with its
+completed answer. Only reasoning paired with a committed/streaming Assistant
+message enters the mutable tail. This avoids reassembling every historical
+thought/tool trace on each current-response delta. A work-count regression checks
+prefix identity across updates and compares all rows with the canonical renderer.
+
 `RenderWorker` has one running job and one pending batch with five fixed slots:
 transcript, preview, popup, search and question. A slot holds only its latest request.
 The composer request card uses the same worker and cannot replace a full-details popup job.

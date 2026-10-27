@@ -18,6 +18,7 @@ from ..summary import clipped_summary, turn_label
 
 
 class RequestHistoryDialog(Dialog):
+    SIZE = PopupSize.MEDIUM
     MIN_DIMENSION = 1
     VERTICAL_OVERHEAD = 17
     EDITOR_ROWS = 4
@@ -43,7 +44,8 @@ class RequestHistoryDialog(Dialog):
         self.view, self.rows = view, {HistoryRow(row).id: row for row in rows}
         self.drafts = {HistoryRow(row).id: HistoryRow(row).text for row in rows}
         self.current = HistoryRow(rows[0]).id
-        width = lambda: PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
+        width = lambda: PopupGeometry.dimensions(self.SIZE)[0].preferred
+        height = lambda: PopupGeometry.dimensions(self.SIZE)[1].preferred
         self.editor = TextArea(
             text=HistoryRow(rows[0]).text,
             multiline=self.MULTILINE,
@@ -55,7 +57,7 @@ class RequestHistoryDialog(Dialog):
                     self.MIN_DIMENSION,
                     min(
                         self.EDITOR_ROWS,
-                        (view._rows() - self.VERTICAL_OVERHEAD) // self.EDITOR_ROWS,
+                        (height() - self.VERTICAL_OVERHEAD) // self.EDITOR_ROWS,
                     ),
                 ),
             ),
@@ -75,7 +77,7 @@ class RequestHistoryDialog(Dialog):
                     self.MIN_DIMENSION,
                     min(
                         self.RESPONSE_ROWS,
-                        (view._rows() - self.VERTICAL_OVERHEAD)
+                        (height() - self.VERTICAL_OVERHEAD)
                         // self.RESPONSE_DIVISOR,
                     ),
                 ),
@@ -100,7 +102,7 @@ class RequestHistoryDialog(Dialog):
                 self.MIN_DIMENSION,
                 min(
                     self.CHOICE_ROWS,
-                    (view._rows() - self.VERTICAL_OVERHEAD) // self.RESPONSE_DIVISOR,
+                    (height() - self.VERTICAL_OVERHEAD) // self.RESPONSE_DIVISOR,
                 ),
             ),
         )
@@ -161,7 +163,7 @@ class RequestHistoryDialog(Dialog):
             body=body,
             buttons=buttons,
             shortcut_context=self.SHORTCUT_CONTEXT,
-            size=PopupSize.LARGE,
+            size=self.SIZE,
         )
 
     def select(self, identifier):

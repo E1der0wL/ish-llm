@@ -4,6 +4,12 @@ Hub keeps one shared one-row progress area in Home and Settings. Startup starts 
 task as soon as the backend worker is launched; it finishes only when the initial
 snapshot and saved reading position reach the UI, or when startup fails.
 
+Component, definition and Agent editor dialogs register their status surface with
+`TaskProgress`. While one is the active dialog, only that surface renders the
+shared task/notice state; the underlying page reserves its usual row without
+duplicating the display. The weak surface registry does not retain closed dialogs.
+Closing the popup restores page rendering without recreating or losing tasks.
+
 Startup reports engine/component preparation, storage connection, project selection,
 new-project schema/Agent/starter-skill setup when needed, session enumeration,
 selected-session recovery and conversation loading. Opening an existing project

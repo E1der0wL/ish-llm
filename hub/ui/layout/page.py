@@ -39,13 +39,14 @@ class TwoPanelPage:
         sidebar_width=ABSENT,
         resize_sidebar=ABSENT,
         categories=(),
-        status_annotation=lambda: TwoPanelPage.EMPTY_ANNOTATION
+        status_annotation=lambda: TwoPanelPage.EMPTY_ANNOTATION,
+        status_surface=ABSENT,
     ):
         self.sidebar_controls = sidebar_controls
         self.categories = categories
         self._focus_sidebar, self._focus_main = focus_sidebar, focus_main
         visible = Condition(sidebar_visible)
-        self.status = progress.container(notice, annotation=status_annotation)
+        self.status = progress.container(notice, annotation=status_annotation, surface=status_surface)
         self.edge = (
             PanelEdge(sidebar_width, resize_sidebar)
             if resize_sidebar
@@ -74,7 +75,7 @@ class TwoPanelPage:
         )
         self.container = HSplit(
             [
-                HSplit([header], height=TwoPanelPage.HEADER_HEIGHT),
+                *([HSplit([header], height=TwoPanelPage.HEADER_HEIGHT)] if header is not self.ABSENT else []),
                 VSplit(
                     [
                         ConditionalContainer(self.sidebar_region, visible),
@@ -86,7 +87,7 @@ class TwoPanelPage:
                         weight=TwoPanelPage.BODY_WEIGHT,
                     ),
                 ),
-                HSplit([footer], height=TwoPanelPage.FOOTER_HEIGHT),
+                *([HSplit([footer], height=TwoPanelPage.FOOTER_HEIGHT)] if footer is not self.ABSENT else []),
             ],
             style=ThemeSelector.ROOT.style,
         )

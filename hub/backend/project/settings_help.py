@@ -93,7 +93,7 @@ class SettingsHelp:
             (LiteLLMParameters.MAX_RETRIES, MessageKey.OPTION_HELP_MAX_RETRIES),
         )),
         *_under((*MEMORY, ImplementationParameters.CONFIG, MemoryProcessingConfig.KEY, MemoryProcessingConfig.Field.COMPLETION,), (
-            (LiteLLMParameters.MODEL, MessageKey.OPTION_HELP_MODEL),
+            (LiteLLMParameters.MODEL, MessageKey.OPTION_HELP_MEMORY_SUMMARY_MODEL),
             (LiteLLMParameters.API_KEY, MessageKey.OPTION_HELP_API_KEY),
             (LiteLLMParameters.API_BASE, MessageKey.OPTION_HELP_API_BASE),
             (LiteLLMParameters.TEMPERATURE, MessageKey.OPTION_HELP_TEMPERATURE),

@@ -107,7 +107,7 @@ class ComponentManager(Dialog):
             Button(view.t(MessageKey.SEARCH_CLOSE), handler=view.close_dialog, width=button_width),
         ]
         self.actions = ActionBar(self.buttons, lambda: self.view._columns())
-        self.status_line = view.progress.container(self.hint)
+        self.status_line = view.progress.container(self.hint, surface=self)
         super().__init__(
             title=view.t(MessagePattern.component_title(name)),
             body=HSplit(
@@ -135,6 +135,7 @@ class ComponentManager(Dialog):
                             ScrollbarMargin(display_arrows=ManagerView.SCROLL_ARROWS)
                         ],
                     ),
+                    Window(height=ManagerView.ROW_SPACER),
                     self.actions,
                     self.status_line,
                 ]
@@ -154,6 +155,7 @@ class ComponentManager(Dialog):
             self.view.t(MessageKey.COMPONENT_HELP, command=component_spec(self.name).tool_prefix)
             + "\n\n" + self.view.t(MessagePattern.component_help(self.name)),
             self.view._rows, self.view._columns, close, self.view.t,
+            markdown=True, theme=lambda: self.view.theme,
             render_worker=self.view.render_worker,
         )
         self.view.dialogs.show(popup, popup.receiver)

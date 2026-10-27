@@ -42,6 +42,7 @@ def create_backend(config: "HubConfig"):
     from llm.engines.graph.agent import AgentNode
     from llm.engines.graph.tool import ToolNode
     from llm.components.tools import ToolComponent
+    from llm.components.data import DataComponent
     from .tools.resources import HubWorkflowComponent, HubRAGComponent, HubGoalComponent
     from llm.components.refinement import RefinementComponent
     from llm.components.memory import MemoryComponent
@@ -121,6 +122,7 @@ def create_backend(config: "HubConfig"):
                 handlers=GraphRegistration.handler_registry(engines[GRAPH_ENGINE_NAME])
             ),
             MemoryComponent(),
+            DataComponent(),
             HubGoalComponent(),
             RefinementComponent(),
             PromptComponent(),

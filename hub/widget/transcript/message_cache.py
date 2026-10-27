@@ -359,11 +359,15 @@ class MessageRenderCache:
         self.items = retained
         # Queued user messages can follow the currently streaming response.
         # Keep that whole changing region out of the historical prefix too.
+        active = {message.id for message in messages
+                  if message.role == MessageRole.ASSISTANT
+                  and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)}
         tail_start = next(
             (
                 index
                 for index, message in enumerate(messages)
-                if message.role == ReasoningMessage.ROLE
+                if (message.role == ReasoningMessage.ROLE
+                    and ReasoningMessage.assistant_id(message.id) in active)
                 or message.role == MessageRole.ASSISTANT
                 and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)
             ),

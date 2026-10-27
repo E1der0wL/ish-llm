@@ -1,9 +1,10 @@
 """Settings-style navigation for schema editors hosted inside a dialog."""
 
 from llm.core.schema import SchemaKeyword
+from llm.core.agents import AgentDefinition
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit, VSplit, Window, DynamicContainer
+from prompt_toolkit.layout import HSplit, Window, DynamicContainer
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 
@@ -11,14 +12,18 @@ from ..sidebar import SidebarList, SidebarItem, SidebarHeading
 from ..tab_page import TabPage
 from ..content_inset import ContentInset
 from ..actions import ActionFrame, ActionBar
+from ..dialog import Dialog
 from .settings_viewport import SettingsBody, SettingsPane
 from ...locales.keys import MessageKey
 from ...ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
 from ...ui.input.registry import ShortcutRegistry
 from ...config.theme_style import ThemeSelector
+from ...ui.layout import TwoPanelPage
+from ..auxiliary import AuxiliaryBar
+from ...asset.icon import AuxiliaryIcon
 
 
-class SettingsEditorLayout(VSplit):
+class SettingsEditorLayout:
     GENERAL = "general"
     CONFIG = "config"
     POLICY = "policy"
@@ -26,6 +31,7 @@ class SettingsEditorLayout(VSplit):
     def __init__(self, editor):
         self.editor = editor
         self.selected = self.GENERAL
+        self.query = ""
         self.sections = [SidebarItem(self.GENERAL, editor.view.t(MessageKey.SETTINGS_GENERAL))]
         self.body = HSplit([Label(editor.view.t(MessageKey.COMPONENT_LOADING))])
         self.pane = SettingsPane(DynamicContainer(lambda: self.body),
@@ -45,6 +51,14 @@ class SettingsEditorLayout(VSplit):
             on_enter=self.focus_fields, on_leave=self.finish_edit)
         actions = ActionBar(editor.buttons, self.main_width)
         self.actions = ActionFrame(actions, title=self.action_title)
+        self.auxiliary = AuxiliaryBar([
+            (AuxiliaryIcon.FILTER.value, lambda: editor.draft_tools.search()),
+            (AuxiliaryIcon.JSON.value, lambda: editor.draft_tools.open_json()),
+        ], lambda: editor.view.icons, lambda: get_app().layout.focus(editor.buttons[0]))
+        for button in editor.buttons:
+            ShortcutRegistry.require(button.control).add(
+                [KeyName.CONTROL_S], ShortcutLabel.CONTROL_S, ShortcutAction.AUXILIARY,
+                lambda e: self.auxiliary.focus())
         editor.engine.button.window.width = Dimension(min=1, weight=1)
         engine_keys = ShortcutRegistry.require(editor.engine.control)
         engine_keys.add([KeyName.UP, KeyName.DOWN], ShortcutLabel.VERTICAL,
@@ -52,21 +66,47 @@ class SettingsEditorLayout(VSplit):
         engine_keys.add([KeyName.LEFT], ShortcutLabel.LEFT, ShortcutAction.SIDEBAR,
                         lambda e: self.focus_sidebar())
         engine_keys.scroll(lambda e: self.pane.scroll(e.key_sequence[-1].key))
-        super().__init__([
-            HSplit([
+        self.layout = TwoPanelPage(
+            header=None, footer=None,
+            sidebar=HSplit([
                 SidebarHeading(lambda: editor.view.icons.agent + " " +
                                editor.view.t(MessageKey.AGENT_CATEGORY)),
                 Window(self.sidebar),
             ], width=lambda: Dimension.exact(editor.view.sidebar_width())),
-            Window(width=1, char="│", style=ThemeSelector.DIVIDER.style),
-            HSplit([ContentInset(self.tabs, heading=self.page_title, bottom_padding=0), self.actions],
-                   width=Dimension(min=1, weight=1)),
-        ])
+            main=HSplit([ContentInset(self.tabs, heading=self.page_title, bottom_padding=0),
+                         self.auxiliary, Window(height=Dialog.CONTENT_PADDING),
+                         self.actions], width=Dimension(min=1, weight=1)),
+            progress=editor.view.progress, notice=self.status_text, status_surface=editor,
+            sidebar_controls=lambda: (self.sidebar,), focus_sidebar=self.focus_sidebar,
+            focus_main=lambda: self.tabs.focus_tabs(),
+        )
+        self.layout.main_region.on_click = self.layout.focus_main
+        self.layout.sidebar_region.on_click = self.layout.focus_sidebar
+
+    def __pt_container__(self):
+        return self.layout.container
+
+    def status_text(self):
+        label = self.editor.view.t(MessageKey.SETTINGS_SEARCH_ACTIVE, query=self.query) if self.query else ""
+        return " · ".join(part for part in (label, self.editor.status) if part)
+
+    def matches(self, field):
+        return self.matches_text(field.label, field.schema.get(SchemaKeyword.DESCRIPTION, ""),
+                                 field.input.text)
+
+    def matches_text(self, *values):
+        return not self.query or self.query.casefold() in " ".join(map(str, values)).casefold()
+
+    def engine_visible(self):
+        return (self.selected == self.GENERAL and self.tabs.selected == self.CONFIG
+                and self.matches_text(AgentDefinition.Field.ENGINE, self.editor.engine.value,
+                                      self.editor.view.t(MessageKey.AGENT_ENGINE),
+                                      self.editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE)))
 
     def main_width(self):
         from ..dialog import PopupGeometry, PopupSize
         return max(1, PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
-                   - self.editor.view.sidebar_width() - 3)
+                   - self.editor.view.sidebar_width() - 5)
 
     def page_title(self):
         title = next(item.title for item in self.sections if item.key == self.selected)
@@ -84,16 +124,17 @@ class SettingsEditorLayout(VSplit):
     def fields(self):
         editor = self.editor
         if self.selected == self.GENERAL:
-            return list(editor.identity.fields.values()) if self.tabs.selected == self.CONFIG else []
+            return [field for field in editor.identity.fields.values() if self.matches(field)] if self.tabs.selected == self.CONFIG else []
         if editor.form is None:
             return []
         return [field for path, field in editor.form.fields.items()
                 if path and path[0] == self.selected
+                and self.matches(field)
                 and ((self.POLICY in path) == (self.tabs.selected == self.POLICY))]
 
     def controls(self):
         result = [field.input for field in self.fields()]
-        if self.selected == self.GENERAL and self.tabs.selected == self.CONFIG:
+        if self.engine_visible():
             result.append(self.editor.engine.button)
         return result
 
@@ -116,7 +157,7 @@ class SettingsEditorLayout(VSplit):
             self.selected = self.GENERAL
         fields = self.fields()
         children = [field.container for field in fields]
-        if self.selected == self.GENERAL and self.tabs.selected == self.CONFIG:
+        if self.engine_visible():
             children += [Label(editor.view.t(MessageKey.AGENT_ENGINE)),
                          Label(editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
                                style=ThemeSelector.MUTED.style), editor.engine]
@@ -157,7 +198,9 @@ class SettingsEditorLayout(VSplit):
         return ShortcutAction.TABS if self.tabs.content_focused else ShortcutAction.SIDEBAR
 
     def escape(self):
-        if self.editor.engine.expanded:
+        if self.auxiliary.focused:
+            self.auxiliary.leave()
+        elif self.editor.engine.expanded:
             self.editor.engine.close()
         elif get_app().layout.has_focus(self.sidebar):
             self.editor.close()

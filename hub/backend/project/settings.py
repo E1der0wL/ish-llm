@@ -142,7 +142,14 @@ class SettingsService:
     async def save_project(
         self, identifier, values, version, previous_components=UNSPECIFIED_COMPONENTS
     ):
-        form = self.validate_values(values)
+        from .memory_setup import MemorySetup
+
+        original_form = self.validate_values(values)
+        config, selected = MemorySetup.prepare(original_form.config, original_form.components)
+        prepared = deepcopy(values)
+        prepared[ProjectConfigForm.config.__name__] = config.to_dict()
+        prepared[ProjectConfigForm.components.__name__] = selected
+        form = self.validate_values(prepared)
         project = await self.project(identifier)
         current = await project.aget_data()
         previous = (
@@ -162,6 +169,7 @@ class SettingsService:
             components=form.components,
             expected_components=previous,
         )
+        await MemorySetup.ensure_sources(project)
         return await self.load_project(identifier)
 
     async def rename_project(self, identifier, title):

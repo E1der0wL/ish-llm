@@ -135,6 +135,26 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(self.cache.body_renders, 300)
         self.assertEqual(self.cache.prefix_builds, 1)
 
+    def test_completed_reasoning_is_in_cached_prefix_not_live_tail(self):
+        history = tuple(item for i in range(80) for item in (
+            ChatMessage("reasoning", f"Old thought {i}", id=f"old{i}:reasoning"),
+            ChatMessage("assistant", f"Old answer {i}", id=f"old{i}")))
+        thought = ChatMessage("reasoning", "Current thought", id="active:reasoning")
+        answer = ChatMessage("assistant", "Current answer", id="active", status="streaming")
+        frame = self.prepare((*history, thought, answer))
+        prefix = frame.lines.parts[0]
+        text = '\n'.join(''.join(fragment[1] for fragment in row) for row in prefix)
+        self.assertIn("Old thought 0", text)
+        self.assertIn("Old answer 79", text)
+        for index in range(20):
+            thought = replace(thought, text=f"Current thought {index}")
+            frame = self.prepare((*history, thought, answer))
+            self.assertIs(frame.lines.parts[0], prefix)
+        self.assertEqual(self.cache.prefix_builds, 1)
+        expected = render_messages((*history, thought, answer), 80, self.theme,
+                                   self.language, renderers=self.registry)
+        self.assertEqual(tuple(frame.lines), frozen_rows(expected))
+
     def test_final_frames_match_canonical_rows_anchors_and_objects(self):
         texts = ("[ref][id]\n\n[id]: https://example.org\n\n---",
                  "```python\nx = '한글'\n```\n\n| a | b |\n|---|---|\n| 1 | 2 |",
@@ -302,7 +322,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
                 await command
 
     async def test_progress_updates_coalesce_repaints_but_keep_latest_value(self):
-        progress = TaskProgress(NS(theme=HubTheme()))
+        progress = TaskProgress(NS(theme=HubTheme(), _dialog=None))
         app = NS(invalidate=Mock())
         try:
             with patch("hub.widget.feedback.progress.get_app", return_value=app):

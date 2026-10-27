@@ -5,8 +5,6 @@ from copy import deepcopy
 from jsonschema import Draft202012Validator, ValidationError
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit, ConditionalContainer
-from prompt_toolkit.filters import Condition
 
 from llm.core.agents import AgentDefinition
 from llm.core.agent_views import AgentDescription
@@ -63,10 +61,10 @@ class AgentEditor(Dialog):
         from .editor_layout import SettingsEditorLayout
         self.workspace = SettingsEditorLayout(self)
         self.pane = self.workspace.pane
+        from .agent_draft_tools import AgentDraftTools
+        self.draft_tools = AgentDraftTools(self)
         super().__init__(title=self.view.t(MessageKey.AGENTS_TITLE),
-                         body=HSplit([self.workspace, ConditionalContainer(
-                             self.view.progress.container(lambda: self.status),
-                             Condition(lambda: bool(self.status) or self.view.progress.active))]),
+                         body=self.workspace,
                          size=PopupSize.LARGE)
         self.navigation = self.workspace
         for field in self.identity.fields.values():
@@ -85,26 +83,24 @@ class AgentEditor(Dialog):
             if description is None:
                 self.status = self.view.t(MessageKey.TOOLS_FAILED)
                 return
-            description = AgentDescription.from_dict(description)
-            self.engines = [name for name in description.engines if not HubEngineIdentity.internal(name)]
-            schema = deepcopy(description.schema)
-            self.schema = deepcopy(schema)
-            describe_options(schema, self.view.t, scope=SettingsHelp.AGENT)
-            # The selector owns this const field; it cannot become a free-text override.
-            schema[SchemaKeyword.PROPERTIES].pop(AgentDefinition.Field.ENGINE, None)
-            # Root intersections constrain the complete definition. Render the
-            # owner's declared properties, but validate against the untouched
-            # schema (including allOf/refs/engine const) before any write.
-            schema.pop(SchemaKeyword.ALL_OF, None)
-            self.form = SchemaForm(schema, self.drafts[self.engine_name], self.view.t)
-            for field in self.form.fields.values():
-                self.bind_field(field)
-            self.workspace.refresh()
-            get_app().layout.update_parents_relations()
-            get_app().invalidate()
+            self.install_form(AgentDescription.from_dict(description), self.drafts[self.engine_name])
 
         self.manager.request(ManagementAction.DESCRIBE, self.engine_name, None,
                              self.view.progress.callback(token, ready))
+
+    def install_form(self, description, definition):
+        self.engines = [name for name in description.engines if not HubEngineIdentity.internal(name)]
+        self.schema = deepcopy(description.schema)
+        schema = deepcopy(self.schema)
+        describe_options(schema, self.view.t, scope=SettingsHelp.AGENT)
+        schema[SchemaKeyword.PROPERTIES].pop(AgentDefinition.Field.ENGINE, None)
+        schema.pop(SchemaKeyword.ALL_OF, None)
+        self.form = SchemaForm(schema, definition, self.view.t)
+        for field in self.form.fields.values():
+            self.bind_field(field)
+        self.workspace.refresh()
+        get_app().layout.update_parents_relations()
+        get_app().invalidate()
 
     def all_fields(self):
         return [*self.identity.fields.values(), *(self.form.fields.values() if self.form else [])]

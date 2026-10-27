@@ -120,11 +120,13 @@ class ActionBar(DynamicContainer):
         )
 
     def _container(self, width=AVAILABLE_WIDTH):
+        width = self.available_width() if width is self.AVAILABLE_WIDTH else width
         return HSplit(
             [
                 VSplit(
                     [
-                        Window(width=Dimension(weight=self.CENTER_WEIGHT)),
+                        Window(width=max(0, (width - sum(button.width for button in row)
+                                             - self.GAP * (len(row) - 1)) // 2)),
                         VSplit(
                             row,
                             padding=self.GAP,

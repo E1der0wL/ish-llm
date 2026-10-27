@@ -149,6 +149,7 @@ class ManagerChromeTests(unittest.IsolatedAsyncioTestCase):
         manager = DefinitionManager(view, Mock(), name='agents', edit_text=None)
         app = Application(layout=Layout(manager), input=DummyInput(), output=SizedOutput())
         with set_app(app):
+            view.dialogs.current = manager
             self.assertEqual(manager.size, PopupSize.MEDIUM)
             self.assertNotIn(view.t('settings_reload'), [b.text for b in manager.buttons])
             self.assertEqual(manager.create_button.text, '생성')

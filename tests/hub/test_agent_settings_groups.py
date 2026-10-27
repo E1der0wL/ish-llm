@@ -198,7 +198,10 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn('에이전트 : Coder', rendered)
                     self.assertIn(' 에이전트', rendered)
                     self.assertGreater(editor.display_name.window.render_info.window_width, 60)
-                    self.assertEqual(editor.workspace.children[0].width().preferred, view.sidebar_width())
+                    from hub.ui.layout import TwoPanelPage
+                    self.assertIsInstance(editor.workspace.layout, TwoPanelPage)
+                    sidebar = editor.workspace.layout.sidebar_region
+                    self.assertEqual(sidebar.preferred_width(128).preferred, view.sidebar_width())
                 pipe.send_text('\x1b[D')
                 await eventually(lambda: app.layout.current_control is editor.workspace.sidebar)
                 pipe.send_text('\x1b[C\r')

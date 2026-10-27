@@ -63,6 +63,31 @@ data (for example a referenced Workflow must also exist at the destination).
 First creation in an empty root can use the selected preset; explicit host Agent
 definitions still win. Existing roots are never silently overwritten on startup.
 
+## Summary-model setup
+
+Saving `parameters.components.memory.config.processing.completion.model` through
+Hub settings (including preset application) fills missing summary prerequisites.
+The summary model owns its API key/base; Hub never borrows the Agent connection.
+Existing explicit values, including `summarize: false`, remain authoritative.
+Simply opening an existing project does not materialize these defaults.
+
+`HubDefaults.MEMORY_SUMMARY` declares the application choices: keep four recent
+turns, start older-history summarization at 24,000 characters, summarize Tool
+results above 8,000 characters with a 24,000-character per-call source budget,
+4,000-character summary cap and at most 64 summary calls. These are character
+bounds, not token limits. Model calls incur additional usage. Existing processing
+provider policies remain independent from the Agent/Loop caller.
+
+Hub registers Data and, when this summary configuration is saved, enables that
+dependency and creates `hub_tool_sources` through public ComponentData APIs.
+Memory owns source references, chunk cursors and summary persistence. A custom
+Tool-data destination is preserved and remains the user's responsibility. An
+explicit `compress_tools` preview mode is not combined with summary mode.
+The original result is preserved if summary processing fails or exhausts its
+budget; this does not bypass the backend's context guard. Giant user inputs or
+Tool definitions can still exceed the configured token limit. Failed/partial
+summary requests retain the backend's explicit-resume requirements.
+
 ## Application tools and Session peers
 
 The default Agent advertises `hub_help`, `hub_participants`,

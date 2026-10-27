@@ -10,6 +10,7 @@ from ...backend.history_deletion import (
     TurnDeletionResult,
 )
 from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
 from ...widget.output.reader import ReadOnlyDialog
@@ -179,13 +180,22 @@ class HistoryUI:
         self.view = controller.view
 
     def open(self):
+        from ...widget.forms.request_history import RequestHistoryDialog
+
         view = self.view
         project_id = view.project_id
         session_id = view.sessions[view.selected].id
         view.open_dialog(
-            view.t(MessageKey.HISTORY_TITLE), Label(view.t(MessageKey.SETTINGS_LOADING))
+            view.t(MessageKey.HISTORY_TITLE), Label(view.t(MessageKey.SETTINGS_LOADING)),
+            size=RequestHistoryDialog.SIZE,
         )
         pending = view._dialog
+        pending.body = HSplit([
+            Window(),
+            view.progress.container(
+                lambda: view.t(MessageKey.SETTINGS_LOADING), surface=pending
+            ),
+        ])
 
         def ready(rows):
             if view._dialog is not pending:
@@ -213,6 +223,7 @@ class HistoryUI:
                 title=t(MessageKey.HISTORY_TITLE),
                 body=Label(t(MessageKey.HISTORY_EMPTY)),
                 buttons=[button],
+                size=RequestHistoryDialog.SIZE,
             )
             view.dialogs.show(popup, button)
             return

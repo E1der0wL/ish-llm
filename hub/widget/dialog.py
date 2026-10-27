@@ -63,6 +63,7 @@ class PopupInput:
 
 
 class Dialog(PTKDialog):
+    CONTENT_PADDING = 1
     navigation = None
     NAVIGATION = "navigation"
     ABSENT_HOOK = None
@@ -109,18 +110,25 @@ class Dialog(PTKDialog):
         kwargs.setdefault(self.WITH_BACKGROUND, self.DEFAULT_BACKGROUND)
         kwargs.setdefault(self.MODAL, self.DEFAULT_MODAL)
         buttons = kwargs.pop(self.BUTTONS, None) or []
+        content = DynamicContainer(lambda: self.body)
+        if buttons:
+            content = HSplit([
+                       content,
+                       Window(height=Dimension(min=0, preferred=0)),
+                   ])
+        body = Box(content,
+                   padding=self.CONTENT_PADDING, padding_bottom=0)
         if buttons:
             body = HSplit([
-                Box(DynamicContainer(lambda: self.body),
-                    padding=Dimension(preferred=1, max=1), padding_bottom=0),
+                body,
                 Box(ActionBar(buttons, lambda: PopupGeometry.dimensions(self.size)[0].preferred - 4,
                               bind_navigation=shortcut_context != DialogContext.READER),
                     padding=Dimension(preferred=1, max=1), padding_left=0, padding_right=0),
             ])
-            if args:
-                args = (body, *args[1:])
-            else:
-                kwargs["body"] = body
+        if args:
+            args = (body, *args[1:])
+        else:
+            kwargs["body"] = body
         super().__init__(*args, **kwargs,
                          width=lambda: PopupGeometry.dimensions(self.size)[0])
         # Match PTK Dialog.body: callers see (and may replace) the actual body,

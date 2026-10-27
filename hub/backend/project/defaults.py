@@ -126,6 +126,8 @@ async def create_project(
                 name, parameters.with_policy(values).to_dict()
             )
     OperationProgress.report(MessageKey.PROGRESS_BACKEND_PROJECT)
+    from .memory_setup import MemorySetup
+    project_config, components = MemorySetup.prepare(project_config.to_dict(), components)
     project = await backend.projects.acreate(
         title,
         config=project_config,
@@ -133,6 +135,7 @@ async def create_project(
         conversation_storage=conversation_storage,
     )
     try:
+        await MemorySetup.ensure_sources(project)
         from .agents import initialize
 
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_TOOLS)
