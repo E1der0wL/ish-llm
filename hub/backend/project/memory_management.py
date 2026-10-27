@@ -16,7 +16,7 @@ from .record_management import RecordManagement
 class MemoryManagement(RecordManagement):
     fields = MemoryEdit.FIELDS
     DESCRIPTION_LIMIT = 160
-    SEPARATOR = " · "
+    SEPARATOR = " • "
 
     def __init__(self, data, name, root, project):
         super().__init__(data, name, root)

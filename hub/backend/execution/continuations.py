@@ -8,6 +8,7 @@ from llm.core.models import MessageStatus, MessageRole, Message
 from llm.services.runtime.requests import RequestAdmission
 from ...model import ChatMessage, ReasoningMessage
 from .trace import merge_trace
+from .followup import split_followup
 
 
 class ContinuationDisplay:
@@ -110,7 +111,9 @@ def continued_messages(
     for message in result:
         show_reasoning = (
             message.id in reasoning or message.id in tools
-        ) and message.status in ContinuationDisplay.VISIBLE_REASONING
+        ) and (message.status in ContinuationDisplay.VISIBLE_REASONING
+               or (message.status in (MessageStatus.COMPLETED, MessageStatus.FAILED)
+                   and not split_followup(message.text).content.strip()))
         if show_reasoning or message.id in graphs:
             workflow, states = graphs.get(message.id, (ContinuationDisplay.EMPTY, ()))
             visible.append(

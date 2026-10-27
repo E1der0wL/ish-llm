@@ -21,7 +21,9 @@ on successful requests. User-provided callbacks are retained; Graph/nested Agent
 the outer Loop's recovery state.
 
 Provider transport retries keep their existing settings. After a request is rejected before response
-data arrives, a short error-analysis call may recommend `compact` or `stop`. Only rejected input can
+data arrives, known context-limit evidence selects compaction directly, without
+an extra error-analysis call. Other eligible rejections may use a short analysis
+call to recommend `compact` or `stop`. Only rejected input can
 be reduced; the model cannot change credentials, endpoints, settings, Tool arguments, approval or
 retry unsafe effects. Unknown provider/response failures may be explained but not automatically replayed.
 Authentication, rate limits and service outages use deterministic guidance and existing transport retry.
@@ -42,6 +44,8 @@ replay or historical record migration. These records are not a replacement for M
 
 Defaults are 12000 input characters per fragment (including previous summary and payload), 2000 output
 summary characters and 16 summary calls per recovery. These are character budgets, not model-token limits.
+Auxiliary requests do not inherit the primary Agent's large output-token reserve;
+their own bounded summary request and backend usage policies apply.
 Reduction must finish and actually shrink the request. The backend completion pipeline validates the
 proposal and applies its configured policies. A partial/invalid summary is never
 sent as a substitute for the full input. Oversized current requests, Tool definitions, incomplete Tool
@@ -56,7 +60,11 @@ Tool arguments. The assistant failure message includes the captured server detai
 explanation, with model inference labeled. Diagnosis reads the same failed Step first, then the owning
 Run result's diagnostic if no Step is available, never old log files.
 
-The common retry header displays analysis, input summarization, corrected-request and rejected-proposal phases.
+The common retry header displays neutral response-checking, context compression,
+corrected-request and rejected-proposal phases. The UI withholds a terminal failure
+verdict while recovery is still possible; known context limits start with context
+compression rather than error analysis. Diagnostic evidence and eligibility are
+not relabeled or weakened by these presentation choices.
 Countdowns use the actual `provider_retry.delay_seconds`; recovery phases invent no waiting time. Recovery
 outcomes and explanations are retained in the final failure diagnostic and provider activity log; auxiliary
 analysis/summary output is internal Step data, not assistant response text. A successful recovery completes

@@ -3,28 +3,19 @@
 
 from hub.locales.keys import MessageKey
 
-from llm.core.configuration_targets import (
-    ResolvedEngineConfiguration,
-)
-
-
-from llm.core.models import StepKind
-
 from llm.core.agents import AgentBinding, AgentDefinition
 from llm.providers.request_values import ModelParameters
-from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole, copy_model
+from llm.core.model_protocol import ModelRole
 
 from llm.core.models import RunStatus
 import asyncio
-from contextlib import aclosing
-from copy import copy, deepcopy
+from copy import deepcopy
 
-from llm.engines.base import BaseEngine
+from ..execution.auxiliary_engine import AuxiliaryEngine
 
 
 from .title_contract import TitleEngineIdentity
 from .title_values import (
-    TitleCompletion,
     TitleSessionMetadata,
     TitleAttempt,
     TitlePresentation,
@@ -33,60 +24,9 @@ from .title_values import (
 TITLE_ENGINE = TitleEngineIdentity.NAME
 
 
-class TitleEngine(BaseEngine):
-    def __init__(self, **kwargs):
-        super().__init__(TitlePresentation.ENGINE_NAME, kind=StepKind.LLM, **kwargs)
-        self.parameters = {}
-
-    def describe_config(self):
-        return TitleCompletion.schema(self.completion_adapter)
-
-    def describe_agent(self):
-        return AgentDefinition.describe(
-            fields=(AgentDefinition.Field.ENGINE, AgentDefinition.Field.COMPLETION,
-                    AgentDefinition.Field.PURPOSE, AgentDefinition.Field.DESCRIPTION,
-                    AgentDefinition.Field.METADATA),
-            properties={AgentDefinition.Field.COMPLETION: self.completion_adapter.describe_config()},
-        )
-
-    def for_agent(self, definition):
-        worker = copy(self)
-        worker.parameters = copy_model(definition.get(AgentDefinition.Field.COMPLETION, {}))
-        self.completion_adapter.validate_request(worker.parameters)
-        self.completion_adapter.validate_input_ownership(worker.parameters, auxiliary=TitlePresentation.AUXILIARY)
-        return worker
-
-    def resolve_config(self, config, name, *, session_config=TitlePresentation.ABSENT):
-        from llm.core.configuration import resolve_engine_config
-
-        return resolve_engine_config(
-            config, name, session_config=session_config, schema=self.describe_config()
-        )
-
-    async def run(self, context):
-        settings = ResolvedEngineConfiguration.read(context.resolve_config()).engine
-        parameters = copy_model(self.parameters)
-        self.completion_adapter.validate_input_ownership(
-            parameters, auxiliary=TitlePresentation.AUXILIARY
-        )
-        request = ModelRequest(
-            [
-                ModelMessage(ModelRole.SYSTEM, TitlePresentation.INSTRUCTION),
-                ModelMessage(ModelRole.USER, context.messages[-1].content),
-            ],
-            parameters,
-        )
-        if context.completion_policy is not TitlePresentation.ABSENT:
-            request = await asyncio.to_thread(
-                context.completion_policy.prepare, request
-            )
-        async with aclosing(
-            self.stream_completion(
-                request, provider=TitleCompletion(settings.policy).provider
-            )
-        ) as stream:
-            async for item in stream:
-                yield item
+class TitleEngine(AuxiliaryEngine):
+    name = TitlePresentation.ENGINE_NAME
+    instruction = TitlePresentation.INSTRUCTION
 
 
 class SessionNamer:
@@ -97,6 +37,7 @@ class SessionNamer:
         self.runtime = runtime
         self.tasks = {}
         self.errors = {}
+        self.deferred = {}
 
     async def _completion(self, session, record, source):
         """Borrow provider settings, without borrowing the conversation's output contract."""
@@ -125,7 +66,8 @@ class SessionNamer:
         return session_id in self.tasks
 
     def schedule(self, session, key):
-        if self.runtime.config.auto_title and session.id not in self.tasks:
+        if (self.runtime.config.auto_title and session.id not in self.tasks
+                and self.deferred.get(session.id) != key):
             task = asyncio.create_task(self._name(session, key))
             self.tasks[session.id] = task
 
@@ -151,6 +93,12 @@ class SessionNamer:
             if not TitleSessionMetadata(record.metadata).automatic:
                 return
             history = await session.aconversation()
+            from ..execution.completion_review import ConversationalInput
+            requests = [m.content for m in history if str(m.role) == ModelRole.USER]
+            if requests and all(ConversationalInput.matches(text) for text in requests):
+                self.deferred[session.id] = key
+                return
+            self.deferred.pop(session.id, None)
             if not any(
                 str(m.role) == ModelRole.ASSISTANT and m.content for m in history
             ):

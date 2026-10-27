@@ -4,11 +4,30 @@ import json
 from llm.components.review import CompletionReview, ReviewAction
 from llm.core.model_protocol import ModelRole
 from llm.core.schema import SchemaKeyword, SchemaType
+from .followup import split_followup
+
+
+class ConversationalInput:
+    """Exact standalone greetings, never a substring classifier for work requests."""
+
+    END_PUNCTUATION = "!?.,~！？，。"
+    PHRASES = frozenset(("안녕", "안녕하세요", "안녕하십니까", "반가워", "반갑습니다",
+                         "고마워", "고맙습니다", "감사합니다", "hi", "hello", "hey",
+                         "thanks", "thank you", "good morning", "good evening"))
+    INSTRUCTION = (
+        "The current request is only a greeting or thanks. Reply briefly in normal answer "
+        "content. Do not plan work, discover resources, or call hub_task_result for this exchange. "
+        "Do not start unrelated prior tasks. A later work request still requires actual work."
+    )
+
+    @classmethod
+    def matches(cls, text):
+        return text.strip().casefold().rstrip(cls.END_PUNCTUATION).strip() in cls.PHRASES
 
 
 class TaskCompletion:
     NAME = "hub_task_result"
-    REVISION = "hub-task-evidence-v2"
+    REVISION = "hub-task-evidence-v3"
     OUTCOME = "outcome"
     SUMMARY = "summary"
     EVIDENCE = "evidence"
@@ -16,20 +35,46 @@ class TaskCompletion:
     INFORMATION = "information"
     BLOCKED = "blocked"
     OUTCOMES = (COMPLETED, INFORMATION, BLOCKED)
+    BACKGROUND = (
+        "Hub will add, edit or remove internal Memory/Goal records and prepare refinement proposals "
+        "after your response in the background. Do not delay this answer to perform that bookkeeping. "
+        "Use those capabilities now only if they are needed to fulfill the current request. "
+        "Actions requiring approval, external effects and applying refinement "
+        "must remain in the foreground with their normal authorization."
+    )
+    ROUTING = (
+        "First decide only whether this request needs external work or a conversational answer. "
+        "For greetings, questions, explanations and chat-only drafts, answer directly without "
+        "completion reports, goals, refinement, skills, topic selection or tool-use verification. "
+        "Do not evaluate every available capability before answering. If tools are needed to "
+        "answer accurately or perform requested work, choose only the relevant tools. For explicit "
+        "file or execution requests do the actual work, not instructions for the user to do it. "
+        "If you call a tool declaring _hub_risk, assess that action only; assessment is never approval. "
+        "Goals are for substantial multi-step work; refinement is only for evidenced reusable "
+        "improvements. Use hub_task_result only when explicit completion evidence is useful for "
+        "the requested work; it is not a required ritual. Do not repeat completed effects. Existing goals never authorize "
+        "unrequested work. Always provide a nonempty answer in normal answer content."
+    )
     INSTRUCTION = (
-        "Before a final answer, use hub_task_result to review the user's completion conditions. "
+        "Use this optional report when the task needs explicit completion evidence. "
         "For an action request, do the actual work with tools and report completed with the IDs "
         "of the tool calls that performed/verified it. Advice or a code example is not a file change. "
-        "For greetings, small talk, simple facts or explanation-only requests, use information "
-        "once with empty evidence and answer briefly without unrelated tools or deep analysis. "
+        "For explanation-only requests without Tools, answer directly without a report. "
+        "Standalone greetings and thanks need only a brief answer, without a report or unrelated tools. "
         "Use blocked when a concrete permission, environment or missing-information limit prevents "
         "completion; explain the limit, never claim success. Do not repeat effects for review. "
         "Respect approval, cancellation and all execution budgets."
+        " Always provide a nonempty final answer in normal answer content; "
+        "reasoning, tool reports and next-message suggestions are not a final answer."
     )
-    MISSING = "Review the completion conditions with hub_task_result before answering. Perform requested work rather than only describing it; report a concrete blocker if it cannot be done."
     INVALID = "A completed action needs evidence from this request's actual tool results. Do not invent call IDs or cite earlier turns."
     INVALID_REPORT = "Provide a valid completion report with outcome, nonempty summary, and evidence call IDs."
     STALE = "Tool work continued after the completion report. Verify the latest result and record a fresh hub_task_result; do not repeat completed effects."
+    EMPTY_ANSWER = (
+        "The final answer content is empty. Write a concise answer to the user in normal "
+        "answer content, outside reasoning and hub-next metadata. Use the existing results; "
+        "do not repeat tools, effects or the completed report."
+    )
     ACCEPTED_FEEDBACK = ""
     LAST_REPORT = -1
     ENSURE_ASCII = False
@@ -43,18 +88,22 @@ class TaskCompletion:
 
     @classmethod
     def review(cls, observation):
+        if not split_followup(observation.response.message.text).content.strip():
+            return CompletionReview(ReviewAction.CONTINUE, cls.EMPTY_ANSWER)
+        calls = {call.id: call for m in observation.original_messages for call in m.calls}
+        if not calls:
+            return CompletionReview(ReviewAction.ACCEPT, cls.ACCEPTED_FEEDBACK)
         if not any(tool.name == cls.NAME for tool in observation.tools):
             # Explicit Agent tool selection can opt out of the Hub report tool.
             return CompletionReview(ReviewAction.ACCEPT, cls.ACCEPTED_FEEDBACK)
         # Loop builds prior turns as plain messages. Its original (uncompacted)
         # transcript retains the current execution's actual call/result pairs.
-        calls = {call.id: call for m in observation.original_messages for call in m.calls}
         results = {m.result.call_id: m.result for m in observation.original_messages
                    if m.role == ModelRole.TOOL and m.result.call_id in calls}
         reports = [call for call in calls.values()
                    if call.name == cls.NAME and call.id in results]
         if not reports:
-            return CompletionReview(ReviewAction.CONTINUE, cls.MISSING)
+            return CompletionReview(ReviewAction.ACCEPT, cls.ACCEPTED_FEEDBACK)
         report = reports[cls.LAST_REPORT].arguments
         if (set(report) != {cls.OUTCOME, cls.SUMMARY, cls.EVIDENCE}
                 or report[cls.OUTCOME] not in cls.OUTCOMES

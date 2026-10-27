@@ -38,10 +38,10 @@ class ActivityDisplay:
     JSON_INDENT = 2
     UNKNOWN_EXCEPTION = "Exception"
     UNKNOWN_FRAME = "?"
-    HTTP = " · HTTP {status}"
+    HTTP = " • HTTP {status}"
     DETAIL = "  {key}: {value}"
-    FRAME = "  {file}:{line} · {function}()"
-    ROW = "{icon} {time} · {status} · {event}"
+    FRAME = "  {file}:{line} • {function}()"
+    ROW = "{icon} {time} • {status} • {event}"
     CRITICAL = "critical"
     LEVELS = {
         RunStatus.FAILED.value: NotificationKind.ERROR.value,
@@ -165,8 +165,8 @@ class HistoryUI:
     ABSENT = None
     SINGLE_SELECTION = 1
     SELECT_ON_FOCUS = True
-    ROW_CHOICE = "{agent} · {status}"
-    BLOCKER = "{run} · {engine} · {status}"
+    ROW_CHOICE = "{agent} • {status}"
+    BLOCKER = "{run} • {engine} • {status}"
     READ_ONLY = True
     SCROLLBAR = True
     WRAP_LINES = True

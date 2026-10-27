@@ -40,7 +40,7 @@ class Diagram:
     OUTGOING = "◀"
     INCOMING = "▶"
     ENTRY_MARK = "▶ "
-    CAPTION_SEPARATOR = " · "
+    CAPTION_SEPARATOR = " • "
     UNKNOWN_KIND = "?"
     INVALID_GRAPH = "Workflow requires nodes (object) and edges (array)"
     TOO_LARGE = "Preview supports up to 200 nodes and 400 edges"

@@ -7,6 +7,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace as NS
 import unittest
+import asyncio
 from unittest.mock import AsyncMock
 
 from hub.backend.interactions.approval import approval_preset, review_lines
@@ -20,6 +21,60 @@ from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_new_project_auto_approves_low_only_and_reopen_preserves_policy(self):
+        for level, approved in [('low', True), ('medium', False), ('high', False), ('unknown', False)]:
+            with self.subTest(level=level), tempfile.TemporaryDirectory() as root:
+                args = {'path':'result.txt','content':'created', FIELD:{'level':level,'reason':'Test action classification'}}
+                provider = ScriptedCompletion(
+                    [chunk(calls=[call(json.dumps(args),name='file_create')],finish='tool_calls')],
+                    [chunk('Done',finish='stop')])
+                config = HubConfig(Path(root)/'data', file_root=root, auto_title=False, model='test/model',
+                    engine_factories={'loop':lambda:LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
+                runtime = HubRuntime(config)
+                try:
+                    await runtime.start()
+                    policy = (await runtime.project.aget_data()).config.policies['approval']
+                    self.assertEqual(policy, {'enabled':True,'risk_scheme':MODEL_RISK_SCHEME,
+                        'rules':[{'id':'tool.execute','category':'tool.execute','max_risk':20}]})
+                    sid = await runtime.new_session()
+                    request = await runtime.sessions[sid].run.submit('Create result.txt.',recipients=['assistant'])
+                    run, = await request.wait()
+                    # The backend preserves the original pause and creates a
+                    # new Run for a policy-authorized continuation.
+                    async with asyncio.timeout(20):
+                        await runtime.sessions[sid].run.wait_idle()
+                        while runtime.automatic_approvals.tasks:
+                            await asyncio.sleep(.01)
+                        await runtime.sessions[sid].run.wait_idle()
+                    runs = await runtime.sessions[sid].run.alist()
+                    latest = runs[-1]
+                    self.assertEqual(str((await latest.aget_data()).status), 'completed' if approved else 'paused')
+                    self.assertEqual(Path(root,'result.txt').exists(), approved)
+                    self.assertEqual(bool(await run.ainteractions(pending_only=True)), not approved)
+                    self.assertEqual(len(provider.requests), 2 if approved else 1)
+                    self.assertEqual(len(runs), 2 if approved else 1)
+                    runtime.automatic_approvals.observe(await run.aget_data())
+                    self.assertFalse(runtime.automatic_approvals.tasks)
+                finally:
+                    await runtime.close()
+                reopened = HubRuntime(config)
+                try:
+                    await reopened.start()
+                    self.assertEqual((await reopened.project.aget_data()).config.policies['approval'],policy)
+                finally:
+                    await reopened.close()
+
+    async def test_explicit_approval_policies_are_not_overwritten_by_creation_defaults(self):
+        for policy in ({}, {'enabled':False}, approval_preset(max_risk=10,categories=['custom'])):
+            with self.subTest(policy=policy), tempfile.TemporaryDirectory() as root:
+                config = HubConfig(root,auto_title=False,project_config={'policies':{'approval':policy}})
+                runtime = HubRuntime(config)
+                try:
+                    await runtime.start()
+                    self.assertEqual((await runtime.project.aget_data()).config.policies['approval'],policy)
+                finally:
+                    await runtime.close()
+
     def test_model_classification_levels_and_invalid_assessments(self):
         for level, score in (("low", 20), ("medium", 60), ("high", 100), ("unknown", None)):
             with self.subTest(level=level):

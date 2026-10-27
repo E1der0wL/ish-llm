@@ -52,14 +52,11 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
         request = CompletionRequest({}, [CompletionMessage(ModelMessage("user", "task"), "u")], 0)
         async for _ in FollowupProcessor().session(None).prepare(request):
             pass
-        from hub.backend.tools.advice import INSTRUCTION as RISK_INSTRUCTION
-        self.assertEqual(request.messages[0].message.text, INSTRUCTION + "\n\n" + RISK_INSTRUCTION)
+        from hub.backend.execution.completion_review import TaskCompletion
+        self.assertEqual(request.messages[0].message.text, TaskCompletion.ROUTING + "\n\n" + INSTRUCTION)
         self.assertIsNone(request.messages[0].source_id)
-        from hub.backend.tools.application import HubApplicationTools
-        self.assertEqual(request.messages[1].message.text, HubApplicationTools.DISCOVERY_INSTRUCTION)
-        self.assertIsNone(request.messages[1].source_id)
-        self.assertEqual(request.messages[2].source_id, "u")
-        self.assertEqual(request.messages[2].message.text, "task")
+        self.assertEqual(request.messages[1].source_id, "u")
+        self.assertEqual(request.messages[1].message.text, "task")
 
     async def test_right_accepts_without_sending_and_switch_discards_hint(self):
         view = LiveHubView()

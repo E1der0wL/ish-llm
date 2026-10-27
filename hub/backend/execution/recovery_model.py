@@ -18,6 +18,7 @@ from typing import ClassVar
 
 
 class RecoveryModelProtocol:
+    PRESERVE_OUTPUT_LIMITS = False
     JSON_OPEN = "```json\n"
     JSON_CLOSE = "```"
     INVALID_JSON = "Recovery model returned invalid JSON"
@@ -99,7 +100,8 @@ async def model_events(
                 ),
             ),
         ],
-        adapter.auxiliary_parameters(request),
+        adapter.auxiliary_parameters(
+            request, preserve_output_limits=RecoveryModelProtocol.PRESERVE_OUTPUT_LIMITS),
     )
     response = []
     model = BaseEngine(RecoveryModelProtocol.ENGINE_NAME, completion_adapter=adapter)

@@ -124,28 +124,28 @@ MESSAGES = {
     MessageKey.PARTICIPANTS_REQUIRED: '대화 상대를 먼저 초대해 주세요.',
     MessageKey.PARTICIPANTS_BUSY: '실행 및 예약 작업이 끝난 뒤 대화 상대와 그룹을 변경할 수 있습니다.',
     MessageKey.PARTICIPANTS_STEERING_HINT: '후속 요청은 선택된 모든 에이전트에게 예약됩니다. 실행 중 추가 지시는 대화 상대를 한 명 지정해 주세요.',
-    MessageKey.RECIPIENT_TITLE: '수신 대상 · {target}',
+    MessageKey.RECIPIENT_TITLE: '수신 대상 • {target}',
     MessageKey.AGENT_DISPLAY_NAME: '표시 이름',
     MessageKey.WORKFLOW_DISPLAY_UNAVAILABLE: 'Workflow 그래프를 표시할 수 없습니다: {reason}',
-    MessageKey.PROGRESS_BACKEND_TOOLS: '프로젝트 · 기본 Agent와 도구 구성',
-    MessageKey.PROGRESS_BACKEND_SKILLS: '프로젝트 · 기본 스킬 등록',
-    MessageKey.PROGRESS_BACKEND_CANCEL: '재시작 · 실행 작업 취소 및 저장 정리',
-    MessageKey.PROGRESS_BACKEND_RELEASE: '재시작 · 이전 백엔드 종료',
-    MessageKey.PROGRESS_BACKEND_PREPARE: '백엔드 · 엔진과 컴포넌트 준비',
-    MessageKey.PROGRESS_BACKEND_STORAGE: '백엔드 · 저장소 연결',
-    MessageKey.PROGRESS_BACKEND_PROJECT: '프로젝트 · 선택 및 초기 설정',
-    MessageKey.PROGRESS_BACKEND_SESSIONS: '세션 · 목록 불러오기',
-    MessageKey.PROGRESS_BACKEND_RECOVER: '세션 · 실행 상태 복구',
-    MessageKey.PROGRESS_BACKEND_HISTORY: '화면 · 대화와 실행 기록 불러오기',
-    MessageKey.PROGRESS_BACKEND_WAIT: '대기 · 앞선 백엔드 작업 완료 대기',
-    MessageKey.PROGRESS_BACKEND_READ: '불러오기 · 데이터 조회',
+    MessageKey.PROGRESS_BACKEND_TOOLS: '프로젝트 • 기본 Agent와 도구 구성',
+    MessageKey.PROGRESS_BACKEND_SKILLS: '프로젝트 • 기본 스킬 등록',
+    MessageKey.PROGRESS_BACKEND_CANCEL: '재시작 • 실행 작업 취소 및 저장 정리',
+    MessageKey.PROGRESS_BACKEND_RELEASE: '재시작 • 이전 백엔드 종료',
+    MessageKey.PROGRESS_BACKEND_PREPARE: '백엔드 • 엔진과 컴포넌트 준비',
+    MessageKey.PROGRESS_BACKEND_STORAGE: '백엔드 • 저장소 연결',
+    MessageKey.PROGRESS_BACKEND_PROJECT: '프로젝트 • 선택 및 초기 설정',
+    MessageKey.PROGRESS_BACKEND_SESSIONS: '세션 • 목록 불러오기',
+    MessageKey.PROGRESS_BACKEND_RECOVER: '세션 • 실행 상태 복구',
+    MessageKey.PROGRESS_BACKEND_HISTORY: '화면 • 대화와 실행 기록 불러오기',
+    MessageKey.PROGRESS_BACKEND_WAIT: '대기 • 앞선 백엔드 작업 완료 대기',
+    MessageKey.PROGRESS_BACKEND_READ: '불러오기 • 데이터 조회',
     MessageKey.PROGRESS_BACKEND_WORK: '작업 처리 중',
-    MessageKey.PROGRESS_BACKEND_WRITE: '저장 · 변경 사항 처리',
-    MessageKey.PROGRESS_BACKEND_SCHEMA: '설정 · 항목과 타입 구성',
-    MessageKey.PROGRESS_BACKEND_USAGE: '설정 · 프로젝트 사용량 집계',
-    MessageKey.PROGRESS_BACKEND_VALIDATE: '설정 · 입력값 검증',
+    MessageKey.PROGRESS_BACKEND_WRITE: '저장 • 변경 사항 처리',
+    MessageKey.PROGRESS_BACKEND_SCHEMA: '설정 • 항목과 타입 구성',
+    MessageKey.PROGRESS_BACKEND_USAGE: '설정 • 프로젝트 사용량 집계',
+    MessageKey.PROGRESS_BACKEND_VALIDATE: '설정 • 입력값 검증',
     MessageKey.OPERATION_EXISTING_RAG_JOB: '같은 문서의 미완료 등록 작업이 있습니다. RAG 목록에서 해당 작업을 선택해 재시도하거나 삭제한 뒤 등록해 주세요.',
-    MessageKey.OPERATION_DIAGNOSTICS: 'Hub 조작 오류 상세 · 현재 실행 중 기록',
+    MessageKey.OPERATION_DIAGNOSTICS: 'Hub 조작 오류 상세 • 현재 실행 중 기록',
     MessageKey.OPERATION_CHANGED: '처리 중 상태가 바뀌었습니다. 최신 내용을 불러온 뒤 다시 선택해 주세요. 작성 중인 내용은 유지됩니다.',
     MessageKey.OPERATION_INTERACTION: '재개 전에 승인이나 답변이 필요합니다. 입력창의 요청을 확인해 주세요. 거절한 작업은 자동 재실행하지 않습니다.',
     MessageKey.OPERATION_BUSY: '아직 작업이 실행 중입니다. 종료를 기다리거나 중단한 뒤 다시 시도해 주세요.',
@@ -158,13 +158,13 @@ MESSAGES = {
     MessageKey.OPERATION_ABANDON_REQUIRED: '재개에 필요한 기록이어서 바로 삭제할 수 없습니다. 삭제 화면에서 재개 포기 여부를 확인해 주세요.',
     MessageKey.OPERATION_FAILED: '요청한 작업을 처리하지 못했습니다. 입력과 현재 상태를 확인해 주세요. 자세한 오류는 로그 창의 Hub 조작 오류 상세에서 확인할 수 있습니다.',
     MessageKey.SYSTEM: '시스템',
-    MessageKey.USAGE_DAILY_TITLE: '일별 토큰 사용량 · 최근 최대 30일',
-    MessageKey.USAGE_DAILY_RANGE: '{start} ~ {end} · 프로젝트 통계 조회 범위 합산',
+    MessageKey.USAGE_DAILY_TITLE: '일별 토큰 사용량 • 최근 최대 30일',
+    MessageKey.USAGE_DAILY_RANGE: '{start} ~ {end} • 프로젝트 통계 조회 범위 합산',
     MessageKey.USAGE_DAILY_UNKNOWN: '선택 기간 사용량 미보고 호출: {count}회 (토큰 합계 제외)',
     MessageKey.PROMPTS_TITLE: 'Prompt 관리',
     MessageKey.PROMPTS_IMPORT_HINT: 'Prompt 파일 가져오기',
     MessageKey.DEFINITION_EDIT: '편집',
-    MessageKey.DEFINITION_MANAGER_HINT: 'Tab 영역 · ↑↓ 선택 · Enter 팝업에서 편집 · d 삭제 · 하단 생성 버튼',
+    MessageKey.DEFINITION_MANAGER_HINT: 'Tab 영역 • ↑↓ 선택 • Enter 팝업에서 편집 • d 삭제 • 하단 생성 버튼',
     MessageKey.DEFINITION_NAME: '이름 (영문·숫자·밑줄·하이픈, 1~64자)',
     MessageKey.DEFINITION_NAME_INVALID: '이름은 영문·숫자·밑줄·하이픈 1~64자로 지정하세요.',
     MessageKey.DEFINITION_OBJECT: 'JSON 객체를 입력하세요.',
@@ -230,7 +230,7 @@ MESSAGES = {
     MessageKey.SETTINGS_JSON: '설정 JSON',
     MessageKey.CLIPBOARD_INTERNAL: '내부 클립보드',
     MessageKey.CLIPBOARD_TITLE: '클립보드',
-    MessageKey.CLIPBOARD_COPY_UNAVAILABLE: '외부 복사 실패 · Hub 내부에만 저장됨',
+    MessageKey.CLIPBOARD_COPY_UNAVAILABLE: '외부 복사 실패 • Hub 내부에만 저장됨',
     MessageKey.CLIPBOARD_READ_UNAVAILABLE: '외부 클립보드를 읽지 못했습니다. 터미널의 붙여넣기를 사용하세요.',
     MessageKey.CLIPBOARD_X11_LIBRARY: 'X11 클립보드 연결에 필요한 libX11을 찾지 못했습니다.',
     MessageKey.CLIPBOARD_X11_CONNECTION: 'X11 클립보드에 연결하지 못했습니다. DISPLAY와 X11 접근 권한을 확인하세요.',
@@ -241,7 +241,7 @@ MESSAGES = {
     MessageKey.SHORTCUT_PROFILE: "프로필", MessageKey.SHORTCUT_CATEGORIES: "카테고리",
     MessageKey.HISTORY_RETRY_QUESTION_UNAVAILABLE: "취소한 승인·질문은 실행·예약 작업이 없고 가장 최근 요청일 때만 다시 열 수 있습니다. 이전 요청은 편집으로 다시 시작하세요.",
     MessageKey.SETTINGS_DISCARD: "취소", MessageKey.SETTINGS_DISCARDED: "저장하지 않은 변경 내용을 취소했습니다.",
-    MessageKey.SETTINGS_ENGINE_ITEM: "엔진 · {name}", MessageKey.SETTINGS_COMPONENT_ITEM: "컴포넌트 · {name}",
+    MessageKey.SETTINGS_ENGINE_ITEM: "엔진 • {name}", MessageKey.SETTINGS_COMPONENT_ITEM: "컴포넌트 • {name}",
     MessageKey.PROJECT_DELETE_LAST: "마지막 프로젝트는 삭제할 수 없습니다. 먼저 다른 프로젝트를 만들어 주세요.",
     MessageKey.FAILURE_EVIDENCE: "진단 근거: {evidence}",
     MessageKey.FAILURE_DETAILS: "자세한 실행 기록은 보조 버튼의 로그에서 확인할 수 있습니다.",
@@ -289,14 +289,15 @@ MESSAGES = {
     MessageKey.GENERAL_RECOVERY_SUMMARY_CHARS: "입력 축약 요약의 최대 문자 수. 기본값 2000. 현재 요청과 추가 지시 원문은 유지합니다.",
     MessageKey.GENERAL_RECOVERY_MAX_SUMMARY_CALLS: "한 번의 복구에서 허용할 요약 모델 호출 수. 기본값 16. 전체를 요약하지 못하면 부분 결과로 재시도하지 않습니다.",
     MessageKey.FAILURE_SERVER_DETAIL: "서버 오류 내용",
-    MessageKey.FAILURE_MODEL_ANALYSIS: "모델의 오류 분석 · 추정이 포함될 수 있습니다",
-    MessageKey.RECOVERY_REJECTED: "복구 제안 거절 · {attempt}/{maximum}",
+    MessageKey.FAILURE_MODEL_ANALYSIS: "모델의 오류 분석 • 추정이 포함될 수 있습니다",
+    MessageKey.RECOVERY_REJECTED: "복구 제안 거절 • {attempt}/{maximum}",
     MessageKey.RECOVERY_RESULT_REJECTED: "백엔드가 입력 보정 제안을 허용하지 않아 원래 오류와 함께 중단했습니다.",
-    MessageKey.RECOVERY_ANALYZING: "오류 원인 분석 중 · 복구 {attempt}/{maximum}",
-    MessageKey.RECOVERY_COMPACTING: "요약 중 · {attempt}/{maximum}{progress}",
+    MessageKey.RECOVERY_ANALYZING: "응답 확인 중 • {attempt}/{maximum}",
+    MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT: "최종 답변을 보완하는 횟수가 설정된 한도에 도달했습니다. 실행한 작업과 받은 내용은 보존됩니다. 아래 원인을 확인한 뒤 필요한 부분만 다시 요청해 주세요.",
+    MessageKey.RECOVERY_COMPACTING: "{icon_compaction} 컨텍스트 압축 • {attempt}/{maximum}{progress}",
     MessageKey.STATUS_SUMMARIZING: "요약 중",
-    MessageKey.CONTEXT_SUMMARIZING: "컨텍스트 압축",
-    MessageKey.RECOVERY_RETRYING: "입력을 축약하여 다시 요청 중 · 복구 {attempt}/{maximum}",
+    MessageKey.CONTEXT_SUMMARIZING: "{icon_compaction} 컨텍스트 압축",
+    MessageKey.RECOVERY_RETRYING: "다시 요청 중 • {attempt}/{maximum}",
     MessageKey.RECOVERY_RESULT_NO_CORRECTION: "자동으로 적용할 수 있는 수정안을 찾지 못했습니다. 위 안내에 따라 설정이나 입력을 확인해 주세요.",
     MessageKey.RECOVERY_RESULT_SUMMARY_INCOMPLETE: "설정한 예산 안에 전체 요약을 완료하지 못해 재시도하지 않았습니다. 원본은 유지됩니다. 입력을 나누거나 복구 예산을 조정해 주세요.",
     MessageKey.RECOVERY_RESULT_NOT_REDUCED: "요약해도 입력 크기가 줄지 않아 재시도하지 않았습니다. 현재 요청이나 도구 정의의 크기를 확인해 주세요.",
@@ -317,7 +318,7 @@ MESSAGES = {
     MessageKey.SETTINGS_REQUIRES_RESTART: "재시작 필요",
     MessageKey.SETTINGS_RESTART_TITLE: "Hub 재시작",
     MessageKey.SETTINGS_RESTART_NOW: "재시작",
-    MessageKey.SETTINGS_RESTART_CONFIRM: "저장되었습니다. 다음 설정을 적용하려면 Hub 재시작이 필요합니다.\n\n{fields}\n\n지금 재시작하시겠습니까?\nEnter: 재시작 · Esc: 나중에 (저장값 유지)",
+    MessageKey.SETTINGS_RESTART_CONFIRM: "저장되었습니다. 다음 설정을 적용하려면 Hub 재시작이 필요합니다.\n\n{fields}\n\n지금 재시작하시겠습니까?\nEnter: 재시작 • Esc: 나중에 (저장값 유지)",
     MessageKey.SETTINGS_RESTARTING: "Hub 재시작 중",
     MessageKey.GENERAL_CATEGORY_STORAGE: "데이터 저장 위치",
     MessageKey.GENERAL_WORKSPACE_ROOT: "Hub 데이터 루트. 절대 경로 또는 ~/경로를 입력하세요. 저장 후 Hub를 재시작하면 적용됩니다. 기존 데이터는 자동으로 이동하지 않으며, 빈 폴더는 새 작업 공간으로 시작합니다. 비우면 시작 시 지정한 기본 경로를 사용합니다.",
@@ -326,7 +327,7 @@ MESSAGES = {
     MessageKey.OBJECT_RENDERED: '렌더링',
     MessageKey.OBJECT_EMPTY: '일치하는 행이 없습니다.',
     MessageKey.OBJECT_LOADING: '표를 준비하는 중…',
-    MessageKey.OBJECT_TABLE_COUNT: '행 {index}/{visible} · 전체 {total}행 · 열 {column}',
+    MessageKey.OBJECT_TABLE_COUNT: '행 {index}/{visible} • 전체 {total}행 • 열 {column}',
     MessageKey.SHORTCUT_OBJECT_RAW: '원문/화면',
     MessageKey.SHORTCUT_OBJECT_SORT: '열 정렬',
     MessageKey.SHORTCUT_CANCEL: '예약 취소',
@@ -371,7 +372,7 @@ MESSAGES = {
     MessageKey.MCP_IMPORT_HINT: 'MCP 파일 가져오기',
     MessageKey.RAG_IMPORT_HINT: 'RAG 파일 가져오기',
     MessageKey.WORKFLOWS_IMPORT_HINT: 'Workflow 파일 가져오기',
-    MessageKey.MANAGER_HINT: 'Tab 영역 · ↑↓ 선택 · Enter 편집기에서 수정 · d 삭제',
+    MessageKey.MANAGER_HINT: 'Tab 영역 • ↑↓ 선택 • Enter 편집기에서 수정 • d 삭제',
     MessageKey.MANAGER_EMPTY: '등록된 항목이 없습니다.',
     MessageKey.MANAGER_IMPORTED: '가져왔습니다.',
     MessageKey.MANAGER_SAVED: '저장되었습니다.',
@@ -392,8 +393,8 @@ MESSAGES = {
     MessageKey.RAG_PHASE_FAILED: '등록 실패',
     MessageKey.RAG_PHASE_CANCELLED: '취소됨',
     MessageKey.RAG_PHASE_UNCONFIRMED: '실행 상태 확인 필요',
-    MessageKey.RAG_JOB_COUNTS: '임베딩 {done}/{total}청크 · 체크포인트 재사용 {reused} · 관계 추출 {batches}배치',
-    MessageKey.RAG_JOB_TIMES: '임베딩 {embedding}초 · 관계 추출 {extraction}초 · 이번 시도 경과 {elapsed}초',
+    MessageKey.RAG_JOB_COUNTS: '임베딩 {done}/{total}청크 • 체크포인트 재사용 {reused} • 관계 추출 {batches}배치',
+    MessageKey.RAG_JOB_TIMES: '임베딩 {embedding}초 • 관계 추출 {extraction}초 • 이번 시도 경과 {elapsed}초',
     MessageKey.RAG_JOB_RETRY_HINT: '재시도: 완료한 청크를 재사용합니다. 실제 실행 중이면 재개하지 않습니다.',
     MessageKey.RAG_JOB_RETRY_CHECK: "재시도를 누르면 현재 재개 가능 여부를 확인합니다.",
     MessageKey.RAG_JOB_READONLY: '실패·취소 작업은 삭제할 수 있습니다. 취소된 작업은 재개할 수 없습니다.',
@@ -415,20 +416,20 @@ MESSAGES = {
     MessageKey.MANAGER_DELETE_CONFIRM: '{name}을 삭제할까요?',
     MessageKey.TOOLS_IMPORT_HINT: 'Tool 경로 가져오기',
     MessageKey.TOOLS_COLUMNS: '이름 / 마지막 수정 / 설명',
-    MessageKey.TOOLS_HINT: 'Tab 영역 · ↑↓ 선택 · Space 내장 도구 활성/비활성 · Enter 폴더 · d 삭제',
+    MessageKey.TOOLS_HINT: 'Tab 영역 • ↑↓ 선택 • Space 내장 도구 활성/비활성 • Enter 폴더 • d 삭제',
     MessageKey.TOOLS_EMPTY: '등록된 Tool이 없습니다.',
     MessageKey.TOOLS_IMPORTED: 'Tool을 가져왔습니다. 사용 전 의존성 준비와 활성화는 별도로 해주세요.',
     MessageKey.TOOLS_FAILED: '처리에 실패했습니다. 오류 알림을 확인하세요.',
     MessageKey.TOOLS_EXPLORER_FAILED: '파일 탐색기 종료 코드: {code}',
     MessageKey.TOOLS_DELETE_CONFIRM: '{name}을 삭제할까요? 활성화되어 있다면 함께 비활성화합니다.',
-    MessageKey.WELCOME_KEYS: 'ESC 패널 · 패널에서 c 새 세션 · Ctrl+S 보조 버튼',
+    MessageKey.WELCOME_KEYS: 'ESC 패널 • 패널에서 c 새 세션 • Ctrl+S 보조 버튼',
     MessageKey.SESSION_REQUIRED: '먼저 세션을 생성하세요. ESC 후 세션 목록에서 c를 누르세요.',
-    MessageKey.ACTIVITY_HINT: '활동·프로바이더 각각 최근 300건 · 이동키 스크롤 · ESC / Enter / Ctrl+L 닫기',
-    MessageKey.ACTIVITY_PROVIDER_PROJECT: '프로바이더 로그 · 현재 프로젝트',
+    MessageKey.ACTIVITY_HINT: '활동·프로바이더 각각 최근 300건 • 이동키 스크롤 • ESC / Enter / Ctrl+L 닫기',
+    MessageKey.ACTIVITY_PROVIDER_PROJECT: '프로바이더 로그 • 현재 프로젝트',
     MessageKey.ACTIVITY_PROVIDER_FILE: '로그 파일: {path}',
-    MessageKey.ACTIVITY_PROVIDER_TRACEBACK: 'Traceback · 저장된 예외와 호출 경로 (오류 메시지 원문 제외)',
+    MessageKey.ACTIVITY_PROVIDER_TRACEBACK: 'Traceback • 저장된 예외와 호출 경로 (오류 메시지 원문 제외)',
     MessageKey.ACTIVITY_PROVIDER_RUN_DETAILS: '이 Run의 프로바이더 상세:',
-    MessageKey.ACTIVITY_PROVIDER_WORKSPACE: '프로바이더 로그 · 워크스페이스 공통',
+    MessageKey.ACTIVITY_PROVIDER_WORKSPACE: '프로바이더 로그 • 워크스페이스 공통',
     MessageKey.STATUS_WAITING_INPUT: '{icon_pending} 답변 대기',
     MessageKey.STATUS_WAITING_APPROVAL: '{icon_waiting_approval} 승인 대기',
     MessageKey.STATUS_ANSWER_SENDING: '{icon_waiting} 답변 전달 중',
@@ -444,10 +445,10 @@ MESSAGES = {
     MessageKey.WELCOME_TITLE: "아직 세션이 없습니다",
     MessageKey.WELCOME_HINT: "새 세션을 만들어 대화를 시작하세요.",
     MessageKey.OUTPUT_PENDING: "출력 블록 수신 중…",
-    MessageKey.OUTPUT_IMAGE: "이미지 · {caption}",
+    MessageKey.OUTPUT_IMAGE: "이미지 • {caption}",
     MessageKey.OUTPUT_IMAGE_LOADING: "이미지를 변환하는 중…",
     MessageKey.OUTPUT_ERROR: "출력을 표시할 수 없습니다: {error}",
-    MessageKey.PROGRESS_MORE: " · 외 {count}개",
+    MessageKey.PROGRESS_MORE: " • 외 {count}개",
     MessageKey.PROGRESS_SETTINGS_LOAD: "설정 불러오는 중",
     MessageKey.PROGRESS_SETTINGS_WORK: "설정 처리 중",
     MessageKey.PROGRESS_COMPONENT: "{command} 처리 중",
@@ -468,7 +469,7 @@ MESSAGES = {
 
     MessageKey.HISTORY_TITLE: "요청·작업 목록", MessageKey.HISTORY_EMPTY: "저장된 요청이 없습니다.",
 
-    MessageKey.HISTORY_HINT: "↑↓ 이동 · Space 체크 · d 삭제 · e 편집 · r 재시도 · Tab 영역 이동",
+    MessageKey.HISTORY_HINT: "↑↓ 이동 • Space 체크 • d 삭제 • e 편집 • r 재시도 • Tab 영역 이동",
 
     MessageKey.HISTORY_RESPONSE: "응답", MessageKey.HISTORY_DELETE: "삭제",
     MessageKey.HISTORY_EDIT: "편집", MessageKey.HISTORY_RETRY: "재시도", MessageKey.HISTORY_CLOSE: "닫기",
@@ -492,11 +493,11 @@ MESSAGES = {
     MessageKey.PROJECT_ACTIVITY: "프로젝트 실행 이력", MessageKey.ACTIVITY_EMPTY: "기록된 실행 이력이 없습니다.",
 
 
-    MessageKey.ACTIVITY_SOURCE: "세션: {session_id} · Run: {run_id}",
+    MessageKey.ACTIVITY_SOURCE: "세션: {session_id} • Run: {run_id}",
 
     MessageKey.ACTIVITY_STEP: "Step: {step_id}", MessageKey.ACTIVITY_CODE: "코드: {code}",
 
-    MessageKey.HELP_HISTORY: "보조 버튼 → 요청 목록: 삭제 · 편집 · 재시도\n보조 버튼 → 로그: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
+    MessageKey.HELP_HISTORY: "보조 버튼 → 요청 목록: 삭제 • 편집 • 재시도\n보조 버튼 → 로그: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
 
     MessageKey.SETTINGS_REGISTRATION: "추가 기능", MessageKey.SETTINGS_ENGINES: "엔진",
 
@@ -507,7 +508,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_GLOBAL_REGISTRATION: "프로젝트를 선택하면 컴포넌트와 엔진을 등록할 수 있습니다.",
 
-    MessageKey.SETTINGS_PROJECT_KEYS: "c 생성 · d 삭제\ne 이름 · r 복제",
+    MessageKey.SETTINGS_PROJECT_KEYS: "c 생성 • d 삭제\ne 이름 • r 복제",
 
     MessageKey.SETTINGS_CANCELLED: "이 페이지의 변경 사항을 취소했습니다.",
 
@@ -550,9 +551,9 @@ MESSAGES = {
 
     MessageKey.COMPONENT_HELP: '/{command}로 여는 관리 창입니다. Tab으로 입력·목록·버튼 영역을 이동하고, 버튼은 ←/→로 선택한 뒤 Enter 또는 Space로 실행하세요. 변경은 저장·가져오기·삭제 동작을 실행할 때 적용됩니다.',
 
-    MessageKey.SEARCH_TITLE: "현재 세션에서 찾기", MessageKey.SEARCH_HINT: "검색어 입력 · Enter 다음 · Alt+P 이전 · Esc 닫기",
+    MessageKey.SEARCH_TITLE: "현재 세션에서 찾기", MessageKey.SEARCH_HINT: "검색어 입력 • Enter 다음 • Alt+P 이전 • Esc 닫기",
 
-    MessageKey.SEARCH_COUNT: "{index} / {count}개 일치 · Enter 다음 · Alt+P 이전",
+    MessageKey.SEARCH_COUNT: "{index} / {count}개 일치 • Enter 다음 • Alt+P 이전",
 
     MessageKey.SEARCH_PREVIOUS: "이전", MessageKey.SEARCH_NEXT: "다음", MessageKey.SEARCH_CLOSE: "닫기",
 
@@ -581,7 +582,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_LOADING: "불러오는 중…", MessageKey.SETTINGS_EMPTY: "프로젝트 없음",
 
-    MessageKey.SETTINGS_FOOTER: "ESC 패널 · e 에디터 · Enter 편집 · Tab 영역 · ↑↓ 항목 · ←→ 버튼",
+    MessageKey.SETTINGS_FOOTER: "ESC 패널 • e 에디터 • Enter 편집 • Tab 영역 • ↑↓ 항목 • ←→ 버튼",
 
     MessageKey.SETTINGS_GENERAL: "일반",
 
@@ -613,7 +614,7 @@ MESSAGES = {
 
     MessageKey.LANGUAGE_PACK_DELETE: "팩 삭제",
 
-    MessageKey.LANGUAGE_PACK_NAMES: "사용 가능: {names} · 빠진 번역은 영어로 표시",
+    MessageKey.LANGUAGE_PACK_NAMES: "사용 가능: {names} • 빠진 번역은 영어로 표시",
 
     MessageKey.LANGUAGE_PACK_CODE: "팩 코드 (예: ja, custom-ko). 내장 ko/en은 변경·삭제할 수 없습니다.",
 
@@ -633,7 +634,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_USAGE: "사용 통계",
 
-    MessageKey.SETTINGS_USAGE_SCOPE: "워크스페이스의 활성 프로젝트 기준 · 불러오기로 갱신 · 프로젝트별 집계 기간 적용",
+    MessageKey.SETTINGS_USAGE_SCOPE: "워크스페이스의 활성 프로젝트 기준 • 불러오기로 갱신 • 프로젝트별 집계 기간 적용",
 
     MessageKey.SETTINGS_USAGE_EMPTY: "조회된 사용 통계가 없습니다.",
 
@@ -643,7 +644,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_USAGE_PERIOD: "최근 {seconds}초",
 
-    MessageKey.SETTINGS_USAGE_ROW: "{title} ({period})\n  호출 {call_count}회 · 확인된 토큰 {known_tokens} · 예약 토큰 {reserved_tokens} · 사용량 미확인 {unknown_calls}회",
+    MessageKey.SETTINGS_USAGE_ROW: "{title} ({period})\n  호출 {call_count}회 • 확인된 토큰 {known_tokens} • 예약 토큰 {reserved_tokens} • 사용량 미확인 {unknown_calls}회",
 
     MessageKey.SETTINGS_NO_DESCRIPTION: '이 항목은 구현체가 자세한 설명을 제공하지 않습니다. 아래 타입·허용 범위를 확인하고 모르는 값은 기존대로 두세요. 목록·객체는 JSON으로 입력합니다.', MessageKey.SETTINGS_NO_FIELDS: "공개된 설정 항목이 없습니다.",
     MessageKey.SETTINGS_EDITOR_FAILED: "에디터 종료 코드 {code}. 기존 입력을 유지합니다.",
@@ -664,8 +665,9 @@ MESSAGES = {
     MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL: "로딩 바 갱신 간격 (초)",
     MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL_DESCRIPTION: "로딩 바·스피너 애니메이션 갱신 간격. 0.01~10초, 기본 0.1초. 설정·대화 화면에 저장 즉시 적용됩니다.",
     MessageKey.RESPONSE_FAILED: "응답을 완료하지 못했습니다.",
+    MessageKey.RESPONSE_EMPTY: "모델이 최종 답변 본문을 반환하지 않았습니다. 제공된 생각 과정이 있다면 위에 유지됩니다.",
 
-    MessageKey.SETTINGS_VALUE_HINT: "빈칸=미설정 · 문자열은 그대로, 숫자/불리언/배열/객체는 JSON · null은 명시적 값 · 불러오기는 입력 초기화",
+    MessageKey.SETTINGS_VALUE_HINT: "빈칸=미설정 • 문자열은 그대로, 숫자/불리언/배열/객체는 JSON • null은 명시적 값 • 불러오기는 입력 초기화",
 
     MessageKey.SETTINGS_COMPONENTS_IMMEDIATE: "컴포넌트·엔진 선택은 저장 시 반영됩니다. 해제해도 기존 데이터와 설정은 유지됩니다.",
 
@@ -694,15 +696,15 @@ MESSAGES = {
 
     MessageKey.ASSISTANT: "어시스턴트", MessageKey.INFO: "안내", MessageKey.REASONING: "생각 과정",
 
-    MessageKey.SESSION_HINT: "c 생성 · d 삭제\ne 이름 · r 복제", MessageKey.INPUT_HINT: "Enter 전송 · Ctrl+Space 줄바꿈 · ↑↓ 후보 선택 · Tab 확정",
+    MessageKey.SESSION_HINT: "c 생성 • d 삭제\ne 이름 • r 복제", MessageKey.INPUT_HINT: "Enter 전송 • Ctrl+Space 줄바꿈 • ↑↓ 후보 선택 • Tab 확정",
 
     MessageKey.SETTINGS_JSON_OBJECT: "설정 JSON의 최상위 값은 객체여야 합니다.",
     MessageKey.SETTINGS_JSON_UPDATED: "JSON 편집 내용을 초안에 반영했습니다. 저장 버튼으로 적용하세요.",
-    MessageKey.FOOTER: "ESC 패널 · Ctrl+S 보조 버튼 · Ctrl+D 중단 · Alt + 이동키 스크롤 · Enter 전송 방식",
+    MessageKey.FOOTER: "ESC 패널 • Ctrl+S 보조 버튼 • Ctrl+D 중단 • Alt + 이동키 스크롤 • Enter 전송 방식",
 
-    MessageKey.FOOTER_SHORT: "ESC 패널 · Alt + 이동키 스크롤",
+    MessageKey.FOOTER_SHORT: "ESC 패널 • Alt + 이동키 스크롤",
 
-    MessageKey.PREVIEW_NOTICE: "샘플 데이터 · 모델 호출과 저장 기능은 연결되지 않았습니다.",
+    MessageKey.PREVIEW_NOTICE: "샘플 데이터 • 모델 호출과 저장 기능은 연결되지 않았습니다.",
 
     MessageKey.PREVIEW_SUBMIT: "전송 미리보기입니다. 입력은 유지됩니다.",
 
@@ -730,9 +732,9 @@ MESSAGES = {
 
     MessageKey.CONFIRM: "확인", MessageKey.CANCEL: "취소", MessageKey.CLONE_BUSY: "원본의 실행과 예약 요청을 마친 뒤 복제하세요.",
 
-    MessageKey.QUEUED: "{status} · 예약 {count}", MessageKey.WAITING: "{icon_waiting} 모델 응답을 기다리는 중",
+    MessageKey.QUEUED: "{status} • 예약 {count}", MessageKey.WAITING: "{icon_waiting} 모델 응답을 기다리는 중",
 
-    MessageKey.RUN_PROGRESS: "{status} · {engine} · {seconds}초 · 예약 {count}",
+    MessageKey.RUN_PROGRESS: "{status} • {engine} • {seconds}초 • 예약 {count}",
 
     MessageKey.ELAPSED: "소요 {duration}", MessageKey.ELAPSED_UNKNOWN: "소요 시간 알 수 없음",
 
@@ -810,8 +812,8 @@ MESSAGES = {
     MessageKey.SHORTCUT_SEND: '전송',
     MessageKey.TOOLS_BUILTIN: '내장 도구',
     MessageKey.SHORTCUT_TOOLS_TOGGLE: '활성/비활성',
-    MessageKey.QUESTION_WAITING: '답변 대기 중 · 질문',
-    MessageKey.QUESTION_SENDING: '답변 전달 중 · {title}',
+    MessageKey.QUESTION_WAITING: '답변 대기 중 • 질문',
+    MessageKey.QUESTION_SENDING: '답변 전달 중 • {title}',
     MessageKey.QUESTION_DETAILS_HINT: 'Ctrl+O 전체 내용 보기',
     MessageKey.APPROVAL_POLICY_ENABLED: '자동 승인 규칙 사용. false이면 승인 대상 도구마다 확인합니다. true이면 아래 규칙과 일치하는 작업만 자동 승인합니다.',
     MessageKey.APPROVAL_POLICY_SCHEME: '위험도 척도 식별자. Hub 기본 모델 평가는 hub-model-risk-v1을 사용합니다. 사용자 정의 평가기는 자신의 척도를 사용하세요.',
@@ -823,14 +825,14 @@ MESSAGES = {
     MessageKey.APPROVAL_TOOL: '도구: {name}',
     MessageKey.APPROVAL_RISK: '위험도: {value}',
     MessageKey.APPROVAL_MODEL_REASON: '모델 평가 근거: {reason}',
-    MessageKey.APPROVAL_MODEL_RISK: '모델 평가(참고): {level} · {reason}',
+    MessageKey.APPROVAL_MODEL_RISK: '모델 평가(참고): {level} • {reason}',
     MessageKey.TOOL_HISTORY_MORE: '이전 도구 {count}건',
     MessageKey.APPROVAL_ARGUMENT: '{name}: {kind}, {size} (상세에서 확인)',
     MessageKey.RETRY_PROVIDER: '모델 호출',
     MessageKey.RETRY_TOOL: 'Tool {name}',
-    MessageKey.RETRY_REPAIRING: '재시도 준비 중 · {target} · {next_attempt}/{maximum}번째 시도 · 수정안 생성 중',
-    MessageKey.RETRY_WAIT: '재시도 대기 중 · {target} · {attempt}/{maximum}회 시도 완료 · {next_attempt}번째 시도까지 {seconds}초',
-    MessageKey.RETRY_ACTIVE: '재시도 중 · {target} · {attempt}/{maximum}번째 시도',
+    MessageKey.RETRY_REPAIRING: '재시도 준비 중 • {target} • {next_attempt}/{maximum}번째 시도 • 수정안 생성 중',
+    MessageKey.RETRY_WAIT: '재시도 대기 중 • {target} • {attempt}/{maximum}회 시도 완료 • {next_attempt}번째 시도까지 {seconds}초',
+    MessageKey.RETRY_ACTIVE: '재시도 중 • {target} • {attempt}/{maximum}번째 시도',
     MessageKey.QUESTION_TEXT_HINT: '선택지 번호를 입력하거나 원하는 답변을 쓰고 Enter를 누르세요.',
     MessageKey.QUESTION_FREE_TEXT_HINT: '원하는 답변을 쓰고 Enter를 누르세요.',
     MessageKey.QUESTION_CHOICE_HINT: '선택지 번호를 입력하고 Enter를 누르세요. 추가 값이 필요하면 번호 뒤에 입력하세요.',

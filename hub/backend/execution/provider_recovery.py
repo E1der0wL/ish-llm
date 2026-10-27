@@ -212,6 +212,8 @@ class ProviderRecovery:
                 await frame.emit(event)
 
     async def _choice(self, engine, state, request, diagnosis, items):
+        if diagnosis.reason == ErrorReason.CONTEXT and items:
+            return RecoveryChoice(InputRepairAction.COMPACT.value, RecoveryState.NO_EXPLANATION)
         if not self.settings.recovery_model_analysis:
             return RecoveryChoice(
                 (
@@ -334,7 +336,8 @@ class ProviderRecovery:
         )
         diagnosis = from_diagnostic(failure.diagnostic, origin=ErrorOrigin.PROVIDER)
         try:
-            self._show(state, RetrySummary.ANALYZING)
+            self._show(state, RetrySummary.COMPACTING
+                       if diagnosis.reason == ErrorReason.CONTEXT and items else RetrySummary.ANALYZING)
             choice = await self._choice(
                 state.frame.engine, state, failure.request, diagnosis, items
             )

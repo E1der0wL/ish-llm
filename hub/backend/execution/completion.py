@@ -5,13 +5,29 @@ from llm.components.processing import CompletionSession
 from .input_context import HubInputContext
 from .followup import INSTRUCTION, split_followup
 from ..tools.advice import INSTRUCTION as RISK_INSTRUCTION
-from .completion_review import TaskCompletion
+from .completion_review import TaskCompletion, ConversationalInput
+from .tool_references import ToolReferences
 from ..tools.application import HubApplicationTools
 from ...asset.guides import WORK_CYCLE
 
 
 class FollowupSession(CompletionSession):
+    def __init__(self, context, postprocess=False):
+        self.context = context
+        self.postprocess = postprocess
+        self.request_id = context.run.input_message_id if context is not None else None
+        self.conversational = bool(context is not None and context.checkpoint is None
+            and context.output_step_id is None and any(
+                message.id == self.request_id and ConversationalInput.matches(message.content)
+                for message in context.messages))
+
     async def prepare(self, request):
+        ToolReferences.prepare(self.context, request)
+        if self.conversational and any(
+                message.continuation and message.source_id is not None
+                and message.source_id != self.request_id
+                and message.message.role == ModelRole.USER for message in request.messages):
+            self.conversational = False
         for index, message in enumerate(request.messages):
             if message.message.role == ModelRole.ASSISTANT and isinstance(
                 message.message.content, str
@@ -21,12 +37,18 @@ class FollowupSession(CompletionSession):
                 )
         # Extra model context is not a Conversation Message and has no persisted
         # source ID. Checkpoints/approvals can therefore resume unchanged.
-        HubInputContext.insert(
-            request, INSTRUCTION + HubInputContext.SEPARATOR + RISK_INSTRUCTION
-        )
-        HubInputContext.insert(request, HubApplicationTools.DISCOVERY_INSTRUCTION)
-        if any(tool.name == TaskCompletion.NAME for tool in request.tools):
-            HubInputContext.insert(request, TaskCompletion.INSTRUCTION + HubInputContext.SEPARATOR + WORK_CYCLE)
+        if self.conversational:
+            HubInputContext.insert(request, ConversationalInput.INSTRUCTION)
+        else:
+            working = any(item.message.calls for item in request.messages)
+            instructions = [TaskCompletion.ROUTING, INSTRUCTION]
+            if self.postprocess:
+                instructions.append(TaskCompletion.BACKGROUND)
+            if working:
+                instructions.extend((RISK_INSTRUCTION, HubApplicationTools.DISCOVERY_INSTRUCTION))
+                if any(tool.name == TaskCompletion.NAME for tool in request.tools):
+                    instructions.extend((TaskCompletion.INSTRUCTION, WORK_CYCLE))
+            HubInputContext.insert(request, HubInputContext.SEPARATOR.join(instructions))
         if False:
             yield
 
@@ -40,5 +62,8 @@ class FollowupProcessor:
     close_timeout = None
     review_revision = TaskCompletion.REVISION
 
+    def __init__(self, *, postprocess=False):
+        self.postprocess = postprocess
+
     def session(self, context):
-        return FollowupSession()
+        return FollowupSession(context, self.postprocess)

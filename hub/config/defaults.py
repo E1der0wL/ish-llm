@@ -44,6 +44,7 @@ class HubDefaults:
     }
     TOOL_RETRIES = 2
     TOOL_RETRY_DELAY = 0
+    APPROVAL_MAX_RISK = 20
     FINAL_REVIEW = {
         ReviewPolicy.Field.MAX_CONTINUATIONS: 2,
         ReviewPolicy.Field.MAX_ATTEMPTS: 3,

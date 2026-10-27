@@ -260,4 +260,5 @@ class HubGoalComponent(GoalComponent):
                 write=ResourceToolContract.WRITES,
             )
         )
-        return registry
+        from .record_policy import InternalRecords
+        return InternalRecords.select(registry, InternalRecords.GOALS)

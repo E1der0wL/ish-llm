@@ -39,7 +39,7 @@ class ManagerView:
     UNKNOWN = "—"
     ENABLED_MARK = "[x] "
     DISABLED_MARK = "[ ] "
-    SEPARATOR = " · "
+    SEPARATOR = " • "
     NO_SETTINGS = "This domain has no Component configuration"
     HANDLED = True
     NOT_CONFIRMED = False
@@ -150,7 +150,7 @@ class RAGManagerView:
     SECONDS_SUFFIX = "s"
     POLL_SECONDS = 1
     CANCEL_NOTICE_SECONDS = 5
-    PROGRESS_PREFIX = "RAG · "
+    PROGRESS_PREFIX = "RAG • "
     INDETERMINATE = True
     VISION_BUTTON_WIDTH = 14
     PRIMARY_BUTTON = 0

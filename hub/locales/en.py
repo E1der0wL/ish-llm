@@ -124,28 +124,28 @@ MESSAGES = {
     MessageKey.PARTICIPANTS_REQUIRED: 'Invite a participant before sending a request.',
     MessageKey.PARTICIPANTS_BUSY: 'Wait for active and queued work before changing participants or groups.',
     MessageKey.PARTICIPANTS_STEERING_HINT: 'This follow-up will go to every selected agent. Select one participant to steer its active work.',
-    MessageKey.RECIPIENT_TITLE: 'To · {target}',
+    MessageKey.RECIPIENT_TITLE: 'To • {target}',
     MessageKey.AGENT_DISPLAY_NAME: 'Display name',
     MessageKey.WORKFLOW_DISPLAY_UNAVAILABLE: 'Cannot display the Workflow graph: {reason}',
-    MessageKey.PROGRESS_BACKEND_TOOLS: 'Project · Configuring the default Agent and tools',
-    MessageKey.PROGRESS_BACKEND_SKILLS: 'Project · Installing starter skills',
-    MessageKey.PROGRESS_BACKEND_CANCEL: 'Restart · Cancelling work and draining writes',
-    MessageKey.PROGRESS_BACKEND_RELEASE: 'Restart · Closing previous backend',
-    MessageKey.PROGRESS_BACKEND_PREPARE: 'Backend · Preparing engines and components',
-    MessageKey.PROGRESS_BACKEND_STORAGE: 'Backend · Connecting storage',
-    MessageKey.PROGRESS_BACKEND_PROJECT: 'Project · Selecting and initializing',
-    MessageKey.PROGRESS_BACKEND_SESSIONS: 'Sessions · Loading list',
-    MessageKey.PROGRESS_BACKEND_RECOVER: 'Session · Recovering execution state',
-    MessageKey.PROGRESS_BACKEND_HISTORY: 'View · Loading conversation and execution history',
-    MessageKey.PROGRESS_BACKEND_WAIT: 'Waiting · Previous backend operation',
-    MessageKey.PROGRESS_BACKEND_READ: 'Loading · Reading data',
+    MessageKey.PROGRESS_BACKEND_TOOLS: 'Project • Configuring the default Agent and tools',
+    MessageKey.PROGRESS_BACKEND_SKILLS: 'Project • Installing starter skills',
+    MessageKey.PROGRESS_BACKEND_CANCEL: 'Restart • Cancelling work and draining writes',
+    MessageKey.PROGRESS_BACKEND_RELEASE: 'Restart • Closing previous backend',
+    MessageKey.PROGRESS_BACKEND_PREPARE: 'Backend • Preparing engines and components',
+    MessageKey.PROGRESS_BACKEND_STORAGE: 'Backend • Connecting storage',
+    MessageKey.PROGRESS_BACKEND_PROJECT: 'Project • Selecting and initializing',
+    MessageKey.PROGRESS_BACKEND_SESSIONS: 'Sessions • Loading list',
+    MessageKey.PROGRESS_BACKEND_RECOVER: 'Session • Recovering execution state',
+    MessageKey.PROGRESS_BACKEND_HISTORY: 'View • Loading conversation and execution history',
+    MessageKey.PROGRESS_BACKEND_WAIT: 'Waiting • Previous backend operation',
+    MessageKey.PROGRESS_BACKEND_READ: 'Loading • Reading data',
     MessageKey.PROGRESS_BACKEND_WORK: 'Processing operation',
-    MessageKey.PROGRESS_BACKEND_WRITE: 'Saving · Processing changes',
-    MessageKey.PROGRESS_BACKEND_SCHEMA: 'Settings · Building fields and types',
-    MessageKey.PROGRESS_BACKEND_USAGE: 'Settings · Collecting project usage',
-    MessageKey.PROGRESS_BACKEND_VALIDATE: 'Settings · Validating values',
+    MessageKey.PROGRESS_BACKEND_WRITE: 'Saving • Processing changes',
+    MessageKey.PROGRESS_BACKEND_SCHEMA: 'Settings • Building fields and types',
+    MessageKey.PROGRESS_BACKEND_USAGE: 'Settings • Collecting project usage',
+    MessageKey.PROGRESS_BACKEND_VALIDATE: 'Settings • Validating values',
     MessageKey.OPERATION_EXISTING_RAG_JOB: 'An unfinished registration exists for this document. Select it in the RAG list to retry, or delete it before registering again.',
-    MessageKey.OPERATION_DIAGNOSTICS: 'Hub operation diagnostics · current process',
+    MessageKey.OPERATION_DIAGNOSTICS: 'Hub operation diagnostics • current process',
     MessageKey.OPERATION_CHANGED: 'The state changed during this operation. Reload and review it before trying again. Your draft is preserved.',
     MessageKey.OPERATION_INTERACTION: 'Approval or an answer is required before resuming. Review the request in the input area. Denied work is never replayed automatically.',
     MessageKey.OPERATION_BUSY: 'Work is still running. Wait for it to finish, or stop it before trying again.',
@@ -158,13 +158,13 @@ MESSAGES = {
     MessageKey.OPERATION_ABANDON_REQUIRED: 'These records are needed for resume. Review abandonment in the deletion dialog before deleting them.',
     MessageKey.OPERATION_FAILED: 'The operation could not be completed. Check your input and current state. Open the log for Hub operation diagnostics.',
     MessageKey.SYSTEM: 'System',
-    MessageKey.USAGE_DAILY_TITLE: 'Daily token usage · up to 30 recent days',
-    MessageKey.USAGE_DAILY_RANGE: '{start} ~ {end} · combined project reporting windows',
+    MessageKey.USAGE_DAILY_TITLE: 'Daily token usage • up to 30 recent days',
+    MessageKey.USAGE_DAILY_RANGE: '{start} ~ {end} • combined project reporting windows',
     MessageKey.USAGE_DAILY_UNKNOWN: 'Calls without reported usage: {count} (excluded from token totals)',
     MessageKey.PROMPTS_TITLE: 'Prompt manager',
     MessageKey.PROMPTS_IMPORT_HINT: 'Import Prompt file',
     MessageKey.DEFINITION_EDIT: 'Edit',
-    MessageKey.DEFINITION_MANAGER_HINT: 'Tab regions · ↑↓ select · Enter edit in popup · d delete · Create button below',
+    MessageKey.DEFINITION_MANAGER_HINT: 'Tab regions • ↑↓ select • Enter edit in popup • d delete • Create button below',
     MessageKey.DEFINITION_NAME: 'Name (letters, digits, underscore, hyphen; 1–64 characters)',
     MessageKey.DEFINITION_NAME_INVALID: 'Use 1–64 letters, digits, underscores or hyphens for the name.',
     MessageKey.DEFINITION_OBJECT: 'Enter a JSON object.',
@@ -241,7 +241,7 @@ MESSAGES = {
     MessageKey.SHORTCUT_PROFILE: "profile", MessageKey.SHORTCUT_CATEGORIES: "categories",
     MessageKey.HISTORY_RETRY_QUESTION_UNAVAILABLE: "Cancelled questions can reopen only for the latest request with no running or queued work. Edit an older request to start it again.",
     MessageKey.SETTINGS_DISCARD: "Cancel", MessageKey.SETTINGS_DISCARDED: "Discarded unsaved changes.",
-    MessageKey.SETTINGS_ENGINE_ITEM: "Engine · {name}", MessageKey.SETTINGS_COMPONENT_ITEM: "Component · {name}",
+    MessageKey.SETTINGS_ENGINE_ITEM: "Engine • {name}", MessageKey.SETTINGS_COMPONENT_ITEM: "Component • {name}",
     MessageKey.PROJECT_DELETE_LAST: "Create another project before deleting the last project.",
     MessageKey.FAILURE_EVIDENCE: "Diagnostic evidence: {evidence}",
     MessageKey.FAILURE_DETAILS: "Detailed execution records are available from the auxiliary Log button.",
@@ -289,14 +289,15 @@ MESSAGES = {
     MessageKey.GENERAL_RECOVERY_SUMMARY_CHARS: "Maximum summary characters. Default 2000. The current request and steering instructions are preserved.",
     MessageKey.GENERAL_RECOVERY_MAX_SUMMARY_CALLS: "Maximum summary calls in one recovery. Default 16. Partial summaries are never used for retry.",
     MessageKey.FAILURE_SERVER_DETAIL: "Server error details",
-    MessageKey.FAILURE_MODEL_ANALYSIS: "Model error analysis · may include inference",
-    MessageKey.RECOVERY_REJECTED: "Recovery proposal rejected · {attempt}/{maximum}",
+    MessageKey.FAILURE_MODEL_ANALYSIS: "Model error analysis • may include inference",
+    MessageKey.RECOVERY_REJECTED: "Recovery proposal rejected • {attempt}/{maximum}",
     MessageKey.RECOVERY_RESULT_REJECTED: "The backend rejected the input repair. The original failure is preserved.",
-    MessageKey.RECOVERY_ANALYZING: "Analyzing the error · recovery {attempt}/{maximum}",
-    MessageKey.RECOVERY_COMPACTING: "Summarizing · {attempt}/{maximum}{progress}",
+    MessageKey.RECOVERY_ANALYZING: "Checking the response • {attempt}/{maximum}",
+    MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT: "The limit for refining the final answer was reached. Completed work and received content are preserved. Review the cause below and request only the remaining work.",
+    MessageKey.RECOVERY_COMPACTING: "{icon_compaction} Context compaction • {attempt}/{maximum}{progress}",
     MessageKey.STATUS_SUMMARIZING: "Summarizing",
-    MessageKey.CONTEXT_SUMMARIZING: "Context compaction",
-    MessageKey.RECOVERY_RETRYING: "Retrying with reduced input · recovery {attempt}/{maximum}",
+    MessageKey.CONTEXT_SUMMARIZING: "{icon_compaction} Context compaction",
+    MessageKey.RECOVERY_RETRYING: "Requesting again • {attempt}/{maximum}",
     MessageKey.RECOVERY_RESULT_NO_CORRECTION: "No supported automatic correction was found. Check the input or settings using the guidance above.",
     MessageKey.RECOVERY_RESULT_SUMMARY_INCOMPLETE: "The summary budget was exhausted before completion; no retry was made. Originals are preserved. Split the input or adjust the recovery budget.",
     MessageKey.RECOVERY_RESULT_NOT_REDUCED: "The summary did not reduce input size; no retry was made. Check the current request and tool definitions.",
@@ -317,7 +318,7 @@ MESSAGES = {
     MessageKey.SETTINGS_REQUIRES_RESTART: "Restart required",
     MessageKey.SETTINGS_RESTART_TITLE: "Restart Hub",
     MessageKey.SETTINGS_RESTART_NOW: "Restart",
-    MessageKey.SETTINGS_RESTART_CONFIRM: "Saved. Restart Hub to apply these settings:\n\n{fields}\n\nRestart now?\nEnter: restart · Esc: later (keep saved values)",
+    MessageKey.SETTINGS_RESTART_CONFIRM: "Saved. Restart Hub to apply these settings:\n\n{fields}\n\nRestart now?\nEnter: restart • Esc: later (keep saved values)",
     MessageKey.SETTINGS_RESTARTING: "Restarting Hub",
     MessageKey.GENERAL_CATEGORY_STORAGE: "Data storage",
     MessageKey.GENERAL_WORKSPACE_ROOT: "Hub data root. Enter an absolute path or ~/path. Takes effect after restarting Hub. Existing data is not moved; an empty directory starts a new workspace. Leave blank to use the original launch path.",
@@ -326,7 +327,7 @@ MESSAGES = {
     MessageKey.OBJECT_RENDERED: 'Rendered',
     MessageKey.OBJECT_EMPTY: 'No matching rows.',
     MessageKey.OBJECT_LOADING: 'Preparing table…',
-    MessageKey.OBJECT_TABLE_COUNT: 'Row {index}/{visible} · {total} total · Column {column}',
+    MessageKey.OBJECT_TABLE_COUNT: 'Row {index}/{visible} • {total} total • Column {column}',
     MessageKey.SHORTCUT_OBJECT_RAW: 'Source/rendered',
     MessageKey.SHORTCUT_OBJECT_SORT: 'Sort column',
     MessageKey.SHORTCUT_CANCEL: 'Cancel queued',
@@ -371,7 +372,7 @@ MESSAGES = {
     MessageKey.MCP_IMPORT_HINT: 'Import MCP file',
     MessageKey.RAG_IMPORT_HINT: 'Import RAG file',
     MessageKey.WORKFLOWS_IMPORT_HINT: 'Import Workflow file',
-    MessageKey.MANAGER_HINT: 'Tab: region · ↑↓: select · Enter: edit in editor · d: delete',
+    MessageKey.MANAGER_HINT: 'Tab: region • ↑↓: select • Enter: edit in editor • d: delete',
     MessageKey.MANAGER_EMPTY: 'No items registered.',
     MessageKey.MANAGER_IMPORTED: 'Imported.',
     MessageKey.MANAGER_SAVED: 'Saved.',
@@ -392,8 +393,8 @@ MESSAGES = {
     MessageKey.RAG_PHASE_FAILED: 'Registration failed',
     MessageKey.RAG_PHASE_CANCELLED: 'Cancelled',
     MessageKey.RAG_PHASE_UNCONFIRMED: 'Execution state needs verification',
-    MessageKey.RAG_JOB_COUNTS: 'Embedding {done}/{total} chunks · Checkpoints reused {reused} · Extraction {batches} batches',
-    MessageKey.RAG_JOB_TIMES: 'Embedding {embedding}s · Extraction {extraction}s · This attempt elapsed {elapsed}s',
+    MessageKey.RAG_JOB_COUNTS: 'Embedding {done}/{total} chunks • Checkpoints reused {reused} • Extraction {batches} batches',
+    MessageKey.RAG_JOB_TIMES: 'Embedding {embedding}s • Extraction {extraction}s • This attempt elapsed {elapsed}s',
     MessageKey.RAG_JOB_RETRY_HINT: 'Retry reuses completed chunks. An active job cannot be resumed.',
     MessageKey.RAG_JOB_RETRY_CHECK: "Retry checks whether this job can currently resume.",
     MessageKey.RAG_JOB_READONLY: 'Failed/cancelled jobs can be deleted. Cancelled jobs cannot be resumed.',
@@ -415,20 +416,20 @@ MESSAGES = {
     MessageKey.MANAGER_DELETE_CONFIRM: 'Delete {name}?',
     MessageKey.TOOLS_IMPORT_HINT: 'Import Tool path',
     MessageKey.TOOLS_COLUMNS: 'Name / Last modified / Description',
-    MessageKey.TOOLS_HINT: 'Tab: region · ↑↓: select · Space: toggle built-in · Enter: folder · d: delete',
+    MessageKey.TOOLS_HINT: 'Tab: region • ↑↓: select • Space: toggle built-in • Enter: folder • d: delete',
     MessageKey.TOOLS_EMPTY: 'No tools registered.',
     MessageKey.TOOLS_IMPORTED: 'Tool imported. Prepare dependencies and enable it separately before use.',
     MessageKey.TOOLS_FAILED: 'Operation failed; see the error notification.',
     MessageKey.TOOLS_EXPLORER_FAILED: 'File manager exited with code {code}',
     MessageKey.TOOLS_DELETE_CONFIRM: 'Delete {name}? If enabled, it will also be disabled.',
-    MessageKey.WELCOME_KEYS: 'ESC Panel · c in panel: New session · Ctrl+S Auxiliary',
+    MessageKey.WELCOME_KEYS: 'ESC Panel • c in panel: New session • Ctrl+S Auxiliary',
     MessageKey.SESSION_REQUIRED: 'Create a session first: ESC, then c in the session list.',
-    MessageKey.ACTIVITY_HINT: 'Last 300 activity / provider entries each · Navigation: scroll · ESC / Enter / Ctrl+L: close',
-    MessageKey.ACTIVITY_PROVIDER_PROJECT: 'Provider log · Current project',
+    MessageKey.ACTIVITY_HINT: 'Last 300 activity / provider entries each • Navigation: scroll • ESC / Enter / Ctrl+L: close',
+    MessageKey.ACTIVITY_PROVIDER_PROJECT: 'Provider log • Current project',
     MessageKey.ACTIVITY_PROVIDER_FILE: 'Log file: {path}',
-    MessageKey.ACTIVITY_PROVIDER_TRACEBACK: 'Traceback · Stored exceptions and frames (original error messages omitted)',
+    MessageKey.ACTIVITY_PROVIDER_TRACEBACK: 'Traceback • Stored exceptions and frames (original error messages omitted)',
     MessageKey.ACTIVITY_PROVIDER_RUN_DETAILS: 'Provider details for this Run:',
-    MessageKey.ACTIVITY_PROVIDER_WORKSPACE: 'Provider log · Workspace-wide',
+    MessageKey.ACTIVITY_PROVIDER_WORKSPACE: 'Provider log • Workspace-wide',
     MessageKey.STATUS_WAITING_INPUT: '{icon_pending} Awaiting reply',
     MessageKey.STATUS_WAITING_APPROVAL: '{icon_waiting_approval} Awaiting approval',
     MessageKey.STATUS_ANSWER_SENDING: '{icon_waiting} Sending answer',
@@ -444,10 +445,10 @@ MESSAGES = {
     MessageKey.WELCOME_TITLE: "No sessions yet",
     MessageKey.WELCOME_HINT: "Create a session to start a conversation.",
     MessageKey.OUTPUT_PENDING: "Receiving output block…",
-    MessageKey.OUTPUT_IMAGE: "Image · {caption}",
+    MessageKey.OUTPUT_IMAGE: "Image • {caption}",
     MessageKey.OUTPUT_IMAGE_LOADING: "Converting image…",
     MessageKey.OUTPUT_ERROR: "Unable to display output: {error}",
-    MessageKey.PROGRESS_MORE: " · +{count} more",
+    MessageKey.PROGRESS_MORE: " • +{count} more",
     MessageKey.PROGRESS_SETTINGS_LOAD: "Loading settings",
     MessageKey.PROGRESS_SETTINGS_WORK: "Applying settings operation",
     MessageKey.PROGRESS_COMPONENT: "Processing {command}",
@@ -468,7 +469,7 @@ MESSAGES = {
 
     MessageKey.HISTORY_TITLE: "Requests and work", MessageKey.HISTORY_EMPTY: "No saved requests.",
 
-    MessageKey.HISTORY_HINT: "↑↓ move · Space check · d delete · e edit · r retry · Tab regions",
+    MessageKey.HISTORY_HINT: "↑↓ move • Space check • d delete • e edit • r retry • Tab regions",
 
     MessageKey.HISTORY_RESPONSE: "Response", MessageKey.HISTORY_DELETE: "Delete",
     MessageKey.HISTORY_EDIT: "Edit", MessageKey.HISTORY_RETRY: "Retry", MessageKey.HISTORY_CLOSE: "Close",
@@ -492,7 +493,7 @@ MESSAGES = {
     MessageKey.PROJECT_ACTIVITY: "Project execution history", MessageKey.ACTIVITY_EMPTY: "No execution history recorded.",
 
 
-    MessageKey.ACTIVITY_SOURCE: "Session: {session_id} · Run: {run_id}",
+    MessageKey.ACTIVITY_SOURCE: "Session: {session_id} • Run: {run_id}",
 
     MessageKey.ACTIVITY_STEP: "Step: {step_id}", MessageKey.ACTIVITY_CODE: "Code: {code}",
 
@@ -507,7 +508,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_GLOBAL_REGISTRATION: "Select a project to choose its components and engines.",
 
-    MessageKey.SETTINGS_PROJECT_KEYS: "c new · d delete\ne rename · r clone",
+    MessageKey.SETTINGS_PROJECT_KEYS: "c new • d delete\ne rename • r clone",
 
     MessageKey.SETTINGS_CANCELLED: "Discarded changes on this page.",
 
@@ -550,9 +551,9 @@ MESSAGES = {
 
     MessageKey.COMPONENT_HELP: 'Open this manager with /{command}. Tab moves between input, list and actions; ←/→ selects buttons and Enter/Space activates them. Changes apply when you save, import or delete.',
 
-    MessageKey.SEARCH_TITLE: "Find in this session", MessageKey.SEARCH_HINT: "Type to search · Enter next · Alt+P previous · Esc close",
+    MessageKey.SEARCH_TITLE: "Find in this session", MessageKey.SEARCH_HINT: "Type to search • Enter next • Alt+P previous • Esc close",
 
-    MessageKey.SEARCH_COUNT: "{index} / {count} matches · Enter next · Alt+P previous",
+    MessageKey.SEARCH_COUNT: "{index} / {count} matches • Enter next • Alt+P previous",
 
     MessageKey.SEARCH_PREVIOUS: "Previous", MessageKey.SEARCH_NEXT: "Next", MessageKey.SEARCH_CLOSE: "Close",
 
@@ -581,7 +582,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_LOADING: "Loading…", MessageKey.SETTINGS_EMPTY: "No projects",
 
-    MessageKey.SETTINGS_FOOTER: "ESC panel · ↑↓ fields · ←→ buttons · e editor · Enter edit · Tab regions",
+    MessageKey.SETTINGS_FOOTER: "ESC panel • ↑↓ fields • ←→ buttons • e editor • Enter edit • Tab regions",
 
     MessageKey.SETTINGS_GENERAL: "General",
 
@@ -613,7 +614,7 @@ MESSAGES = {
 
     MessageKey.LANGUAGE_PACK_DELETE: "Delete pack",
 
-    MessageKey.LANGUAGE_PACK_NAMES: "Available: {names} · Missing translations use English",
+    MessageKey.LANGUAGE_PACK_NAMES: "Available: {names} • Missing translations use English",
 
     MessageKey.LANGUAGE_PACK_CODE: "Pack code (e.g. ja, custom-ko). Built-in ko/en cannot be replaced or deleted.",
 
@@ -633,7 +634,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_USAGE: "Usage statistics",
 
-    MessageKey.SETTINGS_USAGE_SCOPE: "Active workspace projects · Reload to refresh · Each project uses its own accounting period",
+    MessageKey.SETTINGS_USAGE_SCOPE: "Active workspace projects • Reload to refresh • Each project uses its own accounting period",
 
     MessageKey.SETTINGS_USAGE_EMPTY: "No usage statistics available.",
 
@@ -643,7 +644,7 @@ MESSAGES = {
 
     MessageKey.SETTINGS_USAGE_PERIOD: "Last {seconds}s",
 
-    MessageKey.SETTINGS_USAGE_ROW: "{title} ({period})\n  Calls {call_count} · Known tokens {known_tokens} · Reserved tokens {reserved_tokens} · Unknown usage {unknown_calls} calls",
+    MessageKey.SETTINGS_USAGE_ROW: "{title} ({period})\n  Calls {call_count} • Known tokens {known_tokens} • Reserved tokens {reserved_tokens} • Unknown usage {unknown_calls} calls",
 
     MessageKey.SETTINGS_NO_DESCRIPTION: 'The implementation provides no detailed description. Check the type/constraints below and retain existing values when unsure. Arrays and objects use JSON.', MessageKey.SETTINGS_NO_FIELDS: "No public settings fields.",
     MessageKey.SETTINGS_EDITOR_FAILED: "Editor exited with status {code}. The previous draft is unchanged.",
@@ -664,8 +665,9 @@ MESSAGES = {
     MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL: "Progress refresh interval (seconds)",
     MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL_DESCRIPTION: "Refresh interval for progress bars and spinner animation: 0.01–10 seconds, default 0.1. Applies on save to both settings and chat.",
     MessageKey.RESPONSE_FAILED: "The response could not be completed.",
+    MessageKey.RESPONSE_EMPTY: "The model returned no final answer. Any provided reasoning remains visible above.",
 
-    MessageKey.SETTINGS_VALUE_HINT: "Blank=unset · strings as text; numbers/booleans/arrays/objects as JSON · null is explicit · Reload discards edits",
+    MessageKey.SETTINGS_VALUE_HINT: "Blank=unset • strings as text; numbers/booleans/arrays/objects as JSON • null is explicit • Reload discards edits",
 
     MessageKey.SETTINGS_COMPONENTS_IMMEDIATE: "Component and engine selection applies on Save. Disabling retains data and settings.",
 
@@ -694,15 +696,15 @@ MESSAGES = {
 
     MessageKey.ASSISTANT: "ASSISTANT", MessageKey.INFO: "INFO", MessageKey.REASONING: "REASONING",
 
-    MessageKey.SESSION_HINT: "c new · d delete\ne rename · r clone", MessageKey.INPUT_HINT: "Enter send · Ctrl+Space newline · ↑↓ select · Tab confirm",
+    MessageKey.SESSION_HINT: "c new • d delete\ne rename • r clone", MessageKey.INPUT_HINT: "Enter send • Ctrl+Space newline • ↑↓ select • Tab confirm",
 
     MessageKey.SETTINGS_JSON_OBJECT: "The settings JSON must be an object.",
     MessageKey.SETTINGS_JSON_UPDATED: "JSON changes are in the draft. Use Save to apply them.",
-    MessageKey.FOOTER: "ESC panel · Ctrl+S auxiliary · Ctrl+D stop · Alt + Navigation scroll · Enter send mode",
+    MessageKey.FOOTER: "ESC panel • Ctrl+S auxiliary • Ctrl+D stop • Alt + Navigation scroll • Enter send mode",
 
-    MessageKey.FOOTER_SHORT: "ESC panel · Alt + Navigation scroll",
+    MessageKey.FOOTER_SHORT: "ESC panel • Alt + Navigation scroll",
 
-    MessageKey.PREVIEW_NOTICE: "Sample data · No model calls or storage.",
+    MessageKey.PREVIEW_NOTICE: "Sample data • No model calls or storage.",
 
     MessageKey.PREVIEW_SUBMIT: "Send preview only. Your draft is preserved.",
 
@@ -730,9 +732,9 @@ MESSAGES = {
 
     MessageKey.CONFIRM: "Confirm", MessageKey.CANCEL: "Cancel", MessageKey.CLONE_BUSY: "Stop or finish the source Run and queued requests before cloning.",
 
-    MessageKey.QUEUED: "{status} · queued {count}", MessageKey.WAITING: "{icon_waiting} Waiting for the model response",
+    MessageKey.QUEUED: "{status} • queued {count}", MessageKey.WAITING: "{icon_waiting} Waiting for the model response",
 
-    MessageKey.RUN_PROGRESS: "{status} · {engine} · {seconds}s · queued {count}",
+    MessageKey.RUN_PROGRESS: "{status} • {engine} • {seconds}s • queued {count}",
 
     MessageKey.ELAPSED: "Elapsed {duration}", MessageKey.ELAPSED_UNKNOWN: "Elapsed time unavailable",
 
@@ -810,8 +812,8 @@ MESSAGES = {
     MessageKey.SHORTCUT_SEND: 'send',
     MessageKey.TOOLS_BUILTIN: 'Built-in tool',
     MessageKey.SHORTCUT_TOOLS_TOGGLE: 'enable/disable',
-    MessageKey.QUESTION_WAITING: 'Waiting for your answer · Question',
-    MessageKey.QUESTION_SENDING: 'Sending answer · {title}',
+    MessageKey.QUESTION_WAITING: 'Waiting for your answer • Question',
+    MessageKey.QUESTION_SENDING: 'Sending answer • {title}',
     MessageKey.QUESTION_DETAILS_HINT: 'Ctrl+O view full details',
     MessageKey.APPROVAL_POLICY_ENABLED: 'Enable automatic approval rules. false asks for each approval-required tool; true automatically approves only matching actions.',
     MessageKey.APPROVAL_POLICY_SCHEME: 'Risk scale identifier. The Hub model assessment uses hub-model-risk-v1. Custom classifiers must use their own scale.',
@@ -823,14 +825,14 @@ MESSAGES = {
     MessageKey.APPROVAL_TOOL: 'Tool: {name}',
     MessageKey.APPROVAL_RISK: 'Risk: {value}',
     MessageKey.APPROVAL_MODEL_REASON: 'Model assessment reason: {reason}',
-    MessageKey.APPROVAL_MODEL_RISK: 'Model assessment (advisory): {level} · {reason}',
+    MessageKey.APPROVAL_MODEL_RISK: 'Model assessment (advisory): {level} • {reason}',
     MessageKey.TOOL_HISTORY_MORE: '{count} earlier tools',
     MessageKey.APPROVAL_ARGUMENT: '{name}: {kind}, {size} (see details)',
     MessageKey.RETRY_PROVIDER: 'Model call',
     MessageKey.RETRY_TOOL: 'Tool {name}',
-    MessageKey.RETRY_REPAIRING: 'Preparing retry · {target} · attempt {next_attempt}/{maximum} · correcting arguments',
-    MessageKey.RETRY_WAIT: 'Waiting to retry · {target} · {attempt}/{maximum} attempts completed · attempt {next_attempt} in {seconds}s',
-    MessageKey.RETRY_ACTIVE: 'Retrying · {target} · attempt {attempt}/{maximum}',
+    MessageKey.RETRY_REPAIRING: 'Preparing retry • {target} • attempt {next_attempt}/{maximum} • correcting arguments',
+    MessageKey.RETRY_WAIT: 'Waiting to retry • {target} • {attempt}/{maximum} attempts completed • attempt {next_attempt} in {seconds}s',
+    MessageKey.RETRY_ACTIVE: 'Retrying • {target} • attempt {attempt}/{maximum}',
     MessageKey.QUESTION_TEXT_HINT: 'Type a choice number or your own answer, then press Enter.',
     MessageKey.QUESTION_FREE_TEXT_HINT: 'Type your answer, then press Enter.',
     MessageKey.QUESTION_CHOICE_HINT: 'Type a choice number, then Enter. Append an input value after the number if required.',

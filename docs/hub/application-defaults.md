@@ -39,6 +39,18 @@ RAG and Memory processing receive separate copies of the Hub provider retry
 template (four attempts, 10-second initial and 60-second maximum delay); neither
 inherits a Loop caller's runtime policy. These are new-Project defaults only.
 
+New Projects automatically approve approval-targeted Tools only when Hub's model
+risk classification is known and at most 20 (`low`). `HubDefaults.APPROVAL_MAX_RISK`
+owns this threshold; the backend's ordinary `ApprovalPolicy` enforces it. Unknown
+scores, scores above 20, different classification schemes and uncertain replay
+still require approval. An explicitly supplied approval policy (including an empty
+or disabled policy) is preserved. Reopening a Project never changes its policy.
+For live pauses Hub's `AutomaticApprovals` continues only durable policy-approved
+interactions that the public resume plan permits, retaining the checkpoint and
+partial output. It never invents decisions or `retry_nodes`, never replays old
+pauses on startup, and skips denied/cancelled/uncertain interactions. Restart and
+shutdown cancel pending continuation scheduling.
+
 ## Named JSON presets
 
 Use the profile dropdown's **Export current settings**, enter a name, and save.
@@ -88,7 +100,14 @@ Memory owns source references, chunk cursors and summary persistence. A custom
 Tool-data destination is preserved and remains the user's responsibility. An
 explicit `compress_tools` preview mode is not combined with summary mode.
 The original result is preserved if summary processing fails or exhausts its
-budget; this does not bypass the backend's context guard. Giant user inputs or
+budget. With summary mode and the `memory_tool_result` Tool selected, Hub replaces
+an oversized remaining model-visible Tool body with its backend-issued Run/Step
+reference. The model can read bounded ranges instead of resending the full output
+or repeating the command. This is explicitly an incomplete summary; it does not
+claim that unread data was analyzed. New default Agents select this Run-bound reader;
+existing restricted Agent selections are never expanded automatically. Without
+the reader or a durable reference, the original is retained and backend context
+guards remain authoritative. Giant user inputs or
 Tool definitions can still exceed the configured token limit. Failed/partial
 summary requests retain the backend's explicit-resume requirements.
 
@@ -149,21 +168,25 @@ three review attempts, two continuations, a five-second hook timeout and a
 Engine registrations retain their own execution policy; enable final review
 explicitly when appropriate. The title Engine is not reviewed.
 
-Before a final answer, the model reports `completed`, `information`, or `blocked`
-through `hub_task_result`. Completed work requires actual call IDs in the current
-Loop execution's uncompacted tool/result transcript. Missing/fabricated evidence
-causes bounded continuation with corrective feedback. Explanation-only requests
-may report information; concrete blockers must be disclosed. Explicit Agent
-selections that exclude the report tool opt out of this application review.
+The model first decides whether a request needs external work or a conversational
+answer. Greetings, explanations and chat-only drafts do not require a completion
+report or an inventory of Goals, Skills and Refinement. `hub_task_result` is optional
+for work that benefits from explicit evidence. If used, a completed report requires
+actual call IDs in the current Loop execution's uncompacted transcript. Fabricated
+evidence causes bounded continuation without repeating effects. A missing report
+alone does not reject an answer. An empty final answer (including reasoning-only or
+suggestion-only output) requests an ordinary answer using already completed results.
+If this budget is exhausted, the UI retains provider-visible thoughts and explains
+the final-answer failure instead of displaying only a completed badge.
 
 Every cited call must have an actual result, including citations in information
 and blocked reports. Duplicate citations are rejected. A report must also follow
 the latest tool result: additional work invalidates a stale report and requests a
 fresh verification/report without repeating effects. The review revision is
-`hub-task-evidence-v2`.
+`hub-task-evidence-v3`.
 
-`asset/prompts/work-cycle.md` is transient completion context when the report tool
-is available. It explains active-goal reuse, candidate Memory, evidence-based
+`asset/prompts/work-cycle.md` is transient completion context after actual Tool use,
+when the report tool is available. It explains active-goal reuse, candidate Memory, evidence-based
 Refinement, and checking saved files/diffs/test results before claiming completion.
 This also reaches existing Hub Loop projects without overwriting their saved
 prompts, skills or Agent tool selections. It does not silently enable final review
@@ -173,6 +196,49 @@ This is an evidence gate and model self-assessment, not proof that arbitrary cod
 is correct. Relevant tests and actual tool results remain necessary. It never
 grants approval, retries uncertain effects, or resets backend budgets. The backend
 owns candidate visibility, review receipts, cancellation and resume behavior.
+
+## Quiet post-response records
+
+The ish installer and standalone Hub application enable `HubConfig.postprocess`.
+Embedded runtimes opt in explicitly with `postprocess=True`; `None` leaves this
+application composition choice unset. No stored preference schema or old records
+are migrated. Ordinary answers finish first. Standalone greetings/thanks and
+failed, interrupted or paused requests do not start bookkeeping. Automatic title
+generation also waits for a substantive exchange.
+
+`BackgroundRecords` creates a hidden Session and a tool-free `_hub_postprocess`
+Agent/Engine job through public backend APIs. It uses the source Agent's chosen
+model/connection, with independent auxiliary request parameters and no inherited
+large output reserve. This adds a bounded model call and normal backend usage
+accounting after substantive answers. Graph Agents without their own model are
+skipped. Inputs are bounded excerpts, not a second copy of the complete transcript.
+
+The resulting plan can add, edit and delete internal Memory/Goal records, or
+create an unapplied Refinement proposal for the captured Agent. New memories use
+the configured tool-write status; existing candidate and confirmed records are
+eligible for editing/deletion. New Goals record authorized work, never an invented
+task. Deletion uses public component APIs (Memory retains recoverable history).
+Component policies are checked again before applying. Existing records use
+revision/generation or version checks; a conflict does not overwrite newer data.
+The model cannot select another Project, execute Tools, change uncaptured records,
+create arbitrary work or apply Refinement. Partial successful writes
+remain valid records if a later independent write conflicts; errors are logged.
+
+Only live completion events schedule work, once per observed Run. There is one
+model job at a time, with a 60-second job deadline and bounded deduplication history.
+A newer foreground Run cancels older work for that Session. Shutdown/restart
+cancels jobs, and historical Runs are not replayed after restart. Internal job
+events do not change the conversation's status, notifications or render tick.
+Failures remain in Project operational logs as `hub.background.failed`; they do
+not turn the user's successful answer into a failure. Internal Sessions are
+soft-deleted after cleanup; backend storage retains its ownership and evidence.
+
+Hub Goal writing Tools are approval-free internal record operations, while their
+effect classification, Session scope and backend receipts remain intact. Native
+Memory create/update/delete Tools already require no approval; Hub retains their
+write-status policy and concurrency checks. Refinement application and external
+file/shell effects keep the foreground approval-policy flow. Important work
+needed to answer the current request still runs in the foreground.
 
 ## Setting and component guidance
 

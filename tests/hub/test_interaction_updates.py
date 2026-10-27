@@ -44,7 +44,7 @@ class ObjectTests(unittest.TestCase):
 
     def test_reasoning_accumulates_until_the_run_finishes(self):
         phases, run = ThinkingPhases(), SimpleNamespace(id="run", status="running")
-        completion = SimpleNamespace(id="call", reasoning_content="think one")
+        completion = SimpleNamespace(id="call", step_id="model-step", reasoning_content="think one")
         event = SimpleNamespace(completion=completion, delta=None, output=None)
         phases.observe(run, event)
         visible = lambda: phases.visible("run", "", active=True, content="prior answer")

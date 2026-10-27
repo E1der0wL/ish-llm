@@ -31,7 +31,7 @@ MISSING = object()
 class FieldDisplay:
     JSON_LABEL = "JSON"
     TYPE_SEPARATOR = " | "
-    DESCRIPTION_SEPARATOR = " · "
+    DESCRIPTION_SEPARATOR = " • "
     ENUM_SEPARATOR = ", "
     ARRAY_OPEN = "["
     ARRAY_CLOSE = "]"

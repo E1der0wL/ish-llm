@@ -14,6 +14,36 @@ from tests.hub.test_live import until
 
 
 class NamingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_greeting_does_not_start_title_call_but_later_work_can(self):
+        titles = []
+        def reply(**request):
+            yield chunk(content='안녕하세요!', finish='stop')
+        def title(**request):
+            titles.append(request)
+            yield chunk(content='설정 확인', finish='stop')
+        def factory(config):
+            return LargeLanguageModel(config.workspace, engines={
+                'loop':LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=reply)),
+                TITLE_ENGINE:TitleEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=title))})
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model='test/chat'), factory)
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            sid = await runtime.new_session()
+            session = runtime.sessions[sid]
+            await runtime.submit(sid, '안녕?')
+            await session.run.wait_idle()
+            await runtime.snapshot()
+            await until(lambda: not runtime.namer.tasks)
+            await runtime.snapshot()
+            self.assertEqual(titles, [])
+            self.assertFalse(runtime.namer.tasks)
+            await runtime.submit(sid, '프로젝트 설정에 대해 설명해줘')
+            await session.run.wait_idle()
+            await runtime.snapshot()
+            await until(lambda: not runtime.namer.tasks)
+            self.assertEqual(len(titles), 1)
+
     async def test_inherit_session_provider_retry_after_config_change_and_isolate_history(self):
         calls = []
         def answer(**kwargs):
@@ -81,7 +111,7 @@ class NamingTests(unittest.IsolatedAsyncioTestCase):
                     **snapshot['definition'], 'completion':{'model':'test/title', 'max_tokens':1024}
                 }, expected_revision=snapshot['revision'])
                 identifier = await runtime.new_session()
-                await runtime.submit(identifier, "hello")
+                await runtime.submit(identifier, "Explain the saved project configuration")
                 await runtime.sessions[identifier].run.wait_idle()
                 await runtime.snapshot()
                 await until(lambda: not runtime.namer.tasks)

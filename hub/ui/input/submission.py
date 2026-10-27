@@ -9,7 +9,7 @@ from dataclasses import dataclass
 class SubmittedDraft:
     EMPTY_TEXT = ""
     ABSENT = None
-    RECOVERY_SEPARATOR = " · "
+    RECOVERY_SEPARATOR = " • "
     project_id: str
     session_id: str
     text: str

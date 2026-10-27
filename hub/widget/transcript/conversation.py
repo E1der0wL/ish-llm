@@ -132,7 +132,7 @@ def render_messages(
         if not user and message.author and message.role in (MessageRole.ASSISTANT, ReasoningMessage.ROLE):
             label = (message.author if message.role == MessageRole.ASSISTANT
                      else message.author + TranscriptPresentation.LABEL_SEPARATOR + t(MessageKey.REASONING))
-        if message.role != MessageRole.SYSTEM and (
+        if message.role not in (MessageRole.SYSTEM, ReasoningMessage.ROLE) and (
             message.activity or message.phase or message.status
         ):
             label += TranscriptPresentation.LABEL_SEPARATOR + (
@@ -142,13 +142,16 @@ def render_messages(
             label += TranscriptPresentation.LABEL_SEPARATOR + t.elapsed(
                 message.elapsed_seconds
             )
-        elif message.time:
+        elif message.time and message.role != ReasoningMessage.ROLE:
             label += (
                 TranscriptPresentation.SYSTEM_TIME_SEPARATOR
                 if message.role == MessageRole.SYSTEM
                 else TranscriptPresentation.LABEL_SEPARATOR
             ) + message.time
         label = Text(label, overflow=TranscriptPresentation.OVERFLOW)
+        if message.activity.startswith(t.icons.compaction + TranscriptLayout.SPACE):
+            start = label.plain.index(message.activity)
+            label.stylize(theme.muted, start, start + len(message.activity))
         header_lines = (
             []
             if message.role == ChatMessage.DRAFT or section == RenderSection.BODY
@@ -163,28 +166,21 @@ def render_messages(
                 if user
                 else TranscriptPresentation.ORIGIN
             )
+            header_style = (
+                ThemeStyle.joined(ThemeSelector.USER.style, ThemeStyle.BOLD) if user
+                else ThemeStyle.joined(
+                    ThemeSelector.SYSTEM.style if message.role == MessageRole.SYSTEM else ThemeSelector.ACCENT.style,
+                    ThemeStyle.BOLD,
+                )
+            )
             lines.append(
                 [
                     (
                         TranscriptLayout.EMPTY,
                         TranscriptLayout.INDENT + TranscriptLayout.SPACE * pad,
                     ),
-                    (
-                        (
-                            ThemeStyle.joined(ThemeSelector.USER.style, ThemeStyle.BOLD)
-                            if user
-                            else (
-                                ThemeStyle.joined(
-                                    ThemeSelector.SYSTEM.style, ThemeStyle.BOLD
-                                )
-                                if message.role == MessageRole.SYSTEM
-                                else ThemeStyle.joined(
-                                    ThemeSelector.ACCENT.style, ThemeStyle.BOLD
-                                )
-                            )
-                        ),
-                        text,
-                    ),
+                    *((ThemeStyle.joined(header_style, _segment_style(segment.style)), segment.text)
+                      for segment in segments if not segment.control),
                 ]
             )
         if section == RenderSection.HEADER:

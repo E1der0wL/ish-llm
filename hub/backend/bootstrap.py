@@ -100,6 +100,10 @@ def create_backend(config: "HubConfig"):
     )
     if config.auto_title:
         engines[TITLE_ENGINE] = TitleEngine()
+    if config.postprocess:
+        from .project.postprocessing import PostprocessingEngine
+        from .project.postprocessing_values import Postprocessing
+        engines[Postprocessing.ENGINE] = PostprocessingEngine()
     for engine in engines.values():
         if isinstance(engine, RetryObservationMixin):
             engine.retry_monitor = monitor
@@ -129,6 +133,7 @@ def create_backend(config: "HubConfig"):
             HubBuiltinTools(
                 config.file_root,
                 test_root=BackendComposition.test_workspace_root(config.workspace),
+                postprocess=bool(config.postprocess),
             ),
         )
     }

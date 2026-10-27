@@ -13,7 +13,8 @@ from ...asset.guides import STARTER_SKILLS
 from .agents import DEFAULT_AGENT
 from .title_contract import TitleEngineIdentity
 from llm.core.implementation_parameters import ImplementationParameters
-from llm.core.policies import ToolRetryPolicy
+from llm.core.policies import ApprovalPolicy, ToolRetryPolicy
+from llm.core.tool_contracts import ToolClassification
 from llm.services.configuration_records import ProjectConfigForm
 from llm.engines.loop.configuration import LoopParameters
 from llm.components.rag import RAGComponent
@@ -72,6 +73,15 @@ async def create_project(
 
     project_config = ProjectConfig.from_dict(deepcopy(config))
     # Application creation presets; explicit user policies always win.
+    from ..tools.advice import MODEL_RISK_SCHEME
+
+    project_config.policies.setdefault(
+        ApprovalPolicy.SECTION,
+        ApprovalPolicy.selected_threshold(
+            MODEL_RISK_SCHEME, HubDefaults.APPROVAL_MAX_RISK,
+            [ToolClassification().category],
+        ),
+    )
     presets = HubDefaults.components()
     for name, preset in presets.items():
         if name in components:

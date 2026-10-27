@@ -48,11 +48,11 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(PreferencesStore(directory).load()["profile"]["display_name"], "Nickname")
                 with set_app(app):
                     screen.choose("engine:loop")
-                    self.assertEqual(screen.page_title(), "프로젝트 • 엔진 · loop")
+                    self.assertEqual(screen.page_title(), "프로젝트 • 엔진 • loop")
                     project_page = screen.page
                     loop_field = next(iter(project_page.engine_forms["loop"].fields.values()))
                     screen.choose("component:tools")
-                    self.assertEqual(screen.page_title(), "프로젝트 • 컴포넌트 · tools")
+                    self.assertEqual(screen.page_title(), "프로젝트 • 컴포넌트 • tools")
                     self.assertIs(screen.page, project_page)
                     self.assertNotIn(loop_field, screen.page.fields())
                     screen.choose("project:general")

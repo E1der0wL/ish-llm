@@ -19,6 +19,7 @@ from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorInfo
 from llm.core.model_protocol import StopReason
 from llm.core.tool_codes import ToolErrorCode
+from llm.engines.loop.review import LoopReview
 
 
 _GUIDANCE = {
@@ -91,7 +92,7 @@ class ErrorPresentation:
     EMPTY = ""
     NEWLINE = "\n"
     PARAGRAPH = NEWLINE + NEWLINE
-    EVIDENCE_SEPARATOR = " · "
+    EVIDENCE_SEPARATOR = " • "
     HTTP_STATUS = "HTTP {status}"
     FINISH_REASON = "finish_reason={reason}"
     LITERAL_INDENT = "    "
@@ -170,6 +171,8 @@ def operation_notice(error, t):
 
 
 _CODE_GUIDANCE = {
+    LoopReview.CONTINUATION_CODE: MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT,
+    LoopReview.ATTEMPTS_CODE: MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT,
     CompletionErrorCode.INVALID_RESPONSE: MessageKey.FAILURE_COMPLETION_INVALID,
     ToolErrorCode.INVOCATION_INVALID: MessageKey.FAILURE_TOOL_ARGUMENTS,
     RunErrorCode.TOOL_CONTRACT: MessageKey.FAILURE_TOOL_CONTRACT,

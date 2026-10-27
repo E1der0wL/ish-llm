@@ -4,34 +4,6 @@ import hashlib
 import json
 from llm.core.model_protocol import ModelRole
 from llm.core.agents import AgentDefinition
-from llm.core.schema import object_schema, implementation_schema, SchemaBoolean
-from llm.engines.loop.configuration import LoopParameters
-from llm.providers.requests import provider_schema
-
-
-class TitleCompletion:
-    """Title execution policy; model parameters belong to the title Agent."""
-
-    COMPLETION = AgentDefinition.Field.COMPLETION
-    PROVIDER = LoopParameters.PROVIDER
-    ABSENT = None
-
-    def __init__(self, value):
-        self._value = value
-
-    @property
-    def provider(self):
-        return self._value.get(self.PROVIDER, {})
-
-    @classmethod
-    def schema(cls, adapter):
-        return implementation_schema(
-            config=object_schema({}, additionalProperties=SchemaBoolean.REJECT),
-            policy=object_schema(
-                {cls.PROVIDER: provider_schema()},
-                additionalProperties=SchemaBoolean.REJECT,
-            ),
-        )
 
 
 class TitleSessionMetadata:
@@ -92,7 +64,7 @@ class TitleAttempt:
     VERSION = 2
     VERSION_FIELD = "version"
     RUN = "run"
-    COMPLETION = TitleCompletion.COMPLETION
+    COMPLETION = AgentDefinition.Field.COMPLETION
     SORT_KEYS = True
     ENSURE_ASCII = False
 

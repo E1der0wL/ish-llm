@@ -184,6 +184,9 @@ def install(
     """Install live Hub with default storage; preview=True opts out of the backend."""
     if not preview and config is HubInstallation.ABSENT:
         config = HubConfig()
+    if not preview and config.postprocess is None:
+        from dataclasses import replace
+        config = replace(config, postprocess=True)
     previous = getattr(
         prompt, HubInstallation.INSTALLATION_ATTRIBUTE, HubInstallation.ABSENT
     )

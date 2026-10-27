@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from hub.asset.guides import WORK_CYCLE
-from hub.backend.execution.completion_review import TaskCompletion
+from hub.backend.execution.completion_review import TaskCompletion, ConversationalInput
 from hub.backend.execution.retries import HubLoopEngine
 from hub.backend.project.settings_descriptions import describe_options
 from hub.backend.project.settings_help import SettingsHelp
@@ -24,13 +24,28 @@ from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
 class EvidenceTests(unittest.TestCase):
-    def review(self, calls, results, *, enabled=True):
+    def test_standalone_greetings_do_not_match_action_requests(self):
+        for text in ('안녕?', ' 안녕하세요! ', 'Hello!', 'THANK YOU.'):
+            self.assertTrue(ConversationalInput.matches(text))
+        for text in ('안녕? 파일 만들어줘', 'Hello, fix this bug', 'Thanks, now delete it', ''):
+            self.assertFalse(ConversationalInput.matches(text))
+
+    def test_optional_report_does_not_force_an_extra_tool_for_a_plain_answer(self):
+        tool = ToolCall('write', 'file_create', {'path':'answer.txt', 'content':'done'})
+        messages = (ModelMessage('user', '안녕?'), ModelMessage('assistant', calls=(tool,)),
+                    ModelMessage('tool', result=ToolResult('write', 'saved')))
+        review = TaskCompletion.review(CompletionReviewObservation(1, messages,
+            ModelResponse(ModelMessage('assistant', 'Saved.')), messages,
+            ToolRegistry((TaskCompletion.tool(),)).definitions()))
+        self.assertEqual(review.action, ReviewAction.ACCEPT)
+
+    def review(self, calls, results, *, enabled=True, answer='Finished.'):
         messages = (ModelMessage('user', 'Create and verify the requested file.'),
                     ModelMessage('assistant', calls=tuple(calls)),
                     *(ModelMessage('tool', result=ToolResult(identifier, value))
                       for identifier, value in results))
         return TaskCompletion.review(CompletionReviewObservation(
-            1, messages, ModelResponse(ModelMessage('assistant', 'Finished.')), messages,
+            1, messages, ModelResponse(ModelMessage('assistant', answer)), messages,
             ToolRegistry((TaskCompletion.tool(),)).definitions() if enabled else ()))
 
     def test_report_must_follow_latest_work_without_replaying_effects(self):
@@ -56,6 +71,18 @@ class EvidenceTests(unittest.TestCase):
         duplicate = ToolCall('r', TaskCompletion.NAME,
                              {'outcome':'completed','summary':'Report','evidence':['x','x']})
         self.assertEqual(self.review([duplicate], [('r','recorded')]).feedback, TaskCompletion.INVALID_REPORT)
+
+    def test_empty_answer_requires_content_even_after_valid_report(self):
+        report = ToolCall('r', TaskCompletion.NAME,
+                         {'outcome': 'information', 'summary': 'Answered', 'evidence': []})
+        for enabled in (False, True):
+            for answer in ('', '  \n', '<hub-next>Explain more.</hub-next>'):
+                with self.subTest(enabled=enabled, answer=answer):
+                    decision = self.review([report], [('r', 'recorded')], enabled=enabled, answer=answer)
+                    self.assertEqual(decision.action, ReviewAction.CONTINUE)
+                    self.assertEqual(decision.feedback, TaskCompletion.EMPTY_ANSWER)
+        self.assertEqual(self.review([report], [('r','recorded')],
+            answer='Hello!\n<hub-next>Explain more.</hub-next>').action, ReviewAction.ACCEPT)
 
 
 class SettingsGuidanceTests(unittest.TestCase):
@@ -123,6 +150,51 @@ class SettingsGuidanceTests(unittest.TestCase):
 
 
 class ContinuityTests(unittest.IsolatedAsyncioTestCase):
+    async def test_greeting_finishes_in_one_call_without_report_or_tools(self):
+        provider = ScriptedCompletion([chunk('안녕하세요!', finish='stop')])
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model='test/greeting', auto_title=False,
+                engine_factories={'loop':lambda: HubLoopEngine(
+                    completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            sid = await runtime.new_session()
+            run, = await (await runtime.sessions[sid].run.submit(
+                '안녕?', recipients=['assistant'])).wait(timeout=20)
+            self.assertEqual(run.data.status, 'completed', run.data.error)
+            self.assertEqual((await run.aresponse()).content, '안녕하세요!')
+            self.assertEqual(len(provider.requests), 1)
+            self.assertIn(ConversationalInput.INSTRUCTION, str(provider.requests[0]['messages']))
+            self.assertFalse(any(step.kind == 'tool' for step in await run.steps.alist()))
+
+    async def test_reasoning_only_completion_requests_an_answer_without_repeating_tools(self):
+        provider = ScriptedCompletion(
+            [chunk(calls=[call(json.dumps({'outcome':'information', 'summary':'Greeting reviewed',
+                'evidence':[]}), name=TaskCompletion.NAME, call_id='review')], finish='tool_calls')],
+            [{'choices':[{'index':0, 'delta':{'reasoning_content':'Visible thought summary'},
+                          'finish_reason':'stop'}]}],
+            [chunk('Hello! How can I help?', finish='stop')])
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model='test/empty-answer', auto_title=False,
+                engine_factories={'loop':lambda: HubLoopEngine(
+                    completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
+            try:
+                await runtime.start()
+                sid = await runtime.new_session()
+                handle, = await asyncio.wait_for((await runtime.sessions[sid].run.submit(
+                    'Hello', recipients=['assistant'])).wait(), 20)
+                self.assertEqual(str((await handle.aresult()).status), 'completed')
+                self.assertEqual(len(provider.requests), 3)
+                self.assertIn(TaskCompletion.EMPTY_ANSWER, str(provider.requests[-1]['messages']))
+                steps = await handle.steps.alist()
+                self.assertEqual(sum(step.kind == 'tool' and step.name == TaskCompletion.NAME
+                                     for step in steps), 1)
+                snapshot = await runtime.snapshot()
+                self.assertEqual(snapshot.messages[-1].text, 'Hello! How can I help?')
+                self.assertFalse(any(message.role == 'reasoning' for message in snapshot.messages))
+            finally:
+                await runtime.close()
+
     async def test_defaults_recall_latest_goals_across_turns_and_restart(self):
         provider = ScriptedCompletion()
         with tempfile.TemporaryDirectory() as root:
@@ -161,7 +233,8 @@ class ContinuityTests(unittest.IsolatedAsyncioTestCase):
                 await explain()
                 first = str(provider.requests[-1]['messages'])
                 self.assertIn('Tests pending', first)
-                self.assertIn(WORK_CYCLE, provider.requests[-1]['messages'][1]['content'])
+                self.assertTrue(any(WORK_CYCLE in (m['content'] or '')
+                                    for m in provider.requests[-1]['messages']))
                 snapshot = await goals.asnapshot('work')
                 await goals.aupdate('work', {'progress':['File saved','Tests passed'],
                                           'next_actions':['Final review']}, expected_version=snapshot['version'])

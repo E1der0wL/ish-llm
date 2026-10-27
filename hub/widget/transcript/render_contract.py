@@ -30,7 +30,7 @@ class TranscriptLayout:
 
 class ToolCaption:
     MAX_NAME = 64
-    FORMAT = "{icon} {name} · {status}"
+    FORMAT = "{icon} {name} • {status}"
 
     @classmethod
     def render(cls, name, status, language):
@@ -48,6 +48,6 @@ class TranscriptPresentation:
     NO_INSET = 0
     USER_WIDTH_RATIO = 0.78
     SIDES = 2
-    LABEL_SEPARATOR = " · "
+    LABEL_SEPARATOR = " • "
     SYSTEM_TIME_SEPARATOR = " • "
     OVERFLOW = "fold"

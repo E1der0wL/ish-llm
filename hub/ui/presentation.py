@@ -23,7 +23,7 @@ class PresentationFormat:
     SUMMARY_SUFFIX = ":summary"
     FAILURE_DETAILS = "\n\n"
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-    NOTICE_SEPARATOR = " · "
+    NOTICE_SEPARATOR = " • "
     RUN_ERROR = "{status}: {error}"
 
 
@@ -92,6 +92,9 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
             phase=PresentationFormat.EMPTY,
             activity=PresentationFormat.EMPTY,
         )
+    elif (item.role == MessageRole.ASSISTANT and item.status == MessageStatus.COMPLETED
+          and not text.strip()):
+        text = t(MessageKey.RESPONSE_EMPTY)
     elif not text and not item.tools and not item.trace:
         text = (
             t(MessagePattern.status(item.status))

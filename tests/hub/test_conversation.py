@@ -51,7 +51,7 @@ class ConversationTests(unittest.TestCase):
         self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).bgcolor, theme.user_background[1:])
         self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).color, theme.accent4[1:])
         header = "".join(text for _, text in lines[0])
-        self.assertIn("tester · ✓ 접수됨 · 2026-10-03 12:34:56", header)
+        self.assertIn("tester • ✓ 접수됨 • 2026-10-03 12:34:56", header)
 
     def test_user_markdown_keeps_the_message_palette_for_links_headings_and_code(self):
         theme = HubTheme(accent4='#102030', accent5='#aabbcc')

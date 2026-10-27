@@ -31,6 +31,7 @@ from ...model import (
     ResponseActivity,
 )
 from ..execution.trace import merge_trace, tool_trace
+from ..execution.followup import split_followup
 from ..execution.steps import display_steps
 from ..execution.engine_selection import agent_model, selected_engines
 from ..interactions.questions import waiting_status
@@ -227,9 +228,14 @@ class SnapshotReader:
                     requested_at=requests.get(message.run_id),
                     steps=steps_for_run,
                 )
-                reasoning = self.thinking.visible(
+                displayed_reasoning = self.thinking.visible(
                     message.run_id, reasoning, active=active, content=message.content
                 )
+                # Keep the provider's visible reasoning when no final answer was
+                # returned. Do not promote it to an answer or expose helper Steps.
+                if not (message.status in (MessageStatus.COMPLETED, MessageStatus.FAILED)
+                        and not split_followup(message.content).content.strip()):
+                    reasoning = displayed_reasoning
                 tools = ()
                 if active:
                     if current_run is not self.ABSENT:

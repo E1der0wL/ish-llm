@@ -33,6 +33,12 @@ class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(screen.visible_windows_to_write_positions[popup.status_bar].ypos, 34)
                 return screen
             screen = paint(self.editor)
+            status_rect = screen.visible_windows_to_write_positions[self.editor.status_bar]
+            sidebar_rect = next(rect for window, rect in screen.visible_windows_to_write_positions.items()
+                                if window.content is self.editor.workspace.sidebar)
+            self.assertGreater(status_rect.xpos, sidebar_rect.xpos + sidebar_rect.width)
+            self.assertEqual(sidebar_rect.ypos + sidebar_rect.height, status_rect.ypos + 1)
+            self.assertEqual(status_rect.xpos + status_rect.width, 126)
             self.assertIn('에이전트', ''.join(screen.data_buffer[1][x].char for x in range(35)))
             auxiliary = next(iter(self.editor.workspace.auxiliary.buttons.values()))
             y = screen.visible_windows_to_write_positions[auxiliary.window].ypos

@@ -77,7 +77,6 @@ class SettingsEditorLayout:
                          Window(height=Dialog.CONTENT_PADDING), self.auxiliary,
                          self.actions], width=Dimension(min=1, weight=1)),
             progress=editor.view.progress, notice=self.status_text, status_surface=editor,
-            status_in_body=False,
             sidebar_controls=lambda: (self.sidebar,), focus_sidebar=self.focus_sidebar,
             focus_main=lambda: self.tabs.focus_tabs(),
         )
@@ -89,7 +88,7 @@ class SettingsEditorLayout:
 
     def status_text(self):
         label = self.editor.view.t(MessageKey.SETTINGS_SEARCH_ACTIVE, query=self.query) if self.query else ""
-        return " · ".join(part for part in (label, self.editor.status) if part)
+        return " • ".join(part for part in (label, self.editor.status) if part)
 
     def matches(self, field):
         return self.matches_text(field.label, field.schema.get(SchemaKeyword.DESCRIPTION, ""),

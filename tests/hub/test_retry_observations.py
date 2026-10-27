@@ -59,7 +59,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
         monitor({"kind": "tools", "status": "executions", "run_id": "r", "step_id": "s"})
         active = monitor.view("r")
         self.assertEqual((active.attempt, active.maximum, active.retry_at, active.phase), (2, 3, None, "active"))
-        self.assertIn("Retrying · Tool convert · attempt 2/3", retry_text(active, Language("en")))
+        self.assertIn("Retrying • Tool convert • attempt 2/3", retry_text(active, Language("en")))
         update(monitor, ctx, "repairing", 2)
         self.assertIn("3/3번째", retry_text(monitor.view("r"), Language("ko")))
 
@@ -142,7 +142,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
                                       activity=retry_text(snapshot.run.retry, Language("ko")))
                 rows = render_messages((message,), 120, HubTheme(), Language("ko"), section="header")
                 header = "".join(text for row in rows for _, text in row)
-                self.assertIn("재시도 중 · Tool convert · 2/3번째 시도", header)
+                self.assertIn("재시도 중 • Tool convert • 2/3번째 시도", header)
                 self.assertNotIn(message.text, header)
                 release_tool.set()
                 result = (await request.wait())[0]

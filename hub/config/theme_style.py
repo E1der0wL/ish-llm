@@ -69,9 +69,15 @@ class ThemeSelector(StrEnum):
     PTK_BUTTON_FOCUSED = "hub button.focused"
     PTK_BUTTON_FOCUSED_BUTTON_TEXT = "hub button.focused button.text"
     PTK_BUTTON_SELECTED_BUTTON_TEXT = "hub button.selected button.text"
+    DROPDOWN = "hub.dropdown"
+    DROPDOWN_BUTTON = "hub.dropdown button"
+    DROPDOWN_BUTTON_FOCUSED = "hub.dropdown button.focused"
+    DROPDOWN_BUTTON_TEXT = "hub.dropdown button.text"
+    DROPDOWN_BUTTON_FOCUSED_TEXT = "hub.dropdown button.focused button.text"
     AUXILIARY = "hub.auxiliary"
     AUXILIARY_BUTTON = "hub.auxiliary button"
     AUXILIARY_BUTTON_FOCUSED = "hub.auxiliary button.focused"
+    AUXILIARY_BUTTON_TEXT = "hub.auxiliary button.text"
     AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT = "hub.auxiliary button.focused button.text"
     PTK_CHECKBOX_LIST = "hub checkbox-list"
     CHECKLIST = "hub.checklist"
@@ -158,7 +164,7 @@ class ThemeStyle:
             ThemeSelector.SCROLLBAR_THUMB.value: "fg:{theme.scrollbar_arrow} bg:{theme.scrollbar_button} bold",
             ThemeSelector.SCROLLBAR_ARROW.value: "fg:{theme.scrollbar_arrow} bg:{theme.background}",
             ThemeSelector.SCROLLBAR_HOVER.value: "bg:{theme.accent2} bold",
-            ThemeSelector.MOUSE_HOVER_BUTTON_TEXT.value: "fg:{theme.accent2} bold nounderline",
+            ThemeSelector.MOUSE_HOVER_BUTTON_TEXT.value: "fg:{theme.button_foreground} bold nounderline",
             ThemeSelector.MOUSE_HOVER.value: "bold",
             ThemeSelector.TEXT_SELECTION.value: "fg:{theme.code_background} bg:{theme.accent2} nobold",
             ThemeSelector.INACTIVE.value: "",
@@ -173,26 +179,32 @@ class ThemeStyle:
             ThemeSelector.PTK_DIALOG_FRAME_LABEL.value: "fg:{theme.accent} bg:{theme.background}",
             ThemeSelector.PTK_DIALOG_SHADOW.value: "fg:{theme.muted} bg:{theme.background}",
             ThemeSelector.PTK_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
-            ThemeSelector.HEADER_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.header_background} nobold nounderline noreverse",
-            ThemeSelector.HEADER_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.header_background} bold nounderline noreverse",
-            ThemeSelector.HEADER_BUTTON_TEXT.value: "fg:{theme.button_foreground} bg:{theme.header_background}",
-            ThemeSelector.HEADER_BUTTON_FOCUSED_TEXT.value: "fg:{theme.accent2} bg:{theme.header_background} bold",
             ThemeSelector.PTK_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
-            ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
-            ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
+            ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.button_foreground} bold",
+            ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT.value: "fg:{theme.button_foreground} bold",
+            ThemeSelector.HEADER_BUTTON.value: "fg:{theme.icon_button_foreground} bg:{theme.header_background} nobold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON_FOCUSED.value: "fg:{theme.icon_button_foreground} bg:{theme.header_background} bold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON_TEXT.value: "fg:{theme.icon_button_foreground} bg:{theme.header_background}",
+            ThemeSelector.HEADER_BUTTON_FOCUSED_TEXT.value: "fg:{theme.icon_button_foreground} bg:{theme.header_background} bold",
+            ThemeSelector.DROPDOWN.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
+            ThemeSelector.DROPDOWN_BUTTON.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
+            ThemeSelector.DROPDOWN_BUTTON_FOCUSED.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
+            ThemeSelector.DROPDOWN_BUTTON_TEXT.value: "fg:{theme.completion_foreground}",
+            ThemeSelector.DROPDOWN_BUTTON_FOCUSED_TEXT.value: "fg:{theme.completion_foreground} bold",
             ThemeSelector.AUXILIARY.value: "bg:default",
-            ThemeSelector.AUXILIARY_BUTTON.value: "fg:{theme.button_foreground} bg:default",
-            ThemeSelector.AUXILIARY_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:default",
-            ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
+            ThemeSelector.AUXILIARY_BUTTON.value: "fg:{theme.icon_button_foreground} bg:default",
+            ThemeSelector.AUXILIARY_BUTTON_FOCUSED.value: "fg:{theme.icon_button_foreground} bg:default",
+            ThemeSelector.AUXILIARY_BUTTON_TEXT.value: "fg:{theme.icon_button_foreground}",
+            ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.icon_button_foreground} bold",
             ThemeSelector.PTK_CHECKBOX_LIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background} nounderline noreverse",
             ThemeSelector.CHECKLIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background}",
             ThemeSelector.PTK_CHECKBOX_LIST_FOCUSED.value: "bold nounderline noreverse",
             ThemeSelector.PTK_CHECKBOX_CHECKED.value: "fg:{theme.accent2} bold",
-            ThemeSelector.PTK_COMPLETION_MENU.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
+            ThemeSelector.PTK_COMPLETION_MENU.value: "fg:{theme.completion_foreground} bg:{theme.completion_background} noreverse",
             ThemeSelector.PTK_COMPLETION_MENU_COMPLETION.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
-            ThemeSelector.PTK_COMPLETION_MENU_COMPLETION_CURRENT.value: "fg:{theme.completion_foreground} bg:{theme.completion_current_background} bold",
+            ThemeSelector.PTK_COMPLETION_MENU_COMPLETION_CURRENT.value: "fg:{theme.completion_foreground} bg:{theme.completion_current_background} bold noreverse",
             ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION.value: "fg:{theme.muted} bg:{theme.completion_background}",
-            ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION_CURRENT.value: "fg:{theme.completion_foreground} bg:{theme.completion_current_background}",
+            ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION_CURRENT.value: "fg:{theme.muted} bg:{theme.completion_current_background}",
             ThemeSelector.PTK_COMPLETION_MENU_SCROLLBAR_BACKGROUND.value: "bg:{theme.background}",
             ThemeSelector.PTK_COMPLETION_MENU_SCROLLBAR_BUTTON.value: "bg:{theme.scrollbar_button}",
             ThemeSelector.SEARCH_MATCH.value: "fg:{theme.completion_foreground} bg:{theme.completion_current_background}",

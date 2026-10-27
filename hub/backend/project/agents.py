@@ -58,6 +58,13 @@ async def initialize(
         definition = AgentDefinition.selected(
             HubEngineIdentity.LOOP, tools=await asyncio.to_thread(selected_tools)
         )
+        from llm.components.memory import MemoryComponent
+        from llm.components.memory.tool_values import MemoryToolDefinition
+        # This reader is bound by RunManager, so creation-time discovery cannot
+        # see it yet. Only the new Hub preset selects it; existing scopes stay intact.
+        if (MemoryComponent.name in project.data.components and
+                MemoryToolDefinition.Name.TOOL_RESULT not in definition[AgentDefinition.Field.TOOLS]):
+            definition[AgentDefinition.Field.TOOLS].append(MemoryToolDefinition.Name.TOOL_RESULT)
         from ...asset.guides import SYSTEM_PROMPT
         definition[AgentDefinition.Field.SYSTEM_PROMPT] = SYSTEM_PROMPT
     else:

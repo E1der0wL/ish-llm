@@ -12,8 +12,9 @@ from ...ui.output.markdown import HubMarkdown, make_console, _segment_style, _tr
 
 def render_trace_item(item, width, theme, language):
     console = make_console(TranscriptLayout.inner_width(width), theme)
-    if item.kind == TraceItem.TOOL:
-        label = ToolCaption.render(item.text, item.status, language)
+    if item.kind in (TraceItem.TOOL, TraceItem.SUMMARY):
+        label = (language(MessageKey.CONTEXT_SUMMARIZING) if item.kind == TraceItem.SUMMARY
+                 else ToolCaption.render(item.text, item.status, language))
         rows = console.render_lines(
             Text(label), console.options, pad=TranscriptLayout.PAD
         )
@@ -27,7 +28,7 @@ def render_trace_item(item, width, theme, language):
             )
             for row in rows
         ) + (TranscriptLayout.BLANK_LINE,)
-    content = language(MessageKey.CONTEXT_SUMMARIZING) if item.kind == TraceItem.SUMMARY else item.text
+    content = item.text
     if item.kind == TraceItem.WORKFLOW:
         from ..workflow_graph import workflow_diagram
         try:

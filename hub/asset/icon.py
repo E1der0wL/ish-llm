@@ -48,6 +48,7 @@ class IconPlaceholders:
     waiting: str
     tool: str
     question: str
+    compaction: str
 
     def to_dict(self, statuses):
         return {
@@ -109,9 +110,10 @@ class IconGlyphs:
     )
     TOOL_NERD = ""
     QUESTION_NERD = ""
+    COMPACTION_NERD = ""
     VALUES = MappingProxyType(
         IconPlaceholders(
-            SESSIONS, REASONING, WAITING, TOOL_NERD, QUESTION_NERD
+            SESSIONS, REASONING, WAITING, TOOL_NERD, QUESTION_NERD, COMPACTION_NERD
         ).to_dict(STATUS)
     )
 
@@ -189,6 +191,7 @@ class IconSet:
     statuses: Mapping[str, str]
     tool: str = "⚒"
     question: str = "?"
+    compaction: str = "⇲"
     output: Mapping[str, str] = field(default_factory=lambda: OUTPUT_UNICODE)
     settings: str = "⚙"
     project: str = "●"
@@ -216,7 +219,7 @@ class IconSet:
     @property
     def values(self):
         return IconPlaceholders(
-            self.sessions, self.reasoning, self.waiting, self.tool, self.question
+            self.sessions, self.reasoning, self.waiting, self.tool, self.question, self.compaction
         ).to_dict(self.statuses)
 
 
@@ -241,6 +244,7 @@ class IconPalettes:
         ),
         tool=TOOL_NERD,
         question=QUESTION_NERD,
+        compaction=IconGlyphs.COMPACTION_NERD,
         output=OUTPUT_NERD,
         settings="",
         project="",

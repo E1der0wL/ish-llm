@@ -11,6 +11,8 @@ class RestartDrain:
 
 
 async def stop_for_restart(runtime):
+    await runtime.automatic_approvals.close()
+    await runtime.background_records.close()
     await runtime.namer.close()
     if runtime.builtin_tools:
         runtime.builtin_tools.questions.close()

@@ -38,7 +38,7 @@ class RequestHistoryDialog(Dialog):
         (ThemeSelector.ACCENT.style, ThemeStyle.BOLD)
     )
     SHORTCUT_CONTEXT = "history"
-    DETAILS = "{time} · {engine} · {elapsed} · {error}"
+    DETAILS = "{time} • {engine} • {elapsed} • {error}"
 
     def __init__(self, view, rows, *, delete, edit, retry, close):
         self.view, self.rows = view, {HistoryRow(row).id: row for row in rows}

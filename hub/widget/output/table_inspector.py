@@ -328,8 +328,8 @@ class TableInspector(ExpandedOutputDialog):
     EMPTY = ""
     COUNT_ORIGIN = 0
     DISPLAY_OFFSET = 1
-    SEPARATOR = " · "
-    NOTICE_FORMAT = " · {notice}"
+    SEPARATOR = " • "
+    NOTICE_FORMAT = " • {notice}"
 
     def __init__(self, item, context):
         self.table = TableControl(item, context)

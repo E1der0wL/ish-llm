@@ -10,7 +10,7 @@ from ...model import RetrySummary
 class RetryLabel:
     NO_RETRY = None
     EMPTY = ""
-    PROGRESS_SEPARATOR = " · "
+    PROGRESS_SEPARATOR = " • "
     MINIMUM_REMAINING = 0
 
 

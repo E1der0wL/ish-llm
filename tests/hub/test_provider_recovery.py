@@ -46,18 +46,23 @@ class Model:
         self.main = 0
         self.always_fail, self.invalid_analysis = always_fail, invalid_analysis
         self.slow = slow
+        self.analysis_calls = 0
         self.entered, self.release = threading.Event(), threading.Event()
 
     def __call__(self, **request):
         self.requests.append(deepcopy(request))
         instruction = request["messages"][0]["content"]
         if instruction.startswith("Explain a failed model request"):
+            self.analysis_calls += 1
             self.entered.set()
             if self.slow:
                 self.release.wait(5)
             yield from answer("not JSON" if self.invalid_analysis else json.dumps({
                 "action": "compact", "explanation": "명령 결과가 입력 한도를 초과했습니다. 요약 후 이어갑니다."}))
         elif instruction.startswith("Summarize the supplied reference material"):
+            self.entered.set()
+            if self.slow:
+                self.release.wait(5)
             yield from answer('{"summary":"The command completed: 120 records, no errors."}')
         else:
             self.main += 1
@@ -138,23 +143,18 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         steps = await run.steps.alist()
         tool = next(step for step in steps if step.kind == "tool")
         self.assertIn("large command output", json.dumps(tool.metadata, ensure_ascii=False))
-        self.assertTrue(any(step.metadata.get("hub_recovery") == "error analysis" for step in steps))
+        self.assertFalse(any(step.metadata.get("hub_recovery") == "error analysis" for step in steps))
+        self.assertTrue(any(step.metadata.get("hub_recovery") == "input summary" for step in steps))
         snapshot = await runtime.snapshot()
         self.assertIsNone(snapshot.run.retry)
         self.assertEqual((await run.aresponse()).content, "The operation succeeded.")
 
-    async def test_invalid_model_choice_does_not_retry_or_hide_original_error(self):
+    async def test_known_context_does_not_require_an_extra_model_diagnosis(self):
         model = Model(invalid_analysis=True)
         runtime, session, source = await self.runtime(model)
         run = await self.execute(runtime, session)
-        self.assertEqual(str((await run.aget_data()).status), "failed")
-        self.assertEqual((model.main, source.calls), (2, 1))
-        diagnosis = (await runtime.diagnose_failures(runtime.project.id, session.id, [run.id]))[run.id]
-        self.assertEqual(diagnosis.reason, "context")
-        self.assertEqual(diagnosis.recovery, "invalid_analysis")
-        text = present_message(ChatMessage("assistant", "", status="failed", failure=diagnosis), Language("ko")).text
-        self.assertIn("204800", text)
-        self.assertIn("분석 형식", text)
+        self.assertEqual(str((await run.aget_data()).status), "completed")
+        self.assertEqual((model.main, source.calls, model.analysis_calls), (3, 1, 0))
 
     async def test_exhausted_provider_budget_does_not_start_compaction(self):
         model = Model()
@@ -240,7 +240,7 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         runtime, session, source = await self.runtime(model, recovery_model_analysis=False)
         run = await self.execute(runtime, session)
         self.assertEqual(str((await run.aget_data()).status), "completed")
-        self.assertFalse(model.entered.is_set())
+        self.assertEqual(model.analysis_calls, 0)
         self.assertEqual(source.calls, 1)
 
     async def test_model_cannot_authorize_repair_of_an_unsupported_option(self):
@@ -301,7 +301,7 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         finally:
             model.release.set()
 
-    async def test_cancel_during_analysis_never_sends_corrected_request(self):
+    async def test_cancel_during_compaction_never_sends_corrected_request(self):
         model = Model(slow=True)
         runtime, session, source = await self.runtime(model)
         task = asyncio.create_task(self.execute(runtime, session))
@@ -313,7 +313,8 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(model.entered.is_set())
             snapshot = await runtime.snapshot()
             self.assertEqual(snapshot.run.retry.kind, "recovery")
-            self.assertIn("오류 원인 분석", retry_text(snapshot.run.retry, Language("ko")))
+            self.assertIn("컨텍스트 압축", retry_text(snapshot.run.retry, Language("ko")))
+            self.assertEqual(model.analysis_calls, 0)
             await runtime.interrupt(session.id)
         finally:
             model.release.set()

@@ -119,11 +119,12 @@ class Dialog(PTKDialog):
 
     def __init__(self, *args, shortcut_context=DialogContext.DIALOG,
                  size=PopupSize.MEDIUM, content_padding=CONTENT_PADDING,
-                 status_bar=None, **kwargs):
+                 status_bar=None, status_in_body=False, **kwargs):
         self.shortcut_context = shortcut_context
         self.requested_size = PopupSize(size)
         self.popup_body = kwargs.get("body", args[0] if args else None)
         self.status_bar = status_bar
+        self.status_in_body = status_in_body
         if "width" in kwargs or "height" in kwargs:
             raise TypeError("Dialog dimensions are owned by PopupSize")
         kwargs.setdefault(self.WITH_BACKGROUND, self.DEFAULT_BACKGROUND)
@@ -142,7 +143,7 @@ class Dialog(PTKDialog):
         body = HSplit([body, ConditionalContainer(
             Box(DynamicContainer(lambda: self.status_bar), padding=0,
                 padding_left=self.STATUS_PADDING, padding_right=self.STATUS_PADDING),
-            Condition(lambda: self.status_bar is not None),
+            Condition(lambda: self.status_bar is not None and not self.status_in_body),
         )])
         if args:
             args = (body, *args[1:])

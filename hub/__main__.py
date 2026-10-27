@@ -64,6 +64,7 @@ def main() -> None:
         session_id=args.session,
         language=args.language,
         file_root=args.file_root,
+        postprocess=True,
     )
     from .config.restart import restart_config
     from .ui.restart import RESTART

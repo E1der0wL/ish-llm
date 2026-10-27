@@ -85,6 +85,7 @@ class HubConfig:
     project_config: dict = field(default_factory=dict)
     file_root: str | Path | None = None
     auto_title: bool = True
+    postprocess: bool | None = None
     user_profile: UserProfile = field(default_factory=UserProfile)
     language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
     _workspace_anchor: str | Path | None = field(
@@ -95,6 +96,8 @@ class HubConfig:
     log_sink: Callable | None = None
 
     def __post_init__(self) -> None:
+        if self.postprocess is not None and type(self.postprocess) is not bool:
+            raise TypeError('postprocess must be a boolean or None')
         Language(self.language, self.language_packs)
         if self.file_root is not HubConfig.UNSPECIFIED:
             # Validate path input without changing its value or resolution time.
@@ -241,6 +244,10 @@ class HubRuntime:
         from .project.naming import SessionNamer
 
         self.namer = SessionNamer(self)
+        from .project.postprocessing import BackgroundRecords
+        self.background_records = BackgroundRecords(self)
+        from .interactions.automatic import AutomaticApprovals
+        self.automatic_approvals = AutomaticApprovals(self)
 
     def session_is_open(self, identifier):
         return identifier in self._opened_sessions
@@ -249,10 +256,18 @@ class HubRuntime:
         self._opened_sessions.difference_update(identifiers)
 
     async def _engine_event(self, run, event) -> None:
+        from .project.postprocessing_values import Postprocessing
+        if run.engine == Postprocessing.ENGINE:
+            return
         self.snapshot_reader.thinking.observe(run, event)
         self.dirty.set()
 
     async def _run_event(self, event) -> None:
+        from .project.postprocessing_values import Postprocessing
+        if event.run.engine == Postprocessing.ENGINE:
+            return
+        self.background_records.observe(event.run)
+        self.automatic_approvals.observe(event.run)
         self.snapshot_reader.invalidate(event.run.session_id)
         self.notifications.record_run(event.run)
         self.dirty.set()
@@ -968,6 +983,8 @@ class HubRuntime:
         )
 
     async def close(self) -> None:
+        await self.automatic_approvals.close()
+        await self.background_records.close()
         if self.builtin_tools:
             self.builtin_tools.questions.close()
         await self.namer.close()

@@ -68,7 +68,7 @@ class HubView:
     HEADING_SEPARATOR = " "
     PROJECT_FRACTION = 0.27
     SIDEBAR_MIN_COLUMNS = 88
-    HINT_SEPARATOR = " · "
+    HINT_SEPARATOR = " • "
     NO_HINT = ""
     NO_STYLE = ""
     BODY_LAYER = 0

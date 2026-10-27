@@ -79,6 +79,58 @@ class MemorySetupTests(unittest.TestCase):
 
 
 class MemorySetupIntegrationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_incomplete_tool_summary_uses_verified_source_without_provider_overflow(self):
+        from hub.backend.execution.retries import HubLoopEngine
+        from hub.backend.execution.tool_references import ToolReferences
+        source = SourceTools()
+        source.content = 'Preserved command evidence\n' * 50000
+        summaries, requests = [], []
+        def auxiliary(**request):
+            summaries.append(request)
+            yield from answer('{"summary":"Partial summary of the first fragment"}')
+        def main(**request):
+            requests.append(request)
+            if len(requests) == 1:
+                yield chunk(calls=[call('{}', name='source_read')], finish='tool_calls')
+                return
+            # The server rejects an overlong request. Hub must act BEFORE this boundary.
+            if len(json.dumps(request['messages'])) > 100000:
+                raise AssertionError('HTTP 400: maximum context length is 204800 tokens')
+            result = json.loads(next(m['content'] for m in request['messages'] if m['role'] == 'tool'))
+            self.assertEqual(result['notice'], ToolReferences.NOTICE)
+            self.assertEqual(result['original_chars'], len(source.content))
+            self.assertEqual(result['tool'], 'memory_tool_result')
+            self.assertNotIn('Partial summary', json.dumps(result))
+            yield from answer('Source retained; read the requested range for further analysis.')
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model='test/main', auto_title=False,
+                project_config={'parameters':{'engines':{'loop':{'policy':{'final_review':None}}}}},
+                engine_factories={'loop':lambda: HubLoopEngine(
+                    completion_adapter=LiteLLMCompletionAdapter(completion_fn=main))},
+                component_factories=(lambda: MemoryComponent(completion_adapter=
+                    LiteLLMCompletionAdapter(completion_fn=auxiliary)), DataComponent, lambda: source)))
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            service = runtime.settings_service
+            record = await service.load_project(runtime.project.id)
+            values = deepcopy(record['values'])
+            memory = values['config']['parameters']['components']['memory']
+            memory['config']['processing']['completion'] = {'model':'test/summary'}
+            memory['policy']['processing']['max_summary_calls'] = 1
+            await service.save_project(runtime.project.id, values, record['config_version'])
+            sid = await runtime.new_session()
+            run, = await (await runtime.sessions[sid].run.submit(
+                'Analyze the command result', recipients=['assistant'])).wait(timeout=30)
+            self.assertEqual(run.data.status, 'completed', run.data.error)
+            self.assertEqual((len(requests), len(summaries), source.calls), (2, 1, 1))
+            self.assertFalse(any(step.metadata.get('hub_recovery') for step in await run.steps.alist()))
+            data = await runtime.project.components.aget('memory')
+            state, = await data.alist_tool_summaries(sid)
+            self.assertEqual(state['request']['status'], 'partial')
+            raw = await data.aread_source(sid, state['request']['id'],
+                expected_revision=state['request']['reference']['revision'], offset=0, limit=None)
+            self.assertEqual(raw['text'], source.content)
+
     async def test_accumulated_small_tool_results_are_compacted_before_next_provider_call(self):
         source = SourceTools()
         source.content = 'result ' * 1000  # Each result is below tool_result_chars.

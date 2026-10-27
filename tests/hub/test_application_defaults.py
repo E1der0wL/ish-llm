@@ -58,10 +58,9 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 await fresh.close()
 
-    async def test_review_turns_advice_into_actual_effect_and_accepts_evidence(self):
+    async def test_optional_review_accepts_real_effect_and_evidence(self):
         with tempfile.TemporaryDirectory() as root:
             provider = ScriptedCompletion(
-                [chunk('You can write a file with Python.', finish='stop')],
                 [chunk(calls=[call(json.dumps({'path': 'result.txt', 'content': 'done'}),
                                    name='file_create', call_id='write')], finish='tool_calls')],
                 [chunk(calls=[call(json.dumps({'outcome':'completed','summary':'Created result.txt',
@@ -87,8 +86,8 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(str((await run.aresult()).status), 'completed')
                 self.assertEqual((Path(root)/'result.txt').read_text(), 'done')
                 self.assertEqual((await run.aresponse()).content, 'Created result.txt.')
-                self.assertEqual(len(provider.requests), 4)
-                self.assertIn(TaskCompletion.MISSING, str(provider.requests[1]['messages']))
+                self.assertEqual(len(provider.requests), 3)
+                self.assertIn(TaskCompletion.ROUTING, str(provider.requests[0]['messages']))
             finally:
                 await runtime.close()
 

@@ -12,7 +12,7 @@ class SummaryText:
     MIN_WIDTH = 0
     FIRST_NUMBER = 1
     TURN_CHARACTERS = 60
-    TURN = "{number}. {text} · {status}"
+    TURN = "{number}. {text} • {status}"
 
     @classmethod
     def collapsed(cls, text):

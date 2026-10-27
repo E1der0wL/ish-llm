@@ -31,7 +31,7 @@ class ResumingResponse(NamedTuple):
 class PreparingResponse:
     ABSENT = None
     EMPTY_TEXT = ""
-    MODEL_SEPARATOR = " · "
+    MODEL_SEPARATOR = " • "
     DRAFT_ID = "draft:{session_id}"
     PREPARING_ID = "preparing:{session_id}"
     FOLLOW_TAIL = True

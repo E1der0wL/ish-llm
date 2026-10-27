@@ -41,7 +41,6 @@ class TwoPanelPage:
         categories=(),
         status_annotation=lambda: TwoPanelPage.EMPTY_ANNOTATION,
         status_surface=ABSENT,
-        status_in_body=True,
     ):
         self.sidebar_controls = sidebar_controls
         self.categories = categories
@@ -62,14 +61,14 @@ class TwoPanelPage:
             HSplit(
                 [
                     main,
-                    *([VSplit(
+                    VSplit(
                         [
                             Window(width=TwoPanelPage.STATUS_PADDING),
                             self.status,
                             Window(width=TwoPanelPage.STATUS_PADDING),
                         ],
                         height=TwoPanelPage.STATUS_HEIGHT,
-                    )] if status_in_body else []),
+                    ),
                 ]
             ),
             active=lambda: not self.sidebar_focused,

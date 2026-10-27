@@ -51,7 +51,7 @@ class SettingsScreen:
     ICON_GAP = " "
     UNSELECTED_PREFIX = "  "
     TITLE_SEPARATOR = " • "
-    STATUS_SEPARATOR = " · "
+    STATUS_SEPARATOR = " • "
     DIRTY_PREFIX = "* "
     ERROR_OPERATION = "settings"
     GLOBAL_KEYS = (*tuple(section.value for section in PreferenceSection), SettingsSection.DEBUGGING)

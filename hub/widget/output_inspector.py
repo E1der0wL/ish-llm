@@ -317,8 +317,8 @@ class OutputInspector(ExpandedOutputDialog):
     PREVIOUS_MATCH = -1
     RAW_ACTION_POSITION = 1
     ORIGIN = 0
-    STATUS_FORMAT = "{mode} · {count}"
-    NOTICE_FORMAT = " · {notice}"
+    STATUS_FORMAT = "{mode} • {count}"
+    NOTICE_FORMAT = " • {notice}"
 
     def __init__(self, item, context, *, error=NO_ERROR):
         super().__init__(item, context, context.viewport(item))

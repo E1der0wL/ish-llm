@@ -170,11 +170,18 @@ class PaletteTests(unittest.TestCase):
             palette = replace(theme, foreground='#102030', background=background,
                               accent1='#234567', accent4='#345678', accent5='#456789')
             style = palette.style()
-            for selector in (ThemeSelector.PTK_BUTTON,
-                             ThemeSelector.CHECKLIST,
-                             ThemeSelector.PTK_COMPLETION_MENU):
+            for selector, foreground, fill in (
+                    (ThemeSelector.PTK_BUTTON, '456789', '234567'),
+                    (ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT, '456789', '234567'),
+                    (ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT, '456789', '234567'),
+                    (ThemeSelector.CHECKLIST, '102030', '234567'),
+                    (ThemeSelector.PTK_COMPLETION_MENU, '345678', '456789'),
+                    (ThemeSelector.PTK_COMPLETION_MENU_COMPLETION, '345678', '456789'),
+                    (ThemeSelector.PTK_COMPLETION_MENU_COMPLETION_CURRENT, '345678', '234567'),
+                    (ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION, theme.comment[1:], '456789'),
+                    (ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION_CURRENT, theme.comment[1:], '234567')):
                 attrs = style.get_attrs_for_style_str(' '.join('class:' + part for part in selector.value.split()))
-                self.assertEqual((attrs.color, attrs.bgcolor), ('102030', '234567'))
+                self.assertEqual((attrs.color, attrs.bgcolor), (foreground, fill))
             for selector in (ThemeSelector.HEADER, ThemeSelector.PROFILE, ThemeSelector.PROFILE_NAME,
                              ThemeSelector.PROFILE_ACCOUNT, ThemeSelector.SETTINGS_INPUT_FOCUSED):
                 self.assertEqual(style.get_attrs_for_style_str(selector.style).bgcolor, '456789')
@@ -183,13 +190,23 @@ class PaletteTests(unittest.TestCase):
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.header class:button' + state + ' class:button.text')
                 self.assertEqual(attrs.bgcolor, '456789')
+                self.assertEqual(attrs.color, '345678')
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.auxiliary class:button' + state + ' class:button.text')
                 self.assertEqual(attrs.bgcolor, 'default')
+                self.assertEqual(attrs.color, '345678')
+            for state in ('', '.focused'):
+                attrs = style.get_attrs_for_style_str('class:hub class:hub.dropdown class:button' + state + ' class:button.text')
+                self.assertEqual((attrs.color, attrs.bgcolor), ('345678', '456789'))
             attrs = style.get_attrs_for_style_str(ThemeSelector.SETTINGS_INPUT.style)
             self.assertEqual((attrs.color, attrs.bgcolor), ('102030', '456789'))
             attrs = style.get_attrs_for_style_str(ThemeSelector.COMPOSER.style)
             self.assertEqual((attrs.color, attrs.bgcolor), ('102030', background.removeprefix('#')))
+            from prompt_toolkit.styles import merge_styles, default_ui_style
+            merged = merge_styles([default_ui_style(), style])
+            actual = merged.get_attrs_for_style_str('class:hub class:hub.dropdown class:completion-menu class:completion-menu.completion.current')
+            self.assertFalse(actual.reverse)
+            self.assertEqual((actual.color, actual.bgcolor), ('345678', '234567'))
             for selector in (ThemeSelector.SHORTCUT_SEGMENT, ThemeSelector.SHORTCUT_KEY):
                 self.assertEqual(style.get_attrs_for_style_str(selector.style).bgcolor, '345678')
             self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_SEGMENT.style).color, '456789')

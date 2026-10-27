@@ -13,6 +13,7 @@ from prompt_toolkit.mouse_events import MouseEventType
 
 from .controls import Button, RadioList
 from ..asset.icon import NERD
+from ..config.theme_style import ThemeSelector
 
 
 class CompletionChoices(RadioList):
@@ -144,6 +145,7 @@ class DropdownBox(FloatContainer):
                 )
             ],
             z_index=self.BASE_LAYER,
+            style=ThemeSelector.DROPDOWN.style,
         )
 
     @property

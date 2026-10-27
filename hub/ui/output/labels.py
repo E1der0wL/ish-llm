@@ -21,7 +21,7 @@ class LabelText:
     TABLE_TRIM = "| "
     TABLE_SEPARATOR = "|"
     COLUMN_JOIN = "·"
-    STRUCTURED_JOIN = " · "
+    STRUCTURED_JOIN = " • "
     MIN_WIDTH = 0
     ELLIPSIS_WIDTH = 1
     MAX_WIDTH = 160

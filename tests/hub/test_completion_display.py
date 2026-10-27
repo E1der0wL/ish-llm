@@ -14,7 +14,7 @@ from hub.backend.execution.thinking import ThinkingPhases
 from hub.backend.execution.recovery_model import RecoveryStepMetadata
 from hub.config.theme import HubTheme
 from hub.locales import Language
-from hub.model import ChatMessage, ResponseActivity, RetrySummary
+from hub.model import ChatMessage, ResponseActivity, RetrySummary, TraceItem
 from hub.widget.feedback.retry_status import retry_text
 from llm.engines.events import EngineEvent, EngineEventType
 from llm.components.memory.processing import MemorySession
@@ -29,6 +29,57 @@ from llm.core.models import now
 
 
 class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
+    def test_compaction_caption_uses_selected_icon_and_comment_color(self):
+        from hub.asset.icon import for_style
+        from hub.config.theme_style import ThemeSelector
+        from hub.widget.transcript.thought_trace import render_trace_item
+        theme = HubTheme(comment='#456789')
+        for style, glyph in (('nerd',''), ('unicode','⇲')):
+            language = Language('ko', icons=for_style(style))
+            rows = render_trace_item(TraceItem('summary',TraceItem.SUMMARY,''),80,theme,language)
+            fragments = [part for row in rows for part in row if part[1].strip()]
+            self.assertEqual(''.join(part[1] for part in fragments).strip(), glyph+' 컨텍스트 압축')
+            self.assertTrue(all(part[0] == ThemeSelector.MUTED.style for part in fragments))
+            activity = retry_text(RetrySummary(1,4,kind=RetrySummary.RECOVERY,phase=RetrySummary.COMPACTING),language)
+            rows = render_messages((ChatMessage('assistant','',activity=activity,status='streaming'),),80,theme,language,section='header')
+            fragment = next(part for row in rows for part in row if '컨텍스트 압축' in part[1])
+            self.assertIn('fg:#456789',fragment[0])
+
+    def test_reasoning_heading_contains_only_agent_name_and_title(self):
+        message = ChatMessage('reasoning', 'Visible thought', author='도우미', status='running',
+                              phase='thinking', time='2026-10-27 10:00', elapsed_seconds=42)
+        rows = render_messages((message,), 80, HubTheme(), Language('ko'), section='header')
+        self.assertEqual(''.join(part[1] for row in rows for part in row).strip(), '도우미 • 생각 과정')
+
+    async def test_empty_completed_answer_keeps_received_reasoning_after_reload(self):
+        def model(**request):
+            yield {'choices':[{'index':0, 'delta':{'reasoning_content':'Visible provider reasoning'},
+                               'finish_reason':'stop'}]}
+        with tempfile.TemporaryDirectory() as root:
+            config = HubConfig(root, model='test/empty', auto_title=False,
+                project_config={'parameters':{'engines':{'loop':{'policy':{'final_review':None}}}}},
+                engine_factories={'loop':lambda: LoopEngine(
+                    completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
+            runtime = HubRuntime(config)
+            await runtime.start()
+            sid = await runtime.new_session()
+            run, = await (await runtime.sessions[sid].run.submit('Hello', recipients=['assistant'])).wait(timeout=20)
+            self.assertEqual(run.data.status, 'completed')
+            for restarted in (False, True):
+                if restarted:
+                    await runtime.close()
+                    runtime = HubRuntime(config)
+                    await runtime.start()
+                    await runtime.select(sid)
+                try:
+                    snapshot = await runtime.snapshot()
+                    self.assertTrue(any(m.role == 'reasoning' and 'Visible provider reasoning' in m.text
+                                        for m in snapshot.messages))
+                    self.assertIn('최종 답변 본문', present_message(snapshot.messages[-1], runtime.t).text)
+                finally:
+                    if restarted:
+                        await runtime.close()
+
     def test_memory_summary_activity_is_not_error_recovery(self):
         phases = ThinkingPhases()
         run = SimpleNamespace(id='summary-run', status='running', metadata={})
@@ -39,7 +90,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(Language('ko').status(ResponseActivity.SUMMARIZING), '요약 중')
         label = retry_text(RetrySummary(1, 4, kind=RetrySummary.RECOVERY,
                                        phase=RetrySummary.COMPACTING), Language('ko'))
-        self.assertIn('요약 중', label)
+        self.assertIn('컨텍스트 압축', label)
         self.assertNotIn('복구', label)
         phases.observe(run, EngineEvent(EngineEventType.STEP_COMPLETED, step_id='s'))
         self.assertNotEqual(phases.activity(run), ResponseActivity.SUMMARIZING)
@@ -111,7 +162,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(snapshot.messages[-2].author, '코딩 도우미')
                 reasoning_header = render_messages(snapshot.messages[-2:-1], 80, HubTheme(), runtime.t, section='header')
                 heading = ''.join(text for line in reasoning_header for _, text in line)
-                self.assertIn('코딩 도우미 · 생각 과정', heading)
+                self.assertIn('코딩 도우미 • 생각 과정', heading)
                 self.assertNotIn('test/model', heading)
                 gates[1].set()
                 snapshot = await observe(lambda s: s.messages[-1].text == 'First block')

@@ -24,7 +24,7 @@ class LoopOutput(EngineOutput):
     ABSENT = None
     MIN_HEIGHT = 1
     FLEX_WEIGHT = 1
-    HEADING_SEPARATOR = "  ·  "
+    HEADING_SEPARATOR = "  •  "
     OBJECT_INDENT = 2
     MESSAGE_MARGIN = 1
     ANCHOR_OFFSET = 0
