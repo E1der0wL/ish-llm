@@ -126,7 +126,8 @@ class LoopOutput(EngineOutput):
     def update_messages(self, messages, *, auto_scroll=ABSENT):
         control = self.transcript.control
         following = not control.restoring and (
-            not control.messages
+            control.follow_tail
+            or not control.messages
             or control.top_line + control._height >= len(control._lines) - 1
         )
         changed = control.messages != messages

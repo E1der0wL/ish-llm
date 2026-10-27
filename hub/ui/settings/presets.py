@@ -14,6 +14,7 @@ from ...config.preset_records import PresetIndex, PresetSelection
 from ...widget.controls import Button
 from ...widget.dialog import Dialog
 from ...widget.input_field import InputField
+from ...widget.section import Heading
 from .. import host
 
 EXPORT_CURRENT = object()
@@ -218,7 +219,7 @@ class PresetUI:
                             else MessageKey.PRESET_HINT
                         )
                     ),
-                    Label(view.t(MessageKey.PRESET_NAME)),
+                    Heading(view.t(MessageKey.PRESET_NAME)),
                     name,
                     status,
                 ]

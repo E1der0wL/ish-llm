@@ -7,7 +7,7 @@ import tempfile
 import threading
 from types import SimpleNamespace as NS
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.application import Application
@@ -89,12 +89,14 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.controller.interrupt("s")
         shown = self.view.output.transcript.control.messages
         self.assertEqual([(m.id, m.text, m.status) for m in shown], [("a", "Partial response", "preparing")])
+        self.assertEqual(self.view.t.status(shown[0].phase), " 재개 준비 중")
         self.view.apply_snapshot(stopped)
         self.assertEqual(len(self.view.output.transcript.control.messages), 1)
         self.calls[0][2].set_result("resumed-request")
         await asyncio.sleep(0)
         self.view.apply_snapshot(stopped)  # Stale observation after admission ACK.
         self.assertEqual(self.view.output.transcript.control.messages[0].status, "preparing")
+        self.assertEqual(self.view.output.transcript.control.messages[0].phase, "resume_preparing")
         self.controller.interrupt("s")
         self.assertEqual(sum(op == "resume_latest" for op, _, _ in self.calls), 1)
         resumed = replace(stopped, messages=(replace(message, run_id="r2", status="streaming"),),
@@ -103,6 +105,34 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.view.preparing.resuming)
         self.assertEqual([(m.id, m.text, m.status) for m in self.view.output.transcript.control.messages],
                          [("a", "Partial response", "streaming")])
+
+    async def test_resume_header_updates_while_markdown_rendering_is_blocked(self):
+        message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r")
+        stopped = replace(self.base, messages=(message,),
+                          run=replace(self.base.run, status="interrupted", active=False))
+        self.view.apply_snapshot(stopped)
+        control = self.view.output.transcript.control
+        control.create_content(100, 20)
+        body_count = control._message_cache.body_renders
+        with patch.object(control, "_request_frame"):
+            self.controller.interrupt("s")
+            self.view.apply_snapshot(stopped)
+            for snapshot, caption in (
+                (stopped, "재개 준비 중"),
+                (replace(stopped, messages=(replace(message, status="streaming", run_id="r2", phase="resuming"),),
+                         run=replace(stopped.run, id="r2", status="running", active=True)), "이어서 실행"),
+                (replace(stopped, messages=(replace(message, status="streaming", run_id="r2", phase="thinking"),),
+                         run=replace(stopped.run, id="r2", status="running", active=True)), "생각 중"),
+            ):
+                self.view.apply_snapshot(snapshot)
+                content = control.create_content(100, 20)
+                rendered = "\n".join("".join(part[1] for part in content.get_line(i))
+                                     for i in range(content.line_count))
+                self.assertIn(caption, rendered)
+                self.assertNotIn("중단됨", rendered)
+                self.assertIn("Partial response", rendered)
+                self.assertEqual(len(control.messages), 1)
+                self.assertEqual(control._message_cache.body_renders, body_count)
 
     async def test_rejected_resume_restores_existing_response(self):
         message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r")
@@ -137,6 +167,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         shown = self.view.output.transcript.control.messages
         self.assertEqual([m.id for m in shown], ["u1", "a1", "u2", "a2"])
         self.assertEqual([m.status for m in shown if m.role == "assistant"], ["preparing", "completed"])
+        self.assertEqual(shown[1].phase, "resume_preparing")
         self.view.apply_snapshot(snapshot)
         self.calls[0][2].set_result("new-request")
         await asyncio.sleep(0)

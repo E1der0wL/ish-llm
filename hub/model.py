@@ -17,6 +17,7 @@ class ResponseActivity:
     RUNNING = "running"
     STREAMING = "streaming"
     RESUMING = "resuming"
+    RESUME_PREPARING = "resume_preparing"
     PREPARING = "preparing"
     SUMMARIZING = "summarizing"
 

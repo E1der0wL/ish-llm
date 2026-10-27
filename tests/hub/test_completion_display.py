@@ -29,7 +29,7 @@ from llm.core.models import now
 
 
 class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
-    def test_compaction_caption_uses_selected_icon_and_comment_color(self):
+    def test_compaction_trace_is_muted_but_assistant_header_remains_accent(self):
         from hub.asset.icon import for_style
         from hub.config.theme_style import ThemeSelector
         from hub.widget.transcript.thought_trace import render_trace_item
@@ -42,8 +42,11 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(all(part[0] == ThemeSelector.MUTED.style for part in fragments))
             activity = retry_text(RetrySummary(1,4,kind=RetrySummary.RECOVERY,phase=RetrySummary.COMPACTING),language)
             rows = render_messages((ChatMessage('assistant','',activity=activity,status='streaming'),),80,theme,language,section='header')
-            fragment = next(part for row in rows for part in row if '컨텍스트 압축' in part[1])
-            self.assertIn('fg:#456789',fragment[0])
+            for row in rows:
+                for style, text in row:
+                    if text.strip():
+                        attrs = theme.style().get_attrs_for_style_str(style)
+                        self.assertEqual(attrs.color.lower(), theme.accent1[1:].lower())
 
     def test_reasoning_heading_contains_only_agent_name_and_title(self):
         message = ChatMessage('reasoning', 'Visible thought', author='도우미', status='running',

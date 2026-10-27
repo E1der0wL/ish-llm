@@ -299,6 +299,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.engine == "review" and view.composer.text == ""
                             and not controller._submitting and not controller._choosing_submission)
                 pipe.send_text("next request\r")
+                await until(lambda: view._dialog is not None)
+                pipe.send_text("\r")  # Explicit queued delivery also permits an idle Agent to start.
                 try:
                     await until(lambda: any(m.role == "assistant" and m.text == "next request"
                                             for m in view.output.transcript.control.messages))
@@ -360,7 +362,9 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: any(m.role == "assistant" and m.status == "completed"
                                        for m in view.output.transcript.control.messages))
                 pipe.send_text("\x1b[A\r")
-                await until(lambda: view._dialog is None and view.notice.startswith(view.t("error", error="")))
+                await until(lambda: view._dialog is not None and view.notice == view.t("no_active_run"))
+                pipe.send_text("\x1b")
+                await until(lambda: view._dialog is None)
                 self.assertEqual(view.composer.text, "keep draft")
                 self.assertEqual(len(calls), 1)
                 pipe.send_text("\r")  # Now idle: a normal request, without another chooser.

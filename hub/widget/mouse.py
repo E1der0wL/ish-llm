@@ -329,10 +329,14 @@ class MouseController:
         return MouseHit(self.ABSENT, self.ABSENT)
 
     def _bar(self, window, rect, point):
+        from prompt_toolkit.layout.margins import ConditionalMargin
+
         offset = rect.xpos + rect.width
         for margin in reversed(window.right_margins):
             width = window._get_margin_width(margin)
             offset -= width
+            while isinstance(margin, ConditionalMargin):
+                margin = margin.margin
             if MouseBinding.interactive(margin) and offset <= point.x < offset + width:
                 return ScrollbarHit(
                     window_scroll(window), rect, margin.display_arrows()

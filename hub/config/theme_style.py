@@ -51,10 +51,11 @@ class ThemeSelector(StrEnum):
     PTK_SCROLLBAR_ARROW = "hub scrollbar.arrow"
     PTK_SCROLLBAR_START = "hub scrollbar.start"
     PTK_SCROLLBAR_END = "hub scrollbar.end"
-    SCROLLBAR_TRACK = "hub.scrollbar-track"
-    SCROLLBAR_THUMB = "hub.scrollbar-thumb"
-    SCROLLBAR_ARROW = "hub.scrollbar-arrow"
-    SCROLLBAR_HOVER = "hub.scrollbar-hover"
+    # Flat class names avoid reapplying the Hub root's background to margins.
+    SCROLLBAR_TRACK = "hub-scrollbar-track"
+    SCROLLBAR_THUMB = "hub-scrollbar-thumb"
+    SCROLLBAR_ARROW = "hub-scrollbar-arrow"
+    SCROLLBAR_HOVER = "hub-scrollbar-hover"
     MOUSE_HOVER_BUTTON_TEXT = "hub.mouse-hover button.text"
     MOUSE_HOVER = "hub.mouse-hover"
     TEXT_SELECTION = "hub.text-selection"
@@ -63,6 +64,17 @@ class ThemeSelector(StrEnum):
     PTK_DIALOG = "hub dialog"
     PTK_DIALOG_BODY = "hub dialog.body"
     PTK_DIALOG_BODY_TEXT_AREA = "hub dialog.body text-area"
+    PTK_DIALOG_RADIO_LIST = "hub dialog.body radio-list"
+    PTK_DIALOG_RADIO = "hub dialog.body radio"
+    PTK_DIALOG_RADIO_SELECTED = "hub dialog.body radio-selected"
+    PTK_DIALOG_RADIO_CHECKED = "hub dialog.body radio-checked"
+    PTK_DIALOG_CHECKBOX_LIST = "hub dialog.body checkbox-list"
+    PTK_DIALOG_CHECKBOX = "hub dialog.body checkbox"
+    PTK_DIALOG_BODY_TITLE = "hub dialog.body hub.title"
+    POPUP_LIST = "hub.popup-list"
+    POPUP_LIST_ITEM = "hub.popup-list hub.sidebar"
+    POPUP_LIST_SELECTED = "hub.popup-list hub.selected"
+    POPUP_LIST_DETAIL = "hub.popup-list hub.muted"
     PTK_DIALOG_FRAME_LABEL = "hub dialog frame.label"
     PTK_DIALOG_SHADOW = "hub dialog shadow"
     PTK_BUTTON = "hub button"
@@ -74,11 +86,13 @@ class ThemeSelector(StrEnum):
     DROPDOWN_BUTTON_FOCUSED = "hub.dropdown button.focused"
     DROPDOWN_BUTTON_TEXT = "hub.dropdown button.text"
     DROPDOWN_BUTTON_FOCUSED_TEXT = "hub.dropdown button.focused button.text"
+    DROPDOWN_SHARED_THUMB = "hub.dropdown hub-scrollbar-thumb"
     AUXILIARY = "hub.auxiliary"
     AUXILIARY_BUTTON = "hub.auxiliary button"
     AUXILIARY_BUTTON_FOCUSED = "hub.auxiliary button.focused"
     AUXILIARY_BUTTON_TEXT = "hub.auxiliary button.text"
     AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT = "hub.auxiliary button.focused button.text"
+    AUXILIARY_PRESSED = "hub-auxiliary-pressed"
     PTK_CHECKBOX_LIST = "hub checkbox-list"
     CHECKLIST = "hub.checklist"
     PTK_CHECKBOX_LIST_FOCUSED = "hub checkbox-list.focused"
@@ -160,9 +174,9 @@ class ThemeStyle:
             ThemeSelector.PTK_SCROLLBAR_ARROW.value: "fg:{theme.scrollbar_arrow} bg:{theme.background} bold",
             ThemeSelector.PTK_SCROLLBAR_START.value: "nounderline",
             ThemeSelector.PTK_SCROLLBAR_END.value: "nounderline",
-            ThemeSelector.SCROLLBAR_TRACK.value: "bg:{theme.background}",
+            ThemeSelector.SCROLLBAR_TRACK.value: "",
             ThemeSelector.SCROLLBAR_THUMB.value: "fg:{theme.scrollbar_arrow} bg:{theme.scrollbar_button} bold",
-            ThemeSelector.SCROLLBAR_ARROW.value: "fg:{theme.scrollbar_arrow} bg:{theme.background}",
+            ThemeSelector.SCROLLBAR_ARROW.value: "fg:{theme.scrollbar_arrow}",
             ThemeSelector.SCROLLBAR_HOVER.value: "bg:{theme.accent2} bold",
             ThemeSelector.MOUSE_HOVER_BUTTON_TEXT.value: "fg:{theme.button_foreground} bold nounderline",
             ThemeSelector.MOUSE_HOVER.value: "bold",
@@ -176,7 +190,18 @@ class ThemeStyle:
             ThemeSelector.PTK_DIALOG.value: "fg:{theme.foreground} bg:{theme.background}",
             ThemeSelector.PTK_DIALOG_BODY.value: "fg:{theme.foreground} bg:{theme.background}",
             ThemeSelector.PTK_DIALOG_BODY_TEXT_AREA.value: "fg:{theme.foreground} bg:{theme.widget_background}",
-            ThemeSelector.PTK_DIALOG_FRAME_LABEL.value: "fg:{theme.accent} bg:{theme.background}",
+            ThemeSelector.PTK_DIALOG_RADIO_LIST.value: "bg:{theme.accent5} noreverse",
+            ThemeSelector.PTK_DIALOG_RADIO.value: "bg:{theme.accent5} noreverse",
+            ThemeSelector.PTK_DIALOG_RADIO_SELECTED.value: "fg:{theme.accent1} bg:{theme.accent5} bold noreverse",
+            ThemeSelector.PTK_DIALOG_RADIO_CHECKED.value: "fg:{theme.accent1} bg:{theme.accent5} bold noreverse",
+            ThemeSelector.PTK_DIALOG_CHECKBOX_LIST.value: "bg:{theme.accent5} noreverse",
+            ThemeSelector.PTK_DIALOG_CHECKBOX.value: "bg:{theme.accent5} noreverse",
+            ThemeSelector.PTK_DIALOG_BODY_TITLE.value: "fg:{theme.accent1} bold",
+            ThemeSelector.POPUP_LIST.value: "bg:{theme.accent5}",
+            ThemeSelector.POPUP_LIST_ITEM.value: "bg:{theme.accent5}",
+            ThemeSelector.POPUP_LIST_SELECTED.value: "bg:{theme.accent5}",
+            ThemeSelector.POPUP_LIST_DETAIL.value: "bg:{theme.accent5}",
+            ThemeSelector.PTK_DIALOG_FRAME_LABEL.value: "fg:{theme.accent} bg:{theme.background} bold",
             ThemeSelector.PTK_DIALOG_SHADOW.value: "fg:{theme.muted} bg:{theme.background}",
             ThemeSelector.PTK_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
             ThemeSelector.PTK_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
@@ -191,11 +216,13 @@ class ThemeStyle:
             ThemeSelector.DROPDOWN_BUTTON_FOCUSED.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
             ThemeSelector.DROPDOWN_BUTTON_TEXT.value: "fg:{theme.completion_foreground}",
             ThemeSelector.DROPDOWN_BUTTON_FOCUSED_TEXT.value: "fg:{theme.completion_foreground} bold",
+            ThemeSelector.DROPDOWN_SHARED_THUMB.value: "fg:{theme.accent4} bg:{theme.accent4}",
             ThemeSelector.AUXILIARY.value: "bg:default",
             ThemeSelector.AUXILIARY_BUTTON.value: "fg:{theme.icon_button_foreground} bg:default",
-            ThemeSelector.AUXILIARY_BUTTON_FOCUSED.value: "fg:{theme.icon_button_foreground} bg:default",
+            ThemeSelector.AUXILIARY_BUTTON_FOCUSED.value: "fg:{theme.accent2} bg:default",
             ThemeSelector.AUXILIARY_BUTTON_TEXT.value: "fg:{theme.icon_button_foreground}",
-            ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.icon_button_foreground} bold",
+            ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
+            ThemeSelector.AUXILIARY_PRESSED.value: "fg:{theme.accent1}",
             ThemeSelector.PTK_CHECKBOX_LIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background} nounderline noreverse",
             ThemeSelector.CHECKLIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background}",
             ThemeSelector.PTK_CHECKBOX_LIST_FOCUSED.value: "bold nounderline noreverse",

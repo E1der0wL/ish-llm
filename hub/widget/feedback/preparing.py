@@ -156,7 +156,7 @@ class PreparingResponse:
                         message = replace(
                             message,
                             status=ChatMessage.PREPARING,
-                            phase=ResponseActivity.PREPARING,
+                            phase=ResponseActivity.RESUME_PREPARING,
                             activity=self.EMPTY_TEXT,
                         )
                     prepared.append(message)

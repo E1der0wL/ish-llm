@@ -6,7 +6,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
-from ..dialog import Dialog
+from ..dialog import Dialog, PopupSize
 from ..controls import Button, TextArea
 from ..focus import focus_control
 from ...ui.input.registry import ShortcutRegistry
@@ -23,7 +23,6 @@ class SessionSearch:
     MULTILINE = False
     INPUT_HEIGHT = 1
     PREFERRED_WIDTH = 58
-    MAX_WIDTH = 70
 
     def __init__(self, view, transcript):
         self.view, self.transcript = view, transcript
@@ -77,6 +76,7 @@ class SessionSearch:
             text=self.transcript.control.search_query,
             multiline=SessionSearch.MULTILINE,
             height=SessionSearch.INPUT_HEIGHT,
+            width=Dimension(preferred=SessionSearch.PREFERRED_WIDTH),
         )
 
         def changed(_):
@@ -92,6 +92,7 @@ class SessionSearch:
         self.input.buffer.accept_handler = next_match
         self.dialog = Dialog(
             title=view.t(MessageKey.SEARCH_TITLE),
+            size=PopupSize.CUSTOM,
             body=HSplit([self.input, Label(self.count)]),
             buttons=[
                 Button(

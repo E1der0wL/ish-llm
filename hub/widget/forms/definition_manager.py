@@ -24,6 +24,7 @@ from prompt_toolkit.widgets import Frame, Label
 
 from ..controls import Button, TextArea
 from ..dialog import Dialog, PopupSize
+from ..section import Heading
 from ..workflow_graph import workflow_diagram
 from .record_manager import RecordManager
 
@@ -140,7 +141,7 @@ class DefinitionEditor(Dialog):
             title=self.view.t(MessagePattern.component_title(manager.name)),
             body=HSplit(
                 [
-                    Label(self.view.t(MessageKey.DEFINITION_NAME)),
+                    Heading(self.view.t(MessageKey.DEFINITION_NAME)),
                     self.identifier,
                     content,
                 ],

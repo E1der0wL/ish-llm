@@ -44,6 +44,11 @@ new width is prepared. Reading anchors are resolved against the position at
 delivery time, including navigation performed during rendering. Navigation
 before the first frame is retained as a bounded position intent.
 
+Follow-tail remains active across frame delivery and viewport-height measurement.
+Large output bursts and a later, shorter paint area cannot consume that intent early.
+Explicit scrolling, saved-position restoration, search navigation and disabling
+auto-scroll retain their existing control over the reading position.
+
 Backend snapshot publication also keeps one latest pending snapshot/callback.
 Command completions are not dropped. Snapshot notifications retain the backend's
 existing bounded sequence history.

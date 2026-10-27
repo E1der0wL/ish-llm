@@ -98,7 +98,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                     position = app.renderer._last_screen.visible_windows_to_write_positions[view.output.transcript.window]
                     y = position.ypos + position.height - 2 if bottom else position.ypos + 1
                     cell = app.renderer._last_screen.data_buffer[y][position.xpos + position.width - 1]
-                    return cell.char == " " and "class:hub.scrollbar-thumb" in cell.style
+                    return cell.char == " " and "class:hub-scrollbar-thumb" in cell.style
                 view.output.transcript.control.scroll("home")
                 app.invalidate()
                 await eventually(lambda: thumb_at(False))

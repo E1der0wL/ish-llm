@@ -10,10 +10,17 @@ TITLE_STYLE = ThemeStyle.joined(ThemeSelector.ACCENT.style, ThemeStyle.BOLD)
 RULE_HEIGHT = 1
 
 
+class Heading(Label):
+    """A category or field caption, distinct from explanatory body text."""
+
+    def __init__(self, text):
+        super().__init__(text, style=TITLE_STYLE)
+
+
 def section(title):
     return HSplit(
         [
-            Label(title, style=TITLE_STYLE),
+            Heading(title),
             Window(height=RULE_HEIGHT, char=RULE, style=ThemeSelector.DIVIDER.style),
         ]
     )

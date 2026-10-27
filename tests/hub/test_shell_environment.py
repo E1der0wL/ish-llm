@@ -39,6 +39,11 @@ class InvestigationGuidanceTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Do not ask the user to run --help", text)
         self.assertLess(text.index("registered RAG documents"), text.index("then existing model knowledge"))
         self.assertIn("does not currently provide Internet search", text)
+        self.assertIn("ask the user instead of silently choosing", text)
+        self.assertIn("Reuse an answer", text)
+        self.assertIn("while it is still pending", text)
+        self.assertIn("Use ask_user when available", text)
+        self.assertIn("An unanswered question or elapsed time is not consent", text)
 
 
 class ShellSnapshotTests(unittest.TestCase):

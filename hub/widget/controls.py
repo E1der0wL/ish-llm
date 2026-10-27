@@ -2,6 +2,8 @@
 
 from prompt_toolkit.layout import ScrollablePane as PTKScrollablePane
 from prompt_toolkit.layout.margins import ScrollbarMargin as PTKScrollbarMargin
+from prompt_toolkit.layout.margins import ConditionalMargin
+from prompt_toolkit.layout.menus import CompletionsMenu as PTKCompletionsMenu
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.widgets import Button as PTKButton
 from prompt_toolkit.widgets import (
@@ -21,10 +23,16 @@ from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 
 
 def _arrows(window) -> None:
+    def shared(margin):
+        if isinstance(margin, ConditionalMargin):
+            return ConditionalMargin(shared(margin.margin), margin.filter)
+        if isinstance(margin, PTKScrollbarMargin) and not isinstance(margin, ScrollbarMargin):
+            return ScrollbarMargin(display_arrows=margin.display_arrows)
+        return margin
+
     for margins in (window.left_margins, window.right_margins):
         for index, margin in enumerate(margins):
-            if isinstance(margin, PTKScrollbarMargin):
-                margins[index] = ScrollbarMargin(display_arrows=margin.display_arrows)
+            margins[index] = shared(margin)
 
 
 @MouseBinding.register_interactive
@@ -58,6 +66,14 @@ class ScrollbarMargin(PTKScrollbarMargin):
                 [row, (self.EMPTY_STYLE, self.NEWLINE)] if i < len(rows) - 1 else [row]
             )
         ]
+
+
+class CompletionsMenu(PTKCompletionsMenu):
+    """PTK completion behavior with Hub's shared scrollbar and mouse geometry."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        _arrows(self.content)
 
 
 def scrollbar_rows(geometry, hovered=ScrollbarMargin.NO_HOVER):
@@ -112,6 +128,13 @@ class ScrollablePane(PTKScrollablePane):
         )
         self._mouse_metrics = self.INITIAL_METRICS
         self._mouse_anchor = self.ABSENT
+        self._scrollbar_parent_style = ThemeSelector.ROOT.style
+
+    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
+        # Unlike a Window margin, PTK's pane scrollbar is drawn separately.
+        # Carry the containing surface's style into that final rendering pass.
+        self._scrollbar_parent_style = parent_style
+        super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
     def geometry(self, height=ABSENT, arrows=ARROWS):
         total, visible = self._mouse_metrics
@@ -178,7 +201,7 @@ class ScrollablePane(PTKScrollablePane):
             scrollbar_rows(self.geometry(), MouseBinding.hovered(self))
         ):
             screen.data_buffer[write_position.ypos + row][xpos] = Char(
-                char, ThemeStyle.joined(ThemeSelector.ROOT.style, style)
+                char, ThemeStyle.joined(self._scrollbar_parent_style, style)
             )
 
 

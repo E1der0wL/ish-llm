@@ -7,11 +7,10 @@ from hub.ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer
-from prompt_toolkit.layout.margins import ScrollbarMargin
 from prompt_toolkit.formatted_text import to_formatted_text, fragment_list_width, fragment_list_to_text
 from prompt_toolkit.mouse_events import MouseEventType
 
-from .controls import Button, RadioList
+from .controls import Button, RadioList, ScrollbarMargin
 from ..asset.icon import NERD
 from ..config.theme_style import ThemeSelector
 

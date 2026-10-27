@@ -43,13 +43,6 @@ from .submitted import SubmittedMessages
 from ..widget.feedback.progress import ProgressCompletion
 
 
-class RunningSubmissionChoice:
-    STEER = HubRuntime.steer.__name__
-    FOLLOW_UP = "follow_up"
-    SELECT_ON_FOCUS = True
-    ACCEPTED = True
-
-
 class LiveHubView(HubView):
     ABSENT = HubView.ABSENT
     DISCONNECTED = False
@@ -233,7 +226,6 @@ class LiveController:
     DIAGNOSTIC_CACHE = 256
     SAVE_DEBOUNCE = 0.25
     MARKDOWN_APPROVAL = True
-    FOLLOWUP_CHECK_RUNNING = False
     SINGLE_TARGET = 1
     UNTITLED = ""
     CANCEL_NOTICE_DELAY = 5
@@ -250,6 +242,7 @@ class LiveController:
         HubRuntime.snapshot.__name__,
         HubRuntime.invite_agent.__name__,
         HubRuntime.change_participants.__name__,
+        HubRuntime.running_recipients.__name__,
     })
 
     def __init__(
@@ -777,6 +770,13 @@ class LiveController:
 
         draft = SubmittedDraft(SessionIdentity(identity).project_id, session_id, text)
         draft.consume(view)
+        snapshot = view._last_snapshot
+        if (snapshot is not None and snapshot.project_id == identity[0]
+                and snapshot.selected_id == session_id
+                and (snapshot.active_run_ids or (snapshot.run and snapshot.run.active))):
+            from .chat.submission_ui import RunningSubmission
+            RunningSubmission(self, session_id, text, agent_id, options, draft).open()
+            return
         self._choosing_submission = LiveController.CHOOSING
         self._submitting.add(session_id)
         view.preparing.start(identity, text)
@@ -808,61 +808,8 @@ class LiveController:
                 draft.restore(view)
                 return
 
-            def follow_up():
-                self._send(
-                    HubRuntime.submit_input.__name__,
-                    session_id,
-                    text,
-                    text,
-                    agent_id,
-                    options,
-                    LiveController.FOLLOWUP_CHECK_RUNNING,
-                    draft=draft,
-                )
-
-            from ..widget.controls import RadioList
-            from prompt_toolkit.layout import HSplit
-            from prompt_toolkit.widgets import Label
-
-            choices = RadioList(
-                ([
-                    (RunningSubmissionChoice.STEER, view.t(MessageKey.SEND_STEERING)),
-                ] if len(agent_id) == self.SINGLE_TARGET else []) + [
-                    (
-                        RunningSubmissionChoice.FOLLOW_UP,
-                        view.t(MessageKey.SEND_FOLLOW_UP),
-                    ),
-                ],
-                default=RunningSubmissionChoice.FOLLOW_UP,
-                select_on_focus=RunningSubmissionChoice.SELECT_ON_FOCUS,
-            )
-
-            def accept():
-                if choices.current_value == RunningSubmissionChoice.STEER:
-                    self.steer(
-                        session_id, text, expected_run_id=state.run_id, draft=draft
-                    )
-                else:
-                    follow_up()
-
-            view.open_dialog(
-                view.t(MessageKey.SEND_WHILE_RUNNING),
-                choices if len(agent_id) == self.SINGLE_TARGET else HSplit([
-                    Label(view.t(MessageKey.PARTICIPANTS_STEERING_HINT)), choices,
-                ]),
-                accept,
-                choices,
-                on_cancel=lambda: draft.restore(view),
-            )
-
-            # This override and its hint share the choice widget's registry.
-            def confirm(event):
-                view.dialogs.close(accepted=RunningSubmissionChoice.ACCEPTED)
-                accept()
-
-            ShortcutRegistry.require(choices.control).add(
-                [KeyName.ENTER], ShortcutLabel.HIDDEN, ShortcutAction.CONFIRM, confirm
-            )
+            from .chat.submission_ui import RunningSubmission
+            RunningSubmission(self, session_id, text, agent_id, options, draft).open()
 
         self._call(
             HubRuntime.submit_input.__name__,
@@ -910,7 +857,7 @@ class LiveController:
 
                 choices = RadioList(
                     list(targets),
-                    select_on_focus=RunningSubmissionChoice.SELECT_ON_FOCUS,
+                    select_on_focus=True,
                 )
                 self.view.open_dialog(
                     self.view.t(MessageKey.CHOOSE_TARGET),

@@ -107,7 +107,8 @@ class ParticipantBar(TagBar):
             [KeyName.ENTER, KeyName.SPACE], ShortcutLabel.ENTER_SPACE,
             ShortcutAction.CONFIRM, confirm)
         self.view.open_dialog(self.view.t(MessageKey.PARTICIPANTS_TITLE), selection,
-                              lambda: accept(selection.current_value), selection)
+                              lambda: accept(selection.current_value), selection,
+                              size=PopupSize.CUSTOM)
 
     def target(self, identifier):
         self.view.recipient_id = "" if self.view.recipient_id == identifier else identifier

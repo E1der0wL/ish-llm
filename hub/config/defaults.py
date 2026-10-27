@@ -116,7 +116,7 @@ class HubDefaults:
             RAGConfiguration.Field.EMBEDDING_CONCURRENCY: 2,
             JobAdmission.KEY: {JobAdmission.MAX_ACTIVE: 1},
             ExtractionOptions.KEY: {
-                ExtractionOptions.Field.FAILURE_POLICY: ExtractionFailurePolicy.DISABLED.value,
+                ExtractionOptions.Field.FAILURE_POLICY: ExtractionFailurePolicy.REQUIRED.value,
                 ExtractionOptions.Field.REPAIR_ATTEMPTS: 1,
             },
         },

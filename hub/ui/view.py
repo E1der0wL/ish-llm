@@ -20,7 +20,6 @@ from prompt_toolkit.layout import (
     Window,
 )
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.layout.menus import CompletionsMenu
 from ..widget.shortcuts import ShortcutBar
 from ..widget.header import HeaderBar
 
@@ -31,7 +30,7 @@ from ..config.theme_style import ThemeSelector
 from ..asset.icon import AuxiliaryIcon
 from ..locales import Language
 from ..config.theme import HubTheme
-from ..widget.controls import TextArea
+from ..widget.controls import TextArea, CompletionsMenu
 from ..widget.focus import focus_control
 from ..widget.input_frame import InputFrame
 from ..asset import icon

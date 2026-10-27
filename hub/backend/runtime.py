@@ -788,6 +788,14 @@ class HubRuntime:
             raise ValueError(self.t(MessageKey.NO_TARGETS))
         return selected.run_id, targets
 
+    async def running_recipients(
+        self, session_id: str, recipients: Sequence[str]
+    ) -> tuple[tuple[str, str], ...]:
+        """Observe live recipient Runs before the user chooses a steering target."""
+        status = await self.sessions[session_id].run.astatus(queued_limit=self.NO_QUEUED_IDS)
+        return tuple((run.run_id, run.agent_id) for run in status.active_runs
+                     if run.agent_id in recipients)
+
     async def steer(
         self, session_id: str, run_id: str, text: str, targets: list[str]
     ) -> str:

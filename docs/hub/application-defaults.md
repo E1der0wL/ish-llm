@@ -1,5 +1,15 @@
 # Hub application creation profile and Agent APIs
 
+## Clarifying user decisions
+
+The shared `asset/prompts/work-context.md` guidance asks agents to clarify material
+choices with `ask_user`, consult prior answers and pending interactions, and avoid
+repeating a question unless new evidence changes the decision. Tool-accessible
+facts remain the agent's responsibility. This guidance reaches existing agents
+through the request-owned environment processor; saved custom agent prompts and
+approval policies are not overwritten. It adds no inference call or completion
+gate. Prompt delivery is tested; model compliance is not a deterministic guarantee.
+
 `hub/config/defaults.py::HubDefaults` is the application creation-profile entry
 point. It composes global profile/appearance/general defaults from their validated
 setting owners and declares the model-independent Component and Engine choices.
@@ -9,11 +19,11 @@ win. Opening an existing Project never reapplies defaults. Backend configuration
 schemas, validators, execution policies and storage remain owned by llm.
 
 No model name, credential or endpoint is supplied by this profile. Users still
-choose their Loop Agent model and connection, RAG embedding/reranker models, optional
-extraction model, MCP servers and workflow definitions. Defaults do not install an
-OCR executable or make a remote service available. RAG extraction remains disabled
-until explicitly configured, so an unconfigured extractor cannot block document
-registration. These choices can all be captured in a preset.
+choose their Loop Agent model and connection, RAG embedding/reranker/extraction
+models, MCP servers and workflow definitions. Defaults do not install an
+OCR executable or make a remote service available. New Projects require RAG
+relation extraction, so document registration needs an extraction model or an
+explicit choice to disable extraction. These choices can all be captured in a preset.
 
 The Agent owns `completion`, while its Engine owns execution limits and policies.
 A Graph Agent chooses a saved Workflow; model-using nodes reference separately
@@ -25,7 +35,7 @@ tools, not an invented model or connection.
 | Files, shell, Skills, Goals | Tools, starter skills, active-goal context | Agent model/connection; normal approvals and working-root permissions |
 | Memory | Keyword recall, candidate writes | Model-based summarization/extraction additionally need their own completion settings |
 | Refinement | Evidence/proposal tools and approved application | Actual evidence, target revisions, approval; evaluation when explicitly required |
-| RAG | Hybrid search, chunk/index limits, extraction protocol | Embedding model; reranker or explicit rerank=false; extraction model and non-disabled failure policy for relations |
+| RAG | Hybrid search, chunk/index limits, required relation extraction | Embedding model; reranker or explicit rerank=false; extraction model or explicit failure_policy=disabled |
 | MCP | Component and Agent resource integration | Reachable server definitions and their own authentication/dependencies |
 | Graph | Engine and Workflow tooling | A valid Workflow and its referenced Agents/tools |
 | Image OCR | Tesseract selection and timeout | Installed executable and required language data |

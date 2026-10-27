@@ -25,6 +25,8 @@ from .path_input import PathInput
 from ..input_field import InputField
 from ..dialog import Dialog, PopupSize
 from ..sidebar import SidebarItem, SidebarList
+from ..section import Heading
+from ...config.theme_style import ThemeSelector
 from ..actions import ActionBar
 from ...ui.input.registry import ShortcutRegistry
 
@@ -112,12 +114,13 @@ class ComponentManager(Dialog):
             title=view.t(MessagePattern.component_title(name)),
             body=HSplit(
                 [
-                    Label(view.t(MessagePattern.component_import_hint(name))),
+                    Heading(view.t(MessagePattern.component_import_hint(name))),
                     self.path,
                     Window(height=ManagerView.ROW_SPACER),
-                    Label(view.t(MessageKey.TOOLS_COLUMNS)),
+                    Heading(view.t(MessageKey.TOOLS_COLUMNS)),
                     Window(
                         self.list,
+                        style=ThemeSelector.POPUP_LIST.style,
                         height=lambda: Dimension(
                             min=1,
                             preferred=max(
@@ -141,8 +144,6 @@ class ComponentManager(Dialog):
             ),
             size=PopupSize.MEDIUM,
             status_bar=self.status_line,
-            content_padding=(0 if name in (ManagedComponents.AGENTS.name, ManagedComponents.WORKFLOWS.name)
-                             else Dialog.CONTENT_PADDING),
         )
 
     def help(self):

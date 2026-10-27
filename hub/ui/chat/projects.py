@@ -10,6 +10,7 @@ from ...backend.project.settings_contracts import ProjectSummaries, SettingsOper
 from ...locales.keys import MessageKey
 from ...model import HubSnapshot
 from ...widget.controls import TextArea
+from ...widget.section import Heading
 from ...widget.sidebar import SidebarItem, SidebarList
 from ..error_presentation import operation_notice
 from ..input.keys import KeyName
@@ -129,7 +130,7 @@ class ChatProjects:
 
         self.view.open_dialog(
             title,
-            HSplit([Label(self.view.t(MessageKey.SETTINGS_PROJECT_NAME)), field]),
+            HSplit([Heading(self.view.t(MessageKey.SETTINGS_PROJECT_NAME)), field]),
             accept,
             field,
             validate=validate,

@@ -71,7 +71,7 @@ class SettingsEditorLayout:
             sidebar=HSplit([
                 SidebarHeading(lambda: editor.view.icons.agent + " " +
                                editor.view.t(MessageKey.AGENT_CATEGORY)),
-                Window(self.sidebar),
+                Window(self.sidebar, style=ThemeSelector.POPUP_LIST.style),
             ], width=lambda: Dimension.exact(editor.view.sidebar_width())),
             main=HSplit([ContentInset(self.tabs, heading=self.page_title, bottom_padding=0),
                          Window(height=Dialog.CONTENT_PADDING), self.auxiliary,
@@ -158,7 +158,8 @@ class SettingsEditorLayout:
         fields = self.fields()
         children = [field.container for field in fields]
         if self.engine_visible():
-            children += [Label(editor.view.t(MessageKey.AGENT_ENGINE)),
+            from ..section import Heading
+            children += [Heading(editor.view.t(MessageKey.AGENT_ENGINE)),
                          Label(editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
                                style=ThemeSelector.MUTED.style), editor.engine]
         self.body = SettingsBody(children or [Label(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))], fields)

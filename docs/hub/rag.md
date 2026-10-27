@@ -8,9 +8,10 @@
 새 프로젝트는 hybrid 검색·리랭킹·청크 1200자·결과 5개·후보 20개를 기본으로 제공합니다.
 리랭커를 쓰지 않으면 `config.search.rerank=false`로 바꿉니다.
 
-관계 검색까지 사용하려면 `config.extraction_params`의 모델을 지정하고
-`policy.extraction.failure_policy`를 `required` 또는 `best_effort`로 설정합니다.
-기본값 `disabled`는 관계 추출 모델을 호출하지 않습니다. 임베딩/추출의 재시도는 RAG 자체의
+새 프로젝트의 관계 추출 정책 `policy.extraction.failure_policy`는 `required`입니다.
+`config.extraction_params`에 모델 연결을 지정해야 하며 추출 실패 시 등록도 실패합니다.
+관계 추출을 생략하려면 명시적으로 `disabled`, 일부 실패를 허용하려면 `best_effort`를 선택합니다.
+기존 프로젝트에 저장된 정책은 바꾸지 않습니다. 임베딩/추출의 재시도는 RAG 자체의
 `policy.provider`로 설정하며 Loop 재시도 설정을 상속하지 않습니다.
 
 `/rag`에 문서 경로를 입력하고 Enter를 누릅니다. 실패한 Job은 목록에서 선택해

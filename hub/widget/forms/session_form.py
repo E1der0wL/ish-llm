@@ -9,6 +9,7 @@ from prompt_toolkit.layout import HSplit, ConditionalContainer
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ..controls import RadioList, TextArea
+from ..section import Heading
 
 
 class SessionForm:
@@ -47,10 +48,10 @@ class SessionForm:
             [
                 self.mode,
                 ConditionalContainer(
-                    HSplit([Label(t(MessageKey.CLONE_BOUNDARY)), self.boundary]),
+                    HSplit([Heading(t(MessageKey.CLONE_BOUNDARY)), self.boundary]),
                     Condition(lambda: self.mode.current_value == SessionMode.CLONE),
                 ),
-                Label(t(MessageKey.NAME)),
+                Heading(t(MessageKey.NAME)),
                 self.name,
                 Label(t(MessageKey.AUTO_NAME_HINT)),
             ],

@@ -27,6 +27,30 @@ from examples.hub.preview import create_preview
 
 
 class ReadingPositionTests(unittest.TestCase):
+    def test_tail_follows_large_burst_after_viewport_height_changes(self):
+        control = ConversationControl((ChatMessage("assistant", "start", id="reply"),), HubTheme())
+        control.follow_tail = True
+        control.create_content(80, 30)
+        control.messages = (ChatMessage("assistant", "paragraph\n\n" * 120, id="reply"),)
+        control.follow_tail = True
+        # Layout may measure at a taller size before allocating the visible area.
+        control.create_content(80, 30)
+        content = control.create_content(80, 8)
+        self.assertEqual(control.top_line, content.line_count - 8)
+        self.assertEqual(content.cursor_position.y, content.line_count - 1)
+
+    def test_manual_scroll_stops_tail_across_bursts_and_layout_changes(self):
+        control = ConversationControl((ChatMessage("assistant", "paragraph\n\n" * 100, id="reply"),), HubTheme())
+        control.follow_tail = True
+        control.create_content(80, 10)
+        control.scroll("pageup")
+        position = control.reading_position()
+        control.messages = (ChatMessage("assistant", "paragraph\n\n" * 200, id="reply"),)
+        control.create_content(80, 30)
+        control.create_content(80, 8)
+        self.assertEqual(control.reading_position(), position)
+        self.assertFalse(control.follow_tail)
+
     def test_scroll_waits_for_content_after_a_cached_empty_frame(self):
         control = ConversationControl((), HubTheme())
         control.create_content(80, 10)

@@ -149,9 +149,6 @@ def render_messages(
                 else TranscriptPresentation.LABEL_SEPARATOR
             ) + message.time
         label = Text(label, overflow=TranscriptPresentation.OVERFLOW)
-        if message.activity.startswith(t.icons.compaction + TranscriptLayout.SPACE):
-            start = label.plain.index(message.activity)
-            label.stylize(theme.muted, start, start + len(message.activity))
         header_lines = (
             []
             if message.role == ChatMessage.DRAFT or section == RenderSection.BODY
@@ -382,6 +379,7 @@ class ConversationControl(SelectableControl):
     ORIGIN = 0
     MIN_DIMENSION = 1
     STOP_FOLLOWING = False
+    FOLLOW_TAIL = True
     NO_MATCH = -1
     NEXT_MATCH = 1
     PREVIOUS = -1
@@ -400,6 +398,7 @@ class ConversationControl(SelectableControl):
     FALLBACK_SEPARATOR = "\n\n"
     MESSAGE_STORAGE = "_messages"
     MESSAGE_REVISION = "_message_revision"
+    LIVE_HEADER_STATES = (MessageStatus.COMMITTED, MessageStatus.STREAMING, ChatMessage.PREPARING)
 
     def __init__(
         self, messages: tuple[ChatMessage, ...], theme: HubTheme, language=ABSENT
@@ -471,7 +470,7 @@ class ConversationControl(SelectableControl):
                 m
                 for m in value
                 if m.role == MessageRole.ASSISTANT
-                and m.phase == InterruptFeedback.PHASE
+                and (m.phase == InterruptFeedback.PHASE or m.status in self.LIVE_HEADER_STATES)
             )
             self._message_revision = (
                 getattr(
@@ -700,7 +699,7 @@ class ConversationControl(SelectableControl):
         elif key == KeyName.END:
             self._scroll_to(len(self._lines))
             self.cursor_line = len(self._lines) - 1
-            self.follow_tail = self._cache_key != self._requested_key
+            self.follow_tail = ConversationControl.FOLLOW_TAIL
         else:
             page = max(
                 ConversationControl.MIN_DIMENSION,
@@ -757,8 +756,10 @@ class ConversationControl(SelectableControl):
         return ConversationControl.FOCUSABLE
 
     def _urgent_headers(self):
-        """Paint local stop acknowledgement independently of the Markdown lane."""
+        """Paint live execution headers while the Markdown frame is pending."""
         headers, extra = {}, []
+        if self._cache_key == self._requested_key:
+            return headers, extra
         for message in self._urgent_messages:
             rows = render_messages(
                 (message,),
@@ -873,11 +874,13 @@ class ConversationControl(SelectableControl):
             max(ConversationControl.ORIGIN, len(self._lines) - self._height),
         )
         if self.follow_tail:
+            # Following is a viewport intent, not a one-frame scroll command.
+            # PTK can measure at one height and paint at another; later frames
+            # and layout passes must keep the tail until explicit navigation.
             self.cursor_line = len(self._lines) - 1
             self.top_line = max(
                 ConversationControl.ORIGIN, len(self._lines) - self._height
             )
-            self.follow_tail = self._cache_key != self._requested_key
 
     def replace_messages(self, messages, position, reset_scroll):
         # A debounced resize belongs to the old transcript too. It must not

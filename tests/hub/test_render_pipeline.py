@@ -236,27 +236,36 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
     async def test_conversation_displays_inflight_frame_while_newer_frame_is_rendering(self):
         worker = RenderWorker()
         first_gate, second_gate, started = Event(), Event(), Event()
-        control = ConversationControl((ChatMessage("assistant", "first", id="a"),), HubTheme())
+        first_text, second_text = "first\n\n" * 80, "second\n\n" * 120
+        control = ConversationControl((ChatMessage("assistant", first_text, id="a"),), HubTheme())
         control.render_worker = worker
+        control.follow_tail = True
         prepare = control._message_cache.prepare
         def slow(messages, *args, **kwargs):
             started.set()
-            (first_gate if messages[0].text == "first" else second_gate).wait(5)
+            (first_gate if messages[0].text == first_text else second_gate).wait(5)
             return prepare(messages, *args, **kwargs)
         app = NS(is_running=True, invalidate=Mock())
         try:
             with set_app(app), patch.object(control._message_cache, "prepare", side_effect=slow):
-                control.create_content(80, 10)
+                control.create_content(80, 30)
                 await eventually(started.is_set)
                 first = control._requested_key
-                control.messages = (ChatMessage("assistant", "second", id="a"),)
-                control.create_content(80, 10)
+                control.messages = (ChatMessage("assistant", second_text, id="a"),)
+                control.create_content(80, 30)
                 first_gate.set()
                 await eventually(lambda: control._cache_key == first)
                 self.assertNotEqual(control._cache_key, control._requested_key)
                 self.assertIn("first", "".join(text for line in control._lines for _, text in line))
+                self.assertEqual(control.top_line, len(control._lines) - 30)
                 second_gate.set()
                 await eventually(lambda: control._cache_key == control._requested_key)
+                control.create_content(80, 8)
+                self.assertEqual(control.top_line, len(control._lines) - 8)
+                control.scroll("pageup")
+                position = control.reading_position()
+                control.create_content(80, 6)
+                self.assertEqual(control.reading_position(), position)
         finally:
             first_gate.set()
             second_gate.set()

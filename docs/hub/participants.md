@@ -54,9 +54,12 @@ historical responses. Recipient selection is remembered per session during the
 current Hub lifetime; invitations persist across restarts.
 The existing stop control interrupts active Runs in the session. Each affected
 response receives immediate stop feedback, even if the newest Run already ended.
-While multiple recipients are selected and work is running, the composer offers
-a queued follow-up to all selected recipients. Select one participant to steer
-its active Run; Hub never silently chooses one member of a broadcast for steering.
+While work is running, Enter opens a compact queue/steering chooser. Queued requests
+keep all selected recipients. Steering resolves their current active Runs through
+the public status API and, when several are running, asks the user to select one.
+Hub never silently chooses one member of a broadcast or converts expired steering
+into a queued request. Close restores the consumed draft; the popup owns its bottom
+progress/status row.
 
 Graph responses include a Workflow diagram in the reasoning section. The diagram
 uses the definition captured in Graph Step evidence, not a subsequently edited

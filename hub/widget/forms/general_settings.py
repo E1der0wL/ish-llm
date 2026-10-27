@@ -19,6 +19,7 @@ from ..section import section
 from ...locales import validate_packs
 from .settings import SchemaForm
 from ..controls import Button, RadioList, TextArea
+from ..section import Heading
 
 
 @dataclass(slots=True)
@@ -182,9 +183,9 @@ class GeneralForm:
             self.screen.t(MessageKey.LANGUAGE_PACK_ADD),
             HSplit(
                 [
-                    Label(self.screen.t(MessageKey.LANGUAGE_PACK_CODE)),
+                    Heading(self.screen.t(MessageKey.LANGUAGE_PACK_CODE)),
                     code,
-                    Label(self.screen.t(MessageKey.LANGUAGE_PACK_JSON)),
+                    Heading(self.screen.t(MessageKey.LANGUAGE_PACK_JSON)),
                     content,
                 ]
             ),

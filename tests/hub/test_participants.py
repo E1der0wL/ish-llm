@@ -145,30 +145,32 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(display.trace[1].text, 'Keep this reasoning')
 
     async def test_broadcast_followup_keeps_all_recipients_and_never_steers_one_implicitly(self):
-        from types import SimpleNamespace
-        from unittest.mock import Mock
+        from examples.hub.preview import create_preview
+        from prompt_toolkit.input import DummyInput
         from hub.model import SessionView, SubmissionResult
-        from hub.ui.live import LiveController, LiveHubView
+        from hub.ui.live import LiveController
         with tempfile.TemporaryDirectory() as root:
-            view = LiveHubView()
+            app, view, _ = create_preview(input=DummyInput(), output=SizedOutput())
+            self.enterContext(set_app(app))
             controller = LiveController(view, HubConfig(root, auto_title=False))
-            controller.app = SimpleNamespace(invalidate=Mock())
+            controller.app = app
             view.project_id, view.connected, view.visible = 'p', True, True
             view.sessions = [SessionView('Room', id='s')]
             view.participant_ids = ('a', 'b')
-            calls, dialogs = [], []
+            view._last_snapshot = None
+            calls = []
             def call(operation, *args, completed=None, **kwargs):
                 calls.append((operation, args))
                 if len(calls) == 1:
                     completed(SubmissionResult(run_id='running-a'))
             controller._call = call
-            view.open_dialog = lambda *args, **kwargs: dialogs.append(args)
             try:
                 view.composer.text = 'continue both'
                 controller.submit('s', view.composer.text)
-                choices = dialogs[0][3]
-                self.assertEqual([value for value, label in choices.values], ['follow_up'])
-                dialogs[0][2]()
+                popup = view._dialog
+                self.assertEqual([value for value, label in popup.body.values], ['steer', 'follow_up'])
+                self.assertEqual(popup.body.current_value, 'follow_up')
+                popup._buttons[0].handler()
                 self.assertEqual(calls[-1][0], 'submit_input')
                 self.assertEqual(calls[-1][1][2], ('a', 'b'))
                 self.assertFalse(calls[-1][1][-1])

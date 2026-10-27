@@ -65,11 +65,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         rect = self.position(choices.window)
         screen = self.app.renderer._last_screen
         for y in range(rect.ypos, rect.ypos + rect.height):
-            self.assertEqual(attrs[screen.data_buffer[y][rect.xpos].style].bgcolor, self.view.theme.accent1[1:])
-        for selector in ("hub.scrollbar-track", "hub.scrollbar-arrow"):
+            self.assertEqual(attrs[screen.data_buffer[y][rect.xpos].style].bgcolor, self.view.theme.accent5[1:])
+        for selector in ("hub-scrollbar-track", "hub-scrollbar-arrow"):
             self.assertEqual(self.view.style.get_attrs_for_style_str("class:hub class:" + selector).bgcolor, "123456")
         self.assertEqual(self.view.style.get_attrs_for_style_str("class:hub class:checkbox-list").bgcolor,
-                         self.view.theme.accent1[1:])
+                         self.view.theme.accent5[1:])
 
     async def test_tagbar_click_selects_and_keyboard_opens_code_viewer(self):
         from hub.widget.output.code_viewer import CodeViewer
