@@ -7,7 +7,7 @@ from ...config.metadata import SettingMetadata
 from ...config.profile import UserProfile
 from ...config.restart import setting_metadata
 from ...config.sections import PreferenceSection
-from ...config.theme import HubTheme, ThemeMode
+from ...config.theme import HubTheme
 from ...locales.keys import MessageKey, MessagePattern
 from ...widget.forms.settings import ChoiceField
 
@@ -28,6 +28,8 @@ class GlobalSettingsSchema:
         HubTheme.accent1.__name__,
         HubTheme.accent2.__name__,
         HubTheme.accent3.__name__,
+        HubTheme.accent4.__name__,
+        HubTheme.accent5.__name__,
         HubTheme.comment.__name__,
         HubTheme.comment2.__name__,
     )
@@ -35,7 +37,7 @@ class GlobalSettingsSchema:
         HubTheme.output_refresh_interval,
         HubTheme.progress_refresh_interval,
     )
-    INITIAL_APPEARANCE_FIELDS = (HubTheme.icon_style, HubTheme.mode, *REFRESH_FIELDS)
+    INITIAL_APPEARANCE_FIELDS = (HubTheme.icon_style, *REFRESH_FIELDS)
 
     @classmethod
     def initial_values(cls, name, values):
@@ -74,14 +76,6 @@ class GlobalSettingsSchema:
             if key in properties:
                 properties[key].update(metadata)
         if name == PreferenceSection.APPEARANCE:
-            properties[HubTheme.mode.__name__] = {
-                SchemaKeyword.TYPE: SchemaType.STRING,
-                SchemaKeyword.ENUM: [value.value for value in ThemeMode],
-                SchemaKeyword.TITLE: t(MessageKey.SETTINGS_THEME_MODE),
-                SchemaKeyword.DESCRIPTION: t(
-                    MessageKey.SETTINGS_THEME_MODE_DESCRIPTION
-                ),
-            }
             properties[HubTheme.icon_style.__name__] = {
                 SchemaKeyword.TYPE: SchemaType.STRING,
                 SchemaKeyword.ENUM: [value.value for value in IconStyle],

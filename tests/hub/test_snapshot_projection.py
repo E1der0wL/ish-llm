@@ -10,6 +10,11 @@ from unittest.mock import AsyncMock
 
 from hub.asset.icon import NERD, UNICODE
 from hub.backend.observability.snapshot import SnapshotReader
+from hub.backend.execution.recovery_model import RecoveryStepMetadata
+from llm.components.memory.processing import MemorySession
+from hub.model import ResponseActivity
+from hub.ui.presentation import present_message
+from hub.widget.transcript.thought_trace import render_trace_item
 from hub.config.theme import HubTheme
 from hub.locales import Language
 from hub.ui.live import LiveHubView
@@ -24,6 +29,36 @@ def headers(messages, language):
 
 
 class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_reconciled_summary_shows_activity_instead_of_auxiliary_thoughts(self):
+        start = '2026-10-12T00:00:00+00:00'
+        steps = (
+            NS(id='analysis', kind='llm', name='Hub helper', status='completed', started_at=start,
+               metadata=RecoveryStepMetadata(RecoveryStepMetadata.ANALYSIS).to_record()),
+            NS(id='summary', kind='memory', name=MemorySession.ACTIVE_STEP, status='running',
+               started_at=start, metadata={}))
+        run = NS(id='r', engine='loop', status='running', started_at=start, ended_at=None,
+            metadata={'completions': [asdict(CompletionResult(id=s.id, step_id=s.id,
+                reasoning_content='Internal error recovery details')) for s in steps]})
+        record = Message(id='a', role='assistant', content='Previous partial answer', status='streaming',
+                         created_at=start, run_id='r', metadata={})
+        reader = SnapshotReader()
+        messages = await reader.messages(None, [record], latest=run, latest_steps=steps)
+        self.assertEqual([m.role for m in messages], ['reasoning', 'assistant'])
+        self.assertEqual(messages[0].text, '')
+        self.assertEqual(messages[1].text, record.content)
+        self.assertEqual(messages[0].phase, ResponseActivity.SUMMARIZING)
+        for code, expected in (('ko', '컨텍스트 압축'), ('en', 'Context compaction')):
+            language = Language(code)
+            displayed = present_message(messages[0], language)
+            text = ''.join(fragment[1] for item in displayed.trace
+                for row in render_trace_item(item, 80, HubTheme(), language) for fragment in row)
+            self.assertIn(expected, text)
+            self.assertNotIn('Internal error', text)
+        self.assertIn('Internal error', str(run.metadata))  # Preserve durable diagnostic receipts.
+        steps[1].status = 'completed'
+        messages = await reader.messages(None, [record], latest=run, latest_steps=steps)
+        self.assertEqual([m.role for m in messages], ['assistant'])
+
     async def test_thoughts_and_all_tools_are_interleaved_from_durable_timestamps(self):
         start = "2026-10-12T00:00:"
         run = NS(id="r", engine="loop", status="running", started_at=start + "00+00:00", ended_at=None,

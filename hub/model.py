@@ -18,6 +18,7 @@ class ResponseActivity:
     STREAMING = "streaming"
     RESUMING = "resuming"
     PREPARING = "preparing"
+    SUMMARIZING = "summarizing"
 
 
 class QuestionSource(StrEnum):
@@ -96,6 +97,7 @@ class TraceItem:
     TOOL: ClassVar[str] = "tool"
     REASONING: ClassVar[str] = "reasoning"
     WORKFLOW: ClassVar[str] = "workflow"
+    SUMMARY: ClassVar[str] = "summary"
 
     id: str
     kind: str

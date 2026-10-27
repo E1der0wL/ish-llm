@@ -45,3 +45,21 @@ or adds another layout row. All stage labels are in the Korean/English language 
 
 Restart also reports cancellation/draining followed by closing the old backend; the
 replacement instance then reports its normal startup stages.
+
+General dialogs own a bottom status row, after the actions. A dialog with an
+existing row passes it to `Dialog.status_bar`; Agent's embedded Settings page
+exports its row instead of rendering it twice. Popup loading keeps the underlying
+page's row empty. Memory history/active-exchange/Tool-result summary Step events
+project `summarizing` into the Assistant header; provider completions inside the
+summary do not relabel it as ordinary thinking. Input-recovery compaction also
+displays "Summarizing" while it is summarizing; actual analysis/retry phases retain
+their own labels and the original diagnostics remain unchanged.
+
+The thought timeline shows `컨텍스트 압축` / `Context compaction` while a
+Memory summary or input-recovery summary Step is active, even before the helper
+produces text. Auxiliary summary/diagnosis reasoning is not Agent reasoning and
+is excluded by the owning Step ID from both live events and reconciled Run
+receipts. Existing Agent thoughts/Tool history and partial answers remain visible;
+raw helper receipts and diagnostics remain available in backend records. The
+summary row disappears when that Step ends. No additional backend reads or
+summary calls are introduced by this projection.

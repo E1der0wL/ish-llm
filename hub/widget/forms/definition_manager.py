@@ -143,7 +143,6 @@ class DefinitionEditor(Dialog):
                     Label(self.view.t(MessageKey.DEFINITION_NAME)),
                     self.identifier,
                     content,
-                    self.view.progress.container(lambda: self.status, surface=self),
                 ],
                 height=lambda: Dimension(
                     preferred=max(
@@ -154,6 +153,9 @@ class DefinitionEditor(Dialog):
                 ),
             ),
             buttons=self.buttons,
+            status_bar=self.view.progress.container(lambda: self.status, surface=self),
+            content_padding=(0 if manager.name == ManagedComponents.WORKFLOWS.name
+                             else Dialog.CONTENT_PADDING),
             size=(PopupSize.LARGE if manager.name == ManagedComponents.WORKFLOWS.name
                   else PopupSize.MEDIUM),
         )

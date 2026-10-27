@@ -10,7 +10,6 @@ from ...backend.history_deletion import (
     TurnDeletionResult,
 )
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
 from ...widget.output.reader import ReadOnlyDialog
@@ -185,17 +184,11 @@ class HistoryUI:
         view = self.view
         project_id = view.project_id
         session_id = view.sessions[view.selected].id
-        view.open_dialog(
-            view.t(MessageKey.HISTORY_TITLE), Label(view.t(MessageKey.SETTINGS_LOADING)),
+        view.dialogs.loading(
+            view.t(MessageKey.HISTORY_TITLE),
             size=RequestHistoryDialog.SIZE,
         )
         pending = view._dialog
-        pending.body = HSplit([
-            Window(),
-            view.progress.container(
-                lambda: view.t(MessageKey.SETTINGS_LOADING), surface=pending
-            ),
-        ])
 
         def ready(rows):
             if view._dialog is not pending:
@@ -315,9 +308,7 @@ class HistoryUI:
                 view.notice = t(MessageKey.HISTORY_SELECT_ITEMS)
                 return
             view.close_dialog()
-            view.open_dialog(
-                t(MessageKey.HISTORY_DELETE), Label(t(MessageKey.SETTINGS_LOADING))
-            )
+            view.dialogs.loading(t(MessageKey.HISTORY_DELETE))
             pending = view._dialog
 
             def ready(plan):
@@ -470,7 +461,7 @@ class HistoryUI:
     def activity(self):
         view, t = self.view, self.view.t
         project_id = view.project_id
-        self._activity_dialog(t(MessageKey.SETTINGS_LOADING))
+        view.dialogs.loading(t(MessageKey.PROJECT_ACTIVITY))
         pending = view._dialog
 
         def ready(rows):

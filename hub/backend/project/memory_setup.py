@@ -27,6 +27,15 @@ class MemorySetup:
             return candidate, selected
         defaults = deepcopy(HubDefaults.MEMORY_SUMMARY)
         policy = parameters.policy.get(MemoryProcessingConfig.KEY, {})
+        # A summary is wrapped in provenance before injection. Leave room for
+        # that wrapper and recalled facts within the user's existing limit.
+        context_chars = policy.get(MemoryProcessingConfig.Field.CONTEXT_CHARS)
+        if type(context_chars) is int and context_chars > 0:
+            summary = defaults[ImplementationParameters.CONFIG][MemoryProcessingConfig.KEY]
+            summary[MemoryProcessingConfig.Field.SUMMARY_CHARS] = min(
+                summary[MemoryProcessingConfig.Field.SUMMARY_CHARS],
+                max(1, context_chars // HubDefaults.MEMORY_SUMMARY_CONTEXT_SHARE),
+            )
         if policy.get(MemoryProcessingConfig.Field.COMPRESS_TOOLS):
             # Explicit legacy preview choice remains authoritative; never select both modes.
             defaults[ImplementationParameters.CONFIG][MemoryProcessingConfig.KEY].pop(

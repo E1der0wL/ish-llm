@@ -193,9 +193,11 @@ class PreferenceRecord:
     @classmethod
     def validate_section(cls, owner, section, record):
         expected = {item.name for item in fields(owner)}
-        # This newly introduced color is an optional field in the current
-        # appearance contract. All pre-existing stored leaves remain required.
-        optional = {HubTheme.comment2.__name__} if owner is HubTheme else set()
+        # Additive palette fields use their Owner defaults when omitted.
+        # Removed/unknown fields are still rejected, never silently migrated.
+        optional = {
+            HubTheme.comment2.__name__, HubTheme.accent4.__name__, HubTheme.accent5.__name__
+        } if owner is HubTheme else set()
         if not isinstance(record, dict) or not expected - optional <= record.keys() <= expected:
             raise TypeError(cls.INCOMPLETE_SECTION.format(section=section))
         return asdict(owner(**record))

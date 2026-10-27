@@ -195,11 +195,31 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
         from hub.config.preset_records import PresetGlobals
         saved = HubDefaults.globals()['appearance']
         saved.pop('comment2')
+        saved.pop('accent4')
+        saved.pop('accent5')
         saved['foreground'] = '#123456'
         exported = PresetGlobals.snapshot(None, lambda: {'appearance': saved})
         self.assertEqual(exported['appearance']['foreground'], '#123456')
         self.assertEqual(exported['appearance']['comment2'], '#3A3A3A')
+        self.assertEqual(exported['appearance']['accent4'], '#A8B2BF')
+        self.assertEqual(exported['appearance']['accent5'], '#1D2035')
         self.assertNotIn('comment2', saved)
+
+    def test_palette_preferences_use_additive_defaults_without_legacy_migration(self):
+        from hub.config.preferences import PreferencesStore
+        saved = HubDefaults.globals()['appearance']
+        saved.pop('accent4')
+        saved.pop('accent5')
+        saved['accent1'] = '#123456'
+        validated = PreferencesStore.validate_section('appearance', saved)
+        self.assertEqual(validated['accent1'], '#123456')
+        self.assertEqual(validated['accent4'], '#A8B2BF')
+        self.assertEqual(validated['accent5'], '#1D2035')
+        self.assertNotIn('accent4', saved)
+        with self.assertRaises(TypeError):
+            PreferencesStore.validate_section('appearance', {**saved, 'mode': 'dark'})
+        with self.assertRaises(ValueError):
+            PreferencesStore.validate_section('appearance', {**validated, 'accent5': 'invalid'})
 
     def test_dropdown_uses_completion_styles_without_radio_or_border(self):
         from hub.widget.dropdown import DropdownBox, CompletionChoices

@@ -44,7 +44,7 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 settings_button(app, pipe, view)
                 await until(lambda: view.user_profile.display_name == "Nickname" and not screen.busy)
                 self.assertTrue(view.settings_open)
-                self.assertIn("Nickname • ", view.profile_bar.identity()[0][1])
+                self.assertIn("Nickname • ", ''.join(text for _, text in view.profile_bar.identity()))
                 self.assertEqual(PreferencesStore(directory).load()["profile"]["display_name"], "Nickname")
                 with set_app(app):
                     screen.choose("engine:loop")

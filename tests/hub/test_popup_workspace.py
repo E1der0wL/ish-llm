@@ -8,6 +8,9 @@ from unittest.mock import AsyncMock
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.utils import get_cwidth
+from prompt_toolkit.layout.containers import to_container
+from prompt_toolkit.layout.screen import Screen, WritePosition
+from prompt_toolkit.layout.mouse_handlers import MouseHandlers
 
 from examples.hub.preview import create_preview
 from hub.widget.forms.definition_manager import DefinitionManager
@@ -20,6 +23,28 @@ from tests.hub.support import SizedOutput, eventually, render_container
 
 
 class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_agent_and_workflow_chrome_has_no_outer_padding_and_footer_is_last(self):
+        with set_app(self.app):
+            def paint(popup):
+                screen = Screen()
+                to_container(popup).write_to_screen(screen, MouseHandlers(),
+                    WritePosition(0,0,128,36), '', True, None)
+                screen.draw_all_floats()
+                self.assertEqual(screen.visible_windows_to_write_positions[popup.status_bar].ypos, 34)
+                return screen
+            screen = paint(self.editor)
+            self.assertIn('에이전트', ''.join(screen.data_buffer[1][x].char for x in range(35)))
+            auxiliary = next(iter(self.editor.workspace.auxiliary.buttons.values()))
+            y = screen.visible_windows_to_write_positions[auxiliary.window].ypos
+            self.assertTrue(any(screen.data_buffer[y+1][x].char == '┌' for x in range(128)))
+            manager = DefinitionManager(self.view, self.manager.request, name='workflows', edit_text=self.edit)
+            self.view.dialogs.show(manager, manager.path)
+            manager.create_item()
+            popup = self.view._dialog
+            screen = paint(popup)
+            self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].xpos, 1)
+            self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].ypos, 2)
+
     async def asyncSetUp(self):
         self.input = create_pipe_input()
         self.pipe = self.input.__enter__()

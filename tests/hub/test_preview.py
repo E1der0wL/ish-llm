@@ -91,10 +91,10 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
                          and self.view.output.transcript.window.render_info is not None)
         self.pipe.send_text("\x1b\x1b[F")  # Alt+End
         await eventually(lambda: self.view.output.transcript.control.cursor_line > 0)
-        self.view.set_theme(HubTheme.dark())
+        self.view.set_theme(HubTheme(background="#111923"))
         self.app.invalidate()
         self.assertEqual(self.view.composer.text, "keep draft")
-        self.assertEqual(self.view.output.transcript.control.theme, HubTheme.dark())
+        self.assertEqual(self.view.output.transcript.control.theme, HubTheme(background="#111923"))
         self.pipe.send_text("\x1b\x1b[H")  # Alt+Home
         await eventually(lambda: self.view.output.transcript.control.cursor_line == 0)
 

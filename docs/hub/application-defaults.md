@@ -71,10 +71,14 @@ The summary model owns its API key/base; Hub never borrows the Agent connection.
 Existing explicit values, including `summarize: false`, remain authoritative.
 Simply opening an existing project does not materialize these defaults.
 
-`HubDefaults.MEMORY_SUMMARY` declares the application choices: keep four recent
-turns, start older-history summarization at 24,000 characters, summarize Tool
-results above 8,000 characters with a 24,000-character per-call source budget,
-4,000-character summary cap and at most 64 summary calls. These are character
+`HubDefaults.MEMORY_SUMMARY` declares the application choices: keep one recent
+turn and one active Tool iteration, start older-history/active-exchange summarization
+at 24,000 characters, summarize Tool
+results above 8,000 characters with an 18,000-character per-call source budget,
+4,000-character summary cap and at most 64 summary calls. A missing summary cap is
+bounded to half an explicitly configured context character limit, leaving room
+for provenance and recalled facts (the default recall context of 4,000 characters
+therefore selects a 2,000-character summary). These are character
 bounds, not token limits. Model calls incur additional usage. Existing processing
 provider policies remain independent from the Agent/Loop caller.
 
@@ -87,6 +91,35 @@ The original result is preserved if summary processing fails or exhausts its
 budget; this does not bypass the backend's context guard. Giant user inputs or
 Tool definitions can still exceed the configured token limit. Failed/partial
 summary requests retain the backend's explicit-resume requirements.
+
+Active compaction is separate from individual Tool-result summarization: many
+results below `tool_result_chars` can still overflow a request when accumulated.
+Hub now supplies missing `compact_active: true` / `active_keep_iterations: 1`
+on explicit summary-model save. This uses Memory's public processing contract;
+completed Tool receipts, original history and checkpoint ownership are unchanged.
+Existing explicit `keep_turns`, `summary_chars`, false flags and token budgets
+are never silently overwritten. Existing projects should save their Memory
+settings again to fill missing fields. If they retain older explicit limits,
+review `keep_turns`, `compact_active`, `active_keep_iterations`, `summary_chars`
+and `context_chars`. A summary must fit with its provenance in `context_chars`.
+
+An HTTP 400 context error is evidence of the provider's rejected total input/output
+budget, not proof that Memory never ran. Check summary Step failures (connection,
+format or budget), recent/current inputs, Tool definitions, and Agent output reserve.
+The on-premises provider's exact token limit must be configured by its owner; Hub
+does not invent a model context size or silently truncate current instructions.
+
+Preflight order is important: Loop calls the Component processing pipeline before
+the completion policy and provider. Memory summarizes oversized Tool results in
+bounded fragments, and then compacts older completed Tool exchanges. The summary
+payload budget includes the previous summary and JSON envelope; the model's system
+instruction and output reserve are additional. A long result is not blindly sent
+as independent Agent requests: summary fragments feed one derived reference while
+the original Tool result remains stored. Incomplete summaries do not replace the
+original. Current user instructions, Tool definitions, retained recent exchanges
+and provider-side chat templates can still exceed a token budget. The configured
+counter and server limit must agree; character thresholds cannot prove that an
+arbitrary private model will accept the assembled request.
 
 ## Application tools and Session peers
 

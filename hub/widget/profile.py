@@ -30,8 +30,7 @@ class ProfileBar(HSplit):
     CLICK_TINT = False
     NEWLINE = "\n"
     SPACE = " "
-    IDENTITY_STYLE = ""
-    IDENTITY_TEXT = " {name} • {account}"
+    IDENTITY_SEPARATOR = " • "
 
     def __init__(self, view):
         self.view = view
@@ -112,10 +111,8 @@ class ProfileBar(HSplit):
     def identity(self):
         name = self.view.user_profile.display_name.replace(self.NEWLINE, self.SPACE)
         return [
-            (
-                self.IDENTITY_STYLE,
-                self.IDENTITY_TEXT.format(name=name, account=self.account),
-            )
+            (ThemeSelector.PROFILE_NAME.style, self.SPACE + name),
+            (ThemeSelector.PROFILE_ACCOUNT.style, self.IDENTITY_SEPARATOR + self.account),
         ]
 
     def focus(self):

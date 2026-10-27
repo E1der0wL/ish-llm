@@ -137,10 +137,12 @@ class ComponentManager(Dialog):
                     ),
                     Window(height=ManagerView.ROW_SPACER),
                     self.actions,
-                    self.status_line,
                 ]
             ),
             size=PopupSize.MEDIUM,
+            status_bar=self.status_line,
+            content_padding=(0 if name in (ManagedComponents.AGENTS.name, ManagedComponents.WORKFLOWS.name)
+                             else Dialog.CONTENT_PADDING),
         )
 
     def help(self):

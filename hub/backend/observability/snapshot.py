@@ -28,6 +28,7 @@ from ...model import (
     SessionSummary,
     RunSummary,
     TraceItem,
+    ResponseActivity,
 )
 from ..execution.trace import merge_trace, tool_trace
 from ..execution.steps import display_steps
@@ -124,7 +125,7 @@ class SnapshotReader:
         self.observations.pop(session_id, self.ABSENT)
 
     async def run_display(
-        self, session, run_id: str, *, run=ABSENT, requested_at=ABSENT
+        self, session, run_id: str, *, run=ABSENT, requested_at=ABSENT, steps=()
     ) -> tuple[str, float | None]:
         key = (run_id, requested_at)
         cached = self.cache.get(key)
@@ -138,7 +139,9 @@ class SnapshotReader:
                 self.EMPTY_TEXT,
                 self.ABSENT,
             )  # Retention can remove old execution history.
-        completions = CompletionRecords.results(run.metadata)
+        hidden_steps = self.thinking.hidden_steps(run_id, steps)
+        completions = [item for item in CompletionRecords.results(run.metadata)
+                       if item.step_id not in hidden_steps]
         self.run_engines[run_id] = run.engine
         if AgentBinding.METADATA_FIELD in run.metadata:
             binding = AgentBinding.from_metadata(run.metadata)
@@ -222,6 +225,7 @@ class SnapshotReader:
                     message.run_id,
                     run=current_run,
                     requested_at=requests.get(message.run_id),
+                    steps=steps_for_run,
                 )
                 reasoning = self.thinking.visible(
                     message.run_id, reasoning, active=active, content=message.content
@@ -274,7 +278,8 @@ class SnapshotReader:
                 workflow, workflow_states = observation.text, observation.states
                 if message.run_id in self.authors:
                     authors[message.run_id] = self.authors[message.run_id]
-                if reasoning or tools or workflow:
+                summarizing = active and self.thinking.activity(current_run, steps_for_run) == ResponseActivity.SUMMARIZING
+                if reasoning or tools or workflow or summarizing:
                     trace = merge_trace(
                         self.thinking.trace(
                             message.run_id, self.trace_history.get(message.run_id, ())
@@ -286,6 +291,7 @@ class SnapshotReader:
                             message.id, reasoning, tools=tools, trace=trace,
                             author=authors.get(message.run_id, self.EMPTY_TEXT), workflow=workflow,
                             workflow_states=workflow_states,
+                            phase=ResponseActivity.SUMMARIZING if summarizing else self.EMPTY_TEXT,
                         )
                     )
             status = str(
@@ -296,7 +302,7 @@ class SnapshotReader:
             if status == MessageStatus.PAUSED and message.run_id in stopped_runs:
                 status = MessageStatus.INTERRUPTED.value
             phase = (
-                self.thinking.activity(current_run)
+                self.thinking.activity(current_run, steps_for_run)
                 if role == MessageRole.ASSISTANT
                 and current_run is not self.ABSENT
                 and status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)

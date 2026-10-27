@@ -45,6 +45,8 @@ class DialogController:
         if self.current is DialogController.ABSENT:
             self.previous_focus = app.layout.current_control
         self.current = dialog
+        if isinstance(dialog, Dialog) and dialog.status_bar is None:
+            dialog.status_bar = self.view.progress.container(lambda: self.view.notice, surface=dialog)
         app.layout.update_parents_relations()
         focus_control(focus)
         app.invalidate()
@@ -89,6 +91,13 @@ class DialogController:
         )
         dialog.on_cancel = on_cancel
         self.show(dialog, focus or buttons[DialogController.PRIMARY_BUTTON])
+
+    def loading(self, title, *, size=PopupSize.MEDIUM):
+        self.open(title, Window(), size=size)
+        popup = self.current
+        popup.status_bar = self.view.progress.container(
+            lambda: self.view.t(MessageKey.SETTINGS_LOADING), surface=popup
+        )
 
     def close(self, *, accepted=NOT_ACCEPTED, restore_focus=RESTORE_FOCUS):
         app, focus = get_app(), self.previous_focus

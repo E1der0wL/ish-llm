@@ -192,10 +192,10 @@ class SettingField:
         )
         self.input.control.key_bindings = registry.bindings
         registry.attach(self.input.control)
-        self.input.window.style = lambda: ThemeSelector.SETTINGS_INPUT.style + (
-            FieldDisplay.SPACE + ThemeSelector.FOCUSED.style
+        self.input.window.style = lambda: (
+            ThemeSelector.SETTINGS_INPUT_FOCUSED.style
             if get_app().layout.has_focus(self.input)
-            else FieldDisplay.EMPTY
+            else ThemeSelector.SETTINGS_INPUT.style
         )
         description = self.schema.get(SchemaKeyword.DESCRIPTION) or t(
             MessageKey.SETTINGS_NO_DESCRIPTION

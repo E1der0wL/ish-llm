@@ -75,7 +75,7 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(b.xpos == a.xpos + a.width + 1 for a,b in zip(rects, rects[1:])))
         self.assertEqual(rects[-1].xpos + rects[-1].width,
                          positions[view.composer.window].xpos + positions[view.composer.window].width + 1)
-        self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos].style].bgcolor, '123456')
+        self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos].style].bgcolor, 'default')
         self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos - 1].style].bgcolor, 'default')
         await auxiliary(app, self.pipe, view, 'logs')
         await eventually(lambda: seen == ['history', 'logs'])
@@ -158,19 +158,55 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(view.notice, 'keep')
 
 
-class ThemeModeTests(unittest.TestCase):
-    def test_theme_mode_derivation_and_grayscale(self):
-        dark, light = HubTheme(), HubTheme(mode='light')
-        self.assertNotEqual(dark.code_background, light.code_background)
-        self.assertNotEqual(dark.code_foreground, light.code_foreground)
-        self.assertEqual(HubTheme(**asdict(light)), light)
-        self.assertEqual(dark.background, light.background)
-        self.assertNotEqual(replace(dark, background='#123456').button_background,
-                            replace(light, background='#123456').button_background)
+class PaletteTests(unittest.TestCase):
+    def test_explicit_colors_and_automatic_inactive_grayscale(self):
+        from hub.config.theme_style import ThemeSelector
+        theme = HubTheme()
+        self.assertEqual([theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5],
+                         ['#98C379', '#528BFF', '#D19A66', '#A8B2BF', '#1D2035'])
+        self.assertNotIn('mode', asdict(theme))
+        self.assertEqual(HubTheme(**asdict(theme)), theme)
+        for background in ('default', '#123456', '#ffffff'):
+            palette = replace(theme, foreground='#102030', background=background,
+                              accent1='#234567', accent4='#345678', accent5='#456789')
+            style = palette.style()
+            for selector in (ThemeSelector.PTK_BUTTON,
+                             ThemeSelector.CHECKLIST,
+                             ThemeSelector.PTK_COMPLETION_MENU):
+                attrs = style.get_attrs_for_style_str(' '.join('class:' + part for part in selector.value.split()))
+                self.assertEqual((attrs.color, attrs.bgcolor), ('102030', '234567'))
+            for selector in (ThemeSelector.HEADER, ThemeSelector.PROFILE, ThemeSelector.PROFILE_NAME,
+                             ThemeSelector.PROFILE_ACCOUNT, ThemeSelector.SETTINGS_INPUT_FOCUSED):
+                self.assertEqual(style.get_attrs_for_style_str(selector.style).bgcolor, '456789')
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.PROFILE_NAME.style).color, theme.accent2[1:])
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.PROFILE_ACCOUNT.style).color, theme.comment[1:])
+            for state in ('', '.focused'):
+                attrs = style.get_attrs_for_style_str('class:hub class:hub.header class:button' + state + ' class:button.text')
+                self.assertEqual(attrs.bgcolor, '456789')
+            for state in ('', '.focused'):
+                attrs = style.get_attrs_for_style_str('class:hub class:hub.auxiliary class:button' + state + ' class:button.text')
+                self.assertEqual(attrs.bgcolor, 'default')
+            attrs = style.get_attrs_for_style_str(ThemeSelector.SETTINGS_INPUT.style)
+            self.assertEqual((attrs.color, attrs.bgcolor), ('102030', '456789'))
+            attrs = style.get_attrs_for_style_str(ThemeSelector.COMPOSER.style)
+            self.assertEqual((attrs.color, attrs.bgcolor), ('102030', background.removeprefix('#')))
+            for selector in (ThemeSelector.SHORTCUT_SEGMENT, ThemeSelector.SHORTCUT_KEY):
+                self.assertEqual(style.get_attrs_for_style_str(selector.style).bgcolor, '345678')
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_SEGMENT.style).color, '456789')
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_KEY.style).color, theme.accent3[1:])
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.FOOTER.style).color, '345678')
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.FOOTER.style).bgcolor, '456789')
+            leading = style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_LEADING.style)
+            trailing = style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_EDGE.style)
+            self.assertEqual((leading.color, leading.bgcolor), ('456789', '345678'))
+            self.assertEqual((trailing.color, trailing.bgcolor), ('345678', '456789'))
+            self.assertEqual(palette.code_background, '#456789')
+            self.assertEqual(palette.code_foreground, '#102030')
+        self.assertEqual(theme.code_foreground, 'default')
         self.assertEqual(grayscale('default'), 'default')
         self.assertEqual(grayscale('123456'), '#2f2f2f')
         self.assertEqual(grayscale('ansired')[1:3], grayscale('ansired')[3:5])
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             HubTheme(mode='invalid')
 
 

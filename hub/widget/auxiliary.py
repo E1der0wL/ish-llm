@@ -15,7 +15,7 @@ from .focus import focus_control
 
 
 class AuxiliaryButton(Button):
-    """Compact icon action with the page background instead of a button surface."""
+    """Compact icon action with an explicitly transparent terminal background."""
 
     WIDTH = 3
 

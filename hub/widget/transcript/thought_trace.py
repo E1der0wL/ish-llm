@@ -27,7 +27,7 @@ def render_trace_item(item, width, theme, language):
             )
             for row in rows
         ) + (TranscriptLayout.BLANK_LINE,)
-    content = item.text
+    content = language(MessageKey.CONTEXT_SUMMARIZING) if item.kind == TraceItem.SUMMARY else item.text
     if item.kind == TraceItem.WORKFLOW:
         from ..workflow_graph import workflow_diagram
         try:

@@ -8,7 +8,6 @@ from pathlib import Path
 
 from .ui.application import create_application
 from .backend.runtime import HubConfig
-from .config.theme import HubTheme
 from .config.workspace import WorkspaceSelection
 
 
@@ -25,8 +24,6 @@ class HubCommand:
     PROJECT_HELP = "Existing Project ID; retains its persisted model/settings"
     SESSION = "--session"
     SESSION_HELP = "Existing Session ID inside --project"
-    THEME = "--theme"
-    TERMINAL_THEME = "terminal"
     LANGUAGE = "--language"
     FILE_ROOT = "--file-root"
     FILE_ROOT_HELP = "Root for @path completion"
@@ -35,8 +32,6 @@ class HubCommand:
     )
     SESSION_REQUIRES_PROJECT = "--session requires --project"
     ENTRY_POINT = "__main__"
-    DEFAULT_THEME = None
-    DARK_THEME = HubTheme.dark.__name__
 
 
 def main() -> None:
@@ -51,11 +46,6 @@ def main() -> None:
     parser.add_argument(HubCommand.API_BASE, help=HubCommand.API_BASE_HELP)
     parser.add_argument(HubCommand.PROJECT, help=HubCommand.PROJECT_HELP)
     parser.add_argument(HubCommand.SESSION, help=HubCommand.SESSION_HELP)
-    parser.add_argument(
-        HubCommand.THEME,
-        choices=(HubCommand.TERMINAL_THEME, HubCommand.DARK_THEME),
-        default=HubCommand.TERMINAL_THEME,
-    )
     parser.add_argument(
         HubCommand.LANGUAGE, choices=LanguageCode.BUILTIN, default=LanguageCode.DEFAULT
     )
@@ -80,14 +70,7 @@ def main() -> None:
 
     launch_config = config
     while True:
-        app, controller = create_application(
-            config,
-            theme=(
-                HubTheme.dark()
-                if args.theme == HubCommand.DARK_THEME
-                else HubCommand.DEFAULT_THEME
-            ),
-        )
+        app, controller = create_application(config)
         try:
             result = app.run(pre_run=lambda: controller.view.show(app))
         finally:

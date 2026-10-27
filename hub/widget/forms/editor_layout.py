@@ -33,7 +33,7 @@ class SettingsEditorLayout:
         self.selected = self.GENERAL
         self.query = ""
         self.sections = [SidebarItem(self.GENERAL, editor.view.t(MessageKey.SETTINGS_GENERAL))]
-        self.body = HSplit([Label(editor.view.t(MessageKey.COMPONENT_LOADING))])
+        self.body = Window()
         self.pane = SettingsPane(DynamicContainer(lambda: self.body),
                                  width=lambda: Dimension(min=1, preferred=self.main_width()))
         self.sidebar = SidebarList(lambda: self.sections, lambda: self.selected,
@@ -74,9 +74,10 @@ class SettingsEditorLayout:
                 Window(self.sidebar),
             ], width=lambda: Dimension.exact(editor.view.sidebar_width())),
             main=HSplit([ContentInset(self.tabs, heading=self.page_title, bottom_padding=0),
-                         self.auxiliary, Window(height=Dialog.CONTENT_PADDING),
+                         Window(height=Dialog.CONTENT_PADDING), self.auxiliary,
                          self.actions], width=Dimension(min=1, weight=1)),
             progress=editor.view.progress, notice=self.status_text, status_surface=editor,
+            status_in_body=False,
             sidebar_controls=lambda: (self.sidebar,), focus_sidebar=self.focus_sidebar,
             focus_main=lambda: self.tabs.focus_tabs(),
         )
@@ -106,7 +107,7 @@ class SettingsEditorLayout:
     def main_width(self):
         from ..dialog import PopupGeometry, PopupSize
         return max(1, PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
-                   - self.editor.view.sidebar_width() - 5)
+                   - self.editor.view.sidebar_width() - 3)
 
     def page_title(self):
         title = next(item.title for item in self.sections if item.key == self.selected)

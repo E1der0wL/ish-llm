@@ -13,10 +13,32 @@ from examples.hub.preview import create_preview
 from hub.ui.chat.history_ui import HistoryUI
 from hub.widget.dialog import PopupGeometry, PopupSize
 from hub.widget.forms.request_history import RequestHistoryDialog
+from hub.widget.controls import RadioList, Button
+from hub.widget.dialog import Dialog
 from tests.hub.support import SizedOutput
 
 
 class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_single_list_expands_and_status_stays_below_actions(self):
+        app, view, _ = create_preview(input=DummyInput(), output=SizedOutput(132, 40))
+        try:
+            with set_app(app):
+                choices = RadioList([('a', 'Alpha'), ('b', 'Beta')])
+                button = Button('Close')
+                popup = Dialog(body=choices, buttons=[button])
+                view.dialogs.show(popup, choices)
+                view.notice = 'status-marker'
+                screen = self.paint(popup, 100, 36)
+                positions = screen.visible_windows_to_write_positions
+                self.assertGreater(positions[choices.window].height, 20)
+                self.assertEqual(positions[popup.status_bar].ypos, 34)
+                self.assertLess(positions[button.window].ypos, 34)
+                text = ''.join(screen.data_buffer[34][x].char for x in range(100))
+                self.assertIn('status-marker', text)
+                self.assertEqual(view.progress.container().content.create_content(100,1).get_line(0), [])
+        finally:
+            view.close()
+
     def paint(self, popup, width, height):
         screen = Screen()
         to_container(popup).write_to_screen(

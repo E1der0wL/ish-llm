@@ -11,9 +11,14 @@ import unittest
 
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.execution.thinking import ThinkingPhases
+from hub.backend.execution.recovery_model import RecoveryStepMetadata
 from hub.config.theme import HubTheme
 from hub.locales import Language
-from hub.model import ChatMessage
+from hub.model import ChatMessage, ResponseActivity, RetrySummary
+from hub.widget.feedback.retry_status import retry_text
+from llm.engines.events import EngineEvent, EngineEventType
+from llm.components.memory.processing import MemorySession
+from llm.components.memory.tool_result_values import ToolSummaryExecution
 from hub.ui.presentation import present, present_message
 from hub.widget.transcript.conversation import ConversationControl, render_messages
 from llm.components.tools import ToolComponent
@@ -24,6 +29,43 @@ from llm.core.models import now
 
 
 class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
+    def test_memory_summary_activity_is_not_error_recovery(self):
+        phases = ThinkingPhases()
+        run = SimpleNamespace(id='summary-run', status='running', metadata={})
+        phases.observe(run, EngineEvent(EngineEventType.STEP_STARTED, step_id='s',
+                                       kind='memory', name=MemorySession.ACTIVE_STEP))
+        phases.observe(run, EngineEvent(EngineEventType.COMPLETION, completion=CompletionResult()))
+        self.assertEqual(phases.activity(run), ResponseActivity.SUMMARIZING)
+        self.assertEqual(Language('ko').status(ResponseActivity.SUMMARIZING), '요약 중')
+        label = retry_text(RetrySummary(1, 4, kind=RetrySummary.RECOVERY,
+                                       phase=RetrySummary.COMPACTING), Language('ko'))
+        self.assertIn('요약 중', label)
+        self.assertNotIn('복구', label)
+        phases.observe(run, EngineEvent(EngineEventType.STEP_COMPLETED, step_id='s'))
+        self.assertNotEqual(phases.activity(run), ResponseActivity.SUMMARIZING)
+
+    def test_summary_helpers_do_not_leak_into_agent_reasoning(self):
+        for name, kind, metadata in (
+                (MemorySession.SUMMARIZE_STEP, 'memory', {}),
+                (MemorySession.ACTIVE_STEP, 'memory', {}),
+                (ToolSummaryExecution.STEP, 'memory', {}),
+                ('custom label', 'llm', RecoveryStepMetadata(RecoveryStepMetadata.SUMMARY).to_record())):
+            with self.subTest(name=name):
+                phases = ThinkingPhases()
+                run = SimpleNamespace(id='r', status='running', metadata={'completions': []})
+                phases.observe(run, EngineEvent(EngineEventType.STEP_STARTED, step_id='helper',
+                    kind=kind, name=name, metadata=metadata))
+                phases.observe(run, EngineEvent(EngineEventType.COMPLETION, step_id='helper',
+                    completion=CompletionResult(id='hidden', step_id='helper', reasoning_content='Internal recovery details')))
+                self.assertEqual(phases.activity(run), ResponseActivity.SUMMARIZING)
+                self.assertEqual(phases.visible('r', '', active=True, content=''), '')
+                self.assertEqual(phases.trace('r', ()), ())
+                phases.observe(run, EngineEvent(EngineEventType.STEP_COMPLETED, step_id='helper'))
+                self.assertNotEqual(phases.activity(run), ResponseActivity.SUMMARIZING)
+                phases.observe(run, EngineEvent(EngineEventType.COMPLETION,
+                    completion=CompletionResult(id='agent', step_id='main', reasoning_content='Continue the actual task')))
+                self.assertEqual(phases.visible('r', '', active=True, content=''), 'Continue the actual task')
+
     async def test_real_stream_shows_thinking_then_each_chunk_without_waiting_for_finish(self):
         gates = [threading.Event() for _ in range(4)]
         entered = threading.Event()
@@ -42,7 +84,10 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
             return LargeLanguageModel(config.workspace, components=[ToolComponent()],
                 engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, model='test/model', auto_title=False), factory)
+            runtime = HubRuntime(HubConfig(directory, auto_title=False, agent_definition={
+                'engine': 'loop', 'completion': {'model': 'test/model'},
+                'metadata': {'title': '코딩 도우미'},
+            }), factory)
             async def observe(predicate):
                 async with asyncio.timeout(15):
                     while True:
@@ -63,6 +108,11 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
                 gates[0].set()
                 snapshot = await observe(lambda s: any(m.role == 'reasoning' for m in s.messages))
                 self.assertEqual(snapshot.messages[-2].text, 'Visible summary')
+                self.assertEqual(snapshot.messages[-2].author, '코딩 도우미')
+                reasoning_header = render_messages(snapshot.messages[-2:-1], 80, HubTheme(), runtime.t, section='header')
+                heading = ''.join(text for line in reasoning_header for _, text in line)
+                self.assertIn('코딩 도우미 · 생각 과정', heading)
+                self.assertNotIn('test/model', heading)
                 gates[1].set()
                 snapshot = await observe(lambda s: s.messages[-1].text == 'First block')
                 self.assertEqual(snapshot.messages[-2].role, 'reasoning')

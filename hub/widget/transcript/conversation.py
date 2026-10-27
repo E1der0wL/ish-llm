@@ -276,6 +276,7 @@ def render_messages(
             )
             body = markdown_lines(renderable)
         if user:
+            user_colors = ThemeStyle.USER_BLOCK_COLORS.format(theme=theme)
             body_width = max(
                 TranscriptLayout.MIN_WIDTH,
                 max(
@@ -304,7 +305,7 @@ def render_messages(
                         *(
                             (
                                 ThemeStyle.joined(
-                                    ThemeSelector.USER_BLOCK.style, style
+                                    ThemeSelector.USER_BLOCK.style, style, user_colors
                                 ),
                                 text,
                             )

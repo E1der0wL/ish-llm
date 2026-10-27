@@ -16,6 +16,8 @@ class ThemeSelector(StrEnum):
     HEADER_BUTTON_FOCUSED_TEXT = "hub.header button.focused button.text"
     HEADER_PROJECT = "hub.header.project"
     PROFILE = "hub.profile"
+    PROFILE_NAME = "hub.profile.name"
+    PROFILE_ACCOUNT = "hub.profile.account"
     HEADER_MODEL = "hub.header.model"
     ACCENT = "hub.accent"
     SYSTEM = "hub.system"
@@ -25,6 +27,7 @@ class ThemeSelector(StrEnum):
     SELECTED = "hub.selected"
     FOCUSED = "hub.focused"
     SETTINGS_INPUT = "hub.settings-input"
+    SETTINGS_INPUT_FOCUSED = "hub.settings-input.focused"
     DIVIDER = "hub.divider"
     TITLE = "hub.title"
     COMPOSER = "hub.composer"
@@ -109,13 +112,17 @@ class ThemeStyle:
     BACKGROUND_PREFIX = "bg:"
     MODIFIER_SEPARATOR = " "
     CLASS_REFERENCE = "class:{selector}"
+    USER_BLOCK_COLORS = "fg:{theme.accent4} bg:{theme.user_background}"
+    SHORTCUT_ARROW_COLORS = "fg:{theme.shortcut_background} bg:{theme.footer_background}"
 
     BEFORE_ALERTS = MappingProxyType(
         {
             ThemeSelector.ROOT.value: "noinherit fg:{theme.foreground} bg:{theme.background}",
             ThemeSelector.HEADER.value: "fg:{theme.bar_foreground} bg:{theme.header_background} bold",
             ThemeSelector.HEADER_PROJECT.value: "fg:{theme.accent}",
-            ThemeSelector.PROFILE.value: "fg:{theme.bar_foreground} bg:{theme.header_background} bold",
+            ThemeSelector.PROFILE.value: "fg:{theme.comment} bg:{theme.widget_background} bold",
+            ThemeSelector.PROFILE_NAME.value: "fg:{theme.accent2}",
+            ThemeSelector.PROFILE_ACCOUNT.value: "fg:{theme.comment}",
             ThemeSelector.HEADER_MODEL.value: "fg:{theme.muted}",
             ThemeSelector.ACCENT.value: "fg:{theme.accent} bold",
             ThemeSelector.SYSTEM.value: "fg:{theme.accent3} bold",
@@ -123,24 +130,25 @@ class ThemeStyle:
             ThemeSelector.SIDEBAR.value: "",
             ThemeSelector.SELECTED.value: "fg:{theme.accent} bold underline",
             ThemeSelector.FOCUSED.value: "fg:{theme.accent} bold underline",
-            ThemeSelector.SETTINGS_INPUT.value: "fg:{surface_text} bg:{theme.user_background}",
+            ThemeSelector.SETTINGS_INPUT.value: "fg:{theme.foreground} bg:{theme.widget_background}",
+            ThemeSelector.SETTINGS_INPUT_FOCUSED.value: "fg:{theme.accent} bg:{theme.widget_background} bold underline",
             ThemeSelector.DIVIDER.value: "fg:{theme.muted}",
             ThemeSelector.TITLE.value: "bold",
-            ThemeSelector.COMPOSER.value: "",
+            ThemeSelector.COMPOSER.value: "fg:{theme.foreground} bg:{theme.background}",
             ThemeSelector.QUESTION.value: "",
             ThemeSelector.QUESTION_HEADING.value: "fg:{theme.accent} bg:{theme.header_background} bold",
             ThemeSelector.QUESTION_CHOICE.value: "fg:{theme.foreground}",
             ThemeSelector.QUESTION_CHOICE_SELECTED.value: "fg:{theme.accent} bold",
             ThemeSelector.PTK_AUTO_SUGGESTION.value: "fg:{theme.muted} nobold",
-            ThemeSelector.FOOTER.value: "fg:{theme.bar_foreground} bg:{theme.footer_background}",
-            ThemeSelector.SHORTCUT_SEGMENT.value: "fg:{theme.button_foreground} bg:{theme.button_background} bold",
-            ThemeSelector.SHORTCUT_KEY.value: "fg:{theme.accent3} bg:{theme.button_background} bold",
-            ThemeSelector.SHORTCUT_EDGE.value: "fg:{theme.button_background} bg:{theme.footer_background}",
-            ThemeSelector.SHORTCUT_LEADING.value: "fg:{theme.footer_background} bg:{theme.button_background}",
+            ThemeSelector.FOOTER.value: "fg:{theme.accent4} bg:{theme.footer_background}",
+            ThemeSelector.SHORTCUT_SEGMENT.value: "fg:{theme.accent5} bg:{theme.shortcut_background} bold",
+            ThemeSelector.SHORTCUT_KEY.value: "fg:{theme.accent3} bg:{theme.shortcut_background} bold",
+            ThemeSelector.SHORTCUT_EDGE.value: SHORTCUT_ARROW_COLORS,
+            ThemeSelector.SHORTCUT_LEADING.value: "fg:{theme.footer_background} bg:{theme.shortcut_background}",
             ThemeSelector.PTK_FRAME_BORDER.value: "fg:{theme.muted}",
             ThemeSelector.NOTICE.value: "fg:{theme.notice}",
             ThemeSelector.USER.value: "fg:{theme.user}",
-            ThemeSelector.USER_BLOCK.value: "fg:{theme.user} bg:{theme.user_background}",
+            ThemeSelector.USER_BLOCK.value: USER_BLOCK_COLORS,
             ThemeSelector.PTK_SCROLLBAR_BACKGROUND.value: "bg:{theme.background}",
             ThemeSelector.PTK_SCROLLBAR_BUTTON.value: "bg:{theme.scrollbar_button}",
             ThemeSelector.PTK_SCROLLBAR_ARROW.value: "fg:{theme.scrollbar_arrow} bg:{theme.background} bold",
@@ -161,25 +169,25 @@ class ThemeStyle:
         {
             ThemeSelector.PTK_DIALOG.value: "fg:{theme.foreground} bg:{theme.background}",
             ThemeSelector.PTK_DIALOG_BODY.value: "fg:{theme.foreground} bg:{theme.background}",
-            ThemeSelector.PTK_DIALOG_BODY_TEXT_AREA.value: "fg:{theme.foreground} bg:{theme.background}",
+            ThemeSelector.PTK_DIALOG_BODY_TEXT_AREA.value: "fg:{theme.foreground} bg:{theme.widget_background}",
             ThemeSelector.PTK_DIALOG_FRAME_LABEL.value: "fg:{theme.accent} bg:{theme.background}",
             ThemeSelector.PTK_DIALOG_SHADOW.value: "fg:{theme.muted} bg:{theme.background}",
             ThemeSelector.PTK_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
-            ThemeSelector.HEADER_BUTTON.value: "fg:{theme.bar_foreground} bg:{theme.header_background} nobold nounderline noreverse",
-            ThemeSelector.HEADER_BUTTON_FOCUSED.value: "fg:{theme.bar_foreground} bg:{theme.header_background} bold nounderline noreverse",
-            ThemeSelector.HEADER_BUTTON_TEXT.value: "fg:{theme.bar_foreground} bg:{theme.header_background}",
-            ThemeSelector.HEADER_BUTTON_FOCUSED_TEXT.value: "fg:{theme.accent} bg:{theme.header_background} bold",
+            ThemeSelector.HEADER_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.header_background} nobold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.header_background} bold nounderline noreverse",
+            ThemeSelector.HEADER_BUTTON_TEXT.value: "fg:{theme.button_foreground} bg:{theme.header_background}",
+            ThemeSelector.HEADER_BUTTON_FOCUSED_TEXT.value: "fg:{theme.accent2} bg:{theme.header_background} bold",
             ThemeSelector.PTK_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.button_background} nobold nounderline noreverse",
-            ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent} bold",
-            ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT.value: "fg:{theme.accent} bold",
+            ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
+            ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
             ThemeSelector.AUXILIARY.value: "bg:default",
-            ThemeSelector.AUXILIARY_BUTTON.value: "fg:{theme.button_foreground} bg:{theme.background}",
-            ThemeSelector.AUXILIARY_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:{theme.background}",
-            ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent} bold",
-            ThemeSelector.PTK_CHECKBOX_LIST.value: "fg:{theme.foreground} bg:{theme.background} nounderline noreverse",
-            ThemeSelector.CHECKLIST.value: "fg:{theme.foreground} bg:{theme.background}",
+            ThemeSelector.AUXILIARY_BUTTON.value: "fg:{theme.button_foreground} bg:default",
+            ThemeSelector.AUXILIARY_BUTTON_FOCUSED.value: "fg:{theme.button_foreground} bg:default",
+            ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
+            ThemeSelector.PTK_CHECKBOX_LIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background} nounderline noreverse",
+            ThemeSelector.CHECKLIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background}",
             ThemeSelector.PTK_CHECKBOX_LIST_FOCUSED.value: "bold nounderline noreverse",
-            ThemeSelector.PTK_CHECKBOX_CHECKED.value: "fg:{theme.accent} bold",
+            ThemeSelector.PTK_CHECKBOX_CHECKED.value: "fg:{theme.accent2} bold",
             ThemeSelector.PTK_COMPLETION_MENU.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
             ThemeSelector.PTK_COMPLETION_MENU_COMPLETION.value: "fg:{theme.completion_foreground} bg:{theme.completion_background}",
             ThemeSelector.PTK_COMPLETION_MENU_COMPLETION_CURRENT.value: "fg:{theme.completion_foreground} bg:{theme.completion_current_background} bold",
@@ -215,18 +223,10 @@ class ThemeStyle:
             template.format(selector=selector) for template in cls.ALERT_TARGETS
         )
 
-    @staticmethod
-    def _render_rule(selector, template, theme):
-        if selector == ThemeSelector.SETTINGS_INPUT.value:
-            return template.format(
-                theme=theme, surface_text=theme._surface_text(theme.user_background)
-            )
-        return template.format(theme=theme)
-
     @classmethod
     def rules(cls, theme):
         result = {
-            selector: cls._render_rule(selector, template, theme)
+            selector: template.format(theme=theme)
             for selector, template in cls.BEFORE_ALERTS.items()
         }
         for kind in NotificationKind.values():
@@ -237,7 +237,7 @@ class ThemeStyle:
                 )
         result.update(
             {
-                selector: cls._render_rule(selector, template, theme)
+                selector: template.format(theme=theme)
                 for selector, template in cls.AFTER_ALERTS.items()
             }
         )

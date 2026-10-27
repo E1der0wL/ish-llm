@@ -49,8 +49,27 @@ class ConversationTests(unittest.TestCase):
         block = [(style, text) for style, text in body if "hub.user-block" in style]
         self.assertLess(sum(get_cwidth(text) for _, text in block), 20)
         self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).bgcolor, theme.user_background[1:])
+        self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).color, theme.accent4[1:])
         header = "".join(text for _, text in lines[0])
         self.assertIn("tester · ✓ 접수됨 · 2026-10-03 12:34:56", header)
+
+    def test_user_markdown_keeps_the_message_palette_for_links_headings_and_code(self):
+        theme = HubTheme(accent4='#102030', accent5='#aabbcc')
+        source = "# 제목\n\n**강조** [링크](https://example.com)\n\n`inline`\n\n```python\nprint('hello')\n```"
+        lines = render_messages((ChatMessage('user', source),), 100, theme)
+        cells = [theme.style().get_attrs_for_style_str(style) for line in lines for style, text in line
+                 if 'hub.user-block' in style and text.strip()]
+        self.assertTrue(cells)
+        self.assertTrue(all((cell.color, cell.bgcolor) == ('102030', 'aabbcc') for cell in cells))
+        self.assertTrue(any(cell.bold for cell in cells))
+
+    def test_assistant_code_box_uses_accent_five_for_text_and_padding(self):
+        theme = HubTheme(accent4='#102030', accent5='#aabbcc')
+        lines = render_messages((ChatMessage('assistant', '```python\nprint("hello")\n```'),), 70, theme)
+        row = next(line for line in lines if 'print' in ''.join(text for _, text in line))
+        colored = [theme.style().get_attrs_for_style_str(style) for style, text in row if 'bg:' in style]
+        self.assertTrue(colored)
+        self.assertTrue(all(cell.bgcolor == 'aabbcc' for cell in colored))
 
     def test_user_lines_are_right_aligned_after_cjk_wrapping(self):
         text = "한글과 English를 섞은 긴 사용자 메시지입니다. " * 4
@@ -79,13 +98,14 @@ class ConversationTests(unittest.TestCase):
     def test_terminal_background_overrides_host_and_rich_code_backgrounds(self):
         style = merge_styles([Style.from_dict({"": "bg:#ff0000"}), HubTheme().style()])
         lines = render_messages((ChatMessage("assistant", "`code`\n\n```python\nx = 1\n```"),),
-                                60, HubTheme(comment="default"))
+                                60, HubTheme(accent5="default"))
         for line in lines:
             for fragment_style, _ in line:
                 attrs = style.get_attrs_for_style_str("class:hub " + fragment_style)
                 self.assertIn(attrs.bgcolor, ("", "default"))
-        dark = HubTheme.dark().style().get_attrs_for_style_str("class:hub.composer")
-        self.assertEqual(dark.bgcolor, "111923")
+        self.assertEqual(style.get_attrs_for_style_str("class:hub class:hub.composer").bgcolor, "default")
+        custom = HubTheme(background="#111923").style().get_attrs_for_style_str("class:hub.composer")
+        self.assertEqual(custom.bgcolor, "111923")
 
     def test_resize_content_and_theme_invalidate_render_cache(self):
         messages = (ChatMessage("assistant", "**A response** " * 30),)
@@ -96,7 +116,7 @@ class ConversationTests(unittest.TestCase):
             self.assertEqual(control._message_cache.body_renders, 1)
             narrow = control.create_content(30, 20)
             self.assertGreater(narrow.line_count, wide.line_count)
-            control.theme = HubTheme.dark()
+            control.theme = HubTheme(background="#111923")
             control.create_content(30, 20)
             control.messages = (ChatMessage("assistant", "Updated"),)
             control.create_content(30, 20)

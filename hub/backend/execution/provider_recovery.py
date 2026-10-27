@@ -35,7 +35,7 @@ from ...errors.contracts import ErrorOrigin
 from ...errors.recovery_annotation import RecoveryAnnotation
 from .recovery_input import reductions, encoded
 from .retry_values import RetryIdentity
-from .recovery_model import model_events, InvalidRecoveryResponse
+from .recovery_model import model_events, InvalidRecoveryResponse, RecoveryStepMetadata
 
 
 class InputRepairAction(StrEnum):
@@ -154,9 +154,7 @@ class ProviderRecovery:
     CONTEXT_NAME = "hub_provider_recovery"
     NO_STATE = None
     NO_NAME = ""
-    ANALYSIS_KIND = "error analysis"
     ANALYSIS_OUTPUT_CHARS = 4000
-    SUMMARY_KIND = "input summary"
     SUMMARY_OUTPUT_OVERHEAD = 2000
     REDUCTION_FACTOR = 2
     SUMMARY_PROGRESS = "{offset}/{total}"
@@ -240,7 +238,7 @@ class ProviderRecovery:
                     ANALYZE.format(language=self.language),
                     payload,
                     result,
-                    kind=self.ANALYSIS_KIND,
+                    kind=RecoveryStepMetadata.ANALYSIS,
                     maximum=self.ANALYSIS_OUTPUT_CHARS,
                 ),
                 state.frame,
@@ -277,7 +275,7 @@ class ProviderRecovery:
                         prompt,
                         document,
                         answer,
-                        kind=self.SUMMARY_KIND,
+                        kind=RecoveryStepMetadata.SUMMARY,
                         maximum=self.settings.recovery_summary_chars
                         + self.SUMMARY_OUTPUT_OVERHEAD,
                     )

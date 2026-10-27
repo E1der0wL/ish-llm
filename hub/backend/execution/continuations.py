@@ -122,6 +122,7 @@ def continued_messages(
                     author=message.author,
                     workflow=workflow,
                     workflow_states=states,
+                    phase=message.phase,
                 )
             )
         visible.append(message)

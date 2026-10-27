@@ -133,7 +133,7 @@ class QuestionCardTests(unittest.TestCase):
         self.assertIn("high (70)", text)
         self.assertNotIn("PRIVATE_BODY", text)
         self.assertTrue(any("bg:" in style for row in rows for style, value in row if "example.py" in value))
-        self.assertTrue(any(self.view.theme.notice in style for row in rows for style, value in row if "high" in value))
+        self.assertTrue(any(self.view.theme.notice.lower() in style.lower() for row in rows for style, value in row if "high" in value))
 
     def test_new_question_never_keeps_previous_card_while_render_is_pending(self):
         question = self.show({"title": "Previous request", "source": {}})

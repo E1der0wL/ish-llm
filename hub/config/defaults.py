@@ -51,6 +51,7 @@ class HubDefaults:
         ReviewPolicy.Field.HOOK_TIMEOUT: 5,
     }
     MEMORY_SOURCE = "hub_tool_sources"
+    MEMORY_SUMMARY_CONTEXT_SHARE = 2
     MEMORY_SUMMARY = {
         ImplementationParameters.CONFIG: {
             MemoryProcessingConfig.KEY: {
@@ -70,11 +71,13 @@ class HubDefaults:
         ImplementationParameters.POLICY: {
             MemoryProcessingConfig.KEY: {
                 MemoryProcessingConfig.Field.SUMMARIZE: True,
-                MemoryProcessingConfig.Field.KEEP_TURNS: 4,
+                MemoryProcessingConfig.Field.KEEP_TURNS: 1,
+                MemoryProcessingConfig.Field.COMPACT_ACTIVE: True,
+                MemoryProcessingConfig.Field.ACTIVE_KEEP_ITERATIONS: 1,
                 MemoryProcessingConfig.Field.SUMMARY_AFTER_CHARS: 24000,
                 MemoryProcessingConfig.Field.CONTEXT_CHARS: 6000,
                 MemoryProcessingConfig.Field.TOOL_RESULT_CHARS: 8000,
-                MemoryProcessingConfig.Field.MODEL_INPUT_CHARS: 24000,
+                MemoryProcessingConfig.Field.MODEL_INPUT_CHARS: 18000,
                 MemoryProcessingConfig.Field.MAX_SUMMARY_CALLS: 64,
                 MemoryProcessingConfig.Field.PROVIDER: deepcopy(PROVIDER),
             },

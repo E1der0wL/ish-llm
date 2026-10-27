@@ -11,7 +11,6 @@ from prompt_toolkit.widgets import TextArea
 from hub.ui.view import HubView
 from hub.hub import install
 from .sample_data import SAMPLES
-from hub.config.theme import HubTheme
 
 
 def populate_preview(view):
@@ -66,9 +65,8 @@ def create_preview(*, input=None, output=None, theme=None):
 def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--theme", choices=("terminal", "dark"), default="terminal")
-    args = parser.parse_args()
-    app, view, _ = create_preview(theme=HubTheme.dark() if args.theme == "dark" else HubTheme())
+    parser.parse_args()
+    app, view, _ = create_preview()
     try:
         app.run(pre_run=lambda: view.show(app))
     finally:

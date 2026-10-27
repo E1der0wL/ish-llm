@@ -5,11 +5,15 @@ from dataclasses import dataclass, field
 from typing import ClassVar
 
 from llm.core.continuations import ResumeRecord
-from llm.core.models import Run, RunStatus
+from llm.core.models import Run, RunStatus, Step
 from llm.core.results import CompletionRecords, CompletionResult, OutputVisibility
-from llm.engines.events import EngineEvent
+from llm.engines.events import EngineEvent, EngineEventType
+from llm.components.memory.processing import MemorySession
+from llm.components.memory import MemoryComponent
+from llm.components.memory.tool_result_values import ToolSummaryExecution
 from ...model import TraceItem, ResponseActivity
 from .trace import merge_trace
+from .recovery_model import RecoveryStepMetadata
 
 
 @dataclass(slots=True)
@@ -24,6 +28,8 @@ class ThinkingState:
     completion: str | None = NO_COMPLETION
     activity: str = ResponseActivity.EMPTY
     trace: dict = field(default_factory=dict)
+    summary_steps: set = field(default_factory=set)
+    auxiliary_steps: set = field(default_factory=set)
 
 
 class ThinkingPhases:
@@ -35,20 +41,52 @@ class ThinkingPhases:
     PARAGRAPH = "\n\n"
     ACTIVE_STATES = Run.ACTIVE_STATES
     UNREPORTED_STATUS = RunStatus.RUNNING.value
+    SUMMARY_STEPS = (MemorySession.SUMMARIZE_STEP, MemorySession.ACTIVE_STEP,
+                     ToolSummaryExecution.STEP)
+    TERMINAL_STEPS = (EngineEventType.STEP_COMPLETED, EngineEventType.STEP_FAILED,
+                      EngineEventType.STEP_INTERRUPTED, EngineEventType.STEP_CANCELLED)
 
     def __init__(self):
         self.runs = OrderedDict()
+
+    @classmethod
+    def summary_step(cls, step):
+        metadata = getattr(step, Step.metadata.__name__, {})
+        return (
+            step.kind == MemoryComponent.name and step.name in cls.SUMMARY_STEPS
+            or RecoveryStepMetadata.kind(metadata) == RecoveryStepMetadata.SUMMARY
+        )
+
+    @classmethod
+    def auxiliary_step(cls, step):
+        metadata = getattr(step, Step.metadata.__name__, {})
+        return (cls.summary_step(step)
+                or RecoveryStepMetadata.kind(metadata) == RecoveryStepMetadata.ANALYSIS)
+
+    def hidden_steps(self, run_id, steps=()):
+        state = self.runs.get(run_id)
+        return {step.id for step in steps if self.auxiliary_step(step)} | (
+            state.auxiliary_steps if state else set())
 
     def observe(self, run, event):
         if str(run.status) not in self.ACTIVE_STATES:
             self.runs.pop(run.id, self.ABSENT)
             return
         state = self.runs.setdefault(run.id, ThinkingState())
+        if EngineEvent.observed_type(event) == EngineEventType.STEP_STARTED:
+            if self.summary_step(event):
+                state.summary_steps.add(event.step_id)
+            if self.auxiliary_step(event):
+                state.auxiliary_steps.add(event.step_id)
+        elif EngineEvent.observed_type(event) in self.TERMINAL_STEPS:
+            state.summary_steps.discard(event.step_id)
         self.runs.move_to_end(run.id)
         while len(self.runs) > self.MAXIMUM_RUNS:
             self.runs.popitem(last=self.REMOVE_NEWEST)
         completion = EngineEvent.observed_completion(event)
         if completion is not self.ABSENT:
+            if completion.step_id in state.auxiliary_steps:
+                return  # Auxiliary reasoning remains in receipts/logs, not the Agent's thoughts.
             if completion.id != state.completion:
                 state.completion = completion.id
                 state.activity = ResponseActivity.THINKING
@@ -95,11 +133,14 @@ class ThinkingPhases:
         ):
             state.activity = ResponseActivity.STREAMING
 
-    def activity(self, run) -> str:
+    def activity(self, run, steps=()) -> str:
         """Execution observation, independent of whether thought text is exposed."""
         if run is self.ABSENT or str(run.status) not in self.ACTIVE_STATES:
             return ResponseActivity.EMPTY
         state = self.runs.get(run.id)
+        if (state and state.summary_steps or not state and any(
+                step.status in self.ACTIVE_STATES and self.summary_step(step) for step in steps)):
+            return ResponseActivity.SUMMARIZING
         if state and state.activity:
             return state.activity
         completions = CompletionRecords.results(run.metadata)

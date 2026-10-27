@@ -33,5 +33,5 @@ if hub_plugin is not None:
             # project_id="PROJECT_ID",
             # session_id="SESSION_ID",
         ),
-        # theme=hub_plugin.HubTheme.dark(),
+        # theme=hub_plugin.HubTheme(background="#111923", foreground="#d9e2ef"),
     )

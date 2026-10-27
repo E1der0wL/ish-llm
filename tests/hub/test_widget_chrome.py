@@ -20,11 +20,55 @@ from hub.widget.output.reader import ReadOnlyDialog
 from hub.widget.transcript.conversation import render_messages
 from hub.widget.controls import RadioList
 from hub.widget.forms.settings import ChoiceField
+from hub.widget.focus_region import grayscale
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.support import SizedOutput, eventually, render_container
 
 
 class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_setting_field_background_survives_focus_editing_and_inactive_tint(self):
+        theme = HubTheme(accent4='#102030', accent5='#aabbcc')
+        with create_pipe_input() as pipe:
+            prompt = Prompt(input=pipe, output=SizedOutput())
+            installation = install_preview(prompt, theme=theme)
+            app, view = prompt.app, installation.view
+            rendered = asyncio.Event()
+            app.after_render += lambda _: rendered.set()
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            async def paint():
+                rendered.clear()
+                app.invalidate()
+                await asyncio.wait_for(rendered.wait(), 3)
+            def background(window):
+                screen = app.renderer._last_screen
+                rect = screen.visible_windows_to_write_positions[window]
+                return app._merged_style.get_attrs_for_style_str(screen.data_buffer[rect.ypos][rect.xpos].style).bgcolor
+            try:
+                await eventually(lambda: app.is_running and view.composer.window.render_info)
+                await paint()
+                self.assertEqual(background(view.header.restart.window), 'aabbcc')
+                self.assertEqual(background(view.header.minimize.window), 'aabbcc')
+                with set_app(app):
+                    view.toggle_settings()
+                    view.settings.choose('profile')
+                    field = view.settings.page.form.fields[('display_name',)]
+                    app.layout.focus(field.input)
+                await paint()
+                self.assertEqual(background(field.input.window), 'aabbcc')
+                with set_app(app):
+                    field.begin()
+                await paint()
+                self.assertEqual(background(field.input.window), 'aabbcc')
+                with set_app(app):
+                    field.finish()
+                    app.layout.focus(view.settings.global_list)
+                await paint()
+                self.assertEqual(background(field.input.window), grayscale('aabbcc')[1:])
+            finally:
+                app.exit()
+                await task
+                installation.close()
+
     async def test_focused_footers_and_icon_choice_dispatch(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())

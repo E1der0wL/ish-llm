@@ -14,6 +14,7 @@ from llm.core.results import EngineOutput
 from llm.engines.base import BaseEngine, EngineEventType
 from llm.engines.events import EngineEvent
 from dataclasses import dataclass, fields
+from typing import ClassVar
 
 
 class RecoveryModelProtocol:
@@ -35,7 +36,14 @@ class RecoveryModelProtocol:
 class RecoveryStepMetadata:
     """The helper Step kind annotation, separate from diagnostic recovery explanations."""
 
+    ANALYSIS: ClassVar[str] = "error analysis"
+    SUMMARY: ClassVar[str] = "input summary"
+
     hub_recovery: str
+
+    @classmethod
+    def kind(cls, metadata):
+        return metadata.get(cls.hub_recovery.__name__)
 
     def to_record(self):
         return {item.name: getattr(self, item.name) for item in fields(self)}

@@ -45,7 +45,8 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     controller.history_ui._activity_dialog("one short event")
                 output = view._dialog.output.window
-                for rows, expected in ((48, 30), (40, 30), (24, 14), (16, 6), (40, 30)):
+                # One bottom status row now belongs to every popup.
+                for rows, expected in ((48, 29), (40, 29), (24, 13), (16, 5), (40, 29)):
                     terminal.rows = rows
                     rendered.clear()
                     app._on_resize()

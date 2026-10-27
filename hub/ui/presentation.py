@@ -9,7 +9,7 @@ from typing import NamedTuple
 from dataclasses import dataclass, replace
 from datetime import datetime
 
-from ..model import ChatMessage, HubSnapshot, SessionSummary, QuestionPresentation
+from ..model import ChatMessage, HubSnapshot, SessionSummary, QuestionPresentation, ReasoningMessage, TraceItem
 from ..backend.execution.followup import split_followup
 from .error_presentation import error_text, failure_text
 
@@ -20,6 +20,7 @@ class PresentationFormat:
     FINAL = True
     FAILURE_SUFFIX = ":failure"
     WORKFLOW_SUFFIX = ":workflow"
+    SUMMARY_SUFFIX = ":summary"
     FAILURE_DETAILS = "\n\n"
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
     NOTICE_SEPARATOR = " · "
@@ -48,13 +49,16 @@ class Presentation:
 
 def present_message(item: ChatMessage, t) -> ChatMessage:
     if item.workflow:
-        from ..model import TraceItem
         graph = TraceItem(
             item.id + PresentationFormat.WORKFLOW_SUFFIX, TraceItem.WORKFLOW, item.workflow,
             workflow_states=item.workflow_states,
         )
         trace = item.trace or ((TraceItem.thought(item.id, item.text),) if item.text else ())
         item = replace(item, trace=(graph, *trace))
+    if item.role == ReasoningMessage.ROLE and item.phase == ResponseActivity.SUMMARIZING:
+        trace = item.trace or ((TraceItem.thought(item.id, item.text),) if item.text else ())
+        item = replace(item, trace=(*trace, TraceItem(
+            item.id + PresentationFormat.SUMMARY_SUFFIX, TraceItem.SUMMARY, PresentationFormat.EMPTY)))
     text = item.text
     if item.role == MessageRole.ASSISTANT:
         text = split_followup(
@@ -88,7 +92,7 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
             phase=PresentationFormat.EMPTY,
             activity=PresentationFormat.EMPTY,
         )
-    elif not text and not item.tools:
+    elif not text and not item.tools and not item.trace:
         text = (
             t(MessagePattern.status(item.status))
             if item.status
