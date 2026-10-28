@@ -608,6 +608,7 @@ class HubView:
         app.invalidate()
 
     def close(self) -> None:
+        self.dialogs.dispose()
         self.toasts.close()
         self.native_clipboard.close()
         self.output.close()
@@ -766,22 +767,25 @@ class HubView:
             x11=self.native_clipboard,
         )
         self.mouse.attach(app)
-        self._session_focus = HubView.COMPOSER_FOCUS
+        if self._dialog is HubView.ABSENT:
+            self._session_focus = HubView.COMPOSER_FOCUS
         if self.on_open:
             self.on_open(app)
-        focus_control(
-            self.settings.left_control() if self.settings_open else self.composer
-        )
+        if not self.dialogs.resume(app):
+            focus_control(
+                self.settings.left_control() if self.settings_open else self.composer
+            )
         app.invalidate()
 
     def hide(self, app):
         if not self.visible:
             return
         self.remember_position()
-        self.output.deactivate()
+        self.dialogs.suspend(app)
+        if self._dialog is HubView.ABSENT:
+            self.output.deactivate()
         if self.on_save_view:
             self.on_save_view()
-        self.dialogs.clear_state()
         self.output.restore_position(
             self._positions.get(self._draft_key(self.selected))
         )

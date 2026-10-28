@@ -9,7 +9,7 @@
     "incomplete_contracts": 0,
     "unreviewed_dynamic_paths": 68,
     "unreadable_files": 0,
-    "candidates": 17162,
+    "candidates": 17172,
     "issues": 0
   },
   "issues": [],
@@ -1007,8 +1007,8 @@
     {
       "path": "hub/ui/dialogs.py",
       "status": "reviewed",
-      "candidates": 14,
-      "sha256": "8387642122a833052d8e51fd15a9c05bff30633d332d310a05f18725b21a2d2a"
+      "candidates": 24,
+      "sha256": "408e97ba0179e4b1feed42e3eae211f5c086e77a81b1081208d28119680f7197"
     },
     {
       "path": "hub/ui/error_presentation.py",
@@ -1278,7 +1278,7 @@
       "path": "hub/ui/view.py",
       "status": "unreviewed",
       "candidates": 47,
-      "sha256": "6b18cf8f791014490f84708c4556c13bef21788d5193aeb60d0f762f4cb8d201"
+      "sha256": "9cad4cefdf84c51bb543d1f27e609142774889573932f7a90440dd4a6cc3b567"
     },
     {
       "path": "hub/widget/__init__.py",

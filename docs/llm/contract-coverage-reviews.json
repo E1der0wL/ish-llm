@@ -97000,90 +97000,150 @@
   },
   {
     "path": "hub/ui/dialogs.py",
-    "sha256": "8387642122a833052d8e51fd15a9c05bff30633d332d310a05f18725b21a2d2a",
-    "reason": "Binds one progress/status footer for general dialogs and offers explicit loading presentation. Expanded output inspectors retain their separate full-screen contract. No external operation changes. Sidebar action review: asset-owned CRUD icons call the existing project/session actions; shared heading geometry and focus membership include these buttons. Name-only dialogs explicitly request small input geometry; generic interactive promotion remains unchanged. No backend CRUD, selection persistence or authorization ownership changes. Verified by test_home_navigation and test_mouse_widgets using actual PTK keyboard, mouse and cells.",
+    "sha256": "408e97ba0179e4b1feed42e3eae211f5c086e77a81b1081208d28119680f7197",
+    "reason": "Binds one progress/status footer for general dialogs and offers explicit loading presentation. Expanded output inspectors retain their separate full-screen contract. No external operation changes. Sidebar action review: asset-owned CRUD icons call the existing project/session actions; shared heading geometry and focus membership include these buttons. Name-only dialogs explicitly request small input geometry; generic interactive promotion remains unchanged. No backend CRUD, selection persistence or authorization ownership changes. Verified by test_home_navigation and test_mouse_widgets using actual PTK keyboard, mouse and cells. Popup suspension review: DialogController owns transient popup identity and focus. Minimization retains input, selection, scroll and resources, and restores focus without resetting the input cursor. Hidden async replacement/close never steals shell focus. Explicit close retains cancellation/parent restoration semantics; shutdown disposes resources. Backend lifecycles, persistence and authorization are unchanged. tests.hub.test_popup_suspend exercises real ish keys, shell editing, search, list and reader state.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "84c2a83f0959cd88cfa34dda5e652868fa0bcc7975730f1157705c359e02102c",
+        "id": "0d9fa32b127ae241c92a6121ab4171e61f4bae0d0cb45c220e322feeab9d05cd",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "2409a974e6bca22eb3b8c89640490ffeaf8c31f80757c0c5189686f88b00aa27",
+        "id": "491f7f3dd1b440fa75640eb9a746e5984f934009a5b7a344aec699505e5e3c78",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "3044aa970dc63d13b36c54e8d49b69ad912499bbfe3f180fd7986e6fee15c37a",
+        "id": "d22806e637b38d6a6b7fc541641863c90d37461bcd0d0c8cdb69e40d5835daae",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "a91ed5e3e88b3be52f3ef669bfd50d84112e5dcfdc4347e3e51b67a624c16c03",
+        "id": "634bb457faa4eedc21c5e41883671757de217a3cf34d12f8d0e0af8767de1502",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "7ce72cc777b58b84903b6f6d76288c62574f52e4a09f5d5abb5be75a3755e138",
+        "id": "3b93b415cada89e34e6ea47816d106cd8c6904c14888df7aff7947a3f9b65898",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "09cb2a5025a6028efda0b95587be7630b423850b40753de64353415d48b88296",
+        "id": "e91a008386b6c2cc441fbb78e8899176b33d1bb12d33ee7f9a771ac5528a0612",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "30e8d1e5475e39e3d3559ee3637715c72fc937f58f494ec8d44fed3a3810376c",
+        "id": "c084cbed03ef4b9c7b904b0b3358b39694395da177826c26f2a5a7bf1ce466bf",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "bf82b20fe5ebc83cd8c7483451d94da15846d42691fa39ef80496223db48018f",
+        "id": "132387513a9a34123fd672638b045f28e0a44cb7a5bd61716eccffb851bb3cd8",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "c6ecebe16678ceb83e9617451d0d7ab5569f6a1931bb28805035d2412799274d",
+        "id": "977e4565d3a92d9df4515bbc6e2d8de9b217683308cad7eca4a304d0c845d238",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "1f739d7ad3847448b08eddfe21bdd829e0c8247d869358dae18f3c4ced1f9d7e",
+        "id": "4dca125db1f8531a4c4ffedc6a025d1ebed195d9c71f80f033369249a9380aee",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "74f0e994d479d2588b43cbc6c424c28aba5b335e79e5fc72fb44ddf5ff8d3fd8",
+        "id": "a9f233cb6dcc762c7fae922a14a5d0edc377126802f77964f89e9023d6d11bdf",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "7ac881982627aee6edca75876474c016a34adf72d0d7944b3ea000205d93312f",
+        "id": "20eb698995c780d4f70cedc2a0354320dc34988e0deed6f19338b8a062468d34",
         "classification": "declaration",
         "owner": "DialogController",
         "reason": "Popup geometry, focus cycling and acceptance/display switches. Dialog owns optional hooks; TextViewport owns timer-only surface disposal; constructor width omission remains explicit."
       },
       {
-        "id": "b034893775cbddcacea7ddee59e6ab76d5998d4456fe17e41c20a57e665683af",
+        "id": "3d767c35363c5b3d37fa7bcd517466ce77209c00b933d4bae373ba8ecbe048ab",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "5a84e53303d25ab227d0b0ed2a68ca5847e8db18835eec268f1a78a4eaa0e412",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "075ee714e6a6af24a631c4b991f3c49765456bba1ab3caf96034f7e9891ad0dd",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "529199c0dc74de85afa51eacd15d98fe2d8e3f0f50448edea226a8f4b35fab4d",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "e013808b6467cf72a31b6aea09ad4550f7ca7f7eb9198673a2f49421a0c2aa6d",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "e7fab7f57ce6556cc65d55e398930ce9ebd8557676195bcf615e8b7f823cc6df",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "ee2e8fb2355d4d82ed28a17a1907ee35d648dd54a36ea778ba640def96d08ac9",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "c704704ad06506812e749f7dbf9df5ce27e1d0388c633aefa249ba1029ae3cee",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "03b8be64aeeb94a6ee97ac615776b29845240204f52d084d838815c064e1531b",
         "classification": "non_contract",
         "owner": "DialogController / Dialog.status_bar",
         "reason": "Binds one progress/status footer for general dialogs and offers explicit loading presentation. Expanded output inspectors retain their separate full-screen contract. No external operation changes."
       },
       {
-        "id": "7d7168dc839c0b2431f674e502ec08df97ec425f15cc64ea0dbd6d238a730dbe",
+        "id": "39d24fdf3f18218c5158bc7b4c3418691c3aa6641a4290a192767e71b61d8c58",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "1e8a4f5212a9bcf659f791414ffa717117844f4c49e397346080d205d78d9217",
+        "classification": "non_contract",
+        "owner": "DialogController / HubView popup visibility and focus lifecycle",
+        "reason": "Transient UI reference, container/selection index or focus-restoration result. No domain settings, persisted defaults, execution decisions or permission semantics."
+      },
+      {
+        "id": "af9a82e43007bdcd30a6579346f7d53c19389f3eb8519f2facb54ef2fce35fe5",
         "classification": "non_contract",
         "owner": "Dialog",
         "reason": "Forward the default compact-input opt-out to the geometry owner; general interactive dialogs still promote."

@@ -53,6 +53,7 @@ class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
         app, view, _ = create_preview(input=DummyInput(), output=SizedOutput(132, 40))
         try:
             with set_app(app):
+                view.show(app)
                 search = SessionSearch(view, view.output.transcript)
                 search.open()
                 popup = search.dialog

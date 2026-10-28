@@ -196,24 +196,35 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         app.invalidate()
                         await asyncio.wait_for(rendered.wait(), 3)
                         draft = view.composer.text
+                        popup = view._dialog
+                        popup_focus = app.layout.current_control
+                        tags_visible = view.output.tags.visible
                         pipe.send_text("\x11")
                         await eventually(lambda: not view.visible)
                         self.assertFalse(task.done())
                         self.assertIs(app.current_buffer, prompt.default_buffer)
                         self.assertEqual(prompt.default_buffer.text, "shell draft")
                         self.assertEqual(view.composer.text, draft)
-                        self.assertIsNone(view._dialog)
-                        self.assertFalse(view.output.tags.visible)
+                        self.assertIs(view._dialog, popup)
+                        self.assertEqual(view.output.tags.visible, bool(popup) and tags_visible)
                         if field:
                             self.assertFalse(field.editing)
                         pipe.send_text("\x11")
                         await eventually(lambda: view.visible)
                         self.assertEqual(view.composer.text, draft)
+                        if popup is not None:
+                            self.assertIs(view._dialog, popup)
+                            self.assertIs(app.layout.current_control, popup_focus)
                         if scope == "settings editing":
                             self.assertEqual(field.input.text, "#112233")
                             self.assertTrue(view.settings.page.dirty)
                         if scope == "question":
                             self.assertIsNotNone(view.question.item)
+                        # Minimize suspends a popup; only an explicit close ends it.
+                        with set_app(app):
+                            if popup is not None:
+                                view.close_dialog()
+                            view.output.deactivate()
             finally:
                 app.exit(result="")
                 await task
