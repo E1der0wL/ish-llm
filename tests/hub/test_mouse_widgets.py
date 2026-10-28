@@ -21,6 +21,24 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
+    async def test_sidebar_heading_hover_focus_and_click_renames(self):
+        from hub.asset.icon import AuxiliaryIcon
+        from hub.widget.dialog import PopupSize
+        self.view.project_id = self.view.projects.selected = 'p'
+        self.view.projects.items = [{'id': 'p', 'title': 'Project'}]
+        for bar in (self.view.project_actions, self.view.session_buttons):
+            await self.paint()
+            button = bar.buttons[AuxiliaryIcon.EDIT]
+            await self.mouse(35, *self.at(button.window))
+            self.assertIs(self.app.layout.current_control, button.control)
+            self.assertTrue(self.view.chat_page.sidebar_focused)
+            self.assertIsNone(self.view._dialog)
+            await self.mouse(0, *self.at(button.window))
+            await self.mouse(0, *self.at(button.window), release=True)
+            self.assertEqual(self.view._dialog.size, PopupSize.SMALL)
+            self.pipe.send_text('\x1b')
+            await eventually(lambda: self.view._dialog is None)
+
     async def test_participants_lock_focus_and_click_only_highlights(self):
         self.view.participant_ids = self.view.agents = ('a', 'b')
         self.view.agent_titles = {'a': 'Coder', 'b': 'Reviewer'}
@@ -55,7 +73,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         screen = self.app.renderer._last_screen
         attrs = self.app.renderer._attrs_for_style
         headings = [cell for row in screen.data_buffer.values() for cell in row.values()
-                    if "class:hub.sidebar-heading" in cell.style and cell.char.strip()]
+                    if "class:hub.sidebar-heading" in cell.style and cell.char.strip()
+                    and "class:hub.auxiliary" not in cell.style]
         self.assertTrue(headings)
         self.assertTrue(all(attrs[cell.style].bgcolor == grayscale("123456")[1:] for cell in headings))
         with set_app(self.app):
@@ -463,10 +482,16 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
     async def test_button_hover_effect_click_and_modal_isolation(self):
         activated = []
         button = Button("Choose", handler=lambda: activated.append(True))
+        other = Button("Other", handler=lambda: activated.append(False))
         with set_app(self.app):
-            popup = Dialog(title="Buttons", body=HSplit([button]), buttons=[])
-            self.view.dialogs.show(popup, button)
+            popup = Dialog(title="Buttons", body=HSplit([button, other]), buttons=[])
+            self.view.dialogs.show(popup, other)
         await self.paint()
+        await self.mouse(35, *self.at(button.window))
+        self.assertIs(self.app.layout.current_control, button.control)
+        self.assertEqual(activated, [])
+        await self.mouse(35, *self.at(other.window))
+        self.assertIs(self.app.layout.current_control, other.control)
         await self.mouse(35, *self.at(button.window))
         self.assertIs(self.app.layout.current_control, button.control)
         self.assertTrue(button.window.hub_mouse_hover)
@@ -481,6 +506,15 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(65, *self.at(self.view.output.transcript.window))
         self.assertIs(self.app.layout.current_control, button.control)
         self.assertEqual(self.view.output.transcript.control.top_line, before)
+
+    async def test_regular_button_hover_cannot_escape_participants(self):
+        self.view.participant_ids = self.view.agents = ('a',)
+        self.view.agent_titles = {'a': 'Worker'}
+        with set_app(self.app):
+            self.view.output.participants.open()
+        await self.paint()
+        await self.mouse(35, *self.at(self.view.header.restart.window))
+        self.assertIs(self.app.layout.current_control, self.view.output.participants.control)
 
     async def test_readonly_popup_scrolls_without_focusing_body(self):
         view = self.view

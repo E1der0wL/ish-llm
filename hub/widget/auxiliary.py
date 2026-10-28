@@ -12,7 +12,6 @@ from ..asset.icon import IconSet
 from .controls import Button
 from .actions import bind_button_navigation
 from .focus import focus_control
-from .mouse_contract import MouseBinding
 
 
 class AuxiliaryButton(Button):
@@ -29,12 +28,11 @@ class AuxiliaryButton(Button):
             + ThemeStyle.MODIFIER_SEPARATOR
             + ThemeSelector.AUXILIARY.style
         )
-        MouseBinding.set_hover_focus(self.window, self.focus_from_hover)
 
     def focus_from_hover(self):
         if self.before_focus:
             self.before_focus()
-        focus_control(self)
+        super().focus_from_hover()
 
 class AuxiliaryBar(VSplit):
     NO_PREVIOUS = None
@@ -85,10 +83,16 @@ class AuxiliaryBar(VSplit):
         )
 
     @property
+    def controls(self):
+        return tuple(button.control for button in self.buttons.values())
+
+    @property
+    def minimum_width(self):
+        return len(self.buttons) * self.BUTTON_STRIDE - self.PADDING
+
+    @property
     def focused(self):
-        return get_app().layout.current_control in [
-            button.control for button in self.buttons.values()
-        ]
+        return get_app().layout.current_control in self.controls
 
     def focus(self):
         app = get_app()

@@ -108,7 +108,7 @@ class ComponentManager(Dialog):
             Button(view.t(MessageKey.HELP_TITLE), handler=self.help, width=button_width),
             Button(view.t(MessageKey.SEARCH_CLOSE), handler=view.close_dialog, width=button_width),
         ]
-        self.actions = ActionBar(self.buttons, lambda: self.view._columns())
+        self.actions = ActionBar(self.buttons, lambda: self.view._columns(), equal_width=True)
         self.status_line = view.progress.container(self.hint, surface=self)
         super().__init__(
             title=view.t(MessagePattern.component_title(name)),

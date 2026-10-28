@@ -5,22 +5,79 @@ from llm.providers.litellm import LiteLLMCompletionAdapter
 import json
 from pathlib import Path
 import tempfile
+import threading
 from types import SimpleNamespace as NS
 import unittest
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from hub.backend.interactions.approval import approval_preset, review_lines
 from hub.backend.runtime import HubConfig, HubRuntime, create_backend
+from hub.backend.worker import BackendWorker
 from hub.backend.tools.advice import FIELD, MODEL_RISK_SCHEME, bind_advice, classify_model_risk
 from hub.locales import Language
 from llm.components.tools import Tool, ToolClassification, ToolContract, ToolRegistry
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 from llm.components.tools import ToolEffect, ToolIsolation
+from llm.core.continuations import ResumeRecord
+from llm.services.runtime.runs import RunManager
+from tests.hub.support import eventually
 
 
 class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_policy_approved_queued_resume_does_not_report_snapshot_error(self):
+        entered, release = threading.Event(), threading.Event()
+        pump = RunManager._pump_scheduled
+
+        async def hold_resume(manager, state):
+            for identifier in tuple(state.waiting):
+                if identifier in state.groups:
+                    continue
+                message = await manager._io.run(manager._store(state.session).get, identifier)
+                if ResumeRecord.from_metadata(message.metadata):
+                    entered.set()
+                    # Hold scheduling, not the shared storage executor: the
+                    # screen must still be able to observe the queued receipt.
+                    async with asyncio.timeout(15):
+                        while not release.is_set():
+                            await asyncio.sleep(.01)
+            await pump(manager, state)
+
+        args = {'path': 'approved.txt', 'content': 'created',
+                FIELD: {'level': 'low', 'reason': 'Create one new local test file.'}}
+        provider = ScriptedCompletion(
+            [chunk(calls=[call(json.dumps(args), name='file_create')], finish='tool_calls')],
+            [chunk('Created.', finish='stop')])
+        with tempfile.TemporaryDirectory() as root, patch.object(RunManager, '_pump_scheduled', hold_resume):
+            errors, snapshots = [], []
+            config = HubConfig(Path(root) / 'data', file_root=root, auto_title=False, model='test/model',
+                engine_factories={'loop': lambda: LoopEngine(
+                    completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
+            worker = BackendWorker(config, snapshots.append, errors.append)
+            try:
+                sid = await asyncio.wrap_future(worker.call('new_session', 'new', 'Auto approval'))
+                await asyncio.wrap_future(worker.call('submit', sid, 'Create approved.txt.', 'assistant'))
+                await eventually(entered.is_set, timeout=15)
+                # The response is durable, but no continuation Run exists yet.
+                queued = await asyncio.wrap_future(worker.call('snapshot'))
+                self.assertFalse(queued.questions)
+                self.assertFalse(Path(root, 'approved.txt').exists())
+                self.assertFalse(errors, errors)
+                release.set()
+                await eventually(lambda: snapshots and snapshots[-1].run
+                                 and snapshots[-1].run.status == 'completed', timeout=15)
+                self.assertFalse(errors, errors)
+                self.assertEqual(Path(root, 'approved.txt').read_text(), 'created')
+                self.assertEqual(len(provider.requests), 2)
+                self.assertEqual([m.text for m in snapshots[-1].messages if m.role == 'user'],
+                                 ['Create approved.txt.'])
+                self.assertEqual([m.text for m in snapshots[-1].messages if m.role == 'assistant'],
+                                 ['Created.'])
+            finally:
+                release.set()
+                await asyncio.to_thread(worker.close)
+
     async def test_new_project_auto_approves_low_only_and_reopen_preserves_policy(self):
         for level, approved in [('low', True), ('medium', False), ('high', False), ('unknown', False)]:
             with self.subTest(level=level), tempfile.TemporaryDirectory() as root:

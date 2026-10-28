@@ -233,6 +233,7 @@ class ExpandedOutputDialog:
                 ExpandedOutputDialog.MIN_DIMENSION,
                 context.columns() - ExpandedOutputDialog.ACTION_INSET,
             ),
+            equal_width=True,
         )
         self.container = Frame(
             HSplit(

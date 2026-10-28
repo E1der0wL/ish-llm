@@ -2,16 +2,80 @@
 
 import asyncio
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
 from tests.hub.support import SizedOutput, eventually
+from hub.asset.icon import AuxiliaryIcon
+from hub.ui.input.keys import KeyName
+from hub.widget.dialog import PopupSize
+from hub.backend.project.settings_contracts import SettingsOperation
 
 
 class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_category_actions_render_and_name_editing_stays_small(self):
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput(100, 28))
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: app.is_running)
+                view.project_id = view.projects.selected = 'p'
+                view.projects.items = [{'id': 'p', 'title': 'Project'}]
+                view.projects.call = Mock()
+                view.on_rename = Mock()
+                for bar in (view.project_actions, view.session_buttons):
+                    self.assertEqual(tuple(bar.buttons), tuple(name for name, _ in bar.ACTIONS))
+                    with set_app(app):
+                        app.layout.focus(bar.buttons[AuxiliaryIcon.EDIT])
+                        app.invalidate()
+                    frame = app.render_counter
+                    await eventually(lambda: app.render_counter > frame)
+                    self.assertTrue(view.chat_page.sidebar_focused)
+                    positions = app.renderer._last_screen.visible_windows_to_write_positions
+                    edge = positions[view.chat_page.edge].xpos
+                    self.assertTrue(all(positions[b.window].xpos + positions[b.window].width <= edge
+                                        for b in bar.buttons.values()))
+                    pipe.send_text('\r')
+                    await eventually(lambda: view._dialog is not None)
+                    self.assertEqual(view._dialog.size, PopupSize.SMALL)
+                    with set_app(app):
+                        self.assertEqual((view._dialog._width().preferred, view._dialog._height().preferred), (60, 9))
+                    field = app.current_buffer
+                    field.text = ''
+                    pipe.send_text('\r')
+                    await asyncio.sleep(.05)
+                    self.assertIsNotNone(view._dialog)
+                    field.text = 'Renamed'
+                    pipe.send_text('\r')
+                    await eventually(lambda: view._dialog is None)
+                    self.assertIs(app.layout.current_control, bar.buttons[AuxiliaryIcon.EDIT].control)
+                self.assertEqual(view.projects.call.call_args.args,
+                                 (SettingsOperation.RENAME_PROJECT, 'p', 'Renamed'))
+                view.on_rename.assert_called_once_with(view.sessions[view.selected].id, 'Renamed')
+                with set_app(app):
+                    view.projects.perform(KeyName.C)
+                    self.assertEqual(view._dialog.size, PopupSize.MEDIUM)
+                    view.close_dialog()
+                    view.session_actions.create()
+                    self.assertEqual(view._dialog.size, PopupSize.MEDIUM)
+            finally:
+                app.exit()
+                await task
+                view.close()
+
+    def test_category_actions_share_existing_crud_handlers_in_order(self):
+        from hub.widget.sidebar import SidebarActions
+        from hub.asset.icon import NERD
+        perform = Mock()
+        bar = SidebarActions(perform, lambda: NERD, lambda: None)
+        for button in bar.buttons.values():
+            button.handler()
+        self.assertEqual([call.args[0] for call in perform.call_args_list],
+                         [KeyName.C, KeyName.R, KeyName.EDIT, KeyName.CLEAR])
+
     async def test_page_switch_keeps_shortcuts_before_next_render(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())

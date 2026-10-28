@@ -6,6 +6,8 @@ import asyncio
 from copy import deepcopy
 from llm.core.agents import AgentDefinition
 from llm.core.agent_views import AgentSnapshot
+from llm.components.rag import RAGComponent
+from ...config.defaults import HubDefaults
 
 
 DEFAULT_AGENT = "assistant"
@@ -58,6 +60,8 @@ async def initialize(
         definition = AgentDefinition.selected(
             HubEngineIdentity.LOOP, tools=await asyncio.to_thread(selected_tools)
         )
+        if RAGComponent.name in project.data.components:
+            definition[AgentDefinition.Field.RESOURCES] = deepcopy(HubDefaults.ASSISTANT_RESOURCES)
         from llm.components.memory import MemoryComponent
         from llm.components.memory.tool_values import MemoryToolDefinition
         # This reader is bound by RunManager, so creation-time discovery cannot

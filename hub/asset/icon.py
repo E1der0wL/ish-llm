@@ -11,6 +11,10 @@ from ..model import ChatMessage, SessionSummary
 
 
 class AuxiliaryIcon(StrEnum):
+    CREATE = "create"
+    CLONE = "clone"
+    EDIT = "edit"
+    DELETE = "delete"
     HISTORY = "history"
     TAGS = "tags"
     PARTICIPANTS = "participants"
@@ -141,6 +145,10 @@ class IconGlyphs:
     )
     AUXILIARY_UNICODE = MappingProxyType(
         {
+            AuxiliaryIcon.CREATE.value: "+",
+            AuxiliaryIcon.CLONE.value: "⧉",
+            AuxiliaryIcon.EDIT.value: "✎",
+            AuxiliaryIcon.DELETE.value: "×",
             AuxiliaryIcon.HISTORY.value: "☷",
             AuxiliaryIcon.TAGS.value: "▤",
             AuxiliaryIcon.PARTICIPANTS.value: "👥",
@@ -255,6 +263,10 @@ class IconPalettes:
         agent=IconGlyphs.AGENT_NERD,
         auxiliary=MappingProxyType(
             {
+                AuxiliaryIcon.CREATE.value: "",
+                AuxiliaryIcon.CLONE.value: "",
+                AuxiliaryIcon.EDIT.value: "",
+                AuxiliaryIcon.DELETE.value: "",
                 AuxiliaryIcon.HISTORY.value: "",
                 AuxiliaryIcon.TAGS.value: "",
                 AuxiliaryIcon.PARTICIPANTS.value: "",

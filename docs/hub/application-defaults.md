@@ -28,7 +28,11 @@ explicit choice to disable extraction. These choices can all be captured in a pr
 The Agent owns `completion`, while its Engine owns execution limits and policies.
 A Graph Agent chooses a saved Workflow; model-using nodes reference separately
 configured Loop Agents. The default `assistant` receives the selected built-in
-tools, not an invented model or connection. New Projects also receive a `planner`
+tools, not an invented model or connection. When RAG is selected on the new Project,
+the Hub-created `assistant` also stores `resources.rag: true`, exposing the backend's
+`rag_search` tool. This does not force retrieval on every turn or configure embedding
+and reranking models. Explicit Agent definitions and existing saved selections are
+not rewritten. New Projects also receive a `planner`
 Graph Agent and `hub-code-workflow`: inspect → implement → verify → report. Its
 Agent nodes delegate to the initial behavioral Agent (`assistant` normally), so
 the user configures that Agent's model/connection once. The Graph Agent contains
@@ -71,6 +75,11 @@ interactions that the public resume plan permits, retaining the checkpoint and
 partial output. It never invents decisions or `retry_nodes`, never replays old
 pauses on startup, and skips denied/cancelled/uncertain interactions. Restart and
 shutdown cancel pending continuation scheduling.
+Input-form observations read requests and validated response receipts under the
+same backend ownership scope. Fully answered requests leave the form immediately,
+including while their continuation is queued. Outstanding requests still use the
+backend's pending-interaction query for expiry, cancellation and resume eligibility;
+Hub never infers permission or suppresses lookup failures.
 
 `ToolDataSetup` owns only creation choices and explicit-save preparation for the
 default output package. `HubBuiltinTools` binds lifecycle handles through the public
@@ -159,7 +168,27 @@ The on-premises provider's exact token limit must be configured by its owner; Hu
 does not invent a model context size or silently truncate current instructions.
 
 Preflight order is important: Loop calls the Component processing pipeline before
-the completion policy and provider. Memory summarizes oversized Tool results in
+the completion policy and provider. Hub first projects native character-based
+`file_read` and retained process results into bounded model views. Small returned
+bodies stay inline; complete small command results omit storage-only metadata.
+Partial results contain visible text and a schema-checked `next_read` call using
+`file_read` or `process_output`, rather than another Memory reference. The budget
+includes the JSON envelope, escaping and continuation metadata, so a nominal
+8,000-character source page may display fewer characters. Its next cursor starts
+at the end of the **displayed** text; no omitted characters are skipped. Both
+process streams keep independent cursors, remaining counts and capture-loss flags.
+Existing preview limits remain authoritative: Hub does not fetch additional bytes
+or execute Tools during projection. Large ordinary files follow the same bounded
+page path; file hashing/indexing may still scan the source on the backend.
+
+The pre-Memory processor is installed through Hub's Engine context binding,
+before the selected processors, including explicit negative Memory priorities.
+It modifies detached completion bodies only. Durable results, Step references,
+Tool arguments, approvals and checkpoints remain backend-owned. Reader hints are
+checked against selected definitions and Run constraints; no hidden Tool is enabled.
+Unrecognized/line-based results retain their existing processing path. Large
+paths or metadata that cannot fit with a usable page also retain that path.
+Memory summarizes other oversized Tool results in
 bounded fragments, and then compacts older completed Tool exchanges. The summary
 payload budget includes the previous summary and JSON envelope; the model's system
 instruction and output reserve are additional. A long result is not blindly sent

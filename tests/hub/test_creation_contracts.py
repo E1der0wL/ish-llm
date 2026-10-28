@@ -44,6 +44,13 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
                     await project.agents.adelete(HubDefaults.PLANNER_AGENT_ID,
                                                 expected_revision=planner['revision'])
                     await project.components.workflows.adelete(HubDefaults.CODING_WORKFLOW_ID)
+                    # The creation preset now selects RAG explicitly. Release
+                    # that reference through the Agent owner before removing it.
+                    selected = await project.agents.asnapshot(config.agent_id)
+                    definition = selected['definition']
+                    definition['resources']['rag'] = False
+                    await project.agents.arevise(config.agent_id, definition,
+                                                 expected_revision=selected['revision'])
                     # Release the creation preset's output destination before
                     # deselecting Data; its reference protection must remain active.
                     await project.components.builtin_tools.aconfigure({"config": options})
@@ -108,6 +115,8 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
                     "conversation_storage": "memory"})
                 identifier = created["project"]["id"]
                 self.assertEqual(created["values"]["components"], [])
+                project = await runtime.backend.projects.aload(identifier)
+                self.assertNotIn('resources', await project.agents.aload('assistant'))
                 self.assertEqual(created["values"]["config"]["policies"], config["policies"])
                 self.assertIsNone(created["values"]["config"]["parameters"]["engines"]["loop"]["policy"]["request_timeout"])
                 edited = deepcopy(created["values"])

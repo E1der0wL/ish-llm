@@ -149,12 +149,13 @@ class LargeDataToolsTests(unittest.IsolatedAsyncioTestCase):
                     request_context={ENVIRONMENT_OPTION: snapshot(work, 'read').to_dict()})).wait(timeout=30)
                 self.assertEqual(run.data.status, 'completed', run.data.error)
                 result = json.loads(next(m['content'] for m in provider.requests[-1]['messages'] if m['role'] == 'tool'))
-                self.assertEqual(result['text'], content[:8000])
-                self.assertEqual(result['next_offset'], 8000)
+                self.assertEqual(result['text'], content[:result['next_offset']])
+                self.assertLess(result['next_offset'], 8000)  # Metadata also fits the Memory budget.
+                self.assertEqual(result['next_read']['tool'], 'file_read')
                 registry = runtime.builtin_tools.resolve_environment(await runtime.project.aget_data(), snapshot(work, 'read'))
                 page = await registry.get('file_read').handler({'path': str(external / 'large.txt'),
                     'offset': result['next_offset'], 'max_chars': 10, 'expected_sha256': result['sha256']})
-                self.assertEqual(page['text'], content[8000:8010])
+                self.assertEqual(page['text'], content[result['next_offset']:result['next_offset'] + 10])
                 with self.assertRaises(ValueError):
                     await registry.get('file_create').handler({'path': str(external / 'blocked'), 'content': 'no'})
                 with self.assertRaises(ValueError):

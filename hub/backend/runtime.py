@@ -199,7 +199,6 @@ class HubRuntime:
     UNIQUE_CANDIDATE_COUNT = 1
     INITIAL_PARTICIPANT_COUNT = 1
     SOLE_CANDIDATE_POSITION = 0
-    PENDING_ONLY = True
     PARTIAL_OUTPUT = True
     UNKNOWN_SESSION_OPERATION = "Unknown session operation: {mode}"
     FOREIGN_SESSION = "Session is not an active member of the selected Project"
@@ -857,6 +856,7 @@ class HubRuntime:
         acknowledged=ABSENT
     ):
         from llm.core.interactions import InteractionOption, InteractionRequest
+        from .interactions.questions import pending_requests
 
         if project_id != self.project.id:
             raise ValueError(HubRuntime.FOREIGN_QUESTION)
@@ -883,7 +883,7 @@ class HubRuntime:
                 ).effect
                 == InteractionOption.EFFECT_DENY
             )
-            if not await run.ainteractions(pending_only=HubRuntime.PENDING_ONLY):
+            if not await pending_requests(run):
                 if not denied:
                     agent_id = (await run.aget_data()).agent_id
                     # The backend validates persisted user decisions, including

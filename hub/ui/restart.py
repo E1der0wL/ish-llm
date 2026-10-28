@@ -6,6 +6,7 @@ import asyncio
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.widgets import Label
+from ..widget.dialog import PopupSize
 
 
 class RestartContract:
@@ -17,6 +18,17 @@ class RestartContract:
 
 
 RESTART = RestartContract.RESULT
+
+
+def confirm_restart(view, restart, *, message=MessageKey.RESTART_CONFIRM):
+    """One confirmation surface; cleanup starts only after explicit acceptance."""
+    view.open_dialog(
+        view.t(MessageKey.SETTINGS_RESTART_TITLE),
+        Label(view.t(message)),
+        restart,
+        accept_text=view.t(MessageKey.SETTINGS_RESTART_NOW),
+        size=PopupSize.SMALL,
+    )
 
 
 def bind_restart(controller, rebuild):
@@ -66,4 +78,9 @@ def bind_restart(controller, rebuild):
         screen.busy = RestartContract.PENDING
         get_app().create_background_task(restart())
 
-    controller.view.on_restart = screen.drafts.on_restart = request
+    def confirm():
+        if not restarting and not controller.closed:
+            confirm_restart(controller.view, request)
+
+    controller.view.on_restart = confirm
+    screen.drafts.on_restart = request

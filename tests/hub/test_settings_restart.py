@@ -20,7 +20,8 @@ from hub.config.restart import restart_changes, restart_config, setting_metadata
 from hub.hub import install
 from hub.ui.application import create_application
 from hub.ui.restart import RESTART
-from tests.hub.support import SizedOutput
+from hub.widget.dialog import PopupSize
+from tests.hub.support import SizedOutput, render_container
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.test_live import until
 from tests.hub.test_settings import settings_backend
@@ -50,6 +51,89 @@ class RestartMetadataTests(unittest.TestCase):
 
 
 class RestartUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_shortcut_and_header_confirm_before_cleanup(self):
+        with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
+            app, controller = create_application(HubConfig(root, auto_title=False), input=pipe,
+                output=SizedOutput(), worker_factory=partial(BackendWorker, backend_factory=settings_backend))
+            view = controller.view
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await until(lambda: view.connected and not view.projects.busy)
+                view.composer.text = 'keep draft'
+                with patch.object(controller.worker, 'prepare_restart', wraps=controller.worker.prepare_restart) as prepare:
+                    for source in ('shortcut', 'button'):
+                        if source == 'shortcut':
+                            pipe.send_bytes(b'\x17')
+                        else:
+                            # Exercise the shared button action; mouse dispatch
+                            # itself is covered by test_mouse_widgets.
+                            with set_app(app):
+                                view.header.restart._activate()
+                        await until(lambda: view._dialog is not None)
+                        self.assertEqual(view._dialog.size, PopupSize.SMALL)
+                        with set_app(app):
+                            rendered = '\n'.join(render_container(view._dialog, 60, 9))
+                        self.assertIn('Hub를 재시작할까요?', rendered)
+                        self.assertIn('예약 요청을 중단합니다.', rendered)
+                        self.assertIn('취소', rendered)
+                        self.assertNotIn('Window too small', rendered)
+                        prepare.assert_not_called()
+                        self.assertFalse(controller.worker._restarting)
+                        pipe.send_bytes(b'\x1b')
+                        await until(lambda: view._dialog is None)
+                        self.assertEqual(view.composer.text, 'keep draft')
+                        self.assertFalse(task.done())
+                    pipe.send_bytes(b'\x17')
+                    await until(lambda: view._dialog is not None)
+                    pipe.send_bytes(b'\r')
+                    self.assertEqual(await asyncio.wait_for(asyncio.shield(task), 5), RESTART)
+                    prepare.assert_called_once()
+            finally:
+                if not task.done():
+                    app.exit()
+                await task
+                await controller.aclose()
+
+    async def test_empty_workspace_restart_initializes_real_backend(self):
+        with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
+            original = Path(root) / 'original'
+            target = Path(root) / 'new parent' / 'empty workspace'
+            prompt = Prompt(input=pipe, output=SizedOutput())
+            old = install(prompt, config=HubConfig(original, auto_title=False))
+            app = prompt.app
+            task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: old.view.show(app)))
+            try:
+                await until(lambda: old.view.connected and not old.view.projects.busy)
+                old_project = old.view.project_id
+                pipe.send_text('\x10\r')
+                screen = old.view.settings
+                await until(lambda: screen.page is not None and not screen.busy)
+                with set_app(app):
+                    screen.choose('general')
+                    screen.page.form.fields[('workspace_root',)].input.text = str(target)
+                    screen.save()
+                await until(lambda: old.view._dialog is not None and not screen.busy)
+                self.assertEqual(old.view._dialog.size, PopupSize.SMALL)
+                self.assertFalse(target.exists())
+                pipe.send_bytes(b'\r')
+                await until(lambda: prompt._hub_ui_preview is not old)
+                replacement = prompt._hub_ui_preview
+                await until(lambda: replacement.view.connected and not replacement.view.projects.busy)
+                self.assertIsNone(replacement.view._dialog)
+                self.assertTrue(target.is_dir())
+                self.assertEqual(replacement.controller.config.workspace, target)
+                self.assertNotEqual(replacement.view.project_id, old_project)
+                self.assertTrue((original / 'projects' / old_project / 'project.json').is_file())
+                self.assertTrue((target / 'projects' / replacement.view.project_id / 'project.json').is_file())
+                self.assertEqual(replacement.controller.config._workspace_anchor, original)
+                self.assertFalse(old.controller.worker._thread.is_alive())
+            finally:
+                if not task.done():
+                    app.exit(result='')
+                await task
+                await prompt._hub_ui_preview.controller.aclose()
+                prompt._hub_ui_preview.close()
+
     async def test_save_then_escape_retains_saved_values_and_enter_requests_restart(self):
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
             config = HubConfig(root, model="test/model", auto_title=False)
@@ -66,6 +150,10 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                     screen.page.form.fields[("language",)].input.text = "en"
                     screen.page.save.handler()
                 await until(lambda: view._dialog is not None and not screen.busy)
+                self.assertEqual(view._dialog.size, PopupSize.SMALL)
+                with set_app(app):
+                    self.assertEqual(view._dialog._width().preferred, 60)
+                    self.assertEqual(view._dialog._height().preferred, 9)
                 self.assertEqual(PreferencesStore(root).load()["general"]["language"], "en")
                 pipe.send_bytes(b'\x1b')
                 await until(lambda: view._dialog is None)

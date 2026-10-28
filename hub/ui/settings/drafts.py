@@ -1,7 +1,6 @@
 """Own settings drafts, saved preferences and save/discard/reload transitions."""
 
 from dataclasses import asdict
-from prompt_toolkit.widgets import Label
 
 from ...backend.project.settings_contracts import (
     SettingsBatch,
@@ -22,7 +21,6 @@ class SettingsDrafts:
     NO_WIDTH = None
     NO_PAGE = None
     NO_RESULT = None
-    RESTART_SEPARATOR = "\n"
 
     def __init__(self, screen):
         self.screen = screen
@@ -149,17 +147,8 @@ class SettingsDrafts:
         ]
         if not changed or self.on_restart is self.NO_RESTART:
             return
-        self.screen.view.open_dialog(
-            self.screen.t(MessageKey.SETTINGS_RESTART_TITLE),
-            Label(
-                self.screen.t(
-                    MessageKey.SETTINGS_RESTART_CONFIRM,
-                    fields=self.RESTART_SEPARATOR.join(changed),
-                )
-            ),
-            self.on_restart,
-            accept_text=self.screen.t(MessageKey.SETTINGS_RESTART_NOW),
-        )
+        from ..restart import confirm_restart
+        confirm_restart(self.screen.view, self.on_restart, message=MessageKey.SETTINGS_RESTART_CONFIRM)
 
     def discard(self):
         if self.screen.busy:

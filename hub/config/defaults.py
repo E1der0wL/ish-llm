@@ -39,6 +39,7 @@ class HubDefaults:
     """Application choices for new Projects; selected Backend Owners validate them."""
 
     UNSPECIFIED_AGENT = None
+    ASSISTANT_RESOURCES = {AgentDefinition.ResourceField.RAG: True}
     PLANNER_AGENT_ID = "planner"
     CODING_WORKFLOW_ID = "hub-code-workflow"
     PLANNER_AGENT = {

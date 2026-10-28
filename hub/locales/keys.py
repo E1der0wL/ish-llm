@@ -321,6 +321,7 @@ class MessageKey:
     SETTINGS_RESTART_TITLE = 'settings_restart_title'
     SETTINGS_RESTART_NOW = 'settings_restart_now'
     SETTINGS_RESTART_CONFIRM = 'settings_restart_confirm'
+    RESTART_CONFIRM = 'restart_confirm'
     SETTINGS_RESTARTING = 'settings_restarting'
     GENERAL_CATEGORY_STORAGE = 'general_category_storage'
     GENERAL_WORKSPACE_ROOT = 'general_workspace_root'

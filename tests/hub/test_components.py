@@ -106,6 +106,11 @@ class RAGCommandTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(await data.alist_documents(), [])
                 with self.assertRaisesRegex(ValueError, 'referenced by saved Agents'):
                     await runtime.project.components.aselect(["tools"])
+                selected = await runtime.project.agents.asnapshot(settings.agent_id)
+                definition = selected['definition']
+                definition['resources']['rag'] = False
+                await runtime.project.agents.arevise(settings.agent_id, definition,
+                                                     expected_revision=selected['revision'])
                 await runtime.project.components.aselect(["tools", "workflows"])
                 with self.assertRaises(ValueError):
                     await data.alist_documents()

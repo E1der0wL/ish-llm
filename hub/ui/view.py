@@ -35,7 +35,7 @@ from ..widget.focus import focus_control
 from ..widget.input_frame import InputFrame
 from ..asset import icon
 from ..config.general import GeneralSettings
-from ..widget.sidebar import SidebarHeading, SidebarItem, SidebarList
+from ..widget.sidebar import SidebarActions, SidebarHeading, SidebarItem, SidebarList
 from .layout import TwoPanelPage
 from ..backend.project.agents import DEFAULT_AGENT
 
@@ -290,16 +290,25 @@ class HubView:
         from ..widget.sidebar_panel import SidebarPanel
 
         self.projects = ChatProjects(self)
+        self.project_actions = SidebarActions(
+            self.projects.perform, lambda: self.icons, self.projects.control.activate,
+        )
+        self.session_buttons = SidebarActions(
+            self.session_actions.perform, lambda: self.icons, self._focus_sessions,
+        )
+        self.project_heading = SidebarHeading(
+            lambda: self.icons.project + HubView.HEADING_SEPARATOR
+            + self.t(MessageKey.SETTINGS_PROJECTS), actions=self.project_actions,
+        )
+        self.session_heading = SidebarHeading(
+            lambda: self.t(MessageKey.SESSIONS), actions=self.session_buttons,
+        )
         self._sidebar = ConditionalContainer(
             SidebarPanel(
                 [
                     HSplit(
                         [
-                            SidebarHeading(
-                                lambda: self.icons.project
-                                + HubView.HEADING_SEPARATOR
-                                + self.t(MessageKey.SETTINGS_PROJECTS)
-                            ),
+                            self.project_heading,
                             Window(
                                 self.projects.control, style=ThemeSelector.SIDEBAR.style
                             ),
@@ -307,7 +316,7 @@ class HubView:
                     ),
                     HSplit(
                         [
-                            SidebarHeading(lambda: self.t(MessageKey.SESSIONS)),
+                            self.session_heading,
                             Window(
                                 self._session_control, style=ThemeSelector.SIDEBAR.style
                             ),
@@ -317,7 +326,8 @@ class HubView:
                 self.profile_bar,
                 width=self.sidebar_width,
                 project_fraction=HubView.PROJECT_FRACTION,
-                controls=(self.projects.control, self._session_control),
+                controls=((self.projects.control, *self.project_actions.controls),
+                          (self._session_control, *self.session_buttons.controls)),
             ),
             Condition(
                 lambda: self._columns() >= HubView.SIDEBAR_MIN_COLUMNS
@@ -407,6 +417,8 @@ class HubView:
             sidebar_controls=lambda: (
                 self._session_control,
                 self.projects.control,
+                *self.project_actions.controls,
+                *self.session_buttons.controls,
                 *self.profile_bar.controls,
             ),
             categories=(self.projects.control, self._session_control),
@@ -494,7 +506,8 @@ class HubView:
         return get_app().output.get_size().rows
 
     def sidebar_width(self):
-        minimum = self.profile_bar.minimum_width
+        minimum = max(self.profile_bar.minimum_width, self.project_heading.minimum_width,
+                      self.session_heading.minimum_width)
         return max(
             minimum,
             min(

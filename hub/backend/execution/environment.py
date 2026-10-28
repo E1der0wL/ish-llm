@@ -147,6 +147,13 @@ class EnvironmentEngine:
         )
 
     def bind_context(self, context):
+        if (COMPLETION_PROCESSORS in context.capabilities and self.builtins is not None
+                and self.builtins.name in context.project.components):
+            from .tool_views import ToolViewProcessor
+            processors = context.capabilities[COMPLETION_PROCESSORS]
+            if not any(item.name == ToolViewProcessor.name for item in processors):
+                context = replace(context, capabilities={**context.capabilities,
+                    COMPLETION_PROCESSORS: (*processors, ToolViewProcessor(processors))})
         if self.environment is self.ABSENT:
             return context
         tools, capabilities = context.tools, dict(context.capabilities)

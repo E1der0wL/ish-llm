@@ -175,6 +175,28 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     editor = view._dialog
                     self.assertIsInstance(editor, AgentEditor)
                     self.assertIs(app.layout.current_control, editor.workspace.sidebar)
+                from hub.widget.focus_region import grayscale
+                for background in ('default', '#123456'):
+                    for focused in (True, False):
+                        with set_app(app):
+                            view.set_theme(replace(view.theme, background=background))
+                            if focused:
+                                editor.workspace.focus_sidebar()
+                            else:
+                                editor.workspace.tabs.focus_tabs()
+                        rendered_at = app.render_counter
+                        app.invalidate()
+                        await eventually(lambda: app.render_counter > rendered_at)
+                        frame = app.renderer._last_screen
+                        window = next(w for w in frame.visible_windows_to_write_positions
+                                      if w.content is editor.workspace.sidebar)
+                        rect = frame.visible_windows_to_write_positions[window]
+                        expected = background.lstrip('#') if focused else grayscale(background.lstrip('#')).lstrip('#')
+                        for y in range(rect.ypos, rect.ypos + rect.height):
+                            cell = frame.data_buffer[y][rect.xpos]
+                            self.assertEqual(app._merged_style.get_attrs_for_style_str(cell.style).bgcolor, expected)
+                with set_app(app):
+                    editor.workspace.focus_sidebar()
                 pipe.send_text('\x1b[C')
                 await eventually(lambda: editor.workspace.tabs.tabs_focused)
                 pipe.send_text('\r')

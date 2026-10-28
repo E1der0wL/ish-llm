@@ -167,15 +167,18 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
     async def test_approval_skips_duplicate_resume_preview(self):
         from unittest.mock import AsyncMock
         review = self.enterContext(patch("hub.backend.execution.stopping.finish_review", new_callable=AsyncMock))
+        pending = self.enterContext(patch("hub.backend.interactions.questions.pending_requests",
+                                         new_callable=AsyncMock, return_value=()))
         from llm.core.interactions import InteractionRequest, InteractionOption
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
         runtime = HubRuntime(HubConfig(auto_title=False))
         runtime.project = NS(id="p")
-        run = NS(arespond=AsyncMock(), ainteractions=AsyncMock(return_value=[]),
+        run = NS(arespond=AsyncMock(),
                  aget_data=AsyncMock(return_value=NS(agent_id="assistant", engine="loop")))
         session = NS(run=NS(aload=AsyncMock(return_value=run), resume=AsyncMock(), resume_plan=AsyncMock()))
         runtime.sessions = {"s": session}
         self.assertTrue(await runtime.answer_question("p", "s", "r", request.to_dict(), "approve", None))
+        pending.assert_awaited_once_with(run)
         session.run.resume_plan.assert_not_awaited()
         session.run.resume.assert_awaited_once_with("r", agent_id="assistant", partial_output=True)
         review.assert_awaited_once_with(session, "r")
@@ -198,16 +201,19 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
     async def test_durable_ack_precedes_slow_resume_admission(self):
         from unittest.mock import AsyncMock, Mock
         self.enterContext(patch("hub.backend.execution.stopping.finish_review", new_callable=AsyncMock))
+        pending = self.enterContext(patch("hub.backend.interactions.questions.pending_requests",
+                                         new_callable=AsyncMock, return_value=()))
         from llm.core.interactions import InteractionRequest, InteractionOption
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
         runtime = HubRuntime(HubConfig(auto_title=False))
         runtime.project = NS(id="p")
         acknowledged = Mock()
         entered, release = asyncio.Event(), asyncio.Event()
-        run = NS(arespond=AsyncMock(), ainteractions=AsyncMock(return_value=[]),
+        run = NS(arespond=AsyncMock(),
                  aget_data=AsyncMock(return_value=NS(agent_id="assistant", engine="loop")))
         async def resume(*args, **kwargs):
             run.arespond.assert_awaited_once()
+            pending.assert_awaited_once_with(run)
             acknowledged.assert_called_once_with()
             entered.set()
             await release.wait()

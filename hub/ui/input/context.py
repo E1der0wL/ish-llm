@@ -45,6 +45,10 @@ class InputContext:
 
     @property
     def auxiliary(self):
+        if not self.view.settings_open and (
+            self.view.project_actions.focused or self.view.session_buttons.focused
+        ):
+            return True
         return (
             self.view.settings.auxiliary
             if self.view.settings_open
@@ -57,6 +61,7 @@ class InputContext:
             self.available
             and self.view.active_page.sidebar_focused
             and not self.profile
+            and not self.auxiliary
         )
 
     @property

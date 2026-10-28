@@ -7,6 +7,7 @@ from llm.components.memory.configuration import MemoryProcessingConfig
 from llm.components.memory.sources import MemorySource
 from llm.components.memory.tool_values import MemoryToolDefinition, MemoryToolArguments
 from llm.core.model_protocol import ModelRole
+from .reader_calls import ReaderCalls
 
 
 class ToolReferences:
@@ -29,23 +30,22 @@ class ToolReferences:
         return parameters.policy.get(MemoryProcessingConfig.KEY, {})
 
     @classmethod
-    def reference(cls, item):
+    def reference(cls, item, *, context=None, request):
         source = item.result_ref
         if source is None or not source.run_id or not source.step_id:
             return None
         argument = MemoryToolArguments.Field
-        return {
-            'notice': cls.NOTICE, 'original_chars': len(item.message.text),
-            'tool': MemoryToolDefinition.Name.TOOL_RESULT,
-            'arguments': {MemorySource.Field.RUN_ID: source.run_id,
+        call = ReaderCalls.create(context, request, MemoryToolDefinition.Name.TOOL_RESULT,
+                         {MemorySource.Field.RUN_ID: source.run_id,
                           MemorySource.Field.STEP_ID: source.step_id,
-                          argument.OFFSET: 0, argument.LIMIT: cls.READ_CHARS},
-        }
+                          argument.OFFSET: 0, argument.LIMIT: cls.READ_CHARS}, limit_field=argument.LIMIT)
+        return ({'notice': cls.NOTICE, 'original_chars': len(item.message.text), **call}
+                if call is not None else None)
 
     @classmethod
-    def replace(cls, request, index):
+    def replace(cls, request, index, *, context=None):
         item = request.messages[index]
-        value = cls.reference(item)
+        value = cls.reference(item, context=context, request=request)
         if value is None:
             return False
         text = json.dumps(value, ensure_ascii=False)
@@ -70,5 +70,5 @@ class ToolReferences:
         for index in pending:
             # llm supplies this reference after persisting the completed Step.
             # Never manufacture an owner from a Tool call ID, or rewrite receipts.
-            changed += cls.replace(request, index)
+            changed += cls.replace(request, index, context=context)
         return changed

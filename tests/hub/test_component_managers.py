@@ -182,10 +182,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(source.read_text(), skill_markdown("guide", "Run relevant tests."))
                 self.assertTrue((root / "flow.json").exists())
                 self.assertTrue((root / "server.json").exists())
-                # The starter planner retains its Workflow component reference.
+                # Starter Agents retain their Workflow and RAG references.
                 with self.assertRaisesRegex(ValueError, 'referenced by saved Agents'):
                     await runtime.project.components.aselect(["tools"])
-                await runtime.project.components.aselect(["tools", "workflows"])
+                await runtime.project.components.aselect(["tools", "workflows", "rag"])
                 with self.assertRaises(ValueError):
                     await runtime.manage_records(project_id, "skills", "list")
             finally:

@@ -61,7 +61,8 @@ class DialogController:
         validate=ABSENT,
         size=PopupSize.MEDIUM,
         accept_text=ABSENT,
-        on_cancel=ABSENT
+        on_cancel=ABSENT,
+        allow_small_input=False,
     ):
         def confirm():
             if validate and not validate():
@@ -88,6 +89,7 @@ class DialogController:
             body=body,
             buttons=buttons,
             size=size,
+            allow_small_input=allow_small_input,
         )
         dialog.on_cancel = on_cancel
         self.show(dialog, focus or buttons[DialogController.PRIMARY_BUTTON])

@@ -34,7 +34,7 @@ from ..execution.trace import merge_trace, tool_trace
 from ..execution.followup import split_followup
 from ..execution.steps import display_steps
 from ..execution.engine_selection import agent_model, selected_engines
-from ..interactions.questions import waiting_status
+from ..interactions.questions import pending_requests, waiting_status
 from ..execution.stopping import display_run, StopIntent
 
 
@@ -63,7 +63,6 @@ class SnapshotReader:
     QUEUED_IDS_LIMIT = 0
     LATEST_RUN_LIMIT = 1
     NEWEST_FIRST = True
-    PENDING_ONLY = True
     NO_QUEUED_REQUESTS = 0
     NO_MODEL_REQUIRED = False
     MUTABLE_RUN_STATES = frozenset((RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED))
@@ -413,9 +412,7 @@ class SnapshotReader:
                 for paused_handle in paused.values():
                     pending.extend(
                         QuestionPresentation.stored_request(paused_handle.id, request)
-                        for request in await paused_handle.ainteractions(
-                            pending_only=self.PENDING_ONLY
-                        )
+                        for request in await pending_requests(paused_handle)
                     )
                 pending = tuple(pending)
                 item = SessionObservation(

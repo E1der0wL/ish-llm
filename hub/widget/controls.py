@@ -19,6 +19,7 @@ from prompt_toolkit.key_binding import merge_key_bindings
 from prompt_toolkit.application.current import get_app
 from .mouse import ScrollbarGeometry, hover_style
 from .input_contract import EditableControl
+from .focus import focus_control
 from .mouse_contract import MouseBinding, ControlRole
 from ..config.theme_style import ThemeSelector, ThemeStyle
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
@@ -253,6 +254,7 @@ class Button(PTKButton):
         self.control.show_cursor = self.SHOW_CURSOR
         ControlRole.register(self.control, ControlRole.BUTTON)
         hover_style(self.window)
+        MouseBinding.set_hover_focus(self.window, self.focus_from_hover)
         registry = ShortcutRegistry()
         registry.add(
             [KeyName.ENTER, KeyName.SPACE],
@@ -264,6 +266,9 @@ class Button(PTKButton):
         self.control.key_bindings = merge_key_bindings(
             [self.control.key_bindings, registry.bindings]
         )
+
+    def focus_from_hover(self):
+        focus_control(self)
 
     def _activate(self):
         self._feedback()

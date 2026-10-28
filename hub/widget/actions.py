@@ -5,6 +5,7 @@ from hub.ui.input.registry import ShortcutRegistry
 from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Frame
+from prompt_toolkit.utils import get_cwidth
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 
 
@@ -79,8 +80,9 @@ class ActionBar(DynamicContainer):
     CENTER_WEIGHT = 1
     AVAILABLE_WIDTH = None
 
-    def __init__(self, buttons, width, *, bind_navigation=True):
+    def __init__(self, buttons, width, *, bind_navigation=True, equal_width=False):
         self.buttons, self.available_width = buttons, width
+        self.equal_width = equal_width
         self.bind_navigation = bind_navigation
         if bind_navigation:
             bind_button_navigation(buttons)
@@ -91,19 +93,27 @@ class ActionBar(DynamicContainer):
         if self.bind_navigation:
             bind_button_navigation(self.buttons)
 
+    @staticmethod
+    def shared_width(buttons):
+        return max((max(button.width, get_cwidth(button.text) + 2) for button in buttons),
+                   default=0)
+
+    def button_width(self, button):
+        return self.shared_width(self.buttons) if self.equal_width else button.width
+
     def rows(self, width=AVAILABLE_WIDTH):
         width = self.available_width() if width is self.AVAILABLE_WIDTH else width
         rows, row, used = [], [], 0
         for button in self.buttons:
-            if row and used + button.width + self.GAP > width:
+            if row and used + self.button_width(button) + self.GAP > width:
                 rows.append(row)
                 row, used = [], 0
-            used += button.width + self.GAP * bool(row)
+            used += self.button_width(button) + self.GAP * bool(row)
             row.append(button)
         return [*rows, row] if row else rows
 
     def preferred_width(self, max_available_width):
-        minimum = max((button.width for button in self.buttons), default=0)
+        minimum = max((self.button_width(button) for button in self.buttons), default=0)
         return Dimension(
             min=min(minimum, max_available_width),
             preferred=min(self.available_width(), max_available_width),
@@ -125,13 +135,14 @@ class ActionBar(DynamicContainer):
             [
                 VSplit(
                     [
-                        Window(width=max(0, (width - sum(button.width for button in row)
+                        Window(width=max(0, (width - sum(self.button_width(button) for button in row)
                                              - self.GAP * (len(row) - 1)) // 2)),
                         VSplit(
-                            row,
+                            [HSplit([button], width=Dimension.exact(self.button_width(button)))
+                             for button in row] if self.equal_width else row,
                             padding=self.GAP,
                             width=Dimension.exact(
-                                sum(button.width for button in row)
+                                sum(self.button_width(button) for button in row)
                                 + self.GAP * (len(row) - 1)
                             ),
                         ),

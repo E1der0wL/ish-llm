@@ -49,7 +49,7 @@ class SettingsEditorLayout:
             (self.POLICY, editor.view.t(MessageKey.SETTINGS_TAB_POLICY), self.pane),
         ], width=self.main_width, on_change=lambda _: self.refresh(),
             on_enter=self.focus_fields, on_leave=self.finish_edit)
-        actions = ActionBar(editor.buttons, self.main_width)
+        actions = ActionBar(editor.buttons, self.main_width, equal_width=True)
         self.actions = ActionFrame(actions, title=self.action_title)
         self.auxiliary = AuxiliaryBar([
             (AuxiliaryIcon.FILTER.value, lambda: editor.draft_tools.search()),
@@ -71,7 +71,7 @@ class SettingsEditorLayout:
             sidebar=HSplit([
                 SidebarHeading(lambda: editor.view.icons.agent + " " +
                                editor.view.t(MessageKey.AGENT_CATEGORY)),
-                Window(self.sidebar, style=ThemeSelector.POPUP_LIST.style),
+                Window(self.sidebar, style=ThemeSelector.SIDEBAR.style),
             ], width=lambda: Dimension.exact(editor.view.sidebar_width())),
             main=HSplit([ContentInset(self.tabs, heading=self.page_title, bottom_padding=0),
                          Window(height=Dialog.CONTENT_PADDING), self.auxiliary,

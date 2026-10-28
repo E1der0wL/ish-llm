@@ -9,6 +9,26 @@ from ...model import QuestionPresentation, SessionSummary
 from .question_values import QuestionArguments, QuestionTool, QuestionReply
 
 
+async def pending_requests(handle):
+    """Read unanswered input through public APIs under one ownership scope.
+
+    A durable response no longer needs an input form, even while its resume
+    request is queued. Unanswered requests still use the backend's lifecycle,
+    expiry and cancellation checks; this observation never authorizes execution.
+    """
+    def read():
+        with handle.app.project_manager.ownership.scope():
+            requests = handle.interactions()
+            if not requests:
+                return ()
+            answered = {response.request_id for response in handle.interaction_responses()}
+            if all(request.id in answered for request in requests):
+                return ()
+            return tuple(handle.interactions(pending_only=True))
+
+    return await asyncio.to_thread(read)
+
+
 def waiting_status(questions):
     return (
         SessionSummary.WAITING_APPROVAL

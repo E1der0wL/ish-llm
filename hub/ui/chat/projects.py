@@ -10,6 +10,7 @@ from ...backend.project.settings_contracts import ProjectSummaries, SettingsOper
 from ...locales.keys import MessageKey
 from ...model import HubSnapshot
 from ...widget.controls import TextArea
+from ...widget.dialog import PopupSize
 from ...widget.section import Heading
 from ...widget.sidebar import SidebarItem, SidebarList
 from ..error_presentation import operation_notice
@@ -114,7 +115,7 @@ class ChatProjects:
 
         self.call(SettingsOperation.ACTIVATE_PROJECT, identifier, completed=activated)
 
-    def name_dialog(self, title, initial, action):
+    def name_dialog(self, title, initial, action, *, size=PopupSize.MEDIUM):
         field = TextArea(
             text=initial, height=self.NAME_HEIGHT, multiline=self.NAME_MULTILINE
         )
@@ -134,6 +135,8 @@ class ChatProjects:
             accept,
             field,
             validate=validate,
+            size=size,
+            allow_small_input=size == PopupSize.SMALL,
         )
 
         def entered(_):
@@ -193,6 +196,7 @@ class ChatProjects:
                 ),
                 title,
                 lambda name: self.call(operation, identifier, name, completed=saved),
+                size=PopupSize.SMALL if key == KeyName.EDIT else PopupSize.MEDIUM,
             )
         elif (
             item is not ProjectSummaries.NO_MATCH

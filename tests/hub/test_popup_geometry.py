@@ -19,6 +19,34 @@ from tests.hub.support import SizedOutput
 
 
 class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_popup_footer_buttons_share_width_and_stay_centered(self):
+        from prompt_toolkit.widgets import Label
+        from hub.widget.actions import ActionBar
+
+        app, view, _ = create_preview(input=DummyInput(), output=SizedOutput(132, 40))
+        try:
+            with set_app(app):
+                buttons = [Button('OK', width=6), Button('Longer action', width=18)]
+                popup = Dialog(body=Label('Body'), buttons=buttons, size=PopupSize.SMALL)
+                view.dialogs.show(popup, buttons[0])
+                screen = self.paint(popup, 60, 9)
+                positions = screen.visible_windows_to_write_positions
+                rects = [positions[b.window] for b in buttons]
+                self.assertEqual([r.width for r in rects], [18, 18])
+                self.assertEqual(rects[0].ypos, rects[1].ypos)
+                self.assertLessEqual(abs(rects[0].xpos - (60 - rects[-1].xpos - rects[-1].width)), 1)
+                # Wrapping and newly inserted actions use the same group width.
+                bar = ActionBar(buttons, lambda: 39, equal_width=True)
+                bar.insert(1, Button('A dynamically added action', width=8))
+                widths = {bar.button_width(button) for button in buttons}
+                self.assertEqual(widths, {28})
+                self.assertEqual([len(row) for row in bar.rows()], [1, 1, 1])
+                # Tabs and non-footer callers keep their independently requested widths.
+                ordinary = ActionBar(buttons, lambda: 100)
+                self.assertEqual([ordinary.button_width(button) for button in buttons], [6, 8, 18])
+        finally:
+            view.close()
+
     async def test_search_fits_its_widgets_and_resizes_with_terminal(self):
         from hub.widget.transcript.search import SessionSearch
 

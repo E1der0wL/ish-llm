@@ -158,9 +158,10 @@ class Dialog(PTKDialog):
 
     def __init__(self, *args, shortcut_context=DialogContext.DIALOG,
                  size=PopupSize.MEDIUM, content_padding=CONTENT_PADDING,
-                 status_bar=None, status_in_body=False, **kwargs):
+                 status_bar=None, status_in_body=False, allow_small_input=False, **kwargs):
         self.shortcut_context = shortcut_context
         self.requested_size = PopupSize(size)
+        self.allow_small_input = allow_small_input
         self.popup_body = kwargs.get("body", args[0] if args else None)
         self.status_bar = status_bar
         self.status_in_body = status_in_body
@@ -181,7 +182,8 @@ class Dialog(PTKDialog):
             body = HSplit([
                 body,
                 Box(ActionBar(buttons, lambda: max(1, self._width().preferred - 4),
-                              bind_navigation=shortcut_context != DialogContext.READER),
+                              bind_navigation=shortcut_context != DialogContext.READER,
+                              equal_width=True),
                     padding=Dimension(preferred=1, max=1), padding_left=0, padding_right=0,
                     # The status region owns this gap even when actions live in the body.
                     padding_bottom=(0 if compact else Dimension(preferred=1, max=1))),
@@ -218,7 +220,7 @@ class Dialog(PTKDialog):
         limit = PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
         inset = 2 + self._content_padding * 2
         content_width = to_container(self.body).preferred_width(max(1, limit - inset)).preferred
-        action_width = sum(button.width for button in self._buttons)
+        action_width = ActionBar.shared_width(self._buttons) * len(self._buttons)
         action_width += ActionBar.GAP * max(0, len(self._buttons) - 1)
         title_width = fragment_list_width(to_formatted_text(self.title)) + 4
         return Dimension.exact(min(limit, max(content_width + inset,
@@ -235,7 +237,8 @@ class Dialog(PTKDialog):
     @property
     def size(self):
         body = getattr(self, "body", self.popup_body)
-        if self.requested_size == PopupSize.SMALL and body is not None:
+        if (self.requested_size == PopupSize.SMALL and body is not None
+                and not self.allow_small_input):
             if any(isinstance(item, Window) and item.content.is_focusable()
                    for item in walk(to_container(body))):
                 return PopupSize.MEDIUM

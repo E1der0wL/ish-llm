@@ -27,6 +27,16 @@ COMPONENTS = {"tools", "skills", "mcp", "rag", "workflows", "memory", "data", "p
 
 
 class DefaultTests(unittest.IsolatedAsyncioTestCase):
+    async def test_explicit_agent_definition_does_not_inherit_rag_selection(self):
+        for definition in ({'engine': 'loop'}, {'engine': 'loop', 'resources': {'rag': False}}):
+            with self.subTest(definition=definition), tempfile.TemporaryDirectory() as root:
+                runtime = HubRuntime(HubConfig(root, auto_title=False, agent_definition=definition))
+                try:
+                    await runtime.start()
+                    self.assertEqual(await runtime.project.agents.aload('assistant'), definition)
+                finally:
+                    await runtime.close()
+
     async def test_starter_guides_are_editable_and_not_reseeded(self):
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(directory, auto_title=False))
@@ -35,6 +45,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 project_id = runtime.project.id
                 config = (await runtime.project.aget_data()).config
                 self.assertEqual((await runtime.project.agents.aload("assistant"))["system_prompt"], SYSTEM_PROMPT)
+                self.assertEqual((await runtime.project.agents.aload("assistant"))["resources"], {"rag": True})
                 self.assertNotIn("completion", config.parameters["engines"]["loop"])
                 skills = await runtime.project.components.aget("skills")
                 self.assertEqual(set(await skills.alist()), {item[0] for item in SKILLS})
@@ -48,6 +59,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 record = await runtime.project.agents.asnapshot("assistant")
                 definition = record["definition"]
                 definition["system_prompt"] = "My project prompt"
+                definition["resources"]["rag"] = False
                 await runtime.project.agents.arevise("assistant", definition,
                                                     expected_revision=record["revision"])
                 await skills.aupdate("hub-code-change", {"markdown": skill_markdown("hub-code-change", "My project rules")})
@@ -63,6 +75,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 await reopened.start()
                 config = (await reopened.project.aget_data()).config
                 self.assertEqual((await reopened.project.agents.aload("assistant"))["system_prompt"], "My project prompt")
+                self.assertFalse((await reopened.project.agents.aload("assistant"))["resources"]["rag"])
                 skills = await reopened.project.components.aget("skills")
                 self.assertEqual((await skills.aload("hub-code-change"))["markdown"], skill_markdown("hub-code-change", "My project rules"))
                 self.assertNotIn("hub-document", await skills.alist())
@@ -91,7 +104,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(str((await run.aresult()).status), "completed")
                 self.assertEqual(provider.requests[0]["messages"][0]["content"], SYSTEM_PROMPT)
                 tools = {item["function"]["name"] for item in provider.requests[0]["tools"]}
-                self.assertTrue({"skill_list", "skill_read"}.issubset(tools))
+                self.assertTrue({"skill_list", "skill_read", "rag_search"}.issubset(tools))
                 messages = provider.requests[-1]["messages"]
                 self.assertTrue(any(message["role"] == "tool" and "Preserve unrelated edits" in message["content"]
                                     for message in messages))

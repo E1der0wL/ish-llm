@@ -26,7 +26,7 @@ from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
 def context(run_id="r", maximum=2):
-    return NS(run=NS(id=run_id, metadata={"policies": {
+    return NS(capabilities={}, run=NS(id=run_id, metadata={"policies": {
         "tool_retry": {"max_retries": maximum, "delay_seconds": 5}}}))
 
 

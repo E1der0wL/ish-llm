@@ -322,7 +322,8 @@ MESSAGES = {
     MessageKey.SETTINGS_REQUIRES_RESTART: "재시작 필요",
     MessageKey.SETTINGS_RESTART_TITLE: "Hub 재시작",
     MessageKey.SETTINGS_RESTART_NOW: "재시작",
-    MessageKey.SETTINGS_RESTART_CONFIRM: "저장되었습니다. 다음 설정을 적용하려면 Hub 재시작이 필요합니다.\n\n{fields}\n\n지금 재시작하시겠습니까?\nEnter: 재시작 • Esc: 나중에 (저장값 유지)",
+    MessageKey.SETTINGS_RESTART_CONFIRM: "저장한 설정을 적용하려면 재시작하세요.\n실행 중인 작업과 예약 요청을 중단합니다.",
+    MessageKey.RESTART_CONFIRM: "Hub를 재시작할까요?\n실행 중인 작업과 예약 요청을 중단합니다.",
     MessageKey.SETTINGS_RESTARTING: "Hub 재시작 중",
     MessageKey.GENERAL_CATEGORY_STORAGE: "데이터 저장 위치",
     MessageKey.GENERAL_WORKSPACE_ROOT: "Hub 데이터 루트. 절대 경로 또는 ~/경로를 입력하세요. 저장 후 Hub를 재시작하면 적용됩니다. 기존 데이터는 자동으로 이동하지 않으며, 빈 폴더는 새 작업 공간으로 시작합니다. 비우면 시작 시 지정한 기본 경로를 사용합니다.",
@@ -695,7 +696,7 @@ MESSAGES = {
 
     MessageKey.CONNECTING: "연결 중", MessageKey.CONNECTING_NOTICE: "백엔드를 연결하고 있습니다.",
 
-    MessageKey.NEW_SESSION: "새 대화", MessageKey.SESSIONS: "{icon_sessions} 세션 목록", MessageKey.WORKSPACE: "프로젝트",
+    MessageKey.NEW_SESSION: "새 대화", MessageKey.SESSIONS: "{icon_sessions} 세션", MessageKey.WORKSPACE: "프로젝트",
 
     MessageKey.MESSAGE: "메시지", MessageKey.YOU: "나",
 

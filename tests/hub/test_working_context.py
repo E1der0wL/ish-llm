@@ -9,6 +9,9 @@ from types import SimpleNamespace as NS
 import unittest
 
 from llm.components.processing import CompletionInput, CompletionMessage, CompletionRequest
+from llm.components.tools import Tool, ToolRegistry
+from llm.components.memory.tool_values import MemoryToolSchemas
+from llm.core.tool_contracts import ToolContract, ToolEffect, ToolIsolation
 from llm.core.contracts import ResourceRef
 from llm.core.models import ProjectConfig
 from llm.core.model_protocol import ModelMessage, ModelRole, ToolCall, ToolResult, ToolDefinition
@@ -47,7 +50,12 @@ class WorkingContextTests(unittest.IsolatedAsyncioTestCase):
                 CompletionMessage(ModelMessage(ModelRole.TOOL,
                     result=ToolResult(f'c{i}', f'result-{i} ' + 'x' * chars)),
                     result_ref=ResourceRef(kind='step', id=f'step{i}', run_id='run', step_id=f'step{i}'))])
-        tools = (ToolDefinition('memory_tool_result', 'Read saved results', {'type':'object'}),) if reader else ()
+        registry = ToolRegistry((Tool('memory_tool_result', 'Read saved results',
+            MemoryToolSchemas().tool_result(), lambda args: None,
+            contract=ToolContract(revision='test', effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE,
+                approval_required=False, operation_key_required=False, retry_fields=())),)) if reader else ToolRegistry()
+        context = replace(context, tools=registry)
+        tools = registry.definitions()
         return context, CompletionRequest({}, messages, turns, tools=tools)
 
     async def prepare(self, context, request):

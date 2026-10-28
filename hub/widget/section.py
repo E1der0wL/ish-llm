@@ -1,6 +1,6 @@
 """Shared section heading and rule."""
 
-from prompt_toolkit.layout import HSplit, Window
+from prompt_toolkit.layout import HSplit, VSplit, Window
 from prompt_toolkit.widgets import Label
 
 from ..asset.icon import RULE
@@ -17,10 +17,11 @@ class Heading(Label):
         super().__init__(text, style=TITLE_STYLE)
 
 
-def section(title):
+def section(title, *, actions=None):
     return HSplit(
         [
-            Heading(title),
+            (VSplit([Heading(title), actions], padding=1, height=1)
+             if actions is not None else Heading(title)),
             Window(height=RULE_HEIGHT, char=RULE, style=ThemeSelector.DIVIDER.style),
         ]
     )

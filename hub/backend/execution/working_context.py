@@ -79,7 +79,7 @@ class WorkingContext:
                 value = item.message
                 if value.role != ModelRole.TOOL or value.result is None or value.result.call_id not in pending:
                     break
-                reference = ToolReferences.reference(item)
+                reference = ToolReferences.reference(item, context=context, request=request)
                 if reference is None:
                     break
                 records.append({'tool': calls[value.result.call_id], **reference['arguments']})
@@ -114,7 +114,7 @@ class WorkingContext:
             # Old pages can become references too; keep the newest reader result useful.
             candidates = [i for i, m in enumerate(request.messages) if m.message.role == ModelRole.TOOL]
             for index in candidates[:-1]:
-                count += ToolReferences.replace(request, index)
+                count += ToolReferences.replace(request, index, context=context)
             fits = await cls.fits(context, request)
             if cls.tool_chars(request) > HubDefaults.TOOL_CONTEXT_CHARS or not fits:
                 if cls.compact_prefix(context, request):

@@ -19,7 +19,7 @@ class SidebarPanel(HSplit):
                 FocusRegion(
                     section,
                     active=lambda control=control: get_app().layout.current_control
-                    is control,
+                    in (control if isinstance(control, tuple) else (control,)),
                 )
                 for section, control in zip(sections, controls)
             ]

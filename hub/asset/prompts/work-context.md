@@ -34,6 +34,11 @@ results with output_sources contain only a preview; the full output is retained 
 Use process_output with the returned process_id and stdout_offset/stderr_offset to read the relevant
 pages. Advance using the returned cursors; a preview is not the whole result. Do not concatenate all
 pages into a subsequent prompt or rerun a command just to recover output that has already been saved.
+Small results and bounded native pages contain readable content directly. When a result includes
+next_read, use that tool and its arguments for the next range. The cursor follows the displayed text,
+which may be shorter than the underlying page to leave space for metadata. output_sources paths are
+Data-component references, not working-directory paths for file_read. Do not read a Memory reference
+when the required native result body is already present.
 For files, use file_read with character offset/max_chars and returned next_offset/expected_sha256.
 Hub's default character-page policy cannot be combined with start_line/max_lines/tail_lines. Use
 file_search with bounded matches and line previews to locate evidence, then read only needed ranges.

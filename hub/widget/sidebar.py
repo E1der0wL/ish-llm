@@ -7,10 +7,14 @@ from prompt_toolkit.data_structures import Point
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.mouse_events import MouseEventType, MouseButton
+from prompt_toolkit.utils import get_cwidth
 
 from ..asset import icon
 from .section import section
 from .input_contract import MouseResult
+from .auxiliary import AuxiliaryBar
+from ..asset.icon import AuxiliaryIcon
+from ..ui.input.keys import KeyName
 from ..config.theme_style import ThemeSelector
 
 
@@ -19,10 +23,37 @@ class SidebarHeading(HSplit):
 
     PREFIX = " "
 
-    def __init__(self, title):
+    def __init__(self, title, *, actions=None):
+        self.title = lambda: self.PREFIX + (title() if callable(title) else title)
+        self.actions = actions
+        if actions is not None:
+            actions.width = actions.minimum_width
         super().__init__(
-            [section(lambda: self.PREFIX + (title() if callable(title) else title))],
+            [section(self.title, actions=actions)],
             style=ThemeSelector.SIDEBAR_HEADING.style,
+        )
+
+    @property
+    def minimum_width(self):
+        return get_cwidth(self.title()) + (
+            1 + self.actions.minimum_width if self.actions is not None else 0
+        )
+
+
+class SidebarActions(AuxiliaryBar):
+    """The same CRUD actions for project and session category headings."""
+
+    ACTIONS = (
+        (AuxiliaryIcon.CREATE, KeyName.C),
+        (AuxiliaryIcon.CLONE, KeyName.R),
+        (AuxiliaryIcon.EDIT, KeyName.EDIT),
+        (AuxiliaryIcon.DELETE, KeyName.CLEAR),
+    )
+
+    def __init__(self, perform, icons, restore):
+        super().__init__(
+            [(name, lambda key=key: perform(key)) for name, key in self.ACTIONS],
+            icons, restore,
         )
 
 
