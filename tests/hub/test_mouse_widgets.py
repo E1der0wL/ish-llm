@@ -585,6 +585,9 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(pane.vertical_scroll, 0)
         self.pipe.send_text("\x1b[B")
         await eventually(lambda: self.app.layout.current_control is not focus)
+        # Focus changes during input handling; the pane releases its mouse
+        # anchor in the following render pass, not in the key handler.
+        await self.paint()
         self.assertIsNone(pane._mouse_anchor)
 
     async def test_list_wheel_keeps_selection_and_hover_does_not_activate(self):

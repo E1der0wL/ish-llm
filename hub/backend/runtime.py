@@ -259,12 +259,19 @@ class HubRuntime:
         if run.engine == Postprocessing.ENGINE:
             return
         self.snapshot_reader.thinking.observe(run, event)
+        from llm.engines.loop import LoopEngine
+        from .execution.environment import underlying_engine
+        if (not HubEngineIdentity.internal(run.engine)
+                and isinstance(underlying_engine(self.backend.engines.get(run.engine)), LoopEngine)):
+            self.snapshot_reader.drafts.observe(run, event)
         self.dirty.set()
 
     async def _run_event(self, event) -> None:
         from .project.postprocessing_values import Postprocessing
         if event.run.engine == Postprocessing.ENGINE:
             return
+        if event.run.status != RunStatus.RUNNING:
+            self.snapshot_reader.drafts.forget(event.run.id)
         self.background_records.observe(event.run)
         self.automatic_approvals.observe(event.run)
         self.snapshot_reader.invalidate(event.run.session_id)

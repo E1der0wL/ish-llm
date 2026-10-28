@@ -48,6 +48,11 @@ class Presentation:
 
 
 def present_message(item: ChatMessage, t) -> ChatMessage:
+    if (item.draft is not None and item.role == MessageRole.ASSISTANT
+            and item.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)):
+        # The source snapshot retains authoritative text separately. A draft is
+        # display-only, cannot populate suggestions or become a persisted answer.
+        item = replace(item, text=item.draft.text, phase=item.draft.phase, activity="")
     if item.workflow:
         graph = TraceItem(
             item.id + PresentationFormat.WORKFLOW_SUFFIX, TraceItem.WORKFLOW, item.workflow,

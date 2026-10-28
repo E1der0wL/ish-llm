@@ -83848,8 +83848,8 @@
   },
   {
     "path": "hub/backend/observability/snapshot.py",
-    "sha256": "ba34319cb9e9c51296cfcb2a1331983b72d734083fb6d9f9164feee208d8b8c1",
-    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Approval observation review: read public requests and validated response receipts under one workspace ownership scope. Fully answered interactions need no input form while resume is queued. Remaining requests still delegate expiry/cancellation/lifecycle checks to RunHandle.interactions(pending_only=True). No decisions, resume eligibility, persistence or error suppression are implemented here. Background reads stay off the UI event loop.",
+    "sha256": "3fa0c035e761ef0cd81344dad24c0666a4a09bbc4b76787cd7236ccf54d1ae20",
+    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Approval observation review: read public requests and validated response receipts under one workspace ownership scope. Fully answered interactions need no input form while resume is queued. Remaining requests still delegate expiry/cancellation/lifecycle checks to RunHandle.interactions(pending_only=True). No decisions, resume eligibility, persistence or error suppression are implemented here. Background reads stay off the UI event loop. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -83925,55 +83925,67 @@
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "2b8f1e6464fd72676eb3b584c8cac966da76126860cedcef20103295b80baa97",
+        "id": "090ac55f268acef7ee386d072ef02fa5ea47c7243d0b98937f6e29d9ed1c1039",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Private cache tuple position selects the Run ID for pruning; it is not a public record field, configured bound or persisted index."
       },
       {
-        "id": "0c715f10d6846bcd19c289c34d13750b70b9e64e81030ec02db70a4ad2b413c5",
+        "id": "28d1dae641a05a16d46d4df75a698442dec73a04ce10d6d1389615aa23999eda",
         "classification": "non_contract",
         "owner": "SnapshotReader.run_display",
         "reason": "Optional elapsed type annotation."
       },
       {
-        "id": "edda9954ccc509e676b02e484e4177f9ad396e205c8257dbc15d8e8cf974c0d6",
+        "id": "549d4160c628376bc4e5d909cc9444b23bee050298f82ee3bbddad421a9a157f",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "1daedf289ff47abcb137401882c0b2f1ec4784755425cb259f6d01c0bbdb7d51",
+        "id": "b2fb53c7d11feeb69d96d00fdb21343406901621d9ec0afaf9cdefc1780ff2be",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "df97d2d539f11655357bbf8c2b3ad870559ba15b0f1f72643938cface1c6fba2",
+        "id": "7f1e5b1c2963d127e2ea2c016024ccf7d85e3c45ea222929aab92b2d30c5c34b",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts / SnapshotReader.messages",
+        "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
+      },
+      {
+        "id": "e1f452217f47f21ae595626e857a6a7f08fbb0dc5739faaf230bdbddf86f46e7",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "6727166d083d2354dd9c9c3953f911528b8d30ca27d33e92e2479a280afc5e4e",
+        "id": "ea82f580d543688453c062743cf66b3075caee129dc836c76e6cb864e3cc496f",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "83565ed094468833db4021aa6537fc22e27314888f06671d284010d4a0783311",
+        "id": "37c0036148819bed7251f7c5683e364de4ab4a7d61a8727fd459d8d200a98787",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "b9a0970c7fda70e74c1d561cfd716137f35194326d8338808e08a60cb512fce4",
+        "id": "fde7df9714b7917c87420152b6ea04b96cb27cc59610d71587dd4846d44801db",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "528a368f174a0e0aba2117d103273c65dace78fb41f0e7be6a105d4869fd2186",
+        "id": "b4a26add4d35d6f7c978782a83424cd4eaa26eb1a1a51765051f29257fd6c3a8",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts / SnapshotReader.messages",
+        "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
+      },
+      {
+        "id": "f9b5c4da2c4f0d90e91e6e9341d24ff0395a5f252980c378ae85ea7ed8637dd6",
         "classification": "non_contract",
         "owner": "SnapshotReader.read",
         "reason": "First handle from the explicitly bounded newest-Run query."
@@ -93283,8 +93295,8 @@
   },
   {
     "path": "hub/widget/transcript/message_cache.py",
-    "sha256": "fcc62fa840431fe29f13c6e22cfcd0e2bd5f74a2e31d313f6ff5324ef7585f3c",
-    "reason": "Completed reasoning stays in immutable historical prefix. Mutable tail begins at reasoning paired with active Assistant messages or active answers. Canonical message identities/statuses are consumed; output rows, anchors and objects remain unchanged.",
+    "sha256": "993f83d930a25eb7be1066a7a8255cf522880db0be11ca87c530d4e9feb5d5e9",
+    "reason": "Completed reasoning stays in immutable historical prefix. Mutable tail begins at reasoning paired with active Assistant messages or active answers. Canonical message identities/statuses are consumed; output rows, anchors and objects remain unchanged. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -93354,55 +93366,49 @@
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "5fd0f575e311784892411fc456c7a75e20e881f76d45ee03f6fac5ccbb0039d8",
+        "id": "a57c9b83e1f91f7a50cf7026d6a40af3c6b0be7f2eb2082a7be53b89101244e7",
         "classification": "non_contract",
         "owner": "CachedMessage",
         "reason": "Dataclass immutability."
       },
       {
-        "id": "5566b02c478d69d08b4aa8044fa61fcb895dc8bda7349241137b8ce0be5aaae4",
+        "id": "aabbc899feb7c99fa25b455e1b38fa29f7448c5e237be5b32959610d9b7caffe",
         "classification": "non_contract",
         "owner": "CachedMessage",
         "reason": "Dataclass immutability."
       },
       {
-        "id": "e6c44b175b87c85ddea88038502cac6bd68bad5a9cf84abebb22fe764c99b78a",
+        "id": "8783fab75f2320c8b7bae3b64afece9422cad7498e0a788b0ec351d5184679f7",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "4d59061393600cad223bfa94d868dc4ecafb2f4e501214a2f9ca7e2bd95b2fe9",
+        "id": "c46c423203d9d8ff07022f17aa9f309ff140e6a4c8db34bcc4343deb2be2571e",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "6ee26c015f255243a1633f11baf8016bc8fab8853a2b0fa8f44893fee653737f",
+        "id": "1fd0dd876b2ed9213d78a0ecefff48ccc71c82e62834b88a30ce3a84a8cef0cc",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "1ddac72e62ec9bcf2f3e58073727b33b338de034d27dbfe1f1346843e231d122",
+        "id": "a9bc9820ec74bbc17c5df4728176d4e0a84beb323d1e9e24295b8f3c1d1e6f10",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "ad1efbadfc2478f6b600f4a3e868f4d5062ce38c0cbb34449f0ab0af8d77a116",
+        "id": "969795d6249b4aabe27b027a5e3a98af1fe6ad8b3474d7725d11a1af10f455b4",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "0dfe3a1948fd495b3d0479f4a626177296d08ff812de7acabd6888c9f5f8ccb7",
-        "classification": "declaration",
-        "owner": "CachedMessage",
-        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
-      },
-      {
-        "id": "c13df730f2b02b4408cbe5bb1089ec8614036747b6fc50f59bb78401aa59b6fb",
+        "id": "28baf9dd1067e89a5558405c5d860d8f3cb89e262ad4604c8cdd270de27bdc50",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
@@ -93414,67 +93420,85 @@
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "2eee95b429644d2cfc97cd03d6eb141fdeecd105a6c611f4a35202f0c197f977",
+        "id": "c0768ce410fd4b69900b10a4bda1548aa2f09a6edfa1f0af3211e089eb5ffbbb",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "656a8b7fb27a83b4c2021e85cb8cea2c8c49305ab7e0b6b65decbdc619fde03f",
+        "id": "7687c39aba6e97aaa1f91049eca4a86cbb3a8002aa04518b6a19078e118bb0ea",
         "classification": "declaration",
         "owner": "CachedMessage",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "bebd10d8e1d3a8a223713024e26ae195fdc0e0b8439ffe9c3158555cfddfeb27",
+        "id": "e3f809be2bdc51bbfd3dbd7ce6c878319a0338cd5de3bfd7e6a1e7ab408ec5bc",
+        "classification": "declaration",
+        "owner": "CachedMessage",
+        "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
+      },
+      {
+        "id": "ad3ffc5ddbd4031d5d6bfad8d9b2d44bdfc0890c61d996d8b345838209833fbe",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "c0cd9690aa6143d2e692ae96909d1adfd02c1a1e2d1f43e14b9837a6046cfa8e",
+        "id": "a0f4337737d799fd671d86976df32b34865cb6d264eb3fa478d73c343cfa4e12",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "2d25fe38a23341d6b9f90d64e0253d14ca5cdc4f2d257d2cf418d961621873b7",
+        "id": "d3a097b4d2360ee7bbb02e1f305604b361c540c08a4967e24fd48a85dcb6eccc",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "1cbf56c0c5eaa54329e9d265a972a731bc95bd83cfd4cc6175b528e109248eba",
+        "id": "099abc741ab65e19401dd10f5df0e761e3d9af067325ce080aff2d0ffd9b978e",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "6b89a7315007628f689b8023dd21e189a54b0cbdfeabdc29789eb4763d06b373",
+        "id": "a25b7c1c4a9c4b84f31e12e9b38d10e8a70705107747ddd65acadfc34363fc3d",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "31ff61701e65594b490e97f57da0a70b605d17ae6c4933affdd164d09af10cdc",
+        "id": "3aff6fd87b215e5d8107fd861208b81d0d03893708580fd881b1611013d4e652",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "c3ebf5f57ff31a01ddcc2d38a554be81ebff688d791baf7fc8747bf3d7e5ed38",
+        "id": "69eb2c34ce1c0974650a37f96fdb7fdc5c60bf0507788685caf6b784c8c01da7",
         "classification": "declaration",
         "owner": "MessageRenderCache",
         "reason": "Typed cached message fields, immutable context/body/header/trace keys, frame anchor projection and original work-count/width/cache absence defaults; LLM MessageRole/MessageStatus and RenderSection/TranscriptLayout remain canonical."
       },
       {
-        "id": "87e21f7fa2f382d3c296e8c21dd97affdd8d062bbc8dec9e2bf5a25e172bc8b2",
+        "id": "01ded2668b1425f7675d5a7a7e642dbe1e68d9e41b1674f1a370928b46e76ff8",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts / MessageRenderCache.prepare",
+        "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
+      },
+      {
+        "id": "24a0638c7ac2d642011183e8c653da1c7eba7c0f68f4368694ae0351bde4d22f",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts / MessageRenderCache.prepare",
+        "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
+      },
+      {
+        "id": "7db75a7794e94287494c18669bac3778206a7054da9e4b827dfbb45ea34f9e2c",
         "classification": "non_contract",
         "owner": "MessageRenderCache.prepare",
         "reason": "Convert entry count to last inclusive index."
       },
       {
-        "id": "b0a8f829044336fb6caf0dac71807dc5beef5fcc33972decf2e4e286d04df14f",
+        "id": "586890c6c6c41641da68c99a7a8d729c050e3cf12cc14e061471fab380f45e28",
         "classification": "non_contract",
         "owner": "MessageRenderCache._assemble",
         "reason": "Previous message in the sequence."
@@ -95311,8 +95335,8 @@
   },
   {
     "path": "hub/ui/presentation.py",
-    "sha256": "1e5e1995223b2c26f79c428288ff722a995155c29a445399574a6399e0505897",
-    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection.",
+    "sha256": "344b1bd3c71471457ebf80e78150bad7f2957265e79514cf1e4e3f6f7134f018",
+    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -95400,25 +95424,37 @@
         "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
       },
       {
-        "id": "68107599886c0991a1bd9b3f25f4e6a0c827145069145f3123b9b0da6b2788b2",
+        "id": "0e9c92dabc7296668525503d7d032bb9e74b372ca699f728e94a60b0882ada03",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts / present_message",
+        "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
+      },
+      {
+        "id": "4790871b2de07059f014bdb13c22010e1618a01ac82bb18127c331001b8323db",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts / present_message",
+        "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
+      },
+      {
+        "id": "7c862349952b1a97f0279e1497f5b403bb890e58ed3a11f1de6ef00744655463",
         "classification": "declaration",
         "owner": "MessagePresentationCache",
         "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
       },
       {
-        "id": "ce44c2b98bd6f5cedaab2c204d36efcd5a852a97dfe5bdb9f5cad6c3593629f4",
+        "id": "687cbf789ee28c98929268351e556f1b771899f8bda69fb2c0ee7692504134a1",
         "classification": "declaration",
         "owner": "MessagePresentationCache",
         "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
       },
       {
-        "id": "1ecdaa8026e0ca2d0569880ac62e2017baea6911782bbf9a23a67bcdc4121d63",
+        "id": "a4b30cef5a3f49efc6faea2cbcf2877b633e948273e5b65fffa4bdd191c1d72f",
         "classification": "declaration",
         "owner": "MessagePresentationCache",
         "reason": "UI-only formatting and typed selected-conversation cache. Current MessageRole/Status/ConversationStorage and QuestionPresentation/InteractionRequestObservation supply public meanings; original failure/partial-model separation and elapsed-only reuse are unchanged."
       },
       {
-        "id": "2b2061bf27b2cf61d50e4e392adb9927069da3264f3c77a5eaaf11ec1ba3d59f",
+        "id": "b0ad7284115a720d66ad1a08e872a34ab8f92e3b6d3266e104a248daca27d2be",
         "classification": "non_contract",
         "owner": "present",
         "reason": "Read the first pending question from the existing ordered snapshot."
@@ -104040,6 +104076,353 @@
           "tests/hub/test_tool_views.py",
           "tests/hub/test_working_context.py",
           "tests/hub/test_large_data_tools.py"
+        ],
+        "complete": true
+      }
+    ]
+  },
+  {
+    "path": "hub/backend/observability/drafts.py",
+    "sha256": "55b6c13ecf5ceeb02551c3c1789fe9c275f1a119b43c8679d2b9f7d2c42893dd",
+    "reason": "Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests.",
+    "dynamic_paths_reviewed": true,
+    "decisions": [
+      {
+        "id": "e6d0fff7a468518c7b2293ad673cf696ee102448e51e765d44245a84ef70d362",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "e44c17f371d860044f7322eb67d6a2523f76f260f9629c766133abe9dae0b43f",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "68db376358a69e8c543c28e8fd19501bd502a66bb998c618ecaf43abc8e20be0",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "13ba5f38ccd4c74f8977358268816a55b5350129b0f024f164c65fcdac94800c",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "e97e23a4b57067163c4a60865f40f1ad65ef737013226d9877b3ff3c6571950a",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "04136ba3b88aa2dd55b5277e67be77419ea5a77000918f4a08b72dfed5e2bf66",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "5dfbd7193b97d2fa10e12370f45fe7dae8a1bb6ebca9678abbc07676bbcbdb03",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "772414dc5be72f144eefb5e1ad0b2e993f21c22041f8a3301abfdfc671e59d46",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "2b8f39c5f67c32a43b62f1c737df2455c05168c57c04227ea056ad072a745f44",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "a71e0d8bbb308b73526ea8b27b87798fb563e6dd6302312d47b8be26ffee6a93",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "12c4087365f8a6aecc155fba3585a146fceb1f9545fea043ebc30b4f13a5d445",
+        "classification": "declaration",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "583e581bcd8f872198d2a086dd4fb7a4b4494841e693033bda93aab53bfeeae5",
+        "classification": "declaration",
+        "owner": "AnswerDrafts bounded runtime cache",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "dfad599065c851184f4b63de6a470e5a8b0c831e6ba5b72e61dcc3ac3b8400d3",
+        "classification": "declaration",
+        "owner": "AnswerDrafts bounded runtime cache",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "11f14dc706f0758d2e763d26654baae1a0f798f134b27e93b390856b7d24b02b",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "1d478bc608543ba7fc89eaab542bc7ba6d89e25d95461fa2ee10bd9025d9ca5f",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "066563e47a96fa8736404418ad7db41ccf8d1266afedfc4c5b296a029363a949",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "e5a26a9880e49c95dd7236ce27fc1c9accb0c7a49101369a6407dc68e2afdf1c",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "bdd867fc8173ed5d179c72a6220a16fc64fc54e1bf500bbc1618873714740ecc",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "6d80155b2066f2eed82c04f448b659f7fd22db881138af8053ba1cfe65696526",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "1d48e326c1a4f5bf66132ecc974aa8f06a2bd75adb8c677b473dc023de15caeb",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "faebec0c4a2537626739641b12ad3e4a3a20f33efd7f6d8243f9f6fa700f8227",
+        "classification": "non_contract",
+        "owner": "AnswerDrafts transient observation state",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "02acb7cec65546e44b05af26062d054c211a4d1a7adafab99146a6c8f181663e",
+        "classification": "non_contract",
+        "owner": "LoopEngine / LoopStepMetadata identity",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "19409369b7d2f5e7e78a0b77ac0282f3f59923cbb7247e9d78e0df2ba90b2679",
+        "classification": "non_contract",
+        "owner": "LoopEngine / LoopStepMetadata identity",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "adafb6484c3d08834712329fac3a7eadc4ffa16d2461643b6fa83c55a6a3b85d",
+        "classification": "non_contract",
+        "owner": "LoopEngine / LoopStepMetadata identity",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "c822dd62907fb8aadf9a2cd2fc199ed463212c36a524522e966001dd9aad5cd2",
+        "classification": "non_contract",
+        "owner": "LoopEngine / LoopStepMetadata identity",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "0f6a28c6ffd84b869f77b0089747be08bd86d5b6d660f41a209a5a6d3c04ef81",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "971ca5db3fc86e9f992dfc1d0b3855137c0b7045de8fd4272a7aab207390288e",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "c8ce3f297e62b73668414eec22c6a45ac7d8d36cf8783edd20b1416e5c644988",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "c320017d5b6b9d63520d1841e52e6cc59c31ba5eb36774314a173a4d4b3a5783",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "b325823a32308e316e331b2db70eca4eb29f3666eda1b202e938f1e1fe667b83",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "9a982b18494c02f09bdca5219b01c73802689db208f675adc1b4a6b4f0e2d29c",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "fa8e476c8b6e39b4decf182c8ea758c04482e9a950deee95907fdd147375596c",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "8e14ce8250f6c6a021dd28c71642fac58cdeb19d2530541eb8f8a37cd475e48c",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "4c73a10d7858a93075caffeb823c3123be8d0cf91989c5dc876159d31c9641e2",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "2eef7098709e0b3cd5c759f47ee2ddbceb82eeea65c2b2e9032d05a1d0349880",
+        "classification": "non_contract",
+        "owner": "EngineOutput.apply / OutputVisibility / persisted output sequence",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "b7f7df03e1d398fb006113be62a138f2583d01e28b3c6b4a7d3adb70846cc143",
+        "classification": "non_contract",
+        "owner": "EngineEvent / CompletionResult / RunStatus observations",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "2e44da4db14142ae4acef0909f9a8e7dd06b3f73fe4a31f91bf42289610f5e95",
+        "classification": "non_contract",
+        "owner": "EngineEvent / CompletionResult / RunStatus observations",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "7fcb885384eedc1d1841d0a66effd32dd6223e3c135c4f357cf7ea41c38cb93c",
+        "classification": "non_contract",
+        "owner": "EngineEvent / CompletionResult / RunStatus observations",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "f180ae954a5011d823048daebd40025fcc2fdca97f7cd42de20cb876f9cc7901",
+        "classification": "non_contract",
+        "owner": "EngineEvent / CompletionResult / RunStatus observations",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "6c34906cd15ac3553ac534bfa3028601bb58a419a8670c20b534a9836360f6c9",
+        "classification": "non_contract",
+        "owner": "EngineEvent / CompletionResult / RunStatus observations",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "c2394ad14943df9726e37256f9c17e2c70a9d9d74cde8e6680ff9f8d48ceaab1",
+        "classification": "non_contract",
+        "owner": "EngineEvent / CompletionResult / RunStatus observations",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "a20ee7a9e728c29751a25c5255d401a95d29ced992b82b3cb7f2b61b3051ed37",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "ebce1602c8175a514f8847b31c73f58957b304a97e72c0603ce37cbe18b0343a",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "05afd36dd4175485a6528cd32d49b2034dadb2814461a5805cb70b05317a1a16",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "fe56541d63b9acf681c88a8394a9485618d7b4d8bd2c893602a8d7754758e60a",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "aa9caee252c202c71bafb3fd7e1892e2567d20102ac5ed0fffe55f2ce242ef44",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "9ec8520cc439b442b4b3c737f3ad60a61b100e1eaab6eaf376dcb5a160f6a290",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "2916290b281e2f5e75219031773922dc69ede0d4c6531026fc7ddf79b898ea77",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "b18da5260912d0b421d0b5bdbfb975d2e9dca646e0d5f5cfd939e6a6a2244734",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "b0b49dbf1fd50445a621d384620e2c6762aae18bbf98e0731539ccdc4c86fa05",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "58983db73b4f719b133537c6fd258f9742456fb2158a5d3ff3f77717cce58a28",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "a247b4c14bf82c98e057c7967583eed5992c4f489ba5dda5cfa694de2b172b82",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "5a89ae5b2816de7812eeb8f6c9e25614cf0bf8563b511425be40f94c14f2ab5b",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      },
+      {
+        "id": "ecbf327ac90c6b600419bd5962e1d94c21e5fea7794b15c885c224567c1f664b",
+        "classification": "non_contract",
+        "owner": "RunHandle.aview / CompletionRecords read-only reconciliation",
+        "reason": "Runtime observation/cache boundary only. Empty/None means no preview; numeric values bound caches or track backend output order. No state, permission or review is inferred for execution."
+      }
+    ],
+    "contracts": [
+      {
+        "owner": "AnswerDrafts",
+        "declaration": "hub/backend/observability/drafts.py",
+        "consumers": [
+          "hub/backend/observability/snapshot.py",
+          "hub/backend/runtime.py"
+        ],
+        "tests": [
+          "tests/hub/test_answer_drafts.py",
+          "tests/hub/test_stream_output.py"
         ],
         "complete": true
       }

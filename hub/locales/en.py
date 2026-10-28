@@ -339,6 +339,8 @@ MESSAGES = {
     MessageKey.PREPARING_RESPONSE: 'Preparing…',
     MessageKey.STATUS_PREPARING: '{icon_preparing} Preparing',
     MessageKey.STATUS_THINKING: '{icon_reasoning} Thinking',
+    MessageKey.STATUS_DRAFT_STREAMING: 'Draft streaming (unverified)',
+    MessageKey.STATUS_DRAFT_REVIEWING: 'Reviewing answer (draft)',
     MessageKey.STATUS_RETRYING: '{icon_preparing} Retrying',
     MessageKey.STATUS_INTERRUPTING: '{icon_interrupted} Stopping',
     MessageKey.FOLLOWUP_HINT: '→ accept suggestion',

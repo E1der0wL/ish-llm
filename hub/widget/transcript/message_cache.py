@@ -85,6 +85,7 @@ class BodyKey(NamedTuple):
     final: bool
     index: object
     traced: bool
+    draft: bool
 
 
 class HeaderKey(NamedTuple):
@@ -179,12 +180,13 @@ class MessageRenderCache:
                 not in (MessageStatus.STREAMING, MessageStatus.COMMITTED),
                 index if not message.id else MessageRenderCache.ABSENT,
                 bool(message.trace),
+                message.draft is not None,
             )
             blocks = previous.blocks
             if previous.body_key != body_key:
                 blocks = (
                     self.parser.parse(message.text, final=body_key.final)
-                    if message.role == MessageRole.ASSISTANT
+                    if message.role == MessageRole.ASSISTANT and message.draft is None
                     else ()
                 )
             render_context = RenderContext(

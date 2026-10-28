@@ -213,6 +213,7 @@ def render_messages(
         if (
             renderers is not TranscriptLayout.ABSENT
             and message.role == MessageRole.ASSISTANT
+            and message.draft is None
         ):
             parsed = (
                 blocks

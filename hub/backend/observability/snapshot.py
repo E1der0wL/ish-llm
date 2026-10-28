@@ -75,6 +75,7 @@ class SnapshotReader:
     def invalidate_dropped_events(self):
         self.thinking.runs.clear()
         self.observations.clear()
+        self.drafts.invalidate()
 
     def __init__(self):
         self.cache = {}
@@ -90,8 +91,11 @@ class SnapshotReader:
         from ..execution.thinking import ThinkingPhases
 
         self.thinking = ThinkingPhases()
+        from .drafts import AnswerDrafts
+        self.drafts = AnswerDrafts()
 
     def clear(self):
+        self.drafts.clear()
         self.cache.clear()
         self.observations.clear()
         self.tool_history.clear()
@@ -185,6 +189,7 @@ class SnapshotReader:
         run_records=None,
         run_steps=None,
         graph_engines=(),
+        drafts=None,
     ):
         self.retain_messages(messages)
         run_records, run_steps = run_records or {}, run_steps or {}
@@ -344,6 +349,9 @@ class SnapshotReader:
                     elapsed_seconds=elapsed,
                     phase=phase,
                     run_id=message.run_id or self.EMPTY_TEXT,
+                    draft=(drafts or {}).get(message.run_id)
+                    if role == MessageRole.ASSISTANT and not message.content and status in (
+                        MessageStatus.STREAMING, MessageStatus.COMMITTED) else None,
                 )
             )
         from ..execution.turns import TurnIndex
@@ -458,6 +466,17 @@ class SnapshotReader:
             from llm.core.agents import AgentMode
             from llm.engines.base import agent_mode
             from ..execution.environment import underlying_engine
+            from llm.engines.loop import LoopEngine
+
+            drafts = {}
+            for identifier, record in run_records.items():
+                if record.status != RunStatus.RUNNING:
+                    self.drafts.forget(identifier)
+                    continue
+                if (not HubEngineIdentity.internal(record.engine)
+                        and isinstance(underlying_engine(engines.get(record.engine)), LoopEngine)):
+                    handle = selected.handle if identifier == selected.run.id else await session.run.aload(identifier)
+                    drafts[identifier] = await self.drafts.read(handle, record, run_steps[identifier])
 
             messages = await self.messages(
                 session,
@@ -467,6 +486,7 @@ class SnapshotReader:
                 latest_steps=steps,
                 stopped_runs=StopIntent(selected.record.metadata).stopped_runs,
                 run_records=run_records, run_steps=run_steps,
+                drafts=drafts,
                 graph_engines=tuple(name for name in engines.names()
                     if agent_mode(underlying_engine(engines.get(name))) == AgentMode.WORKFLOW),
             )

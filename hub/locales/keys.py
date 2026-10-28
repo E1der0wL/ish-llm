@@ -688,6 +688,8 @@ class MessageKey:
     STATUS_QUEUED = 'status_queued'
     STATUS_COMMITTED = 'status_committed'
     STATUS_STREAMING = 'status_streaming'
+    STATUS_DRAFT_STREAMING = 'status_draft_streaming'
+    STATUS_DRAFT_REVIEWING = 'status_draft_reviewing'
     STATUS_COMPLETED = 'status_completed'
     STATUS_INTERRUPTED = 'status_interrupted'
     STATUS_CANCELLED = 'status_cancelled'

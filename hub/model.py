@@ -49,6 +49,17 @@ class RAGAction(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class AnswerDraft:
+    """Unverified display observation, never conversation content or model input."""
+
+    WRITING: ClassVar[str] = "draft_streaming"
+    REVIEWING: ClassVar[str] = "draft_reviewing"
+
+    text: str
+    phase: str = WRITING
+
+
+@dataclass(frozen=True, slots=True)
 class ChatMessage:
     DRAFT: ClassVar[str] = "draft"
     PREPARING: ClassVar[str] = "preparing"
@@ -68,6 +79,7 @@ class ChatMessage:
     failure: ErrorInfo | None = None
     workflow: str = ""
     workflow_states: tuple[tuple[str, str], ...] = ()
+    draft: AnswerDraft | None = None
 
 
 class ReasoningMessage:

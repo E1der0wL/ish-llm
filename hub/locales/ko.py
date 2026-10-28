@@ -339,6 +339,8 @@ MESSAGES = {
     MessageKey.PREPARING_RESPONSE: '준비 중…',
     MessageKey.STATUS_PREPARING: '{icon_preparing} 준비 중',
     MessageKey.STATUS_THINKING: '{icon_reasoning} 생각 중',
+    MessageKey.STATUS_DRAFT_STREAMING: '초안 작성 중 (검증 전)',
+    MessageKey.STATUS_DRAFT_REVIEWING: '답변 검증 중 (초안)',
     MessageKey.STATUS_RETRYING: '{icon_preparing} 재시도 중',
     MessageKey.STATUS_INTERRUPTING: '{icon_interrupted} 중단 중',
     MessageKey.FOLLOWUP_HINT: '→ 추천 입력',
