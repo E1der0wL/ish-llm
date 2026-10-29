@@ -69,7 +69,7 @@ class LargeDataToolsTests(unittest.IsolatedAsyncioTestCase):
                 result = results[-1]
                 observations.append(result)
                 yield chunk(calls=[call(json.dumps({'process_id': result['process_id'],
-                    'stdout_offset': result['stdout_chars'] - 100, 'max_chars': 8000}), name='process_output', call_id='page')], finish='tool_calls')
+                    'stdout_offset': result['stdout_chars'] - 100, 'max_chars': 30000000}), name='process_output', call_id='page')], finish='tool_calls')
             else:
                 observations.append(results[-1])
                 yield chunk('Read the retained final range; the preview is not full-data verification.', finish='stop')

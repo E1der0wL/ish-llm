@@ -528,7 +528,7 @@ MESSAGES = {
 
     MessageKey.MODEL_LINE: "Model: {model}",
 
-    MessageKey.SESSION_DELETE: "Delete session", MessageKey.SESSION_RENAME: "Rename session",
+    MessageKey.SESSION_DELETE: "Delete session", MessageKey.SESSION_RENAME: "Edit session",
 
     MessageKey.SESSION_DELETE_CONFIRM: "Soft-delete '{title}'? Its history will be preserved.",
 
@@ -731,7 +731,11 @@ MESSAGES = {
 
     MessageKey.CHOOSE_TARGET: "Instruction target",
 
-    MessageKey.ENGINE_LINE: "Engine: {engine}", MessageKey.CREATE_DIALOG: "Create or clone a conversation",
+    MessageKey.ENGINE_LINE: "Engine: {engine}", MessageKey.CREATE_DIALOG: "Create session",
+    MessageKey.SESSION_CLONE: "Clone session",
+    MessageKey.SESSION_CLONE_PREVIEW: "Conversation preview",
+    MessageKey.RAG_PHASE_RESUMING: "Preparing checkpoint resume",
+    MessageKey.RAG_RESUME_CHECKPOINTS: "Resuming with {count} saved checkpoints",
 
     MessageKey.CREATE: "Create", MessageKey.CLONE: "Clone selected conversation", MessageKey.NAME: "Name (optional)",
     MessageKey.COMPONENT_CREATE: "Create",

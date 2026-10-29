@@ -528,7 +528,7 @@ MESSAGES = {
 
     MessageKey.MODEL_LINE: "모델: {model}",
 
-    MessageKey.SESSION_DELETE: "세션 삭제", MessageKey.SESSION_RENAME: "세션 이름 변경",
+    MessageKey.SESSION_DELETE: "세션 삭제", MessageKey.SESSION_RENAME: "세션 편집",
 
     MessageKey.SESSION_DELETE_CONFIRM: "'{title}' 세션을 소프트 삭제할까요? 기록은 보존됩니다.",
 
@@ -731,7 +731,11 @@ MESSAGES = {
 
     MessageKey.CHOOSE_TARGET: "추가 지시를 받을 대상",
 
-    MessageKey.ENGINE_LINE: "엔진: {engine}", MessageKey.CREATE_DIALOG: "대화 생성 또는 복제",
+    MessageKey.ENGINE_LINE: "엔진: {engine}", MessageKey.CREATE_DIALOG: "세션 생성",
+    MessageKey.SESSION_CLONE: "세션 복제",
+    MessageKey.SESSION_CLONE_PREVIEW: "대화 내용 미리 보기",
+    MessageKey.RAG_PHASE_RESUMING: "체크포인트 재개 준비",
+    MessageKey.RAG_RESUME_CHECKPOINTS: "저장된 체크포인트 {count}개에서 재개",
 
     MessageKey.COMPONENT_CREATE: "생성",
     MessageKey.CREATE: "새로 생성", MessageKey.CLONE: "선택한 대화 복제", MessageKey.NAME: "이름 (선택)",

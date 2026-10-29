@@ -172,6 +172,7 @@ class ChatProjects:
                     ProjectConfigForm.creation_request(title),
                     completed=saved,
                 ),
+                size=PopupSize.SMALL,
             )
         elif (
             item is not ProjectSummaries.NO_MATCH

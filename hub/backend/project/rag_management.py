@@ -74,6 +74,8 @@ class RAGManagement(DocumentManagement):
                 blockers=plan.blockers,
             )
         observer = RegistrationProgress(job, task=asyncio.current_task())
+        if plan is not RAGOperation.ABSENT:
+            observer.resume(plan)
         self.active[key] = observer
 
         def report(entry):

@@ -10,6 +10,11 @@
 
 ## UI와 저장 경계
 
+Agent 생성·편집은 공통 `SaveButton`으로 변경 사항이 있을 때 `* 저장`을 표시합니다.
+이름·표시 이름·Engine·설정 필드·외부 JSON 편집을 비교하고 원래 값으로 되돌리면 표시를 지웁니다.
+유효하지 않은 편집 중 JSON도 미저장 상태로 표시하며, JSON 비교는 입력이 바뀐 경우에만 실행합니다.
+스키마 조회·필터·페이지 이동은 저장할 내용의 변경으로 취급하지 않습니다.
+
 `ParticipantBar`는 `TagBar`의 공통 너비를 사용한다. Agent 작업 메뉴는 편집·그룹 이동·수신 대상 변경·추방, 그룹 메뉴는 수신 대상 변경·그룹 삭제를 제공한다. Enter/Space로 현재 강조한 메뉴 항목을 실행한다.
 
 `ParticipantGroups`만 `Session.metadata.hub_participant_groups`의 `{그룹 ID: {title, members}}`를 해석한다. 실제 초대는 백엔드 `agent_ids`가 기준이다. 외부에서 제거된 Agent를 메타데이터 때문에 재초대하지 않는다. 한 Agent는 한 그룹에만 속한다. 그룹 삭제는 초대 목록을 보존하고 추방은 Project의 Agent 정의를 삭제하지 않는다.

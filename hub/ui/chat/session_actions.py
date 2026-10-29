@@ -8,7 +8,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
 from ...widget.dialog import PopupSize
-from ...widget.forms.session_form import SessionForm
+from ...widget.forms.session_form import SessionNameForm, SessionCloneForm
 
 
 class SessionActions:
@@ -55,31 +55,22 @@ class SessionActions:
             view.notice = view.t(MessageKey.SESSION_REQUIRED)
             return
         source_id = view.sessions[view.selected].id
-        ready = (
-            view.no_sessions or turns is not self.ABSENT or view.on_turns is self.ABSENT
+        cloning = mode == SessionMode.CLONE
+        ready = not cloning or turns is not self.ABSENT or view.on_turns is self.ABSENT
+        form = (
+            SessionCloneForm(view.t, title, turns=turns, boundary=through_message_id)
+            if cloning else SessionNameForm(view.t, title)
         )
-        from ...widget.summary import turn_label
-
-        form = SessionForm(
-            view.t,
-            mode=mode,
-            title=title,
-            allow_clone=not view.no_sessions,
-            turns=turns,
-            boundary=through_message_id,
-            turn_label=turn_label,
-        )
-        choices, name, boundary = form.mode, form.name, form.boundary
+        name = form.name
         identity = (HubSnapshot.project_identifier(view), source_id)
 
         def create():
             if view.on_new:
-                args = (choices.current_value, name.text.strip(), source_id)
+                args = (mode, name.text.strip(), source_id)
                 if (
-                    choices.current_value == SessionMode.CLONE
-                    and boundary.current_value is not self.ABSENT
+                    cloning and form.boundary.current_value is not self.ABSENT
                 ):
-                    view.on_new(*args, boundary.current_value)
+                    view.on_new(*args, form.boundary.current_value)
                 else:
                     view.on_new(*args)
 
@@ -90,14 +81,17 @@ class SessionActions:
             return self.INPUT_HANDLED
 
         def validate():
-            if choices.current_value == SessionMode.CLONE and not ready:
+            if not ready:
                 view.notice = view.t(MessageKey.SETTINGS_LOADING)
                 return self.INVALID
             return self.VALID
 
         name.buffer.accept_handler = accept_name
         view.open_dialog(
-            view.t(MessageKey.CREATE_DIALOG), form, create, name, validate=validate
+            view.t(MessageKey.SESSION_CLONE if cloning else MessageKey.CREATE_DIALOG),
+            form, create, name, validate=validate,
+            size=PopupSize.MEDIUM if cloning else PopupSize.SMALL,
+            allow_small_input=not cloning,
         )
         pending = view._dialog
         if not ready:

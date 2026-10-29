@@ -117,6 +117,11 @@ class RAGManager(RecordManager):
                     )
                 ),
             )
+        if RAGEntry(item).resume_checkpoints is not ManagerView.ABSENT:
+            counts += RAGManagerView.SEPARATOR + self.view.t(
+                MessageKey.RAG_RESUME_CHECKPOINTS,
+                count=RAGEntry(item).resume_checkpoints,
+            )
         return counts
 
     def hint(self):

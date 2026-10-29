@@ -13,9 +13,11 @@ from ...backend.execution.engine_selection import HubEngineIdentity
 from ...backend.project.management_values import ManagementAction, EditorRecord
 from ...locales.keys import MessageKey
 from ..controls import Button
+from ..buttons import SaveButton
+from ...ui.input.json_document import JsonDocument
 from ..dialog import Dialog, PopupSize
 from ..dropdown import DropdownBox
-from .settings import SchemaForm
+from .settings import SchemaForm, MISSING
 from .manager_values import DefinitionDraft
 from ...backend.project.settings_descriptions import describe_options
 from ...backend.project.settings_help import SettingsHelp
@@ -45,6 +47,9 @@ class AgentEditor(Dialog):
         }
         values = {self.IDENTIFIER: name} if name else {}
         title = AgentProfile.title(name, definition)
+        self._baseline_definition = deepcopy(definition)
+        AgentProfile.rename(self._baseline_definition, title or name)
+        self._dirty_signature, self._dirty = None, False
         if title:
             values[self.DISPLAY_NAME] = title
         self.identity = SchemaForm({SchemaKeyword.TYPE: SchemaType.OBJECT,
@@ -56,7 +61,8 @@ class AgentEditor(Dialog):
         self.engine = DropdownBox(lambda: [(name, name) for name in self.engines],
                                   value=self.engine_name, on_change=self.change_engine,
                                   icons=lambda: self.view.icons)
-        self.buttons = [Button(self.view.t(MessageKey.SETTINGS_SAVE), handler=self.save),
+        self.buttons = [SaveButton(lambda: self.view.t(MessageKey.SETTINGS_SAVE),
+                                   lambda: self.dirty, self.save),
                         Button(self.view.t(MessageKey.CANCEL), handler=self.close)]
         from .editor_layout import SettingsEditorLayout
         self.workspace = SettingsEditorLayout(self)
@@ -107,6 +113,32 @@ class AgentEditor(Dialog):
     def all_fields(self):
         return [*self.identity.fields.values(), *(self.form.fields.values() if self.form else [])]
 
+    def definition(self):
+        from ...backend.project.participants import AgentProfile
+
+        values = self.form.values()
+        values[AgentDefinition.Field.ENGINE] = self.engine_name
+        AgentProfile.rename(values, self.display_name.text or self.identifier.text.strip())
+        return values
+
+    @property
+    def dirty(self):
+        # Parse JSON only after edits, never on each redraw of the save button.
+        signature = (self.form, self.engine_name, tuple(field.text for field in self.all_fields()))
+        if signature != self._dirty_signature:
+            self._dirty_signature = signature
+            try:
+                self._dirty = (
+                    self.identifier.text.strip() != self.original_name
+                    or self.engine_name != AgentDefinition.engine(self._baseline_definition)
+                    or (self.form is not None and not JsonDocument.same(
+                        self.definition(), self._baseline_definition, missing=MISSING
+                    ))
+                )
+            except (ValueError, TypeError):
+                self._dirty = True
+        return self._dirty
+
     def bind_field(self, field):
         field.enabled = lambda: not self.busy
         field.on_edit = lambda selected: get_app().create_background_task(self.edit_field(selected))
@@ -148,10 +180,7 @@ class AgentEditor(Dialog):
         name = self.identifier.text.strip()
         try:
             DefinitionDraft.require_name(name, self.view.t)
-            values = self.form.values()
-            values[AgentDefinition.Field.ENGINE] = self.engine_name
-            from ...backend.project.participants import AgentProfile
-            AgentProfile.rename(values, self.display_name.text or name)
+            values = self.definition()
             Draft202012Validator(self.schema).validate(values)
             text = EditorRecord.render(values)
             DefinitionDraft.require_size(text, self.view.t)

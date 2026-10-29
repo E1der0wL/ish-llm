@@ -175,6 +175,13 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     editor = view._dialog
                     self.assertIsInstance(editor, AgentEditor)
                     self.assertIs(app.layout.current_control, editor.workspace.sidebar)
+                    self.assertFalse(editor.dirty)
+                    self.assertNotIn('*', editor.buttons[0].text)
+                    editor.display_name.text = 'Changed'
+                    self.assertTrue(editor.dirty)
+                    self.assertIn('*', editor.buttons[0].text)
+                    editor.display_name.text = 'Coder'
+                    self.assertFalse(editor.dirty)
                 from hub.widget.focus_region import grayscale
                 for background in ('default', '#123456'):
                     for focused in (True, False):
@@ -239,7 +246,9 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     editor.workspace.focus_fields()
                     self.assertIn(('completion','model'), editor.form.fields)
                     editor.form.fields[('completion','model')].input.text = 'test/edited'
+                    self.assertTrue(editor.dirty)
                     editor.change_engine('graph')
+                    self.assertTrue(editor.dirty)
                     self.assertEqual(editor.engine.value, 'graph')
                     self.assertIn('graph', editor.engine.caption())
                     self.assertFalse(any(path[0]=='completion' for path in editor.form.fields))
@@ -252,6 +261,9 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(saved, [])  # Root allOf constraints are still enforced.
                     self.assertIs(view._dialog, editor)
                     editor.form.fields[('completion','temperature')].input.text = ''
+                    editor.form.fields[('completion','model')].input.text = 'test/model'
+                    self.assertFalse(editor.dirty)
+                    editor.form.fields[('completion','model')].input.text = 'test/edited'
                     editor.save()
                     action, argument, revision = saved[0]
                     self.assertEqual((action, revision), ('save','revision'))

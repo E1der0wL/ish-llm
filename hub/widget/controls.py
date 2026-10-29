@@ -323,9 +323,15 @@ def _bind_choices(widget, *, on_move=ChoiceBinding.NO_CALLBACK):
 
 
 class RadioList(PTKRadioList):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, on_select=ChoiceBinding.NO_CALLBACK, **kwargs):
+        self.on_select = on_select
         super().__init__(*args, **kwargs)
         _bind_choices(self)
+
+    def _handle_enter(self):
+        super()._handle_enter()
+        if self.on_select:
+            self.on_select(self.current_value)
 
 
 class CheckboxList(PTKCheckboxList):

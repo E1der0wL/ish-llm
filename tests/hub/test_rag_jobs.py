@@ -41,6 +41,54 @@ async def wait_for(predicate):
 
 
 class RAGJobTests(unittest.IsolatedAsyncioTestCase):
+    async def test_relation_failure_reuses_embeddings_and_completed_relation_batches(self):
+        calls, graph_calls, fail = [], [], True
+
+        async def embed(**request):
+            calls.append(request['input'][0])
+            return {'data': [{'embedding': [1., 2., 3.]}]}
+
+        class FailingExtractor(Extractor):
+            async def extract(self, chunks):
+                text = chunks[0]['text']
+                graph_calls.append(text)
+                if fail and text == 'Second chunk':
+                    raise RuntimeError('relation extraction unavailable')
+                return await super().extract(chunks)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'relations.md'
+            source.write_text('First chunk\n\nSecond chunk\n\nThird chunk')
+            setup = replace(settings(root, embed), component_factories=(lambda: RAGComponent(
+                embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embed)),
+                extractor=FailingExtractor()),))
+            setup.project_config['parameters']['components']['rag']['config']['extraction_batch_size'] = 1
+            runtime = HubRuntime(setup)
+            try:
+                await runtime.start()
+                pid = runtime.project.id
+                with self.assertRaisesRegex(RuntimeError, 'relation extraction'):
+                    await runtime.manage_records(pid, 'rag', 'import', str(source))
+                job, = await runtime.manage_records(pid, 'rag', 'list')
+                self.assertTrue(job['retryable'])
+            finally:
+                await runtime.close()
+            fail = False
+            source.unlink()
+            runtime = HubRuntime(setup)
+            try:
+                await runtime.start()
+                updates = []
+                rows = await runtime.manage_records(pid, 'rag', 'retry', job['job_id'], progress=updates.append)
+                self.assertEqual([row['name'] for row in rows], ['relations'])
+                self.assertEqual(calls, ['First chunk', 'Second chunk', 'Third chunk'])
+                self.assertEqual(graph_calls, ['First chunk', 'Second chunk', 'Second chunk', 'Third chunk'])
+                self.assertGreaterEqual(updates[0]['resume_checkpoints'], 4)
+                self.assertEqual(updates[-1]['ingestion']['checkpoint_reuse'], 3)
+            finally:
+                await runtime.close()
+
     async def test_cancel_immediately_shows_stopping_and_does_not_duplicate_request(self):
         from types import SimpleNamespace
         from unittest.mock import Mock, patch
@@ -78,7 +126,7 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
             if inspected == 2:
                 ready.set()
             await ready.wait()
-            return SimpleNamespace(can_resume=True, revision="r", blockers=[])
+            return SimpleNamespace(can_resume=True, revision="r", blockers=[], checkpoints=[])
         async def execute(*args, **kwargs):
             await asyncio.sleep(.02)
         job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now",
@@ -97,7 +145,7 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
         from types import SimpleNamespace
         job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now",
                "resume_abandonment": None}
-        plan = SimpleNamespace(can_resume=True, revision="reviewed", blockers=[])
+        plan = SimpleNamespace(can_resume=True, revision="reviewed", blockers=[], checkpoints=[])
         data = SimpleNamespace(ajobs=AsyncMock(return_value=[job]), ajob=AsyncMock(return_value=job),
             aresume_plan=AsyncMock(return_value=plan), ajob_progress=AsyncMock(),
             arun_job=AsyncMock(side_effect=CheckpointError("checkpoint_conflict", "changed")))
@@ -201,10 +249,14 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
             try:
                 entries = await runtime.manage_records(project_id, "rag", "list")
                 self.assertEqual(entries[0]["job_id"], job["job_id"])
+                updates.clear()
                 entries = await runtime.manage_records(project_id, "rag", "retry", job["job_id"], progress=updates.append)
                 self.assertEqual([item["name"] for item in entries], ["note"])
                 self.assertEqual(calls, ["First chunk", "Second chunk", "Second chunk", "Third chunk"])
                 self.assertEqual(updates[-1]["ingestion"]["checkpoint_reuse"], 1)
+                self.assertGreater(updates[0]['resume_checkpoints'], 0)
+                self.assertEqual(updates[0]['phase'], 'resuming')
+                self.assertTrue(all(item['phase'] != 'failed' for item in updates))
                 self.assertEqual(updates[-1]["phase"], "completed")
                 self.assertEqual(updates[-1]["description"], "")
                 self.assertIsNotNone(updates[-1]["elapsed"])

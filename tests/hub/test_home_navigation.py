@@ -57,10 +57,10 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 view.on_rename.assert_called_once_with(view.sessions[view.selected].id, 'Renamed')
                 with set_app(app):
                     view.projects.perform(KeyName.C)
-                    self.assertEqual(view._dialog.size, PopupSize.MEDIUM)
+                    self.assertEqual(view._dialog.size, PopupSize.SMALL)
                     view.close_dialog()
                     view.session_actions.create()
-                    self.assertEqual(view._dialog.size, PopupSize.MEDIUM)
+                    self.assertEqual(view._dialog.size, PopupSize.SMALL)
                     view.close_dialog()
                     for perform, key in ((view.projects.perform, KeyName.R),
                                          (view.projects.perform, KeyName.CLEAR),

@@ -36,8 +36,16 @@ class RegistrationProgress:
     phase_seconds: dict = field(default_factory=dict)
     failure: ErrorInfo | None = RAGEntry.ABSENT
     observation_error: ErrorInfo | None = RAGEntry.ABSENT
+    resume_checkpoints: int | None = RAGEntry.ABSENT
+
+    def resume(self, plan):
+        self.resume_checkpoints = len(plan.checkpoints)
+        self.phase = RAGEntry.RESUMING
+        self.stats = dict(JobObservation(self.job).ingestion)
 
     def set_phase(self, phase):
+        if self.phase == RAGEntry.RESUMING and phase == JobProgress.PREPARING:
+            return
         if phase != self.phase:
             stamp = time.monotonic()
             self.phase_seconds[self.phase] = (
@@ -48,6 +56,10 @@ class RegistrationProgress:
             self.phase, self.phase_started = phase, stamp
 
     def update(self, progress):
+        # Polling may still see the previous failed attempt before the new
+        # worker claims it. Only the final Job read owns terminal UI states.
+        if progress.phase in (RAGJobStatus.FAILED, RAGJobStatus.CANCELLED, RAGJobStatus.COMPLETED):
+            return
         self.set_phase(progress.phase)
         self.progress = ProgressCounts.observe(progress)
 
@@ -86,6 +98,8 @@ class RegistrationProgress:
             times.get(self.phase, RAGEntry.ZERO) + time.monotonic() - self.phase_started
         )
         RAGEntry.observation(value, times, self.observation_error)
+        if self.resume_checkpoints is not RAGEntry.ABSENT:
+            value[RAGEntry.RESUME_CHECKPOINTS] = self.resume_checkpoints
         if not terminal:
             RAGEntry.live_counts(value, self.stats, self.progress)
         if self.failure:

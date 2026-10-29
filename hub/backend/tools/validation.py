@@ -2,12 +2,14 @@
 
 from copy import deepcopy
 from dataclasses import replace
+from math import floor
 from typing import Any
 
 from jsonschema import ValidationError
 from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.constraints import constrained_arguments
 from llm.components.tools.builtin.file_values import FileReadArguments
+from llm.components.tools.builtin.process_values import ProcessOutputArguments
 from llm.core.policies import ArgumentConstraint, ConstraintMode
 from llm.core.schema import SchemaKeyword
 from llm.core.model_protocol import ToolDefinition
@@ -34,6 +36,29 @@ class FileReadSchema:
                 cls.present((cls.TAIL,)), cls.present(cls.LINE)]}},
         ])
         return schema
+
+
+class ReadPageSize:
+    """Reduce oversized read pages before effects, without relaxing admission."""
+
+    FIELD = FileReadArguments.max_chars.__name__
+    TOOLS = (FileReadArguments.NAME, ProcessOutputArguments.NAME)
+
+    @classmethod
+    def bounded(cls, name, arguments, constraints):
+        if name not in cls.TOOLS or not isinstance(arguments, dict):
+            return None
+        value = arguments.get(cls.FIELD)
+        rule = (constraints or {}).get(name, {}).get(cls.FIELD)
+        if type(value) is not int or rule is None:
+            return None
+        rule = ArgumentConstraint(rule)
+        maximum = rule.value_schema().get(SchemaKeyword.MAXIMUM)
+        if rule.mode != ConstraintMode.BOUNDED or maximum is None or value <= maximum:
+            return None
+        # The full native schema and policy intersection still validate the
+        # candidate. No paths, offsets, page modes or fixed values are repaired.
+        return {**arguments, cls.FIELD: floor(maximum)}
 
 
 class ToolInputRegistry(ToolRegistry):
@@ -94,6 +119,12 @@ class ToolInputRegistry(ToolRegistry):
         return tuple(result)
 
     def prepare(self, name: str, arguments: dict, *, constraints: dict | None = None) -> tuple[Tool, dict[str, Any]]:
+        candidate = ReadPageSize.bounded(name, arguments, constraints)
+        if candidate is not None:
+            # Loop validates calls before entering the Tool retry boundary.
+            # A smaller read page is safe here; results retain continuation
+            # offsets and the executor records the actually admitted arguments.
+            arguments = candidate
         try:
             return super().prepare(name, arguments, constraints=constraints)
         except ValueError as rejected:

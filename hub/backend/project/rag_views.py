@@ -46,6 +46,8 @@ class RAGEntry(ManagementEntry):
     RETRYABLE_FIELD = "retryable"
     RESUME_BLOCKERS = "resume_blockers"
     PHASE_SECONDS = "phase_seconds"
+    RESUME_CHECKPOINTS = "resume_checkpoints"
+    RESUMING = "resuming"
     OBSERVATION_ERROR = "observation_error"
     PREFIX = "job:"
     JOB_KIND = "job"
@@ -189,6 +191,10 @@ class RAGEntry(ManagementEntry):
     @property
     def phase_seconds(self):
         return self._value.get(self.PHASE_SECONDS, {})
+
+    @property
+    def resume_checkpoints(self):
+        return self._value.get(self.RESUME_CHECKPOINTS)
 
     @property
     def retryable(self):

@@ -16,7 +16,7 @@ from hub.backend.execution.tool_exposure import HubToolSelector
 from hub.backend.execution.tool_lookup import ToolLookup
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.tools.builtin import HubBuiltinTools
-from hub.backend.tools.validation import ToolInputRegistry
+from hub.backend.tools.validation import ToolInputRegistry, ReadPageSize
 from hub.config.defaults import HubDefaults
 from llm.components.tools import Tool, ToolExposure, ToolRegistry
 from llm.core.model_protocol import ModelMessage, ModelRole, ToolCall, ToolResult
@@ -28,6 +28,42 @@ from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
 class ConstraintTests(unittest.IsolatedAsyncioTestCase):
+    async def test_oversized_file_pages_keep_source_and_exact_continuation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            content = '가나다\n' * 6500
+            source = Path(directory) / 'long.txt'
+            source.write_text(content)
+            builtins = HubBuiltinTools(directory)
+            self.addAsyncCleanup(builtins.close)
+            registry = ToolInputRegistry.observe(builtins.toolkit.registry)
+            constraints = {'file_read': {'max_chars': {
+                'mode': 'bounded', 'minimum': 1, 'maximum': 3000}}}
+            parts, offset = [], 0
+            while offset < len(content):
+                arguments = {'path': 'long.txt', 'offset': offset, 'max_chars': 1000000}
+                tool, actual = registry.prepare('file_read', arguments, constraints=constraints)
+                self.assertEqual(arguments['max_chars'], 1000000)
+                self.assertEqual(actual['max_chars'], 3000)
+                page = await tool.handler(actual)
+                parts.append(page['text'])
+                self.assertLessEqual(len(page['text']), 3000)
+                offset += len(page['text'])
+                self.assertEqual(page['next_offset'], offset if offset < len(content) else None)
+            self.assertEqual(''.join(parts), content)
+            self.assertEqual(source.read_text(), content)
+            decimal_bound = {'file_read': {'max_chars': {
+                'mode': 'bounded', 'minimum': 1, 'maximum': 3000.75}}}
+            _, actual = registry.prepare('file_read', arguments, constraints=decimal_bound)
+            self.assertEqual(actual['max_chars'], 3000)
+            self.assertIs(type(actual['max_chars']), int)
+            for changes in ({'max_chars': '1000000'}, {'max_chars': True},
+                            {'max_chars': 0}, {'start_line': 2}, {'unknown': 1}):
+                with self.subTest(changes=changes), self.assertRaises(ValueError):
+                    registry.prepare('file_read', {**arguments, **changes}, constraints=constraints)
+            fixed = {'file_read': {'max_chars': {'mode': 'fixed', 'value': 3000}}}
+            with self.assertRaises(ValueError):
+                registry.prepare('file_read', arguments, constraints=fixed)
+
     async def test_all_default_page_constraints_are_explicit_and_enforced(self):
         arguments = {
             'file_list': {'recursive': False},
@@ -66,6 +102,11 @@ class ConstraintTests(unittest.IsolatedAsyncioTestCase):
                             self.assertEqual(actual[key], smaller)
                             Draft202012Validator(definition.parameters).validate(actual)
                         for invalid in (0, -1, value + 1, 1.5, None):
+                            if name in ReadPageSize.TOOLS and invalid == value + 1:
+                                _, actual = registry.prepare(name, {**prepared, key: invalid}, constraints=constraints)
+                                self.assertEqual(actual[key], value)
+                                Draft202012Validator(definition.parameters).validate(actual)
+                                continue
                             with self.assertRaisesRegex(ValueError, name):
                                 registry.prepare(name, {**prepared, key: invalid}, constraints=constraints)
                         with self.assertRaisesRegex(ValueError, 'missing required fields'):
@@ -139,7 +180,7 @@ class ConstraintTests(unittest.IsolatedAsyncioTestCase):
     async def test_real_loop_help_and_provider_agree_then_execute_file_tools(self):
         provider = ScriptedCompletion(
             [chunk(calls=[call('{"tool_query":"file_read"}', name='hub_help', call_id='find_read')], finish='tool_calls')],
-            [chunk(calls=[call('{"path":"sample.txt","max_chars":100}', name='file_read', call_id='read')], finish='tool_calls')],
+            [chunk(calls=[call('{"path":"sample.txt","max_chars":100000}', name='file_read', call_id='read')], finish='tool_calls')],
             [chunk(calls=[call('{"tool_query":"file_list"}', name='hub_help', call_id='find_list')], finish='tool_calls')],
             [chunk(calls=[call('{"recursive":false,"limit":10}', name='file_list', call_id='list')], finish='tool_calls')],
             [chunk('The file contains sample data.', finish='stop')])
