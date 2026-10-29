@@ -44,10 +44,10 @@ class SessionCloneForm(SessionNameForm):
         )
         self.boundary.window.height = Dimension(min=1, max=self.BOUNDARY_ROWS)
         self.container = HSplit([
-            Heading(t(MessageKey.NAME)), self.name,
-            Heading(t(MessageKey.CLONE_BOUNDARY)), self.boundary,
-            Heading(t(MessageKey.SESSION_CLONE_PREVIEW)), self.preview,
-        ])
+            HSplit([Heading(t(MessageKey.NAME)), self.name]),
+            HSplit([Heading(t(MessageKey.CLONE_BOUNDARY)), self.boundary]),
+            HSplit([Heading(t(MessageKey.SESSION_CLONE_PREVIEW)), self.preview]),
+        ], padding=1)
         self.select(self.boundary.current_value)
 
     def options(self):

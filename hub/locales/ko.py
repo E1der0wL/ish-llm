@@ -601,6 +601,8 @@ MESSAGES = {
     MessageKey.GENERAL_CATEGORY_STARTUP: "시작 동작",
 
     MessageKey.GENERAL_CATEGORY_OUTPUT: "대화 출력",
+    MessageKey.GENERAL_CATEGORY_CONTEXT: "모델 입력",
+    MessageKey.GENERAL_TOOL_CONTEXT_CHARS: "누적 Tool 결과 문자 수 상한입니다. 기본 24000자이며 초과하면 저장된 결과의 참조·완료된 교환을 압축합니다. 원문은 보존합니다. 토큰 한도와 다르며 값을 늘려도 모델의 용량은 커지지 않습니다. 저장 후 Hub 재시작부터 적용합니다.",
 
     MessageKey.GENERAL_CATEGORY_EDITOR: "외부 편집기",
 

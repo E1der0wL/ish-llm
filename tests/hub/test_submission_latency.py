@@ -10,11 +10,38 @@ from unittest.mock import Mock
 
 from hub.backend.runtime import HubConfig
 from hub.backend.worker import BackendWorker
-from hub.model import ChatMessage, HubSnapshot, SessionSummary, SubmissionResult
+from hub.model import AgentSummary, ChatMessage, HubSnapshot, SessionSummary, SubmissionResult
 from hub.ui.live import LiveController, LiveHubView
 
 
 class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
+    async def test_preparing_header_keeps_submitted_recipients_until_durable_response(self):
+        view = LiveHubView()
+        base = HubSnapshot('p', 'Project', 'test/model', 'file',
+            (SessionSummary('s', 'Session', 'idle', participant_ids=('a', 'b')),), 's', (),
+            agents=(AgentSummary('a', 'loop', title='검토자'), AgentSummary('b', 'loop', title='작성자')),
+            participant_ids=('a', 'b'))
+        view.apply_snapshot(base)
+        view.visible = True
+        try:
+            view.recipient_id = 'b'
+            view.preparing.start(('p', 's'), 'Request', recipients=('b',))
+            self.assertEqual(view.output.transcript.control.messages[-1].author, '작성자')
+            view.recipient_id = 'a'
+            view.apply_snapshot(base)
+            self.assertEqual(view.output.transcript.control.messages[-1].author, '작성자')
+            view.preparing.accepted(('p', 's'), 'u')
+            view.apply_snapshot(replace(base, messages=(ChatMessage('user', 'Request', id='u'),
+                ChatMessage('assistant', 'Answer', id='answer', author='작성자', status='completed'))))
+            self.assertEqual(view.output.transcript.control.messages[-1].author, '작성자')
+            self.assertFalse(view.preparing.authors)
+            view.preparing.start(('p', 's'), recipients=('a', 'b'))
+            self.assertEqual(view.output.transcript.control.messages[-1].author, '검토자, 작성자')
+            view.preparing.finish(('p', 's'))
+            self.assertFalse(view.preparing.authors)
+        finally:
+            view.close()
+
     async def test_admission_preempts_blocked_background_snapshot_and_refresh_resumes(self):
         entered, cancelled, retry = asyncio.Event(), asyncio.Event(), asyncio.Event()
         calls, published = [], []
@@ -81,7 +108,8 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
             controller.worker = NS(call=call)
             base = HubSnapshot("p", "Project", "test/model", "file",
                 (SessionSummary("s", "Session", "idle"), SessionSummary("t", "Other", "idle")),
-                "s", (), engines=("loop",))
+                "s", (), engines=("loop",), agents=(AgentSummary('assistant', 'loop', title='도우미'),),
+                participant_ids=('assistant',))
             view.apply_snapshot(base)
             view.visible = True
             message = ChatMessage("user", "hello", "2026-10-08T01:00:00+00:00",
@@ -98,6 +126,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.composer.text, "")
                 self.assertEqual([(m.role, m.status) for m in view.output.transcript.control.messages],
                                  [("user", "preparing"), ("assistant", "preparing")])
+                self.assertEqual(view.output.transcript.control.messages[-1].author, '도우미')
                 self.assertEqual(view.sessions[view.selected].messages, ())
                 calls[0][2].set_result(SubmissionResult(message=message))
                 await asyncio.sleep(0)

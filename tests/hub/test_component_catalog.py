@@ -5,12 +5,18 @@ import subprocess
 import sys
 import unittest
 
-from hub.asset.guides import SKILLS, STARTER_SKILLS, SYSTEM_PROMPT
+from hub.asset.guides import SKILLS, STARTER_SKILLS, SYSTEM_PROMPT, WORK_CYCLE
 from hub.backend.project.component_commands import component_commands
 from hub.components import COMPONENTS, component_spec
 
 
 class ComponentCatalogTests(unittest.TestCase):
+    def test_default_instructions_have_a_small_explicit_size_budget(self):
+        from hub.backend.execution.completion_review import TaskCompletion
+        from hub.backend.execution.followup import INSTRUCTION
+        self.assertLessEqual(len(SYSTEM_PROMPT), 2400)
+        self.assertLessEqual(len(WORK_CYCLE), 700)
+        self.assertLessEqual(len(TaskCompletion.ROUTING) + len(INSTRUCTION), 850)
     def test_import_is_lightweight_and_commands_use_exact_component_names(self):
         subprocess.run([sys.executable, "-c", "import sys; import hub.components; "
             "assert 'llm' not in sys.modules; assert 'prompt_toolkit' not in sys.modules"], check=True)

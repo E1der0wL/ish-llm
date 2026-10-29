@@ -2,7 +2,7 @@
 name: hub-diagnose
 description: "Reproduce errors and gather evidence to identify causes and fixes."
 metadata:
-  hub-template-version: "8"
+  hub-template-version: "9"
 ---
 Use for errors, regressions and unexpected behavior. Capture the exact symptom, expected behavior,
 reproduction steps and relevant versions or configuration. Inspect only relevant logs and source using

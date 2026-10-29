@@ -1,6 +1,7 @@
 """Hub creation profile: non-secret product choices, validated by their owners."""
 
 from copy import deepcopy
+from .general import GeneralSettings
 from llm.core.models import ConversationStorage
 from llm.components.rag.prompts import ExtractionFailurePolicy, ExtractionJSONMode, RELATION_TYPES
 from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
@@ -61,7 +62,7 @@ class HubDefaults:
     TOOL_OUTPUT_SOURCE = "hub_command_outputs"
     TOOL_OUTPUT_PREVIEW_CHARS = 2000
     # A product ceiling for accumulated Tool bodies, not a model token limit.
-    TOOL_CONTEXT_CHARS = 24000
+    TOOL_CONTEXT_CHARS = GeneralSettings.DEFAULT_TOOL_CONTEXT_CHARS
     TOOL_READ_ACCESS = {"roots": ["/"], "follow_symlinks": True}
     TOOL_PAGE_CONSTRAINTS = {
         "process_output": {"max_chars": {"mode": "bounded", "minimum": 1, "maximum": 8000}},

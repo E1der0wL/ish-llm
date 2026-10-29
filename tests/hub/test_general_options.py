@@ -43,6 +43,15 @@ class GeneralOptionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 GeneralSettings(**values)
 
+    def test_context_limit_is_visible_in_general_and_requires_restart(self):
+        from hub.widget.forms.general_settings import GeneralForm
+        from hub.config.metadata import SettingMetadata
+        self.assertIn('tool_context_chars', GeneralForm.GROUPS['context'])
+        self.assertNotIn('context', GeneralForm.DEBUG_CATEGORIES)
+        from dataclasses import fields
+        field = next(field for field in fields(GeneralSettings) if field.name == 'tool_context_chars')
+        self.assertTrue(field.metadata[SettingMetadata.REQUIRES_RESTART])
+
     def test_response_following_can_be_disabled(self):
         view = LiveHubView()
         messages = (ChatMessage("assistant", "paragraph\n\n" * 100, id="first"),)
@@ -149,7 +158,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                     manager = screen.page.general_form
                     manager.add_pack()
-                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor"))
+                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "context", "editor"))
                 self.assertNotIn(("mouse_mode",), manager.form.fields)
                 app.current_buffer.text = "custom"
                 pipe.send_text("\t")

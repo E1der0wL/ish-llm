@@ -57,7 +57,8 @@ class RunningSubmission:
         elif self.choices.current_value == self.FOLLOW_UP:
             self.view.dialogs.close(accepted=True)
             self.controller._send(HubRuntime.submit_input.__name__, self.session_id, self.text,
-                                  self.text, self.recipients, self.options, False, draft=self.draft)
+                                  self.text, self.recipients, self.options, False, draft=self.draft,
+                                  recipients=self.recipients)
         else:
             self.busy = True
             self.controller._call(HubRuntime.running_recipients.__name__, self.session_id,

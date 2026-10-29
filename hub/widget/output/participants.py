@@ -5,11 +5,12 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.filters import to_filter
 from prompt_toolkit.widgets import Label
 
 from .tag_bar import TagBar
 from ..sidebar import SidebarItem
-from ..controls import Button, RadioList, TextArea
+from ..controls import Button, CheckboxList, RadioList, TextArea
 from ..dialog import Dialog, PopupSize
 from ...locales.keys import MessageKey
 from ...components import ManagedComponents
@@ -146,7 +147,10 @@ class ParticipantBar(TagBar):
             return
         choices = [(identifier, view.agent_titles.get(identifier, identifier))
                    for identifier in view.agents if identifier not in view.participant_ids]
-        selection = RadioList(choices) if choices else self.ABSENT
+        selection = CheckboxList(choices, default_values=[]) if choices else self.ABSENT
+        if selection is not self.ABSENT:
+            selection.window.dont_extend_width = to_filter(False)
+            selection.window.dont_extend_height = to_filter(False)
         busy = self.IDLE
 
         def manage():
@@ -159,7 +163,7 @@ class ParticipantBar(TagBar):
 
         def accept():
             nonlocal busy
-            if busy or selection is self.ABSENT:
+            if busy or selection is self.ABSENT or not selection.current_values:
                 return
             busy = self.INVITING
             def done(result):
@@ -167,7 +171,7 @@ class ParticipantBar(TagBar):
                 busy = self.IDLE
                 if result is not self.ABSENT and view._dialog is popup:
                     view.dialogs.close(accepted=self.ACCEPTED)
-            view.on_invite_agent(selection.current_value, done)
+            view.on_invite_agent(tuple(selection.current_values), done)
 
         buttons = ([Button(view.t(MessageKey.PARTICIPANTS_INVITE), handler=accept)] if choices else [])
         buttons += [Button(view.t(MessageKey.PARTICIPANTS_MANAGE), handler=manage),

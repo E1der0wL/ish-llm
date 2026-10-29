@@ -43,8 +43,10 @@ class HubBuiltinTools(BuiltinToolComponent):
     NAME = "builtin_tools"
     capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
 
-    def __init__(self, file_root=ABSENT, *, test_root=ABSENT, postprocess=False):
+    def __init__(self, file_root=ABSENT, *, test_root=ABSENT, postprocess=False,
+                 tool_context_chars=HubDefaults.TOOL_CONTEXT_CHARS):
         self.postprocess = postprocess
+        self.tool_context_chars = tool_context_chars
         file_root = str(file_root) if isinstance(file_root, str) else file_root
         self.file_root = (
             Path(file_root).expanduser().absolute()
@@ -239,7 +241,8 @@ class HubBuiltinTools(BuiltinToolComponent):
         if capability == COMPLETION_PROCESSORS:
             from ..execution.completion import FollowupProcessor
 
-            return FollowupProcessor.for_project(project, postprocess=self.postprocess)
+            return FollowupProcessor.for_project(project, postprocess=self.postprocess,
+                                                 tool_context_chars=self.tool_context_chars)
         if capability != ToolRegistry.CAPABILITY:
             return super().resolve(project, capability)
         toolkit = self.for_project(project)

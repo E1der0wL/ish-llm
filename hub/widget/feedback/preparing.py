@@ -32,6 +32,7 @@ class PreparingResponse:
     ABSENT = None
     EMPTY_TEXT = ""
     MODEL_SEPARATOR = " • "
+    AUTHOR_SEPARATOR = ", "
     DRAFT_ID = "draft:{session_id}"
     PREPARING_ID = "preparing:{session_id}"
     FOLLOW_TAIL = True
@@ -42,6 +43,7 @@ class PreparingResponse:
         self.pending = {}
         self.started = {}
         self.drafts = {}
+        self.authors = {}
         self.clocks = {}
         self.resuming = {}
         self._ticker = self.ABSENT
@@ -57,9 +59,16 @@ class PreparingResponse:
             + self.view.model
         )
 
-    def start(self, key, text=EMPTY_TEXT, *, resume_run_id=ABSENT, turn_id=ABSENT):
+    def start(self, key, text=EMPTY_TEXT, *, resume_run_id=ABSENT, turn_id=ABSENT,
+              recipients=ABSENT):
         self.pending[key] = self.ABSENT
         self.started[key] = monotonic()
+        # Capture the actual recipients at submission, not a later sidebar
+        # selection. This is local feedback, never durable Agent identity.
+        self.authors[key] = self.AUTHOR_SEPARATOR.join(
+            self.view.agent_titles.get(identifier, identifier)
+            for identifier in (self.view.recipients if recipients is self.ABSENT else recipients)
+        )
         if resume_run_id:
             snapshot = HubSnapshot.last_observed(self.view)
             anchor, assistant = turn_id, self.ABSENT
@@ -174,6 +183,7 @@ class PreparingResponse:
                             session_id=SessionIdentity(key).session_id
                         ),
                         elapsed_seconds=monotonic() - self.started[key],
+                        author=self.authors.get(key, self.EMPTY_TEXT),
                     ),
                 )
         return self.view.deleting.project(
@@ -207,6 +217,7 @@ class PreparingResponse:
         self.pending.pop(key, self.ABSENT)
         self.started.pop(key, self.ABSENT)
         self.drafts.pop(key, self.ABSENT)
+        self.authors.pop(key, self.ABSENT)
         self.resuming.pop(key, self.ABSENT)
         self.paint()
 

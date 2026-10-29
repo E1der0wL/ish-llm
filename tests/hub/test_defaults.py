@@ -27,6 +27,20 @@ COMPONENTS = {"tools", "skills", "mcp", "rag", "workflows", "memory", "data", "p
 
 
 class DefaultTests(unittest.IsolatedAsyncioTestCase):
+    async def test_saved_tool_context_limit_reaches_completion_processor(self):
+        from hub.config.preferences import PreferencesStore
+        from llm.components.processing import COMPLETION_PROCESSORS
+        from hub.backend.execution.completion import FollowupSession
+        with tempfile.TemporaryDirectory() as directory:
+            PreferencesStore(directory).save('general', {'tool_context_chars': 48000})
+            runtime = HubRuntime(HubConfig(directory, auto_title=False))
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            processor = runtime.builtin_tools.resolve(await runtime.project.aget_data(), COMPLETION_PROCESSORS)
+            session = processor.session(None)
+            self.assertIsInstance(session, FollowupSession)
+            self.assertEqual(session.tool_context_chars, 48000)
+
     async def test_explicit_agent_definition_does_not_inherit_rag_selection(self):
         for definition in ({'engine': 'loop'}, {'engine': 'loop', 'resources': {'rag': False}}):
             with self.subTest(definition=definition), tempfile.TemporaryDirectory() as root:

@@ -93,3 +93,33 @@ class SessionDialogTests(unittest.IsolatedAsyncioTestCase):
                 app.exit()
                 await task
                 view.close()
+
+    async def test_clone_groups_have_one_blank_row_and_rename_input_has_one_row(self):
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput(100, 36))
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            view.on_turns = lambda source, loaded: loaded(turns())
+            try:
+                await eventually(lambda: app.is_running)
+                with set_app(app):
+                    view.session_actions.create('clone', 'Branch')
+                    form = view._dialog.popup_body
+                await eventually(lambda: form.preview.window.render_info is not None)
+                positions = app.renderer._last_screen.visible_windows_to_write_positions
+                name_info = positions[form.name.window]
+                list_info = positions[form.boundary.window]
+                preview_info = positions[form.preview.window]
+                # One blank row and the following group's heading.
+                self.assertEqual(list_info.ypos - name_info.ypos - name_info.height, 2)
+                self.assertEqual(preview_info.ypos - list_info.ypos - list_info.height, 2)
+                with set_app(app):
+                    view.close_dialog()
+                    view.session_actions.rename()
+                    name = view._dialog.popup_body.children[0]
+                    self.assertEqual(view._dialog.size, PopupSize.SMALL)
+                await eventually(lambda: name.render_info is not None)
+                self.assertEqual(name.render_info.window_height, 1)
+            finally:
+                app.exit()
+                await task
+                view.close()

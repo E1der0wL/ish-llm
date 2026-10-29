@@ -2,7 +2,7 @@
 name: hub-create-agent
 description: "Define agents with clear responsibilities and tool access."
 metadata:
-  hub-template-version: "8"
+  hub-template-version: "9"
 ---
 # Create an Agent
 

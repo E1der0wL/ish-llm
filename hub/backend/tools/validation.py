@@ -8,11 +8,12 @@ from typing import Any
 from jsonschema import ValidationError
 from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.constraints import constrained_arguments
-from llm.components.tools.builtin.file_values import FileReadArguments
+from llm.components.tools.builtin.file_values import FileReadArguments, FileListArguments, FileSearchArguments
 from llm.components.tools.builtin.process_values import ProcessOutputArguments
 from llm.core.policies import ArgumentConstraint, ConstraintMode
 from llm.core.schema import SchemaKeyword
 from llm.core.model_protocol import ToolDefinition
+from llm.core.tool_contracts import ToolEffect
 
 
 class FileReadSchema:
@@ -39,26 +40,32 @@ class FileReadSchema:
 
 
 class ReadPageSize:
-    """Reduce oversized read pages before effects, without relaxing admission."""
+    """Reduce declared read sizes before effects, without relaxing admission."""
 
-    FIELD = FileReadArguments.max_chars.__name__
-    TOOLS = (FileReadArguments.NAME, ProcessOutputArguments.NAME)
+    FIELDS = {
+        FileReadArguments.NAME: (FileReadArguments.max_chars.__name__,),
+        ProcessOutputArguments.NAME: (ProcessOutputArguments.max_chars.__name__,),
+        FileListArguments.NAME: (FileListArguments.limit.__name__,),
+        FileSearchArguments.NAME: (FileSearchArguments.limit.__name__, FileSearchArguments.max_chars.__name__),
+    }
 
     @classmethod
     def bounded(cls, name, arguments, constraints):
-        if name not in cls.TOOLS or not isinstance(arguments, dict):
+        if name not in cls.FIELDS or not isinstance(arguments, dict):
             return None
-        value = arguments.get(cls.FIELD)
-        rule = (constraints or {}).get(name, {}).get(cls.FIELD)
-        if type(value) is not int or rule is None:
-            return None
-        rule = ArgumentConstraint(rule)
-        maximum = rule.value_schema().get(SchemaKeyword.MAXIMUM)
-        if rule.mode != ConstraintMode.BOUNDED or maximum is None or value <= maximum:
-            return None
+        changes = {}
+        for field in cls.FIELDS[name]:
+            value = arguments.get(field)
+            rule = (constraints or {}).get(name, {}).get(field)
+            if type(value) is not int or rule is None:
+                continue
+            rule = ArgumentConstraint(rule)
+            maximum = rule.value_schema().get(SchemaKeyword.MAXIMUM)
+            if rule.mode == ConstraintMode.BOUNDED and maximum is not None and value > maximum:
+                changes[field] = floor(maximum)
         # The full native schema and policy intersection still validate the
-        # candidate. No paths, offsets, page modes or fixed values are repaired.
-        return {**arguments, cls.FIELD: floor(maximum)}
+        # candidate. No paths, offsets, query, page modes or fixed values are repaired.
+        return {**arguments, **changes} if changes else None
 
 
 class ToolInputRegistry(ToolRegistry):
@@ -119,11 +126,14 @@ class ToolInputRegistry(ToolRegistry):
         return tuple(result)
 
     def prepare(self, name: str, arguments: dict, *, constraints: dict | None = None) -> tuple[Tool, dict[str, Any]]:
-        candidate = ReadPageSize.bounded(name, arguments, constraints)
+        candidate = None
+        if name in ReadPageSize.FIELDS and name in self.names():
+            if self.get(name).contract.effect == ToolEffect.READ_ONLY:
+                candidate = ReadPageSize.bounded(name, arguments, constraints)
         if candidate is not None:
             # Loop validates calls before entering the Tool retry boundary.
-            # A smaller read page is safe here; results retain continuation
-            # offsets and the executor records the actually admitted arguments.
+            # A smaller read size is safe here; results retain truncation and
+            # any native continuation offsets. Execution records admitted arguments.
             arguments = candidate
         try:
             return super().prepare(name, arguments, constraints=constraints)

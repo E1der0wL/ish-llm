@@ -21,6 +21,8 @@ from hub.config.defaults import HubDefaults
 from llm.components.tools import Tool, ToolExposure, ToolRegistry
 from llm.core.model_protocol import ModelMessage, ModelRole, ToolCall, ToolResult
 from llm.core.models import Project, Run
+from llm.core.tool_contracts import ToolEffect
+from dataclasses import replace
 from llm.engines.loop import LoopEngine
 from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.llm.support.runtime_tools import TEST_CONTRACT
@@ -28,6 +30,98 @@ from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
 class ConstraintTests(unittest.IsolatedAsyncioTestCase):
+    async def test_search_sizes_preserve_all_matches_and_continuation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            # Matching must inspect the full line even when the returned snippet
+            # ends before the query. Each page must resume at the next match.
+            content = ''.join(f'{index:02d} ' + 'x' * 500 + ' needle\n' for index in range(47))
+            source = Path(directory) / 'matches.txt'
+            source.write_text(content)
+            builtins = HubBuiltinTools(directory)
+            self.addAsyncCleanup(builtins.close)
+            registry = ToolInputRegistry.observe(builtins.toolkit.registry)
+            constraints = deepcopy(HubDefaults.TOOL_PAGE_CONSTRAINTS)
+            offset, matches = 0, []
+            while True:
+                supplied = dict(path='.', query='needle', recursive=False, case_sensitive=True,
+                    limit=1000000, max_chars=1000000, offset=offset, context_lines=1)
+                tool, actual = registry.prepare('file_search', supplied, constraints=constraints)
+                self.assertEqual((actual['limit'], actual['max_chars']), (20, 400))
+                self.assertEqual((supplied['limit'], supplied['max_chars']), (1000000, 1000000))
+                self.assertEqual(actual['offset'], offset)
+                result = await tool.handler(actual)
+                matches.extend(result['matches'])
+                for match in result['matches']:
+                    self.assertNotIn('needle', match['text'])
+                    self.assertLessEqual(len(match['text']), 400)
+                    self.assertTrue(all(len(line) <= 400 for line in match['context']))
+                if not result['truncated']:
+                    self.assertIsNone(result['next_offset'])
+                    break
+                self.assertEqual(result['next_offset'], offset + len(result['matches']))
+                offset = result['next_offset']
+            self.assertEqual([m['line'] for m in matches], list(range(1, 48)))
+            self.assertEqual(len({m['sha256'] for m in matches}), 1)
+            self.assertEqual(source.read_text(), content)
+
+    async def test_listing_overflow_preserves_truncation_and_filtered_access(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for index in range(205):
+                (root / f'{index:03d}.txt').write_text(str(index))
+            builtins = HubBuiltinTools(root)
+            self.addAsyncCleanup(builtins.close)
+            registry = ToolInputRegistry.observe(builtins.toolkit.registry)
+            constraints = deepcopy(HubDefaults.TOOL_PAGE_CONSTRAINTS)
+            tool, actual = registry.prepare('file_list',
+                {'recursive': False, 'limit': 1000000}, constraints=constraints)
+            result = await tool.handler(actual)
+            self.assertEqual(actual['limit'], 200)
+            self.assertEqual(len(result['entries']), 200)
+            self.assertTrue(result['truncated'])
+            # Native file_list has no offset: narrow the selection, never invent
+            # a page cursor or misrepresent this bounded listing as complete.
+            self.assertNotIn('next_offset', result)
+            tool, actual = registry.prepare('file_list',
+                {'recursive': False, 'limit': 1000000, 'include': ['20*.txt']}, constraints=constraints)
+            rest = await tool.handler(actual)
+            self.assertFalse(rest['truncated'])
+            self.assertEqual({r['path'] for r in rest['entries']}, {f'{i:03d}.txt' for i in range(200, 205)})
+            self.assertEqual(len(list(root.glob('*.txt'))), 205)
+
+    async def test_read_size_normalization_cannot_repair_other_contracts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            builtins = HubBuiltinTools(directory)
+            self.addAsyncCleanup(builtins.close)
+            original = builtins.toolkit.registry.get('file_list')
+            handler = AsyncMock()
+            tool = replace(original, handler=handler)
+            registry = ToolInputRegistry((tool,))
+            args = {'recursive': False, 'limit': 1000000}
+            # Explicit fixed/selectable choices, non-page limits, and native
+            # schema bounds remain authoritative after page normalization.
+            for constraints in (
+                {'file_list': {'limit': {'mode': 'fixed', 'value': 20}}},
+                {'file_list': {'limit': {'mode': 'selectable', 'values': [10, 20]}}},
+                {'file_list': {'limit': {'mode': 'bounded', 'minimum': 1, 'maximum': 20},
+                    'max_file_bytes': {'mode': 'bounded', 'maximum': 10}}},
+            ):
+                supplied = {**args, 'max_file_bytes': 100}
+                with self.subTest(constraints=constraints), self.assertRaises(ValueError):
+                    registry.prepare('file_list', supplied, constraints=constraints)
+            policy = {'file_list': {'limit': {'mode': 'bounded', 'maximum': 20}}}
+            schema = deepcopy(tool.parameters)
+            schema['properties']['limit']['maximum'] = 5
+            narrower = ToolInputRegistry((replace(tool, parameters=schema),))
+            with self.assertRaises(ValueError):
+                narrower.prepare('file_list', args, constraints=policy)
+            mutating = ToolInputRegistry((replace(tool,
+                contract=replace(tool.contract, effect=ToolEffect.EXTERNAL)),))
+            with self.assertRaises(ValueError):
+                mutating.prepare('file_list', args, constraints=policy)
+            self.assertEqual(registry.prepare('file_list', args)[1], args)
+            handler.assert_not_called()
+
     async def test_oversized_file_pages_keep_source_and_exact_continuation(self):
         with tempfile.TemporaryDirectory() as directory:
             content = '가나다\n' * 6500
@@ -102,7 +196,7 @@ class ConstraintTests(unittest.IsolatedAsyncioTestCase):
                             self.assertEqual(actual[key], smaller)
                             Draft202012Validator(definition.parameters).validate(actual)
                         for invalid in (0, -1, value + 1, 1.5, None):
-                            if name in ReadPageSize.TOOLS and invalid == value + 1:
+                            if key in ReadPageSize.FIELDS.get(name, ()) and invalid == value + 1:
                                 _, actual = registry.prepare(name, {**prepared, key: invalid}, constraints=constraints)
                                 self.assertEqual(actual[key], value)
                                 Draft202012Validator(definition.parameters).validate(actual)
@@ -182,7 +276,9 @@ class ConstraintTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"tool_query":"file_read"}', name='hub_help', call_id='find_read')], finish='tool_calls')],
             [chunk(calls=[call('{"path":"sample.txt","max_chars":100000}', name='file_read', call_id='read')], finish='tool_calls')],
             [chunk(calls=[call('{"tool_query":"file_list"}', name='hub_help', call_id='find_list')], finish='tool_calls')],
-            [chunk(calls=[call('{"recursive":false,"limit":10}', name='file_list', call_id='list')], finish='tool_calls')],
+            [chunk(calls=[call('{"recursive":false,"limit":1000000}', name='file_list', call_id='list'),
+                call('{"query":"sample","case_sensitive":false,"recursive":false,"limit":1000000,"max_chars":1000000}',
+                    name='file_search', call_id='search', index=1)], finish='tool_calls')],
             [chunk('The file contains sample data.', finish='stop')])
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)/'work'
@@ -190,7 +286,7 @@ class ConstraintTests(unittest.IsolatedAsyncioTestCase):
             (work/'sample.txt').write_text('sample data')
             runtime = HubRuntime(HubConfig(Path(directory)/'storage', file_root=work, auto_title=False,
                 model='test/constraints', agent_definition={'engine': 'loop',
-                    'tools': ['hub_help', 'file_read', 'file_list']},
+                    'tools': ['hub_help', 'file_read', 'file_list', 'file_search']},
                 engine_factories={'loop': lambda: LoopEngine(
                     completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             self.addAsyncCleanup(runtime.close)
@@ -210,4 +306,4 @@ class ConstraintTests(unittest.IsolatedAsyncioTestCase):
                               if message['role'] == 'tool')
                 self.assertEqual(lookup['tools'][0]['parameters'], schema)
             steps = await run.steps.alist()
-            self.assertEqual(sum(step.kind == 'tool' and str(step.status) == 'completed' for step in steps), 4)
+            self.assertEqual(sum(step.kind == 'tool' and str(step.status) == 'completed' for step in steps), 5)

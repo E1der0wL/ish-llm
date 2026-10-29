@@ -16777,8 +16777,8 @@
   },
   {
     "path": "hub/asset/guides.py",
-    "sha256": "59068ee2b838cc4fb497e500393bca4e5e979333396109a79833e90a1d38d4ce",
-    "reason": "Template version 8 is Hub-owned creation/update guidance. No existing user asset is overwritten without its existing template ownership check. English brief conversational prompt is a Hub asset, not a backend/model default. Used only for an exact current Hub system prompt; edited Agent instructions are preserved.",
+    "sha256": "92511bb1351c7e10437f10ddade4d8406a00fc2526b11ff4de4ccea9094e6e9b",
+    "reason": "Template version 8 is Hub-owned creation/update guidance. No existing user asset is overwritten without its existing template ownership check. English brief conversational prompt is a Hub asset, not a backend/model default. Used only for an exact current Hub system prompt; edited Agent instructions are preserved. Review 2026-10-29: Template v9 reduces text only. New projects consume the template; existing Agent definitions and skills remain untouched.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -16830,10 +16830,10 @@
         "reason": "Template version 8 is Hub-owned creation/update guidance. No existing user asset is overwritten without its existing template ownership check."
       },
       {
-        "id": "07acacdcac177ed494c0edac54ab5c89522a72d5ad0ef8a4c7b696f68c12db20",
+        "id": "214041a8aedba68a057e65e04eb21563e38da9587bb2fdf8ffd34872eba4fe50",
         "classification": "declaration",
-        "owner": "Bundled prompt/Skill catalog",
-        "reason": "Template version 8 is Hub-owned creation/update guidance. No existing user asset is overwritten without its existing template ownership check."
+        "owner": "StarterSkill",
+        "reason": "Template v9 reduces text only. New projects consume the template; existing Agent definitions and skills remain untouched."
       },
       {
         "id": "dada82d150285a25e442eb63dae318af83de0572c90886a806145805e8910730",
@@ -16880,7 +16880,8 @@
           "tests.hub.test_application_defaults",
           "tests.hub.test_agent_settings_groups",
           "tests.hub.test_component_managers",
-          "tests/hub/test_request_routing.py"
+          "tests/hub/test_request_routing.py",
+          "tests/hub/test_component_catalog.py"
         ],
         "complete": true
       }
@@ -16888,8 +16889,8 @@
   },
   {
     "path": "hub/asset/skills/hub-code-change/SKILL.md",
-    "sha256": "c382286a349e094ce4bdfaf944526981b574b025613e750feb64fab04de4778f",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "e51e2ced51d06496511f3f8b918379b7a583b38c09844455ef3f10d2c8b647ee",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -16915,8 +16916,8 @@
   },
   {
     "path": "hub/asset/skills/hub-create-agent/SKILL.md",
-    "sha256": "2a2e09a4c193fc3a269461c501a4d61dec9f76b4eb53c75a3523c2561de66c8a",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "ce9528c41d4d7b132b456d16190d6d8f9b214633cc29f5ad543ba0310dd484d7",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -16957,8 +16958,8 @@
   },
   {
     "path": "hub/asset/skills/hub-create-rag/SKILL.md",
-    "sha256": "36a4d30ce5bff1aa84398caab8e6cb9f4e7ed46ec98abd413caf08e73d5243fb",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "f07490048190ecf53df114222714ffb37255b65c738bdb4b889e5d2e636b2bff",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -16999,8 +17000,8 @@
   },
   {
     "path": "hub/asset/skills/hub-create-skill/SKILL.md",
-    "sha256": "003e935836c573e54ba1b50dbe1576ee7eee460aa11598427b16b0f7db83cb42",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "ee5d2d77fc90b93f25c84aa08ee3b04733c7ad66e6e60b4efc85d6391e92d714",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -17026,8 +17027,8 @@
   },
   {
     "path": "hub/asset/skills/hub-create-workflow/SKILL.md",
-    "sha256": "05f9653237b8cafaa6b78f41a700d468a053ef74b24bc9ca7c1755465abf406c",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "992a8812f0b198e1f91776354341512e14f33636ef85d4adaae4e8f819c36789",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -17053,8 +17054,8 @@
   },
   {
     "path": "hub/asset/skills/hub-diagnose/SKILL.md",
-    "sha256": "6cfe78de23203641d08098ec2c5dc7a33ef173352cbb43c2dae6ec71fc86500a",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "2d3af1c08014b4f17bd8f8f7d09d331b776384d2b5e48c210671d2ac05699ea9",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -17080,8 +17081,8 @@
   },
   {
     "path": "hub/asset/skills/hub-document/SKILL.md",
-    "sha256": "82daedfba9f5b75b4ba8eed8200dd9918f5333a33a1e272924faa2479caa780e",
-    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority.",
+    "sha256": "a24d9145eba845d93be5733728d20e0014b104ea9a0f246524db61ff84f332e6",
+    "reason": "Template version 8 and large-result guidance were reviewed: preserve full sources in backend-owned storage, read bounded ranges, report coverage, and never replay commands just to recover output. Skill prose does not grant execution authority. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": [],
     "contracts": [
@@ -71246,8 +71247,8 @@
   },
   {
     "path": "hub/config/general.py",
-    "sha256": "3110405209a390c840c7d89a853e833f282525fd89f326d0d31b18dc007286d0",
-    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior. Final 2026-10-25 shared-consumer closure: GeneralForm/global schema/pages and stored preferences consume GeneralSettings fields and validated draft APIs; host editor selection is observed through the declared settings. No duplicated Backend default is introduced. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required.",
+    "sha256": "789ff7886faa3f009b7c4f52b55fc256ce148427928ee30d099d79396772429d",
+    "reason": "Combined whole-file state/preferences review after llm Gate45. Actual records, validation order, dictionaries at boundaries, dynamic consumers, copies, raw file bytes, failures and public UI callbacks were compared. The selected L1/L2/safety capture is one immutable source; no original test or assertion changed. Shared consumer closure remains pending: GlobalPage and remaining settings/application consumers still directly interpret language-pack and preference fields. Settings/Preset services now use owned command and shallow response projections, public settings validation/Project lookup, runtime session tracking queries, and the Namer active query. Global preference construction remains ordered and separate from strict stored Readers. Existing public bytes, omission/error behavior and all pre-write/CAS/cancellation boundaries are preserved. Settings Pages use canonical configuration observations, UI section/schema/activity Owners and typed JSON recovery. Requiredness, lazy reads, missing/null/opaque data, Host locks and hidden Engine restoration retain their existing semantics. Independent actual form/callback and real-file preservation comparisons plus unchanged focused Backend/UI/safety tests support this bounded change. Hub Backend composition owns explicit registration names, injected ToolRuntime revision and test-workspace location. Preference, language, Graph handler observations and builtin Tool names reference their Owners; factory presence, overrides, wrapping and injected safety policies retain their original behavior. Final 2026-10-25 shared-consumer closure: GeneralForm/global schema/pages and stored preferences consume GeneralSettings fields and validated draft APIs; host editor selection is observed through the declared settings. No duplicated Backend default is introduced. Actual source/reference evidence and bounded test provenance are documented in contract-closure.md; final integrated Gate57 remains required. Review 2026-10-29: Own additive positive integer tool_context_chars and restart metadata; default 24000. This is a character guard, not model capacity.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -71341,145 +71342,151 @@
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "30becd1790872786b84cb265b1adcc25b8604bb1df22cc9dc8042770263c58dd",
+        "id": "8f81eb3e2385621ce217b1e0f5398c5a37ed87ecc7281268f4fe45160332d58f",
+        "classification": "declaration",
+        "owner": "GeneralSettings",
+        "reason": "Own additive positive integer tool_context_chars and restart metadata; default 24000. This is a character guard, not model capacity."
+      },
+      {
+        "id": "aa30bb4b202cffe6c2b93936d68170cedbcbba8c150243e24589c7f904f63bef",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "efd8f1cf0556a80fb4abbc5aaf59bfa8b51322418e092bedca33463ea02e75b4",
+        "id": "badda2289cc4db20621e670038ecf574d8e22a43c0ab9612ea8dc2bdfd0681fe",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "5c15573fafb7c434a6a8d63c3f34620afc4ccedd978bcb5e1ee018f88174bf2c",
+        "id": "3633cdee913dc82f45feaad3bc690c73aadb44d08e0953e9945c5aa26d9c5a22",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "6ec5133e6ff925c8143a8e675ed3c64330a26d1f325e05e7f91d11c0640039f5",
+        "id": "87c8fcd2bba297e85a73ccb2e3a418b3447558dcb068984473ad516c5796888d",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "06cb95e8af14162d7c8f4251e68c1de8031eb7ec748ff971ee516264992d3b68",
+        "id": "d8e5baa067f1bc0d27b7827b598019dec48b6b630a1eea5d10f8721af72e347f",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "3e207b67b78e043f72a663d09beccd889b7bd7f34bceef26924467d03a41db4e",
+        "id": "ec23c289ecd8a68bae59ef348465a18f4a4893ba3fad12b6c64d0fbfde760d1e",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "8f0bbfdbc524720b72e473eadd55188572320dabb5bdc03e1362f64af1cf9c14",
+        "id": "e94b5433071dbe503285ff31eadb39cddeb3ae5fbf971bb1d6d625c62ea51728",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "4a707bae4dec7f287ab129068ae9ac73f09590f55aa1599513a5b9b970a88ce4",
+        "id": "7f1846ccb35632851d93ebfc24b979a900eb2cc5a73602893808e63a2c1b959f",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "44767f148306eaf6706c19fe980c3648f76cb3c9fe71cb30cc0b3836110de895",
+        "id": "94dc5ab75bb243933e12e011c649b5a9e3f4f0cf6a966de7bf9ac0c8d9b58e03",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "3d79c9566df0dfaea02c3b4f9ae5caaf31eb538d452a59145e7884042ac56e38",
+        "id": "860177cc7ea8f1db36ac2d1aa46adb703e64ba78cf65c2279b4f267ae022a55f",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "19defb11857aec8642a0fa4cf8d26a0521d990445eeff17eaf4e4ed088cdd4fa",
+        "id": "5fc091d646dc532cfeb2002b7cc4057deac3b20bf9fee25614a645ad5309410b",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "73f411952d5cfb1a5b51b942c3a50353d5433918e42ed8def2b1bf7cb1527736",
+        "id": "fa23d57051fbe3dc2b319c1a3ba8f1aadb9d7d897358bbe47c3530b3e14781b2",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "c147b3a2fb77d071e2d501fcb31949e6d12680c5df295eaa09500725a86fb54c",
+        "id": "8150549b1e3d05c65484ff020c74afc266daed41e8bcf4a8036978557537080d",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "ee6fb311d437ddd65a94006bcc07e2aaf6af7fc130ad336236134d05834e7ae3",
+        "id": "4a0a6a3320af8380e641dd331e165ba7622c1053556f4900026a66bacd549f4c",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "91e40be280551be6ec9dc5f7fb4355a6cacc00da79ca36e1bd88ab7414b0969e",
+        "id": "4c091c184b050672a06fc7781fe97460760b576992e09cbb58de382fac9740ec",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "e2fe837fdbae9a0e9b6775977aa082be53c10bd7065771f92f0bad1b9abeca77",
+        "id": "aab4ce8f7ba8298c76c7edc8c706d68ffab0e8ac9f8193b13fa8fe75919c1f56",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "09e91864f22a7ec17b1ecbc3bf58ef46af7f2870d1a145d051d310a8c69f4124",
+        "id": "1e456474538389a8da966d9416d87336213404d160cee7ad1790049e324090ce",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "5f52f27c4896c860264630ba27d81612885876a0900a5e816efdf5e0231449ee",
+        "id": "d72fc3103a09239f684beabb6d4bb5d4cc97d220dc99b0e1772d03d4f11fbf5a",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "68f4f74c60450704f99caa4d3785b74f95df2138621daccebaf2df70ff091e96",
+        "id": "834aba3cbfe2e8a9aec309323b2cb771d7323d13ea7922bd18d9672d6a0f62b4",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "3eb5fbf9c375c96ab0e7ddcb217deb401460a5ed4dedafdce58d68bb3a97abe8",
+        "id": "e6ece9540e024821f0e0a288e5afc1940145e62b24cbe5d80d537e7979ffdf00",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "1ac35b3ac2a08baa2bfe44b6bf50614fbe4576b3ea737974a081f27aed20b35e",
+        "id": "19335955e3962f938a2facfbaf84d469ed8f9f9c9591eb83d7c6c411182bd76b",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "030db6597efe285ae25a4ee25bc1ec056877646085095db566b460b5d9c4484b",
+        "id": "50d7c54fb291583a56e4db4fe69b4f08d6927985df000dd42724c4362abbdd52",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "dadbd658f296fd1ff75129540fdccf4145f37e88f9e17df2fcfea3f0f8c16b4c",
+        "id": "ead8c71ccdac9b4d43fa4a161ed87f86e4040b95864c3956fbceb35a0937e6ba",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
       },
       {
-        "id": "8b668049c74ea0c24d9a53d02c03505ce28ef1d795978483c8e7cdaf1e2a01d8",
+        "id": "51c7ddac0586abbea33f1bde56849e80840248e6c24b7234aff27a48def03bb9",
         "classification": "declaration",
         "owner": "GeneralSettings",
         "reason": "Current preference fields, defaults, validation bounds and restart/form metadata are declared once. Base-field order derives bool/int validation; Editor parsing and draft mutations are owned methods, not UI dictionary interpretation."
@@ -71925,8 +71932,8 @@
   },
   {
     "path": "hub/config/preference_records.py",
-    "sha256": "9721802b8c6a8212b130aa64e4542a00d8092c19ac87e3881a6a15c5dd4c85ee",
-    "reason": "Accent4 and accent5 are additive optional current appearance fields whose Owner initial values are used only when omitted. Existing values are preserved; removed mode and unknown fields remain rejected without migration or source mutation.",
+    "sha256": "2c26048514babb265b9e2f465fa8e97756852cd4bb6b067e9dacad3674597552",
+    "reason": "Accent4 and accent5 are additive optional current appearance fields whose Owner initial values are used only when omitted. Existing values are preserved; removed mode and unknown fields remain rejected without migration or source mutation. Review 2026-10-29: Allow only the declared additive context field to use its Owner default when absent. Reads do not rewrite files; other removed, missing and unknown fields retain strict rejection.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -72078,7 +72085,8 @@
           "tests.hub.test_application_defaults",
           "tests.hub.test_presets_widgets",
           "tests.hub.test_header_actions",
-          "tests.hub.test_input_contract"
+          "tests.hub.test_input_contract",
+          "tests/hub/test_global_preferences.py"
         ],
         "complete": true
       },
@@ -72094,7 +72102,8 @@
           "tests.hub.test_page_layout",
           "tests.hub.test_mouse_widgets",
           "tests.hub.test_chrome",
-          "tests.hub.test_presets_widgets"
+          "tests.hub.test_presets_widgets",
+          "tests/hub/test_global_preferences.py"
         ],
         "complete": true
       }
@@ -81902,8 +81911,8 @@
   },
   {
     "path": "hub/backend/execution/followup.py",
-    "sha256": "f1b8e94555cc4b24aec5a7dd87dec1270278f39fda7010ca88f05b54bf21cadf",
-    "reason": "Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval.",
+    "sha256": "dffc826a47a6d7a9f02a047952f7260e5207921bd772575c3b111690e510c880",
+    "reason": "Followup and RAG preview use canonical protocol declarations, typed split results and the same transient system-context placement. RAG catalog/document observations preserve required fields and optional description behavior without changing storage or approval. Review 2026-10-29: Shortened next-message guidance preserves user voice, optional trailing tag and absence of authorization. Parsing and rendering contract unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -81991,19 +82000,19 @@
         "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
       },
       {
-        "id": "6f9e6e2ddb79cfbd1f6315c8b02253e07cb07d34c448c7b2da499b699eacbd65",
+        "id": "5cbeaf931d1b57b4df7de9af589c7999f01d7a7e9dcf1bfb19ddf2883220c0ea",
         "classification": "declaration",
         "owner": "FollowupProtocol",
-        "reason": "Canonical response protocol, preview limits and transient context placement declarations; actual producers and consumers share them."
+        "reason": "Shortened next-message guidance preserves user voice, optional trailing tag and absence of authorization. Parsing and rendering contract unchanged."
       },
       {
-        "id": "45ff3835353d3201141553f4a2fc81020f336d28fc970a559a1132a1d72736ef",
+        "id": "ec7ab41177fa0a8c4bfdcf8d0a6d7ed1ef64debf83fe5e2de9032de1f87b5068",
         "classification": "non_contract",
         "owner": "split_followup",
         "reason": "First character of the regex-matched fence string; ordinary sequence indexing."
       },
       {
-        "id": "b3f74f332c41dc5b10711b251914e2e3953dd98d8af89f2b7e1cac10e469ae31",
+        "id": "2d4619b8f643727b635876fd5223aaff9968cb33ea4349e938bd74e68ff7616b",
         "classification": "non_contract",
         "owner": "split_followup",
         "reason": "First character comparison against the typed fence marker; ordinary sequence indexing."
@@ -82043,102 +82052,102 @@
   },
   {
     "path": "hub/backend/execution/completion.py",
-    "sha256": "b7f14a5463fc6fe5b9054a895fa0b18e2e350fa6733e94aea9cd80aebadb87ec",
-    "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults.",
+    "sha256": "998fcb14eae5ae3e8eaebff30226240b0538926ced7485fe1b6d4dc553dfa438",
+    "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults. Review 2026-10-29: Carry startup character cap to WorkingContext; inject risk/discovery prose only for selected schemas. No extra model call or changed completion validation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "42a51c7d34586edbefd5bdd7f117e6bc8a1a0d8a62cce784dd157b081168c68c",
+        "id": "a1d37e91319a11731ee18ee5af094d76925f289de5ce25d68837711a1d69fc45",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "3abb71d3aba073cbe84e1b8d41d1bf95b6896d9af8f8be0c61fd765a6b911912",
+        "id": "3d03948077aaf9e1ee132764c8f05dfb2ccc28b77afc59031c7e3571c7f9d5b4",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "2dcb62ad18cf78d60f4596918cbfe79581d5c986eee25de1411de48238d166e1",
+        "id": "360ef2cdd294c6ec9178578fdb69ecee9b8b94e8f39a5e2d3495932c1dda46a0",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "792005adf622f96ed5e2c5a6192671ec82d51b2f51364a5ed48438b392101aeb",
+        "id": "53a16a5ebaa1ed689bab1ceb6d1587224d142c29e8e195d6e414d7ffdf5038b2",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "0d9a1546878f75662a8c82f4dfc71e2159989e44b637614851b454060125df71",
+        "id": "230567e85204eb10caee1ca4b99be5dd41b0f14385dd55fe841d3f2e6fbf4812",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "ee71bd601c07c5704c21ce1b0a929acb4354ea9d650935b47f9bc583398b5107",
+        "id": "f95a8822ed9769548b4d1a2c00cb7eccf504305ee859599c65482483ebfcf4a2",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "dc24c13fcf1d863eb8e15ed69ce29c8dc153394834ad7659ccb923e048a210ab",
+        "id": "78617b9ffd5531004b9a9a16eaa8501a13ea951d2edcf365e1c1146cc5be7efd",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "e54e317a68f96c7e8f84bee9312ec46a782d57cf4ab9cbe64f6c1abd2bc6b2e7",
+        "id": "40cc1de2a0f1382413530ea13aa9c9ae0472623836dd6c912341a10284c0cc76",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "072ad46078df81bad5aef07a71de1a028b3a82a6441959304bb59ae63f29b8e7",
+        "id": "a2f863fc99b6e3c78ad112c60de8b1a937dcfb3dd227c4fa87bfa6d5bf4ddd05",
         "classification": "declaration",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "14793b90c137b2d0f6fd6d4a6b9a5f347a8a7a0e54cd0fa04c84fe689f051075",
+        "id": "6a8e8ed61477a45ab9e2648e66a971d16a0f5906b7b2946ffb41883af16668a7",
         "classification": "declaration",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "1a6797e773d2aa613699e817772bb041698f198ccf7a26e0304bb6ff59215795",
+        "id": "c2d3fbc1d26e7a679da903c5c7e66abcae65dfee4725dbd7c03d1737ffb6f71b",
         "classification": "declaration",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "844b277e058252190e59e9765158c1285e9ea7e0dbb61c1fb6b2f954aa86331d",
+        "id": "0dfe12d2496df5e2ef3ab72dbec5746bd4fb6db74ffcd25add3edd9b58a62038",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "8551a572ce0239ce48fff0177333eb6467c3a375aa23a90c15335f771bdc502f",
+        "id": "482d7e13aa13d7875a11a1c820c4e30fecb46d7a91a8165b7b13f3188acf22ad",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "479c75149ab3e71959aae4f827fe9e4dfc117df153f190e7ba80a3a455e69632",
+        "id": "1e477205ca6d2731022f9b1d9208d0444c37c26add9eb1ce1ab3f47e30874701",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "ed7dd0ca9163442329f82ee42baa1423f0e81b7c519a299b6c38596ffc7b2dba",
+        "id": "bb80a40e0101e640f4fb88ec20e4c5ebe1fb2950d26e4db02dcf5acfc73f5ae9",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
       },
       {
-        "id": "b3da75cd98608d680ca74cb8449fa67301cc86a8a2d7a2971d289f840f7f1060",
+        "id": "2243cc24757ba71258915306e1a5383f47a748c6f77d93dfc13d3f972501a4b9",
         "classification": "non_contract",
         "owner": "FollowupSession / FollowupProcessor",
         "reason": "WorkingContext runs after Memory preparation and instruction insertion. Explicit Memory priority is observed and the local processor is placed one position later. The priority increment and absence sentinels are ordering/control arithmetic, not stored backend policy defaults."
@@ -82169,7 +82178,9 @@
           "tests/hub/test_usage_definitions_system.py",
           "tests/hub/test_response_reliability.py",
           "tests/hub/test_working_context.py",
-          "tests/hub/test_memory_setup.py"
+          "tests/hub/test_memory_setup.py",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_request_routing.py"
         ],
         "complete": true
       },
@@ -82183,7 +82194,10 @@
           "tests.hub.test_application_defaults",
           "tests.hub.test_presets_widgets",
           "tests.hub.test_header_actions",
-          "tests.hub.test_input_contract"
+          "tests.hub.test_input_contract",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_request_routing.py",
+          "tests/hub/test_working_context.py"
         ],
         "complete": true
       },
@@ -82199,7 +82213,10 @@
           "tests.hub.test_resource_tools",
           "tests.hub.test_application_defaults",
           "tests.hub.test_agent_settings_groups",
-          "tests.hub.test_component_managers"
+          "tests.hub.test_component_managers",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_request_routing.py",
+          "tests/hub/test_working_context.py"
         ],
         "complete": true
       },
@@ -82213,7 +82230,10 @@
           "tests.hub.test_work_guidance",
           "tests.hub.test_application_defaults",
           "tests.hub.test_followup",
-          "tests.hub.test_background_records"
+          "tests.hub.test_background_records",
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_request_routing.py",
+          "tests/hub/test_working_context.py"
         ],
         "complete": true
       }
@@ -84255,8 +84275,8 @@
   },
   {
     "path": "hub/backend/observability/snapshot.py",
-    "sha256": "a9b9fffa2748e74e87c7a02078b3b107ad4c751baa5be7babb2ddeecb68e3db3",
-    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Approval observation review: read public requests and validated response receipts under one workspace ownership scope. Fully answered interactions need no input form while resume is queued. Remaining requests still delegate expiry/cancellation/lifecycle checks to RunHandle.interactions(pending_only=True). No decisions, resume eligibility, persistence or error suppression are implemented here. Background reads stay off the UI event loop. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests. Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Pass exact changed row IDs into disposable projection. Observation revision race continues to force full canonical reconciliation; no publication from incomplete indexes. Review 2026-10-29: Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative.",
+    "sha256": "ab90c8522531c5c81c4fbab040e043f077390e135d6fcbf92e1d1181cfc4bce1",
+    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Approval observation review: read public requests and validated response receipts under one workspace ownership scope. Fully answered interactions need no input form while resume is queued. Remaining requests still delegate expiry/cancellation/lifecycle checks to RunHandle.interactions(pending_only=True). No decisions, resume eligibility, persistence or error suppression are implemented here. Background reads stay off the UI event loop. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests. Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Pass exact changed row IDs into disposable projection. Observation revision race continues to force full canonical reconciliation; no publication from incomplete indexes. Review 2026-10-29: Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative. Review 2026-10-29: Resolve historical authors from immutable public admission bindings and reuse the existing author cache. No Run/Step reads are added for lightweight rows; detailed and live responses keep the same author.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84524,13 +84544,7 @@
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "56d0d4c3bf468d992c7cbee89cef8c38ecffa10af2e90ec526c223b9452ddcee",
-        "classification": "non_contract",
-        "owner": "SnapshotReader / WorkflowObservation",
-        "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
-      },
-      {
-        "id": "c456d2097d972e236af32e99377c2b3ba6b2fcc68c1748a5e46bbc790edc6211",
+        "id": "0c60d6d418439dd3e48184b3815f7d12405100afd0ff82c3542079bdc6caee75",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
@@ -84542,91 +84556,97 @@
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "d2034389fd541d79c3c645878761452c23bfd93f847328a352a9c58b37a40e92",
+        "id": "d7acbf434b0dff94c57b7f79e2c17dab5ec0fce8eda9f7b23878027159fddb47",
+        "classification": "non_contract",
+        "owner": "SnapshotReader / WorkflowObservation",
+        "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
+      },
+      {
+        "id": "edd972f344b01a234adc572a6f0ebff11ae51e706b9b5a1995524bcb603fd87a",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "8bf5268cea81d820370da78074eed11924a3bb52e990f89a6b0054fbdd19c1e9",
+        "id": "8f71c4c662d114352049e753120541592ba8e1f82ada91655de2a352ecd1bbc0",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "7c3b715ab6054728d7f52f9c8c9f8c8ac890bba24757d29f0186f5fbe36fd280",
+        "id": "de00fd05809c78aef1cd29f4a5c599f75886d33046b908ff393df2f7c71d00bd",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "f058589dee6c059b131cccf0cd566947584d708962a78b97f1e5ec13c5f7815d",
+        "id": "9b5d3845c3dee4196cc503543914452b3736f367727d95eff2c1ad4d89fa15c1",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "92a1a9a3991e69fa970459ab48eb96d7fda3dce9cf033244784ff298d7cc6b44",
+        "id": "de0aac2b86360383246c2a2a207de04566c40adfab0e50ff9d6a6c7ce6303780",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "9b2f13dc1efe9b96d09e425a8f2e15b2b22f9436f0ec2e9c04aff3e56453250d",
+        "id": "49c4a4438173946f981b7610296f7c503841c7ac8e5e23edd01f29758bfb2a27",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "518bbb8db2ec28b6702027434cfb4cb8d2743888239dbe493a6c173010039555",
+        "id": "1439ee7f318300f009ab8da4ace7f1e1ec21ca81b2b6c2990cae6752a9976352",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "b5a081b8fbf5f35837b8e3b75b0a1a037e4d6b27b44675d2ffa760a37ea8041c",
+        "id": "ac56c7dcb3cdfe647139929cc2ebc43734bb9888fc73b4e7796870e5030564ab",
         "classification": "non_contract",
         "owner": "AnswerDrafts / SnapshotReader.messages",
         "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
       },
       {
-        "id": "e775642ad3ef1f46c2f9cee50a7d956a7d7ae265a10533e7d5f2ad58a8e46d72",
+        "id": "793ee39b2b15ac2026b9684abcef7b9cf05ecd39f9ea9193d02348a91aa9605e",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "b159f8a299a5afc9470a2c5972fd01d831dfff555b115b80639de4aba516ddcc",
+        "id": "7a50b5317f2211fa7b1e1b63cd49dc342cbf1d0050245109696d3392c9171830",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "2a1f65b158b40e6b617e13880e6e4dad28604b150503964c3b598d26335b00f9",
+        "id": "85a650a9b05de80c5e8a3accd7fcb3b18f3711ad78438694f8c2bf572e3d320c",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "b193f5ac1a16ad6a52feb9ea9575651f028a87aca997939dd020d12602032f55",
+        "id": "fc027283fb5a13a23c16ee88ca84d7d7a045c899d5fa0875b6317b8262156642",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "d51b4be8fd16b0d85296b65ac66f795b6bc2ae6af8d2297234e8ad63eaff5050",
+        "id": "007d7fedaef353a1109f010b484964449d3e298b342bbf1f7c6d1e868ddbf62b",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "329632fce438f23416c1273570fa7b55bfe6ca0399ed9e8f146bad31d559a156",
+        "id": "c5794228f4f6c8245f1daa21afe8c4f2e798752966d1ae88359d1cc856c4809d",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "446ae51111802955ddcfd1fba87d7f778b56d1066f6d713dd2093fde47e4f40f",
+        "id": "e23344eabb4e2928e8f5fd92ca41490ab74cfb7e3f912a3ef3b261921fdf006c",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
@@ -84702,7 +84722,8 @@
           "tests/hub/test_tool_input_diagnostics.py",
           "tests/hub/test_tool_views.py",
           "tests/hub/test_request_history.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_snapshot_projection.py"
         ],
         "complete": true
       },
@@ -84729,7 +84750,8 @@
           "tests/hub/test_tool_input_diagnostics.py",
           "tests/hub/test_tool_views.py",
           "tests/hub/test_request_history.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_snapshot_projection.py"
         ],
         "complete": true
       },
@@ -84758,7 +84780,8 @@
           "tests/hub/test_tool_input_diagnostics.py",
           "tests/hub/test_tool_views.py",
           "tests/hub/test_request_history.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_snapshot_projection.py"
         ],
         "complete": true
       },
@@ -84783,7 +84806,8 @@
           "tests/hub/test_tool_input_diagnostics.py",
           "tests/hub/test_tool_views.py",
           "tests/hub/test_request_history.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_snapshot_projection.py"
         ],
         "complete": true
       }
@@ -86272,8 +86296,8 @@
   },
   {
     "path": "hub/backend/bootstrap.py",
-    "sha256": "ef4d6edebd1bfe1bf688c9f81ff3b5ab1b2313dbe7d1eb7fde2a55d2e4ae587c",
-    "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact.",
+    "sha256": "6550e55452fccff2dc9aed85890b67a9167d48eae3ce774e33e4d7a66de19e4a",
+    "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Review 2026-10-29: Read validated global character cap once at startup and bind it to the existing builtin completion processor.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86348,7 +86372,8 @@
           "tests/hub/test_file_root_presence.py",
           "tests/hub/test_tool_retry.py",
           "tests/hub/test_resource_tools.py",
-          "tests/hub/test_workspace_settings.py"
+          "tests/hub/test_workspace_settings.py",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       },
@@ -86363,7 +86388,8 @@
           "tests.hub.test_participants",
           "tests.hub.test_settings",
           "tests.hub.test_naming",
-          "tests.hub.test_tool_retry"
+          "tests.hub.test_tool_retry",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       },
@@ -86380,7 +86406,8 @@
           "tests.hub.test_agent_settings_groups",
           "tests.hub.test_render_pipeline",
           "tests.hub.test_ui_consistency",
-          "tests.hub.test_summary_api"
+          "tests.hub.test_summary_api",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       },
@@ -86394,7 +86421,8 @@
           "tests.hub.test_background_records",
           "tests.hub.test_bootstrap",
           "tests.hub.test_ish_integration",
-          "tests.hub.test_header_actions"
+          "tests.hub.test_header_actions",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       },
@@ -86408,7 +86436,8 @@
           "tests.hub.test_background_records",
           "tests.hub.test_bootstrap",
           "tests.hub.test_ish_integration",
-          "tests.hub.test_header_actions"
+          "tests.hub.test_header_actions",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       }
@@ -87187,24 +87216,18 @@
   },
   {
     "path": "hub/ui/chat/session_actions.py",
-    "sha256": "aab8f8db1e9e36c6fb6f8c25d6b395623811a18a4a7782517122092076ae6c6a",
-    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior. Sidebar action review: asset-owned CRUD icons call the existing project/session actions; shared heading geometry and focus membership include these buttons. Name-only dialogs explicitly request small input geometry; generic interactive promotion remains unchanged. No backend CRUD, selection persistence or authorization ownership changes. Verified by test_home_navigation and test_mouse_widgets using actual PTK keyboard, mouse and cells. Review 2026-10-29: Use PopupSize.SMALL for session delete confirmation. Existing shared Dialog controls, confirmation and backend deletion remain unchanged. Review 2026-10-29: Separate NEW name-only SMALL popup from CLONE MEDIUM boundary form; no creation history query. Retain project/session identity and popup guards on deferred history. Existing on_new, source and boundary API unchanged.",
+    "sha256": "c4d522e67cc41ca0b05447f94565edb89fa4fc01b989f5dd0cbb7063909a41a6",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior. Sidebar action review: asset-owned CRUD icons call the existing project/session actions; shared heading geometry and focus membership include these buttons. Name-only dialogs explicitly request small input geometry; generic interactive promotion remains unchanged. No backend CRUD, selection persistence or authorization ownership changes. Verified by test_home_navigation and test_mouse_widgets using actual PTK keyboard, mouse and cells. Review 2026-10-29: Use PopupSize.SMALL for session delete confirmation. Existing shared Dialog controls, confirmation and backend deletion remain unchanged. Review 2026-10-29: Separate NEW name-only SMALL popup from CLONE MEDIUM boundary form; no creation history query. Retain project/session identity and popup guards on deferred history. Existing on_new, source and boundary API unchanged. Review 2026-10-29: Wrap the existing single-row rename field in an aligned layout so popup allocation cannot stretch it; same callbacks and validation.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "87a88b04457c9727b5d69e644eb27be7cc98ede6489c6f4990a040536271c29d",
+        "id": "4eeef8391c0e797a483d835d80ffe35003dc6e6e4842d8295d9ad0ff50edb809",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "2f500b7333bc9d6b988102e492f1ad33c8ba4102269cb77d757f80a290bcd8e7",
-        "classification": "declaration",
-        "owner": "SessionActions",
-        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
-      },
-      {
-        "id": "962422a7b03acaeda46a3d99cd73ee64555b431877b4e6cf1ff962f5f67c972b",
+        "id": "c59c09c67c346e6e701aaa34b062dc40db161e61c36430bd564e3fcae2435564",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
@@ -87216,31 +87239,37 @@
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "146ab3e784d1f52ca713719e529e064de2a7c65f1e0e1eb462b4bdeb7d7c8ecb",
+        "id": "cd84096143724ebea5d4d9c100ee48579ebc81dc29e1732caa6c0e2fd9db2e2c",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "130b880acf4d57027b0aa038a3ab63685d4b04b32387428ed6791ea08da305c9",
+        "id": "9f0f02ccac1aa19177f806feb912b4100a2925ea4ad628c8e6d057082607c0a4",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "63e3f9001a2b24ca3c6046d1e7834b597c5b22da9787bd04baa9d4e1e0118735",
+        "id": "6a9a10abcdfe38292486e3428c89e3fa0affb68e77b2c73708e46aa1c7feafcf",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "d195ff95afd267814d2bb9d09419c39290ada8df26a8b420a8934a4bc698690f",
+        "id": "17c17efe132d4e01c2e51584361a01573dfc1143a5a0604d54973e45ea1efdd6",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "9b43c88ef12413503b831ce555a50268de297b53654665c30badaea5560901fd",
+        "id": "36929ceebdc07bb0a34763248bcccbe8e30efb24d74c4b5f4798936556e4f8b7",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "05f52542510dc46edd3ba372af6309d8bbd0f7f02bddbc3f5076972bb4a582b6",
         "classification": "non_contract",
         "owner": "Dialog",
         "reason": "Explicit user-requested compact single-line name entry; popup geometry stays owned by Dialog."
@@ -98285,8 +98314,8 @@
   },
   {
     "path": "hub/backend/tools/builtin.py",
-    "sha256": "76c1732cc71ff346d60549499700d051c03800a6095858d44cdd551dc914f600",
-    "reason": "Runtime Data handles are project-scoped, cleared on close and rebound through related() lifecycle access. ToolSelection consumes only enabled while validation covers the full config. Removed path wrapper delegates actual read grants and output storage to backend owners. FollowupProcessor is ordered after configured Memory processing. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes.",
+    "sha256": "8b06ff2670acbb9fd5a211bf7f842ffc8ac1f9e01f598c9b051477235660fec1",
+    "reason": "Runtime Data handles are project-scoped, cleared on close and rebound through related() lifecycle access. ToolSelection consumes only enabled while validation covers the full config. Removed path wrapper delegates actual read grants and output storage to backend owners. FollowupProcessor is ordered after configured Memory processing. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Review 2026-10-29: Carry startup application context limit into existing completion processor. No backend policy/schema or process capture change.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -98350,13 +98379,13 @@
         "reason": "Runtime Data handles are project-scoped, cleared on close and rebound through related() lifecycle access. ToolSelection consumes only enabled while validation covers the full config. Removed path wrapper delegates actual read grants and output storage to backend owners. FollowupProcessor is ordered after configured Memory processing."
       },
       {
-        "id": "2c7cb8444217de68b434029abe60452819408fdab27e604b28bdaa186dbc93dd",
+        "id": "8993631a5d6c56e19bc79c4ada9ac5e6382bcc15c374f7bc1c9eec0216c69fa6",
         "classification": "non_contract",
         "owner": "HubBuiltinTools",
         "reason": "Runtime Data handles are project-scoped, cleared on close and rebound through related() lifecycle access. ToolSelection consumes only enabled while validation covers the full config. Removed path wrapper delegates actual read grants and output storage to backend owners. FollowupProcessor is ordered after configured Memory processing."
       },
       {
-        "id": "ad7d8bc39d7b66f6f9a7ed51b47a147c3a314c1d79ca8c3c4946a537b24e0847",
+        "id": "9cd37c8570438853deab46d89f18098772a1b458dde3f219147647a6e2e3a125",
         "classification": "non_contract",
         "owner": "HubBuiltinTools",
         "reason": "Runtime Data handles are project-scoped, cleared on close and rebound through related() lifecycle access. ToolSelection consumes only enabled while validation covers the full config. Removed path wrapper delegates actual read grants and output storage to backend owners. FollowupProcessor is ordered after configured Memory processing."
@@ -98393,7 +98422,8 @@
           "tests/hub/test_approval_continuation.py",
           "tests/hub/test_components.py",
           "tests/hub/test_component_managers.py",
-          "tests/hub/test_large_data_tools.py"
+          "tests/hub/test_large_data_tools.py",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       },
@@ -98407,7 +98437,8 @@
           "tests.hub.test_application_defaults",
           "tests.hub.test_presets_widgets",
           "tests.hub.test_header_actions",
-          "tests.hub.test_input_contract"
+          "tests.hub.test_input_contract",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       },
@@ -98421,7 +98452,8 @@
           "tests.hub.test_background_records",
           "tests.hub.test_bootstrap",
           "tests.hub.test_ish_integration",
-          "tests.hub.test_header_actions"
+          "tests.hub.test_header_actions",
+          "tests/hub/test_defaults.py"
         ],
         "complete": true
       }
@@ -101495,7 +101527,8 @@
         ],
         "tests": [
           "tests.hub.test_observation_contracts",
-          "tests.hub.test_participants"
+          "tests.hub.test_participants",
+          "tests/hub/test_participants.py"
         ],
         "complete": true
       },
@@ -101510,41 +101543,48 @@
           "tests.hub.test_participants",
           "tests.hub.test_settings",
           "tests.hub.test_naming",
-          "tests.hub.test_tool_retry"
+          "tests.hub.test_tool_retry",
+          "tests/hub/test_participants.py"
         ],
         "complete": true
       }
     ],
-    "sha256": "af100b7388bc9ea5666f9750b783b8ee21dc6bf27dbac5c1162becf41d581e3a",
-    "reason": "Checks inactive and no queued/naming work, detaches runtime, writes grouping and agent_ids via Session API, restarts opened session and invalidates observation. Group deletion retains invitations.",
+    "sha256": "882ca49b87d8ba6c3d9bc96d6db5462886d796e1d34991c03cb611d48c030dc0",
+    "reason": "Checks inactive and no queued/naming work, detaches runtime, writes grouping and agent_ids via Session API, restarts opened session and invalidates observation. Group deletion retains invitations. Review 2026-10-29: Accept explicit single-ID or list invitation; validate every ID before one public Session save. Preserve busy rejection, canonical membership and runtime detach/start.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "59b76ba456d309370533d11fbbb4cb370222269f987d3a0c0cda90e1c4facf8c",
+        "id": "b72c65754a1b04c069eb0a61d6fc0454a9f55c1d0aaf7e7b7d1b9a4d7ec39d89",
         "classification": "declaration",
         "owner": "AgentProfile / Session services",
         "reason": "Only display name metadata is application-owned. Invitation loads public Agent/Session handles, rejects active/queued work, sorts unique IDs, detaches idle runtime for asave and restores it in finally. Backend validation remains authoritative."
       },
       {
-        "id": "726df5b2871e110882a6c2c385fe18f014ce6883c4f23fbd27b4daa5fef0481d",
+        "id": "5ba22ceae3fd60db6ba2d19781b1e73ad96bdaaf8f7fe1702731c9803f710292",
         "classification": "declaration",
         "owner": "AgentProfile / Session services",
         "reason": "Only display name metadata is application-owned. Invitation loads public Agent/Session handles, rejects active/queued work, sorts unique IDs, detaches idle runtime for asave and restores it in finally. Backend validation remains authoritative."
       },
       {
-        "id": "4e128c8b77ac1c04e86219f74c2f7c774ec540c7a4584ef227b1cbf96552ad68",
+        "id": "6927f91ab1f3e0118c6d2c8767e10ecdb8d6c0ad153bcf277472829a7a041b33",
         "classification": "non_contract",
         "owner": "AgentProfile / Session services",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Only display name metadata is application-owned. Invitation loads public Agent/Session handles, rejects active/queued work, sorts unique IDs, detaches idle runtime for asave and restores it in finally. Backend validation remains authoritative."
       },
       {
-        "id": "22f2cfd8c6dc11dc5cdb7973abc881ed1bb3c2921466b23b1c53e94cc173854f",
+        "id": "94ba13ca7a5f27f72a8f346dc0e572407e14c20685fd3e19d3bc9ce478afcfdd",
         "classification": "non_contract",
         "owner": "AgentProfile / Session services",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Only display name metadata is application-owned. Invitation loads public Agent/Session handles, rejects active/queued work, sorts unique IDs, detaches idle runtime for asave and restores it in finally. Backend validation remains authoritative."
       },
       {
-        "id": "0c735b31523acd774636bd8e991972761a101acb86a08e6b7a0dd6e45ee9a917",
+        "id": "ff321c1e49ec38064edea003883dc48b5eddd56d03899fa3107be21f16185c5d",
+        "classification": "non_contract",
+        "owner": "AgentProfile",
+        "reason": "Accept explicit single-ID or list invitation; validate every ID before one public Session save. Preserve busy rejection, canonical membership and runtime detach/start."
+      },
+      {
+        "id": "27ce38efa0e8b71f63d3c2b2c296436fa1485ecb281ca67bab11cba8fcb36268",
         "classification": "non_contract",
         "owner": "ParticipantGroups / Session API",
         "reason": "Successful UI operation acknowledgement after the public save; not a persisted Run status. Checks inactive and no queued/naming work, detaches runtime, writes grouping and agent_ids via Session API, restarts opened session and invalidates observation. Group deletion retains invitations."
@@ -101585,7 +101625,7 @@
       }
     ],
     "sha256": "23958ecfd880d4ba6ee1e7052abdb345dfd30b620c32aa916f4baf31f01cdc6e",
-    "reason": "Natural-language application guide names current singular managers and explicit Agent models; public tool authority and approval stay unchanged.",
+    "reason": "Natural-language application guide names current singular managers and explicit Agent models; public tool authority and approval stay unchanged. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": []
   },
@@ -101671,8 +101711,8 @@
         "complete": true
       }
     ],
-    "sha256": "55bb30ac13cb8aa90dbf79a4db978b2611679572e89197548afce7bf853553eb",
-    "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay.",
+    "sha256": "73620c97adacee187f0450e62ea2384249f3b15f5065923cb29f1384e2ebe5f1",
+    "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay. Review 2026-10-29: Shortened guidance strings; completion evidence, permissions, review outcomes and wire declarations are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -101826,79 +101866,79 @@
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "c18110082f6530bfd5c2fc5c9845c9d40e3e9c963670bf175bc2d7251f790baa",
+        "id": "3d54f87c74bd92524ccd01450f242ff52f0c5c4d1c8944a145e46068679d4e57",
         "classification": "declaration",
-        "owner": "FollowupProcessor / TaskCompletion / ConversationalInput",
-        "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay."
+        "owner": "TaskCompletion",
+        "reason": "Shortened guidance strings; completion evidence, permissions, review outcomes and wire declarations are unchanged."
       },
       {
-        "id": "2f8b3a0c534f6b58f7e4b0373e26073b3ef74e60738dfebfb6c53d63f28532bd",
+        "id": "6a823038e02d1237059b874af36cae85352de97c9c93c99d8e5d9dbca163b806",
         "classification": "declaration",
-        "owner": "FollowupProcessor / TaskCompletion / ConversationalInput",
-        "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay."
+        "owner": "TaskCompletion",
+        "reason": "Shortened guidance strings; completion evidence, permissions, review outcomes and wire declarations are unchanged."
       },
       {
-        "id": "c13f3182d12a62c5ca94efeb8e898a87ec4d716ab776253225a9aeff84f82ec2",
+        "id": "06b8f0c03d49eef720872611ded5d59c831ff8c0bdfa99ad48eaa9a6d223ad9d",
         "classification": "declaration",
-        "owner": "FollowupProcessor / TaskCompletion / ConversationalInput",
-        "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay."
+        "owner": "TaskCompletion",
+        "reason": "Shortened guidance strings; completion evidence, permissions, review outcomes and wire declarations are unchanged."
       },
       {
-        "id": "98034796c02b5f709b8e74964fb4d18bb2af430c9b01060cfca5eed344e6576a",
+        "id": "cb1408251a5b8dbaab7b810def2046dca7e3c449dfab0624b329f3bdc4922af7",
         "classification": "declaration",
         "owner": "TaskCompletion / ReviewPolicy",
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "e43dce9a53628c2614e4762fe27fdf9b1adc0294963d7c6c28640ce658ee6867",
+        "id": "d2c4781662f6d01a73f4d4277656d3ddba735d5da36ace48ff5ce4e7b026cf8e",
         "classification": "declaration",
         "owner": "TaskCompletion",
         "reason": "Validate outcome, nonempty summary and evidence list before accepting a report. A malformed failed report call cannot bypass completion review. Evidence membership and backend continuation budgets remain unchanged."
       },
       {
-        "id": "faf1bb40f80d3ae1aa02552e0318c13f9d4f690b782a00489c893c2344b6e94d",
+        "id": "bf82969b0c9036b365eafa8999cf56327d8ba44c0b0d52762a6df42f31f47a7d",
         "classification": "declaration",
         "owner": "TaskCompletion",
         "reason": "Hub-owned review revision and stale-report feedback. Checks actual current-execution receipts for all outcomes, rejects duplicates and requires report freshness. No guessed Tool-result error semantics, model call or permission change."
       },
       {
-        "id": "fac06563da455fee187e035e1a5bb949a6cbc6d9623ecfff549eb1148a3c3cdb",
+        "id": "114e13785bed97389aebf4c1d4005983f450e39e3b3699bbdb69fab6fa3e1aba",
         "classification": "declaration",
         "owner": "FollowupProcessor / TaskCompletion / ConversationalInput",
         "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay."
       },
       {
-        "id": "c6a26f54cdd0d8af9507edb23e43a8484dce917dcc7b0b722150bd73497c26ef",
+        "id": "8edf67bf43657c437ecbc58166a242dafbc10fa830aa4166459052cab985d8a7",
         "classification": "declaration",
         "owner": "TaskCompletion / ReviewPolicy",
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "00c8ad92527012b0a6850b667afe60b11e388075928ea351d93fb8f36f1c453c",
+        "id": "b4676ce1b4c41e15b8c3a745d5653883554b142cf3a37c2a8f532dc067396d1d",
         "classification": "declaration",
         "owner": "TaskCompletion / ReviewPolicy",
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "9518345bdb62b92d6280c69652f1e79e68cdaaddc2fcdb21a0e58c73da2a998d",
+        "id": "ec61a3ec9ce6eda1309b14e1096be5b069579675842cc5e405ec844fdd2400e9",
         "classification": "declaration",
         "owner": "TaskCompletion / ReviewPolicy",
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "14af34f492230e45a8f38113fe3c22087a540ff99f0382a714e5f30949a18be4",
+        "id": "d220094e62cdce7132addd0c7694c9d193eba1d6d1a6a6e4a9fade295ba551ce",
         "classification": "declaration",
         "owner": "TaskCompletion / ReviewPolicy",
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "fc3065083dabd8e8f653aef708d61f3e008e36f6f60c3101e61e615ddb52f579",
+        "id": "67773408a8d705d2c151f205efa247dd89e004b90b212b4de876b7f54118e947",
         "classification": "declaration",
         "owner": "TaskCompletion / ReviewPolicy",
         "reason": "Application report schema and feedback are declared here. The reviewer checks original uncompacted call/result evidence, not UI text, and returns backend ReviewAction values. Backend owns budgets, receipts and resume. Explicit exclusion of the report Tool is an Agent opt-out."
       },
       {
-        "id": "427f757d22266a366dce1661da3edf2791a592b82b1f8771563ec1d7c7e67dd9",
+        "id": "0e890384bbc845271ec0892cafb613e13e5a34726f3158bb4578bb00ecd8d4c0",
         "classification": "non_contract",
         "owner": "TaskCompletion",
         "reason": "Hub-owned review revision and stale-report feedback. Checks actual current-execution receipts for all outcomes, rejects duplicates and requires report freshness. No guessed Tool-result error semantics, model call or permission change."
@@ -102731,8 +102771,8 @@
         "complete": true
       }
     ],
-    "sha256": "8147400802149aaa405feba31512a4d0eb38571119660c75457951af928c2fb0",
-    "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay.",
+    "sha256": "e98f18114726c57f6f306d3d076fe2c9a59b0d21d13af958c6a8a32ba1a5dbd8",
+    "reason": "Reviewed request-scoped greeting detection and later steering escape, concise routing before actual Tool use, optional report v3, fresh evidence checks when a report is used, and nonempty final answer continuation. No required report/Goal/refinement ritual for plain answers. Instructions guide actual authorized work; no model authorization, policy budget reset or receipt replay. Review 2026-10-29: Shortened current instruction template or matching template-version metadata; retained task scope, approval, evidence, paging and existing saved project resources.",
     "dynamic_paths_reviewed": true,
     "decisions": []
   },
@@ -104491,96 +104531,96 @@
   },
   {
     "path": "hub/backend/execution/reader_calls.py",
-    "sha256": "0407e1292bdb1cd5fde90ce395d28c0788ec02ab177bd984c23371e17ed73226",
-    "reason": "Native Tool model-view review: Engine context binding installs a pre-Memory processor without new Tool or execution authority. Source pages retain inline text within the complete serialized-body budget and use validated native continuation arguments. File SHA/character cursor and independent process stream positions retain backend meaning; capture truncation remains distinct from preview omission. Original results, Tool call pairs, references, approvals and checkpoints are unchanged. A selected reader and compatible Run constraints are required for each continuation. Bounded projection runs on a detached copy off the UI loop. Actual file reads, retained 300,000-line output, explicit constraints and summary-failure admission are covered by test_tool_views, test_large_data_tools and test_working_context. Review 2026-10-29: Read hints respect native fixed or bounded ArgumentConstraint value schemas. Only newly suggested read arguments are bounded; rejected model invocations are not rewritten or executed.",
+    "sha256": "2ee6296dee732138df01317cbc6e97d1292e98ae7c7bbe09f65956619209feee",
+    "reason": "Native Tool model-view review: Engine context binding installs a pre-Memory processor without new Tool or execution authority. Source pages retain inline text within the complete serialized-body budget and use validated native continuation arguments. File SHA/character cursor and independent process stream positions retain backend meaning; capture truncation remains distinct from preview omission. Original results, Tool call pairs, references, approvals and checkpoints are unchanged. A selected reader and compatible Run constraints are required for each continuation. Bounded projection runs on a detached copy off the UI loop. Actual file reads, retained 300,000-line output, explicit constraints and summary-failure admission are covered by test_tool_views, test_large_data_tools and test_working_context. Review 2026-10-29: Read hints respect native fixed or bounded ArgumentConstraint value schemas. Only newly suggested read arguments are bounded; rejected model invocations are not rewritten or executed. Review 2026-10-29: Generate integer read suggestions within fractional numeric bounds, then validate against selected schema and current scope. No Tool effects or invented readers.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "b34672eeba82495634edad720a3013059e7b49daa83b5bc3cae8826d1734f28d",
+        "id": "495f260426d1f7462a62e9d72644cb2979299f27bec26712f86f37ba053071a3",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "750ee3f411aa0a3b1a0a30fed99f9dad7875cb777fb76c4070205c585958c9e0",
+        "id": "421868389df0b3828f36d0df24ca9c19532fd5dfe715403618d16d24052f521c",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "0c41f9f80d7469c1f6821546d0cdacf26095faff84a2c997d130e2717afa7e6a",
+        "id": "9574ae14019ee8d6f989dc6a783f8bbb906e25070efd1971c882db3f034858fd",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "9db0793bd12a636df89bfc3fb3985b61e07bcfeebb2ceb5f42ac738f22bd2c5b",
+        "id": "205281eb13029dcde415205f3d7f4d4042576454e63a7fb594b73ae8454e91da",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "b903850988ef9ae32ca8c48a11b115f307bc1dbe15448646ae7b40a37a434c17",
+        "id": "e1fefb28ead5864bb1ad0e7cebbf6f320ff6952fbecb434a5f9b3b8fb941580e",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "e9dd9de810d475439ebcf4fbfacdb87f00f5ec22d6a98a8bd17ad3e8b5ec13ea",
+        "id": "1a7e9c28b7082e2634f5d05dbaada52f2819945e570f674b75d744f4b17d8baf",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "b437720fd35707e37cc42d70b8f3c7aa4021baadc803367f213c059f58732f6e",
+        "id": "e24db79d77c2bbd62ea6e2d7c338f138a476222d1ce15b649cc4fe54dee20f9a",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "23c602f414b41bb60845296a55596944421d6e5b899f921a82ff8550a3771547",
+        "id": "591856c790050cd95d460f9d64e048f10e880bafbf63691ef3529aa8cae79ee3",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "3ad6568c3aafd3ccf060213583b88c2cf9fc108957dc395a88f3358109e512fa",
+        "id": "0d7c463e55239226538cb65d6263b6d50ff1e3d6dfdd23612c0f7c19f8c7c8f7",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "36249b1f2a21af270185bebdbd172dae8f978d7e8905fcf75f9edff01f8996d7",
+        "id": "b7afd3db236afc6bb07515ba18d7bda43d92fc8ce64357ff1386eee84c5eab71",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "c090e9515d52ea56e4271b200168a2db3ab973414d72c5aa76a6f1a133329c71",
+        "id": "a324b5aa0644a5b7dfbb9f7021e60032b75056d02137f35093a9ee782658898c",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "6c7acb6f173fcb8c3e6490749d57404a80124eaeedc92e0b9241b078a252d896",
+        "id": "25a2172bb43617d4598b82c35fe6cba10b5632f14d7b79ceef2185424b385baa",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "b136a29cc0c737d3e3d106c20563a6bec0359ef067e3d40ad9ee556113742e3d",
+        "id": "da28e2c393589dddb4633b9d15bdc53491a56669e3e4dc77799cd6c0294e0254",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "9eb8aa5608a64ca1c2b4b9a70f5f4bc29062d1b39431508e218de5fb5b30b7cd",
+        "id": "1eafacce76d88f8835cdf351b768ffcad41d5de707130c2efb7f5174b5653804",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
       },
       {
-        "id": "5c51a98a93ff1baca2e2f05aeeceedfd2c93aa1954c405414774c02aefc4e6a2",
+        "id": "4488d5f8c12077e041230f7ad967e1322955abedd1dba2732fc5d9eb2e5f9fdc",
         "classification": "non_contract",
         "owner": "ToolDefinition / ToolRegistry / ToolExecutionScope",
         "reason": "Selected schema and canonical fixed constraint interpretation validate a read-only hint. No Tool handler or policy counter is invoked. tool/arguments labels belong to the Hub model-view hint."
@@ -105953,244 +105993,244 @@
   },
   {
     "path": "hub/backend/tools/validation.py",
-    "sha256": "a44440489fe8dfa43cb238bea864afa16a8153ecf815ef338f65f588c4947a80",
+    "sha256": "6ad426df386e456303b923bf17da344cc1d27d10c65f9e8a47c1f65120d9ddcf",
     "decisions": [
       {
-        "id": "7fbae1fa000549a41f80fdfe3e55792ef712679b46507e051eafa801c61404d5",
+        "id": "55b0d6bf29f32440367dea5a8faae2c96a86b0d319541852127efdefa809e14d",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "08f411d87dcfcc59ab26f22e78529f4bc13dcf34913614d6eb7a0591e75bd96d",
+        "id": "5996d91c7fd5b55055e394367fa694e95904a720d6bcea18b90240eb84ca143d",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
       },
       {
-        "id": "0876c24748a5525930af487f39668810900c6a5ad20dbf4474436c5a61066f47",
+        "id": "761ea783118dcca823058f4386891c0e7d75f8ffebb67f63145a54d8de842f8e",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
       },
       {
-        "id": "9cbeb37f37089d917f2e8e1b1b2b1ef180be99be2fca0ea8a73bc306def87444",
+        "id": "a1514a61700766c514b4f5a9a8e72b93009a967ff616ed397cd0c21ae2a1fe4a",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
       },
       {
-        "id": "737f88ba4986409141d387124bb143d50c09aeae3cbf0b1c1a50babe5a1506c0",
+        "id": "7b7e249f600113a6f85481f3d824304babcfd43312136bc2c25720dfbff66619",
         "classification": "non_contract",
-        "owner": "ToolInputRegistry",
-        "reason": "ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
+        "owner": "ReadPageSize",
+        "reason": "Explicit five-field map of four native read-only tools normalizes only oversized bounded integers. Native constraints still validate; no paths, queries, offsets, fixed/selectable values or effects repaired. Sources, cursors and truncation remain native."
       },
       {
-        "id": "77f16b6c67a7959dbfdd351b4eca8070a18ec396e2be5853350c8860bfdc2d47",
-        "classification": "non_contract",
-        "owner": "ToolInputRegistry",
-        "reason": "ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
-      },
-      {
-        "id": "f584871b44137c1114f112a5462f780f96bf9692fddd00b569f6a5161f1d0565",
+        "id": "f3f045eb4885add313b588ba92a10a309fd7e44dd3439de1203fd8ee7b44016e",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "Transient algorithm/cache mechanics, not persisted domain policy. Detached-copy helper preserves handler identities and public registry behavior. Native merge/select/register/prepare validation is not bypassed. Copy adaptation remains limited to exact backend ToolRegistry."
       },
       {
-        "id": "af20c8072382ebd6c5afd07098bcfaa9660b3e2aa435ecf6cf22e2d594d38df8",
+        "id": "3b5f999758b9e9e7b51cd9e40d0eab70c3b9fe4de9b42df5829efc2ab8ae5209",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "b72f881e4d7caea330b5ff400123332abd42488ba22c68c80fe2475c276510b7",
+        "id": "5b452f2ee7f5424f964b5d30a7671d47a6eafaeb3009410e763f8d384a4c8a3d",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "2a9edae566db79819946e6c01207dde8d3ae9ce201317e9708f30d64faba3d42",
+        "id": "4619e24437d4a3620834cd3b450aecfc2237eef3146a34c0d2296e98fef210ec",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "5f231675e3e27194a0e930577d2173a434a99708b7d39519d6a11587e11c4e90",
+        "id": "20eccd4a104fe337de7936a640ed0360f48fb0fb86118b3d61f0fd5cbe8005b4",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "Transient algorithm/cache mechanics, not persisted domain policy. Detached-copy helper preserves handler identities and public registry behavior. Native merge/select/register/prepare validation is not bypassed. Copy adaptation remains limited to exact backend ToolRegistry."
       },
       {
-        "id": "8047a6e61d813d9d508af6752c2b0e530d4de2c833c617a4e176c1252b9e7217",
+        "id": "f2376e1fccd72e913fddaf59d4b0021826d7efb9de0a5f2826dce60738647840",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "3014ca60bf77e7cb0ee34682b5fd8c4b15098be4a9367dfce3b80bb17479bd72",
+        "id": "1dd4ca5900f0e0d6687100d062ac8ec037b2d0a535d15a0cfd73d96cc74e34f4",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "34d9197df7ab77ef5a219e6d78e13eb75b787fb846d45c0009bc57a72174fb0d",
+        "id": "a6d92772b800e564cc087707f9b1d7862cafe0a95cf97b54d0058423d4183e75",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "7ce708f37f415e4a9008a634b1b365fd29fd8a7f7740c31821c956d807f15c92",
+        "id": "0d6e691c6aa6415c48f704ffc9b74fadeb6155efd8b683c6604877d9a03323d2",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "4a5806e9b3c414bb3f6536ecf94a9b537020540a24b32c5b90d04930bf491ce7",
+        "id": "58904bea444107d8ba186d738fa16d38e6893775e22e3377ab41d03bdf6aef88",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / FileReadSchema",
         "reason": "Local collection/sentinel/control-flow mechanics; public semantic fields use their owners. Consume native definitions(names, constraints) subset before observational schema shaping. No re-registration per invocation, no change to prepare/contract/approval authority; preserve fixed argument cross-field validation and custom registry ownership."
       },
       {
-        "id": "5461fecf40c6446503881c975f4205b02860244382e55ab14d33fab69b8e6cad",
+        "id": "dff299aec6a166ae2c52ffe47fb2743b1fceb74005f6c7f622f2bd7cc64ee5d5",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "6cd3518b80af785bb3c190e1a0d49621ebbd5248f943cf7037a99dbb4e208e8e",
+        "id": "7000a963b2f8be42f57034253dad269e9c951291084500421a0ad32d628af5a4",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "Observe native definitions and ArgumentConstraint.value_schema. Redundant surface const/enum/bounds preserve original allOf and fixed-field required semantics. Native prepare still injects only omitted fixed values and rejects explicit invalid inputs before effects; diagnostic text does not expose input values."
       },
       {
-        "id": "6f45195fb19b4c46629c0ad445ac2a54c655bf1c55002ce61df9098c55e8b9f3",
+        "id": "7b4d003dcfba95db062c98739a86688baf0b3bb6ab73649a97a8bc251c7edea8",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "af702bcf7d410e4432bac5df41b0140d41d4b587601705f2ee7638ac69320f63",
+        "id": "5b1e9911e43319b42f97f54630e2002b8f6510794188fb3e1428f661d77db195",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "6932dceb02bd78212da5fe603ed8dcd30aeabc036be412a7b2e58c6789a61ed1",
+        "id": "f7bd124c3c5539515b786dd313d5bf6799b3b0e467695cb167ed5d728cff6c31",
+        "classification": "non_contract",
+        "owner": "ReadPageSize",
+        "reason": "Explicit five-field map of four native read-only tools normalizes only oversized bounded integers. Native constraints still validate; no paths, queries, offsets, fixed/selectable values or effects repaired. Sources, cursors and truncation remain native."
+      },
+      {
+        "id": "1e6fdf202b26466005078449f4b3c2fbe88551a709791030e63f106013afc16f",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
       },
       {
-        "id": "c101bd93ba483811fdc8eb83ce8fc77b3deb356d7682f1fb303603a67df5cf4f",
+        "id": "c69f359ba17c39003a507edacf5b2ef5439792c4303acc8c0feb4bee4fc45dad",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "2560d3b2f886784e5f6226087f68a16d026d32145afbd894a1f3450636656a97",
+        "id": "ad715c991980738f5baeb9c057b30dba8ce305a0e1a3d73545b94b8217402445",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "d203e1451306e394edc7fc7800d301e1be463fb5497c552218d0271ce0ff7345",
+        "id": "07e1e2abcb72bf1edbbfd2e85b5cf84cb212887f512c8cc9a4969d887229ba42",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "a0eada324901468f0ff0bb48d8c17fe766803d1f4a8eb938a6f30238c5a49394",
+        "id": "e1eb706eeb897047231090492d135b1372ed3047553d4d0e486e39751721391f",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "514e2d3fb0ba1327abf15773c3ee790c536c5aa9233c1e4d30cd24c0d3254c9c",
+        "id": "1e5614249449cb658e3046c0912fc7a2fe3d3dc7f59eca26ae8ca81ce7f0a5f2",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "1cb033e90f86ef39a9a2efde1cea9d72f05308a26352b48d4830fcc627437d73",
+        "id": "a500c8104807c3d69e33b1b65886ace011674678b9f3746f7e33da475e7a23f2",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "ebcdf374b24cf89b47b29d491444c48ed9bc4274b7747c6900023b3916b90aff",
+        "id": "8e7dc3a79ab1534f4713e886e1c80e8d18d24ed21a4204b3b592f5edbe648d8d",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "c20d60407a7bfffb1dcf794929948d27aaac7e73f599a78b49c77d34923e0a77",
+        "id": "470be812cb4ea5ac704c0b1ae0b378de1656d527d3dd6a83412d703e32281857",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "0e4305ef3b89d7df05a22eab6327942730d269d186b9279a98d626302a1b82ef",
+        "id": "2ab4a39b9d82325e59977b94d74b5c0951802a351d14bd9b277fa7a1053dad84",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "3d89150f76a30dd5f7eef7c62f149eca52940581ae66a86948605622d1fd65d3",
+        "id": "1518dfb0d6d0e2f14e2c7715d10db144d99dc2d683a403a3adbba745db6e4d2e",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "c33de455553dd9432640636b0910b71df3259a5139e52febc6708c5ae7fb5d37",
+        "id": "463eee7bfc710f03711754842f7957b63336b538106a7c264c3d15906ce6ea10",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "cddea874913ddfc4940252cb8a926c3eabf0c8e215da3b5ae99d77610d6b059f",
+        "id": "fdbf3529cfa2ad3c17c719f177fbbbfe31df7b4df7afcb3a2be495de3ccfb48a",
         "classification": "non_contract",
         "owner": "ToolInputRegistry",
         "reason": "Observe native definitions and ArgumentConstraint.value_schema. Redundant surface const/enum/bounds preserve original allOf and fixed-field required semantics. Native prepare still injects only omitted fixed values and rejects explicit invalid inputs before effects; diagnostic text does not expose input values."
       },
       {
-        "id": "997539ab83408c379a75d7f5a529ab7710778a53fbba2e21880f8e94aaacee55",
+        "id": "3de6a8c8299f8cc15d552091335db27f8f6a4623ee3a54f2ac66328c6eb6431a",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "e5dee83eef01d58d4f858ceb41b85df4d9464c33be9b1744dba255ec5a984c0b",
+        "id": "2a0c890758022a2988de1bd2ae1c8b5395de29c073351205de1e417f3f858558",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "f2b6ebbcb8aab6c56a98498ede96d29079e72ba278754e50f394a6f9061cd2e2",
+        "id": "1b66c616390e2e318aaa9b800b257d77daea44a6a440e0b92aa8aba5a09b9093",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "bdce447188f65531e437f50c424bc6630b560c88628aebab945830bfacb9aece",
+        "id": "1b22bcfaa893f15c49d411424bb5f3701b605a67c046a45dfc82f22abd3eeedd",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "374516477817e516b1e775b31c0cfe736f1b982a6190d77953cc873aed8a065a",
+        "id": "7ed80be46d96f2b17ee29b3a8d0863a37ba617b669e191ce00cbb085d9984a0c",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "fd864681e1a550725628f9db12b40a1dba75e926f33cb176fb1340a3f9440c36",
+        "id": "717026e77b35ac2bd0ac62101a63f8a1d712bc1a0f079d6a08b696f52ca4e78d",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
       },
       {
-        "id": "10cce152d8a6fe22a0879c1941e093087e66fa15f607b3bf939226b99058f388",
+        "id": "2e5bac7bcce6492fd6eaa43a20fae1ba0d44f7b7c8d8e263690e3b4fc84743e8",
         "classification": "non_contract",
         "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
         "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
@@ -106226,7 +106266,7 @@
       }
     ],
     "dynamic_paths_reviewed": true,
-    "reason": "Consume native definitions(names, constraints) subset before observational schema shaping. No re-registration per invocation, no change to prepare/contract/approval authority; preserve fixed argument cross-field validation and custom registry ownership. Review 2026-10-29: Observe native definitions and ArgumentConstraint.value_schema. Redundant surface const/enum/bounds preserve original allOf and fixed-field required semantics. Native prepare still injects only omitted fixed values and rejects explicit invalid inputs before effects; diagnostic text does not expose input values. Review 2026-10-29: ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts."
+    "reason": "Consume native definitions(names, constraints) subset before observational schema shaping. No re-registration per invocation, no change to prepare/contract/approval authority; preserve fixed argument cross-field validation and custom registry ownership. Review 2026-10-29: Observe native definitions and ArgumentConstraint.value_schema. Redundant surface const/enum/bounds preserve original allOf and fixed-field required semantics. Native prepare still injects only omitted fixed values and rejects explicit invalid inputs before effects; diagnostic text does not expose input values. Review 2026-10-29: ReadPageSize reduces only oversized integer max_chars for file_read/process_output under the admitted bounded policy. Native schema and all constraints validate the resulting page before effects. No path, offset, fixed value, unknown tool or write repair; no source truncation or retry. Returned arguments drive execution and receipts. Review 2026-10-29: Explicit five-field map of four native read-only tools normalizes only oversized bounded integers. Native constraints still validate; no paths, queries, offsets, fixed/selectable values or effects repaired. Sources, cursors and truncation remain native."
   },
   {
     "path": "hub/backend/execution/binding_cache.py",

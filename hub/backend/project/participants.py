@@ -2,6 +2,7 @@
 
 from llm.core.agents import AgentDefinition
 from typing import Any, TYPE_CHECKING
+from collections.abc import Sequence
 
 from ..execution.engine_selection import HubEngineIdentity
 from ...locales.keys import MessageKey
@@ -29,20 +30,28 @@ class AgentProfile:
 
 
 async def invite(
-    runtime: "HubRuntime", project_id: str, session_id: str, agent_id: str
+    runtime: "HubRuntime", project_id: str, session_id: str, agent_id: str | Sequence[str]
 ) -> tuple[str, ...]:
-    if HubEngineIdentity.internal(agent_id):
+    """Validate the complete selection, then persist membership in one save."""
+    if not isinstance(agent_id, (str, list, tuple)):
+        raise TypeError("Agent invitation requires an ID or a list of IDs")
+    requested = [agent_id] if isinstance(agent_id, str) else list(agent_id)
+    if not requested or any(not isinstance(value, str) or not value for value in requested):
+        raise ValueError(runtime.t(MessageKey.PARTICIPANTS_REQUIRED))
+    selected = tuple(dict.fromkeys(requested))
+    if any(HubEngineIdentity.internal(value) for value in selected):
         raise ValueError(runtime.INTERNAL_RECIPIENT)
     project = await runtime.backend.projects.aload(project_id)
-    await project.agents.aload(agent_id)
+    for identifier in selected:
+        await project.agents.aload(identifier)
     session = await project.sessions.aload(session_id)
     record = await session.aget_data()
     participants = list(record.agent_ids)
-    if agent_id not in participants:
+    if not set(selected).issubset(participants):
         status = await session.run.astatus()
         if status.active_runs or status.queued_count or session_id in runtime.namer.tasks:
             raise ValueError(runtime.t(MessageKey.PARTICIPANTS_BUSY))
-        participants = sorted((*participants, agent_id))
+        participants = sorted(set(participants).union(selected))
         await session.run.shutdown()
         try:
             await session.asave(agent_ids=participants)

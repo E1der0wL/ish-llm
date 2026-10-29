@@ -36,6 +36,7 @@ class GeneralSettings:
     MINIMUM_POSITIVE_INTEGER: ClassVar[int] = 1
     MINIMUM_RECOVERY_SECONDS_EXCLUSIVE: ClassVar[int] = 0
     MINIMUM_PAYLOAD_CHARS: ClassVar[int] = 1000
+    DEFAULT_TOOL_CONTEXT_CHARS: ClassVar[int] = 24000
     INVALID_LANGUAGE: ClassVar[str] = "language must be a string"
     INVALID_NOTIFICATION_KINDS: ClassVar[str] = (
         "notification_kinds must list unique error/info/warning/success values"
@@ -90,6 +91,13 @@ class GeneralSettings:
         metadata={SettingMetadata.REQUIRES_RESTART: SettingMetadata.RESTART},
     )
     auto_scroll: bool = True
+    tool_context_chars: int = field(
+        default=DEFAULT_TOOL_CONTEXT_CHARS,
+        metadata={
+            SettingMetadata.REQUIRES_RESTART: SettingMetadata.RESTART,
+            SettingMetadata.SCHEMA: {SchemaKeyword.MINIMUM: MINIMUM_POSITIVE_INTEGER},
+        },
+    )
     workspace_root: str = field(
         default="", metadata={SettingMetadata.REQUIRES_RESTART: SettingMetadata.RESTART}
     )

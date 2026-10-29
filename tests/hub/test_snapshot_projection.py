@@ -29,6 +29,42 @@ def headers(messages, language):
 
 
 class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_lazy_history_keeps_admitted_agent_titles_without_loading_runs(self):
+        from llm.core.agents import AgentBinding
+        from llm.services.runtime.requests import RequestAdmission
+
+        request = Message(id='c' * 32, role='user', content='Question', status='committed')
+        run_ids = {'alpha': 'd' * 32, 'beta': 'e' * 32}
+        definitions = {'alpha': {'engine': 'loop', 'metadata': {'title': '검토자'}},
+                       'beta': {'engine': 'loop', 'metadata': {'title': '작성자'}}}
+        admission = RequestAdmission.create(project_id='a' * 32, session_id='b' * 32, message_id=request.id,
+            bindings={key: AgentBinding.create('a' * 32, key, value).to_dict()
+                      for key, value in definitions.items()})
+        admission = RequestAdmission.dispatch(admission, run_ids=run_ids, history=[request])
+        request.metadata.update(admission.metadata())
+        responses = [Message(id=key * 32, role='assistant', content='Answer', status='completed', run_id=run)
+                     for key, run in zip(('f', '0'), run_ids.values())]
+        session = NS(run=NS(aload=AsyncMock(side_effect=AssertionError('Unneeded Run read'))))
+        records = [request, *responses]
+        for reader in (SnapshotReader(), SnapshotReader()):
+            for _ in range(2):
+                shown = await reader.messages(session, records, detail_ids=set())
+                self.assertEqual([m.author for m in shown[1:]], ['검토자', '작성자'])
+                self.assertNotIn('어시스턴트', headers(shown[1:], Language('ko')))
+            # The latest detailed response uses the same immutable Run binding.
+            run = NS(id=run_ids['beta'], engine='loop', status='completed', started_at=None, ended_at=None,
+                     metadata={'completions': [], AgentBinding.METADATA_FIELD: admission.binding('beta').to_dict()})
+            detailed = await reader.messages(session, records, latest=run, detail_ids={responses[-1].id})
+            self.assertEqual([m.author for m in detailed[1:]], ['검토자', '작성자'])
+        session.run.aload.assert_not_awaited()
+
+    async def test_cached_run_title_survives_lightweight_history_projection(self):
+        reader = SnapshotReader()
+        reader.authors['r'] = '검토자'
+        record = Message(id='a', role='assistant', content='Answer', status='completed', run_id='r')
+        messages = await reader.messages(None, [record], detail_ids=set())
+        self.assertEqual(messages[0].author, '검토자')
+
     async def test_reconciled_summary_shows_activity_instead_of_auxiliary_thoughts(self):
         start = '2026-10-12T00:00:00+00:00'
         steps = (

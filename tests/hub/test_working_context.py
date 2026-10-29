@@ -27,6 +27,21 @@ def counter(request):
 
 
 class WorkingContextTests(unittest.IsolatedAsyncioTestCase):
+    async def test_configured_character_cap_changes_compaction_without_overriding_tokens(self):
+        for limit, compacted in ((40000, False), (10000, True)):
+            with self.subTest(limit=limit):
+                context, request = self.setup_request()
+                original = deepcopy(request.messages)
+                invocation = request.to_model()
+                _ = [event async for event in WorkingContext.prepare(context, request, max_tool_chars=limit)]
+                CompletionInput.validate(request, original, invocation, 'input')
+                self.assertEqual(request.messages != original, compacted)
+                self.assertLessEqual(WorkingContext.tool_chars(request), limit)
+        context, request = self.setup_request(chars=1000, arguments=3000, budget=6000)
+        _ = [event async for event in WorkingContext.prepare(context, request, max_tool_chars=1000000)]
+        self.assertTrue(request.compacted_tool_calls)
+        self.assertTrue(await WorkingContext.fits(context, request))
+
     def test_hub_processor_follows_explicit_memory_priority(self):
         from hub.backend.execution.completion import FollowupProcessor
         for priority in (10, 1000, 2000):

@@ -563,6 +563,8 @@ class MessageKey:
     GENERAL_RESTORE_LAST_PROJECT = 'general_restore_last_project'
     GENERAL_RESTORE_LAST_SESSION = 'general_restore_last_session'
     GENERAL_AUTO_SCROLL = 'general_auto_scroll'
+    GENERAL_CATEGORY_CONTEXT = 'general_category_context'
+    GENERAL_TOOL_CONTEXT_CHARS = 'general_tool_context_chars'
     GENERAL_EDITOR = 'general_editor'
     LANGUAGE_PACK_ADD = 'language_pack_add'
     LANGUAGE_PACK_DELETE = 'language_pack_delete'

@@ -1,6 +1,7 @@
 """Read hints checked against the selected Tool schema and Run constraints."""
 
 from jsonschema import Draft202012Validator
+from math import ceil, floor
 from llm.core.policies import ArgumentConstraint, ConstraintMode
 from llm.core.schema import SchemaKeyword
 
@@ -24,8 +25,8 @@ class ReaderCalls:
             elif rule.mode == ConstraintMode.BOUNDED and limit_field in arguments:
                 bounds = rule.value_schema()
                 value = arguments[limit_field]
-                value = max(value, bounds.get(SchemaKeyword.MINIMUM, value))
-                arguments[limit_field] = min(value, bounds.get(SchemaKeyword.MAXIMUM, value))
+                value = max(value, ceil(bounds.get(SchemaKeyword.MINIMUM, value)))
+                arguments[limit_field] = min(value, floor(bounds.get(SchemaKeyword.MAXIMUM, value)))
         if not Draft202012Validator(definition.parameters).is_valid(arguments):
             return None
         if context is not None and context.tools is not None:

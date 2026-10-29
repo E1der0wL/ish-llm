@@ -601,6 +601,8 @@ MESSAGES = {
     MessageKey.GENERAL_CATEGORY_STARTUP: "Startup",
 
     MessageKey.GENERAL_CATEGORY_OUTPUT: "Conversation output",
+    MessageKey.GENERAL_CATEGORY_CONTEXT: "Model input",
+    MessageKey.GENERAL_TOOL_CONTEXT_CHARS: "Character cap for accumulated Tool results; default 24000. Excess results become stored references or compacted complete exchanges while originals are preserved. This is not the model's token limit; raising it does not increase model capacity. Applies after saving and restarting Hub.",
 
     MessageKey.GENERAL_CATEGORY_EDITOR: "External editor",
 

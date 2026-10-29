@@ -667,7 +667,7 @@ class LiveController:
                 view.output.set_follow_tail(HubView.FOLLOW_TAIL)
         self.app.invalidate()
 
-    def _send(self, operation, session_id, text, *args, draft=ABSENT):
+    def _send(self, operation, session_id, text, *args, draft=ABSENT, recipients=ABSENT):
         if (
             not text.strip()
             or session_id in self._submitting
@@ -684,7 +684,7 @@ class LiveController:
             draft = SubmittedDraft(project_id, session_id, text)
             draft.consume(self.view)
         if operation == HubRuntime.submit_input.__name__:
-            self.view.preparing.start((project_id, session_id), text)
+            self.view.preparing.start((project_id, session_id), text, recipients=recipients)
 
         def accepted(request_id):
             self._submitting.discard(session_id)
@@ -790,7 +790,7 @@ class LiveController:
             return
         self._choosing_submission = LiveController.CHOOSING
         self._submitting.add(session_id)
-        view.preparing.start(identity, text)
+        view.preparing.start(identity, text, recipients=agent_id)
 
         def ready(state):
             self._choosing_submission = LiveController.NOT_CHOOSING

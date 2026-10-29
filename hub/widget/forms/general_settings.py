@@ -68,6 +68,7 @@ class GeneralForm:
             GeneralSettings.restore_last_session.__name__,
         ),
         "output": (GeneralSettings.auto_scroll.__name__,),
+        "context": (GeneralSettings.tool_context_chars.__name__,),
         "editor": (GeneralSettings.editor.__name__,),
         "diagnostics": (
             GeneralSettings.provider_request_summary.__name__,

@@ -41,6 +41,14 @@ Creation skips these resources when Workflows or Graph Agent-node execution is
 unavailable, or when the explicit primary Agent is workflow-based, named `planner`,
 or uses an Engine outside the registered Agent-node handler's execution registry.
 Existing Projects are never reseeded, and saved edits/deletions are retained.
+Template version 9 shortens the default system/work-context instructions and optional
+work-cycle guidance. The basic template stays below 2,400 characters; protocol additions
+for suggestions and completion reports are shortened too. Risk/discovery guidance is
+included only when the exposed tools support it. It preserves action delivery, approval, clarification, evidence,
+source paging and component ownership rules; detailed procedures remain in on-demand
+skills and tool schemas. Existing saved Agent system prompts are not overwritten.
+To shorten one of those Agents, explicitly replace its system_prompt in `/agent`
+with the current template (system.md plus work-context.md), preserving user additions.
 Instructions live under `asset/prompts/coding-workflow/`; the public WorkflowGraph
 builder in `asset/coding_workflow.py` produces editable schema-version-1 data.
 

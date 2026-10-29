@@ -12,6 +12,14 @@ Reads use `asnapshot`, writes use `arevise(expected_revision=...)`. Display name
 are application metadata (`metadata.title`); execution still uses the Agent ID.
 The internal title-generation Agent is excluded from the picker and manager list.
 
+Response headers use the display name from the admitted Agent binding, including
+lightweight historical rows whose Run details have not been loaded. Names are
+cached with the existing observation lifecycle; displaying a name adds no Run or
+Step reads. Before admission finishes, the local preparation header captures the
+chosen recipients' display names. Later selection changes cannot rename that
+pending response; durable observations replace it when available. Resume keeps
+the existing response's author. Agents without a display name use their ID.
+
 Open **Participants** from the Home composer auxiliary buttons. It occupies the
 same output sidebar as Tags; opening either closes the other. The sidebar captures
 keyboard and mouse focus until closed. Up/Down highlights a participant;
@@ -19,7 +27,11 @@ Space/Enter opens actions: edit Agent, move group, change recipient or expel.
 A group offers change recipient and delete group. With no selected recipient, the request goes
 to everyone invited to the current session. The composer title shows the target.
 Tab moves to **Add agent**. Left/Right selects the adjacent **Add group** button.
-Add agent lists project Agents not already invited and opens their manager.
+Add agent lists project Agents not already invited in a full-width CheckboxList.
+Check one or more Agents, then press Invite; nothing is preselected. The manager button
+opens their definitions. The entire selection is validated before one membership save,
+so an invalid Agent does not leave a partially invited group. Existing single-ID callers
+use the same invitation service, and duplicate selections do not duplicate membership.
 Escape closes the sidebar. Both sidebars use the same width and inset.
 
 Groups live in Hub-owned `Session.metadata.hub_participant_groups`, written only

@@ -3,6 +3,7 @@
 import asyncio
 import tempfile
 import unittest
+from unittest.mock import Mock
 from dataclasses import replace
 from pathlib import Path
 
@@ -22,6 +23,24 @@ from tests.hub.support import SizedOutput, eventually, render_container
 
 
 class ParticipantBackendTests(unittest.IsolatedAsyncioTestCase):
+    async def test_batch_invitation_validates_every_agent_before_saving(self):
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, auto_title=False))
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            sid = await runtime.new_session()
+            pid = runtime.project.id
+            for identifier in ('reader', 'writer'):
+                await runtime.project.agents.acreate({'engine': 'loop'}, identifier=identifier)
+            before = tuple((await runtime.sessions[sid].aget_data()).agent_ids)
+            with self.assertRaises((ValueError, FileNotFoundError)):
+                await runtime.invite_agent(pid, sid, ['reader', 'missing'])
+            self.assertEqual(tuple((await runtime.sessions[sid].aget_data()).agent_ids), before)
+            expected = tuple(sorted((*before, 'reader', 'writer')))
+            self.assertEqual(await runtime.invite_agent(pid, sid, ['reader', 'writer', 'reader']), expected)
+            self.assertEqual(tuple((await runtime.sessions[sid].aget_data()).agent_ids), expected)
+            self.assertEqual(await runtime.invite_agent(pid, sid, ['writer', 'reader']), expected)
+
     async def test_invitation_persists_and_all_or_single_recipient_streams(self):
         release = asyncio.Event()
         entered = {name: asyncio.Event() for name in ('a', 'b')}
@@ -113,6 +132,50 @@ class ParticipantBackendTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_invitation_uses_full_width_and_submits_checked_agents_once(self):
+        from examples.hub.preview import create_preview
+        from hub.widget.controls import CheckboxList
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput(100, 36))
+            view.participant_ids = ('a',)
+            view.agents = ('a', 'b', 'c')
+            view.agent_titles = {'a': 'Owner', 'b': 'Reader', 'c': 'Writer'}
+            view.on_invite_agent = Mock()
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: app.is_running)
+                with set_app(app):
+                    view.output.participants.invite()
+                    popup = view._dialog
+                    window = popup.body.children[0]
+                    choices = window.content.text.__self__
+                    self.assertIsInstance(choices, CheckboxList)
+                    self.assertEqual(choices.current_values, [])
+                    popup._buttons[0].handler()
+                    view.on_invite_agent.assert_not_called()
+                await eventually(lambda: choices.window.render_info is not None)
+                with set_app(app):
+                    position = app.renderer._last_screen.visible_windows_to_write_positions[choices.window]
+                    self.assertEqual(position.width,
+                        popup._width().preferred - 2 - 2 * popup._content_padding)
+                pipe.send_text(' \x1b[B ')
+                await eventually(lambda: set(choices.current_values) == {'b', 'c'})
+                with set_app(app):
+                    popup._buttons[0].handler()
+                    popup._buttons[0].handler()
+                    view.on_invite_agent.assert_called_once()
+                    identifiers, done = view.on_invite_agent.call_args.args
+                    self.assertEqual(set(identifiers), {'b', 'c'})
+                    done(None)
+                    self.assertIs(view._dialog, popup)
+                    popup._buttons[0].handler()
+                    _, done = view.on_invite_agent.call_args.args
+                    done(('a', 'b', 'c'))
+                    self.assertIsNone(view._dialog)
+            finally:
+                app.exit()
+                await task
+                view.close()
     def test_session_switch_does_not_use_previous_session_participants(self):
         from hub.ui.live import LiveHubView
         from hub.model import HubSnapshot, SessionSummary

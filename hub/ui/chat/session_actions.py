@@ -5,6 +5,7 @@ from hub.backend.session_contracts import SessionMode
 from hub.model import HubSnapshot, SessionIdentity
 from ..input.keys import KeyName
 from prompt_toolkit.application.current import get_app
+from prompt_toolkit.layout import HSplit, VerticalAlign
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
 from ...widget.dialog import PopupSize
@@ -129,7 +130,8 @@ class SessionActions:
             return self.INVALID
 
         view.open_dialog(
-            view.t(MessageKey.SESSION_RENAME), name, rename, name, validate=validate,
+            view.t(MessageKey.SESSION_RENAME), HSplit([name], align=VerticalAlign.TOP),
+            rename, name, validate=validate,
             size=PopupSize.SMALL, allow_small_input=True,
         )
 

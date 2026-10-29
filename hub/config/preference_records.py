@@ -193,11 +193,12 @@ class PreferenceRecord:
     @classmethod
     def validate_section(cls, owner, section, record):
         expected = {item.name for item in fields(owner)}
-        # Additive palette fields use their Owner defaults when omitted.
+        # Explicit additive fields use their Owner defaults when omitted.
         # Removed/unknown fields are still rejected, never silently migrated.
         optional = {
-            HubTheme.comment2.__name__, HubTheme.accent4.__name__, HubTheme.accent5.__name__
-        } if owner is HubTheme else set()
+            HubTheme: {HubTheme.comment2.__name__, HubTheme.accent4.__name__, HubTheme.accent5.__name__},
+            GeneralSettings: {GeneralSettings.tool_context_chars.__name__},
+        }.get(owner, set())
         if not isinstance(record, dict) or not expected - optional <= record.keys() <= expected:
             raise TypeError(cls.INCOMPLETE_SECTION.format(section=section))
         return asdict(owner(**record))

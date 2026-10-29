@@ -130,6 +130,18 @@ class ToolViewTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(view['next_read']['arguments']['max_chars'], 1500)
         self.assertEqual(view['next_offset'], len(view['text']))
 
+    async def test_fractional_page_bounds_generate_an_executable_integer_hint(self):
+        self.context.tool_scope.argument_constraints['file_read']['max_chars'] = {
+            'mode': 'bounded', 'minimum': 1.25, 'maximum': 1500.75}
+        value = dict(path='source', sha256='a' * 64, text='x' * 1500,
+            offset=0, next_offset=1500, truncated=True)
+        view = await self.project(self.request('file_read', value, {'path': 'source'}))
+        read = view['next_read']
+        _, actual = self.context.tools.prepare(read['tool'], read['arguments'],
+            constraints=self.context.tool_scope.argument_constraints)
+        self.assertEqual(actual['max_chars'], 1500)
+        self.assertIs(type(actual['max_chars']), int)
+
     def test_processor_precedes_even_an_explicit_negative_memory_priority(self):
         self.assertLess(ToolViewProcessor((NS(priority=-2000), NS(priority=1000))).priority, -2000)
 

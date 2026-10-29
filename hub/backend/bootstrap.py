@@ -134,6 +134,7 @@ def create_backend(config: "HubConfig"):
                 config.file_root,
                 test_root=BackendComposition.test_workspace_root(config.workspace),
                 postprocess=bool(config.postprocess),
+                tool_context_chars=general.tool_context_chars,
             ),
         )
     }

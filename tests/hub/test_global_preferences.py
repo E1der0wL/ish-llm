@@ -25,6 +25,23 @@ from tests.hub.test_settings import settings_backend
 
 
 class GlobalPreferenceTests(unittest.TestCase):
+    def test_tool_context_cap_is_additive_validated_and_does_not_rewrite_on_read(self):
+        from dataclasses import asdict
+        with tempfile.TemporaryDirectory() as directory:
+            store = PreferencesStore(directory)
+            general = asdict(GeneralSettings())
+            general.pop('tool_context_chars')
+            store._write_json({'version': 1, 'general': general})
+            original = store.path.read_bytes()
+            self.assertEqual(store.load()['general']['tool_context_chars'], 24000)
+            self.assertEqual(store.path.read_bytes(), original)
+            store.save('general', {**general, 'tool_context_chars': 48000})
+            self.assertEqual(store.load()['general']['tool_context_chars'], 48000)
+            for invalid in (0, -1, True, 1.5, '48000'):
+                with self.subTest(value=invalid), self.assertRaises(ValueError):
+                    store.save('general', {**general, 'tool_context_chars': invalid})
+            self.assertEqual(store.load()['general']['tool_context_chars'], 48000)
+
     def test_removed_mouse_option_is_rejected_without_rewriting_preferences(self):
         with tempfile.TemporaryDirectory() as directory:
             store = PreferencesStore(directory)

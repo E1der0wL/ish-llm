@@ -83,12 +83,13 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.view.interrupting.pending)
 
     async def test_resume_prepares_existing_response_until_durable_continuation_arrives(self):
-        message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r")
+        message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r", author="검토자")
         stopped = replace(self.base, messages=(message,), run=replace(self.base.run, status="interrupted", active=False))
         self.view.apply_snapshot(stopped)
         self.controller.interrupt("s")
         shown = self.view.output.transcript.control.messages
         self.assertEqual([(m.id, m.text, m.status) for m in shown], [("a", "Partial response", "preparing")])
+        self.assertEqual(shown[0].author, '검토자')
         self.assertEqual(self.view.t.status(shown[0].phase), " 재개 준비 중")
         self.view.apply_snapshot(stopped)
         self.assertEqual(len(self.view.output.transcript.control.messages), 1)

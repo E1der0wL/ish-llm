@@ -2,7 +2,7 @@
 name: hub-code-change
 description: "Inspect existing behavior and boundaries, then verify the necessary changes."
 metadata:
-  hub-template-version: "8"
+  hub-template-version: "9"
 ---
 # Coding: inspect, implement, verify, deliver
 

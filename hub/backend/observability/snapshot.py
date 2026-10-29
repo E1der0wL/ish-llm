@@ -335,10 +335,11 @@ class SnapshotReader:
             if RequestAdmission.present(message):
                 admission = RequestAdmission.from_message(message)
                 if admission.dispatched is not self.ABSENT:
-                    authors.update(
-                        (identifier, agent)
-                        for agent, identifier in admission.dispatched.run_ids.items()
-                    )
+                    for agent, identifier in admission.dispatched.run_ids.items():
+                        if identifier not in self.authors:
+                            self.authors[identifier] = AgentProfile.title(
+                                agent, admission.binding(agent).definition)
+                        authors[identifier] = self.authors[identifier]
         if not incremental:
             self.projection.index(messages, input_context, requests, dict(authors))
         changing = set(run_records) | ({latest.id} if latest is not None else set())
@@ -357,6 +358,8 @@ class SnapshotReader:
                        and (latest is None or message.run_id != latest.id))
             detailed = (detail_ids is None or message.id in detail_ids or not settled
                         or message.id in self.projection.detailed)
+            if message.run_id not in authors and message.run_id in self.authors:
+                authors[message.run_id] = self.authors[message.run_id]
             key = (role, message.content, message.created_at, str(message.status),
                    message.run_id, author, requests.get(message.run_id),
                    authors.get(message.run_id),

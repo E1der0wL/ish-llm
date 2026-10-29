@@ -104,11 +104,12 @@ class WorkingContext:
         return True
 
     @classmethod
-    async def prepare(cls, context: EngineContext | None, request: CompletionRequest) -> AsyncIterator[EngineEvent]:
+    async def prepare(cls, context: EngineContext | None, request: CompletionRequest, *,
+                      max_tool_chars: int = HubDefaults.TOOL_CONTEXT_CHARS) -> AsyncIterator[EngineEvent]:
         if context is None:
             return
         count = ToolReferences.prepare(context, request)
-        oversized = cls.tool_chars(request) > HubDefaults.TOOL_CONTEXT_CHARS
+        oversized = cls.tool_chars(request) > max_tool_chars
         fits = await cls.fits(context, request)
         if (oversized or not fits) and ToolReferences.available(context, request):
             # Old pages can become references too; keep the newest reader result useful.
@@ -116,7 +117,7 @@ class WorkingContext:
             for index in candidates[:-1]:
                 count += ToolReferences.replace(request, index, context=context)
             fits = await cls.fits(context, request)
-            if cls.tool_chars(request) > HubDefaults.TOOL_CONTEXT_CHARS or not fits:
+            if cls.tool_chars(request) > max_tool_chars or not fits:
                 if cls.compact_prefix(context, request):
                     count += 1
                     fits = await cls.fits(context, request)
@@ -128,5 +129,5 @@ class WorkingContext:
                 name=cls.STEP, kind='memory', metadata={'hub_context': True})) as events:
                 async for event in events:
                     yield event
-        if cls.tool_chars(request) > HubDefaults.TOOL_CONTEXT_CHARS or not fits:
+        if cls.tool_chars(request) > max_tool_chars or not fits:
             raise ExecutionLimitError(RunErrorCode.CONTEXT_BUDGET_EXCEEDED, cls.EXCEEDED)

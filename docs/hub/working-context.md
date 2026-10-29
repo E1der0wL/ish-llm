@@ -17,8 +17,8 @@ It does not create another conversation store, retry loop or token counter.
    This also covers partial/failed summaries and external Tool results. The
    per-result threshold follows Memory's `tool_result_chars`, or the Hub page
    default when unset. Existing reader pages are not immediately replaced again.
-3. If Tool bodies accumulate beyond `HubDefaults.TOOL_CONTEXT_CHARS` (24,000
-   characters), or the native CompletionPolicy cannot fit the required active
+3. If Tool bodies accumulate beyond the startup `GeneralSettings.tool_context_chars`
+   (24,000 characters by default), or the native CompletionPolicy cannot fit the required active
    request, older Tool bodies become references. The latest result/page remains
    available for the next decision.
 4. When this still does not fit, complete prefix exchanges can become a compact
@@ -63,7 +63,12 @@ The Step contains only a reference count, not copies of the Tool data.
   registered `counter` for the actual server/model. Hub observes the exact
   resolved CompletionPolicy that Loop passes to this execution, including
   nested Loop Agents, and does not inject a global model capacity.
-- The 24,000-character Tool-body ceiling is an application guard, **not a token
+- Settings → General → Model input exposes `tool_context_chars`, a positive integer
+  with a 24,000-character default. Save and restart Hub to apply it to completion
+  processors, including nested Loop Agents. Presets include this global setting.
+  Its omitted additive field uses the declared default without rewriting stored
+  preferences; other required/unknown fields retain strict validation.
+- This Tool-body ceiling is an application guard, **not a token
   estimate**. If CompletionPolicy is unset, there is no claimed guarantee for
   the entire model request. Many Tool definitions, a huge current user request
   or server-specific tokenization still need the correct native policy.

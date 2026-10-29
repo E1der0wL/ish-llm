@@ -2,7 +2,7 @@
 name: hub-create-rag
 description: "Read source material and register searchable RAG documents."
 metadata:
-  hub-template-version: "8"
+  hub-template-version: "9"
 ---
 # Create a RAG document
 
