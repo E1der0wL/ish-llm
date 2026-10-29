@@ -272,6 +272,7 @@ class LiveController:
         self.loop = LiveController.ABSENT
         self.closed = LiveController.OPEN
         self._startup_task = None
+        self._history_focus = None
         self.requests = UIRequests(
             lambda: self.worker,
             self._dispatch,
@@ -454,7 +455,7 @@ class LiveController:
             self._save_view()
         self.app.invalidate()
         if restore_selection is not LiveController.ABSENT:
-            self._call(HubRuntime.select.__name__, restore_selection)
+            self.select(restore_selection)
 
     def _settings_request(self, operation, args, completed):
         def received(result):
@@ -530,6 +531,13 @@ class LiveController:
                 self.view.sessions[self.view.selected].id,
                 HubView.saved_positions(self.view),
             )
+            from ..widget.transcript.identity import TranscriptIdentity
+
+            focus = (self.view.project_id, self.view.sessions[self.view.selected].id,
+                     TranscriptIdentity.message_id(self.view.output.reading_position().message_id))
+            if self.worker is not None and focus != self._history_focus:
+                self._history_focus = focus
+                self._call(HubRuntime.focus_history.__name__, *focus[1:])
         except (OSError, ValueError, TypeError) as error:
             self.view.notice = self.view.t(MessageKey.VIEW_STATE_ERROR, error=error)
 
@@ -887,9 +895,12 @@ class LiveController:
 
     def select(self, session_id: str):
         if session_id:
+            from ..widget.transcript.identity import TranscriptIdentity
+
             # Selection marks the worker dirty; its single refresh publishes the
             # selected history. A second foreground snapshot only queues a duplicate.
-            self._call(HubRuntime.select.__name__, session_id)
+            position = self.view.output.reading_position()
+            self._call(HubRuntime.select.__name__, session_id, TranscriptIdentity.message_id(position.message_id))
 
     def invite_agent(self, identifier, completed):
         view = self.view

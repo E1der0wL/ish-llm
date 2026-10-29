@@ -5,7 +5,8 @@ from typing import NamedTuple
 
 class TranscriptIdentity:
     INDEX = "index:{index}"
-    BLOCK = "{message}:block:{offset}"
+    BLOCK_SEPARATOR = ":block:"
+    BLOCK = "{message}" + BLOCK_SEPARATOR + "{offset}"
 
     @classmethod
     def message(cls, message, index):
@@ -14,6 +15,10 @@ class TranscriptIdentity:
     @classmethod
     def block(cls, message, index, offset):
         return cls.BLOCK.format(message=cls.message(message, index), offset=offset)
+
+    @classmethod
+    def message_id(cls, anchor):
+        return anchor.split(cls.BLOCK_SEPARATOR, 1)[0]
 
 
 

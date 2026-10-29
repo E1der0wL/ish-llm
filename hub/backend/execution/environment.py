@@ -180,6 +180,7 @@ class EnvironmentEngine:
                 context = replace(context, capabilities={**context.capabilities,
                     COMPLETION_PROCESSORS: (*processors, ToolViewProcessor(processors))})
         tools, capabilities = context.tools, dict(context.capabilities)
+        constraints = context.tool_scope.argument_constraints if context.tool_scope is not None else None
         environment_tools = (
             self.environment is not self.ABSENT
             and ToolRegistry.CAPABILITY in capabilities
@@ -201,9 +202,9 @@ class EnvironmentEngine:
                         registry.get(name) if name in names else selected.get(name)
                         for name in selected.names()))
                 if discovery:
-                    selected = ToolLookup.bind(selected, groups=groups)
+                    selected = ToolLookup.bind(selected, groups=groups, constraints=constraints)
                 return ToolInputRegistry.observe(selected)
-            tools = self._bindings.bind(context, self.environment, build)
+            tools = self._bindings.bind(context, self.environment, build, constraints=constraints)
         tools = ToolInputRegistry.observe(tools)
         if ToolRegistry.CAPABILITY in capabilities:
             capabilities[ToolRegistry.CAPABILITY] = tools
@@ -224,7 +225,9 @@ class EnvironmentEngine:
                   if self.routing.enabled(bound, self.implementation) else None)
         discovery = (self.builtins is not None and self.builtins.name in bound.project.components
                      and HubApplicationTools.HELP in bound.tools.names())
-        return self.routing.engine(bound, self.implementation, groups=groups, discovery=discovery)
+        constraints = bound.tool_scope.argument_constraints if bound.tool_scope is not None else None
+        return self.routing.engine(bound, self.implementation, groups=groups, discovery=discovery,
+                                   constraints=constraints)
 
     async def execute(self, context):
         bound = await drain_on_cancel(asyncio.to_thread(self.bind_context, context))

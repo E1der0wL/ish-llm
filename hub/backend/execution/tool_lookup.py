@@ -10,6 +10,7 @@ from llm.services.infrastructure.storage import revision_token
 
 from .tool_catalog import ToolCatalog, ToolTag
 from ..tools.application import HubApplicationTools
+from ..tools.validation import ToolInputRegistry
 
 
 class ToolLookup:
@@ -31,12 +32,18 @@ class ToolLookup:
     )
     UNBOUND = {"tools": [], "notice": "Tool discovery is unavailable outside a bound Hub Run."}
 
-    def __init__(self, allowed, *, groups=None):
+    def __init__(self, allowed, *, groups=None, constraints=None):
         tags = ToolCatalog.from_registry(allowed, extra_groups=groups)
+        # Only policy-bearing schemas need derivation. Reuse the provider's
+        # public definition path once at binding, never per search/page/call.
+        names = tuple(name for name in allowed.names() if (constraints or {}).get(name))
+        schemas = {definition.name: definition.parameters
+                   for definition in ToolInputRegistry.observe(allowed).definitions(
+                       names=names, constraints=constraints)} if names else {}
         self.rows = tuple({
             "name": entry.name,
             "description": tool.description,
-            "parameters": tool.parameters,
+            "parameters": schemas.get(entry.name, tool.parameters),
             "tags": sorted(entry.tags),
             "unclassified": ToolCatalog.unclassified(entry),
             "approval_required": ToolTag.APPROVAL in entry.tags,
@@ -64,11 +71,11 @@ class ToolLookup:
             'notice': self.NOTICE}
 
     @classmethod
-    def bind(cls, allowed, *, groups=None):
+    def bind(cls, allowed, *, groups=None, constraints=None):
         if HubApplicationTools.HELP not in allowed.names():
             return allowed
         original = allowed.get(HubApplicationTools.HELP)
-        lookup = cls(allowed, groups=groups)
+        lookup = cls(allowed, groups=groups, constraints=constraints)
 
         async def invoke(arguments):
             if cls.QUERY in arguments:

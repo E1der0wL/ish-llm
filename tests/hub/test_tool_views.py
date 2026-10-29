@@ -122,7 +122,7 @@ class ToolViewTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_explicit_page_and_memory_limits_remain_authoritative(self):
         self.context.project.config.set_component_parameters('memory', {'policy': {'processing': {'tool_result_chars': 2000}}})
-        self.context.tool_scope.argument_constraints['file_read']['max_chars']['value'] = 1500
+        self.context.tool_scope.argument_constraints['file_read']['max_chars']['maximum'] = 1500
         value = dict(path='source', sha256='a' * 64, text='x' * 1500, offset=0, next_offset=1500, truncated=True)
         request = self.request('file_read', value, {'path': 'source'})
         view = await self.project(request)
@@ -153,7 +153,7 @@ class ToolViewIntegrationTests(unittest.IsolatedAsyncioTestCase):
             requests.append(request)
             results = [m['content'] for m in request['messages'] if m['role'] == 'tool']
             if not results:
-                yield chunk(calls=[call('{"path":"source.txt"}', name='file_read')], finish='tool_calls')
+                yield chunk(calls=[call('{"path":"source.txt","max_chars":8000}', name='file_read')], finish='tool_calls')
                 return
             self.assertLessEqual(len(results[-1]), 8000)
             value = json.loads(results[-1])

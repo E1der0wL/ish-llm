@@ -183,7 +183,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 workflow = (WorkflowGraph(entry="hold").node("hold", "hold")
-                    .node("read", "tool", tool="file_read", arguments={"path": "name.txt"})
+                    .node("read", "tool", tool="file_read", arguments={"path": "name.txt", "max_chars": 8000})
                     .node("finish", "end").connect("hold", "read").connect("read", "finish"))
                 await (await runtime.project.components.aget("workflows")).acreate(workflow.to_dict(), identifier="reader")
                 await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="reader-agent")

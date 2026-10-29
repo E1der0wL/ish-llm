@@ -68,14 +68,27 @@ class ToolInputRegistry(ToolRegistry):
     def definitions(self, *, names=None, constraints: dict | None = None) -> tuple[ToolDefinition, ...]:
         result = []
         for definition in super().definitions(names=names, constraints=constraints):
-            fixed = [key for key, value in (constraints or {}).get(definition.name, {}).items()
-                     if ArgumentConstraint(value).mode == ConstraintMode.FIXED]
-            if fixed:
+            fields = (constraints or {}).get(definition.name, {})
+            if fields:
                 schema = deepcopy(definition.parameters)
+                fixed = []
+                for key, value in fields.items():
+                    rule = ArgumentConstraint(value)
+                    field = schema[SchemaKeyword.PROPERTIES][key]
+                    # Keep native allOf validation intact, but also expose the
+                    # policy at the field's surface for provider/model readers.
+                    field.update(rule.value_schema())
+                    if rule.mode == ConstraintMode.FIXED:
+                        fixed.append(key)
+                        field[SchemaKeyword.ENUM] = rule.choices
+                        field[SchemaKeyword.DESCRIPTION] = (
+                            'Fixed by the current Tool argument policy. Use the sole enum/const '
+                            'value exactly; this is not an upper bound.')
                 # A provider must see the fields injected by the backend when
                 # evaluating cross-field constraints (e.g. character vs line pages).
-                schema[SchemaKeyword.REQUIRED] = list(dict.fromkeys([
-                    *schema.get(SchemaKeyword.REQUIRED, ()), *fixed]))
+                if fixed:
+                    schema[SchemaKeyword.REQUIRED] = list(dict.fromkeys([
+                        *schema.get(SchemaKeyword.REQUIRED, ()), *fixed]))
                 definition = replace(definition, parameters=schema)
             result.append(definition)
         return tuple(result)
@@ -106,6 +119,9 @@ class ToolInputRegistry(ToolRegistry):
                 elif error.validator == SchemaKeyword.NOT and name == FileReadArguments.NAME:
                     detail = ('character paging (offset/max_chars) cannot be combined with '
                               'start_line/max_lines/tail_lines; tail_lines also excludes start_line/max_lines')
+                elif error.validator == SchemaKeyword.CONST:
+                    detail = ('must equal the fixed value in the Tool schema; '
+                              'a fixed value is not an upper bound')
                 else:
                     detail = f'violates {error.validator}; check the Tool schema and argument constraints'
                 raise ValueError(f"Tool {name!r}, {path}: {detail}") from rejected

@@ -196,7 +196,7 @@ class ChatProjects:
                 ),
                 title,
                 lambda name: self.call(operation, identifier, name, completed=saved),
-                size=PopupSize.SMALL if key == KeyName.EDIT else PopupSize.MEDIUM,
+                size=PopupSize.SMALL,
             )
         elif (
             item is not ProjectSummaries.NO_MATCH
@@ -213,4 +213,5 @@ class ChatProjects:
                     identifier,
                     completed=lambda _: self.refresh(),
                 ),
+                size=PopupSize.SMALL,
             )

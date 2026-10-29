@@ -62,6 +62,8 @@ class BackendWorker:
             HubRuntime.instruction_targets.__name__,
             HubRuntime.answer_question.__name__,
             HubRuntime.cancel_request.__name__,
+            HubRuntime.select.__name__,
+            HubRuntime.focus_history.__name__,
         }
     )
     INDEPENDENT_OPERATIONS = frozenset(
@@ -81,6 +83,7 @@ class BackendWorker:
             HubRuntime.submission_state.__name__,
             HubRuntime.instruction_targets.__name__,
             HubRuntime.snapshot.__name__,
+            HubRuntime.focus_history.__name__,
         }
     )
 

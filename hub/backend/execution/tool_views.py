@@ -63,7 +63,7 @@ class NativeToolViews:
                 args = {FileReadArguments.path.__name__: value['path'],
                         FileReadArguments.expected_sha256.__name__: value['sha256'],
                         FileReadArguments.offset.__name__: offset + count,
-                        FileReadArguments.max_chars.__name__: HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']['max_chars']['value']}
+                        FileReadArguments.max_chars.__name__: HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']['max_chars']['maximum']}
                 if 'max_file_bytes' in arguments:
                     args['max_file_bytes'] = arguments['max_file_bytes']
                 hint = ReaderCalls.create(context, request, FileReadArguments.NAME, args, limit_field='max_chars')
@@ -94,7 +94,7 @@ class NativeToolViews:
             if 'cwd' in value:
                 result['cwd'] = value['cwd']
             more = value['status'] == ProcessStatus.RUNNING
-            args = {'process_id': value['process_id'], 'max_chars': HubDefaults.TOOL_PAGE_CONSTRAINTS['process_output']['max_chars']['value']}
+            args = {'process_id': value['process_id'], 'max_chars': HubDefaults.TOOL_PAGE_CONSTRAINTS['process_output']['max_chars']['maximum']}
             for name in ('stdout', 'stderr'):
                 result[name] = value[name][:count]
                 end = offsets[name] + len(result[name])

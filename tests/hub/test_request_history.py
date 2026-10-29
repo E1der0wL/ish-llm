@@ -414,7 +414,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.close()
 
     async def test_retry_reuses_completed_tool(self):
-        provider = ScriptedCompletion([chunk(calls=[call('{"path":"input.txt"}', name="file_read")], finish="tool_calls")],
+        provider = ScriptedCompletion([chunk(calls=[call('{"path":"input.txt","max_chars":8000}', name="file_read")], finish="tool_calls")],
             [RuntimeError("provider failed after tool")], [chunk("done", finish="stop")])
         with tempfile.TemporaryDirectory() as directory:
             Path(directory, "input.txt").write_text("test input")

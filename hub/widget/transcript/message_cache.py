@@ -9,7 +9,7 @@ from llm.core.models import MessageStatus, MessageRole
 from .render_contract import RenderSection, TranscriptLayout
 from bisect import bisect_right
 from collections.abc import Sequence
-from collections import ChainMap
+from collections import ChainMap, OrderedDict
 from dataclasses import dataclass, replace, field
 from typing import NamedTuple
 from pathlib import Path
@@ -17,6 +17,7 @@ from types import MappingProxyType
 from prompt_toolkit.formatted_text.utils import fragment_list_width
 from ...ui.output import OutputParser, RenderContext
 from ...ui.output.streaming import StreamingParse
+from .viewport import TranscriptViewport
 
 
 class Joined(Sequence):
@@ -134,6 +135,7 @@ class MessageRenderCache:
     NO_WIDTH = 0
     ORIGIN = 0
     MIN_ELAPSED = 0
+    VISITED_CONTEXTS = 4
 
     def __init__(self):
         self.context = MessageRenderCache.ABSENT
@@ -145,9 +147,13 @@ class MessageRenderCache:
         self.trace_renders = MessageRenderCache.INITIAL_COUNT
         self._prefix_key = MessageRenderCache.ABSENT
         self._prefix = MessageRenderCache.ABSENT
+        self._contexts = OrderedDict()
+        self._conversation = None
+        self._translations = None
 
     def prepare(
-        self, messages, width, theme, language, *, render, renderers, root, invalidate
+        self, messages, width, theme, language, *, render, renderers, root, invalidate,
+        visible=None,
     ):
         context = CacheContext(
             width,
@@ -157,10 +163,19 @@ class MessageRenderCache:
             str(root),
             renderers.structure_version,
         )
-        if context != self.context:
-            self.items.clear()
-            self._prefix_key = MessageRenderCache.ABSENT
+        conversation = messages[0].id if messages else None
+        if context != self.context or conversation != self._conversation:
+            if self.context is not None and self.items:
+                self._contexts[(self.context, self._conversation)] = (
+                    self.items, self._prefix_key, self._prefix, self._translations)
+            self.items, self._prefix_key, self._prefix, _ = self._contexts.pop(
+                (context, conversation), ({}, None, None, None))
+            while len(self._contexts) >= self.VISITED_CONTEXTS:
+                self._contexts.popitem(last=False)
             self.context = context
+            self._conversation = conversation
+            # Retain identity sources while a context is cached; Python may reuse IDs.
+            self._translations = language.messages
         if not messages:
             self.items.clear()
             self._prefix_key = MessageRenderCache.ABSENT
@@ -182,7 +197,7 @@ class MessageRenderCache:
                 previous = CachedMessage()
             if (previous.source is message and previous.source_index == index
                     and previous.renderer_version == renderer_version
-                    and not previous.dynamic_blocks):
+                    and not previous.dynamic_blocks and previous.body is not None):
                 retained[identifier] = previous
                 entries.append(previous.frame)
                 continue
@@ -202,6 +217,16 @@ class MessageRenderCache:
                     blocks, parsing = parsing.parse(self.parser, message.text, final=body_key.final)
                 else:
                     blocks, parsing = (), StreamingParse()
+            if visible is not None and not visible[0] <= index < visible[1]:
+                if previous.body_key == body_key and previous.frame is not None:
+                    frame = previous.frame
+                    retained[identifier] = previous
+                else:
+                    frame = TranscriptViewport.deferred(message, index, blocks, width, theme, renderers)
+                    retained[identifier] = CachedMessage(body_key=body_key, blocks=blocks,
+                        parsing=parsing, frame=frame)
+                entries.append(frame)
+                continue
             render_context = RenderContext(
                 TranscriptLayout.inner_width(width),
                 theme,

@@ -408,7 +408,7 @@ class HubRuntime:
             self._opened_sessions.add(selected)
         self.dirty.set()
 
-    async def select(self, session_id: str) -> None:
+    async def select(self, session_id: str, message_id: str | None = None) -> None:
         from .progress import OperationProgress
         if not session_id and not self.sessions:
             return
@@ -418,7 +418,14 @@ class HubRuntime:
             await session.run.start()
             self._opened_sessions.add(session_id)
         self.selected_id = session_id
+        if message_id is not None:
+            self.snapshot_reader.focus_history(session_id, message_id)
         self.dirty.set()
+
+    async def focus_history(self, session_id: str, message_id: str) -> None:
+        """Observation-only detail window; never an execution/history filter."""
+        if session_id == self.selected_id and self.snapshot_reader.focus_history(session_id, message_id):
+            self.dirty.set()
 
     async def new_session(
         self,

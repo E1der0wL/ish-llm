@@ -64,13 +64,13 @@ class HubDefaults:
     TOOL_CONTEXT_CHARS = 24000
     TOOL_READ_ACCESS = {"roots": ["/"], "follow_symlinks": True}
     TOOL_PAGE_CONSTRAINTS = {
-        "process_output": {"max_chars": {"mode": "fixed", "value": 8000}},
-        "file_read": {"max_chars": {"mode": "fixed", "value": 8000}},
+        "process_output": {"max_chars": {"mode": "bounded", "minimum": 1, "maximum": 8000}},
+        "file_read": {"max_chars": {"mode": "bounded", "minimum": 1, "maximum": 8000}},
         "file_search": {
-            "max_chars": {"mode": "fixed", "value": 400},
-            "limit": {"mode": "fixed", "value": 20},
+            "max_chars": {"mode": "bounded", "minimum": 1, "maximum": 400},
+            "limit": {"mode": "bounded", "minimum": 1, "maximum": 20},
         },
-        "file_list": {"limit": {"mode": "fixed", "value": 200}},
+        "file_list": {"limit": {"mode": "bounded", "minimum": 1, "maximum": 200}},
     }
     APPROVAL_MAX_RISK = 20
     FINAL_REVIEW = {

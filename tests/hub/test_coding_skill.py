@@ -28,7 +28,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                    finish="tool_calls")],
             [chunk(calls=[call(json.dumps({"path": "greeting.py", "content": content}),
                               name="file_create", call_id="write")], finish="tool_calls")],
-            [chunk(calls=[call(json.dumps({"path": "greeting.py"}), name="file_read", call_id="verify")],
+            [chunk(calls=[call(json.dumps({"path": "greeting.py", "max_chars": 8000}), name="file_read", call_id="verify")],
                    finish="tool_calls")],
             [chunk("greeting.py를 작성하고 저장된 내용을 확인했습니다.", finish="stop")],
             [chunk("예시: greet('Hub')", finish="stop")])
@@ -144,7 +144,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                     argv=[str(Path(sys.executable).resolve()), "-m", "unittest", "test_calculator", "-v"])
                 self.assertNotEqual(failed["returncode"], 0)
                 self.assertIn("AssertionError", failed["stderr"])
-                read = await tool("file_read", workspace_id=workspace, path="calculator.py")
+                read = await tool("file_read", workspace_id=workspace, path="calculator.py", max_chars=8000)
                 await tool("file_patch", workspace_id=workspace, path="calculator.py",
                     expected_sha256=read["sha256"], old_text="return a - b", new_text="return a + b")
                 passed = await tool("test_workspace_execute", workspace_id=workspace,
@@ -154,12 +154,12 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((source / "calculator.py").read_text(), original)
                 self.assertFalse((source / "test_calculator.py").exists())
                 # A validated copy is not delivery: apply the scoped patch and new test to the original.
-                original_read = await tool("file_read", path="calculator.py")
+                original_read = await tool("file_read", path="calculator.py", max_chars=8000)
                 await tool("file_patch", path="calculator.py", expected_sha256=original_read["sha256"],
                            old_text="return a - b", new_text="return a + b")
-                test_read = await tool("file_read", workspace_id=workspace, path="test_calculator.py")
+                test_read = await tool("file_read", workspace_id=workspace, path="test_calculator.py", max_chars=8000)
                 await tool("file_create", path="test_calculator.py", content=test_read["text"])
-                delivered = await tool("file_read", path="calculator.py")
+                delivered = await tool("file_read", path="calculator.py", max_chars=8000)
                 self.assertEqual(delivered["text"], original.replace("return a - b", "return a + b"))
                 self.assertEqual((source / "test_calculator.py").read_text(), test_read["text"])
                 process = await asyncio.create_subprocess_exec(sys.executable, "-m", "unittest", "test_calculator", "-v",

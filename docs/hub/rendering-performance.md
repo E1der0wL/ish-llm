@@ -63,8 +63,8 @@ These extractions preserve the existing bounds and do not change the rendering p
 ## Cache boundaries
 
 `SnapshotReader` retains settled Run metadata, authors and Graph/Tool observations
-for the conversation currently displayed. Deleting turns prunes those entries;
-switching sessions clears them. This bound follows retained history rather than a
+for at most four visited conversations. Deleting turns prunes those entries;
+project switching clears them. This bound follows visited history rather than a
 fixed FIFO of 1,024 items, which previously evicted the next item needed during
 every full history traversal. The submission timestamp cache remains separately
 bounded. Active Runs still consume fresh Step evidence, while settled Loop history
@@ -73,6 +73,20 @@ selected terminal Run also reuses its Step snapshot. Pending, running and paused
 Runs bypass that cache so interactions continue to reflect new evidence. This removes
 repeated storage reads; it does not make traversal of a long conversation constant
 time or bound transcript memory independently of retained history.
+
+The selected history initially loads Run details only around the restored reading
+anchor (24 conversation messages on either side), plus current/active Runs.
+Scrolling coalesces a new observation window through the existing reading-position
+callback. Previously loaded details are reused; no other conversation is prefetched.
+Session changes cancel an obsolete snapshot read before acquiring the same runtime
+lock. They never cancel execution, durable writes, or another foreground command.
+Run/Engine events invalidate the affected visited projection even while it is hidden;
+event loss clears observation caches and preserves the reading anchor.
+
+The public `Session.aconversation()` contract still returns the conversation
+projection as a whole. Hub does not invent a second store or read backend files to
+page it. The savings are historical Run/Step reads and expensive presentation work,
+not a guarantee that only visible raw conversation bytes are loaded.
 
 `MessageRenderCache` separates header metadata from body content. Elapsed time,
 time labels and status labels do not reparse an unchanged body. The streaming
@@ -96,6 +110,19 @@ instance is reused. Renderer registration changes invalidate the layout context;
 renderer completion revisions are checked per block. An image completion cannot
 invalidate unrelated Markdown bodies. Markdown renderers reuse their Console
 until width or theme changes.
+
+For histories longer than 24 displayed messages, Rich/resource rendering covers
+the viewport and nearby messages. Follow-tail initially prepares the last 24;
+saved anchors and tag navigation prepare their neighborhood. Offscreen messages
+keep raw blocks, tags and lightweight height estimates, without allocating blank
+rows or starting image conversion. Exact geometry replaces estimates on visit and
+restores the current reading anchor. At most four visited render contexts are cached.
+The viewport index is reused between paints and searched by binary search.
+
+Explicit whole-session text search prepares the full transcript to retain existing
+rendered-text search semantics. A single Markdown message remains the unit of
+rendering, preserving tables, code and cross-block Markdown semantics. Very large
+individual responses are not split into independently rendered arbitrary lines.
 
 Transcript rows use immutable indexed concatenations. A stable prefix of past
 messages, its anchors, object offsets and widths is reused while the final
@@ -185,11 +212,15 @@ next prepared frame; input does not await it. Python threads still share the GIL
 
 Metadata scans over messages remain linear on the worker, and snapshot-to-view
 selection still walks message/session metadata on the UI thread. History rows
-are neither reparsed nor copied on each tail update. Width/theme changes require
-a full layout in the worker. Search indexes the current prepared transcript on
+are neither reparsed nor copied on each tail update. Width/theme changes prepare
+the visible neighborhood again on the worker. Search indexes the transcript on
 that same bounded lane. Large settings-form construction remains outside this
 output-path optimization; existing full-suite diagnostics can still show its
 UI callback cost.
+
+`tests.hub.test_viewport_loading` asserts visible-neighborhood render counts,
+visited-cache reuse/eviction, offscreen edits, search, event-loss reconciliation,
+inactive-session invalidation and preemption of an obsolete display read.
 
 ## Validation record (2026-10-11)
 

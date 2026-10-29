@@ -19,11 +19,27 @@ Hub는 llm의 파일 기반 출력 저장과 범위 조회를 사용한다. 명�
 | `file_list` | 200개 항목 |
 | 일반 파일 읽기 | OS가 허용하는 절대 경로와 심볼릭 링크 대상 |
 
-페이지 값은 `config.policies.tools.argument_constraints`의 **fixed** 정책이다. 모델이
-생략하면 백엔드가 값을 넣고, 다른 값을 요청하면 공개 스키마로 거부한다. 사용자는 이 정책을
-설정에서 변경할 수 있다. `file_read`는 문자 페이지를 사용하므로 기본 정책과
+페이지 값은 `config.policies.tools.argument_constraints`의 **bounded** 정책이다. 표의 값은
+최대값이며 모델은 1부터 최대값까지 정수로 요청할 수 있다. 페이지 인자는 공개 스키마의
+필수값이다. 0·음수·소수·최대값 초과는 거부한다. 사용자는 이 정책을 설정에서 변경할 수 있다.
+`file_read`는 문자 페이지를 사용하므로 기본 정책과
 `start_line/max_lines/tail_lines`를 섞지 않는다. 검색 결과의 줄 미리보기는 전체 줄이 아니다.
 검색의 별도 `context_lines`를 크게 지정하면 결과량도 늘어나므로 필요한 문맥만 요청한다.
+
+`limit: ... const` 또는 `max_chars: ... const` 오류는 이 **고정값과 다른 인자**를
+모델이 보냈다는 뜻이다. 이전 Hub 기본값은 이 페이지 값을 `fixed`로 저장했지만, 새 프로젝트는
+최대값 이하를 허용한다. 기존 프로젝트의 명시적 정책을 자동 변환하지 않으므로 아래 JSON의
+범위 정책을 설정에 반영해야 한다. 사용자가 별도로 지정한 고정값은 계속 지원하며 모델용 필드에
+`const`·단일 `enum`·설명으로 명시한다. 선택값과 범위 제약도 필드에 직접 표시하고,
+원본 스키마와 백엔드의 `allOf` 제약은 그대로 유지한다.
+`hub_help(tool_query="file_read")` 같은 도구 탐색도 현재 Run의 실제 제약을 반영한
+동일한 스키마를 반환한다. Project 기본값을 다시 읽어 Agent의 더 좁은 제약을 덮어쓰지 않는다.
+
+이는 모델이 제약을 발견하기 쉽게 하는 보강이며, 잘못된 인자를 몰래 보정하거나 검증을
+우회하는 기능은 아니다. 실행 전 스키마 거부는 실행 후 Tool 실패의 재시도와 다르므로,
+완료된 도구나 Run을 자동 재실행하지 않는다. 더 작은 페이지도 허용하고 싶다면 사용자가
+해당 정책을 `bounded`로 변경해야 한다. 예를 들어 `file_list.limit`의
+`{"mode":"bounded","minimum":1,"maximum":200}`은 1~200을 허용한다.
 
 명령 결과에는 미리보기, 문자 수, `process_id`, `output_sources`가 들어간다.
 `process_output`의 stdout/stderr 커서로 저장 원문을 나눠 읽고, 파일은 `file_read`의
@@ -50,13 +66,13 @@ Hub는 llm의 파일 기반 출력 저장과 범위 조회를 사용한다. 명�
 
 ```json
 {
-  "process_output": {"max_chars": {"mode": "fixed", "value": 8000}},
-  "file_read": {"max_chars": {"mode": "fixed", "value": 8000}},
+  "process_output": {"max_chars": {"mode": "bounded", "minimum": 1, "maximum": 8000}},
+  "file_read": {"max_chars": {"mode": "bounded", "minimum": 1, "maximum": 8000}},
   "file_search": {
-    "max_chars": {"mode": "fixed", "value": 400},
-    "limit": {"mode": "fixed", "value": 20}
+    "max_chars": {"mode": "bounded", "minimum": 1, "maximum": 400},
+    "limit": {"mode": "bounded", "minimum": 1, "maximum": 20}
   },
-  "file_list": {"limit": {"mode": "fixed", "value": 200}}
+  "file_list": {"limit": {"mode": "bounded", "minimum": 1, "maximum": 200}}
 }
 ```
 

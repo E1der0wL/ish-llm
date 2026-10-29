@@ -1,4 +1,4 @@
-"""Disposable display projections, bounded by the selected conversation."""
+"""Disposable display projection for one visited conversation."""
 
 from dataclasses import dataclass
 
@@ -41,6 +41,8 @@ class ConversationProjection:
         self.display_rows = ()
         self.linked = False
         self.full_refresh = True
+        self.focus_id = None
+        self.detailed = set()
 
     def changed(self, run_id=None):
         self.revision += 1
@@ -106,6 +108,7 @@ class ConversationProjection:
         return self.display_rows
 
     def retain(self, identifiers):
+        self.detailed.intersection_update(identifiers)
         self.settled = {key: value for key, value in self.settled.items()
                         if key in identifiers}
 

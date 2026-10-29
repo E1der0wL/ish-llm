@@ -1,6 +1,7 @@
 """One request's derived host Tool bindings, never authorization decisions."""
 
 from dataclasses import dataclass
+from copy import deepcopy
 
 from llm.core.models import Project, Run
 from llm.components.tools import ToolRegistry
@@ -16,7 +17,7 @@ class BindingCache:
     def clear(self):
         self.key = self.registry = self.source = None
 
-    def bind(self, context, environment, build):
+    def bind(self, context, environment, build, *, constraints=None):
         # Native/custom registries may own additional mutable admission hooks.
         # Only the standard registry and Hub's diagnostic adapter are reusable.
         if (not isinstance(context.project, Project) or not isinstance(context.run, Run)
@@ -25,7 +26,7 @@ class BindingCache:
         source = context.tools
         key = (context.run.id, context.project.id, context.session.id,
                environment.to_dict() if environment is not None else None, tuple(context.project.components),
-               context.project.config.to_dict(), source.execution_binding({}),
+               context.project.config.to_dict(), source.execution_binding({}), deepcopy(constraints),
                tuple(id(source.get(name).handler) for name in source.names()))
         if self.key != key or self.source is not source:
             registry = build()  # Native registration checks all changed bindings.

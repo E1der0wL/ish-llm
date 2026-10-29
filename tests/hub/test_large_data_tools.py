@@ -69,7 +69,7 @@ class LargeDataToolsTests(unittest.IsolatedAsyncioTestCase):
                 result = results[-1]
                 observations.append(result)
                 yield chunk(calls=[call(json.dumps({'process_id': result['process_id'],
-                    'stdout_offset': result['stdout_chars'] - 100}), name='process_output', call_id='page')], finish='tool_calls')
+                    'stdout_offset': result['stdout_chars'] - 100, 'max_chars': 8000}), name='process_output', call_id='page')], finish='tool_calls')
             else:
                 observations.append(results[-1])
                 yield chunk('Read the retained final range; the preview is not full-data verification.', finish='stop')
@@ -136,7 +136,7 @@ class LargeDataToolsTests(unittest.IsolatedAsyncioTestCase):
             (external / 'large.txt').write_text(content)
             (work / 'linked.txt').symlink_to(external / 'large.txt')
             provider = ScriptedCompletion(
-                [chunk(calls=[call(json.dumps({'path': str(work / 'linked.txt')}), name='file_read')], finish='tool_calls')],
+                [chunk(calls=[call(json.dumps({'path': str(work / 'linked.txt'), 'max_chars': 8000}), name='file_read')], finish='tool_calls')],
                 [chunk('Read a page.', finish='stop')])
             runtime = HubRuntime(HubConfig(Path(root) / 'storage', file_root=work, auto_title=False,
                 agent_definition={'engine': 'loop', 'tools': ['file_read']}, model='test/model',

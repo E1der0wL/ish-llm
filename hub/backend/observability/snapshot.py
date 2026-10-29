@@ -16,6 +16,7 @@ from llm.core.models import RunStatus, MessageStatus
 from llm.core.results import CompletionRecords
 from llm.services.runtime.requests import RequestAdmission
 from dataclasses import dataclass, replace
+from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any
 from llm.engines.events import EngineEvent, EngineEventType
@@ -56,6 +57,8 @@ class SnapshotReader:
     EMPTY_TEXT = ""
     PARAGRAPH = "\n\n"
     CACHE_LIMIT = 1024
+    VISITED_SESSIONS = 4
+    DETAIL_NEIGHBORS = 24
     ZERO_ELAPSED = 0.0
     QUEUED_IDS_LIMIT = 0
     LATEST_RUN_LIMIT = 1
@@ -71,7 +74,10 @@ class SnapshotReader:
             self.submissions.pop(next(iter(self.submissions)))
 
     def invalidate_dropped_events(self):
-        self.projection.clear()
+        for projection in set((self.projection, *self.projections.values())):
+            focus = projection.focus_id
+            projection.clear()
+            projection.focus_id = focus
         self.session_summaries.clear()
         self.thinking.runs.clear()
         self.reads.clear()
@@ -82,6 +88,7 @@ class SnapshotReader:
         self.cache = {}
         self.reads = ObservationReads()
         self.projection = ConversationProjection()
+        self.projections = OrderedDict()
         self.session_summaries = {}
         self.selected_conversation = None
         self.agent_definitions = {}
@@ -100,6 +107,7 @@ class SnapshotReader:
         self.drafts = AnswerDrafts()
 
     def clear(self):
+        self.projections.clear()
         self.projection.clear()
         self.session_summaries.clear()
         self.drafts.clear()
@@ -119,6 +127,8 @@ class SnapshotReader:
         eviction/reload loops when history exceeds a fixed-size cache.
         """
         identifiers = {item.run_id for item in messages if item.run_id}
+        for projection in self.projections.values():
+            identifiers.update(item.run_id for item in (projection.input_records or ()) if item.run_id)
         self.cache = {key: value for key, value in self.cache.items() if key[0] in identifiers}
         for cache in (self.tool_history, self.trace_history, self.ended_times,
                       self.workflows, self.authors, self.run_engines, self.step_observations):
@@ -135,7 +145,10 @@ class SnapshotReader:
 
     def invalidate(self, session_id):
         self.session_summaries.pop(session_id, None)
-        if session_id == self.selected_conversation:
+        projection = self.projections.get(session_id)
+        if projection is not None:
+            projection.changed()
+        elif session_id == self.selected_conversation:
             self.projection.changed()
         self.reads.discard(ReadKind.SESSION, session_id)
         self.reads.discard(ReadKind.CONVERSATION, session_id)
@@ -145,8 +158,34 @@ class SnapshotReader:
         self.reads.discard(ReadKind.PROJECT)
         self.reads.discard(ReadKind.AGENTS)
 
+    def _visited_projection(self, session_id):
+        projection = self.projections.get(session_id)
+        if projection is None:
+            projection = self.projections[session_id] = ConversationProjection()
+        self.projections.move_to_end(session_id)
+        while len(self.projections) > self.VISITED_SESSIONS:
+            expired, _ = self.projections.popitem(last=False)
+            self.reads.discard(ReadKind.CONVERSATION, expired)
+        return projection
+
+    def focus_history(self, session_id, identifier):
+        projection = self._visited_projection(session_id)
+        if projection.focus_id == identifier:
+            return False
+        projection.focus_id = identifier
+        projection.changed()
+        return True
+
+    def detail_window(self, messages):
+        target = ReasoningMessage.assistant_id(self.projection.focus_id or '')
+        index = next((i for i, message in enumerate(messages) if message.id == target), len(messages) - 1)
+        return {message.id for message in messages[max(0, index - self.DETAIL_NEIGHBORS):
+                                                   index + self.DETAIL_NEIGHBORS + 1]}
+
     def observe_run(self, run):
-        self.projection.changed(run.id)
+        projection = self.projections.get(run.session_id)
+        if projection is not None:
+            projection.changed(run.id)
         self.invalidate(run.session_id)
         self.reads.discard(ReadKind.STEPS, run.id)
         self.step_observations.pop(run.id, None)
@@ -154,8 +193,9 @@ class SnapshotReader:
     def observe_engine(self, run, event):
         """Invalidate only records changed by persisted Engine observations."""
         kind = EngineEvent.observed_type(event)
-        if run.session_id == self.selected_conversation:
-            self.projection.changed(run.id)
+        projection = self.projections.get(run.session_id)
+        if projection is not None:
+            projection.changed(run.id)
         if kind != EngineEventType.TEXT_DELTA:
             self.reads.discard(ReadKind.RUN, run.session_id, run.id)
         if kind in EngineEvent.PHASES or kind == EngineEventType.OUTPUT:
@@ -272,11 +312,13 @@ class SnapshotReader:
         run_steps=None,
         graph_engines=(),
         drafts=None,
+        detail_ids=None,
     ):
         revision = self.projection.revision
         base_parts = self.projection.parts
         run_records, run_steps = run_records or {}, run_steps or {}
-        input_context = (author, tuple(stopped_runs), tuple(graph_engines))
+        input_context = (author, tuple(stopped_runs), tuple(graph_engines),
+                         frozenset(detail_ids) if detail_ids is not None else None)
         incremental = self.projection.incremental(messages, input_context)
         if not incremental:
             self.retain_messages(messages)
@@ -313,10 +355,13 @@ class SnapshotReader:
             settled = (message.status not in (*self.LIVE_MESSAGE_STATES, MessageStatus.PAUSED)
                        and message.run_id not in run_records
                        and (latest is None or message.run_id != latest.id))
+            detailed = (detail_ids is None or message.id in detail_ids or not settled
+                        or message.id in self.projection.detailed)
             key = (role, message.content, message.created_at, str(message.status),
                    message.run_id, author, requests.get(message.run_id),
                    authors.get(message.run_id),
-                   str(RunInstruction.from_message(message).status) if is_instruction(message) else None)
+                   str(RunInstruction.from_message(message).status) if is_instruction(message) else None,
+                   detailed)
             cached = self.projection.settled.get(message.id) if settled else None
             if cached is not None and cached.key == key:
                 visible.extend(cached.items)
@@ -329,7 +374,7 @@ class SnapshotReader:
                 current_run = latest
             steps_for_run = run_steps.get(message.run_id, latest_steps if current_run is latest else ())
             workflow, workflow_states = self.EMPTY_TEXT, ()
-            if role == MessageRole.ASSISTANT and message.run_id:
+            if role == MessageRole.ASSISTANT and message.run_id and detailed:
                 active = str(message.status) in (
                     MessageStatus.STREAMING,
                     MessageStatus.COMMITTED,
@@ -466,6 +511,8 @@ class SnapshotReader:
             )
             parts[message.id] = tuple(visible[start:])
             if settled and revision == self.projection.revision:
+                if detailed:
+                    self.projection.detailed.add(message.id)
                 self.projection.settled[message.id] = MessageProjection(
                     key, message.run_id, parts[message.id])
         if revision == self.projection.revision:
@@ -487,6 +534,9 @@ class SnapshotReader:
     ):
         data = await self.reads.read((ReadKind.PROJECT,), project.aget_data)
         observations, summaries = [], []
+        for identifier in self.projections.keys() - sessions.keys():
+            del self.projections[identifier]
+            self.reads.discard(ReadKind.CONVERSATION, identifier)
         for identifier in self.session_summaries.keys() - sessions.keys():
             del self.session_summaries[identifier]
         for identifier, session in tuple(sessions.items()):
@@ -522,8 +572,8 @@ class SnapshotReader:
         )
         messages, summary, questions = (), self.ABSENT, ()
         if self.selected_conversation != selected_id:
-            self.projection.clear()
-            self.reads.discard(ReadKind.CONVERSATION)
+            # Cache only visited conversations, never prefetch another Session.
+            self.projection = self._visited_projection(selected_id)
             self.selected_conversation = selected_id
         if selected:
             session = sessions[selected_id]
@@ -592,6 +642,7 @@ class SnapshotReader:
                     drafts=drafts,
                     graph_engines=tuple(name for name in engines.names()
                         if agent_mode(underlying_engine(engines.get(name))) == AgentMode.WORKFLOW),
+                    detail_ids=self.detail_window(conversation),
                 )
                 self.projection.remember(conversation, context, messages,
                     (*run_records.values(), *run_steps.values()))

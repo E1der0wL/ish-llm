@@ -61,6 +61,15 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                     view.close_dialog()
                     view.session_actions.create()
                     self.assertEqual(view._dialog.size, PopupSize.MEDIUM)
+                    view.close_dialog()
+                    for perform, key in ((view.projects.perform, KeyName.R),
+                                         (view.projects.perform, KeyName.CLEAR),
+                                         (view.session_actions.perform, KeyName.CLEAR)):
+                        perform(key)
+                        self.assertEqual(view._dialog.size, PopupSize.SMALL)
+                        self.assertEqual((view._dialog._width().preferred,
+                                          view._dialog._height().preferred), (60, 9))
+                        view.close_dialog()
             finally:
                 app.exit()
                 await task

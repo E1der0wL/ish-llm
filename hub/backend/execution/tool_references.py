@@ -60,7 +60,7 @@ class ToolReferences:
             return 0  # Do not give the model references it has no selected Tool to read.
         from ...config.defaults import HubDefaults
         limit = cls.processing_policy(context).get(
-            MemoryProcessingConfig.Field.TOOL_RESULT_CHARS, HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']['max_chars']['value'])
+            MemoryProcessingConfig.Field.TOOL_RESULT_CHARS, HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']['max_chars']['maximum'])
         names = {call.id: call.name for item in request.messages for call in item.message.calls}
         readers = (MemoryToolDefinition.Name.READ_SOURCE, MemoryToolDefinition.Name.TOOL_RESULT)
         pending = [i for i, item in enumerate(request.messages)

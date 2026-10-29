@@ -53,7 +53,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_file_repair_uses_captured_root_and_records_completion_in_same_run(self):
         provider = ScriptedCompletion(
-            [chunk(calls=[call('{"path":"missing/report.txt"}', name="file_read")], finish="tool_calls")],
+            [chunk(calls=[call('{"path":"missing/report.txt","max_chars":8000}', name="file_read")], finish="tool_calls")],
             [chunk('{"changes":{"path":"src/report.txt"}}', finish="stop")],
             [chunk("Read successfully", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
@@ -250,7 +250,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             if kwargs["messages"][-1]["role"] == "tool":
                 yield chunk("done", finish="stop")
             else:
-                yield chunk(calls=[call('{"path":"missing/data.txt"}', name="file_read")], finish="tool_calls")
+                yield chunk(calls=[call('{"path":"missing/data.txt","max_chars":8000}', name="file_read")], finish="tool_calls")
         with tempfile.TemporaryDirectory() as root:
             runtime = await self.runtime(Path(root) / "storage", provider, tool_retry_chooser=choose)
             try:
@@ -280,7 +280,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
                 (Path(root) / "data.txt").write_text("graph data")
                 runtime = await self.runtime(Path(root) / "storage", provider, file_root=root,
                     tool_retry_chooser=(lambda request: RetryDecision({"path":"data.txt"})) if enabled else None)
-                graph = (WorkflowGraph(entry="read").node("read", "tool", tool="file_read", arguments={"path": "lost/data.txt"})
+                graph = (WorkflowGraph(entry="read").node("read", "tool", tool="file_read", arguments={"path": "lost/data.txt", "max_chars": 8000})
                          .node("end", "end").connect("read", "end"))
                 await (await runtime.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="reader")
                 await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="graph-reader")

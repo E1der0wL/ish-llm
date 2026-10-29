@@ -39,7 +39,7 @@ class RequestRouting:
         return (self.mode(context, implementation) == RequestMode.CONVERSATION
                 and self.definition.get(AgentDefinition.Field.SYSTEM_PROMPT) == SYSTEM_PROMPT)
 
-    def engine(self, context, implementation, *, groups=None, discovery=False):
+    def engine(self, context, implementation, *, groups=None, discovery=False, constraints=None):
         from ...asset.guides import CONVERSATION_PROMPT
         if not self.enabled(context, implementation):
             return implementation
@@ -57,7 +57,7 @@ class RequestRouting:
         # The engine copy belongs to this binding/execution. Shared registered
         # engines never receive mutable selection or per-Run transcript state.
         engine.tool_selector = HubToolSelector(context.tools, self.mode(context, implementation),
-                                              groups=groups, discovery=discovery)
+                                              groups=groups, discovery=discovery, constraints=constraints)
         return engine
 
     @staticmethod

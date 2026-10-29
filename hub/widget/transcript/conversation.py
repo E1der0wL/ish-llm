@@ -4,6 +4,7 @@ from ..output.search_index import SearchKey, SearchHighlight, IndexedLines
 from ..input_contract import ControlFragment
 
 from .identity import TranscriptIdentity, TranscriptAnchor
+from .viewport import TranscriptViewport
 from .render_contract import (
     RenderSection,
     TranscriptLayout,
@@ -359,10 +360,11 @@ class TranscriptFrameKey(NamedTuple):
     root: str
     renderer_version: tuple
     loop: int
+    visible: tuple | None = None
 
     def same_surface(self, requested):
         # Progressive frames may carry an earlier message revision on this surface.
-        return self.width == requested.width and (self.renderer_version, self.loop) == (
+        return self.width == requested.width and self.visible == requested.visible and (self.renderer_version, self.loop) == (
             requested.renderer_version,
             requested.loop,
         )
@@ -424,6 +426,7 @@ class ConversationControl(SelectableControl):
         from .message_cache import MessageRenderCache
 
         self._message_cache = MessageRenderCache()
+        self._viewport = TranscriptViewport()
         self._lines = [list(TranscriptLayout.BLANK_LINE)]
         self._anchors = []
         self._anchor_starts = {}
@@ -499,6 +502,7 @@ class ConversationControl(SelectableControl):
                 renderers=self.renderers,
                 root=root,
                 invalidate=app.invalidate,
+                visible=key.visible,
             )
 
         def fallback(error):
@@ -796,6 +800,9 @@ class ConversationControl(SelectableControl):
             str(self.file_root),
             self.renderers.version,
             loop_id,
+            self._viewport.select(self.messages, self._anchor_starts,
+                self.top_line, height, follow=self.follow_tail, pending=self._pending_position,
+                search=bool(self.search_query)),
         )
         if self._requested_key != key:
             resized = (

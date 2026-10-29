@@ -90,7 +90,8 @@ class ToolInputTests(unittest.IsolatedAsyncioTestCase):
             toolkit = builtins.toolkit
             registry = ToolInputRegistry.observe(toolkit.registry).select(('file_read',))
             original = deepcopy(registry.get('file_read').parameters)
-            limits = {'file_read': HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']}
+            # Explicit fixed policies remain supported independently of Hub's bounded default.
+            limits = {'file_read': {'max_chars': {'mode': 'fixed', 'value': 8000}}}
             tool, args = registry.prepare('file_read', {'path': 'sample.txt'}, constraints=limits)
             page = await tool.handler(args)
             self.assertEqual(page['text'], content[:8000])
@@ -163,9 +164,9 @@ class ToolInputTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_late_invalid_tool_names_the_field_without_replaying_completed_calls(self):
         # Several successful model/tool cycles precede the uncommon bad call.
-        responses = [[chunk(calls=[call('{"path":"sample.txt"}', name='file_read', call_id=f'read_{index}')], finish='tool_calls')]
+        responses = [[chunk(calls=[call('{"path":"sample.txt","max_chars":8000}', name='file_read', call_id=f'read_{index}')], finish='tool_calls')]
                      for index in range(3)]
-        responses.append([chunk(calls=[call('{"path":"sample.txt","offset":"wrong"}', name='file_read', call_id='bad_read')], finish='tool_calls')])
+        responses.append([chunk(calls=[call('{"path":"sample.txt","max_chars":8000,"offset":"wrong"}', name='file_read', call_id='bad_read')], finish='tool_calls')])
         provider = ScriptedCompletion(*responses)
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory) / 'work'

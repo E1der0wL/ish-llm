@@ -39,6 +39,7 @@ class SessionActions:
                 view.t(MessageKey.SESSION_DELETE),
                 Label(view.t(MessageKey.SESSION_DELETE_CONFIRM, title=session.title)),
                 lambda: view.on_delete and view.on_delete(session.id),
+                size=PopupSize.SMALL,
             )
 
     def create(
