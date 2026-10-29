@@ -17,12 +17,17 @@ from llm.components.review import (
 from llm.core.tool_usage_records import ToolUsageCheckpoint
 from llm.core.checkpoints import CheckpointStatus
 from llm.policies import ExecutionLimitError
+from llm.core.model_protocol import ToolMode
+from llm.components.tools.exposure import ToolExposure
 
 
 class LoopIterationRecord:
     STATUS = CheckpointStep.Field.STATUS.value
     RESPONSE = "response"
     REVIEW_OBSERVATION = "review_observation"
+    TOOLS = "tools"
+    TOOL_MODE = "tool_mode"
+    INVALID_EXPOSURE = "Loop iteration requires its original Tool exposure"
     FIRST_ITERATION = 1
     ITERATION_INCREMENT = 1
     KEY_PREFIX = "iteration:"
@@ -33,8 +38,25 @@ class LoopIterationRecord:
         return f"{cls.KEY_PREFIX}{iteration}"
 
     @classmethod
-    def create(cls, response, status):
-        return {cls.STATUS: status, cls.RESPONSE: response.to_dict()}
+    def create(cls, response, status, *, tools, tool_mode):
+        return {cls.STATUS: status, cls.RESPONSE: response.to_dict(),
+                cls.TOOLS: list(tools), cls.TOOL_MODE: tool_mode.value if tool_mode is not None else None}
+
+    @classmethod
+    def exposure(cls, value):
+        if cls.TOOLS not in value or cls.TOOL_MODE not in value or not isinstance(value[cls.TOOLS], list):
+            raise ValueError(cls.INVALID_EXPOSURE)
+        names = ToolExposure.validate_names(value[cls.TOOLS], value[cls.TOOLS])
+        mode = ToolMode(value[cls.TOOL_MODE]) if value[cls.TOOL_MODE] is not None else None
+        if mode == ToolMode.REQUIRED and not names:
+            raise ValueError(cls.INVALID_EXPOSURE)
+        return names, mode
+
+    @classmethod
+    def complete(cls, value):
+        result = deepcopy(value)
+        result[cls.STATUS] = CheckpointStatus.COMPLETED
+        return result
 
     @classmethod
     def response(cls, value):

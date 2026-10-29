@@ -58,6 +58,51 @@ null은 상속된 정책을 해제합니다. 미설정이면 입력 예산이나
 provider 설정과 서로 복사하지 않습니다. [Agent 모델 계약](../../../docs/llm/agent-models.md)
 공통 Run/usage 정책은 입력 정책을 해제해도 계속 적용됩니다. [설정 예](../../../docs/llm/project-policies.md)
 
+## 호출별 Tool 노출
+
+Agent/Run의 허용 목록과 **이번 모델 호출에 보여줄 목록**은 구분합니다. Application은
+`LoopEngine(tool_selector=...)`로 `ToolSelector`를 연결할 수 있습니다. 등록 Tool은 기존처럼
+먼저 로딩하며, 선택된 정의만 구성해서 provider에 전달합니다. 호출마다 새 Registry를 만들지 않습니다.
+
+```python
+from llm.components.tools import ToolExposure
+from llm.engines.loop import LoopEngine
+
+
+class ExplicitTools:
+    def __init__(self, names, *, revision):
+        self.names = tuple(names)
+        self.revision = revision
+
+    async def select_tools(self, request: ToolExposure):
+        return self.names  # Application이 지정한 목록. 호출마다 다르게 선택해도 됩니다.
+
+
+def create_engine(names, revision):
+    return LoopEngine(tool_selector=ExplicitTools(names, revision=revision))
+```
+
+- `ToolExposure`는 `iteration`, 원본 모델용 `messages` 사본, 허용된 이름 `available`,
+  아직 Tool 사용이 필요한지 나타내는 `required`를 제공합니다. handler·scope·SDK 인증값은 전달하지 않습니다.
+  지시 선택 뒤, 일반 completion processor와 최종 입력 예산 적용 전에 호출합니다.
+- 결과는 중복 없는 이름의 list/tuple 등 sequence입니다. 빈 목록은 이번 호출의 Tool 노출 없음입니다.
+  범위 밖 이름, 중복, `None`, 필수 Tool 사용과 빈 목록의 모순은 실패합니다. 실패 시 전체 목록으로
+  대체하지 않습니다. 선택기를 연결하지 않으면 기존 허용 목록을 사용하며 추가 설정값을 생성하지 않습니다.
+- 선택기는 신뢰한 Application 확장입니다. 공유 객체에 Run별 가변 선택 상태를 보관하지 말고,
+  Tool 효과를 실행하지 마세요. async 호출은 취소를 전달하며 별도 숨은 timeout이나 retry가 없습니다.
+  선택 로직·설정을 바꾸면 명시적인 `revision`을 변경해야 합니다. 타입과 revision은 재개 binding에 포함됩니다.
+- 응답의 모든 Tool 이름을 노출 목록과 대조한 후 기존 인자 제약을 검증합니다. 하나라도 틀리면
+  그 묶음의 어떤 Tool도 실행하지 않습니다. Scope·예산·승인·operation receipt의 소유자는 그대로입니다.
+  부모의 노출 목록을 줄여도 위임된 Agent의 허용 scope 자체를 바꾸지는 않습니다.
+- 완료 응답의 `iteration:*` 체크포인트는 `tools`와 `tool_mode`를 함께 보존합니다. 승인·재시작 재개는
+  저장된 회차의 선택기를 다시 호출하지 않습니다. 완료 Tool 결과도 재사용합니다. 이후 새 회차에서만
+  선택합니다. 응답이 저장되기 전 중단된 모델 호출은 명시적 재개에서 새로 선택할 수 있습니다.
+  한 모델 호출 내부의 provider retry는 같은 노출 목록을 사용합니다.
+- 과거 Tool 호출/결과 메시지는 노출 목록에서 빠져도 유지합니다. 일반 `prepare()`나 입력 복구로
+  Tool 목록·선택 모드를 바꾸는 기존 금지는 유지합니다. SDK별 선택 옵션으로 이 검증을 우회하지 않습니다.
+- 노출 필드가 없는 옛 iteration을 전체 목록으로 복원하는 호환 Reader나 자동 이관은 없습니다.
+  해당 체크포인트는 명확히 거부하며 새 요청을 사용해야 합니다. 기존 승인도 선택기 계약 변경 시 재사용하지 않습니다.
+
 ## 실행 중 추가 지시
 
 `await session.run.steer(run_id, text)`는 실행 중인 단독 Loop에 지시를 접수하고 `RunInstruction`을 반환합니다. `submit`과 달리 새 Run이나 일반 요청 대기열을 만들지 않습니다. RunStatus를 추가하지 않으며 기존 `RUNNING` 상태를 유지합니다. 종료 중/종료한 Run과 다른 런타임이 소유한 Run은 거절합니다. Graph 안의 Loop는 `targets=[실행 대상 ID]`로 지정합니다. 재개 Run은 원본 체크포인트 검증이 끝난 뒤에만 접수합니다. 실행별 수신 상태는 `run.ainstruction_targets()`에서 확인합니다. [공통 전달 계약](../../../docs/llm/steering.md)을 참고하세요.

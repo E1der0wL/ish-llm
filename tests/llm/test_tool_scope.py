@@ -61,7 +61,7 @@ class ScopeBoundaryTests(unittest.IsolatedAsyncioTestCase):
     def test_model_and_graph_validation_do_not_publish_unconstrained_tools(self):
         context = self.context()
         with self.assertRaisesRegex(ToolInvocationError, "inherited ToolExecutionScope"):
-            LoopEngine()._request(context, {})
+            LoopEngine()._request(context, {}, names=(), mode=None)
         with self.assertRaisesRegex(ToolInvocationError, "inherited ToolExecutionScope"):
             ToolNode().validate({"tool": "act"}, context)
         with self.assertRaisesRegex(ToolInvocationError, "inherited ToolExecutionScope"):

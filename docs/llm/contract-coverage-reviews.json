@@ -6305,9 +6305,43 @@
   },
   {
     "path": "llm/components/tools/registry.py",
-    "sha256": "13dd2b0efbc99a9cc605e32012634b5375c51f90d0a5d7f187eecdfd3632b278",
-    "reason": "Reviewed the whole registration/selection/prepare file and its function, worker, MCP, builtin and Engine consumers. Registry owns registration name restrictions and errors; object Schema shape comes from ToolDefinition and Schema vocabulary from SchemaKeyword. Typed binding Owners serialize fixed output; selected records use mandatory validated Reader properties. Opaque name maps remain dictionaries. Public overrides, handler identity, constraint validation, source copies and authority order are preserved. Capability follow-up: canonical identifiers do not close extension names. Agent capability records are projected and selected through AgentDefinitions, while selected domain validation and detached snapshots remain. Context boundary follow-up: EngineContext selects root stored-record versus scoped payload reading. Root usage remains mandatory and nested outer usage is not copied into child payload. Key/identity/selection checks are unchanged.",
+    "sha256": "f71c237a8590eea75974f75dd43703b383c9a887180771f5725f54337296cd74",
+    "reason": "Reviewed the full file and definitions delta. Optional names selects copied definitions from the same registry and retains constraints; empty yields none and invalid names fail. None means no narrowing, not a new permission or persisted default. Registration, runtime handler lookup, selected-binding validation and prepare are unchanged. No re-registration or eager resolution optimization is introduced.",
     "dynamic_paths_reviewed": true,
+    "contracts": [
+      {
+        "owner": "Tool and ToolRegistry",
+        "declaration": "llm/components/tools/registry.py",
+        "consumers": [
+          "llm/components/tools/function.py",
+          "llm/components/tools/process.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py"
+        ],
+        "tests": [
+          "tests/llm/test_tool_registration_bindings.py",
+          "tests/llm/test_tool_constraints.py",
+          "tests/llm/test_tool_selection_records.py",
+          "tests/llm/test_agent_delegation.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
     "decisions": [
       {
         "id": "146627992ca5ec077dbed67a353d87520eecd4242ba0f0b9407be0d138a13cae",
@@ -6454,84 +6488,76 @@
         "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
       },
       {
-        "id": "8206f8b3ab93955f240bc34007ce87624914f6932488036c6e931640ed71f72b",
+        "id": "9574e4e9b1f91e4e3010f95c6fe6e32529acac9a130fc4b756f93199796bc1be",
+        "classification": "non_contract",
+        "owner": "ToolRegistry.definitions",
+        "reason": "Optional projection argument: absence preserves the registry list; explicit empty narrows to none. Does not create authorization or user-configurable defaults."
+      },
+      {
+        "id": "87c0f35b0f0524b273159025c03524d99b05f3b0a3c9568f0cd0a85394df447c",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "18f072af1bd4b9148201899b70cf0bed4cd45b6546454047573f7e24244bd5d3",
+        "id": "a251fba41bff0a4a73d7175c175264224ca8842926349cc9fd4c69af8ff32ab2",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Identity check for Python absence already declared by the optional field; no fallback or policy value is created."
       },
       {
-        "id": "d198e63d9e73e51c770db70454d94a7c28ecee72a18cfd60cfdcc1bce7f23aff",
+        "id": "6aae5ea828356a740539fc2b2585eb2c89d287e19197d250ab93cbcb1e2378cf",
+        "classification": "non_contract",
+        "owner": "ToolRegistry.definitions",
+        "reason": "Optional projection argument: absence preserves the registry list; explicit empty narrows to none. Does not create authorization or user-configurable defaults."
+      },
+      {
+        "id": "38d4ae945962ad46f912ffd552f9ada32d438e7d25a90cd332a1097321eba50f",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "06c6c15c8612beea57634cf5fe01293a1c43adb0947eb1bc4d49f9a573739cdf",
+        "id": "557013b565e90c0f1bb454f02fec6d71a1ecfbf96069162dae7c5b877a14ae23",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
       },
       {
-        "id": "896601df5c0f991a6a9af7d6dd528cbb1c1501ebe3ac0cebef44491585c1607b",
+        "id": "73499cd0d304ff36a649c3974ddc6d20de3c02d3319d3fd14349bdd875fc7287",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "b7993f1186aec5e2ae8e949e287b05b273981c129170072df28bc779377417c9",
+        "id": "09f6e6ad41fe81da21bc8bb6ef61f04fdebf423b79dccf7aaaa9a45471c806d8",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "857e40135ab0db22fcf8c70365bcff8f3f553e6eb21a4ef5acc152dad3213af4",
+        "id": "df56e1dc22861620d749fd6225d59431eabffbb3515ec4d6362392fa00c1147f",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
       },
       {
-        "id": "1c9501637cf48a2848a23a0537575bd3d526f64479075154f8f9e8801d71ad0f",
+        "id": "323dec331dd0864b71cb134655d2bd710e9ca71032495d2c253b2df3a70a2f67",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "ec55603c8bd3b1eea71d85a80d8e0e070f03172950ad4d9ddd9e9f91a3056123",
+        "id": "ed685d4afdbb1f2cb787ad3bd24dbe46b0315a665726c3c636100e0c4f437b76",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python return/forward/variadic type annotation only; not a parsed wire field or runtime selector."
       },
       {
-        "id": "25563b809454874f7a72b16d7f134fc16fe4c1c164ded1d15acc09442ffdf0b1",
+        "id": "a05dbf319657938237b416bb7e1c4f1721d938074216fca5389061777be51e1a",
         "classification": "non_contract",
         "owner": "Tool and ToolRegistry",
         "reason": "Python exception chaining suppression preserves the established public error boundary; not an absent stored value."
-      }
-    ],
-    "contracts": [
-      {
-        "owner": "Tool and ToolRegistry",
-        "declaration": "llm/components/tools/registry.py",
-        "consumers": [
-          "llm/components/tools/function.py",
-          "llm/components/tools/process.py",
-          "llm/engines/loop/engine.py",
-          "llm/engines/graph/engine.py",
-          "llm/engines/agents.py"
-        ],
-        "tests": [
-          "tests/llm/test_tool_registration_bindings.py",
-          "tests/llm/test_tool_constraints.py",
-          "tests/llm/test_tool_selection_records.py",
-          "tests/llm/test_agent_delegation.py"
-        ],
-        "complete": true
       }
     ]
   },
@@ -12928,71 +12954,9 @@
   },
   {
     "path": "llm/components/tools/__init__.py",
-    "sha256": "65c464206176e64d118709c953770ef797b126599b875700adb17e166c63032d",
-    "reason": "Read the complete package module and verified every public export against the prior committed declaration: exact names/order, no duplicate export, every binding resolves. Public export strings are this namespace Owner declaration, not copied internal domain fields. The two lazy namespaces share their export groups with dispatch; normalized full AST and existing subprocess import-isolation tests preserve import timing and unknown-name AttributeError. Other public-only modules are unchanged imports/declarations with no storage, policy, validation or execution interpretation.",
+    "sha256": "eecea332f6689c94189b51c026d1bdb0e2eb051233a388143179210c9c6883b4",
+    "reason": "Reviewed all exports: adds only ToolExposure and ToolSelector; all prior runtime names still resolve. No configuration, policy or execution side effect is added by the public namespace.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "45afa3f866e645740c90ed6d4ad6a3b2789545e8e8148b7fcee456b9d109c2b5",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "7416f55ca6ac8a3846b7f45a9d7acd32cd5ab4dbb7d030854dea35cbffad260c",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "9973f52d80c1ef01227e988aa1ea16e840b667d5f003fce374d93373e5c424fa",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "a5cd2ee31de6446cabf648f4c08ea92e27eaef537a86539baa006d38187a69a5",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "9ecededa8d38912b170d896f35201f7ab867f782485e4f0f656a8fc28fdafa38",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "3cb8662c9bbc4dd4fc1680466105f7d75eb8e4b52503562ff53d30474f27649c",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "bac56a20cd8ce282d4750aa7a83380b928223e3e137aec69acae8373b2f9318b",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "1463d566f45d2fedb05adbf04e7d4ad30877825573f663590e21ac4f2bec2104",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "4420e2e0870793c69e038156e7050b295b41b578b96b0c27916bf0c1628a1905",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      },
-      {
-        "id": "f5d8b1d4088d77f033f4c2417d3cdfacbffc63e8bff5994062bfeeb8b1d89b6f",
-        "classification": "declaration",
-        "owner": "llm.components.tools public namespace",
-        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
-      }
-    ],
     "contracts": [
       {
         "owner": "llm.components.tools public namespace",
@@ -13025,6 +12989,94 @@
           "tests/hub/test_component_catalog.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
+    "decisions": [
+      {
+        "id": "f562ce5cec57cb93c0c2f8aafb0cc2e1be287e11b6fad376a2e7679c88863a56",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "f2734872f7544265f68a9686a6f256331a9e0bc1a5127f2eed6d50150f134ddc",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "1d06a37250cfc6616116587603f4cdc74da0a401a69b11fe09d6e8b71790e606",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "dd6f0f350c4a4cc60cf070bb98472a94e4558b82fe093193e65c5e90a0df36d2",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "fee57b7ddf2e15a09f563c5dbf94d13177e5381fcbe7c1e362c5dcbfabad0c2f",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "12eeb4c977d3ee5bfee92bec88b8dc986c407a762cc6e5a9e9b4293a19402029",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "0c0216a890932e44898bf92f8a02a5b87a01a24cd98a299897cf33075e8a2ee9",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "dc5bf6c7856f5af05d0f31bf04b8fb5be58c14b8f81f6f5154a01b9fcd4bd365",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "cda16f3bc62f5c9aab16b6baefe16a5e0256482f37cf7487e4314cfa71f624e4",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "dc292f350b066bd30665b816203581e21d31fddaf245b4eef064ba608405f981",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Single package export or Owner field/default/diagnostic/platform declaration before implementation."
+      },
+      {
+        "id": "7becc49b890f8931a66d8ae0411c00182a1df69232f24462321c1fd5f6163f83",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Public export declared by its owning namespace."
+      },
+      {
+        "id": "5681d1c2e548f2da39785900979d27964891306498878d2dd65f9d3d7740b414",
+        "classification": "declaration",
+        "owner": "llm.components.tools public namespace",
+        "reason": "Public export declared by its owning namespace."
       }
     ]
   },
@@ -44937,305 +44989,9 @@
   },
   {
     "path": "llm/engines/loop/review.py",
-    "sha256": "edb1ace2b16fb7e347b3c0e8d7e9586de6f724568d90bef8136f8090bb5d8b8e",
-    "reason": "Whole Review and LoopReview/Iteration Reader/Writer implementations reviewed, including dynamic receipt keys, strict missing/type evidence, execution provenance, attempt/continuation preservation and original callback/effect order. Engine remains a separately incomplete whole-file scope. Loop delta adds canonical flag/hook getters and review/header Writers only; unchanged shared bodies and all prior contracts retain their evidence, with the current integration/safety tests added.",
+    "sha256": "5b6f383f863718aee42055b968c80846c3fd4428aee8f1ac3e81f1d59d6dc36d",
+    "reason": "Read both iteration and final-review reader/writers. LoopIterationRecord owns tools/tool_mode and requires their presence; names must be unique and mode is canonical ToolMode or explicit null. A required mode cannot have empty names. Missing evidence is never reconstructed. complete copies the original response/exposure/review witness and changes status only; service ToolUsageCheckpoint still overwrites usage from the current owner. Final-review attempt/feedback limits and cancellation/receipt validation are unchanged.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "125dddaef2fc240c160c3592aee221f2571da98ed27a123beb3efadce79bc465",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "57b4ac5da63dfa1dde543f5e9313b95470f14cc980248a003fd01c57dbe23f93",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "623cc4ce2c4198f0e7edc44b6a2280c01120317bbbcfba8f1cfc57d93df64d47",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "662cf5a11e76a58fd0071fccaf3aa60a03a2f6a8aad4302b68de9dd1c8894943",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "2729f33dcc0458d78f2b160bee6cbdc54898f20dd46d14abfc5fc2a88876992c",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "7389c0c7fc6435bc315b2efa0b0a231861c7558d84220b05d23cb4b4a4bcad27",
-        "classification": "declaration",
-        "owner": "LoopIterationRecord",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "89e4810f75175fdc5cd89dd11e77348e58ef1db5047678df8590c8e2f9ef4689",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "a331f5eaebaedaa5be3e5fbaa0e89d4021a37475a73623cfa154b1acac3f014e",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "2978f6ea72f4de2edd800bc14a75ce4c456a32eb1ad4d7c4c4162b26573776be",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "1c3c7557f8e61c9ab9ef6c614f74593c3c9ca2e60b73b8c2df6caa90b25af19e",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "4f45babdc4af66a0bb2f83d908d25548602138ca57047fb35ad3990a88a2753a",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "509328bf17fdfc657bc489677e45497895545456ac0b7419b0cdebd9139a7cff",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "f10a9dcf57ca83aaf14f70ce977c537253767c6ff6f66359df15a0d2e050e799",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "3936fb63914db7758b663a6d8ef3ef8b85271601197d31fd095a86ad179de801",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "17e504e9cde1f0725785f0c60425359e41e179735d0e0dfcae8c7be25b1d7f9c",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "45d1cc529af6457c31808baa402a793280779be7048c56e7cfb05125756a00d1",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "193a07e77af964bc22a9159d5dd6d5360db72ad4826a3de9c1d82b7f24dc1480",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "b35845dc942eea8135e4fcd418d5e170df330504155271164302692d194b4700",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "7248df5cb697986b6a96c082052dd272d19391ac72c263c29f6ec7479c462de0",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "dbd1c0ce8c0289926c93b6b8609ac44394f4199523dc56f79b967f0ede537204",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "e8ea345f4a00ac537b6d929f82d9e23db64bbc2b6a6a73639cd22aff34f53bf8",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "c5e65f0e751c77540a3b12e38ef4f03cd67a2c1878f640c5d0e4b548ab74f608",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "8e178a9ef97be9531bdc91f1adc93dfe8a7e621c47fab3e0b08a85188eea0656",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "de2f89868908d26d5a7caf70ae8011c7544d06016c19441f0bac365d269cccee",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "ff0ec18436add70cd9ee14da703d606928cfd8255fb67391fd9e9a2f3c0f8518",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "709b2adf8743046a78c83e93269109765d9e37666cdae3be4bf6574fe7255f0f",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "009a75e6f952024e4a4cdae43b54ad005582d04d7c842ad5a0aeb70b5f3253f4",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "85d07abc0201529b8090c9b82db44160b03349419f002d2bcecec94d1c62630c",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "5e2a50262f06aecaa817fca3d86100c04d34c54f497426bcd04ca86b4a6d4939",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "acdf9ca295b74db7a5359f59c9c0fa6a2d2202b3e86be71dca7480d437d3e5a5",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "083c8bc75533cd9e5a57d2b6f4edf1665ce97d53748f2dff32dedc72d9e1debf",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "036181210e77ded096f9d35202e3da53711722b2d5ff1c7db89f2e158fd64fb5",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "e5411697586f2e445cb524c4f987ca6776345cb9bda50b8269abbcd68c62f213",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "5706e71c7249b4513c505a31acb51741a6de0b2728858f976a46532227a4e982",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "408b0bcf5d6b474e2d0aef8a6557192e6cb3f49029cbdd8309a020f897adab1b",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "0f4e408424d9558f5b91aa658a2c32ddd1a7f913577d3b35399324b771938285",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "46db451a5561e5b0ed7b38df53e4620acfd2cba16a182b41230d5dd739a66cf4",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "f45b01062f2393ccac8117ac0b394e15ff4a7acacd61ae3d02c77a68d829f865",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "9bf7e00b724ec68e84a3ef7578618e05bcbd19575582dcc8b686a07d762fa89c",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "ecc327f7177d4a6a168619eed347442dc64c645b807cec167633b3e04a0918b3",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "1b1fc2e63b4fb0691eede1c2d72edf48ad0559a8accf45cc081e66de3991b118",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "62f88bef50f9239e24cc355352265d3645eb19591c1437479c61d42dca37e0c5",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "b96df9af3ba3e78d49eca11d7d30480662a3aea6a5f2fc8db91ca6c98302b16b",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
-      },
-      {
-        "id": "ef4161996c61ef15b9919e04049849a624c1b7bac46245c653884bec24da6e46",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "d23e0b730e730c8485d24debb8814fb52b76e4d99fcf2d2395b527094a45a441",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "d426cfa783a2414aada43f471af49152c06fa46d119849ce93afe3a2f1b8eac8",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "a510771b1d9f1884af3a5844f80083d357a17acd62147d3facde45ffbfeef758",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "d42f2e3f7f5f315e20a40d5077ea3cefbc799786410d5e1b813f4bee7bbbe406",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      },
-      {
-        "id": "abd97e99d63851c217ae4533287e0dc282e5465685f3b0e0c508239845d607fc",
-        "classification": "declaration",
-        "owner": "LoopReview",
-        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
-      }
-    ],
     "contracts": [
       {
         "owner": "LoopReview / LoopIterationRecord",
@@ -45275,6 +45031,358 @@
           "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
+    "decisions": [
+      {
+        "id": "35da07b8f592603af312062cc0a265ff278418d898e034e0049c0973bfce7a1f",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "2d08d8cf6ec8a462296d880ff2b8a9dd4d9d392d3030b8419c455a11220b707c",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "9b4370a5271e16ec48940a122d21cb8858eb4971cac737d4080564ed3c374082",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Iteration owner declares mandatory tools/tool_mode evidence and the missing-evidence diagnostic."
+      },
+      {
+        "id": "1836ec71e4ef640c8ff595517d3d72e216cb769268d967a4aa76ec4a3381adb8",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Iteration owner declares mandatory tools/tool_mode evidence and the missing-evidence diagnostic."
+      },
+      {
+        "id": "bf4cbd795499b988e8113aa4e9f51843fe7b713799aca88c0e5a3cb004c29b82",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Iteration owner declares mandatory tools/tool_mode evidence and the missing-evidence diagnostic."
+      },
+      {
+        "id": "1caa1c416b864c77afe3d4a8dec4d8c0df4eefd3cd842122005d1c9d8e8fe35a",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "e01ec410efd6510271b5c5e1d885286e6a1c6c84c250e8a87d33514142c31246",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ec33ff6643cb6d0a74db7d0b8f2bc8b57206e1fcd173c7523fab1593b10f4669",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "73bce610fa71d09e815081b96df3daf1db63a38c2fa2d81e7078b360c71b3b5a",
+        "classification": "declaration",
+        "owner": "LoopIterationRecord",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "2831cdc657ddfd3e6f58876fb011634b07b09807bcabfb175e824b5d079cae7b",
+        "classification": "non_contract",
+        "owner": "LoopIterationRecord",
+        "reason": "Represents or tests explicit absence of optional canonical ToolMode, after mandatory field-presence checks. No default Tool set or policy is synthesized."
+      },
+      {
+        "id": "2528730d631d43e8a8dcdc7c6ccca6bd3d9dfbbbd78979bbbd216dbdb0587c59",
+        "classification": "non_contract",
+        "owner": "LoopIterationRecord",
+        "reason": "Represents or tests explicit absence of optional canonical ToolMode, after mandatory field-presence checks. No default Tool set or policy is synthesized."
+      },
+      {
+        "id": "50782385027c075f9bdadfbd811362a18503fc27945c9ff35409f1d0666b6700",
+        "classification": "non_contract",
+        "owner": "LoopIterationRecord",
+        "reason": "Represents or tests explicit absence of optional canonical ToolMode, after mandatory field-presence checks. No default Tool set or policy is synthesized."
+      },
+      {
+        "id": "fba984b08989c93abae67374ec392deb3f8674555fea6e3a43c66d0ceb839ecd",
+        "classification": "non_contract",
+        "owner": "LoopIterationRecord",
+        "reason": "Represents or tests explicit absence of optional canonical ToolMode, after mandatory field-presence checks. No default Tool set or policy is synthesized."
+      },
+      {
+        "id": "b94b6121137c44aa74cc562277190502d54743dfc628833c5faf49022d1ca1b2",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "8fe9e8b536a97b472cda24707f87b817808bddd289b8ec9471343e1b03da8891",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "7969b8db51809944a1282d0374ceac42691f266ee2a335c897314318e18fa093",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "18db5bb0aed0c92a4685024110ab821fa4e74f15a54a8c71c32c4426e8408dd0",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "39552a1025c60a053adf53976baee86f7c5941547a6f1336473ad23cc1008837",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "e90e7d31c6334904fa663b50444d7249ed32ac29277d2640399404c6edcaab35",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "b8f30784eb358a97e5e18ec95c0708a5ed48e7cf193c3452a978339c801fa565",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "4b05df4b2e7b7abe7180fccafc3a81341f1e189a0f3165ef9e687192a99ed59d",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ce14a1dd8f9d016e5ea727e4a435f2c5926dc64a61f68c0a027cc7a6752f4741",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "da34a56d38231937a8644fe9c3958c50e46c82376df00f301cb10ddbcf21fa32",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "3e02289c9d31eb72b1a1aa867b3b5c8458bdcfcaff0d0beed2ed56f1f1381861",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "53c1d3c588cc70eee9620e1cdac877636ab6c2d75aaa3a32b1d446d1006979ff",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "fe484daae9ffb3f41274d851a76e5ac8b05299313cfb7197faf9bfd6c244d0bf",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "cb84dc3fa26f680a0aa63a69652d3f0ebabecbd542cf98835496e63df2eaa48f",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "8e2784b72f2c78f02bfb06e41df6db0c91548b5d4ac1ecb7f8d0ff881d6f4f88",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "07a5b580d60722c947dfb1f692448a8b6b2e8d1c4b99e44e187827b94cb19991",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "a90109ad329312f4f2cd148aec3faa386a09141da45598e8bdcf0fde9515da36",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ceb2fc486b3a12bfd2475c8e283af59c6dad39a1da6f8f8ca7cba1d6d678b3b1",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "8da7e60c7078d0ee486ca5e3c649d3cdbbb5f2761ca130113b5ef4c68ac380c8",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "19c4d1fb0f7105a468bc6538b72bb0075d3c6dda9d6f9a3bdad5209a87844400",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "f5d047128580f37293ed8a361201981be4821b22f61ac0f43ee28790a4c599f9",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "aa8d9867be366c2364c8a4fe1dbaf9a40cba9e557c0da26013a112659098af7e",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "44c0b7eeb30240f2e39db4c7c1f8de9f4ded8581f1dca7ecdbd983e1438a4605",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "386a7bd41c19f684b7fd514d2764594d086090c71c38c737df31517c6b486109",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "82b2bab50f6536a623cc2a7509c4e8d5471181ee2a0dd8c3e82f9a86d5e08165",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "e2368d3ccaeda4bde582509f1c74baa0075870cd0caf474c598430c56e355544",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "d706252e338a482ac7869870c607b691e225fef561a87f818b17bb5d5fdb78fb",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "e646d6df068f26ff930ce629487cc4d5987ebfc1a24bd9b07dc5a151dc0a8fce",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "4d1bd406a4acb8357a435a7e9a15f598f78ab55b6b1bf14bbb9b986a1837099d",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "dd05c52401478e8b976d82ef70c9dc0ebaa307b5742140d656f1dd65828961f2",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "ca46903cd6bebcc8e742546c43715a6dbf1afff8b39fbcd90587cbdb2bd84e15",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "54b28b18ce733d28fff848b4d8f58c606796c4059a3c8794b6532c1f658f468d",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "a095fbdb2753700a891250565147d028b3e4832e9fa05542e9a1713c17a14c26",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "3bfed354921f54571af8067c37e48b5a4f3e27abc6f077f74ffdf8a6f8e2954c",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "299ab9affddfb2cb430eb29a19419709244c835ed70dcc77473d13649229d76a",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "5c75aa0f6cfee1d11d8ceebe284722308c6abb22ecf794552ec0865164ca7bb7",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "5bba81e14fec1f45321db5617ae6d635ccedd6708a0ccb51708af6e6c7aaba10",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical typed fields, explicit policy bounds, strict identity/verdict predicates, Loop wire keys/versions/digest and diagnostics are declared by their semantic Owners. Reader/Writer and direct consumers share those declarations."
+      },
+      {
+        "id": "772606fe97416cbf9c11ce62db16b8b4f8f56ec27876823a265c597f8bb0c084",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "a6d1ae5a43b7136641f06309ecea551018da62fbb826bb1d50b70b8140574df4",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "6cec6d7304e46e208f2dc84e48fea1a7a01b468db76cf96ea94e6c1205f62dc2",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "81785ef2942082f714395f45ce669f183d30250d287b910f10990072d43c9481",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "ef229078e74251ae0ad7aa10da1f74f6def007a6ec6c95de8804e8617750171a",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
+      },
+      {
+        "id": "dc81c2cbd12fb466a505bf63e02ef7a708a1e9b06bda1c66a0dc9de25df8a918",
+        "classification": "declaration",
+        "owner": "LoopReview",
+        "reason": "Canonical shared Owner declaration; new consumer references preserve the existing value and interpretation."
       }
     ]
   },
@@ -51458,143 +51566,9 @@
   },
   {
     "path": "llm/engines/loop/engine.py",
-    "sha256": "24f7db49521cea51ebc249e304b507913c8005d2c9b919fa3c733260b8b1b053",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Required Run scope review: supplied EngineContext must retain its admitted ToolExecutionScope; the common presence/type guard now rejects absence before Tool binding, constraints, classification, resource connection or effects. Only the independent context-free ToolExecutor entry initializes a fresh scope. Existing policy values, durable bindings, checkpoint receipts, child narrowing and cancellation ownership remain unchanged. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added. Agent form contract review: optional selected-Engine describe_agent is pure; the same schema intersects the closed Agent envelope and validates binding before for_agent. Loop reuses its Adapter/parameter schemas, Graph exposes its existing workflow allow-list, and schema nesting preserves owner resource scopes and local references. No configured values, persisted records, approval receipts or execution owners change. Agent instruction ownership review: Loop config exposes only buffer_size. Agent system_prompt remains presence-preserving input, composed with selected Prompt/Skill resources. Loop does not resolve or materialize instructions as Engine settings. The execution binding still includes the composed prompt and Agent definition; approval/resume validation and completed Tool receipt reuse remain unchanged. No default instructions, automatic migration or compatibility alias are added.",
+    "sha256": "d8dec326842e1bb549c6633d839cbbbbed1cb4006a371778acd53fd992aa8cc3",
+    "reason": "Read the complete coordinator and traced new selection through response validation, durable record, approval pause and resume. Selection runs after instruction input selection and before prepare/budget; the common completion pipeline still forbids changing tools/mode. A whole response batch must match exposed names before arguments or effects. Saved iteration exposure is restored without callback; fresh provider retries keep the same request. Original Tool scope, constraints, technical deny, operation receipts and source-result reuse remain authoritative. Nested Agent authority is not narrowed by the parent invocation display. Run-local worker stores callback binding and rejects revision change around await; no timeout, retry or count policy is invented.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "99475a05c338369a8116531e29494e317864ea16e267709a5aca81b152009570",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "e6523f6e63d232dd635d4287131dbaa080f2d9f80e44f0ef9707e08db7ccb313",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "396d15e51f6de9bf88d5a5a2f873f00fe59f75811d053962b288b14dc2e94b7b",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "207f56c296b5e26f890bf781f79bc8a4b804d70b1a24238d01e26e90e63d7a82",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "8e03ce34a26743c56cd223785719f04132fe440ae2a9962a3f850813cddb3f36",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "cd186e8881d09ac2e5c4a98182de2a7054e40b155a1fb026406a08f4e42c1057",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "9d925d03e27ee238176c608a56e9753afaf86528a04dc5de9617e88c0b47bd7b",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "c2670c812bcdb0f8d918a2ce064b1678df5a43b6d837af1a99edbd2b112188df",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "dc493a7c132d48443445451777e90b6a28e67ed632d442e39798cac5cd62c251",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "795db4f7e3a18ed47410aa838b92a5dd68ae895c544d8750a78ed642e7e2b19e",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "7f7a07917a4b43ede3013dc6dc28550b835e9629f7d297ffc2e684dbf950a548",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "0ad7175171c83ad43bd0dafb43ae5cc12e5e4be4fc6daf0220f1db3c34602432",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "f9a93ab120a05bcb5cab034f86d3f46bd0f47edc4d9727a19242a499c2261a2f",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "77b739eebddaa433f9a7dc08ee57a276edb407f1d3501bbd9317616ca9a1a7b3",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "0a7a2552fd73cf730c2c80905c8d3b869d8ee1e7b0ea7940572f7af998da5ce1",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "d060659f5f8d9c5d85235819742b175051b37e6ba34fca8fe03963a0eca9c54a",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "113d5d09ae6cd16af72458f572ece3fdd1a1354c6ac842e3cde66975bcf93a43",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "16798edc4e69be238678962ae77bfd857bb4d15bbc451d8ee312f129e5f165c8",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "a92628b288e03708ffdb75687e20f4f047e8fd5d35d299ccdbff17dc7099caca",
-        "classification": "declaration",
-        "owner": "LoopEngine",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "3335e43010f88f06019c5a1be498958f22846edd78af949ca10b35d746fbba61",
-        "classification": "non_contract",
-        "owner": "LoopEngine.__init__",
-        "reason": "Python return annotation only."
-      },
-      {
-        "id": "001437562a92f410f4f827735f012c19fb0d27d45dc25af6158c6508aeb34f7c",
-        "classification": "non_contract",
-        "owner": "LoopEngine._execute",
-        "reason": "Insert the selected system message at the start of an existing ordered list; pure list position, not a policy/usage limit."
-      },
-      {
-        "id": "58b42dec349cfbd867615aad966396f9c27c5bd17950216636a55331b1617ff3",
-        "classification": "non_contract",
-        "owner": "LoopEngine._iterate.complete",
-        "reason": "Read the one captured completed response from its ordered local container; not default reconstruction."
-      }
-    ],
     "contracts": [
       {
         "owner": "LoopEngine execution coordination",
@@ -51660,142 +51634,162 @@
           "tests/llm/test_agent_schema.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
+    "decisions": [
+      {
+        "id": "df27a3063cf2a508e79bcf23e7702723fce30163d848bad9b3d7d7f8b9ed6738",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e89401b7645714010623ed799a47b68f8337f2dc6a1caac977dd12387e81ddc2",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "7e3efe6e4a497929655d14664446b975005a2315fa34fac5af87e5408c51e1ac",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "c14eaeee58d13d5b341e70a0c3463c111d87e9cbb57e109a9885975b8168e188",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "c85415adbf9fb56cb859239072dba81f1721c266e3c2e09e5f481ebe73a1a3d1",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "1214354ba0a5ce6b3f14b7790a22f02b5b94ab0d0c72b9b53f8253b32e3cbd91",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "3032d88769c702d069a214371a46c69316420c693940372148fae4f752f3456a",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e0989ca052878bc44019b4cf0d7b65aaa793393fcbbed75141f17c5a51193ff7",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "9df587a7ff50430ea4bce962dc15c6e559dbd71239e491d822c303ddff44dc70",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "3ab9db15fb46b2da297889f7e29cb3341415df749f9093d294499fd3b0f66787",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "b90c3fd732990b82f2279b3a0f5b5ea2b568136851ad22e9d950d50781d0b39a",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "c569a707e71dcb408210b5ee3e96f6e58bcfa36933a53e56146bce23e81656a9",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "223e3f2012e66ab0caf2e20f347fce9374b6d48b6ef91d64eb0db19b040a1f9d",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "51bcbbe4e4e95ac4a572fd6f240387a77819a44d0ee5dc3c7b54bbfeea4d227d",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "cd48c544e42e2c9b814371fb467bd0402fe8430cf4e103b93e6b48fe8f64a6a2",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "f3a67132c0fb1097da2b7b42504ad7e71e1deb3150f2923d3f9b6509a7fedc62",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "f475ca2f1b32c07eeb71a90e0ebe6030758836d2ab527b165cd6dc0af8d107fa",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "ce5bf59aa57946c6aa1fa592282b1a0b2f3b979f1d1dde6956e616d0968c0e8b",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "83acd3a948b8f1fd16b9eba8ba63aab51052560fef4027c35ea25c1457255124",
+        "classification": "declaration",
+        "owner": "LoopEngine",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "877018c2bbd44cb88d31914a3af312a427fb51d948b3572a81a822d4c482a8fc",
+        "classification": "non_contract",
+        "owner": "LoopEngine.__init__",
+        "reason": "Python return annotation only."
+      },
+      {
+        "id": "bd16684787d47a76cac140c3821fb60fc1d94ed74cd42247ca89f222e2e193ad",
+        "classification": "non_contract",
+        "owner": "LoopEngine._execute",
+        "reason": "Insert the selected system message at the start of an existing ordered list; pure list position, not a policy/usage limit."
+      },
+      {
+        "id": "7b3fc2c9370f18dfc76200bda0553e4b227cfbcace06389e17c1b36a4cac45db",
+        "classification": "non_contract",
+        "owner": "LoopEngine._iterate.complete",
+        "reason": "Read the one captured completed response from its ordered local container; not default reconstruction."
       }
     ]
   },
   {
     "path": "llm/engines/loop/configuration.py",
-    "sha256": "0d834ee81d7a4a2a796082faaa6180dbd18c8ae8a32ce84926d5cbc087930a2c",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods. Retry consumers use original Provider/Engine/Step/observation Owners and typed repair projections. Builtin owns argument path selection; Hub owns captured-root conversion. Existing admission, constraints, attempts, effects and callback behavior are preserved. Explicit Hub Project creation choices reference canonical Component/Engine/Adapter/Policy declarations. Owner APIs preserve original envelope construction, supplied-field precedence, Missing/Null, Agent creation, startup selection/lock and cancellation/failure cleanup. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added. Agent instruction ownership review: Loop config exposes only buffer_size. Agent system_prompt remains presence-preserving input, composed with selected Prompt/Skill resources. Loop does not resolve or materialize instructions as Engine settings. The execution binding still includes the composed prompt and Agent definition; approval/resume validation and completed Tool receipt reuse remain unchanged. No default instructions, automatic migration or compatibility alias are added.",
+    "sha256": "60ef90356fae93d28792b6f49103d96a4dacc55f2564f1b32df4c950b59e7da3",
+    "reason": "Read registration, parameter schema/layout and Agent options. The only delta delegates the new runtime selector validation to its own contract. No public config/policy key, schema default, missing/null rule, model owner or policy resolution changes.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "f6990bfb466c74c435c9662599db49c08e957d64b7f1993e4d1662c9bce2e330",
-        "classification": "declaration",
-        "owner": "LoopRegistration",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "ff3d10a939d8eab8ab99f927bf9daeb4fbd51dffede85ce7b6fef3cbfc871aec",
-        "classification": "declaration",
-        "owner": "LoopRegistration",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "9f75fd821a1ed5ed994ed624474082f29f89a23be893af7a9f03a0386f9a6782",
-        "classification": "declaration",
-        "owner": "LoopRegistration",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "22d410da55f795240f94212d12299c8f7acd873879cd06d9e7bfc1b6116151af",
-        "classification": "declaration",
-        "owner": "LoopRegistration",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "4019d059e7b9d6bd6235ca2770b3ecbfc974df53b6a040f4b5474d27e120f7ce",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "d52a6a4a107bfe7626880c245ec4a1a487af1a174f63270d21f327bb9bda0513",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "6bd02a02328f610aec652dfed63015622b682a154305929db006870745868f22",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "7758b30f23930f83fcf12d04874d85902944aa3c9a568dce06c4848042c76384",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "14539019399157c7812f3d3b0620504b6b3f4ef14dc993b8336e61ab5f0d7966",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "9c9a4f8f2832392efd74de4fee2fa7df14d6978ab670f191864097d1ba3c2bad",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "800ce9f20d99fcad211d2a052b2a265fb9c8f7cfa03193554c2f1053e263e33f",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "4b0ad57c17d317dc960008c1c01f57fbff95f5c0f18bf6257f363862947286bf",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "3042f8962d5fbbbb97d7b8ddc129cdae3ed461b647b42304197d8d03fb8eaf55",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "f85aacf991c4ecbac8a089cd24dff539aaa1b465875c556422ecb1454203ed97",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "a5a1db6f568d0bef90217bdb666cc056ef5174aa649cd382ab4b73240b153ec7",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "920eb2a9e5a6641ed2d6f01733c29b266965a15fc5c59602f423bdba873e9549",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "ae6ecf071ff6b45c9bf6b6ee08f8c1cd99f8b09cd1595473db5677eb1d0c7d68",
-        "classification": "declaration",
-        "owner": "LoopParameters",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "fd58ec94edec7c5ea20d4245c54ac92d5895a5fbdd9d26c7bae5b437d1643d56",
-        "classification": "declaration",
-        "owner": "LoopAgentOptions",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "5e9538605720bf5765f448cf685120cbb933982d9a5646020d444cec875accd2",
-        "classification": "declaration",
-        "owner": "LoopAgentOptions",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "fbbedf8c7626259408eb2c66b8b6231787d8665fee535623ab0731681fa81a20",
-        "classification": "declaration",
-        "owner": "LoopAgentOptions",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      },
-      {
-        "id": "27682a1ebf3815258ef20b40b4e0a1180024bbc54f60dbd841cee521c73dbc1e",
-        "classification": "declaration",
-        "owner": "LoopAgentOptions",
-        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      }
-    ],
     "contracts": [
       {
         "owner": "LoopRegistration / LoopParameters / LoopPolicy / LoopAgentOptions",
@@ -51877,14 +51871,211 @@
           "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
+    "decisions": [
+      {
+        "id": "37410bef1f54103bd7c1ee926b9218a64195db9223fcbbde447c0f3baf9b67ec",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "fc7db743fa6ef1c59990973a015048e005581d7aa8a168ed032541ebf2b0703d",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "a74d69ddac42504e2876690046fb4a83732e6c326057f7458cbe54fac06c2e55",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "cb99298362f6bd3968d6333bfcfb0a6499d715060e1bf7232ed9f1946f4967b3",
+        "classification": "declaration",
+        "owner": "LoopRegistration",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "97980fdd0216415e61f0be8090d7bc415fcbee2323bba185e9daada74bd7dd8a",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "260e772283ef95e8fd320c88abcc03791a992c37e9ecf1f1e5a78c24bb61af42",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "c80202ba9650c06af2bcda81f6e0ee3be75521732c235b269c7035819f22b2cf",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "592c4b19b4f6491bd0f91d8350b0872592c066989867a78a32660e849ccb35ff",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "54ed3c35273759c873719fe87aaf0d09cf1d7a8763773d4003b88d183c7fc5b3",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e5dbd50e52d93081438e09649b5548dbf28b58bb56ed38999b9c9a6009398c21",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "fe734dcc122dc657369449227a3108ed70ba75c97c5d4274aa1e20b99e1db664",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "e2268430df7b7c1719bee9f5cd2d5de1d73270fee39ea0b6dd567d9b018ff5c7",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "3e869dcefeb4493d809e30eae3daf06a89f9da9581d67532ac291eb612ecfc2b",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "d10c11bb028225cf70543f5efb2d7f8a50608e63282d4eddb883d544699e17e0",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "2ae80886b85102aa14efae6cf0ba43540d765da6363ab694894addfc71262a1f",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "99e62711ef15b076c0526fc5388a1fd92e8a182de4666273b4bf48cd57f5fe48",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "ed42a06620bf964ff6767a287e4ac5563d30125bc185bc81b4b4632385d7c6fc",
+        "classification": "declaration",
+        "owner": "LoopParameters",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "0ac9aadd679465ab83336f94d7e8e4c1b037f92332d35f00049e276c74c49863",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "8609dc8b8d4b9df5351b8127de4f93b6965df6c1d65795ee1fb7519de8d9ef42",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "73d520175e400cd80ef368352d430935bcb00f764057fa93125512ebdda4b65a",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
+      },
+      {
+        "id": "afcc9c7e9a50567372b1043b7f4735dd3500ed84a14ee7df8ecf9efdd9d54577",
+        "classification": "declaration",
+        "owner": "LoopAgentOptions",
+        "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       }
     ]
   },
   {
     "path": "llm/engines/loop/binding.py",
-    "sha256": "4511cae3666f9a7442703f1049c9aee342918c75497d251e128970d743cec157",
-    "reason": "Whole Loop execution review covers configuration/subclass identity, full explicit Agent overrides, adapter runtime binding, common model ownership, required/optional checkpoint fields, nested Tool receipts, exact started retry/container evidence, source result identities, partial output references, instructions and review budget, actual cancellation and checkpoint/Step/effect ordering. Only enumerated Python type/list-position syntax remains outside declarations. The streaming protocol retains SDK-free meanings and all original abstract methods.",
+    "sha256": "58a0733b0dc4e3223252e8a36736cef6dd4d3fe32f4b064b684a2a68d1f6770c",
+    "reason": "Read portable serialization and all binding writers. LoopExecutionBinding owns the new tool_selector field; its content is ToolExposure-owned type/revision or absent hook. Existing adapter, Tool scope, Agent parameters and deterministic digest remain unchanged. Callback changes invalidate durable resume without changing approval authority.",
     "dynamic_paths_reviewed": true,
+    "contracts": [
+      {
+        "owner": "LoopExecutionBinding",
+        "declaration": "llm/engines/loop/binding.py",
+        "consumers": [
+          "llm/engines/loop/engine.py",
+          "llm/engines/graph/engine.py",
+          "llm/engines/agents.py",
+          "llm/services/runtime/runs.py"
+        ],
+        "tests": [
+          "tests/hub/test_approval_continuation.py",
+          "tests/hub/test_engine_output.py",
+          "tests/hub/test_stream_output.py",
+          "tests/llm/test_agent_delegation.py",
+          "tests/llm/test_agent_execution.py",
+          "tests/llm/test_checkpoint_integrity.py",
+          "tests/llm/test_common_provider_acceptance.py",
+          "tests/llm/test_completion_integrity.py",
+          "tests/llm/test_completion_review.py",
+          "tests/llm/test_completion_review_crash.py",
+          "tests/llm/test_configuration_validation.py",
+          "tests/llm/test_configuration_values.py",
+          "tests/llm/test_graph_checkpoints.py",
+          "tests/llm/test_instruction_reservations.py",
+          "tests/llm/test_interaction_storage.py",
+          "tests/llm/test_lifecycle_integrity.py",
+          "tests/llm/test_loop.py",
+          "tests/llm/test_loop_steering.py",
+          "tests/llm/test_nested_graph.py",
+          "tests/llm/test_operation_integrity.py",
+          "tests/llm/test_provider_choices.py",
+          "tests/llm/test_provider_codec.py",
+          "tests/llm/test_schema_ownership.py",
+          "tests/llm/test_steering_values.py",
+          "tests/llm/test_usage_deletion.py",
+          "tests/llm/test_usage_ownership.py"
+        ],
+        "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
     "decisions": [
       {
         "id": "ae99fe9a9c277cada8374dfc5ba099eed3b8eddfa51e1d1d7c53c6dd8fc5eae9",
@@ -51947,69 +52138,34 @@
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "584822ea1a1000a94448f024472bc1154b55c8ed80e7cceea3ae3906cde1a897",
+        "id": "c43b94726c40038a380b2b87bb6eea9f54e625cbb04474fdb23d1e2cb57e98d8",
+        "classification": "declaration",
+        "owner": "LoopExecutionBinding",
+        "reason": "Owner field for the selector execution identity; consumers use attach_selector rather than interpreting callback configuration."
+      },
+      {
+        "id": "87caa1f3b92bbb45f8ade6b625c70366d71cad739cd3c91b2d5d957f8b80f62e",
         "classification": "declaration",
         "owner": "LoopExecutionBinding",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "be9664f21228ee85e3c70114e76d77b7b0ba6be58fa2b901bb0e806207a24696",
+        "id": "c66e6507656ee8e869ad2f930cc086eb4c9e2b99ac24c1ed9a193111f7efdfed",
         "classification": "declaration",
         "owner": "LoopExecutionBinding",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "1c08832690945fa2d0cb20d9d7f672007578ac2da4a3ed96ea5b308c3061738f",
+        "id": "e7d232a9fce83deefd71dcdf672a66664270688bf494594bd39b0206412c543d",
         "classification": "declaration",
         "owner": "LoopExecutionBinding",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
       },
       {
-        "id": "ec0f56609a6f88d8041f848767b2f6c63f955233f25e95ed619e62116c8c3334",
+        "id": "3e8398861159202d64d61103964ed495ccbf669177fdebf32122d729d9aa0cb3",
         "classification": "declaration",
         "owner": "LoopExecutionBinding",
         "reason": "Owner-head parameter/schema/record/hook/diagnostic declarations. Raw model and caller values remain opaque; fixed fields are read and written only through their declared Owner API."
-      }
-    ],
-    "contracts": [
-      {
-        "owner": "LoopExecutionBinding",
-        "declaration": "llm/engines/loop/binding.py",
-        "consumers": [
-          "llm/engines/loop/engine.py",
-          "llm/engines/graph/engine.py",
-          "llm/engines/agents.py",
-          "llm/services/runtime/runs.py"
-        ],
-        "tests": [
-          "tests/hub/test_approval_continuation.py",
-          "tests/hub/test_engine_output.py",
-          "tests/hub/test_stream_output.py",
-          "tests/llm/test_agent_delegation.py",
-          "tests/llm/test_agent_execution.py",
-          "tests/llm/test_checkpoint_integrity.py",
-          "tests/llm/test_common_provider_acceptance.py",
-          "tests/llm/test_completion_integrity.py",
-          "tests/llm/test_completion_review.py",
-          "tests/llm/test_completion_review_crash.py",
-          "tests/llm/test_configuration_validation.py",
-          "tests/llm/test_configuration_values.py",
-          "tests/llm/test_graph_checkpoints.py",
-          "tests/llm/test_instruction_reservations.py",
-          "tests/llm/test_interaction_storage.py",
-          "tests/llm/test_lifecycle_integrity.py",
-          "tests/llm/test_loop.py",
-          "tests/llm/test_loop_steering.py",
-          "tests/llm/test_nested_graph.py",
-          "tests/llm/test_operation_integrity.py",
-          "tests/llm/test_provider_choices.py",
-          "tests/llm/test_provider_codec.py",
-          "tests/llm/test_schema_ownership.py",
-          "tests/llm/test_steering_values.py",
-          "tests/llm/test_usage_deletion.py",
-          "tests/llm/test_usage_ownership.py"
-        ],
-        "complete": true
       }
     ]
   },
@@ -52511,10 +52667,9 @@
   },
   {
     "path": "llm/engines/loop/README.md",
-    "sha256": "feaa256c3cba210ffc5642aa6079f4de3622a39b941920f0728f9de812f72672",
-    "decisions": [],
+    "sha256": "c3aa72305f48130a4656b9d6b4596b558e026da1dbc4254e0766140e9babb950",
+    "reason": "Re-read guide against actual loop ordering, authority, callbacks, checkpoint evidence and new focused tests. Added explicit application callback example, no-hook/empty/error semantics, revision identity, saved response reuse, provider retry behavior and old-checkpoint rejection. No hidden selection preset, alias or migration is documented.",
     "dynamic_paths_reviewed": true,
-    "reason": "Whole guide checked against common Adapter input, explicit policy precedence, original Tool authority, review/steering/resume evidence and actual storage ownership. Added Owner file map and typed payload boundaries; independent wire examples retained. Agent model ownership review: LoopParameters no longer accepts model options; Agent completion is forwarded through the selected adapter, while Loop execution policy resolution and durable Tool/approval/checkpoint sequencing stay unchanged. The CLI and fixtures now supply model options on explicit Agent definitions. No fallback, storage migration, or Hub compatibility alias is added. Agent instruction ownership review: Loop config exposes only buffer_size. Agent system_prompt remains presence-preserving input, composed with selected Prompt/Skill resources. Loop does not resolve or materialize instructions as Engine settings. The execution binding still includes the composed prompt and Agent definition; approval/resume validation and completed Tool receipt reuse remain unchanged. No default instructions, automatic migration or compatibility alias are added.",
     "contracts": [
       {
         "owner": "Loop runtime guide",
@@ -52551,8 +52706,23 @@
           "tests/llm/test_usage_ownership.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
       }
-    ]
+    ],
+    "decisions": []
   },
   {
     "path": "llm/providers/schema.py",
@@ -70168,10 +70338,9 @@
   },
   {
     "path": "llm/components/tools/README.md",
-    "sha256": "43e90380e8a99b6a2656fce5a441e42c03c4b3fdba900186246f9cbf7c784d94",
-    "decisions": [],
+    "sha256": "4508b473fde86c1d722e88c85a5d1ab7b75d66161a041c7dfd0314d5e1e3b645",
+    "reason": "Re-read guide against package/registry/worker boundaries. Added only the exposure module role, explicitly separating invocation visibility from authority; package source loading, inspector, approval, environment and effect ownership descriptions remain unchanged.",
     "dynamic_paths_reviewed": true,
-    "reason": "Reviewed whole package paths/manifest, signature/schema/defaults, static CRUD vs child import, Host preparation, execution fingerprint, environment/protocol and error/approval/cancellation boundaries. Existing descriptions match current contracts; unchanged.",
     "contracts": [
       {
         "owner": "Developer guide — llm/components/tools/README.md",
@@ -70188,8 +70357,23 @@
           "tests/llm/check_docs.py"
         ],
         "complete": true
+      },
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
       }
-    ]
+    ],
+    "decisions": []
   },
   {
     "path": "llm/core/README.md",
@@ -104485,6 +104669,120 @@
           "tests/hub/test_stream_output.py"
         ],
         "complete": true
+      }
+    ]
+  },
+  {
+    "path": "llm/components/tools/exposure.py",
+    "sha256": "aa6e58c1a615cdc1bba20968f9d2082e39426d1e71e4f545a6e7cc049f1ace31",
+    "reason": "Read the complete new public hook contract. Detached canonical messages and already-authorized names are observations, not scope or credentials. Sequence/name/subset/required validation has no selection heuristic, count limit, fallback on failure or retry. The application owns select_tools and revision; runtime binds only the declared callback type/revision, not private options. Frozen/slots and ellipsis are Python representation choices. Explicit empty is distinct from absent hook. Call-name validation precedes the whole Tool batch. Tests cover invalid values, absence, cancellation, concurrency, revision changes and replay.",
+    "dynamic_paths_reviewed": true,
+    "contracts": [
+      {
+        "owner": "Per-invocation Tool exposure",
+        "declaration": "llm/components/tools/exposure.py",
+        "consumers": [
+          "llm/components/tools/registry.py",
+          "llm/engines/loop/engine.py",
+          "llm/engines/loop/review.py"
+        ],
+        "tests": [
+          "tests/llm/test_loop_tool_exposure.py",
+          "tests/llm/test_tool_scope.py"
+        ],
+        "complete": true
+      }
+    ],
+    "decisions": [
+      {
+        "id": "62fee742e3334f6bd8d2346ad0a82923d87a0d9ce8eb2d748f7bbbf9f575f49f",
+        "classification": "non_contract",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Dataclass frozen/slots representation flags; detached observation storage, not execution policy."
+      },
+      {
+        "id": "1261641ae47db7287dfb0a23ba518399213b865088bb5c096c4e9479906c4ae7",
+        "classification": "non_contract",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Dataclass frozen/slots representation flags; detached observation storage, not execution policy."
+      },
+      {
+        "id": "c96bc758d3826eaaae084cb8cb9c3e3023a633967dd6e5e16f4b0dd19935bd94",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "b4c8a12e9a6c98be14df79436761c72d77654ae5206575729ee1b5f823cc9231",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "17af5164efb6e9bef92e731266c3c136858376147b5d7abcca26101a1514e658",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "263f500997bb372096913b96c0be260047cac0365f14c0a1b82c92803936e79d",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "80cb05493ab3aa81e6a2f48c33d17cf64aff7fccfe5f62f3f857003d23798da2",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "8f700fc7a4c1cff10a62ea12ef8f4931b9048cf9bb2578b36a59228ed08b719f",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "387affc398c1aa9c9f40a0d7eadcc47acad225fffaebfa82772ffd1bc5f21c4e",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "ac6b81cf45fc9e54a0a800cbfc9fe1b09734ca76e61b52ee4709e227242ed7c8",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "ed8cd4bd5503d147adaf8c1109c5f5d3a59c064e150891df2290eb1549d86fb4",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "4921de46ef39858822526e83fc9ad3a20c7c505af56e4bb70ac84dea98e5d84f",
+        "classification": "declaration",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Tool exposure contract owns its validation diagnostics, callback identity keys/type separator and absent-hook marker."
+      },
+      {
+        "id": "10d59de8c3f3bd5f8614b106411312ac24aa8974a63033532c0128a103377772",
+        "classification": "non_contract",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Python tuple type annotation or Protocol method stub; no runtime value or policy is produced."
+      },
+      {
+        "id": "3bed231f61c14ee5ce4045b6dc58d4a19b7a49f9070364d4f33ecaeb430a9cc4",
+        "classification": "non_contract",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Python tuple type annotation or Protocol method stub; no runtime value or policy is produced."
+      },
+      {
+        "id": "7939a76abcb800d6d8b255ee2a6561c129298bca04badc62de52a93237a70604",
+        "classification": "non_contract",
+        "owner": "ToolExposure / ToolSelector",
+        "reason": "Python tuple type annotation or Protocol method stub; no runtime value or policy is produced."
       }
     ]
   }

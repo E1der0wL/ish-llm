@@ -10,6 +10,7 @@ Project가 소유하는 Python Tool 소스를 저장하고 준비·활성화합�
 | [decorator.py](decorator.py) | @tool 메타데이터와 불변 실행 계약을 함수에 붙입니다. |
 | [function.py](function.py) | 함수 signature·annotation을 JSON Schema로 변환하고 Python default도 검증합니다. |
 | [registry.py](registry.py) | Tool/ToolContract와 실행용 ToolRegistry, 인자·definition 검증입니다. |
+| [exposure.py](exposure.py) | 모델 호출별 Tool 노출을 선택하는 애플리케이션 계약입니다. 기존 실행 권한을 확대하지 않습니다. |
 | [constraints.py](constraints.py) | Project 정책의 fixed/bounded/selectable을 원본 schema와 교차 검증하고 child 범위 확대를 거부합니다. |
 | [component.py](component.py) | Project Python 패키지 저장 구조와 선택된 Tool capability를 관리합니다. |
 | [data.py](data.py) | ToolData의 source CRUD, prepare, enable/disable 편의 API입니다. |

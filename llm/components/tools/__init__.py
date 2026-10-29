@@ -7,6 +7,7 @@ from .registry import Tool, ToolRegistry
 from .component import ToolComponent, ToolPaths
 from .data import ToolData
 from .decorator import tool
+from .exposure import ToolExposure, ToolSelector
 
 __all__ = ["Tool", "ToolContract", "ToolClassification", "ToolRegistry", "ToolEffect", "ToolIsolation",
-           "ToolComponent", "ToolPaths", "ToolData", "tool"]
+           "ToolComponent", "ToolPaths", "ToolData", "tool", "ToolExposure", "ToolSelector"]

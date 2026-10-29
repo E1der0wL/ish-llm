@@ -16,6 +16,7 @@ class LoopExecutionBinding:
     ADAPTER_TYPE = "type"
     ADAPTER_BINDING = "binding"
     FINAL_REVIEWERS = "final_reviewers"
+    TOOL_SELECTOR = "tool_selector"
     SORT_KEYS = True
     ENSURE_ASCII = False
     ALLOW_NONFINITE = False
@@ -52,6 +53,10 @@ class LoopExecutionBinding:
     @classmethod
     def attach_reviewers(cls, value, reviewers):
         value[cls.FINAL_REVIEWERS] = reviewers
+
+    @classmethod
+    def attach_selector(cls, value, binding):
+        value[cls.TOOL_SELECTOR] = binding
 
     @classmethod
     def digest(cls, value):

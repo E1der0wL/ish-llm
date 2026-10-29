@@ -8,6 +8,7 @@ from llm.core.schema import object_schema, field, SchemaKeyword, SchemaType, Sch
 from llm.policies import CompletionPolicy
 from llm.components.review import ReviewPolicy
 from llm.providers.requests import provider_schema
+from llm.components.tools.exposure import ToolExposure
 
 
 class LoopRegistration:
@@ -30,6 +31,10 @@ class LoopRegistration:
     def validate_recovery(cls, value):
         if value is not cls.ABSENT and not callable(value):
             raise TypeError(cls.INVALID_RECOVERY_SELECTOR)
+
+    @classmethod
+    def validate_selector(cls, value):
+        ToolExposure.bind_selector(value)
 
 
 class LoopParameters:

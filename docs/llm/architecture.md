@@ -28,6 +28,12 @@ Agent는 `system_prompt`와 선택한 Prompt·Skill 지침도 소유한다. Loop
 실행 입력과 승인·재개 binding에 사용하며 공개 `config.system_prompt`나 Project/Session
 프롬프트 상속을 제공하지 않는다. Loop의 공개 `config`는 `buffer_size`만 포함한다.
 
+Loop의 호출별 Tool 노출 선택은 Application이 등록한 `ToolSelector`가 수행한다.
+Backend는 기존 Agent/Run 허용 범위의 부분집합인지 검증하고 선택된 정의만 모델에 전달한다.
+노출은 권한이 아니며 기존 ToolExecutionScope를 바꾸지 않는다. 응답과 함께 저장한 노출 목록은
+승인 재개에도 유지하고 미노출 Tool 호출은 효과 전에 거부한다. 선택기는 일반 completion 입력
+가공과 분리하며 Scope·승인·재시도·저장은 기존 소유자에 남는다.
+
 선택 Engine의 순수 동기 `describe_agent()`는 Agent 설정 폼과 binding 검증이 공유하는
 스키마를 제공한다. Agent 서비스는 `describe(engine=...)`로 이를 전달하고 최상위 공통
 계약을 확대하지 못하게 한다. Engine/Adapter가 내부 필드의 스키마를 소유하며 UI 배치·

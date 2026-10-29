@@ -31,6 +31,12 @@ Run별 가변 상태를 저장하지 않는다. 생성자는 외부 자원을 �
 명시 활성화한 review_final에는 구현과 전체 정책·Reviewer revision이 필요하며 기본 accept가 없다. 이름 중복·잘못된 priority/close_timeout은 등록 해석 단계에서 거부한다.
 프로젝트 컴포넌트 선택 순서를 바꿔도 실행 순서는 바뀌지 않는다.
 
+Loop의 선택적 `tool_selector.select_tools(ToolExposure)`는 새 모델 호출의 `prepare` 전에
+노출 목록을 확정한다. Application이 기존 허용 이름 안에서 선택하며 일반 Processor의
+Tool 변경 금지는 그대로 유지한다. 선택 결과는 Loop iteration checkpoint에 보존한다.
+승인 재개는 저장된 회차의 선택기를 다시 실행하지 않고 다음 새 회차에서만 선택한다.
+[등록·취소·revision 계약](../../llm/engines/loop/README.md#호출별-tool-노출)을 따른다.
+
 `prepare`는 매 반복 호출된다. 실행당 한 번 준비할 일은 세션에 준비 여부를 저장한다.
 `after_completion`은 정상 스트리밍 및 Loop의 Tool 호출 형식 검증을 마친 응답마다 호출한다.
 이 시점에는 Tool 효과가 아직 발생하지 않았다. 예외를 발생시키면 Tool 실행을 진행하지 않는다.

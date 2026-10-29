@@ -223,6 +223,7 @@ class NamingContractTests(unittest.TestCase):
             'completion': {'model': 'test/model', 'temperature': None},
             'prompt': None, 'agent': {'engine_options': {}, 'completion': {'model': 'test/model', 'temperature': None}}, 'tools': [], 'tool_contracts': {},
             'adapter': {'type': 'llm.providers.litellm.LiteLLMCompletionAdapter', 'binding': None},
+            'tool_selector': None,
             'tool_policy': deepcopy(self.before['scope_binding']),
         }
         self.assertEqual(payload, expected)

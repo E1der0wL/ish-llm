@@ -114,11 +114,14 @@ class ToolRegistry:
                 validate(selected.arguments, context, request_key=record.request_key,
                          checkpoint_name=record.checkpoint_name)
 
-    def definitions(self, *, constraints=NO_CONSTRAINTS) -> tuple[ToolDefinition, ...]:
+    def definitions(self, *, names=None, constraints=NO_CONSTRAINTS) -> tuple[ToolDefinition, ...]:
+        """Copy only selected definitions without re-registering runtime handlers."""
         from .constraints import constrained_parameters
+        from .exposure import ToolExposure
+        selected = self.names() if names is None else ToolExposure.validate_names(names, self.names())
         definitions = (copy_model(tool.definition) if tool.definition is not None else
                        ToolDefinition(tool.name, tool.description, tool.parameters)
-                       for tool in self._tools.values())
+                       for tool in (self._tools[name] for name in selected))
         return tuple(replace(definition, parameters=constrained_parameters(definition.parameters,
                      (constraints or {}).get(definition.name, {}))) for definition in definitions)
 

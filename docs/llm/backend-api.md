@@ -107,6 +107,12 @@ if plan.can_resume:
 
 ## 기능별 공개 계약
 
+Loop의 모델 호출별 Tool 노출은 `LoopEngine(tool_selector=...)`로 연결한다.
+`llm.components.tools.ToolSelector`는 명시적 `revision`과 async `select_tools(request)`를
+제공한다. `ToolExposure`의 허용 이름 중 이번 호출에 보여줄 목록만 반환하며 빈 목록도 명시할 수 있다.
+선택 기준·개수는 Application이 소유하고 Project/Agent Tool 권한이나 승인 절차는 바꾸지 않는다.
+전체 등록 Tool 로딩은 유지한다. [Loop 연결 예와 체크포인트 계약](../../llm/engines/loop/README.md#호출별-tool-노출).
+
 | 기능 | 문서 |
 |---|---|
 | Engine 개발·등록 | [Engine README](../../llm/engines/README.md), [Graph](graph-engine.md), [중첩](nested-workflows.md) |

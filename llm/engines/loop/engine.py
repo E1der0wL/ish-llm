@@ -4,6 +4,7 @@ A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
 from llm.components.processing import COMPLETION_PROCESSORS
 from llm.components.tools.registry import ToolRegistry
+from llm.components.tools.exposure import ToolExposure, ToolSelector
 
 from llm.core.implementation_parameters import ImplementationParameters
 
@@ -152,6 +153,7 @@ class LoopEngine(BaseEngine):
             LoopExecutionBinding.attach_reviewers(
                 values, review_identities(context.capabilities.get(COMPLETION_PROCESSORS, ()))
             )
+        LoopExecutionBinding.attach_selector(values, ToolExposure.bind_selector(self.tool_selector))
         return LoopExecutionBinding.digest(values)
 
     def bind_execution(self, context):
@@ -171,7 +173,11 @@ class LoopEngine(BaseEngine):
         uncertain = set()
         for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items():
             if key.startswith(LoopIterationRecord.KEY_PREFIX):
-                ModelResponse.from_dict(LoopIterationRecord.response(value))
+                response = ModelResponse.from_dict(LoopIterationRecord.response(value))
+                names, _ = LoopIterationRecord.exposure(value)
+                ToolExposure.require_calls(names, response.message.calls)
+                if context is not BaseEngine.ABSENT:
+                    ToolExposure.validate_names(names, self._available_tools(context))
             if LoopInstructionBoundary.matches(key):
                 validate_instruction_record(value)
             if LoopCheckpointRecord(value).status == CheckpointStatus.STARTED:
@@ -221,6 +227,7 @@ class LoopEngine(BaseEngine):
         parameter_key=BaseEngine.ABSENT,
         retry_decider=BaseEngine.ABSENT,
         recover_completion=BaseEngine.ABSENT,
+        tool_selector: Optional[ToolSelector] = BaseEngine.ABSENT,
         completion_adapter=BaseEngine.ABSENT,
     ) -> None:
         """Host는 구현을 등록한다. 실행값은 Project/Session/Agent 설정에서만 읽는다."""
@@ -230,6 +237,8 @@ class LoopEngine(BaseEngine):
         self.retry_decider = retry_decider
         LoopRegistration.validate_recovery(recover_completion)
         self.recover_completion = recover_completion
+        LoopRegistration.validate_selector(tool_selector)
+        self.tool_selector = tool_selector
         self.completion_adapter = completion_adapter
         self._configure({})
 
@@ -299,19 +308,36 @@ class LoopEngine(BaseEngine):
         ReviewPolicy.read(LoopPolicy(policy).final_review)
         return view.with_runtime(()).to_dict()
 
-    def _request(self, context: EngineContext, params: dict[str, Any]) -> ModelRequest:
+    @staticmethod
+    def _available_tools(context):
+        scope = ToolExecutionScope.require(context)
+        return tuple(name for name in context.tools.names()
+                     if scope.allowed_tools is BaseEngine.ABSENT or name in scope.allowed_tools)
+
+    async def _select_tools(self, context, messages, iteration, saved):
+        available = self._available_tools(context)
+        if saved:
+            names, mode = LoopIterationRecord.exposure(saved)
+            return ToolExposure.validate_names(names, available), mode
+        required = LoopAgentOptions.required_by(self) and not ToolExecutionScope.require(context).completed
+        names = available
+        if self.tool_selector is not BaseEngine.ABSENT:
+            if ToolExposure.bind_selector(self.tool_selector) != self._selector_binding:
+                raise ValueError(ToolExposure.CHANGED_SELECTOR)
+            exposure = ToolExposure(iteration, tuple(m.message for m in messages), available, bool(required))
+            names = exposure.validate(await self.tool_selector.select_tools(exposure))
+            if ToolExposure.bind_selector(self.tool_selector) != self._selector_binding:
+                raise ValueError(ToolExposure.CHANGED_SELECTOR)
+        return names, ToolMode.REQUIRED if required and names else BaseEngine.ABSENT
+
+    def _request(self, context: EngineContext, params: dict[str, Any], *, names, mode) -> ModelRequest:
         scope = ToolExecutionScope.require(context)
         parameters = copy_model(params)
         self.completion_adapter.validate_request(
             parameters, require_model=CompletionAdapterContract.REQUIRE_MODEL
         )
         definitions = context.tools.definitions(
-            constraints=scope.argument_constraints
-        )
-        mode = (
-            ToolMode.REQUIRED
-            if definitions and LoopAgentOptions.required_by(self) and not scope.completed
-            else BaseEngine.ABSENT
+            names=names, constraints=scope.argument_constraints
         )
         return ModelRequest(parameters=parameters, tools=definitions, tool_mode=mode)
 
@@ -375,6 +401,7 @@ class LoopEngine(BaseEngine):
         # A Run-local instance keeps shared defaults immutable and preserves
         # subclass methods. Only Loop-owned configuration are reinitialized.
         worker = copy(self)
+        worker._selector_binding = ToolExposure.bind_selector(self.tool_selector)
         worker._resume_binding = self._binding(context)
         worker._configure(resolved)
         # 다른 Agent/Engine의 입력 예산을 상속하지 않는다. 처리기는 이 호출의 선택기만 전달받는다.
@@ -559,7 +586,8 @@ class LoopEngine(BaseEngine):
                 ModelResponse.from_dict(LoopIterationRecord.response(saved)) if saved else BaseEngine.ABSENT
             )
             calls, prepared = [], []
-            invocation = self._request(context, params)
+            names, mode = await self._select_tools(context, messages, iteration, saved)
+            invocation = self._request(context, params, names=names, mode=mode)
             request = CompletionRequest(
                 invocation.parameters,
                 [replace(m, message=copy_model(m.message)) for m in messages],
@@ -692,6 +720,7 @@ class LoopEngine(BaseEngine):
                 if any(call.id in seen_call_ids for call in calls):
                     raise ValueError(LoopEngine.DUPLICATE_TOOL_CALL)
                 # Validate the whole batch before any tool can have side effects.
+                ToolExposure.require_calls(names, calls)
                 prepared = [
                     context.tools.prepare(
                         call.name,
@@ -728,6 +757,7 @@ class LoopEngine(BaseEngine):
                 calls = response.message.calls
                 if any(call.id in seen_call_ids for call in calls):
                     raise ValueError(LoopEngine.DUPLICATE_TOOL_CALL)
+                ToolExposure.require_calls(names, calls)
                 prepared = [
                     context.tools.prepare(
                         c.name,
@@ -743,7 +773,9 @@ class LoopEngine(BaseEngine):
                 async with aclosing(processors.after_completion(observation)) as events:
                     async for event in events:
                         yield self._candidate_event(event, review)
-                saved = LoopIterationRecord.create(response, CheckpointStatus.RESPONDED)
+                saved = LoopIterationRecord.create(
+                    response, CheckpointStatus.RESPONDED, tools=names, tool_mode=mode
+                )
                 if review is not BaseEngine.ABSENT and not calls:
                     LoopIterationRecord.attach_observation(
                         saved,
@@ -978,5 +1010,5 @@ class LoopEngine(BaseEngine):
             if durable:
                 yield self._record(
                     LoopIterationRecord.key(iteration),
-                    LoopIterationRecord.create(response, CheckpointStatus.COMPLETED),
+                    LoopIterationRecord.complete(saved),
                 )
