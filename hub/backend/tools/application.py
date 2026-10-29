@@ -58,7 +58,7 @@ class HubApplicationTools:
     TITLE = 'title'
     SESSION_ID = 'session_id'
     SAVE_SUCCEEDED = True
-    HELP_DESCRIPTION = "Read Hub usage and the callable public application APIs."
+    HELP_DESCRIPTION = "Read Hub usage and application APIs. If a Tool is missing, supply tool_query to search the Agent's allowed catalog, including unclassified Tools. Results may be exposed on the next model call; normal approval and argument policies still apply."
     PARTICIPANTS_DESCRIPTION = "List this Session's invited Agents before contacting a peer."
     SEND_DESCRIPTION = "Queue a message to another invited Agent in this same Session; do not wait synchronously. Respect the user's scope. Do not relay secrets or create automatic ping-pong conversations."
     EXPORT_DESCRIPTION = "Export current saved global and Project settings as a named local preset. Includes credentials; obtain approval and never print the settings."
@@ -81,6 +81,9 @@ class HubApplicationTools:
 
     async def help(self, args):
         await self.scope()
+        from ..execution.tool_lookup import ToolLookup
+        if ToolLookup.QUERY in args:
+            return ToolLookup.UNBOUND
         return await asyncio.to_thread(self.HELP_FILE.read_text, encoding=self.ENCODING)
 
     async def participants(self, args):
@@ -92,7 +95,7 @@ class HubApplicationTools:
         ]}
 
     async def send(self, args):
-        _, session, run = await self.scope()
+        project, session, run = await self.scope()
         target, content = args[self.RECIPIENT], args[self.MESSAGE]
         members = (await session.aget_data()).agent_ids
         if target not in members or target == run.agent_id:
@@ -105,9 +108,12 @@ class HubApplicationTools:
         context[AgentMessageContext.KEY] = {
             AgentMessageContext.HOPS: hops, AgentMessageContext.SENDER: run.agent_id,
         }
+        from ..execution.request_profile import RequestProfile
+        text = self.MESSAGE_TEMPLATE.format(sender=run.agent_id, content=content)
+        definition = await project.agents.aload(target)
+        engine = self.runtime.backend.engines.get(AgentDefinition.engine(definition))
         request = await session.run.submit(
-            self.MESSAGE_TEMPLATE.format(sender=run.agent_id, content=content),
-            recipients=[target], request_context=context,
+            text, recipients=[target], request_context=RequestProfile.for_engines(text, context, [engine]),
         )
         self.runtime.dirty.set()
         return {self.REQUEST_ID: request.id, self.RECIPIENT: target, self.DELIVERY: self.QUEUED}
@@ -128,6 +134,7 @@ class HubApplicationTools:
         return {self.SESSION_ID: session.id, self.TITLE: args[self.TITLE]}
 
     def tools(self):
+        from ..execution.tool_lookup import ToolLookup
         # Tool definitions are copied by backend resolvers. A bound method would
         # recursively copy the runtime (locks, providers and Project handles).
         # Functions deliberately retain the one host service binding instead.
@@ -137,7 +144,7 @@ class HubApplicationTools:
             return invoke
 
         return (
-            tool(self.HELP, self.HELP_DESCRIPTION, {}, [], bind(self.help)),
+            tool(self.HELP, self.HELP_DESCRIPTION, ToolLookup.PROPERTIES, [], bind(self.help)),
             tool(self.PARTICIPANTS, self.PARTICIPANTS_DESCRIPTION, {}, [], bind(self.participants)),
             tool(self.SEND, self.SEND_DESCRIPTION,
                  {self.RECIPIENT: self.TOPIC_SCHEMA, self.MESSAGE: {**self.TOPIC_SCHEMA, SchemaKeyword.MAX_LENGTH: self.MAX_MESSAGE}},

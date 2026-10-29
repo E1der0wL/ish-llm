@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from hub.backend.runtime import HubConfig, HubRuntime
+from hub.backend.execution.request_profile import RequestProfile
 from hub.config.defaults import HubDefaults
 from llm.engines.base import BaseEngine
 
@@ -35,7 +36,9 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         run = (await runtime.sessions[session_id].run.request(request).wait(timeout=15))[0]
         self.assertEqual(run.data.status, 'completed', run.data.error)
         self.assertEqual(run.data.agent_id, 'writer')
-        self.assertNotIn('request_context', run.data.metadata)
+        # Hub owns request routing metadata; omitted Agent tools/options stay
+        # omitted and a custom Engine still receives its original selection.
+        self.assertEqual(run.data.metadata['request_context'], RequestProfile.capture('hello'))
         self.assertNotIn('tools', await runtime.project.agents.aload('writer'))
         self.assertEqual(effects, ['writer'])
         before = await runtime.project.agents.alist()

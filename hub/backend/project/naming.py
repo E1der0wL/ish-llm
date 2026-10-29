@@ -9,6 +9,7 @@ from llm.core.model_protocol import ModelRole
 
 from llm.core.models import RunStatus
 import asyncio
+from collections import OrderedDict
 from copy import deepcopy
 
 from ..execution.auxiliary_engine import AuxiliaryEngine
@@ -32,12 +33,26 @@ class TitleEngine(AuxiliaryEngine):
 class SessionNamer:
 
     ATTEMPT_VERSION = TitleAttempt.VERSION
+    CHECK_LIMIT = 1024
 
     def __init__(self, runtime):
         self.runtime = runtime
         self.tasks = {}
         self.errors = {}
-        self.deferred = {}
+        self.checked = OrderedDict()
+        self.configuration = None
+        self.configuration_revision = 0
+
+    def observe_configuration(self, project_id, definitions):
+        """A changed public Agent catalog permits another title attempt.
+
+        The catalog is periodically reconciled by SnapshotReader; this never
+        supplies execution settings, which _completion reads afresh.
+        """
+        configuration = (project_id, definitions)
+        if configuration != self.configuration:
+            self.configuration = configuration
+            self.configuration_revision += 1
 
     async def _completion(self, session, record, source):
         """Borrow provider settings, without borrowing the conversation's output contract."""
@@ -66,13 +81,20 @@ class SessionNamer:
         return session_id in self.tasks
 
     def schedule(self, session, key):
+        token = (key, self.configuration_revision)
         if (self.runtime.config.auto_title and session.id not in self.tasks
-                and self.deferred.get(session.id) != key):
+                and self.checked.get(session.id) != token):
+            self.checked[session.id] = token
+            self.checked.move_to_end(session.id)
+            while len(self.checked) > self.CHECK_LIMIT:
+                self.checked.popitem(last=False)
             task = asyncio.create_task(self._name(session, key))
             self.tasks[session.id] = task
 
             def finished(task):
                 self.tasks.pop(session.id, TitlePresentation.ABSENT)
+                if task.cancelled() and self.checked.get(session.id) == token:
+                    self.checked.pop(session.id, None)
                 if (
                     not task.cancelled()
                     and task.exception() is not TitlePresentation.ABSENT
@@ -88,6 +110,7 @@ class SessionNamer:
 
     async def _name(self, session, key):
         job = TitlePresentation.ABSENT
+        changed = False
         try:
             record = await session.aget_data()
             if not TitleSessionMetadata(record.metadata).automatic:
@@ -96,9 +119,7 @@ class SessionNamer:
             from ..execution.completion_review import ConversationalInput
             requests = [m.content for m in history if str(m.role) == ModelRole.USER]
             if requests and all(ConversationalInput.matches(text) for text in requests):
-                self.deferred[session.id] = key
                 return
-            self.deferred.pop(session.id, None)
             if not any(
                 str(m.role) == ModelRole.ASSISTANT and m.content for m in history
             ):
@@ -119,6 +140,7 @@ class SessionNamer:
             await session.asave(
                 metadata=TitleSessionMetadata(record.metadata).with_attempt(attempt)
             )
+            changed = True
             if not ModelParameters(params).optional_model:
                 raise ValueError(self.runtime.t(MessageKey.TITLE_MODEL_REQUIRED))
             from .agents import TITLE_AGENT
@@ -160,11 +182,14 @@ class SessionNamer:
             self.errors[session.id] = from_exception(
                 error, operation=TitlePresentation.OPERATION
             )
+            changed = True
         finally:
             if job is not TitlePresentation.ABSENT:
                 await job.run.shutdown()
                 await job.adelete()
-            self.runtime.dirty.set()
+            if changed:
+                self.runtime.snapshot_reader.invalidate(session.id)
+                self.runtime.dirty.set()
 
     async def close(self):
         tasks = tuple(self.tasks.values())

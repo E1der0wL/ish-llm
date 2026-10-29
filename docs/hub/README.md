@@ -21,8 +21,9 @@ UI effective values를 새 설정 기본값으로 저장하지 않는다.
 | 소유자 | 책임 | 정규 문서 |
 |---|---|---|
 | bootstrap/config/Project 서비스 | 구현 주입, 앱 생성 preset, 설정·선택·CAS | [구조](structure.md), [설정/재개](presets-and-resume.md) |
-| backend worker | 이벤트 루프, 공개 llm API와 실행 수명 | [초기 연결·단계 표시](backend-progress.md), [렌더링 파이프라인](rendering-performance.md), [유지보수 경계](maintenance.md) |
+| backend worker | 이벤트 루프, 공개 llm API와 실행 수명 | [초기 연결·단계 표시](backend-progress.md), [조회 중복 제거](backend-observation.md), [렌더링 파이프라인](rendering-performance.md), [유지보수 경계](maintenance.md) |
 | 요청 환경 | Enter 시점 cwd/env 사본, Tool·path revision binding | [셸 환경](shell-environment.md) |
+| 요청별 도구 선택 | 인사 입력 축소, 조회 도구 선택, 기존 승인·재개 유지 | [요청 분기](request-routing.md) |
 | 대용량 Tool 데이터 | 생성 preset·공개 저장 연결·범위 조회 지침 | [원문 저장과 외부 읽기](large-data-tools.md) |
 | backend 오류 계약 소비 | Diagnostic 보존·backend admission·앱 선택 | [오류](error-handling.md), [Provider 복구](provider-recovery.md), [작업 복구](operation-recovery.md) |
 | Tool UI/선택기 | 승인·질문 표시, 허용된 인자 수정 제안 | [질문과 Tool](questions-tools.md), [Tool retry](tool-retry.md) |

@@ -14,6 +14,7 @@ from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorOrigin
 from .progress import BackendProgress, OperationProgress
 from ..locales.keys import MessageKey
+from .project.settings_contracts import SettingsOperation
 
 
 class BackendWorker:
@@ -41,6 +42,7 @@ class BackendWorker:
     IDLE_MIN_INTERVAL = 0.5
     IDLE_MAX_INTERVAL = 2.0
     IDLE_FACTOR = 10
+    HIDDEN_INTERVAL = 1.0
     MIN_TIMEOUT = 0
     CLEANUP_RESULT = -1
     THREAD_NAME = "hub-backend"
@@ -105,6 +107,7 @@ class BackendWorker:
         self._snapshot_task = BackendWorker.ABSENT
         self.snapshot_count = BackendWorker.INITIAL_COUNT
         self._output_interval = BackendWorker.DEFAULT_OUTPUT_INTERVAL
+        self._visible = True
         self._interval_changed = BackendWorker.ABSENT
         self._sidebar_width_pending = BackendWorker.ABSENT
         self._sidebar_width_task = BackendWorker.ABSENT
@@ -214,13 +217,13 @@ class BackendWorker:
             # Idle reconciliation is a safety net. Events wake it immediately,
             # throttled only by the configured output interval.
             deadline = last_read + (
-                self._output_interval
+                self._refresh_interval()
                 if active or dirty
                 else max(
                     BackendWorker.IDLE_MIN_INTERVAL,
                     min(
                         BackendWorker.IDLE_MAX_INTERVAL,
-                        self._output_interval * BackendWorker.IDLE_FACTOR,
+                        self._refresh_interval() * BackendWorker.IDLE_FACTOR,
                     ),
                 )
             )
@@ -239,15 +242,15 @@ class BackendWorker:
                     if not done:
                         break
                     self.runtime.dirty.clear()
-                    deadline = min(deadline, last_read + self._output_interval)
+                    deadline = last_read + self._refresh_interval()
                 finally:
                     wake.cancel()
                     changed.cancel()
                     await asyncio.gather(
                         wake, changed, return_exceptions=BackendWorker.CAPTURE_ERRORS
                     )
-            last_read = loop.time()
             try:
+                self.runtime.urgent_observation = False
                 self._snapshot_task = asyncio.create_task(self._read_snapshot())
                 try:
                     snapshot = await self._snapshot_task
@@ -260,6 +263,8 @@ class BackendWorker:
                     continue
                 finally:
                     self._snapshot_task = BackendWorker.ABSENT
+                    # Slow reads must not make the next poll immediately overdue.
+                    last_read = loop.time()
                 if snapshot != last:
                     self.publish(snapshot)
                     last = snapshot
@@ -272,14 +277,32 @@ class BackendWorker:
                     )
                 )
 
+    def _refresh_interval(self):
+        if self._visible or self.runtime.urgent_observation:
+            return self._output_interval
+        return max(self.HIDDEN_INTERVAL, self._output_interval)
+
+    def set_visible(self, visible: bool) -> None:
+        """Reduce hidden painting work without delaying lifecycle notifications."""
+        def apply():
+            if self._visible != visible:
+                self._visible = visible
+                if visible:
+                    self.runtime.urgent_observation = True
+                    self.runtime.dirty.set()
+                self._interval_changed.set()
+        if not self._closed and not self.loop.is_closed():
+            self.loop.call_soon_threadsafe(apply)
+
     async def _execute(
         self, operation: str, args, acknowledged=ABSENT, progress=ABSENT, stage=ABSENT
     ):
         with OperationProgress.bind(stage):
-            OperationProgress.report(MessageKey.PROGRESS_BACKEND_WAIT)
             return await self._execute_ready(operation, args, acknowledged, progress)
 
     async def _execute_ready(self, operation, args, acknowledged, progress):
+        if not self._initialized.is_set():
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_WAIT)
         await self._initialized.wait()
         if self._closed or self._restarting:
             raise RuntimeError(BackendWorker.CLOSING_MESSAGE)
@@ -294,7 +317,12 @@ class BackendWorker:
             # These operations capture explicit project handles and use service
             # lifecycle/version locks. They never change UI selection. Long RAG
             # writes and tool imports must not block unrelated output either.
-            independent = operation in BackendWorker.INDEPENDENT_OPERATIONS
+            independent = operation in BackendWorker.INDEPENDENT_OPERATIONS or (
+                operation == HubRuntime.settings.__name__ and args
+                and args[0] == SettingsOperation.USAGE
+            )
+            if not independent and self.runtime.lock.locked():
+                OperationProgress.report(MessageKey.PROGRESS_BACKEND_WAIT)
             async with nullcontext() if independent else self.runtime.lock:
                 OperationProgress.report(
                     MessageKey.PROGRESS_BACKEND_WRITE if operation in self.WRITE_OPERATIONS

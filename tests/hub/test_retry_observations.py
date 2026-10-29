@@ -17,17 +17,17 @@ from hub.locales import Language
 from hub.model import ChatMessage
 from hub.widget.feedback.retry_status import retry_text
 from hub.widget.transcript.conversation import render_messages
-from llm.engines.base import EngineEvent, EngineEventType as E
+from llm.engines.base import EngineContext, EngineEvent, EngineEventType as E
 from llm.policies.retry import RetryDecision
 from llm.services.runtime.tools import ToolExecutionError
-from tests.hub.support import eventually
+from tests.hub.support import backend_ready
 from tests.hub.test_tool_retry import ExampleTools
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
 def context(run_id="r", maximum=2):
-    return NS(capabilities={}, run=NS(id=run_id, metadata={"policies": {
-        "tool_retry": {"max_retries": maximum, "delay_seconds": 5}}}))
+    return EngineContext(NS(), NS(), NS(id=run_id, metadata={"policies": {
+        "tool_retry": {"max_retries": maximum, "delay_seconds": 5}}}), ())
 
 
 def start(monitor, ctx, step="s"):
@@ -171,7 +171,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
                 sid = await runtime.new_session()
                 request = await runtime.sessions[sid].run.submit("Convert", recipients=["assistant"])
                 monitor = runtime.backend.services.observability_sink
-                await eventually(lambda: bool(monitor.states))
+                await backend_ready(lambda: bool(monitor.states), 'Tool backoff')
                 state = (await runtime.snapshot()).run.retry
                 self.assertEqual((state.kind, state.attempt, state.maximum), ("tool", 1, 4))
                 self.assertIsNotNone(state.retry_at)

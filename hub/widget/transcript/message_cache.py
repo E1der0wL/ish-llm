@@ -16,6 +16,7 @@ from pathlib import Path
 from types import MappingProxyType
 from prompt_toolkit.formatted_text.utils import fragment_list_width
 from ...ui.output import OutputParser, RenderContext
+from ...ui.output.streaming import StreamingParse
 
 
 class Joined(Sequence):
@@ -34,7 +35,7 @@ class Joined(Sequence):
 
     def __getitem__(self, index):
         if isinstance(index, slice):
-            return tuple(self)[index]
+            return tuple(self[position] for position in range(*index.indices(len(self))))
         if index < 0:
             index += len(self)
         if not 0 <= index < len(self):
@@ -105,8 +106,13 @@ class TraceRows(NamedTuple):
 
 @dataclass(frozen=True, slots=True)
 class CachedMessage:
+    source: object = None
+    source_index: int = -1
+    renderer_version: object = None
+    dynamic_blocks: bool = False
     body_key: object = None
     blocks: tuple = ()
+    parsing: StreamingParse = field(default_factory=StreamingParse)
     revisions: object = None
     body: object = None
     block_cache: dict = field(default_factory=dict)
@@ -168,11 +174,18 @@ class MessageRenderCache:
                 ),
             )
         entries, retained = [], {}
+        renderer_version = renderers.version
         for index, message in enumerate(messages):
             identifier = TranscriptIdentity.message(message, index)
             previous = self.items.get(identifier)
             if previous is MessageRenderCache.ABSENT:
                 previous = CachedMessage()
+            if (previous.source is message and previous.source_index == index
+                    and previous.renderer_version == renderer_version
+                    and not previous.dynamic_blocks):
+                retained[identifier] = previous
+                entries.append(previous.frame)
+                continue
             body_key = BodyKey(
                 message.role,
                 MessageRenderCache.EMPTY if message.trace else message.text,
@@ -183,12 +196,12 @@ class MessageRenderCache:
                 message.draft is not None,
             )
             blocks = previous.blocks
+            parsing = previous.parsing
             if previous.body_key != body_key:
-                blocks = (
-                    self.parser.parse(message.text, final=body_key.final)
-                    if message.role == MessageRole.ASSISTANT and message.draft is None
-                    else ()
-                )
+                if message.role == MessageRole.ASSISTANT and message.draft is None:
+                    blocks, parsing = parsing.parse(self.parser, message.text, final=body_key.final)
+                else:
+                    blocks, parsing = (), StreamingParse()
             render_context = RenderContext(
                 TranscriptLayout.inner_width(width),
                 theme,
@@ -343,8 +356,11 @@ class MessageRenderCache:
                     ),
                 )
             retained[identifier] = CachedMessage(
+                source=message, source_index=index, renderer_version=renderer_version,
+                dynamic_blocks=renderers.has_block_revisions(blocks),
                 body_key=body_key,
                 blocks=blocks,
+                parsing=parsing,
                 revisions=revisions,
                 body=body,
                 block_cache=block_cache,

@@ -138,11 +138,15 @@ class MessagePresentationCache:
         self.context = MessagePresentationCache.ABSENT
         self.items = {}
         self.transformed = MessagePresentationCache.INITIAL_COUNT
+        self.source_messages = None
+        self.display_messages = ()
 
     def messages(self, snapshot, t):
         context = PresentationKey(
             snapshot.project_id, snapshot.selected_id, id(t), t.icons
         )
+        if context == self.context and snapshot.messages is self.source_messages:
+            return self.display_messages
         previous = self.items if context == self.context else {}
         retained, messages = {}, []
         for index, item in enumerate(snapshot.messages):
@@ -187,7 +191,9 @@ class MessagePresentationCache:
                 messages.append(cached.partial)
             messages.append(cached.display)
         self.context, self.items = context, retained
-        return tuple(messages)
+        self.source_messages = snapshot.messages
+        self.display_messages = tuple(messages)
+        return self.display_messages
 
 
 def present(snapshot: HubSnapshot, t, cache=PresentationFormat.ABSENT) -> Presentation:

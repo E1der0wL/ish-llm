@@ -219,6 +219,7 @@ class HubRuntime:
         self.sessions = {}
         self.selected_id = HubRuntime.NO_SELECTION
         self.dirty = asyncio.Event()
+        self.urgent_observation = False
         self.lock = asyncio.Lock()
         self._subscriptions = []
         self._dropped_observations = HubRuntime.INITIAL_DROPPED
@@ -258,6 +259,12 @@ class HubRuntime:
         from .project.postprocessing_values import Postprocessing
         if run.engine == Postprocessing.ENGINE:
             return
+        self.snapshot_reader.observe_engine(run, event)
+        from llm.engines.events import EngineEvent, EngineEventType
+        if EngineEvent.observed_type(event) in (
+            EngineEventType.INTERACTION_CHANGED, EngineEventType.PAUSED,
+        ):
+            self.urgent_observation = True
         self.snapshot_reader.thinking.observe(run, event)
         from llm.engines.loop import LoopEngine
         from .execution.environment import underlying_engine
@@ -274,8 +281,9 @@ class HubRuntime:
             self.snapshot_reader.drafts.forget(event.run.id)
         self.background_records.observe(event.run)
         self.automatic_approvals.observe(event.run)
-        self.snapshot_reader.invalidate(event.run.session_id)
+        self.snapshot_reader.observe_run(event.run)
         self.notifications.record_run(event.run)
+        self.urgent_observation = True
         self.dirty.set()
 
     def _saved_selection(self, project_id=ABSENT):
@@ -293,6 +301,7 @@ class HubRuntime:
 
     def _questions_changed(self):
         self.notifications.observe_questions(self.builtin_tools.questions.pending)
+        self.urgent_observation = True
         self.dirty.set()
 
     async def start(self) -> None:
@@ -345,7 +354,12 @@ class HubRuntime:
         await self.activate_project(self.project, session_id=self.config.session_id)
 
     async def settings(self, operation, *args):
-        return await self.settings_service.execute(operation, *args)
+        try:
+            return await self.settings_service.execute(operation, *args)
+        finally:
+            from .progress import OperationProgress
+            if operation in OperationProgress.SETTINGS_WRITES:
+                self.snapshot_reader.invalidate_project()
 
     async def activate_project(self, project, *, session_id=ABSENT):
         from .progress import OperationProgress
@@ -399,9 +413,10 @@ class HubRuntime:
         if not session_id and not self.sessions:
             return
         session = self.sessions[session_id]
-        OperationProgress.report(MessageKey.PROGRESS_BACKEND_RECOVER)
-        await session.run.start()
-        self._opened_sessions.add(session_id)
+        if not self.session_is_open(session_id):
+            OperationProgress.report(MessageKey.PROGRESS_BACKEND_RECOVER)
+            await session.run.start()
+            self._opened_sessions.add(session_id)
         self.selected_id = session_id
         self.dirty.set()
 
@@ -672,7 +687,10 @@ class HubRuntime:
             return await manager.execute(
                 action, argument, expected_version, progress=progress
             )
-        return await manager.execute(action, argument, expected_version)
+        try:
+            return await manager.execute(action, argument, expected_version)
+        finally:
+            self.snapshot_reader.invalidate_project()
 
     async def submit(
         self,
@@ -704,6 +722,7 @@ class HubRuntime:
         session = self.sessions[session_id]
         from .execution.engine_selection import agent_model
 
+        engines = []
         for selected in recipients:
             if HubEngineIdentity.internal(selected):
                 raise ValueError(HubRuntime.INTERNAL_RECIPIENT)
@@ -712,8 +731,11 @@ class HubRuntime:
                 agent_model(self.backend.engines, definition)
             ):
                 raise ValueError(self.t(MessageKey.MODEL_REQUIRED))
+            engines.append(self.backend.engines.get(AgentDefinition.engine(definition)))
+        from .execution.request_profile import RequestProfile
         request = await session.run.submit(
-            text, recipients=recipients, request_context=request_context
+            text, recipients=recipients,
+            request_context=RequestProfile.for_engines(text, request_context, engines)
         )
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
@@ -956,6 +978,7 @@ class HubRuntime:
             engines=self.backend.engines,
             title_errors=self.namer.errors,
         )
+        self.namer.observe_configuration(snapshot.project_id, self.snapshot_reader.agent_definitions)
         self._reconcile_snapshot(snapshot.project_id, observations)
         questions = (
             self.builtin_tools.questions.views(self.project.id, self.selected_id)

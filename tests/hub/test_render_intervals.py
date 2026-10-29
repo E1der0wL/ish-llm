@@ -108,6 +108,7 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
         worker._closed = False
         worker._restarting = False
         worker._output_interval = 10
+        worker._visible = True
         worker._interval_changed = asyncio.Event()
         worker._snapshot_task = None
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event())

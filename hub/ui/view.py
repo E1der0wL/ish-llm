@@ -161,6 +161,7 @@ class HubView:
             SessionView(self.t(MessageKey.WELCOME_TITLE))
         ]
         self.on_open = self.on_submit = self.on_select = self.on_new = HubView.ABSENT
+        self.on_hide = HubView.ABSENT
         self.on_interrupt = HubView.ABSENT
         self.on_answer = self.on_review = HubView.ABSENT
         self.on_history = self.on_activity = HubView.ABSENT
@@ -793,6 +794,8 @@ class HubView:
             app.layout.focus(self._previous_focus)
         self.visible = HubView.HIDDEN
         self.mouse.detach()
+        if self.on_hide:
+            self.on_hide()
         from ..widget.clipboard import SystemClipboard
 
         if isinstance(app.clipboard, SystemClipboard):

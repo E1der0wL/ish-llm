@@ -11,6 +11,7 @@ from ...errors.contracts import ErrorInfo
 
 class SettingsOperation(StrEnum):
     CATALOG = "catalog"
+    USAGE = "usage"
     LIST_PROJECTS = "list_projects"
     LOAD_PROJECT = "load_project"
     SAVE_PROJECT = "save_project"
@@ -196,7 +197,6 @@ class SettingsCatalog(SettingsResponse):
     projects: list
     schema: dict
     host: dict
-    usage: list
     active_project: str
     preferences: dict
 
@@ -253,10 +253,6 @@ class SettingsCatalogObservation:
     @property
     def active_project(self):
         return self.record.get(SettingsCatalog.active_project.__name__, self.NO_ACTIVE_PROJECT)
-
-    @property
-    def usage(self):
-        return self.record.get(SettingsCatalog.usage.__name__, [])
 
     @property
     def preferences(self):

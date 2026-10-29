@@ -360,7 +360,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
             controller.app, controller.loop = app, asyncio.get_running_loop()
             future = Future()
             controller.worker = NS(call=Mock(side_effect=lambda operation, *args:
-                future if operation == "interrupt" else Future()), close=Mock())
+                future if operation == "interrupt" else Future()), close=Mock(), set_visible=Mock())
             base = running_snapshot()
             with set_app(app):
                 view.apply_snapshot(replace(base, run=replace(base.run, status="completed", active=False),
@@ -385,6 +385,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit(result="")
                 await task
+                controller.worker.set_visible.assert_called_once_with(False)
                 installation.close()
 
     async def test_ctrl_w_renders_stopping_before_backend_returns(self):

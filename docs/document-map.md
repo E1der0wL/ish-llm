@@ -32,6 +32,7 @@
 | [hub/questions-tools.md](hub/questions-tools.md) | 입력창 질문과 내장 도구 |
 | [hub/rag.md](hub/rag.md) | Hub RAG 사용 안내 |
 | [hub/rendering-performance.md](hub/rendering-performance.md) | Hub rendering pipeline |
+| [hub/request-routing.md](hub/request-routing.md) | 요청별 모델 입력과 도구 선택 |
 | [hub/resource-authoring.md](hub/resource-authoring.md) | 작업 중 컴포넌트 사용과 리소스 생성 |
 | [hub/response-reliability.md](hub/response-reliability.md) | 응답 안정성과 마우스 스크롤 |
 | [hub/shell-environment.md](hub/shell-environment.md) | ish 작업 환경 연결 |

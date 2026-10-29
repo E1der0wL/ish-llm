@@ -7,6 +7,31 @@ Hub의 `ToolRetrySelector`는 `ToolRuntime.decide_retry`에 연결된다. Tool �
 
 ## 설정과 범위
 
+### 실행 전 인자 검증
+
+Hub의 `ToolInputRegistry`는 백엔드의 `ToolRegistry.prepare`를 그대로 호출한다.
+검증에 실패한 경우에만 공개 schema와 인자 제약으로 실패 지점을 확인하여
+Tool 이름, 필드, 누락·타입·범위 오류를 예외에 붙인다. 예를 들어
+`Tool 'file_read', offset: expected type integer`로 Step 진단에서 원인을 구분한다.
+진단 때문에 핸들러를 호출하거나 이미 완료한 Tool을 다시 실행하지 않는다.
+오류에는 인자 값 전체를 복사하지 않는다. 실제 실행 중 발생한 오류는 기존
+Step/Tool 실패 계약을 따르며, 임의의 `ValueError`를 재시도 가능으로 바꾸지 않는다.
+
+`file_read`는 원래 핸들러에서만 검사하던 문자/줄/마지막 줄 모드의 배타성을
+Hub의 모델용 schema에도 선언한다. 정책이 고정 인자를 주입하는 경우 모델에도
+그 인자를 명시하도록 요구하여, 기본 문자 페이지 제한과 줄 단위 인자를 함께
+선택하는 실수를 줄인다. 명시적인 기존 제약·읽기 권한·선택된 Tool은 유지한다.
+
+RAG는 백엔드가 리랭커 부재를 `rerank: false`로 선언한 경우에만 해당 인자를
+필수로 표시한다. 리랭커가 있는 검색은 기존대로 동작하고, 저장된 리랭크 설정을
+자동으로 끄지 않는다. 리랭커가 켜진 환경의 간헐적 오류가 이 문제 때문이라는
+뜻은 아니다. 정확한 원인은 실패한 Step의 Tool 이름과 상세 진단으로 확인해야 한다.
+
+검증: `tests.hub.test_tool_input_diagnostics`는 여러 정상 호출 뒤의 잘못된 인자,
+Tool 선택/계약 보존, 문자·줄 읽기, 리랭커 유무를 검사한다.
+
+### 재시도 정책
+
 프로젝트 설정의 `config.policies.tool_retry.max_retries`는 최초 호출을 제외한
 추가 시도 수이며, 동일 인자 반복과 인자 수정이 공유한다. `delay_seconds`는 시도
 사이의 대기다. Hub의 새 프로젝트 기본값은 각각 `2`, `0`이다. 기존 프로젝트와

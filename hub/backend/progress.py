@@ -40,7 +40,7 @@ class OperationProgress:
         SettingsOperation.PRESET_SAVE, SettingsOperation.PRESET_APPLY,
     })
     SETTINGS_READS = frozenset({
-        SettingsOperation.CATALOG, SettingsOperation.LIST_PROJECTS,
+        SettingsOperation.CATALOG, SettingsOperation.LIST_PROJECTS, SettingsOperation.USAGE,
         SettingsOperation.LOAD_PROJECT, SettingsOperation.ACTIVATE_PROJECT,
         SettingsOperation.PRESET_LIST, SettingsOperation.PRESET_EXPORT,
     })

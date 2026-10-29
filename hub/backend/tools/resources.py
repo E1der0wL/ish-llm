@@ -23,6 +23,7 @@ from .resource_contracts import (
 )
 
 from copy import deepcopy
+from dataclasses import replace
 
 from llm.components.goals import GoalComponent
 from llm.components.rag import RAGComponent
@@ -184,6 +185,22 @@ class HubRAGComponent(RAGComponent):
         if capability != ToolRegistry.CAPABILITY:
             return registry
         data = data_factory(self.name)
+        from llm.components.rag.identity import RAGToolName
+        from llm.components.rag.search import SearchOptions
+        from llm.core.schema import SchemaKeyword
+        search = registry.get(RAGToolName.SEARCH.value)
+        rerank = SearchOptions.Field.RERANK
+        if search.parameters[SchemaKeyword.PROPERTIES][rerank].get(SchemaKeyword.CONST) is False:
+            # Without a reranker the backend advertises only false, but an
+            # omitted argument can still inherit the Project's true setting.
+            # Require the model's explicit choice; never silently downgrade a
+            # requested rerank or rewrite the user's persisted configuration.
+            schema = deepcopy(search.parameters)
+            if rerank not in schema[SchemaKeyword.REQUIRED]:
+                schema[SchemaKeyword.REQUIRED].append(rerank)
+            registry = ToolRegistry(tuple(
+                replace(search, parameters=schema) if name == search.name else registry.get(name)
+                for name in registry.names()))
 
         async def add(args):
             call = owner(data)

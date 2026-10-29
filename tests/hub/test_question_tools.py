@@ -24,7 +24,7 @@ from hub.ui.application import create_application
 from hub.ui.presentation import present
 from llm.core.interactions import InteractionRequest, InteractionOption
 from llm.engines.loop import LoopEngine
-from tests.hub.support import auxiliary, SizedOutput, eventually
+from tests.hub.support import auxiliary, SizedOutput, eventually, backend_ready
 from tests.hub.test_live import until
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.llm.support.runtime_tools import TEST_CONTRACT
@@ -131,12 +131,12 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
+                await backend_ready(lambda: view.connected, 'initial connection')
                 with set_app(app):
                     controller.new_session("new", "Questions")
-                await until(lambda: not view.no_sessions)
+                await backend_ready(lambda: not view.no_sessions, 'session creation')
                 pipe.send_text("Make a document\r")
-                await until(lambda: view.question.item is not None)
+                await backend_ready(lambda: view.question.item is not None, 'question ready')
                 await until(lambda: any(item.status == "waiting_input" for item in view.toasts.items))
                 self.assertIn(view.t.status("waiting_input"), view.sessions[view.selected].status)
                 self.assertIn(view.t.status("waiting_input") + " • " + view.question.item["request"]["title"], view.notice)
@@ -147,7 +147,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(any(m.id.startswith("interaction:") for m in view.output.transcript.control.messages))
                 self.assertIsNone(view._dialog)
                 pipe.send_text("2\r")
-                await until(lambda: view.question.item is None and any(m.text == "Answer received" for m in view.output.transcript.control.messages))
+                await backend_ready(lambda: view.question.item is None and any(m.text == "Answer received" for m in view.output.transcript.control.messages), 'answer completion')
                 self.assertIn("Text", str(provider.requests[-1]["messages"]))
                 self.assertIsNone(view._dialog)
                 self.assertEqual(view.composer.text, "")
@@ -168,7 +168,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 session_id = await runtime.new_session()
                 await runtime.submit(session_id, "Write a document")
-                await eventually(lambda: bool(runtime.builtin_tools.questions.pending))
+                await backend_ready(lambda: bool(runtime.builtin_tools.questions.pending), 'question ready')
                 snapshot = await runtime.snapshot()
                 item = snapshot.questions[0]
                 self.assertEqual(snapshot.run.status, "running")
@@ -267,7 +267,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 sid = await runtime.new_session()
                 await runtime.submit(sid, "Ask")
-                await eventually(lambda: bool(runtime.builtin_tools.questions.pending))
+                await backend_ready(lambda: bool(runtime.builtin_tools.questions.pending), 'question ready before interrupt')
                 await runtime.interrupt(sid)
                 await runtime.sessions[sid].run.wait_idle()
                 self.assertFalse(runtime.builtin_tools.questions.pending)

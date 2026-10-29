@@ -102,6 +102,11 @@ class RendererRegistry:
             else RendererCapabilities.revision(renderer)
         )
 
+    def has_block_revisions(self, blocks):
+        """Dynamic extensions must still observe their per-block dependencies."""
+        return any(RendererCapabilities.block_revision(self._renderers.get(block.kind))
+                   is not None for block in blocks)
+
     @property
     def version(self):
         return self._version, tuple(

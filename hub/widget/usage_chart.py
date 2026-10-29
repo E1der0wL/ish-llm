@@ -42,6 +42,9 @@ class UsageChartLayout:
 class DailyUsageControl(UIControl):
     def __init__(self, records, t):
         self.t = t
+        self.set_records(records)
+
+    def set_records(self, records):
         self.days = {}
         for record in records:
             for raw in ProjectUsageObservation(record).daily:

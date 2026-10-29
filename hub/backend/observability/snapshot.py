@@ -15,10 +15,13 @@ from llm.core.models import StepKind
 from llm.core.models import RunStatus, MessageStatus
 from llm.core.results import CompletionRecords
 from llm.services.runtime.requests import RequestAdmission
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
-from typing import Any, NamedTuple
-from time import monotonic
+from typing import Any
+from llm.engines.events import EngineEvent, EngineEventType
+from llm.core.results import OutputVisibility
+from .reads import ObservationReads, ReadKind
+from .projection import ConversationProjection, MessageProjection, SessionProjection
 
 from ...model import (
     QuestionPresentation,
@@ -48,17 +51,11 @@ class SessionObservation:
     questions: tuple = ()
 
 
-class CachedSessionObservation(NamedTuple):
-    observed_at: float
-    value: SessionObservation
-
-
 class SnapshotReader:
     ABSENT = None
     EMPTY_TEXT = ""
     PARAGRAPH = "\n\n"
     CACHE_LIMIT = 1024
-    OBSERVATION_SECONDS = 2
     ZERO_ELAPSED = 0.0
     QUEUED_IDS_LIMIT = 0
     LATEST_RUN_LIMIT = 1
@@ -66,6 +63,7 @@ class SnapshotReader:
     NO_QUEUED_REQUESTS = 0
     NO_MODEL_REQUIRED = False
     MUTABLE_RUN_STATES = frozenset((RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED))
+    LIVE_MESSAGE_STATES = frozenset((MessageStatus.QUEUED, MessageStatus.COMMITTED, MessageStatus.STREAMING))
 
     def record_submission(self, identifier, timestamp):
         self.submissions[identifier] = timestamp
@@ -73,13 +71,20 @@ class SnapshotReader:
             self.submissions.pop(next(iter(self.submissions)))
 
     def invalidate_dropped_events(self):
+        self.projection.clear()
+        self.session_summaries.clear()
         self.thinking.runs.clear()
-        self.observations.clear()
+        self.reads.clear()
+        self.step_observations.clear()
         self.drafts.invalidate()
 
     def __init__(self):
         self.cache = {}
-        self.observations = {}
+        self.reads = ObservationReads()
+        self.projection = ConversationProjection()
+        self.session_summaries = {}
+        self.selected_conversation = None
+        self.agent_definitions = {}
         self.submissions = {}
         self.tool_history = {}
         self.trace_history = {}
@@ -95,9 +100,12 @@ class SnapshotReader:
         self.drafts = AnswerDrafts()
 
     def clear(self):
+        self.projection.clear()
+        self.session_summaries.clear()
         self.drafts.clear()
         self.cache.clear()
-        self.observations.clear()
+        self.reads.clear()
+        self.selected_conversation = None
         self.tool_history.clear()
         self.trace_history.clear()
         self.ended_times.clear()
@@ -120,13 +128,81 @@ class SnapshotReader:
     async def read_steps(self, handle, run):
         if run.status in self.MUTABLE_RUN_STATES:
             self.step_observations.pop(run.id, self.ABSENT)
-            return await handle.steps.alist()
+            return await self.reads.read((ReadKind.STEPS, run.id), handle.steps.alist)
         if run.id not in self.step_observations:
             self.step_observations[run.id] = tuple(await handle.steps.alist())
         return self.step_observations[run.id]
 
     def invalidate(self, session_id):
-        self.observations.pop(session_id, self.ABSENT)
+        self.session_summaries.pop(session_id, None)
+        if session_id == self.selected_conversation:
+            self.projection.changed()
+        self.reads.discard(ReadKind.SESSION, session_id)
+        self.reads.discard(ReadKind.CONVERSATION, session_id)
+        self.reads.discard(ReadKind.RUN, session_id)
+
+    def invalidate_project(self):
+        self.reads.discard(ReadKind.PROJECT)
+        self.reads.discard(ReadKind.AGENTS)
+
+    def observe_run(self, run):
+        self.projection.changed(run.id)
+        self.invalidate(run.session_id)
+        self.reads.discard(ReadKind.STEPS, run.id)
+        self.step_observations.pop(run.id, None)
+
+    def observe_engine(self, run, event):
+        """Invalidate only records changed by persisted Engine observations."""
+        kind = EngineEvent.observed_type(event)
+        if run.session_id == self.selected_conversation:
+            self.projection.changed(run.id)
+        if kind != EngineEventType.TEXT_DELTA:
+            self.reads.discard(ReadKind.RUN, run.session_id, run.id)
+        if kind in EngineEvent.PHASES or kind == EngineEventType.OUTPUT:
+            self.reads.discard(ReadKind.STEPS, run.id)
+            self.step_observations.pop(run.id, None)
+        value = EngineEvent.observed_delta(event) or EngineEvent.observed_output(event)
+        if value is not None and value.visibility == OutputVisibility.USER:
+            self.reads.discard(ReadKind.CONVERSATION, run.session_id)
+        if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED,
+                    EngineEventType.STEERING_CHANGED):
+            self.invalidate(run.session_id)
+
+    async def read_run(self, session, session_id, run_id, *, handle=None):
+        async def load():
+            current = handle if handle is not None else await session.run.aload(run_id)
+            return current, await current.aget_data()
+        return await self.reads.read((ReadKind.RUN, session_id, run_id), load)
+
+    async def read_session(self, identifier, session):
+        from llm.services.query import Query
+
+        record = await session.aget_data()
+        runtime = await session.run.astatus(queued_limit=self.QUEUED_IDS_LIMIT)
+        latest = await session.run.alist(
+            query=Query(descending=self.NEWEST_FIRST, limit=self.LATEST_RUN_LIMIT))
+        handle = latest[0] if latest else self.ABSENT
+        run = (display_run(record, (await self.read_run(
+            session, identifier, handle.id, handle=handle))[1]) if handle else self.ABSENT)
+        question_handle = handle if run and str(run.status) == RunStatus.PAUSED else self.ABSENT
+        target = StopIntent(record.metadata).review_target
+        if target and not runtime.active_runs and not runtime.queued_count:
+            try:
+                candidate, candidate_run = await self.read_run(
+                    session, identifier, target, handle=handle if run and run.id == target else None)
+                if str(candidate_run.status) in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
+                    question_handle = candidate
+            except FileNotFoundError:
+                pass
+        paused = {handle.id: handle for handle in await session.run.alist(
+            query=Query(status=RunStatus.PAUSED))}
+        if question_handle is not self.ABSENT:
+            paused[question_handle.id] = question_handle
+        pending = []
+        for paused_handle in paused.values():
+            pending.extend(QuestionPresentation.stored_request(paused_handle.id, request)
+                           for request in await pending_requests(paused_handle))
+        return SessionObservation(identifier, record, runtime, run, handle, tuple(pending))
 
     async def run_display(
         self, session, run_id: str, *, run=ABSENT, requested_at=ABSENT, steps=()
@@ -158,7 +234,17 @@ class SnapshotReader:
             for item in completions
             if (text := item.reasoning_content)
         )
-        elapsed = self.ABSENT
+        active = str(run.status) in (RunStatus.PENDING, RunStatus.RUNNING)
+        elapsed = self.elapsed(run, requested_at)
+        result = reasoning, elapsed
+        if not active:
+            self.ended_times[run_id] = run.ended_at or self.EMPTY_TEXT
+            self.cache[key] = result
+        return result
+
+    @classmethod
+    def elapsed(cls, run, requested_at=None):
+        """Clock-only refresh must not deserialize all completion evidence."""
         active = str(run.status) in (RunStatus.PENDING, RunStatus.RUNNING)
         started_at = requested_at or run.started_at
         if started_at and (run.ended_at or active):
@@ -167,15 +253,11 @@ class SnapshotReader:
                 if run.ended_at
                 else datetime.now(timezone.utc)
             )
-            elapsed = max(
-                self.ZERO_ELAPSED,
+            return max(
+                cls.ZERO_ELAPSED,
                 (end - datetime.fromisoformat(started_at)).total_seconds(),
             )
-        result = reasoning, elapsed
-        if not active:
-            self.ended_times[run_id] = run.ended_at or self.EMPTY_TEXT
-            self.cache[key] = result
-        return result
+        return cls.ABSENT
 
     async def messages(
         self,
@@ -191,17 +273,23 @@ class SnapshotReader:
         graph_engines=(),
         drafts=None,
     ):
-        self.retain_messages(messages)
+        revision = self.projection.revision
+        base_parts = self.projection.parts
         run_records, run_steps = run_records or {}, run_steps or {}
+        input_context = (author, tuple(stopped_runs), tuple(graph_engines))
+        incremental = self.projection.incremental(messages, input_context)
+        if not incremental:
+            self.retain_messages(messages)
+            self.projection.retain({message.id for message in messages})
         visible = []
-        requests = {
+        requests = self.projection.request_times if incremental else {
             run_id: self.submissions.get(message.id, message.created_at)
             for message in messages
             if message.role == MessageRole.USER and not is_instruction(message)
             for run_id in RequestAdmission.run_ids(message)
         }
-        authors = {}
-        for message in messages:
+        authors = dict(self.projection.request_authors) if incremental else {}
+        for message in (() if incremental else messages):
             if RequestAdmission.present(message):
                 admission = RequestAdmission.from_message(message)
                 if admission.dispatched is not self.ABSENT:
@@ -209,10 +297,32 @@ class SnapshotReader:
                         (identifier, agent)
                         for agent, identifier in admission.dispatched.run_ids.items()
                     )
-        for message in messages:
+        if not incremental:
+            self.projection.index(messages, input_context, requests, dict(authors))
+        changing = set(run_records) | ({latest.id} if latest is not None else set())
+        selected_messages = (tuple(message for run_id in changing
+                                   for message in self.projection.by_run.get(run_id, ()))
+                             if incremental else messages)
+        parts = {}
+        for message in selected_messages:
             role = str(message.role)
             if role not in (MessageRole.USER, MessageRole.ASSISTANT):
                 continue
+            # Settled historical rows have no live Step/clock dependencies.
+            # Active/paused/latest Runs always go through the normal projection.
+            settled = (message.status not in (*self.LIVE_MESSAGE_STATES, MessageStatus.PAUSED)
+                       and message.run_id not in run_records
+                       and (latest is None or message.run_id != latest.id))
+            key = (role, message.content, message.created_at, str(message.status),
+                   message.run_id, author, requests.get(message.run_id),
+                   authors.get(message.run_id),
+                   str(RunInstruction.from_message(message).status) if is_instruction(message) else None)
+            cached = self.projection.settled.get(message.id) if settled else None
+            if cached is not None and cached.key == key:
+                visible.extend(cached.items)
+                parts[message.id] = cached.items
+                continue
+            start = len(visible)
             elapsed = self.ABSENT
             current_run = run_records.get(message.run_id)
             if current_run is None and latest is not None and latest.id == message.run_id:
@@ -354,81 +464,36 @@ class SnapshotReader:
                         MessageStatus.STREAMING, MessageStatus.COMMITTED) else None,
                 )
             )
+            parts[message.id] = tuple(visible[start:])
+            if settled and revision == self.projection.revision:
+                self.projection.settled[message.id] = MessageProjection(
+                    key, message.run_id, parts[message.id])
+        if revision == self.projection.revision:
+            self.projection.parts.update(parts)
+            result = self.projection.display(parts)
+            self.projection.full_refresh = False
+            return result
+        # An event arrived while awaiting a historical Run. Do not retain an
+        # incomplete index; publish this observation through the normal owner.
+        self.projection.full_refresh = True
         from ..execution.turns import TurnIndex
-
-        return TurnIndex(messages).display(visible)
+        assembled = {**base_parts, **parts}
+        return TurnIndex(messages).display([
+            row for message in messages for row in assembled.get(message.id, ())])
 
     async def read(
-        self, project, sessions, selected_id, *, config, engines, title_errors
+        self, project, sessions, selected_id, *, config, engines, title_errors,
+        reconcile_terminal=True,
     ):
-        from llm.services.query import Query
-
-        data = await project.aget_data()
+        data = await self.reads.read((ReadKind.PROJECT,), project.aget_data)
         observations, summaries = [], []
+        for identifier in self.session_summaries.keys() - sessions.keys():
+            del self.session_summaries[identifier]
         for identifier, session in tuple(sessions.items()):
-            cached = self.observations.get(identifier)
-            if (
-                identifier != selected_id
-                and cached
-                and monotonic() - cached.observed_at < self.OBSERVATION_SECONDS
-            ):
-                item = cached.value
-            else:
-                record = await session.aget_data()
-                runtime = await session.run.astatus(queued_limit=self.QUEUED_IDS_LIMIT)
-                latest = await session.run.alist(
-                    query=Query(
-                        descending=self.NEWEST_FIRST, limit=self.LATEST_RUN_LIMIT
-                    )
-                )
-                handle = latest[0] if latest else self.ABSENT
-                run = (
-                    display_run(record, await handle.aget_data())
-                    if handle
-                    else self.ABSENT
-                )
-                question_handle = (
-                    handle
-                    if run and str(run.status) == RunStatus.PAUSED
-                    else self.ABSENT
-                )
-                target = StopIntent(record.metadata).review_target
-                if target and not runtime.active_runs and not runtime.queued_count:
-                    try:
-                        candidate = (
-                            handle
-                            if run and run.id == target
-                            else await session.run.aload(target)
-                        )
-                        if str((await candidate.aget_data()).status) in (
-                            RunStatus.PAUSED,
-                            RunStatus.INTERRUPTED,
-                            RunStatus.FAILED,
-                        ):
-                            question_handle = candidate
-                    except FileNotFoundError:
-                        pass
-                paused = {
-                    handle.id: handle
-                    for handle in await session.run.alist(
-                        query=Query(status=RunStatus.PAUSED)
-                    )
-                }
-                if question_handle is not self.ABSENT:
-                    paused[question_handle.id] = question_handle
-                pending = []
-                for paused_handle in paused.values():
-                    pending.extend(
-                        QuestionPresentation.stored_request(paused_handle.id, request)
-                        for request in await pending_requests(paused_handle)
-                    )
-                pending = tuple(pending)
-                item = SessionObservation(
-                    identifier, record, runtime, run, handle, pending
-                )
-                self.observations[identifier] = CachedSessionObservation(
-                    monotonic(), item
-                )
+            item = await self.reads.read((ReadKind.SESSION, identifier),
+                lambda: self.read_session(identifier, session),
+                max_age=(ObservationReads.RECONCILE_SECONDS if identifier == selected_id
+                         else ObservationReads.background_age(identifier)))
             observations.append(item)
             status = (
                 waiting_status(item.questions)
@@ -441,27 +506,39 @@ class SnapshotReader:
                 and item.run.id in StopIntent(item.record.metadata).stopped_runs
             ):
                 status = str(item.run.status)
-            summaries.append(
-                SessionSummary(
+            cached = self.session_summaries.get(identifier)
+            if cached is None or cached.observation is not item or cached.status != status:
+                summary = SessionSummary(
                     identifier, item.record.title, status, item.runtime.queued_count,
                     tuple(item.record.agent_ids),
                     ParticipantGroups.read(item.record.metadata, item.record.agent_ids),
                 )
-            )
+                cached = SessionProjection(item, status, summary)
+                self.session_summaries[identifier] = cached
+            summaries.append(cached.summary)
         selected = next(
             (item for item in observations if item.session_id == selected_id),
             self.ABSENT,
         )
         messages, summary, questions = (), self.ABSENT, ()
+        if self.selected_conversation != selected_id:
+            self.projection.clear()
+            self.reads.discard(ReadKind.CONVERSATION)
+            self.selected_conversation = selected_id
         if selected:
             session = sessions[selected_id]
+            if selected.run:
+                _, latest = await self.read_run(session, selected_id, selected.run.id, handle=selected.handle)
+                selected = replace(selected, run=display_run(selected.record, latest))
             steps = await self.read_steps(selected.handle, selected.run) if selected.run else ()
             run_records = {selected.run.id: selected.run} if selected.run else {}
             run_steps = {selected.run.id: steps} if selected.run else {}
+            run_handles = {selected.run.id: selected.handle} if selected.run else {}
             for active in selected.runtime.active_runs:
                 if active.run_id not in run_records:
-                    handle = await session.run.aload(active.run_id)
-                    run_records[active.run_id] = display_run(selected.record, await handle.aget_data())
+                    handle, record = await self.read_run(session, selected_id, active.run_id)
+                    run_handles[active.run_id] = handle
+                    run_records[active.run_id] = display_run(selected.record, record)
                     run_steps[active.run_id] = await self.read_steps(handle, run_records[active.run_id])
             from llm.core.agents import AgentMode
             from llm.engines.base import agent_mode
@@ -475,30 +552,58 @@ class SnapshotReader:
                     continue
                 if (not HubEngineIdentity.internal(record.engine)
                         and isinstance(underlying_engine(engines.get(record.engine)), LoopEngine)):
-                    handle = selected.handle if identifier == selected.run.id else await session.run.aload(identifier)
+                    handle = run_handles[identifier]
                     drafts[identifier] = await self.drafts.read(handle, record, run_steps[identifier])
 
-            messages = await self.messages(
-                session,
-                await session.aconversation(),
-                config.user_profile.display_name,
-                latest=selected.run,
-                latest_steps=steps,
-                stopped_runs=StopIntent(selected.record.metadata).stopped_runs,
-                run_records=run_records, run_steps=run_steps,
-                drafts=drafts,
-                graph_engines=tuple(name for name in engines.names()
-                    if agent_mode(underlying_engine(engines.get(name))) == AgentMode.WORKFLOW),
-            )
+            conversation = await self.reads.read(
+                (ReadKind.CONVERSATION, selected_id), session.aconversation)
+            active_ids = {item.run_id for item in selected.runtime.active_runs}
+            if reconcile_terminal and any(
+                message.role == MessageRole.ASSISTANT and message.run_id in active_ids
+                and message.status not in self.LIVE_MESSAGE_STATES
+                for message in conversation
+            ):
+                # Conversation and Run lifecycle notifications use separate
+                # queues. Never publish a finished answer with cached active
+                # recipients: the next Enter would incorrectly open steering.
+                self.invalidate(selected_id)
+                return await self.read(project, sessions, selected_id, config=config,
+                    engines=engines, title_errors=title_errors, reconcile_terminal=False)
+            now = datetime.now(timezone.utc)
+            clocks = tuple((identifier, int((now - datetime.fromisoformat(run.started_at)).total_seconds()))
+                           for identifier, run in run_records.items()
+                           if run.status in (RunStatus.PENDING, RunStatus.RUNNING) and run.started_at)
+            context = (self.projection.revision, config.user_profile.display_name,
+                       tuple(StopIntent(selected.record.metadata).stopped_runs),
+                       tuple((key, id(value)) for key, value in run_records.items()),
+                       tuple((key, id(value)) for key, value in run_steps.items()),
+                       tuple(drafts.items()), clocks)
+            if self.projection.reusable(conversation, context):
+                messages = self.projection.messages
+            else:
+                messages = await self.messages(
+                    session,
+                    conversation,
+                    config.user_profile.display_name,
+                    latest=selected.run,
+                    latest_steps=steps,
+                    stopped_runs=StopIntent(selected.record.metadata).stopped_runs,
+                    run_records=run_records, run_steps=run_steps,
+                    drafts=drafts,
+                    graph_engines=tuple(name for name in engines.names()
+                        if agent_mode(underlying_engine(engines.get(name))) == AgentMode.WORKFLOW),
+                )
+                self.projection.remember(conversation, context, messages,
+                    (*run_records.values(), *run_steps.values()))
             if selected.run:
                 run = selected.run
                 questions = selected.questions
-                _, elapsed = await self.run_display(session, run.id, run=run)
+                elapsed = self.elapsed(run)
                 summary = RunSummary(
                     run.id,
                     str(run.status),
                     run.engine,
-                    elapsed,
+                    int(elapsed) if elapsed is not None else None,
                     any(
                         active.run_id == run.id
                         for active in selected.runtime.active_runs
@@ -506,9 +611,10 @@ class SnapshotReader:
                     display_steps(steps),
                     str(run.error) if run.error else self.EMPTY_TEXT,
                 )
+        self.agent_definitions = await self.reads.read((ReadKind.AGENTS,), project.agents.alist)
         definitions = {
             identifier: definition
-            for identifier, definition in (await project.agents.alist()).items()
+            for identifier, definition in self.agent_definitions.items()
             if not identifier.startswith(HubEngineIdentity.INTERNAL_PREFIX)
         }
         definition = definitions.get(

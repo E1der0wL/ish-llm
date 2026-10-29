@@ -3,6 +3,7 @@
 from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
+from tests.hub.support import BACKEND_TIMEOUT
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -133,14 +134,18 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             runtime = await self.runtime(root, provider, component_factories=(lambda: ExampleTools(handler),),
                                          tool_retry_chooser=choose)
-            session = await runtime.project.sessions.acreate("cancel repair", agent_ids=sorted(await runtime.project.agents.alist()))
-            request = await session.run.submit("go", recipients=["assistant"])
-            await asyncio.wait_for(entered.wait(), 5)
-            await session.run.interrupt()
-            result, = await asyncio.wait_for(request.wait(), 5)
-            self.assertEqual(str(result.data.status), "interrupted")
-            self.assertEqual(len(calls), 1)
-            await runtime.close()
+            try:
+                session = await runtime.project.sessions.acreate("cancel repair", agent_ids=sorted(await runtime.project.agents.alist()))
+                request = await session.run.submit("go", recipients=["assistant"])
+                await asyncio.wait_for(entered.wait(), BACKEND_TIMEOUT)
+                await session.run.interrupt()
+                result, = await asyncio.wait_for(request.wait(), 5)
+                self.assertEqual(str(result.data.status), "interrupted")
+                self.assertEqual(len(calls), 1)
+            finally:
+                # Even a failed assertion must stop workers before TemporaryDirectory
+                # removes their storage; otherwise one timeout cascades into I/O errors.
+                await runtime.close()
 
     async def test_disabled_and_unsafe_failures_do_not_call_chooser(self):
         for policy, error in (({"max_retries": 0}, ToolExecutionError("missing", effect="none", recoverable=True)),
@@ -248,21 +253,24 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
                 yield chunk(calls=[call('{"path":"missing/data.txt"}', name="file_read")], finish="tool_calls")
         with tempfile.TemporaryDirectory() as root:
             runtime = await self.runtime(Path(root) / "storage", provider, tool_retry_chooser=choose)
-            pending = []
-            for name in ("first", "second"):
-                working = Path(root) / name
-                working.mkdir()
-                (working / "data.txt").write_text(name)
-                session = await runtime.project.sessions.acreate(name, agent_ids=sorted(await runtime.project.agents.alist()))
-                pending.append(await session.run.submit(name, recipients=["assistant"], request_context={
-                    ENVIRONMENT_OPTION: snapshot(working, name).to_dict()}))
-            results = await asyncio.wait_for(asyncio.gather(*(request.wait() for request in pending)), 10)
-            for (result,), name in zip(results, ("first", "second")):
-                self.assertEqual(str(result.data.status), "completed", result.data.error)
-                read, = [step for step in await result.steps.alist() if step.kind == "tool"]
-                self.assertEqual(read.output.data["text"], name)
-            self.assertEqual(set(seen), {str(Path(root) / "first"), str(Path(root) / "second")})
-            await runtime.close()
+            try:
+                pending = []
+                for name in ("first", "second"):
+                    working = Path(root) / name
+                    working.mkdir()
+                    (working / "data.txt").write_text(name)
+                    session = await runtime.project.sessions.acreate(name, agent_ids=sorted(await runtime.project.agents.alist()))
+                    pending.append(await session.run.submit(name, recipients=["assistant"], request_context={
+                        ENVIRONMENT_OPTION: snapshot(working, name).to_dict()}))
+                results = await asyncio.wait_for(asyncio.gather(*(request.wait() for request in pending)), BACKEND_TIMEOUT)
+                for (result,), name in zip(results, ("first", "second")):
+                    self.assertEqual(str(result.data.status), "completed", result.data.error)
+                    read, = [step for step in await result.steps.alist() if step.kind == "tool"]
+                    self.assertEqual(read.output.data["text"], name)
+                self.assertEqual(set(seen), {str(Path(root) / "first"), str(Path(root) / "second")})
+            finally:
+                entered.set()
+                await runtime.close()
 
     async def test_graph_tool_uses_explicit_chooser_without_borrowing_another_agents_model(self):
         from llm.components.workflows import WorkflowGraph

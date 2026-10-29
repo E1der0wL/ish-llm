@@ -4,6 +4,7 @@ from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from hub.backend.project.naming import TITLE_ENGINE, TitleEngine
 from hub.backend.runtime import HubConfig, HubRuntime
@@ -84,7 +85,14 @@ class NamingTests(unittest.IsolatedAsyncioTestCase):
                 snapshot = await runtime.project.agents.asnapshot('assistant')
                 await runtime.project.agents.arevise('assistant', {**snapshot['definition'], **settings}, expected_revision=snapshot['revision'])
                 await session.run.start()
-                await runtime.snapshot()
+                # An external Agent edit has no Hub settings event. The public
+                # catalog reconciles it at its expiry, without re-reading title
+                # history on every frame in between.
+                from time import monotonic
+                from hub.backend.observability.reads import ObservationReads
+                with patch('hub.backend.observability.reads.monotonic',
+                           return_value=monotonic() + ObservationReads.RECONCILE_SECONDS):
+                    await runtime.snapshot()
                 await until(lambda: not runtime.namer.tasks)
                 self.assertEqual((await session.aget_data()).title, "Fixed title")
                 self.assertEqual(calls[1]["api_base"], "http://fixed.invalid/v1")

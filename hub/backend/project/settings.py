@@ -52,14 +52,13 @@ class SettingsService:
         describe_options(schema, self.runtime.t)
         return schema
 
-    def validate_values(self, values):
+    def _validate_values(self, values, validator):
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_VALIDATE)
-        from jsonschema import Draft202012Validator
         from llm.core.models import ProjectConfig
         from llm.core.json_data import JsonObject
 
         JsonObject.validate(values)
-        Draft202012Validator(self._schema()).validate(values)
+        validator.validate(values)
         form = ProjectConfigForm.from_dict(values)
         if not form.title.strip():
             raise ValueError(self.runtime.t(MessageKey.SETTINGS_TITLE_REQUIRED))
@@ -70,6 +69,11 @@ class SettingsService:
         ):
             raise ValueError(self.runtime.t(MessageKey.SETTINGS_ENGINE_REQUIRED))
         return form
+
+    def validate_values(self, values):
+        from jsonschema import Draft202012Validator
+
+        return self._validate_values(values, Draft202012Validator(self._schema()))
 
     async def project(self, identifier):
         return await self.runtime.backend.projects.aload(identifier)
@@ -87,13 +91,27 @@ class SettingsService:
         return sessions
 
     async def catalog(self):
-        projects = []
+        projects = await self.list_projects()
+        preferences = PreferenceSnapshot.catalog(
+            self.runtime.config.user_profile,
+            self.preferences.load,
+            lambda: self.runtime.config.launch_workspace,
+        )
+        return SettingsCatalog(
+            projects,
+            self._schema(),
+            self.runtime.backend.describe_host(),
+            self.runtime.project.id,
+            preferences,
+        ).to_dict()
+
+    async def usage(self):
+        """Receipt aggregation is requested only by the statistics page."""
         usage = []
         available = await self.runtime.backend.projects.alist()
         for index, project in enumerate(available):
             OperationProgress.report(MessageKey.PROGRESS_BACKEND_USAGE, index, len(available))
             data = await project.aget_data()
-            projects.append(ProjectSummary.from_data(data).to_dict())
             try:
                 totals = await project.amodel_usage()
                 usage.append(ProjectUsageRecord.collect(data, totals).to_dict())
@@ -109,20 +127,7 @@ class SettingsService:
                         ),
                     ).to_dict()
                 )
-        preferences = PreferenceSnapshot.catalog(
-            self.runtime.config.user_profile,
-            self.preferences.load,
-            lambda: self.runtime.config.launch_workspace,
-        )
-
-        return SettingsCatalog(
-            projects,
-            self._schema(),
-            self.runtime.backend.describe_host(),
-            usage,
-            self.runtime.project.id,
-            preferences,
-        ).to_dict()
+        return usage
 
     async def list_projects(self):
         """Sidebar reads do not calculate usage or materialize configuration schemas."""
@@ -143,13 +148,18 @@ class SettingsService:
         self, identifier, values, version, previous_components=UNSPECIFIED_COMPONENTS
     ):
         from .memory_setup import MemorySetup
+        from jsonschema import Draft202012Validator
 
-        original_form = self.validate_values(values)
+        # These two synchronous validations see one registered/host schema.
+        # Do not retain it across awaits or commands: save still goes through
+        # backend validation/version locks and load_project reads fresh state.
+        validator = Draft202012Validator(self._schema())
+        original_form = self._validate_values(values, validator)
         config, selected = MemorySetup.prepare(original_form.config, original_form.components)
         prepared = deepcopy(values)
         prepared[ProjectConfigForm.config.__name__] = config.to_dict()
         prepared[ProjectConfigForm.components.__name__] = selected
-        form = self.validate_values(prepared)
+        form = self._validate_values(prepared, validator)
         project = await self.project(identifier)
         current = await project.aget_data()
         previous = (

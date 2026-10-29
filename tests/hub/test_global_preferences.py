@@ -78,11 +78,15 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
             service = SettingsService(runtime)
             with patch.object(service, "_schema", return_value={}):
                 catalog = await service.catalog()
-            self.assertEqual(catalog["usage"][0]["known_tokens"], 120)
-            self.assertEqual(catalog["usage"][0]["period_seconds"], 3600)
-            self.assertNotIn("calls", catalog["usage"][0])
-            self.assertEqual(catalog["usage"][1]["error"].message, "unreadable receipts")
-            self.assertEqual(catalog["usage"][1]["error"].operation, "model_usage")
+            good.amodel_usage.assert_not_awaited()
+            bad.amodel_usage.assert_not_awaited()
+            self.assertNotIn("usage", catalog)
+            usage = await service.usage()
+            self.assertEqual(usage[0]["known_tokens"], 120)
+            self.assertEqual(usage[0]["period_seconds"], 3600)
+            self.assertNotIn("calls", usage[0])
+            self.assertEqual(usage[1]["error"].message, "unreadable receipts")
+            self.assertEqual(usage[1]["error"].operation, "model_usage")
             good.amodel_usage.assert_awaited_once_with()
 
     async def test_settings_shell_return_drafts_buttons_and_general_page(self):

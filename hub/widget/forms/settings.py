@@ -137,8 +137,15 @@ class SettingField:
         self.observations = tuple(observations)
         self.enabled = lambda: self.ENABLED
         self.on_edit = self.NO_CALLBACK
-        self.input = TextArea(
-            text=self.initial,
+        self._text, self._t = self.initial, t
+        self._input = self._container = None
+
+    def _materialize(self):
+        if self._input is not None:
+            return
+        t = self._t
+        self._input = TextArea(
+            text=self._text,
             multiline=FieldDisplay.MULTILINE,
             height=lambda: min(
                 FieldDisplay.MAX_EDITOR_LINES, self.input.buffer.document.line_count
@@ -213,7 +220,7 @@ class SettingField:
             description += FieldDisplay.DESCRIPTION_SEPARATOR + json.dumps(
                 constraints, ensure_ascii=FieldDisplay.JSON_ASCII
             )
-        self.container = HSplit(
+        self._container = HSplit(
             [
                 Label(
                     lambda: (
@@ -241,8 +248,30 @@ class SettingField:
             ]
         )
 
+    @property
+    def input(self):
+        if self._input is None:
+            self._materialize()
+        return self._input
+
+    @property
+    def container(self):
+        if self._container is None:
+            self._materialize()
+        return self._container
+
+    @property
+    def text(self):
+        return self._input.text if self._input is not None else self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        if self._input is not None:
+            self._input.text = value
+
     def clear(self):
-        self.input.text = FieldDisplay.EMPTY
+        self.text = FieldDisplay.EMPTY
 
     def begin(self):
         if self.enabled() and not self.readonly:
@@ -255,7 +284,7 @@ class SettingField:
         get_app().invalidate()
 
     def value(self):
-        raw = self.input.text
+        raw = self.text
         if raw == self.initial:
             return deepcopy(self.original) if self.original is not MISSING else MISSING
         if not raw.strip():
@@ -284,7 +313,12 @@ class ChoiceField(SettingField):
     def __init__(self, key, schema, value, t, **kwargs):
         super().__init__(key, schema, value, t, **kwargs)
         self.choices = schema[ChoiceField.SCHEMA_KEY]
-        self.input.text = self.initial = self.choices[value]
+        self.text = self.initial = self.choices[value]
+
+    def _materialize(self):
+        if self._input is not None:
+            return
+        super()._materialize()
         self.input.buffer.read_only = Condition(lambda: self.READ_ONLY)
         self.input.window.always_hide_cursor = Condition(lambda: self.CURSOR_HIDDEN)
         registry = ShortcutRegistry()
@@ -318,7 +352,7 @@ class ChoiceField(SettingField):
 
     def value(self):
         return next(
-            key for key, label in self.choices.items() if label == self.input.text
+            key for key, label in self.choices.items() if label == self.text
         )
 
 
@@ -349,11 +383,19 @@ class SchemaForm:
                     self.locked.add((*prefix, *JsonPointer.parts(pointer)))
         self._schema_locks(schema, prefix)
         self.fields = {}
-        self.children = []
+        self._container = None
         self._walk(schema, prefix)
-        self.container = HSplit(
-            self.children or [Label(t(MessageKey.SETTINGS_NO_FIELDS))]
-        )
+
+    @property
+    def children(self):
+        return [field.container for field in self.fields.values()]
+
+    @property
+    def container(self):
+        if self._container is None:
+            self._container = HSplit(self.children
+                                     or [Label(self.t(MessageKey.SETTINGS_NO_FIELDS))])
+        return self._container
 
     def _schema_locks(self, schema, path):
         if isinstance(schema, dict):
@@ -437,7 +479,6 @@ class SchemaForm:
                 observations=self._observations(path),
             )
             self.fields[path] = field
-            self.children.append(field.container)
 
     def values(self):
         values = deepcopy(self.original)

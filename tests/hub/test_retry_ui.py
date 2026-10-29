@@ -20,7 +20,7 @@ from hub.locales import Language
 from hub.model import RetrySummary, RunSummary
 from hub.widget.feedback.retry_status import retry_text
 from llm.services.infrastructure.observability import Observability
-from tests.hub.support import eventually
+from tests.hub.support import eventually, backend_ready
 from tests.hub.test_response_reliability import HTTPFailure
 from tests.llm.test_loop import ScriptedCompletion, chunk
 
@@ -38,7 +38,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
                 sid = await runtime.new_session()
                 request = await runtime.sessions[sid].run.submit("Try", recipients=["assistant"])
                 monitor = runtime.backend.services.observability_sink
-                await eventually(lambda: bool(monitor.states))
+                await backend_ready(lambda: bool(monitor.states), 'provider backoff')
                 snapshot = await runtime.snapshot()
                 self.assertEqual(snapshot.run.retry.attempt, 1)
                 self.assertEqual(snapshot.run.retry.maximum, 3)

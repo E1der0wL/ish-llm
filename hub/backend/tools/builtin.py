@@ -24,6 +24,8 @@ from llm.components.tools.builtin.process_values import (
     ProcessOutputArguments,
 )
 from llm.core.agents import AgentDefinition
+from llm.components.tools.builtin.file_values import FileReadArguments
+from .validation import FileReadSchema
 from ...config.defaults import HubDefaults
 
 from ..interactions.questions import QuestionBroker
@@ -146,6 +148,8 @@ class HubBuiltinTools(BuiltinToolComponent):
             )
         toolkit.registry = ToolRegistry(
             tuple(
+                replace(tool, parameters=FileReadSchema.parameters(tool.parameters))
+                if name == FileReadArguments.NAME else
                 replace(tool, handler=handlers[name]) if name in handlers else tool
                 for name in toolkit.registry.names()
                 for tool in (toolkit.registry.get(name),)

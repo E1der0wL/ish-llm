@@ -181,7 +181,7 @@ class SettingsDrafts:
                         self._preferences.set_sidebar(
                             self.saved_sidebar_width, self.initial_appearance.copy()
                         )
-                    self.screen.usage = observation.usage
+                    self.screen.reset_usage()
                     self.cancel(page)
 
             if self.screen.request:

@@ -151,17 +151,22 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(shown, headers(present(snapshot, view.t).messages, view.t))
         self.assertIn(UNICODE.reasoning, shown)
         view.close()
-        # The selected latest Run also stops rereading settled Steps. Paused
-        # interactions remain mutable and must not reuse that terminal cache.
+        # Settled Steps are retained. Mutable Steps use event invalidation and
+        # bounded reconciliation rather than being reread on every render tick.
         run.status, message.status = "completed", "completed"
         status.active_runs = ()
+        reader.observe_run(run)
         await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
         scans = handle.steps.alist.await_count
         await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
         self.assertEqual(handle.steps.alist.await_count, scans)
         run.status, message.status = "paused", "paused"
+        reader.observe_run(run)
         # Read the Step boundary directly: interaction UI setup is independent.
         await reader.read_steps(handle, run)
+        await reader.read_steps(handle, run)
+        self.assertEqual(handle.steps.alist.await_count, scans + 1)
+        reader.observe_run(run)
         await reader.read_steps(handle, run)
         self.assertEqual(handle.steps.alist.await_count, scans + 2)
         reader.clear()

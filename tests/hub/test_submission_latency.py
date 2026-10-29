@@ -45,6 +45,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
         worker._commands = set()
         worker._snapshot_task = None
         worker._output_interval = 0.1
+        worker._visible = True
         worker._interval_changed = asyncio.Event()
         worker.publish = published.append
         worker.report_error = Mock()

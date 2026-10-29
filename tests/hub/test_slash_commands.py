@@ -19,9 +19,8 @@ from hub.locales import Language
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import CompleteEvent
 from llm.engines.loop import LoopEngine
-from tests.hub.support import SizedOutput
+from tests.hub.support import SizedOutput, backend_ready
 from tests.hub.test_features import chunk
-from tests.hub.test_live import until
 
 
 class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
@@ -83,25 +82,26 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
+                await backend_ready(lambda: view.connected, 'initial connection')
                 pipe.send_text("/new\r\r")
-                await until(lambda: not view.no_sessions and view._dialog is None)
+                await backend_ready(lambda: not view.no_sessions and view._dialog is None, 'session creation')
                 for index, text in enumerate(("/tmp/my project/file.py 를 확인해줘",
                                               "/경로/파일.txt", "/not-registered list", "/", "/preview"), 1):
-                    with self.subTest(text=text):
-                        pipe.send_text(text + "\r")
-                        # A completed message can precede Run teardown. This
-                        # sequential test must wait until Enter submits a new
-                        # request rather than opening the active-Run choice.
-                        await until(lambda: len(requests) == index and not controller._submitting
-                                    and not view._last_snapshot.active_run_ids
-                                    and not (view._last_snapshot.run and view._last_snapshot.run.active)
-                                    and any(m.role == "assistant" and m.text == text and m.status == "completed"
-                                            for m in view.output.transcript.control.messages))
-                        self.assertEqual(requests[-1], text)
-                        self.assertEqual(view.composer.text, "")
-                        self.assertTrue(any(m.role == "user" and m.text == text
-                                            for m in view.output.transcript.control.messages))
+                    # A timeout must abort this sequential flow; continuing a
+                    # subtest would submit into the previous active Run/dialog.
+                    pipe.send_text(text + "\r")
+                    # A completed message can precede Run teardown. This
+                    # sequential test must wait until Enter submits a new
+                    # request rather than opening the active-Run choice.
+                    await backend_ready(lambda: len(requests) == index and not controller._submitting
+                                and not view._last_snapshot.active_run_ids
+                                and not (view._last_snapshot.run and view._last_snapshot.run.active)
+                                and any(m.role == "assistant" and m.text == text and m.status == "completed"
+                                        for m in view.output.transcript.control.messages), f'request {index} completed: {text}')
+                    self.assertEqual(requests[-1], text)
+                    self.assertEqual(view.composer.text, "")
+                    self.assertTrue(any(m.role == "user" and m.text == text
+                                        for m in view.output.transcript.control.messages))
                 self.assertEqual(len(requests), 5)
                 self.assertEqual(view.composer.text, "")
             finally:

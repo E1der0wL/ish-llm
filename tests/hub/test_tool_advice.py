@@ -22,7 +22,7 @@ from tests.llm.test_loop import ScriptedCompletion, call, chunk
 from llm.components.tools import ToolEffect, ToolIsolation
 from llm.core.continuations import ResumeRecord
 from llm.services.runtime.runs import RunManager
-from tests.hub.support import eventually
+from tests.hub.support import backend_ready, BACKEND_TIMEOUT
 
 
 class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
@@ -39,7 +39,7 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
                     entered.set()
                     # Hold scheduling, not the shared storage executor: the
                     # screen must still be able to observe the queued receipt.
-                    async with asyncio.timeout(15):
+                    async with asyncio.timeout(BACKEND_TIMEOUT):
                         while not release.is_set():
                             await asyncio.sleep(.01)
             await pump(manager, state)
@@ -58,15 +58,15 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
             try:
                 sid = await asyncio.wrap_future(worker.call('new_session', 'new', 'Auto approval'))
                 await asyncio.wrap_future(worker.call('submit', sid, 'Create approved.txt.', 'assistant'))
-                await eventually(entered.is_set, timeout=15)
+                await backend_ready(entered.is_set, 'approved resume queued')
                 # The response is durable, but no continuation Run exists yet.
                 queued = await asyncio.wrap_future(worker.call('snapshot'))
                 self.assertFalse(queued.questions)
                 self.assertFalse(Path(root, 'approved.txt').exists())
                 self.assertFalse(errors, errors)
                 release.set()
-                await eventually(lambda: snapshots and snapshots[-1].run
-                                 and snapshots[-1].run.status == 'completed', timeout=15)
+                await backend_ready(lambda: snapshots and snapshots[-1].run
+                                    and snapshots[-1].run.status == 'completed', 'approved resume completed')
                 self.assertFalse(errors, errors)
                 self.assertEqual(Path(root, 'approved.txt').read_text(), 'created')
                 self.assertEqual(len(provider.requests), 2)
@@ -98,7 +98,7 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
                     run, = await request.wait()
                     # The backend preserves the original pause and creates a
                     # new Run for a policy-authorized continuation.
-                    async with asyncio.timeout(20):
+                    async with asyncio.timeout(BACKEND_TIMEOUT):
                         await runtime.sessions[sid].run.wait_idle()
                         while runtime.automatic_approvals.tasks:
                             await asyncio.sleep(.01)

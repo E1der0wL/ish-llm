@@ -70,11 +70,23 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 record = await runtime.settings_service.load_project(runtime.project.id)
                 screen = self.view.settings
                 page = ProjectPage(screen, record, suggest_defaults=False)
+                hidden = [f for form in [*page.engine_forms.values(), *page.component_forms.values()]
+                          for f in form.fields.values()]
+                self.assertTrue(hidden)
+                self.assertTrue(all(f._input is None for f in hidden))
+                original = page.values()
+                self.assertFalse(page.dirty)
+                self.assertTrue(all(f._input is None for f in hidden))
                 page.set_section("engine:loop")
                 screen.page = page
                 field = page.fields()[0]
+                widget = field.input
                 field.input.text = "128"
                 before = page.values()
+                self.assertEqual(before['config']['parameters']['components'],
+                                 original['config']['parameters']['components'])
+                self.assertTrue(all(f._input is None for form in page.component_forms.values()
+                                    for f in form.fields.values()))
                 self.assertTrue(page.fields())
                 self.assertTrue(all(page.field_tabs[f] == "config" for f in page.fields()))
                 with set_app(self.app):
@@ -90,6 +102,7 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                     screen.tabs.selected = "config"
                     screen.tab_changed("config")
                 self.assertEqual(field.input.text, "128")
+                self.assertIs(field.input, widget)
                 self.assertEqual(page.values(), before)
             finally:
                 await runtime.close()

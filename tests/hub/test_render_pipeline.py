@@ -458,6 +458,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             backend.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), snapshot=snapshot)
             backend._output_interval = .01
+            backend._visible = True
             backend._interval_changed = asyncio.Event()
             backend.publish = Mock()
             backend.report_error = Mock()
@@ -506,6 +507,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), snapshot=snapshot)
         worker._restarting = False
         worker._output_interval = .01
+        worker._visible = True
         worker._interval_changed = asyncio.Event()
         worker.publish, worker.report_error = Mock(), Mock()
         task = asyncio.create_task(worker._refresh())

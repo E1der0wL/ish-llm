@@ -84,6 +84,8 @@ class SettingsScreen:
         self.schema = self.NO_SCHEMA
         self.projects = []
         self.usage = []
+        self._usage_requested = False
+        self._usage_epoch = 0
         self.global_keys = self.GLOBAL_KEYS
         self.selected = PreferenceSection.PROFILE.value
         self.page = self.NO_PAGE
@@ -448,43 +450,67 @@ class SettingsScreen:
         )
         get_app().invalidate()
 
-    def call(self, operation, *args, completed=NO_COMPLETION):
-        if self.busy:
+    def call(self, operation, *args, completed=NO_COMPLETION, blocking=True):
+        if self.busy and blocking:
             return
         if self.request is self.NO_REQUEST:
             self.error(self.t(MessageKey.NOT_CONNECTED))
             return
-        self.busy = SettingsActivity.BUSY
-        self.status = SettingsActivity.NO_STATUS
+        if blocking:
+            self.busy = SettingsActivity.BUSY
+            self.status = SettingsActivity.NO_STATUS
         progress = self.view.progress.start(
             self.t(
                 MessageKey.PROGRESS_SETTINGS_LOAD
                 if operation
-                in (SettingsOperation.CATALOG, SettingsOperation.LOAD_PROJECT)
+                in (SettingsOperation.CATALOG, SettingsOperation.LOAD_PROJECT, SettingsOperation.USAGE)
                 else MessageKey.PROGRESS_SETTINGS_WORK
             )
         )
 
         def done(value, error=self.NO_ERROR):
             self.view.progress.finish(progress)
-            self.busy = SettingsActivity.IDLE
-            self.status = SettingsActivity.NO_STATUS
+            if blocking:
+                self.busy = SettingsActivity.IDLE
+                self.status = SettingsActivity.NO_STATUS
             if error is not self.NO_ERROR:
                 self.error(error)
             if completed:
                 completed(value)
-            if self._pending_selection is not self.NO_PENDING:
+            if not self.busy and self._pending_selection is not self.NO_PENDING:
                 selected, self._pending_selection = (
                     self._pending_selection,
                     self.NO_PENDING,
                 )
                 self.select_left(selected)
+            self.load_usage()
             get_app().invalidate()
 
         try:
             self.request(operation, args, self.view.progress.callback(progress, done))
         except Exception as error:
             done(self.NO_RESULT, error)
+
+    def reset_usage(self):
+        self._usage_epoch += 1
+        self._usage_requested = False
+
+    def load_usage(self):
+        if (self.busy or self._usage_requested or self.request is None or self.schema is None
+                or self.selected != PreferenceSection.PROFILE.value):
+            return
+        self._usage_requested = True
+        epoch = self._usage_epoch
+
+        def loaded(value):
+            if value is None or epoch != self._usage_epoch:
+                return
+            self.usage = value
+            page = self.drafts.pages.get(PreferenceSection.PROFILE.value)
+            if page is not None:
+                page.refresh_usage()
+
+        self.call(SettingsOperation.USAGE, completed=loaded, blocking=False)
 
     def open(self):
         self.project_changed(
@@ -505,10 +531,7 @@ class SettingsScreen:
         if self.drafts.current_project_id not in self._project_rows.identifiers():
             self.drafts.current_project_id = observation.active_project
         self.drafts.replace_preferences(observation.preferences)
-        self.usage = observation.usage
-        if PreferenceSection.PROFILE.value in self.drafts.pages:
-            page = self.drafts.pages[PreferenceSection.PROFILE.value]
-            page.refresh_usage()
+        self.reset_usage()
         self.drafts.prepare_preferences()
         self._sidebar()
         if self._engine_target:
@@ -569,6 +592,7 @@ class SettingsScreen:
                     self.drafts.current_project_id,
                     completed=self.loaded_project,
                 )
+        self.load_usage()
 
     def show_page(self, page):
         left = self.navigation.focused_key() is not SettingsNavigation.NO_KEY

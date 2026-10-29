@@ -17,6 +17,9 @@ from llm.components.processing import CompletionSession
 from llm.components.tools import ToolRegistry
 from llm.services.infrastructure.storage import drain_on_cancel
 from ...config.environment import ENVIRONMENT_OPTION, ShellEnvironment
+from .binding_cache import BindingCache
+from .request_profile import RequestProfile
+from .request_routing import RequestRouting
 
 
 class EnvironmentSession(CompletionSession):
@@ -33,9 +36,11 @@ class EnvironmentSession(CompletionSession):
     async def prepare(self, request):
         from ...asset.guides import WORK_GUIDANCE
 
-        HubInputContext.insert(
-            request, self.INSTRUCTION.format(cwd=self.cwd) + WORK_GUIDANCE
-        )
+        from llm.core.model_protocol import ModelRole
+        present = any(m.message.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER)
+                      and WORK_GUIDANCE in m.message.text for m in request.messages)
+        HubInputContext.insert(request, self.INSTRUCTION.format(cwd=self.cwd)
+                               + ("" if present else WORK_GUIDANCE))
         if False:
             yield
 
@@ -79,6 +84,8 @@ class EnvironmentEngine:
         self.recovery = recovery
         self.retry_monitor = retry_monitor
         self.provider_recovery = provider_recovery
+        self._bindings = BindingCache()
+        self.routing = RequestRouting()
 
     def __getattr__(self, name):
         value = getattr(
@@ -88,16 +95,24 @@ class EnvironmentEngine:
 
             def validate(checkpoint, **kwargs):
                 EngineHooks.rebind_resume_context(kwargs, self.bind_context)
-                return value(checkpoint, **kwargs)
+                bound = kwargs.get(EngineHooks.RESUME_CONTEXT)
+                engine = self.routed_engine(bound) if bound is not None else self.implementation
+                return getattr(engine, name)(checkpoint, **kwargs)
 
             return validate
         if name == EngineHooks.BIND_EXECUTION:
-            return lambda context: value(self.bind_context(context))
+            def bind(context):
+                bound = self.bind_context(context)
+                return getattr(self.routed_engine(bound), name)(bound)
+            return bind
         if name == EngineHooks.WITH_INSTRUCTIONS:
 
-            def compose(*args, **kwargs):
+            def compose(context, *, before=(), after=()):
                 worker = copy(self)
-                worker.implementation = value(*args, **kwargs)
+                worker._bindings = BindingCache()
+                worker.implementation = value(context, before=before, after=after)
+                worker.routing = RequestRouting(self.routing.definition, self.routing.profile,
+                    (*self.routing.layers, (tuple(before), tuple(after))))
                 return worker
 
             return compose
@@ -109,11 +124,14 @@ class EnvironmentEngine:
         registry = EngineRegistry()
         registry.register(AgentDefinition.engine(definition), self.implementation)
         worker = copy(self)
+        worker._bindings = BindingCache()
         worker.implementation = registry.resolve_agent(definition)
+        worker.routing = RequestRouting(definition)
         return worker
 
     def for_context(self, request_context):
         options = dict(request_context)
+        profile = RequestProfile.take(options)
         HubTurnContext.take(options)
         from ..tools.application import AgentMessageContext
         AgentMessageContext.take(options)
@@ -137,7 +155,7 @@ class EnvironmentEngine:
             raise TypeError(EngineContextBinding.CONTRACT.asynchronous)
         if not callable(EngineHooks.executor(implementation)):
             raise TypeError(EngineContextBinding.CONTRACT.invalid_engine)
-        return EnvironmentEngine(
+        worker = EnvironmentEngine(
             implementation,
             self.builtins,
             environment,
@@ -145,8 +163,15 @@ class EnvironmentEngine:
             retry_monitor=self.retry_monitor,
             provider_recovery=self.provider_recovery,
         )
+        worker.routing = RequestRouting(self.routing.definition, profile, self.routing.layers)
+        return worker
 
     def bind_context(self, context):
+        from ..tools.validation import ToolInputRegistry
+        from ..tools.application import HubApplicationTools
+        from .tool_catalog import ToolCatalog
+        from .tool_lookup import ToolLookup
+        mode = self.routing.mode(context, self.implementation)
         if (COMPLETION_PROCESSORS in context.capabilities and self.builtins is not None
                 and self.builtins.name in context.project.components):
             from .tool_views import ToolViewProcessor
@@ -154,50 +179,68 @@ class EnvironmentEngine:
             if not any(item.name == ToolViewProcessor.name for item in processors):
                 context = replace(context, capabilities={**context.capabilities,
                     COMPLETION_PROCESSORS: (*processors, ToolViewProcessor(processors))})
-        if self.environment is self.ABSENT:
-            return context
         tools, capabilities = context.tools, dict(context.capabilities)
-        if (
-            ToolRegistry.CAPABILITY in capabilities
+        environment_tools = (
+            self.environment is not self.ABSENT
+            and ToolRegistry.CAPABILITY in capabilities
             and self.builtins is not self.ABSENT
             and self.builtins.name in context.project.components
-        ):
-            registry = self.builtins.resolve_environment(
-                context.project, self.environment
-            )
-            # Preserve imported tools and Agent selections; never enable extra tools.
-            tools = ToolRegistry(
-                tuple(
-                    (
-                        registry.get(name)
-                        if name in registry.names()
-                        else context.tools.get(name)
-                    )
-                    for name in context.tools.names()
-                )
-            )
+        )
+        discovery = (self.builtins is not None
+            and self.builtins.name in context.project.components
+            and HubApplicationTools.HELP in context.tools.names())
+        if environment_tools or discovery:
+            def build():
+                groups = ToolCatalog.project_groups(context.project, self.builtins)
+                selected = context.tools
+                if environment_tools and selected.names():
+                    registry = self.builtins.resolve_environment(context.project, self.environment)
+                    names = frozenset(registry.names())
+                    # Preserve imported tools and Agent selections; never enable extra tools.
+                    selected = ToolInputRegistry(tuple(
+                        registry.get(name) if name in names else selected.get(name)
+                        for name in selected.names()))
+                if discovery:
+                    selected = ToolLookup.bind(selected, groups=groups)
+                return ToolInputRegistry.observe(selected)
+            tools = self._bindings.bind(context, self.environment, build)
+        tools = ToolInputRegistry.observe(tools)
+        if ToolRegistry.CAPABILITY in capabilities:
             capabilities[ToolRegistry.CAPABILITY] = tools
         if COMPLETION_PROCESSORS in capabilities:
-            capabilities[COMPLETION_PROCESSORS] = (
-                *capabilities[COMPLETION_PROCESSORS],
-                EnvironmentProcessor(self.environment.cwd),
-            )
+            processors = capabilities[COMPLETION_PROCESSORS]
+            if self.environment is not self.ABSENT:
+                processors = (*processors, EnvironmentProcessor(self.environment.cwd))
+            if self.routing.enabled(context, self.implementation):
+                processors = self.routing.processors(processors, mode,
+                    restore_prompt=self.routing.brief(context, self.implementation))
+            capabilities[COMPLETION_PROCESSORS] = processors
         return replace(context, tools=tools, capabilities=capabilities)
+
+    def routed_engine(self, bound):
+        from .tool_catalog import ToolCatalog
+        from ..tools.application import HubApplicationTools
+        groups = (ToolCatalog.project_groups(bound.project, self.builtins)
+                  if self.routing.enabled(bound, self.implementation) else None)
+        discovery = (self.builtins is not None and self.builtins.name in bound.project.components
+                     and HubApplicationTools.HELP in bound.tools.names())
+        return self.routing.engine(bound, self.implementation, groups=groups, discovery=discovery)
 
     async def execute(self, context):
         bound = await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
+        implementation = await drain_on_cancel(asyncio.to_thread(self.routed_engine, bound))
         if self.recovery is not self.ABSENT:
             from .tool_recovery import recovery_events
 
             stream = recovery_events(
                 self.recovery,
-                self.implementation,
+                implementation,
                 bound,
                 self.environment,
                 provider=self.provider_recovery,
             )
         else:
-            stream = self.implementation.execute(bound)
+            stream = implementation.execute(bound)
         try:
             async with aclosing(stream) as events:
                 async for event in events:
@@ -205,5 +248,6 @@ class EnvironmentEngine:
                     if self.retry_monitor is not self.ABSENT:
                         self.retry_monitor.observe_tool(bound, event)
         finally:
+            self._bindings.clear()
             if self.retry_monitor is not self.ABSENT:
                 self.retry_monitor.clear_tools(bound.run.id)

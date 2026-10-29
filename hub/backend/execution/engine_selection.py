@@ -36,11 +36,21 @@ def selected_engines(config, registered) -> tuple[str, ...]:
 
 
 def agent_model(engines, definition):
-    """Resolve the actual Agent's parameters through its selected Engine."""
+    """Read a display hint; admission still validates the selected Agent."""
     from llm.engines.loop import LoopEngine
+    from llm.engines.graph import GraphEngine
     from .environment import underlying_engine
 
-    engine = engines.resolve_agent(definition)
+    try:
+        engine = engines.get(AgentDefinition.engine(definition))
+    except KeyError:
+        # Keep the registry's normal diagnostic for an unavailable strategy.
+        engine = engines.resolve_agent(definition)
+    # Standard factories preserve their strategy. Building an engine solely to
+    # display its model repeats Agent/schema checks already owned by admission.
+    # Custom factories can change strategy, so retain their resolution contract.
+    if type(underlying_engine(engine)) not in (LoopEngine, GraphEngine):
+        engine = engines.resolve_agent(definition)
     model = ModelParameters(EngineSelection.completion(definition)).model_or_empty
     required = isinstance(underlying_engine(engine), LoopEngine) and not model
     return model, required

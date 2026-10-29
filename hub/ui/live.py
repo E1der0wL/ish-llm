@@ -95,22 +95,23 @@ class LiveHubView(HubView):
             )
         sessions = {session.id for session in snapshot.sessions}
         SubmittedMessages.retain(self, snapshot.project_id, sessions)
-        snapshot = replace(
-            snapshot,
-            messages=tuple(
-                (
-                    replace(
-                        item,
-                        failure=self.failure_diagnoses.get(
-                            (snapshot.project_id, snapshot.selected_id, item.run_id)
-                        ),
+        if self.failure_diagnoses:
+            snapshot = replace(
+                snapshot,
+                messages=tuple(
+                    (
+                        replace(
+                            item,
+                            failure=self.failure_diagnoses.get(
+                                (snapshot.project_id, snapshot.selected_id, item.run_id)
+                            ),
+                        )
+                        if item.status == MessageStatus.FAILED
+                        else item
                     )
-                    if item.status == MessageStatus.FAILED
-                    else item
-                )
-                for item in snapshot.messages
-            ),
-        )
+                    for item in snapshot.messages
+                ),
+            )
         display = present(snapshot, self.t, self._presentation_cache)
         current_id = self.sessions[self.selected].id
         empty_draft_key = (
@@ -294,6 +295,7 @@ class LiveController:
         HubView.bind_default_agent(self.view, config.agent_id)
         self.view.agent_id = config.agent_id
         self.view.on_open = self.open
+        self.view.on_hide = self.hide
         self.view.on_submit = self.submit
         self.view.on_answer = self.answer_question
         self.view.on_review = self.review_approval
@@ -607,10 +609,11 @@ class LiveController:
             self._set_output_interval(self.view.theme.output_refresh_interval)
             if self._sidebar_width_pending is not LiveController.ABSENT:
                 self._save_sidebar_width(self._sidebar_width_pending)
-        else:
-            self._call(
-                HubRuntime.select.__name__, self.view.sessions[self.view.selected].id
-            )
+        self.worker.set_visible(True)
+
+    def hide(self):
+        if self.worker:
+            self.worker.set_visible(False)
 
     def bind_app(self, app):
         """Rebind callbacks when ish starts its next prompt event loop."""
@@ -884,8 +887,9 @@ class LiveController:
 
     def select(self, session_id: str):
         if session_id:
-            self._call(HubRuntime.select.__name__, session_id,
-                       completed=lambda _: self._call(HubRuntime.snapshot.__name__, completed=self._snapshot))
+            # Selection marks the worker dirty; its single refresh publishes the
+            # selected history. A second foreground snapshot only queues a duplicate.
+            self._call(HubRuntime.select.__name__, session_id)
 
     def invite_agent(self, identifier, completed):
         view = self.view

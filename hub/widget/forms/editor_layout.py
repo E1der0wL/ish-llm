@@ -92,7 +92,7 @@ class SettingsEditorLayout:
 
     def matches(self, field):
         return self.matches_text(field.label, field.schema.get(SchemaKeyword.DESCRIPTION, ""),
-                                 field.input.text)
+                                 field.text)
 
     def matches_text(self, *values):
         return not self.query or self.query.casefold() in " ".join(map(str, values)).casefold()

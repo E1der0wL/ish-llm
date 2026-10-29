@@ -29,7 +29,7 @@ from llm.components.tools import ToolComponent
 from llm.llm import LargeLanguageModel
 from llm.engines.loop import LoopEngine
 from tests.hub.test_live import ControlledEngine, until
-from tests.hub.support import settings_button, SizedOutput
+from tests.hub.support import settings_button, SizedOutput, backend_ready
 
 
 class DemoComponent(Component):
@@ -159,6 +159,35 @@ class SettingsFormTests(unittest.TestCase):
 
 
 class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_prepared_settings_are_validated_before_writes_with_one_schema(self):
+        from hub.backend.project.memory_setup import MemorySetup
+        from jsonschema import ValidationError
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = HubRuntime(HubConfig(directory, auto_title=False), settings_backend)
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            service = runtime.settings_service
+            record = await service.load_project(runtime.project.id)
+            original = (await runtime.project.aget_data()).config.to_dict()
+            prepare = MemorySetup.prepare
+
+            def invalid_preparation(config, components):
+                candidate, selected = prepare(config, components)
+                candidate.parameters.setdefault('components', {})['demo'] = {'config': {'count': 0}}
+                return candidate, selected
+
+            with patch.object(MemorySetup, 'prepare', side_effect=invalid_preparation), \
+                    patch.object(service, '_schema', wraps=service._schema) as schema_reads:
+                with self.assertRaises(ValidationError):
+                    await service.save_project(runtime.project.id, record['values'], record['config_version'])
+            self.assertEqual(schema_reads.call_count, 1)
+            self.assertEqual((await runtime.project.aget_data()).config.to_dict(), original)
+            # A later operation has its own schema and can still save normally.
+            with patch.object(service, '_schema', wraps=service._schema) as next_schema:
+                await service.save_project(runtime.project.id, record['values'], record['config_version'])
+            self.assertEqual(next_schema.call_count, 2)
+
     async def test_settings_keep_the_selected_adapters_declared_fields(self):
         from types import SimpleNamespace
         from hub.backend.project.settings import SettingsService
@@ -197,7 +226,11 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("temperature", (await runtime.project.aget_data()).config.parameter_targets.engine("loop").config.get("completion", {}))
                 values["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"] = 0.4
                 values["config"]["parameters"].setdefault("components", {})["demo"] = {"config": {"count": 3, "label": None}}
-                saved = await service.save_project(runtime.project.id, values, record["config_version"])
+                with patch.object(service, '_schema', wraps=service._schema) as schema_reads:
+                    saved = await service.save_project(runtime.project.id, values, record["config_version"])
+                # Original/prepared drafts share one schema before any await;
+                # the returned editor reads a fresh schema after persistence.
+                self.assertEqual(schema_reads.call_count, 2)
                 with self.assertRaises(ValueError):
                     await service.save_project(runtime.project.id, values, record["config_version"])
                 names = await service.select_components(runtime.project.id, ["tools"], values["components"])
@@ -276,14 +309,14 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected and not view.projects.busy)
+                await backend_ready(lambda: view.connected and not view.projects.busy, 'initial connection')
                 if view.no_sessions:
                     pipe.send_text("/new\r\r")
-                    await until(lambda: not view.no_sessions and view._dialog is None)
+                    await backend_ready(lambda: not view.no_sessions and view._dialog is None, 'session creation')
                 pipe.send_text('\x10\r')
-                await until(lambda: screen.page is not None and not screen.busy)
+                await backend_ready(lambda: screen.page is not None and not screen.busy, 'settings catalog')
                 screen.choose("engine:loop")
-                await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
+                await backend_ready(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy, 'project settings')
                 page = screen.page
                 prefix = ("config", "parameters", "engines", "loop", "config")
                 self.assertNotIn((*prefix, "system_prompt"), page.engine_forms["loop"].fields)
@@ -293,7 +326,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(field.observations, ())
                 field.input.text = "8"
                 page.save.handler()
-                await until(lambda: screen.page is not page and not screen.busy)
+                await backend_ready(lambda: screen.page is not page and not screen.busy, 'settings saved')
                 stored = screen.page.record["project"]["config"]["parameters"]["engines"]["loop"]["config"]
                 self.assertEqual(stored["buffer_size"], 8)
                 self.assertNotIn("system_prompt", stored)
@@ -301,7 +334,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 settings_button(app, pipe, view, "save")
                 await open_home(app, view)
                 pipe.send_text("hello\r")
-                await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.output.transcript.control.messages))
+                await backend_ready(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.output.transcript.control.messages), 'request completed')
                 self.assertEqual(calls[0]["messages"][0], {"role": "system", "content": "agent instructions"})
             finally:
                 app.exit()
@@ -320,11 +353,11 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda:view.show(app)))
             try:
-                await until(lambda:view.connected)
+                await backend_ready(lambda:view.connected, 'initial connection')
                 with set_app(app):
                     controller.component_commands.open('agent', '', consume_input=False, edit_identifier='assistant')
                 from hub.widget.forms.agent_editor import AgentEditor
-                await until(lambda:isinstance(view._dialog, AgentEditor) and not view._dialog.busy)
+                await backend_ready(lambda:isinstance(view._dialog, AgentEditor) and not view._dialog.busy, 'agent editor')
                 editor = view._dialog
                 self.assertIn(('completion','reasoning_effort'), editor.form.fields, list(editor.form.fields))
                 field = editor.form.fields[('completion','reasoning_effort')]
@@ -332,13 +365,13 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     field.input.text = 'low'
                     editor.save()
-                await until(lambda:view._dialog is editor.manager)
+                await backend_ready(lambda:view._dialog is editor.manager, 'agent settings saved')
                 with set_app(app):
                     view.close_dialog()
                 pipe.send_text('/new\r\r')
-                await until(lambda:not view.no_sessions and view._dialog is None)
+                await backend_ready(lambda:not view.no_sessions and view._dialog is None, 'session creation')
                 pipe.send_text('Explain\r')
-                await until(lambda:any(m.role=='assistant' and m.status=='completed' for m in view.output.transcript.control.messages))
+                await backend_ready(lambda:any(m.role=='assistant' and m.status=='completed' for m in view.output.transcript.control.messages), 'request completed')
                 self.assertEqual(calls[0]['reasoning_effort'],'low')
             finally:
                 app.exit()

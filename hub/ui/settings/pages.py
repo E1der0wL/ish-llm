@@ -169,7 +169,7 @@ class Page:
                 + self.SPACE
                 + str(field.schema.get(SchemaKeyword.DESCRIPTION, self.EMPTY_LABEL))
                 + self.SPACE
-                + field.input.text
+                + field.text
             ).casefold()
         ]
 
@@ -179,7 +179,7 @@ class Page:
     @property
     def dirty(self):
         return getattr(self, self.JSON_CHANGED, self.NO_JSON_CHANGE) or any(
-            field.input.text != field.initial for field in self.all_fields()
+            field.text != field.initial for field in self.all_fields()
         )
 
 
@@ -278,7 +278,7 @@ class ProjectPage(Page):
                     and default is not MISSING
                     and not explicit_null
                 ):
-                    field.input.text = (
+                    field.text = (
                         default if isinstance(default, str) else json.dumps(default)
                     )
         self.actions()
@@ -494,6 +494,7 @@ class GlobalPage(Page):
 
     def refresh_usage(self):
         self.usage_output.text = self.usage_text()
+        self.usage_chart.content.set_records(self.screen.usage)
 
     def usage_text(self):
         rows = [self.screen.t(MessageKey.SETTINGS_USAGE_SCOPE)]
@@ -585,7 +586,7 @@ class GlobalPage(Page):
     def accept_sidebar_width(self, width):
         field = self.form.fields[(HubTheme.sidebar_width.__name__,)]
         field.original = width
-        field.input.text = field.initial = str(width)
+        field.text = field.initial = str(width)
         SidebarWidth.store(self.form.original, width)
         SidebarWidth.store(self.original, width)
 

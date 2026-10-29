@@ -1,6 +1,7 @@
 """Shared PTK test output and asynchronous interaction helpers."""
 
 import asyncio
+from collections.abc import Callable
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.data_structures import Size
@@ -32,6 +33,24 @@ async def eventually(predicate, *, timeout=3):
     async with asyncio.timeout(timeout):
         while not predicate():
             await asyncio.sleep(0.01)
+
+
+BACKEND_TIMEOUT = 60
+
+
+async def backend_ready(predicate: Callable[[], object], description: str):
+    """Bound a complete backend transition, not a keyboard/paint latency check.
+
+    Schema validation, durable writes and Run teardown need their own watchdog.
+    Poll less often than UI assertions to avoid excessive debug traceback work.
+    Keep eventually()/until() and explicit responsiveness deadlines unchanged.
+    """
+    try:
+        async with asyncio.timeout(BACKEND_TIMEOUT):
+            while not predicate():
+                await asyncio.sleep(0.05)
+    except TimeoutError as error:
+        raise TimeoutError(f"Backend did not reach {description} within {BACKEND_TIMEOUT}s") from error
 
 
 def settings_button(app, pipe, view, name="save"):
