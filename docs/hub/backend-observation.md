@@ -336,3 +336,91 @@ declarations pass all 16 and 39 selected cases. Together these cover 807 unique
 Hub cases, including the added diagnostic regression. The full snapshot and
 follow-up snapshots are retained separately; skipped X11 cases remain unverified.
 No llm runtime suite was run. Architecture S1–S7 and documentation checks pass.
+
+## Local execution and lifecycle latency (2026-10-29)
+
+The isolated `tests/hub/reports/local-latency/` harness uses the real BackendWorker,
+file storage and a deterministic in-process provider: a greeting, then a lookup
+which calls `skill_list` and `rag_list_documents`. It records command admission,
+Run/Engine observation delivery, published frames, event-loop lag, storage-call
+entry/execution/exit time and real `fsync` durations. It neither calls a model
+service nor opens the user's workspace. Source snapshots live on WSL's Linux
+filesystem with Python 3.12.14. Earlier failed harness runs are retained separately.
+
+Disk durability dominates this host's local test: one greeting caused 347 `fsync`
+calls, and the two-tool lookup caused 959. The initial unprofiled measurement spent
+about 17 and 47 seconds inside those calls respectively. These are instrumented
+isolated workloads, not a retrospective attribution of the user's provider time.
+Storage-call entry includes executor/ownership waits; exit includes transaction
+commit and callback delivery. Those durations must not be labelled pure file-read
+or mutex time. Hub does not disable flushing, defer acknowledgement before durable
+QUEUED, discard checkpoints, or patch backend transactions to hide this cost.
+
+The following Hub-owned work is removed or reordered:
+
+* The default `HubLoopEngine` now uses the same model-label fast path as native
+  Loop/Graph. The earlier exact-type check missed Hub's default subclass and
+  rebuilt/validated an Agent Engine merely to paint the model label. Unknown
+  custom implementations still use their explicit resolution contract.
+* Persisted Run and Engine events populate the bounded Run observation cache.
+  Public handles are reused separately, with the existing cache bound. A newer
+  event wins over a slow read; late running Engine events cannot overwrite a
+  terminal lifecycle observation. Event loss and normal expiry still reconcile
+  through public services. Admission, approval and resume never use this cache.
+* Session runtime/queue status is read after history queries, avoiding a queued
+  count captured before a request began executing during those queries.
+* An urgent lifecycle/interaction change cancels an obsolete frame read and
+  requests a fresh frame. Native service cancellation still drains its accepted
+  transaction. Ordinary text deltas do not repeatedly cancel reads; shutdown
+  cleans up the read and its wakeup task. Only one lifecycle preemption is allowed
+  before a successful frame, so concurrent-session events cannot starve display.
+  This does not cancel a Run or Tool.
+
+The deterministic regressions in `test_observation_reads`,
+`test_low_resource_observation` and `test_run_path_speed` check those ownership,
+ordering, work-count and cancellation rules without machine-speed thresholds.
+The remaining durable-write latency belongs to backend storage and the host;
+reducing the write/flush count requires a separate backend design review.
+
+## Admission feedback without a full history read (2026-10-30)
+
+Idle submission preflight reads fresh public Session data first. An empty
+`active_run_ids` selects the normal input UI path without a full runtime/history
+query; otherwise the existing public runtime-status query resolves recipients.
+This is not a cached admission decision: native `submit` still validates the
+request and commits QUEUED before acknowledging it. Paused/pending/recovered
+execution and all actual scheduling remain backend-owned.
+
+`RequestStarted` is a small immutable UI observation emitted only after a public
+persisted Run-start event. `BackendWorker` dispatches it independently of full
+snapshot assembly. `SubmittedMessages` owns a bounded, transient set of these
+proofs, scoped by Project/Session/request ID. It updates only a queued user row
+to committed; it does not synthesize Run execution state, queue counts, answers,
+or permission. A proof arriving before the submit acknowledgement is retained;
+a stale queued snapshot cannot undo it. Canonical non-queued observations clear
+the proof, and terminal rows are never downgraded. Existing full snapshots still
+reconcile event loss and control execution actions through public services.
+
+Hub configures the public `LogConfig(log_reads=False)` switch to avoid writing
+an operational log for every display read. Mutation/lifecycle/error logs,
+provider diagnostics, conversation persistence and checkpoints remain enabled.
+No backend implementation, durability barrier or queue ordering is changed.
+
+For streaming deltas, `HubDefaults.OUTPUT_BUFFER` selects the public
+`BackendServices.output_buffer` contract: at most 32 deltas, a 0.1-second batching
+window, or 65,536 characters per batch. Explicit Project `policies.output`
+values still override this host default. The native consumer flushes deltas
+before every non-delta event and drains cancellation. Tool/approval/Step/checkpoint
+barriers remain durable before execution continues; the UI receives only persisted
+events. This reduces per-delta transactions, not the mandatory admission or
+lifecycle transactions. No filesystem sync call is bypassed.
+
+Request selection treats explicit explanation topics such as “작성하는 예시
+보여줘” as lookup requests. A separate action clause still selects work mode;
+custom Engine and Agent requirements retain the existing routing guards. This
+is a toolbox selection hint, never an authorization decision.
+
+`tests.hub.test_submission_observation` covers immediate feedback under a held
+snapshot lock, acknowledgement ordering, stale reads, scope and terminal-state
+preservation, and mixed explanation/action requests. `test_log_retention` checks
+that display reads stop generating log writes while mutations remain recorded.

@@ -104,12 +104,14 @@ class SettingsScreen:
         self.project_list = SidebarList(
             self.project_items, lambda: self.navigation.left_key, self.select_left
         )
+        empty_page = Window(height=self.EMPTY_PAGE_HEIGHT)
+        empty_actions = Label(self.EMPTY_TEXT)
         self.main = SettingsPane(
             DynamicContainer(
                 lambda: (
                     self.page.container
                     if self.page
-                    else Window(height=self.EMPTY_PAGE_HEIGHT)
+                    else empty_page
                 )
             ),
             show_scrollbar=self.SHOW_SCROLLBAR,
@@ -139,7 +141,7 @@ class SettingsScreen:
             on_leave=self.navigation.finish_edit,
         )
         bottom = DynamicContainer(
-            lambda: self.page.bottom if self.page else Label(self.EMPTY_TEXT)
+            lambda: self.page.bottom if self.page else empty_actions
         )
         self.actions = ActionFrame(
             bottom, width=self.main_dimension, title=self.action_title

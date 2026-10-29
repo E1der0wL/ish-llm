@@ -3,6 +3,7 @@
 from copy import deepcopy
 from .general import GeneralSettings
 from llm.core.models import ConversationStorage
+from llm.core.policies import OutputBuffer
 from llm.components.rag.prompts import ExtractionFailurePolicy, ExtractionJSONMode, RELATION_TYPES
 from llm.components.rag.search import SearchMethod, SearchExpansion, RelationRanking
 
@@ -40,6 +41,9 @@ class HubDefaults:
     """Application choices for new Projects; selected Backend Owners validate them."""
 
     UNSPECIFIED_AGENT = None
+    OUTPUT_BATCH_SIZE = 32
+    OUTPUT_BATCH_DELAY = 0.1
+    OUTPUT_BUFFER = OutputBuffer(batch_size=OUTPUT_BATCH_SIZE, max_delay=OUTPUT_BATCH_DELAY)
     ASSISTANT_RESOURCES = {AgentDefinition.ResourceField.RAG: True}
     PLANNER_AGENT_ID = "planner"
     CODING_WORKFLOW_ID = "hub-code-workflow"

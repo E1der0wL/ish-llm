@@ -115,7 +115,7 @@ class SessionDialogTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.close_dialog()
                     view.session_actions.rename()
-                    name = view._dialog.popup_body.children[0]
+                    name = view._dialog.popup_body.children[-1]
                     self.assertEqual(view._dialog.size, PopupSize.SMALL)
                 await eventually(lambda: name.render_info is not None)
                 self.assertEqual(name.render_info.window_height, 1)

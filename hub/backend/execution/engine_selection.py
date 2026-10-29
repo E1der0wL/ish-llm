@@ -40,6 +40,7 @@ def agent_model(engines, definition):
     from llm.engines.loop import LoopEngine
     from llm.engines.graph import GraphEngine
     from .environment import underlying_engine
+    from .retries import HubLoopEngine
 
     try:
         engine = engines.get(AgentDefinition.engine(definition))
@@ -49,7 +50,7 @@ def agent_model(engines, definition):
     # Standard factories preserve their strategy. Building an engine solely to
     # display its model repeats Agent/schema checks already owned by admission.
     # Custom factories can change strategy, so retain their resolution contract.
-    if type(underlying_engine(engine)) not in (LoopEngine, GraphEngine):
+    if type(underlying_engine(engine)) not in (LoopEngine, HubLoopEngine, GraphEngine):
         engine = engines.resolve_agent(definition)
     model = ModelParameters(EngineSelection.completion(definition)).model_or_empty
     required = isinstance(underlying_engine(engine), LoopEngine) and not model

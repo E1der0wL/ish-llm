@@ -163,6 +163,91 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(runtime.urgent_observation)
         self.assertTrue(runtime.dirty.is_set())
 
+    async def test_lifecycle_event_preempts_old_frame_but_drains_its_read(self):
+        worker = BackendWorker.__new__(BackendWorker)
+        worker.runtime = NS(dirty=asyncio.Event(), urgent_observation=False)
+        entered, cancelled, drained = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        async def read():
+            entered.set()
+            try:
+                await asyncio.Future()
+            finally:
+                cancelled.set()
+                await drained.wait()  # Same cancellation contract as a public storage call.
+        worker._snapshot_task = asyncio.create_task(read())
+        pending = asyncio.create_task(worker._await_snapshot())
+        try:
+            await entered.wait()
+            worker.runtime.urgent_observation = True
+            worker.runtime.dirty.set()
+            async with asyncio.timeout(3):
+                await cancelled.wait()
+            self.assertFalse(pending.done())
+            drained.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await pending
+            self.assertTrue(worker.runtime.dirty.is_set())
+        finally:
+            drained.set()
+            pending.cancel()
+            await asyncio.gather(pending, return_exceptions=True)
+
+    async def test_normal_delta_does_not_cancel_snapshot_and_refresh_still_follows(self):
+        worker = BackendWorker.__new__(BackendWorker)
+        worker.runtime = NS(dirty=asyncio.Event(), urgent_observation=False)
+        release = asyncio.Event()
+        async def read():
+            await release.wait()
+            return 'frame'
+        worker._snapshot_task = asyncio.create_task(read())
+        pending = asyncio.create_task(worker._await_snapshot())
+        try:
+            worker.runtime.dirty.set()
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(worker._snapshot_task.cancelled())
+            release.set()
+            self.assertEqual(await pending, 'frame')
+            self.assertTrue(worker.runtime.dirty.is_set())
+        finally:
+            release.set()
+            pending.cancel()
+            await asyncio.gather(pending, return_exceptions=True)
+
+    async def test_repeated_lifecycle_changes_cannot_starve_the_next_frame(self):
+        worker = BackendWorker.__new__(BackendWorker)
+        worker._visible, worker._restarting = True, False
+        worker._output_interval = .001
+        worker._interval_changed = asyncio.Event()
+        worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), urgent_observation=False)
+        entered, published = asyncio.Event(), asyncio.Event()
+        attempts = []
+        frame = NS(run=None, queued_count=0, sessions=())
+        async def snapshot():
+            attempts.append(None)
+            if len(attempts) == 1:
+                entered.set()
+                await asyncio.Future()
+            worker.runtime.urgent_observation = True
+            worker.runtime.dirty.set()
+            await asyncio.sleep(.01)
+            return frame
+        worker.runtime.snapshot = snapshot
+        worker.publish = lambda value: published.set()
+        worker.report_error = Mock()
+        task = asyncio.create_task(worker._refresh())
+        try:
+            async with asyncio.timeout(3):
+                await entered.wait()
+                worker.runtime.urgent_observation = True
+                worker.runtime.dirty.set()
+                await published.wait()
+            self.assertEqual(len(attempts), 2)
+            worker.report_error.assert_not_called()
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
     async def test_usage_is_lazy_nonblocking_and_updates_chart(self):
         view = LiveHubView()
         screen, calls = view.settings, []

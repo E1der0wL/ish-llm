@@ -529,6 +529,7 @@ MESSAGES = {
     MessageKey.MODEL_LINE: "Model: {model}",
 
     MessageKey.SESSION_DELETE: "Delete session", MessageKey.SESSION_RENAME: "Edit session",
+    MessageKey.SESSION_NAME: "Session name",
 
     MessageKey.SESSION_DELETE_CONFIRM: "Soft-delete '{title}'? Its history will be preserved.",
 

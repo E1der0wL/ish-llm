@@ -62,6 +62,16 @@ These extractions preserve the existing bounds and do not change the rendering p
 
 ## Cache boundaries
 
+`ActionBar` owns a four-entry layout cache keyed by allocated width. Its button
+identity/order, effective widths and equal-width mode form the invalidation
+signature. Dynamic captions still render live; a caption that changes a shared
+button width rebuilds the layout. Focus traversal, measurement and painting reuse
+the same container objects instead of rebuilding spacers and nested splits on each
+visit. Resize measurements and actual paint widths can coexist within the bound.
+Absent popup overlays and unloaded settings content also retain their own empty
+widgets. These are presentation-only caches; they do not cache backend results,
+defer button actions or alter popup disposal and focus restoration.
+
 `SnapshotReader` retains settled Run metadata, authors and Graph/Tool observations
 for at most four visited conversations. Deleting turns prunes those entries;
 project switching clears them. This bound follows visited history rather than a

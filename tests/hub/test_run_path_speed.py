@@ -80,6 +80,15 @@ class BindingReuseTests(unittest.TestCase):
         self.assertEqual(agent_model(engines, {'engine': 'custom'}), ('', True))
         engines.resolve_agent.assert_called_once()
 
+    def test_default_hub_loop_hint_never_rebuilds_engine_on_refresh(self):
+        from hub.backend.execution.retries import HubLoopEngine
+        engines = NS(get=Mock(return_value=EnvironmentEngine(HubLoopEngine(), None)),
+                     resolve_agent=Mock(side_effect=AssertionError('display constructed an engine')))
+        for _ in range(100):
+            self.assertEqual(agent_model(engines, {'engine': 'loop', 'completion': {'model': 'test/model'}}),
+                             ('test/model', False))
+        engines.resolve_agent.assert_not_called()
+
     def test_unavailable_strategy_keeps_registry_diagnostic(self):
         engines = NS(get=Mock(side_effect=KeyError('missing')),
                      resolve_agent=Mock(side_effect=ValueError('Engine is not registered: missing')))

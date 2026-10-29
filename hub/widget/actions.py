@@ -1,4 +1,6 @@
 """Shared horizontal button navigation and responsive, centered action rows."""
+from collections import OrderedDict
+
 from hub.ui.input.registry import ShortcutRegistry
 
 
@@ -79,11 +81,14 @@ class ActionBar(DynamicContainer):
     GAP = 1
     CENTER_WEIGHT = 1
     AVAILABLE_WIDTH = None
+    LAYOUT_CACHE_SIZE = 4
 
     def __init__(self, buttons, width, *, bind_navigation=True, equal_width=False):
         self.buttons, self.available_width = buttons, width
         self.equal_width = equal_width
         self.bind_navigation = bind_navigation
+        self._layout_signature = None
+        self._layouts = OrderedDict()
         if bind_navigation:
             bind_button_navigation(buttons)
         super().__init__(self._container)
@@ -103,17 +108,25 @@ class ActionBar(DynamicContainer):
 
     def rows(self, width=AVAILABLE_WIDTH):
         width = self.available_width() if width is self.AVAILABLE_WIDTH else width
+        return self._rows(width, self._button_widths())
+
+    def _button_widths(self):
+        if self.equal_width:
+            return (self.shared_width(self.buttons),) * len(self.buttons)
+        return tuple(button.width for button in self.buttons)
+
+    def _rows(self, width, widths):
         rows, row, used = [], [], 0
-        for button in self.buttons:
-            if row and used + self.button_width(button) + self.GAP > width:
+        for button, button_width in zip(self.buttons, widths):
+            if row and used + button_width + self.GAP > width:
                 rows.append(row)
                 row, used = [], 0
-            used += self.button_width(button) + self.GAP * bool(row)
+            used += button_width + self.GAP * bool(row)
             row.append(button)
         return [*rows, row] if row else rows
 
     def preferred_width(self, max_available_width):
-        minimum = max((self.button_width(button) for button in self.buttons), default=0)
+        minimum = max(self._button_widths(), default=0)
         return Dimension(
             min=min(minimum, max_available_width),
             preferred=min(self.available_width(), max_available_width),
@@ -131,24 +144,40 @@ class ActionBar(DynamicContainer):
 
     def _container(self, width=AVAILABLE_WIDTH):
         width = self.available_width() if width is self.AVAILABLE_WIDTH else width
-        return HSplit(
+        widths = self._button_widths()
+        signature = (tuple(self.buttons), widths, self.equal_width)
+        if signature != self._layout_signature:
+            self._layouts.clear()
+            self._layout_signature = signature
+        if width in self._layouts:
+            self._layouts.move_to_end(width)
+            return self._layouts[width]
+        # PTK walks dynamic children for focus and key dispatch as well as paint.
+        # Keep those containers stable; measuring and painting can use different
+        # widths in the same frame, so retain a small bounded set of layouts.
+        button_widths = dict(zip(self.buttons, widths))
+        container = HSplit(
             [
                 VSplit(
                     [
-                        Window(width=max(0, (width - sum(self.button_width(button) for button in row)
+                        Window(width=max(0, (width - sum(button_widths[button] for button in row)
                                              - self.GAP * (len(row) - 1)) // 2)),
                         VSplit(
-                            [HSplit([button], width=Dimension.exact(self.button_width(button)))
+                            [HSplit([button], width=Dimension.exact(button_widths[button]))
                              for button in row] if self.equal_width else row,
                             padding=self.GAP,
                             width=Dimension.exact(
-                                sum(self.button_width(button) for button in row)
+                                sum(button_widths[button] for button in row)
                                 + self.GAP * (len(row) - 1)
                             ),
                         ),
                         Window(width=Dimension(weight=self.CENTER_WEIGHT)),
                     ]
                 )
-                for row in self.rows(width)
+                for row in self._rows(width, widths)
             ]
         )
+        self._layouts[width] = container
+        if len(self._layouts) > self.LAYOUT_CACHE_SIZE:
+            self._layouts.popitem(last=False)
+        return container

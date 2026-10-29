@@ -16,6 +16,7 @@ class BackendComposition:
 
     ABSENT = None
     ERROR_DETAILS = True
+    LOG_READS = False
     INVALID_ENGINE = "Register the selected engine in HubConfig.engine_factories"
     TEST_WORKSPACES = "test-workspaces"
     TOOL_RUNTIME_REVISION = "hub-model-risk-tool-retry-v2"
@@ -32,8 +33,9 @@ class BackendComposition:
 def create_backend(config: "HubConfig"):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
     from llm.llm import LargeLanguageModel, BackendServices, ProviderDiagnostics
-    from llm.services.infrastructure.logging import DomainLogger
+    from llm.services.infrastructure.logging import DomainLogger, LogConfig
     from ..config.preferences import PreferencesStore
+    from ..config.defaults import HubDefaults
     from ..config.preference_records import PreferenceSnapshot
     from llm.services.runtime.tools import ToolRuntime
     from .execution.retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
@@ -182,7 +184,8 @@ def create_backend(config: "HubConfig"):
         services=BackendServices(
             context_builder=HubContextBuilder(),
             observability_sink=monitor,
-            logger=DomainLogger(sink=config.log_sink),
+            logger=DomainLogger(LogConfig(log_reads=BackendComposition.LOG_READS), sink=config.log_sink),
+            output_buffer=HubDefaults.OUTPUT_BUFFER,
             provider_diagnostics=diagnostics,
             tool_runtime=ToolRuntime(
                 classify=(

@@ -17,6 +17,7 @@ from llm.core.results import CompletionRecords
 from llm.services.runtime.requests import RequestAdmission
 from dataclasses import dataclass, replace
 from collections import OrderedDict
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 from llm.engines.events import EngineEvent, EngineEventType
@@ -87,6 +88,7 @@ class SnapshotReader:
     def __init__(self):
         self.cache = {}
         self.reads = ObservationReads()
+        self.run_handles = OrderedDict()
         self.projection = ConversationProjection()
         self.projections = OrderedDict()
         self.session_summaries = {}
@@ -113,6 +115,7 @@ class SnapshotReader:
         self.drafts.clear()
         self.cache.clear()
         self.reads.clear()
+        self.run_handles.clear()
         self.selected_conversation = None
         self.tool_history.clear()
         self.trace_history.clear()
@@ -187,17 +190,20 @@ class SnapshotReader:
         if projection is not None:
             projection.changed(run.id)
         self.invalidate(run.session_id)
+        self._remember_run(run)
         self.reads.discard(ReadKind.STEPS, run.id)
         self.step_observations.pop(run.id, None)
 
     def observe_engine(self, run, event):
         """Invalidate only records changed by persisted Engine observations."""
+        if self._stale_run(run):
+            return
         kind = EngineEvent.observed_type(event)
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
         if kind != EngineEventType.TEXT_DELTA:
-            self.reads.discard(ReadKind.RUN, run.session_id, run.id)
+            self._remember_run(run)
         if kind in EngineEvent.PHASES or kind == EngineEventType.OUTPUT:
             self.reads.discard(ReadKind.STEPS, run.id)
             self.step_observations.pop(run.id, None)
@@ -207,24 +213,46 @@ class SnapshotReader:
         if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED,
                     EngineEventType.STEERING_CHANGED):
             self.invalidate(run.session_id)
+            self._remember_run(run)
+
+    def _stale_run(self, run):
+        previous = self.reads.entries.get((ReadKind.RUN, run.session_id, run.id))
+        return (previous is not None and previous.value is not None
+                and previous.value.status not in (RunStatus.PENDING, RunStatus.RUNNING)
+                and run.status in (RunStatus.PENDING, RunStatus.RUNNING))
+
+    def _remember_run(self, run):
+        if self._stale_run(run):
+            return  # Separate Engine/lifecycle queues may deliver an older phase late.
+        self.reads.remember((ReadKind.RUN, run.session_id, run.id), deepcopy(run))
 
     async def read_run(self, session, session_id, run_id, *, handle=None):
-        async def load():
-            current = handle if handle is not None else await session.run.aload(run_id)
-            return current, await current.aget_data()
-        return await self.reads.read((ReadKind.RUN, session_id, run_id), load)
+        current = handle if handle is not None else self.run_handles.get(run_id)
+        if current is None:
+            current = await session.run.aload(run_id)
+        self.run_handles[run_id] = current
+        self.run_handles.move_to_end(run_id)
+        while len(self.run_handles) > self.CACHE_LIMIT:
+            self.run_handles.popitem(last=False)
+        return current, await self.reads.read(
+            (ReadKind.RUN, session_id, run_id), current.aget_data)
 
     async def read_session(self, identifier, session):
         from llm.services.query import Query
 
         record = await session.aget_data()
-        runtime = await session.run.astatus(queued_limit=self.QUEUED_IDS_LIMIT)
         latest = await session.run.alist(
             query=Query(descending=self.NEWEST_FIRST, limit=self.LATEST_RUN_LIMIT))
         handle = latest[0] if latest else self.ABSENT
         run = (display_run(record, (await self.read_run(
             session, identifier, handle.id, handle=handle))[1]) if handle else self.ABSENT)
         question_handle = handle if run and str(run.status) == RunStatus.PAUSED else self.ABSENT
+        paused = {handle.id: handle for handle in await session.run.alist(
+            query=Query(status=RunStatus.PAUSED))}
+        # History queries can wait behind durable execution writes. Read the
+        # live queue afterwards so an already dispatched request is not still
+        # labelled queued in the frame assembled from those queries.
+        runtime = await session.run.astatus(queued_limit=self.QUEUED_IDS_LIMIT)
         target = StopIntent(record.metadata).review_target
         if target and not runtime.active_runs and not runtime.queued_count:
             try:
@@ -234,8 +262,6 @@ class SnapshotReader:
                     question_handle = candidate
             except FileNotFoundError:
                 pass
-        paused = {handle.id: handle for handle in await session.run.alist(
-            query=Query(status=RunStatus.PAUSED))}
         if question_handle is not self.ABSENT:
             paused[question_handle.id] = question_handle
         pending = []

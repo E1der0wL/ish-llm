@@ -137,6 +137,16 @@ class SessionView:
 
 
 @dataclass(frozen=True, slots=True)
+class RequestStarted:
+    """Persisted Run-start proof for a request row; never execution authority."""
+
+    project_id: str
+    session_id: str
+    message_id: str
+    run_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class SubmissionResult:
     run_id: str | None = None
     message: ChatMessage | None = None

@@ -432,6 +432,8 @@ class HubView:
         # PTK defers cursor-positioned floats with an absolute drawing priority.
         # An enclosing host Float can inherit a later priority than our popups.
         # Paint the Hub body at this container's own base, then draw its overlays.
+        empty_dialog = Window()
+        empty_output_dialog = Window()
         root = FloatContainer(
             DynamicContainer(
                 lambda: self.settings.container if self.settings_open else panel
@@ -441,7 +443,7 @@ class HubView:
             floats=[
                 Float(
                     ConditionalContainer(
-                        DynamicContainer(lambda: self._dialog or Window()),
+                        DynamicContainer(lambda: self._dialog or empty_dialog),
                         Condition(
                             lambda: self._dialog is not HubView.ABSENT
                             and self.output.floating_dialog is HubView.ABSENT
@@ -452,7 +454,7 @@ class HubView:
                 Float(
                     ConditionalContainer(
                         DynamicContainer(
-                            lambda: self.output.floating_dialog or Window()
+                            lambda: self.output.floating_dialog or empty_output_dialog
                         ),
                         Condition(
                             lambda: self.output.floating_dialog is not HubView.ABSENT

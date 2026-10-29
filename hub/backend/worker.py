@@ -116,6 +116,7 @@ class BackendWorker:
         self._sidebar_width_task = BackendWorker.ABSENT
         self._startup_lock = threading.Lock()
         self._startup_observer = None
+        self._request_observer = None
         self._startup_progress = BackendProgress(MessageKey.PROGRESS_BACKEND_PREPARE)
         self._thread = threading.Thread(
             target=self._thread_main,
@@ -149,6 +150,7 @@ class BackendWorker:
 
     async def _serve(self) -> None:
         self.runtime = HubRuntime(self.config, self.backend_factory)
+        self.runtime.request_started = self._publish_request_started
         refresher = BackendWorker.ABSENT
         try:
             try:
@@ -194,6 +196,14 @@ class BackendWorker:
             self._startup_observer = observer
             observer(self._startup_progress)
 
+    def observe_requests(self, observer) -> None:
+        """Register the UI-loop dispatcher before accepting user input."""
+        self._request_observer = observer
+
+    def _publish_request_started(self, observation) -> None:
+        if self._request_observer is not None:
+            self._request_observer(observation)
+
     async def _read_snapshot(self):
         async with self.runtime.lock:
             self.snapshot_count = (
@@ -206,8 +216,43 @@ class BackendWorker:
             )
             return await self.runtime.snapshot()
 
+    async def _await_snapshot(self, *, preempt=True):
+        """Lifecycle changes supersede an old observation, never a durable write."""
+        read = self._snapshot_task
+        if not preempt:
+            return await read
+        wake = None
+        changed = False
+        try:
+            while not read.done():
+                wake = asyncio.create_task(self.runtime.dirty.wait())
+                done, _ = await asyncio.wait((read, wake), return_when=asyncio.FIRST_COMPLETED)
+                if read in done:
+                    break
+                self.runtime.dirty.clear()
+                changed = True
+                if self.runtime.urgent_observation:
+                    read.cancel()
+                    break
+            snapshot = await read
+            if self.runtime.urgent_observation:
+                changed = True
+                raise asyncio.CancelledError  # A lifecycle event raced the final read callback.
+            return snapshot
+        except BaseException:
+            read.cancel()
+            await asyncio.gather(read, return_exceptions=self.CAPTURE_ERRORS)
+            raise
+        finally:
+            if wake is not None:
+                wake.cancel()
+                await asyncio.gather(wake, return_exceptions=self.CAPTURE_ERRORS)
+            if changed:
+                self.runtime.dirty.set()
+
     async def _refresh(self) -> None:
         last = BackendWorker.ABSENT
+        preempt = True
         loop = asyncio.get_running_loop()
         last_read = loop.time()
         while True:
@@ -256,18 +301,20 @@ class BackendWorker:
                 self.runtime.urgent_observation = False
                 self._snapshot_task = asyncio.create_task(self._read_snapshot())
                 try:
-                    snapshot = await self._snapshot_task
+                    snapshot = await self._await_snapshot(preempt=preempt)
                 except asyncio.CancelledError:
                     if asyncio.current_task().cancelling():
                         raise
                     # An input command preempted this observation. Retry after
                     # admission rather than making the user wait for all history.
                     self.runtime.dirty.set()
+                    preempt = False  # A lifecycle storm must still allow the next frame through.
                     continue
                 finally:
                     self._snapshot_task = BackendWorker.ABSENT
                     # Slow reads must not make the next poll immediately overdue.
                     last_read = loop.time()
+                preempt = True
                 if snapshot != last:
                     self.publish(snapshot)
                     last = snapshot

@@ -33,12 +33,20 @@ class RequestProfile:
         r"|\b(what|why|how|where|when|who|explain|summarize|describe|compare|review|find|search|show|read|list|inspect)\b",
         re.IGNORECASE,
     )
+    ACTION_TOPIC = re.compile(
+        r"(?:작성|생성|수정|삭제|실행|설치|저장|편집)(?:하는|할)?\s*(?:방법|예시|예제)"
+        r"|\b(?:how\s+to|example\s+of)\s+(?:write|create|modify|delete|execute|run|install|save|edit)\b",
+        re.IGNORECASE,
+    )
 
     @classmethod
     def classify(cls, text: str):
         if ConversationalInput.matches(text):
             return cls(RequestMode.CONVERSATION)
-        if len(text) <= cls.MAX_CLASSIFY_CHARS and not cls.ACTION.search(text) and cls.INFORMATION.search(text):
+        # An action mentioned as an explanation topic is not an instruction to
+        # perform it. Any separate action clause still keeps the full toolbox.
+        candidate = cls.ACTION_TOPIC.sub("", text[:cls.MAX_CLASSIFY_CHARS])
+        if len(text) <= cls.MAX_CLASSIFY_CHARS and not cls.ACTION.search(candidate) and cls.INFORMATION.search(text):
             return cls(RequestMode.LOOKUP)
         return cls(RequestMode.WORK)
 

@@ -73966,165 +73966,183 @@
   },
   {
     "path": "hub/widget/actions.py",
-    "sha256": "a40adecbcdc352cee3ac9c57c848998c193f2a5b8aff9180b7177afbae788ac1",
-    "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged. Popup footer width review: ActionBar owns opt-in equal allocated widths and responsive wrapping; Dialog and embedded popup footers select this mode. Widget text remains centered only by Button WindowAlign. Tab strips and inline buttons keep their own dimensions. The localized Home section title is shortened without changing the session identity. Validated by actual popup cell coordinates and retained Home/Agent/component navigation tests.",
+    "sha256": "3c91ed5093919031f1b91c558641dec1b19f805f544024bf87d0e9e642209d87",
+    "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged. Popup footer width review: ActionBar owns opt-in equal allocated widths and responsive wrapping; Dialog and embedded popup footers select this mode. Widget text remains centered only by Button WindowAlign. Tab strips and inline buttons keep their own dimensions. The localized Home section title is shortened without changing the session identity. Validated by actual popup cell coordinates and retained Home/Agent/component navigation tests. Review 2026-10-29: ActionBar owns a four-width layout cache invalidated by button identities, order and effective widths; live captions and actual-width centering remain unchanged. Home and Settings own stable empty placeholders. No backend state, host geometry, key dispatch or popup disposal authority changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "0a87a7328f2380343075c7c5145dd2f18a98784c760be1083e2f6ee42d046e0c",
+        "id": "55a8fe6eac3d7f6e69195338252139fdb3abca201ed31d830dd1f326c8060994",
         "classification": "declaration",
         "owner": "ButtonNavigation",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "325fb591becd4a7748f8537e81711b6b7b6666fcbaaa5d07e66235d4a58688c4",
+        "id": "3ad0a9e11a522315275176f9fed04764bcdc6227f0f5c076995e86e4f2ea44e3",
         "classification": "declaration",
         "owner": "ButtonNavigation",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "e8803c65cbdbb9a09154af81f8b99ef1c26794ba0b7b0305795f420f9ce5c7cc",
+        "id": "f452f8f1c804f2af9aa995f599005c13fd2adc971085281e8a6b0b9ff47d091f",
         "classification": "declaration",
         "owner": "ButtonNavigation",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "74dfa7664f4f0c49459cc2169081fa672db0452b21e25361e5fd8a9ffc040b57",
+        "id": "a121b94df586a2e8398f94c675ad5f147c614a3fe45d7c2cf2d75f40504d8271",
         "classification": "declaration",
         "owner": "ActionFrame",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "cb2980ed8163bce8a8d054558673b5874889c6dc1910c2c3a190bbb60ab1627b",
-        "classification": "non_contract",
-        "owner": "ActionFrame",
-        "reason": "Optional hint replaces the existing bottom spacer inside the action frame. Default callers and horizontal button bindings remain unchanged."
-      },
-      {
-        "id": "00562c8719d520d2eba2d43b4fee9400ca9276b505893868dc70d267dd107061",
+        "id": "92d45515d92dc0acad6bfccf674d06991871273635451c835d94afeed6b51c6c",
         "classification": "non_contract",
         "owner": "ActionFrame",
         "reason": "Optional hint replaces the existing bottom spacer inside the action frame. Default callers and horizontal button bindings remain unchanged."
       },
       {
-        "id": "961a1271be6fb9943e65054e8ec34c1ce09c10dabffabd5d0d4e86094433b965",
+        "id": "88c101645acd4c3d62ec523e9afb1e86b80e277aff61c4df011148e14fb8a921",
+        "classification": "non_contract",
+        "owner": "ActionFrame",
+        "reason": "Optional hint replaces the existing bottom spacer inside the action frame. Default callers and horizontal button bindings remain unchanged."
+      },
+      {
+        "id": "46cc1d7f6d54546c9c44ff8c36e4ad6ada679facf5b240b80ef28d4a6e198c8c",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "7a5429912c5dc21a6d7137c3a17135469d85c3c28c02968c47472ff7da778eea",
+        "id": "d5673a5cb5fd4f78c92861472e9cd5cdd7714d03022d725f1691414f5d506567",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "a0b409c12db3084eb7149b41f65b87e8b2acba6d12982b7b86cfc81e90095903",
+        "id": "fc276c54fe5d36aebc0670c4eb1d96e840499d5f3afb8c298b2add1600b611d7",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "bd7746c975660873d44bf15f455e24d414e597f960ffb3642bbaef8f57f14880",
+        "id": "4ac94528e42d5205892fc7ea842675059d8f89d6b9c1a4262b00c14887cb8feb",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "25754f9d01039623e6e9ebf2cc665ebc0f212baadf63cfb6334cc2716d19f92d",
+        "id": "8a39bd8afd29e8b7d51f476e1841b4b2879dd9044ab96719e696ae789c394d6e",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "0ef5ae9f41c413c505799a0591d1cfe6c848cb316db2b184e10c55ef0fb95bed",
+        "id": "7d926f74c0e58d1bd3331d37a2be87391fe6c81349fa880e76db178a6f66fe67",
         "classification": "non_contract",
         "owner": "bind_button_navigation",
         "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
       },
       {
-        "id": "ef538e36ab5a8edc0528f879eca8e123a6cb271513cced86275bd01fdcb371ca",
+        "id": "9a4c1f473c6bf905dbfa6c8e7593955920d48da22f6f4f35fd0361c1f1323c00",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "e16b28ad6f78e93aa72263b23a8744014882403f780eb1d4eb92700b600e254c",
+        "id": "79475f8893ed5c05b64bd6279df1b2143380b15eed155a6f4a7bcb6422432f34",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "655b77c950234536a5b4dca75199594e3754197fbecde3ab87f5984640c96b42",
+        "id": "ea8eb1b3c94f483ec529d791ab23ab01de8547788a12fec6d077042ea49dc0d2",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "ee76039023f33822821a2516b46ee644279ebb10740bc4c0a40922c5b3d99ec4",
+        "id": "95a19d164ce9ce932a13d243eb398d6c0ec010227b782457b6df13b736f56570",
+        "classification": "declaration",
+        "owner": "ActionBar.LAYOUT_CACHE_SIZE",
+        "reason": "Bounded UI-only cache of measured and painted widths, owned by ActionBar."
+      },
+      {
+        "id": "6292e9be0a77f7204127dc3d96bf89799ea80f0566e37de5225cb6f2f035f095",
         "classification": "non_contract",
         "owner": "ActionBar / ShortcutRegistry",
         "reason": "Responsive action rows optionally preserve their caller-owned bindings. Read-only dialogs retain movement-key scrolling on their close button and hidden receiver; ordinary buttons retain horizontal navigation."
       },
       {
-        "id": "ba1979adaecc0c29809f0825cd287964d69e43955d9c3477499187619b68abbc",
+        "id": "242479a5d6f4114da597fe870815f058190c0d705c5738948df5e360c6b0fd0d",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Runtime geometry option, symmetric text inset and empty-row width; no persisted or backend contract changes."
       },
       {
-        "id": "83ac136af0016963099b6f010a052671d1f53e5d8c4d2276e3b68b16d7a5091d",
+        "id": "52a0842ad8abedc535aeeca8d08b583631e13392894b1a4da6c8fdf47d23a1e0",
+        "classification": "non_contract",
+        "owner": "ActionBar",
+        "reason": "Uninitialized local geometry signature; no persisted or backend state."
+      },
+      {
+        "id": "f08cac82a15db3eaa35ad21d3d037c968ba71a9ed81228e525646173f248d05a",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Runtime geometry option, symmetric text inset and empty-row width; no persisted or backend contract changes."
       },
       {
-        "id": "06bf96f1b270c7d079aba6f4c169912370c4f6a2f6c3b7c5afb8bca13afffffb",
+        "id": "dcb8b084544e299d261d6e271b5b63000f45ccd62d44c5567711fd62aa4b2e32",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Runtime geometry option, symmetric text inset and empty-row width; no persisted or backend contract changes."
       },
       {
-        "id": "50c2271d28c5019e93a452f6fd2b0bed4ae79c6496034ac81186b96676a95183",
+        "id": "a830667aa63d6f3fb6242518a90214aa45b272c1fccb988a4b43fa429df2d6a1",
         "classification": "non_contract",
         "owner": "ActionBar.rows",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "32e9ad4f951521d5b6026a71a4f836c829459a3bd444e5d41b060f6ea9d0400f",
+        "id": "447c6b663ec3decf3da6b2cf4993c5a47eb35a427db75e237fed9b3169aa1f23",
         "classification": "non_contract",
         "owner": "ActionBar.rows",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "ca74befedc927b72f5bec1f7c3d4abb6f4999d6a13f27f814e2fc72515b9c8d9",
+        "id": "960a5f8957d974ea5f24a6921bb5322dbff24c80961351db587aab72fcc191d5",
         "classification": "non_contract",
         "owner": "ActionBar.preferred_width",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "96f7b7bca6d23ce544d283df606c1bf796b56e56e674e60e44d2cce4c37cc10c",
+        "id": "0fa6453b11f2069d557624a01774dd04230d408a0f3d4f4559e0587378ede1f3",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged."
       },
       {
-        "id": "07368e2f56dd18909ccb4ae290072e9c5be795faff89daebcd560326ad0c00a9",
+        "id": "bdb31dfb31a05321958fa04da4555d4d94a88ffec3debf2b89d1c34b068d4c72",
         "classification": "non_contract",
         "owner": "ActionBar._container",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "c635ea21fa89a03a8d88a1cf14cdc0f76cf07927b625986ac81bb154fec685ed",
+        "id": "df6dbc0115ff5c6921722a9b956d6599d70604d5e01fcb5ee037fdc7a1d9be97",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged."
       },
       {
-        "id": "923b07a55c51eca7ed59f442cbae141b6b4cf642c68ff0d508e1684601eea64a",
+        "id": "da524c70ae93fe0c13d1cec6445c6f46fc58d96295f3d4e7db7f6f4af2e7e302",
         "classification": "non_contract",
         "owner": "ActionBar._container",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
+      },
+      {
+        "id": "8aa793b52b993f7ae5dd8217e4019cb62d8a6ca1621c9d211e2af0b875758758",
+        "classification": "non_contract",
+        "owner": "OrderedDict.popitem",
+        "reason": "Evict least recently used width using the standard-library API."
       }
     ],
     "contracts": [
@@ -74172,7 +74190,8 @@
           "tests/llm/test_lifecycle_integrity.py",
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_transactions.py",
-          "tests/llm/test_usage_deletion.py"
+          "tests/llm/test_usage_deletion.py",
+          "tests/hub/test_popup_geometry.py"
         ],
         "complete": true
       },
@@ -74187,7 +74206,8 @@
           "tests.hub.test_agent_settings_groups",
           "tests.hub.test_settings_tabs",
           "tests.hub.test_widget_chrome",
-          "tests.hub.test_component_managers"
+          "tests.hub.test_component_managers",
+          "tests/hub/test_popup_geometry.py"
         ],
         "complete": true
       },
@@ -74202,7 +74222,8 @@
           "tests.hub.test_agent_settings_groups",
           "tests.hub.test_settings_tabs",
           "tests.hub.test_widget_chrome",
-          "tests.hub.test_component_managers"
+          "tests.hub.test_component_managers",
+          "tests/hub/test_popup_geometry.py"
         ],
         "complete": true
       },
@@ -74219,7 +74240,8 @@
           "tests.hub.test_agent_settings_groups",
           "tests.hub.test_render_pipeline",
           "tests.hub.test_ui_consistency",
-          "tests.hub.test_summary_api"
+          "tests.hub.test_summary_api",
+          "tests/hub/test_popup_geometry.py"
         ],
         "complete": true
       }
@@ -77356,8 +77378,8 @@
   },
   {
     "path": "hub/ui/settings/screen.py",
-    "sha256": "40ca9c70f8693117047617f6b50ea4153e3efea4f0de26974995565e6a163643",
-    "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes.",
+    "sha256": "4ce400e577f4b3348cb0d6a150ed7f001e6772e7799156cb90012827f61fa847",
+    "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Review 2026-10-29: ActionBar owns a four-width layout cache invalidated by button identities, order and effective widths; live captions and actual-width centering remain unchanged. Home and Settings own stable empty placeholders. No backend state, host geometry, key dispatch or popup disposal authority changes.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -77559,55 +77581,55 @@
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "f036726a5b7b5da051dfe3e3f098643d9b23a591d0b19684ea61568e9a441ee7",
+        "id": "1e42e97e7f5bafc856fe2d8ff7fa408ab29d637cd174968ca070583ff8bf0ccd",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "7c7fa9d20b342f3d6efc74637f176bf4ae38ed06dddc78899a80b965368c719d",
+        "id": "6837d3c5076795d974cc4e94ab9ec8703ee8415747cb65110d133ca32b5c8b9b",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "51a22516dd14d5996e02f46231fa30db67afede0674e389d9e28665e1a4c0d5a",
+        "id": "5ee151dfea36b68e27d41c3bfa9f9a99266c1997db83e2011db66b2c97e317b8",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "14b0217749c3600e2a7928c0c5c7bfa8dcb75861eae3377a7ebd6dafbc110fb9",
+        "id": "f909c5e7a7a616c924c5a545c9112e28977abcedd875bdd8ef822bfd753e44f7",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "52ce6037b7f40aaeff71150c7ab7bed7867e28edb1868f36beb69558bb0948ea",
+        "id": "283b46d837cdd51d7176d10e9f16527715ceb8839eed3aab8b362160d255f157",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "2bdd559b61b9b441a56e9441311b4cc9d8bdcdb4c9b76a1ca31f085fc44fa40b",
+        "id": "47f8d1d9ba38ab4a967ec2c522c92c47e0000d0d7341f35998a92759d45848da",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "c063bee84f97cf363bdb422481be7a1fe38e6d68972299403e86c2fd697d5eb6",
+        "id": "2519e142c38ef457e291f2d55cdc126b4ff978292c144031f602258bce766295",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "29a869fd9813d857a616fe228a288029aaf7f2019f4fe7859f031ce538b0d0d1",
+        "id": "c4af206b4afc35d5287f19501c6c9220bc9d83b082fefe67d622e13439b81af7",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "4975d0b5184025b0fd96a7fe3e34ec25b607f894a2e73e36558c0ad3dff24582",
+        "id": "7c9c4766b938b8e89ad269c742960373e90e16ac3bff8a907af6e018dbb317d7",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
@@ -81184,8 +81206,8 @@
   },
   {
     "path": "hub/backend/execution/engine_selection.py",
-    "sha256": "e4b6bac8610ee873cce03cbbc54a5932dab1b5254dff72ea3649d24b4b4b8a16",
-    "reason": "Reads completion only from Agent and resolves actual Engine for model-required observation; removed unused Project/Session completion helpers. Standard Loop/Graph model labels read registered strategy and Agent completion without constructing another Engine. Custom factory resolution is preserved. Actual submit/admission still validates the selected Agent and schema. Standard Loop/Graph model labels read registered strategy and Agent completion without constructing another Engine. Custom factory resolution is preserved. Actual submit/admission still validates the selected Agent and schema.",
+    "sha256": "a78bee3826292233f2918ebf09b4b11c94622d75059240c2facb8181660a425e",
+    "reason": "Reads completion only from Agent and resolves actual Engine for model-required observation; removed unused Project/Session completion helpers. Standard Loop/Graph model labels read registered strategy and Agent completion without constructing another Engine. Custom factory resolution is preserved. Actual submit/admission still validates the selected Agent and schema. Standard Loop/Graph model labels read registered strategy and Agent completion without constructing another Engine. Custom factory resolution is preserved. Actual submit/admission still validates the selected Agent and schema. Review 2026-10-29 local latency: The exact HubLoopEngine implementation joins the display-only Loop/Graph fast path; custom engines retain native binding and admission remains authoritative.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -81273,7 +81295,9 @@
           "tests/llm/test_retry.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py",
-          "tests/hub/test_run_path_speed.py"
+          "tests/hub/test_run_path_speed.py",
+          "tests/hub/test_observation_reads.py",
+          "tests/hub/test_low_resource_observation.py"
         ],
         "complete": true
       },
@@ -84275,378 +84299,402 @@
   },
   {
     "path": "hub/backend/observability/snapshot.py",
-    "sha256": "ab90c8522531c5c81c4fbab040e043f077390e135d6fcbf92e1d1181cfc4bce1",
-    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Approval observation review: read public requests and validated response receipts under one workspace ownership scope. Fully answered interactions need no input form while resume is queued. Remaining requests still delegate expiry/cancellation/lifecycle checks to RunHandle.interactions(pending_only=True). No decisions, resume eligibility, persistence or error suppression are implemented here. Background reads stay off the UI event loop. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests. Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Pass exact changed row IDs into disposable projection. Observation revision race continues to force full canonical reconciliation; no publication from incomplete indexes. Review 2026-10-29: Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative. Review 2026-10-29: Resolve historical authors from immutable public admission bindings and reuse the existing author cache. No Run/Step reads are added for lightweight rows; detailed and live responses keep the same author.",
+    "sha256": "5ef64c7649e1488076a34c6413ec2db9027c74fc732a80af2a562f26a1843b20",
+    "reason": "Reviewed preservation of provider-visible thoughts on empty completed/failed final response and explicit empty-answer/review-budget guidance. Thinking header contains Agent display name and label only; no status/time suffix. Original stored messages, final answer semantics, helper-Step filtering, normal state/elapsed header and render-cache ownership remain intact. Compaction status review 2026-10-28: existing Step observations project ID/status/time into the same active-response trace lifecycle as Tools; no additional backend query or persistence. Localized status follows the shared bullet separator and stays muted; Agent headers remain accent1. The event-only running placeholder is suppressed when a running summary Step is present. Summary/recovery helper content remains hidden; completion, failure, interruption and fresh-reader reconciliation are covered by test_completion_display and test_snapshot_projection. Approval observation review: read public requests and validated response receipts under one workspace ownership scope. Fully answered interactions need no input form while resume is queued. Remaining requests still delegate expiry/cancellation/lifecycle checks to RunHandle.interactions(pending_only=True). No decisions, resume eligibility, persistence or error suppression are implemented here. Background reads stay off the UI event loop. Answer draft observation review: only root Loop internal answer outputs are displayed as explicitly unverified transient AnswerDraft values. Conversation content, visibility, review verdicts, approvals, model input and checkpoints retain backend ownership. Run/Step/output identity and native append/replace sequences are preserved; gaps use public atomic RunView snapshots with bounded buffering. Terminal runs, newer candidates and accepted root publication remove the preview. Helper/Graph/Tool outputs are excluded. Drafts produce no tag objects or followup suggestions; phase-only updates reuse body rendering. Gated provider integration, continuation/block/interrupt, recovery, source immutability and responsive PTK input are covered by the linked tests. Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Pass exact changed row IDs into disposable projection. Observation revision race continues to force full canonical reconciliation; no publication from incomplete indexes. Review 2026-10-29: Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative. Review 2026-10-29: Resolve historical authors from immutable public admission bindings and reuse the existing author cache. No Run/Step reads are added for lightweight rows; detailed and live responses keep the same author. Review 2026-10-29 local latency: Committed Run/Engine event copies warm a bounded observation cache, terminal lifecycle observations reject late active snapshots, public handles are separately bounded, and queue status is read after slow history queries. No display value authorizes execution.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "05fbd66b659cf4c94ba58fd91e6855b09178fbb14b42395ebbe2de37da654de7",
+        "id": "b4f548aa964fd69d329132534a17cdafeba1eda86d091eead0dd0ffb5e81c2ea",
         "classification": "non_contract",
         "owner": "SessionObservation",
         "reason": "Dataclass slots object layout."
       },
       {
-        "id": "ae09dbd33a8c2b2be4e2ed58e6208266752926870b4e6f50090879408a5837e3",
+        "id": "22e6e44c0141eeaccd2f16bb2ba849043c8da52a02f195a95010ca0b66f98f20",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "3edbb6098d42fec08fd4da2553a9344854dd0f2fa4d6d42f8ea0bb450445c9ed",
+        "id": "62e7986d26d652e8128be960ee37fc8880b8bc6c9057120ecefe7e08873810af",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "d662dc7d6efe1265fec294bed197130f583f23bde8e2c4f9372c784f077ef52f",
+        "id": "824ce01cc24541fe902d9a3dc629233cc762f47a5ed952298e064941e85ff0ba",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "145a601dbf28e2027ebcf507fc3570d5fc27eec009a726e3db7dc2aa30fe87a7",
+        "id": "2d981a8746f819b1192300666de3a3e725b6384c69654553faf772d68b04c38a",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "ba902ee0befdcb394b0255d75345e792d89ddc5f28ce26336baab5ec6137ca81",
+        "id": "0c6a65958fec7aa0099dce3090b8412c96333ff315f29fb19ea0a7381b56539b",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "89d5bc8f15c471dad8d74457da0dc5228524d1a74d745713fc9029d4cf5bed25",
+        "id": "506a2841356ac144f2a869d4472f1440d706c3a25bb1d24ab9326fd21346cf73",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "67246d51400df99e8b2fdf21a621d85ec20efc89c77ae1ba37de807324e5edf9",
+        "id": "28b768db9b19bf8d0aff0de0febd2e9eb11e5d175c7655215e13635faa6f0180",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "b558f5a12e0ab15a2eec99725572955b7d6d15a085cb51457193a406cc49a108",
+        "id": "dfb26d5c24185d5ff805c2781832e821f661e47d6d75ecea9173ab3e427a4230",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "57dd3f52e98448ef213201ae7bc98abdb61c880df6323d936e34b3c5c54ea48c",
+        "id": "55faf2ef007db93a894474fb870ee325b66631cb0463be68e1e5dd88e4dc683a",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "3d8baf04273a701692dac9b691e699a953c3ddd298ec8c1be46dc59456b7e486",
+        "id": "08bede7b6eb11e2102027670b1809cd8623ec5844d585f07c3a5c4dcc9c11294",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "ffe0fcf9a5009e952b9453bbd6c3d1cc46a00a0f0872287d393a70e88d7163d0",
+        "id": "e91e2302b22e37800a57fa30ed49d2ba0c499327d1073114fe76044666fe22d5",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "e0931f5776b787aa80f52e0083b3b5936f612887a617b166cd8c7c98ef3c0373",
+        "id": "df9606121225fb07a1bfeb96e71233999eb865541a760ffb2bacaaeed5148bab",
         "classification": "declaration",
         "owner": "SnapshotReader",
         "reason": "Original bounded read/cache/elapsed/default policies; roles, states, Agent fields, stop intent, questions and trace IDs reference their Owners."
       },
       {
-        "id": "72378eabee1228a094f9bbed2199ae137384a9e834b30087fdc35c87a17e0401",
+        "id": "e61d096c45e4e8a523799451e8ba1c88cb607bb49157f56c3274089dd0756681",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "a2d5df47483d252a8419a585cea754bc1e9290487268eaca0f9c256f326af6fe",
+        "id": "269f73ee2804557abcd09f1b4cd17477d1e3370e1fb5b0387ac0a3d668548332",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "41cbcb0e424266f56820d6601a335e72691024fd22f21596367123224b8772cd",
+        "id": "f8a58aa256604d47f0d4516269341c670904753c5bbe4fad7222e26590e044a5",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Private cache tuple position selects the Run ID for pruning; it is not a public record field, configured bound or persisted index."
       },
       {
-        "id": "d0c2087acb4e631eef727ce7acbaea646069f83bf152e5a845827896534ea6d3",
+        "id": "22c5bded7783bb4e97b85b47e23e97cde6d197b07161308b9447b6d0faec81c9",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "29101a3cf748a3d276d1775eaf9c79bb0b4b8975419f4394ee86efeb44436e6f",
+        "id": "854da4936228d9fa8cbb9fe9be368ae7af09c0e5ff02a113b68edc1d5a98da72",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "31da439e91ac7606a04661cb925062db2096670f04f4661a81453007beb9813b",
+        "id": "f6d6dfe79c4df93ce43504c105936cfac9a6614b8e1ef12c1bfa8b98f480d0b0",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "766bdeb682cf60155feb9012a486267eff8e3aef4b66f1e270d7db17bdbed43d",
+        "id": "0c5373fc67a29decf48074b9f8fffbace22cb9194c9d3aca36b092195580dfd9",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "71753e25a8fae18f13b617a5459fd3bf767913dcda8463a0d84fa65d56574865",
+        "id": "de8bfc54924fae0d5119bd7b4ea884d235a617bdd7510a27201c7ead3718775d",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "c24c62f31da63b46fb4330b2b7e54857051d715eecf4335777ff9073688a6ec7",
+        "id": "1f9f9856e740aff56c2d77550f840a2bdd78eda0951b664185b168436871b322",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "04cd587e43a7039563f67faa05b5d94403afd39080bd573adb81f7d5b9a5abba",
+        "id": "56bef8a8358b0c6bb66935caf5961156f4ab350895bf80d3318f8fcfed615b07",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "55b1ee473937eecb6d3d8a58ce4da0d3e6492e545cb2a4c065094a89b758097d",
+        "id": "0546cf525ffff6d447d139e9dbb29aaa6a7fb2e398657fa6570ea607fe4851ca",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "0728c672f020ff0e0f86d21a2101d9b2b3a9dcaf6d7702d581a6586a82cfcb7a",
+        "id": "48668b5ebec05a6032642516344aa9f21243bb1c38f0b68f45b64e6ac578bd8a",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "63ca511461887263de7a7023acb03136b2c8afaafe529ba21bdf943436e9dfbd",
+        "id": "2eaad276c3d7be4e049196de1500dd3006f84e6f51afe89875f8538e32900a47",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "b40634afb0259fb4ce0d890035ec445052a452cf6a169fdefd4fe6aae8fa29c5",
+        "id": "3e23be7ffe7a9436fa08c2b19c39a065d1aa200fd29912c01faf3d0c34368a3b",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "7f1bbc848e71c0df01e35319221e8b31c580218f4ea7db7a7cb76f962dd61450",
+        "id": "5cd4662aa297c0ac1f7953c8151b95be0c3d6e2af40fafaff5a42d14a268455b",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "fe768096b657e22e7921cbfefbd64ac3e790464d9ee8155d97f8b1a5702ca782",
+        "id": "8ea5f7be9fdabb5a6797a8bfb3b9b84c2abc3ba0156df5a7defb93f587d8a542",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "13652dd444c83488b671db5d5daadc511411a86921eb3d7534e2c92192238377",
+        "id": "9428ca5480147cc8d53ff5e2ea4ab8c9d1691ea0dd3a04e0c0fda46f051e695d",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "d8dd75dd541cbe350550fa6beb03664ffe20c64288a75588dfec280d72327d0d",
+        "id": "5dfb3c1c6ef5e703d5ac7583584b7aabd01eb7f8be8cff206b857ccbaa346ca1",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "59da659a994aa89f1b6686d59957af8a0b6b3f6a1772649fcd05c6974a29ac79",
+        "id": "fb08cca6578edc8a80063fa11a4edb9ca1affefd099b3f4287a6090b4d7318ef",
+        "classification": "non_contract",
+        "owner": "SnapshotReader",
+        "reason": "Local absence checks for an optional cached observation; no persisted default."
+      },
+      {
+        "id": "249402e3dd21299a0dc4c3698820aac36b51e1afcd56b2fe21963f9d9e7c3122",
+        "classification": "non_contract",
+        "owner": "SnapshotReader",
+        "reason": "Local absence checks for an optional cached observation; no persisted default."
+      },
+      {
+        "id": "ebcc6b55d1fcbb3cb39f2cb2cca69c78b40d27c6feaa3ac2fa0befce2a3d7fa2",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "7167bc991b0f855654f5686527eccf8de843d3de1d06b858b91b902a64ed96d8",
+        "id": "64a34e212a9cc5bc378e192c789a5ea35a644160b194eec9a00b6d65eb1c2449",
+        "classification": "non_contract",
+        "owner": "SnapshotReader",
+        "reason": "Optional public handle/cache presence, not an execution setting."
+      },
+      {
+        "id": "9852afce21a7520e009b277a671de85e9772502145a20fc846942b9a8045ce5c",
+        "classification": "non_contract",
+        "owner": "SnapshotReader",
+        "reason": "Optional public handle/cache presence, not an execution setting."
+      },
+      {
+        "id": "ff04e93de3a1afde18e8ef0c8e1931d10ebed1acf6ad766ab87347499566ff0e",
+        "classification": "non_contract",
+        "owner": "OrderedDict.popitem",
+        "reason": "Evict the least recently used public handle through the Python standard API."
+      },
+      {
+        "id": "ce0cd37c06122d1042b5dba9ac2e6bc0c8fce1e6e98170646f4c0564d93cfbe9",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "a0c175cca6c3ba99c13df71fcea26fbe2e9c8feaf29562a5218204e2ef2fcce9",
+        "id": "5195685c39bd438e384fe70bbe14f32e8b897f97d5e8721032aba5b5f8182ce9",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "cf30addf9c942367319e60da5bc1e194f17ac046fa362f4598b56a2fc58ad871",
+        "id": "c41aedd943c2dce5dc2f0779de0eaf2ce8ed104a6d4324ac5a4a656bce5744ba",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "e47a7ab5533e749c64e6e854e4dbdaefb03ea4240f1ccaea59a86f3661499557",
-        "classification": "non_contract",
-        "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
-        "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
-      },
-      {
-        "id": "e066b4875d1ac3cb9bfb2205ffc6476890ba8b6f8b8aecf22b0e2ccbf479b9aa",
+        "id": "fc74efce0e7e5a6952371dd54b2940a242cd9534a322443b2c28160d82bd3347",
         "classification": "non_contract",
         "owner": "SnapshotReader.run_display",
         "reason": "Optional elapsed type annotation."
       },
       {
-        "id": "b0c845fed453872fcc5b31179d160141fb85a4dbd1649181a8a7aebb0e312405",
+        "id": "81677e04f87cdfc3fa431a798c31760f7bad4f50b1e5b070811fbb5c36e80cb2",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "99caa802458762362bf9fc976ca98f08ba07cda9d6026333f67adc0c3bd2b283",
+        "id": "9e738c3db41d14c82b1c32cb38c184e279578a05a9a81a1d071c082c02590fbd",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "d14b882223192d8a56f953a9b23e0e42df24e38f21127ff565fd39451b52da02",
+        "id": "cf26f2b1391066b163cdca155ca5ef75a24336a25bf13556f044ebdb6efc9186",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "5b29030745062e27cfb7f99e6b049dd5737491d4fce566a4a199615a174e61a0",
+        "id": "84726935c237f06e66d18166cc266c34bf224366bb26cd80dd9c5124e3704d6a",
         "classification": "non_contract",
         "owner": "AnswerDrafts / SnapshotReader.messages",
         "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
       },
       {
-        "id": "21b2c42d12fa51c8854fa67bf77c4a6c47255b6231228ca3c4455a9f4903e7d4",
+        "id": "05abd3c62645fdbc3dd24b901cdcee8f43ad812abb9e5625b5aeb7e46a82a9b9",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "9579cff9af524e0c7db71dfcb5d14c242b5cfffd668af5b6df0220751d7857c2",
+        "id": "6844b66e64e988dcc290962c8588b10276ee4cfafb9ac9585d1f0d543a44794f",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "00dcb94f2073897089fba2688063d97b7155cf5c7d417d68b391a44ac0aca80a",
+        "id": "57b64abf862a1f88da083afe650e5ef9643fdb58db1b5c6e99f7c93b36888232",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "0c60d6d418439dd3e48184b3815f7d12405100afd0ff82c3542079bdc6caee75",
+        "id": "dfc41d1b50f6216cbe7d315ed0dd2ecaf04e7973e414f8efd946b58462fbd3d8",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "2a38b569e52922239f3971a730836d3d1962c7baadc5df9b7f62fe2df74b9673",
+        "id": "d0904551e88cf050137e62db3595da88e265a2bce855fa95bf29a0750761a30e",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "d7acbf434b0dff94c57b7f79e2c17dab5ec0fce8eda9f7b23878027159fddb47",
+        "id": "7e5ffe0f3d003c7ad2a7f22ec9f2954cf62f8ee80159f5fff8970cbcb79dd3ed",
         "classification": "non_contract",
         "owner": "SnapshotReader / WorkflowObservation",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Run metadata and settled observations are retained only for the displayed history. Graph aliases use Engine agent_mode; completed Loop history never fetches Steps just to detect graphs. Active runs still read authoritative evidence. Agent names come from validated Run-start bindings."
       },
       {
-        "id": "edd972f344b01a234adc572a6f0ebff11ae51e706b9b5a1995524bcb603fd87a",
+        "id": "383864460b720b7dbea633780305d5c581ad1da7e41045a9244b44c3f5d3b16b",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "8f71c4c662d114352049e753120541592ba8e1f82ada91655de2a352ecd1bbc0",
+        "id": "a75b92bf1b57a94a7986fe5630dcdd46ad5b59a8147e55a6c8d5b4cfed28fb0f",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "de00fd05809c78aef1cd29f4a5c599f75886d33046b908ff393df2f7c71d00bd",
+        "id": "8c9222dbcdb2da66613a36c3a9677e91b5e6fc4bad7d20d0531d15dd7de03992",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "9b5d3845c3dee4196cc503543914452b3736f367727d95eff2c1ad4d89fa15c1",
+        "id": "63169878351d61f00f1661dcca942501a9862703ae30226a124471a63e06c2f7",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "de0aac2b86360383246c2a2a207de04566c40adfab0e50ff9d6a6c7ce6303780",
+        "id": "895148bb36e1d575661618e5e4df2c498bd491d2812a11138c5b8859e1ddcfab",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "49c4a4438173946f981b7610296f7c503841c7ac8e5e23edd01f29758bfb2a27",
+        "id": "cb09824a5f69ddb823c6591187adfcb81e779d7434022e4dc70a14cd5755be0c",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "1439ee7f318300f009ab8da4ace7f1e1ec21ca81b2b6c2990cae6752a9976352",
+        "id": "cb54da07ef128a7f2921ccb096d72fef8c5a944c3d3738311dbc22c94ee7e748",
         "classification": "non_contract",
         "owner": "SnapshotReader",
         "reason": "Retain at most four visited projections; no speculative conversations. Load historical Run/Step details only near the reading anchor plus active/latest Runs; reuse previously read details. Lifecycle/Engine events invalidate hidden visited projections, loss clears observations while preserving reading position, deleted Sessions prune caches. Public service reads and existing continuation folding remain authoritative."
       },
       {
-        "id": "ac56c7dcb3cdfe647139929cc2ebc43734bb9888fc73b4e7796870e5030564ab",
+        "id": "2b77614f3294220b9d6572dd73b0c77f31acadc073f959d2037b375966c1067b",
         "classification": "non_contract",
         "owner": "AnswerDrafts / SnapshotReader.messages",
         "reason": "Hub display-only optional draft or rendering condition; never persisted values, authorization or verdict defaults."
       },
       {
-        "id": "793ee39b2b15ac2026b9684abcef7b9cf05ecd39f9ea9193d02348a91aa9605e",
+        "id": "b4f9cea0a90017bd7e8e5273475bb9befbce2e149dc15c0bc335db13e249631a",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "7a50b5317f2211fa7b1e1b63cd49dc342cbf1d0050245109696d3392c9171830",
+        "id": "83fd23f0fd01d3c03d59d4ed5b6ecf9292208c9eb9b0d4175d377d334f566a7e",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "85a650a9b05de80c5e8a3accd7fcb3b18f3711ad78438694f8c2bf572e3d320c",
+        "id": "82d68f5282e9ef12084363b8294b87f12d8022bf6f56a30405f9644e0a2c83fe",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "fc027283fb5a13a23c16ee88ca84d7d7a045c899d5fa0875b6317b8262156642",
+        "id": "11170f5a8b9b568173cbabbda53b0e98cb2baa0608fb6b4057892a38916ce543",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "007d7fedaef353a1109f010b484964449d3e298b342bbf1f7c6d1e868ddbf62b",
+        "id": "1ce261646612c59c52e0eb48b4ad98f879ccd2baa40b42dd14bd813e043a0b12",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "c5794228f4f6c8245f1daa21afe8c4f2e798752966d1ae88359d1cc856c4809d",
+        "id": "2fe1a856ebb92cae755d395cac398ecb1c75206862cde4fa3833754a4970d0c9",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "e23344eabb4e2928e8f5fd92ca41490ab74cfb7e3f912a3ef3b261921fdf006c",
+        "id": "49377c170f74d1454f5afcf10391c2620235fb9f540b0d4747dbdb0b7f417909",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
@@ -84698,7 +84746,9 @@
           "tests/hub/test_shell_environment.py",
           "tests/hub/test_tool_input_diagnostics.py",
           "tests/hub/test_tool_views.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_observation_reads.py",
+          "tests/hub/test_low_resource_observation.py"
         ],
         "complete": true
       },
@@ -85326,18 +85376,30 @@
   },
   {
     "path": "hub/ui/submitted.py",
-    "sha256": "bff7ac997381ee13cc1a250760f80cdcd92248d6f100c18fe936ec05d5395232",
-    "reason": "Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged.",
+    "sha256": "ffae19196132f42e38d1fa3bf479ea143307105b79fbfba5e95a9db932ec1a0c",
+    "reason": "Provider logging paths/format/exception fields stay with Provider Owners; Activity projections and UI receipt bridging have canonical Writers and borrowed readers. Original diagnostic parsing/limits/association, presentation, deletion review and authoritative Snapshot reconciliation are unchanged. Admission-feedback review 2026-10-30: SubmittedMessages owns bounded transient start proofs, message identity matching and reconciliation; proofs cannot authorize or replace native state.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "b5c9fe5a9f646a1e80c34da9fb345aef3196dc061f654744d49cd608168227ec",
+        "id": "e7a0297ee90344cac7f5343d35486b0ba175ffa8d073e4bc85f87fcb5e42b7eb",
         "classification": "declaration",
         "owner": "SubmittedMessages",
         "reason": "Existing UI receipt-bridge field and absent removal marker; Project/Session pair interpretation references SessionIdentity."
       },
       {
-        "id": "bed27329887de3eb0ceabf61b85bc40cc434c18d48e38e7856df779ffdfd7dab",
+        "id": "88d700d6df8c5b68284471775ad3d6ba9df5f37ceec457bb4672d466cbda3333",
+        "classification": "declaration",
+        "owner": "SubmittedMessages",
+        "reason": "Owns the transient UI start-proof field; consumers use this owner rather than duplicate storage keys."
+      },
+      {
+        "id": "35b77d695918f9719f5549820c228bfd2a481e77c84885c90e05abc0bc545e6e",
+        "classification": "declaration",
+        "owner": "SubmittedMessages",
+        "reason": "Bounded UI observation capacity, not a backend queue, retry or retention limit."
+      },
+      {
+        "id": "fa434058f5207e9985cee29e4274d46c3c57b52bb95a85e2b223e1acd5a57651",
         "classification": "declaration",
         "owner": "SubmittedMessages",
         "reason": "Existing UI receipt-bridge field and absent removal marker; Project/Session pair interpretation references SessionIdentity."
@@ -85368,7 +85430,10 @@
           "tests/hub/test_deletion_feedback.py",
           "tests/hub/test_snapshot_projection.py",
           "tests/hub/test_multi_agent.py",
-          "tests/hub/test_failure_diagnosis.py"
+          "tests/hub/test_failure_diagnosis.py",
+          "tests/hub/test_submission_observation.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_output_batching.py"
         ],
         "complete": true
       }
@@ -86296,8 +86361,8 @@
   },
   {
     "path": "hub/backend/bootstrap.py",
-    "sha256": "6550e55452fccff2dc9aed85890b67a9167d48eae3ce774e33e4d7a66de19e4a",
-    "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Review 2026-10-29: Read validated global character cap once at startup and bind it to the existing builtin completion processor.",
+    "sha256": "64b7d07e9866062f40b1a2a6caffe71d70de4c8c27ece22e58d0fd93f91a4303",
+    "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Review 2026-10-29: Read validated global character cap once at startup and bind it to the existing builtin completion processor. Admission-feedback review 2026-10-30: Hub selects the public LogConfig read-logging switch; lifecycle/error/provider logs and domain durability are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -86313,37 +86378,43 @@
         "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
       },
       {
-        "id": "ed9fdee3c5513be9f25dbf04d5e01a84f678a2ca31ade35c3798e42db49d16ad",
+        "id": "fed5c20f1b63274b94d5e9521c99def2605099a45b199dd1817e450418d14d03",
+        "classification": "declaration",
+        "owner": "BackendComposition",
+        "reason": "Selects public LogConfig read-log emission for Hub; all mutation and diagnostic logs retain their backend contract."
+      },
+      {
+        "id": "b27f3258132a4e5eb3108505c8f3798c1e7296f06314ac6630763761b87852f5",
         "classification": "declaration",
         "owner": "BackendComposition",
         "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
       },
       {
-        "id": "4429a0ec02baa962c99d56c6d3401d47d0fe05c2c5cb299790212f64edd831b1",
+        "id": "7e38ec054656d489c7f77d3e45a091bcc36961e9a63740bb4726382cdaafc196",
         "classification": "declaration",
         "owner": "BackendComposition",
         "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
       },
       {
-        "id": "e6e1a98b9f8ac3b3011313b5e3310a54d03501e4dfed286623bd3aa0843acb00",
+        "id": "428df38f6c8264dcdddc161bb9fc4ee3eeafe0e48b65f9924ebe707b49f7828a",
         "classification": "declaration",
         "owner": "BackendComposition",
         "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
       },
       {
-        "id": "96293d915aeaf2ba0dde30f3adea063157baa44f439283c25b5b0e6828e8156d",
+        "id": "b16c02e50c7dc47d9ffda59de536bdbbdc432d37846ee741e207808cd8f498f6",
         "classification": "declaration",
         "owner": "BackendComposition",
         "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
       },
       {
-        "id": "ab4c4a0696f9b014ec5e42518aca5e2525ca055216b5c4a27a6b144346389dbb",
+        "id": "7319c5141b52b6f44533d09a1d44889799a6fa2ac67e39b1cb9e2b8c619aedd8",
         "classification": "declaration",
         "owner": "BackendComposition",
         "reason": "Hub composition choices: selected Graph handler registration names, diagnostic detail flag, explicit ToolRuntime revision, original test-workspace child path and invalid-engine message. Graph/internal identifiers, preference/language projection, handler registry and builtin Tool names reference canonical Owners."
       },
       {
-        "id": "b9b99af9fa8a8a140c66e355ad90ead57cdcafc2e7a1784906c7ea22dd41c2c1",
+        "id": "eca4b51d0ae0b4daa1a95b06854bd6c0dc0440d786cc67f5d5157094756a4101",
         "classification": "non_contract",
         "owner": "create_backend",
         "reason": "Forward-reference type annotation for the TYPE_CHECKING-only HubConfig import; not a domain runtime literal."
@@ -86373,7 +86444,10 @@
           "tests/hub/test_tool_retry.py",
           "tests/hub/test_resource_tools.py",
           "tests/hub/test_workspace_settings.py",
-          "tests/hub/test_defaults.py"
+          "tests/hub/test_defaults.py",
+          "tests/hub/test_submission_observation.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_output_batching.py"
         ],
         "complete": true
       },
@@ -87216,24 +87290,18 @@
   },
   {
     "path": "hub/ui/chat/session_actions.py",
-    "sha256": "c4d522e67cc41ca0b05447f94565edb89fa4fc01b989f5dd0cbb7063909a41a6",
-    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior. Sidebar action review: asset-owned CRUD icons call the existing project/session actions; shared heading geometry and focus membership include these buttons. Name-only dialogs explicitly request small input geometry; generic interactive promotion remains unchanged. No backend CRUD, selection persistence or authorization ownership changes. Verified by test_home_navigation and test_mouse_widgets using actual PTK keyboard, mouse and cells. Review 2026-10-29: Use PopupSize.SMALL for session delete confirmation. Existing shared Dialog controls, confirmation and backend deletion remain unchanged. Review 2026-10-29: Separate NEW name-only SMALL popup from CLONE MEDIUM boundary form; no creation history query. Retain project/session identity and popup guards on deferred history. Existing on_new, source and boundary API unchanged. Review 2026-10-29: Wrap the existing single-row rename field in an aligned layout so popup allocation cannot stretch it; same callbacks and validation.",
+    "sha256": "2932511349ebd44cbe702c46c3f2e743dd84af0fc14bcd26304769a7baad262b",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior. Sidebar action review: asset-owned CRUD icons call the existing project/session actions; shared heading geometry and focus membership include these buttons. Name-only dialogs explicitly request small input geometry; generic interactive promotion remains unchanged. No backend CRUD, selection persistence or authorization ownership changes. Verified by test_home_navigation and test_mouse_widgets using actual PTK keyboard, mouse and cells. Review 2026-10-29: Use PopupSize.SMALL for session delete confirmation. Existing shared Dialog controls, confirmation and backend deletion remain unchanged. Review 2026-10-29: Separate NEW name-only SMALL popup from CLONE MEDIUM boundary form; no creation history query. Retain project/session identity and popup guards on deferred history. Existing on_new, source and boundary API unchanged. Review 2026-10-29: Wrap the existing single-row rename field in an aligned layout so popup allocation cannot stretch it; same callbacks and validation. Review 2026-10-29: session rename reuses the project dialog Heading with localized Session name text; one-row input, validation and callbacks are unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "4eeef8391c0e797a483d835d80ffe35003dc6e6e4842d8295d9ad0ff50edb809",
+        "id": "7d61b2f249dd0ad2404e2e4b0c89476e64427bb4614da53263da25192cd3afeb",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "c59c09c67c346e6e701aaa34b062dc40db161e61c36430bd564e3fcae2435564",
-        "classification": "declaration",
-        "owner": "SessionActions",
-        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
-      },
-      {
-        "id": "91a986e6b8a45ca64d93b5e180b08082b5a6fd3dcffe30ef1ac9e359ea20789d",
+        "id": "8311ef2d31f6d79c9de7121f05297fd5959c7ac63394d8758f1e91e5e1126dc7",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
@@ -87245,31 +87313,37 @@
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "9f0f02ccac1aa19177f806feb912b4100a2925ea4ad628c8e6d057082607c0a4",
+        "id": "3716d1bd29a94d37b509fa9608f8098b3cc3e7f29a7b96a94adee174d1e9e9f5",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "6a9a10abcdfe38292486e3428c89e3fa0affb68e77b2c73708e46aa1c7feafcf",
+        "id": "756a7ebbf204d09dc8e9acde1ce6528bcda6ab91d6902f2bfa7ae6b9e43f6043",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "17c17efe132d4e01c2e51584361a01573dfc1143a5a0604d54973e45ea1efdd6",
+        "id": "00cfab8604d1a31e92b6ecbbe8253b016aa124c9ffb91377f69d0d7e08f620b7",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "36929ceebdc07bb0a34763248bcccbe8e30efb24d74c4b5f4798936556e4f8b7",
+        "id": "6595fb2662d7af6e9bbe4814c59a3d2f9414e40d8ed8492035ade9d739af148d",
         "classification": "declaration",
         "owner": "SessionActions",
         "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
       },
       {
-        "id": "05f52542510dc46edd3ba372af6309d8bbd0f7f02bddbc3f5076972bb4a582b6",
+        "id": "dc98a854e44f07bac0f6cf63914493faaa8f69dedff46843e6367f290b17f927",
+        "classification": "declaration",
+        "owner": "SessionActions",
+        "reason": "Existing UI availability/readiness/validation/input flags and name widget settings; key names, Session mode and Project/Session identity observations reference Owners."
+      },
+      {
+        "id": "06a9187f0921daa6cc2d8bd0944ac5286dea4995a2a7ada3599e89d7050cdba8",
         "classification": "non_contract",
         "owner": "Dialog",
         "reason": "Explicit user-requested compact single-line name entry; popup geometry stays owned by Dialog."
@@ -96900,8 +96974,8 @@
   },
   {
     "path": "hub/backend/worker.py",
-    "sha256": "96d52de1eeadde88d80348216f37d79f3d069e9b44f719eb36be86a04775feb9",
-    "reason": "Startup observer is lock-protected and replays the latest record. Explicit operation membership determines coarse stages. Callback dispatch and late-scope suppression preserve thread ownership; stage is not forwarded to runtime commands. Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Review 2026-10-29: Selection and coalesced history focus preempt obsolete snapshot reads only. Existing runtime lock, durable execution, active commands and observation authority are preserved.",
+    "sha256": "017c7d124fd3ecf0ab509a71de09a3f82671b45be87ed54538dc495785854716",
+    "reason": "Startup observer is lock-protected and replays the latest record. Explicit operation membership determines coarse stages. Callback dispatch and late-scope suppression preserve thread ownership; stage is not forwarded to runtime commands. Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Review 2026-10-29: Selection and coalesced history focus preempt obsolete snapshot reads only. Existing runtime lock, durable execution, active commands and observation authority are preserved. Review 2026-10-29 local latency: Urgent lifecycle/interaction changes supersede only frame reads. Accepted native storage work drains on cancellation; ordinary deltas coalesce, child tasks are joined and no Run or Tool is cancelled by this observer. Admission-feedback review 2026-10-30: An optional UI dispatcher receives immutable request-start proof independently of full snapshots; no worker handle crosses threads.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -97055,91 +97129,169 @@
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Startup observer is lock-protected and replays the latest record. Explicit operation membership determines coarse stages. Callback dispatch and late-scope suppression preserve thread ownership; stage is not forwarded to runtime commands."
       },
       {
-        "id": "9dea039bd328b7c8c1334a23ddab1ef72cc94e6171a1cd2dff545d89651726d9",
+        "id": "9b2d47d8c2cf025c2dfec46c5b5eb12b3aa507797a1a512ffd30e1de8d91eedf",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Empty optional observer before the UI attaches; not a persisted field or backend state."
+      },
+      {
+        "id": "9a77046f9d5514e3f82b0de422b1d9832d507b8b726c232d6828a7a9d7d244b6",
         "classification": "non_contract",
         "owner": "BackendWorker._thread_main",
         "reason": "Return type annotation."
       },
       {
-        "id": "e1e8a523a97eb8d792e9661a23a06563d4d985b05862509159a1fc722eb1c84c",
+        "id": "ad9ca017d0a97093f63c859bd2807794f6851268d2f780e28afb7f697a4b193a",
         "classification": "non_contract",
         "owner": "BackendWorker._serve",
         "reason": "Return type annotation."
       },
       {
-        "id": "cd5277a6778a699b6edd12b24b246cfaca631be5badf1c0d3cde2300044143c8",
+        "id": "be63be32d52670368bc3ec4234c335623d9aba8754d76eee324a911710d4657d",
         "classification": "non_contract",
         "owner": "BackendWorker / CommandCallbacks",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Startup observer is lock-protected and replays the latest record. Explicit operation membership determines coarse stages. Callback dispatch and late-scope suppression preserve thread ownership; stage is not forwarded to runtime commands."
       },
       {
-        "id": "9cc1cc37498fb0fb59f2dfc6c25b222d204b1063701d37a91b724c584ca2b0fe",
+        "id": "c5725eadd08fa7ef5b1d2cfb6ea79137dccd727f2bad6832c4709d0dcc3433b7",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Python return annotation for observer registration."
+      },
+      {
+        "id": "50f2264e0ba90a1991e4dd52eeccd56d6076c0c1516b956448a4a408ad81804e",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Python return annotation for observation dispatch."
+      },
+      {
+        "id": "a11d9bb38f23b47863a75c3eae88fabc5165a0edcd664e2f6b0a34f4e5262ee6",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Optional UI observer presence check; no execution decision."
+      },
+      {
+        "id": "34793fc78953533ac315a969930fcf8f7f773d68c13300b24bc57b81b6a69078",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Default local observation preemption; this cannot authorize or cancel execution."
+      },
+      {
+        "id": "c5947fe199e1d63e606498e5901cd19e2507fbe6d53ce06d4f2fefb86a218a01",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Uncreated local wakeup task, never stored domain state."
+      },
+      {
+        "id": "a512d54b02bcbfba2ab8b62fe9e324fa1bdcf243ee7e42bf668c0b14388e51d5",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Local dirty-wakeup bookkeeping; does not represent persisted Run state."
+      },
+      {
+        "id": "72ee8ec419f05f487b096349720854760dcfbd27b6eb561cc3af6d0adc781ebc",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Remember a dirty wakeup so a cancelled or completed observation is followed by a fresh read."
+      },
+      {
+        "id": "ea2da5cd29068c0b52bc6d23ccf84bc8b92fa6fc065dc7b21b13e70df532e1a5",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Remember a dirty wakeup so a cancelled or completed observation is followed by a fresh read."
+      },
+      {
+        "id": "6fb300d17889092c92b0281ae5978194f2437063abb7aca48689a4b29372d93e",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Only cancel/join a wakeup task that was actually created."
+      },
+      {
+        "id": "3278aa5ebfa7240c59b03ff5084f2231c9e555a1eaddc11a5d3d88d64afd2436",
         "classification": "non_contract",
         "owner": "BackendWorker._refresh",
         "reason": "Return type annotation."
       },
       {
-        "id": "f3f6be558d83e01b60ea316c8beaa22606c29602aa60ebd1b2047ff3dec9b2ec",
+        "id": "9ff7270259b94dc8386e9363b0f9b090fee5789a56cb3ba8b77495605aa2d696",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Reset the one-frame preemption budget after a successful observation."
+      },
+      {
+        "id": "b2fa9b46488d5f1ec3af6b5eca8ab6266aa5516e4a5ab87d2baf9a655839d797",
         "classification": "non_contract",
         "owner": "BackendWorker._refresh",
         "reason": "Unconditional async observation loop; cancellation remains its termination mechanism."
       },
       {
-        "id": "22ef8a54b81aeb682ab0f57633b388df1a5d262b846e135fcc4f0222b8fad82f",
+        "id": "6654710dd4637900832c2dedb6bf6efa7532e0026f64535028d3683dcb7a7bdd",
         "classification": "non_contract",
         "owner": "BackendWorker._refresh",
         "reason": "Unconditional async observation loop; cancellation remains its termination mechanism."
       },
       {
-        "id": "e9d7fa186fa4c28f8f9aec1c54a8adfc7c9d15a6737e9094d154ca8dd2f0a015",
+        "id": "b6d46280fe2bff4a199dd88ff3c6173b1c81cc4f60d1b674d1ef35a8dcfbeae6",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "ff589a930eea2562ab23a90570425550f04d65538b75923b8d48d3fa4d58caa5",
+        "id": "e632fb4b1fa10b27a6f52e46f2532c01c5e680663604324e4d9b6099cfa76165",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Let one observation finish after cancellation to prevent lifecycle-event starvation."
+      },
+      {
+        "id": "cdc288a78697b4129aa5d17dd2c614ed8c2e31cf371a50d635f0d891d1a3602e",
+        "classification": "non_contract",
+        "owner": "BackendWorker",
+        "reason": "Reset the one-frame preemption budget after a successful observation."
+      },
+      {
+        "id": "4f8b2aa776a996563ec112a7cf4a544037a34fb9c06970f5202be1e33eae02a7",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "0b62002c07a273f19588f11f340f9f33f03938d3355a989168b491c488abca0d",
+        "id": "bbdac520b5107666b9262aad6611eb66bdbe4e1963fc51bdfb430e43e4fe5437",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "d4ee062bc06c98a70f6954c9bb36e7035af8de6210f5f649db573fe882fb41fb",
+        "id": "5aee3ca86988954518a6dcdff73c7ae8082a13ac077410a03e0a58e1f44f36a7",
         "classification": "non_contract",
         "owner": "Hub observation/SettingsOperation/UI lifecycle owners",
         "reason": "Technical transient cache identity, counter, render tuple, catalog-scoped callback or visibility scheduling branch. Canonical Message/Run/Engine/SettingsOperation values remain the domain source; no legacy adapter, storage default or execution authority."
       },
       {
-        "id": "a6db63ddd0ae64fb92536d949a89fc32d5ab78977a646d5542067369669efcae",
+        "id": "0ed934f9208864ec7036ba643f45c8032ceb1db74ae7ac57c90ea76c936e4367",
         "classification": "non_contract",
         "owner": "BackendWorker / CommandCallbacks",
         "reason": "Reviewed local Python annotation/record construction or optional object presence, not a stored discriminator, permission, retry/default policy or reconstructed backend evidence. Startup observer is lock-protected and replays the latest record. Explicit operation membership determines coarse stages. Callback dispatch and late-scope suppression preserve thread ownership; stage is not forwarded to runtime commands."
       },
       {
-        "id": "3c1c125d43c5f1eef80d9689440548b1756455fca939bf4d68219db3009ea7fd",
+        "id": "66018a4845b88d047b640caa1fb541218c5bbeb450d2358d6435ab0a9e7f6713",
         "classification": "non_contract",
         "owner": "BackendWorker.cancel_restart",
         "reason": "Return type annotation."
       },
       {
-        "id": "9e57302629fc7466b9ea04d311d08f0c8db5f23f8353267e94ad2ac72ae0758a",
+        "id": "59a44e8f5ac80f5a3b07c8e4bf520459c6e7f6f0bd1abcedb5ad4d0970a9f693",
         "classification": "non_contract",
         "owner": "BackendWorker.set_output_interval",
         "reason": "Return type annotation."
       },
       {
-        "id": "9c5df68ff7a2892ace90fa5915ce7bc2618a9940a83163d968dc199cf7aefccd",
+        "id": "b19b6609c2f9285404997604bf59f1743c33bb49c74d50881177f03cd2532286",
         "classification": "non_contract",
         "owner": "BackendWorker.set_sidebar_width",
         "reason": "Return type annotation."
       },
       {
-        "id": "658881bd382cafe22c0d795ba1c88b41effe45f55927b9a2524708cba8b69bf3",
+        "id": "0d2f0eabee2f2b760b85ba40025ec76e9f166b73490bfeaddba8f0f14221d970",
         "classification": "non_contract",
         "owner": "BackendWorker.close",
         "reason": "Return type annotation."
@@ -97178,7 +97330,13 @@
           "tests/hub/test_tool_input_diagnostics.py",
           "tests/hub/test_tool_views.py",
           "tests/hub/test_request_history.py",
-          "tests/hub/test_tool_retry.py"
+          "tests/hub/test_tool_retry.py",
+          "tests/hub/test_observation_reads.py",
+          "tests/hub/test_low_resource_observation.py",
+          "tests/hub/test_run_path_speed.py",
+          "tests/hub/test_submission_observation.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_output_batching.py"
         ],
         "complete": true
       },
@@ -105674,7 +105832,7 @@
   },
   {
     "path": "hub/backend/observability/reads.py",
-    "sha256": "096d258a134f3d190eb7ca2ba390959e66d0bf4551bb7d261da999cf0cb59115",
+    "sha256": "7cf20e440af27d36e6e3c7a80438483f0e2263ea05ac1712793af0268e284187",
     "decisions": [
       {
         "id": "90b355287ed30daed0ac2b89da452ff77358f6f3150fc53bd7cab1d22996693f",
@@ -105779,22 +105937,46 @@
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "5c85d2e0d2260898b87e1ddbec506538bdff15623f99eccbcb1db9f3af610eb4",
+        "id": "310f2d78f81e16ab18dc93c3cd32a4f7e4b18643fc0b257335298eaea262d925",
+        "classification": "non_contract",
+        "owner": "Python type annotation",
+        "reason": "None return annotation for an observation cache mutation."
+      },
+      {
+        "id": "a656e646f8d825a7f02b1aefdbfb82bbbd5fbec0d36d2af014b8ef568828dc5f",
+        "classification": "non_contract",
+        "owner": "OrderedDict.popitem",
+        "reason": "Evict the least recently used observation using the existing cache limit."
+      },
+      {
+        "id": "183e0a3471a80266b76243f8128ace4faf7efda5ebec7078f62610e9231db5a7",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "1ff7f3227455fd93bba2e9481de19a19f17326ff9ff2b25b404ae77ad7d302b8",
+        "id": "f59c6a82919696ea800bfc48ba05d3673a5a45c8cae61164300f28c37af1ca81",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
       },
       {
-        "id": "2b646ccd39ab41b96c9c3cc33f715f35eb16ab9daa00658de97029c0fa6c5134",
+        "id": "8d6af2bcbba250443f5faef2db03ca598ca14be232f998b478da48d6521916fd",
         "classification": "non_contract",
         "owner": "ObservationReads / SnapshotReader public-service observation lifecycle",
         "reason": "Local read/projection result, tuple position or optional cache/handle branch. Uses public API and canonical event fields; no storage defaults, policy choice, permission or compatibility fallback."
+      },
+      {
+        "id": "a7c3e8bfe950f10f74521a1dc13daf8a77e8809e86915f7e7c7f8005ed82df1d",
+        "classification": "non_contract",
+        "owner": "ObservationReads",
+        "reason": "Check whether a newer completed observation replaced a pending read."
+      },
+      {
+        "id": "2ed6bccd575b8caea0b9442beca8a8ea733b48c732a04db160e309d60e26d1a7",
+        "classification": "non_contract",
+        "owner": "ObservationReads",
+        "reason": "Check whether a newer completed observation replaced a pending read."
       }
     ],
     "contracts": [
@@ -105806,13 +105988,15 @@
         ],
         "tests": [
           "tests/hub/test_observation_reads.py",
-          "tests/hub/test_incremental_ui.py"
+          "tests/hub/test_incremental_ui.py",
+          "tests/hub/test_low_resource_observation.py",
+          "tests/hub/test_run_path_speed.py"
         ],
         "complete": true
       }
     ],
     "dynamic_paths_reviewed": true,
-    "reason": "Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes."
+    "reason": "Hub observation cost review: ObservationReads owns bounded transient service-result caching and two-second reconciliation, never domain persistence or authorization. SnapshotReader invalidates on canonical Engine/Run events and explicit Hub mutations, retains only one conversation and rejects late cache fills after invalidation. Worker polling is paced after completion; input preemption and storage cancellation semantics remain. Selection uses the existing dirty publisher and starts only unopened Sessions. Backend methods, persisted formats, approvals, retries and Run/Step ownership are unchanged. tests.hub.test_observation_reads and existing snapshot/progress/submission/live integration tests verify actual read counts, event loss, lifecycle freshness, invalidation races and focus. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Review 2026-10-29 local latency: remember receives persisted public observations with normal expiry and LRU bounds. A newer observation wins an in-flight read; event-loss invalidation still reconciles via services."
   },
   {
     "path": "hub/backend/observability/projection.py",
@@ -106521,7 +106705,7 @@
   },
   {
     "path": "hub/backend/execution/request_profile.py",
-    "sha256": "92431fd201c58d2f919511f55a084f1360b5af9fb425d7685fb856163ea771b2",
+    "sha256": "2b05571299bba79a6f079121756aa57c3f00a8535a4e57069669e918b0605f1e",
     "decisions": [
       {
         "id": "33e1fa00938909ed0b7da3dd10f2a2f1ecf69961d0dbc1159c172c7e66e65dbe",
@@ -106590,13 +106774,25 @@
         "reason": "Owner-declared request metadata, selection hints, instruction text or asset identifier. Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context."
       },
       {
-        "id": "87aa7bc344f932fedf8a37ac6a169a25661d75845841efafa4fa24e6f84681ae",
+        "id": "3bfdb9896c1801fdd9c23e97d7e29298040912cef3d954eced8ed2b8bb264106",
+        "classification": "declaration",
+        "owner": "RequestProfile",
+        "reason": "Owns conservative explanatory-topic language hints; a separate action clause retains work mode, and native permissions remain authoritative."
+      },
+      {
+        "id": "f775eea2fe7cc9d528bbc46cc121ab4622505796aee67b831445057dc1ba7e30",
+        "classification": "non_contract",
+        "owner": "RequestProfile",
+        "reason": "Local removal of action-as-topic phrases for conservative language classification; original request remains unchanged."
+      },
+      {
+        "id": "53225e2f4d6dd88927a9bacf97465ed7fb95f7098162b098505cd2fa81230dcd",
         "classification": "non_contract",
         "owner": "RequestProfile",
         "reason": "Local collection/sentinel/control-flow mechanics; public semantic fields use their owners. Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context."
       },
       {
-        "id": "28d02a9fd06a15859210070e0c7ba9c510db49be44b0d2d19ef807a54d6b56e1",
+        "id": "7db15196cad050b7d7d2e3c6c9595e5f1c82a80ed2562ce7851594ace7740749",
         "classification": "non_contract",
         "owner": "RequestProfile",
         "reason": "Local collection/sentinel/control-flow mechanics; public semantic fields use their owners. Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context."
@@ -106612,13 +106808,16 @@
           "hub/backend/execution/environment.py"
         ],
         "tests": [
-          "tests/hub/test_request_routing.py"
+          "tests/hub/test_request_routing.py",
+          "tests/hub/test_submission_observation.py",
+          "tests/hub/test_log_retention.py",
+          "tests/hub/test_output_batching.py"
         ],
         "complete": true
       }
     ],
     "dynamic_paths_reviewed": true,
-    "reason": "Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context. Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context. Owns optional _hub_request.mode context captured before native durable submit only if every recipient uses the Hub context owner. Raw custom backends retain omitted arguments; inherited Hub profile is removed before forwarding to an unsupported target. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context."
+    "reason": "Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context. Owns optional _hub_request.mode context captured before native durable submit. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context. Owns optional _hub_request.mode context captured before native durable submit only if every recipient uses the Hub context owner. Raw custom backends retain omitted arguments; inherited Hub profile is removed before forwarding to an unsupported target. Exact current JSON fields only, no record migration. Conservative hints narrow capabilities but never authorize effects; new messages recapture, explicit resume preserves source context. Admission-feedback review 2026-10-30: Narrow explanatory topics use lookup selection; explicit action clauses and custom Engine guards preserve work semantics and permissions."
   },
   {
     "path": "hub/backend/execution/request_routing.py",

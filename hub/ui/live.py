@@ -68,6 +68,7 @@ class LiveHubView(HubView):
     def show_submitted(self, project_id, session_id, message):
         """Bridge a durable receipt to the next authoritative conversation read."""
         key = (project_id, session_id)
+        message = SubmittedMessages.committed(self, key, message)
         if project_id != self.project_id:
             return
         for index, session in enumerate(self.sessions):
@@ -81,7 +82,22 @@ class LiveHubView(HubView):
                     self.output.update_messages(self.preparing.project(key, messages))
                 return
 
+    def show_request_started(self, observation):
+        if observation.project_id != self.project_id:
+            return
+        key = (observation.project_id, observation.session_id)
+        for index, session in enumerate(self.sessions):
+            if session.id != observation.session_id:
+                continue
+            SubmittedMessages.started(self, observation)
+            messages = tuple(SubmittedMessages.committed(self, key, message) for message in session.messages)
+            self.sessions[index] = replace(session, messages=messages)
+            if index == self.selected:
+                self.output.update_messages(self.preparing.project(key, messages))
+            return
+
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=ABSENT) -> None:
+        snapshot = SubmittedMessages.reconcile(self, snapshot)
         HubSnapshot.observe_in(self, snapshot)
         self.interrupting.observe(snapshot)
         self.toasts.reconcile_waiting(snapshot.project_id, snapshot.sessions)
@@ -351,6 +367,11 @@ class LiveController:
     def _consume_snapshot(self):
         self._snapshot(self._snapshot_inbox.take())
 
+    def _request_started(self, observation):
+        if not self.closed:
+            self.view.show_request_started(observation)
+            self.app.invalidate()
+
     def _error(self, error):
         if self.closed:
             return
@@ -614,6 +635,7 @@ class LiveController:
                 lambda error: self._dispatch(self._worker_error, error),
             )
             self.worker.observe_startup(lambda update: self._dispatch(self._startup_stage, update))
+            self.worker.observe_requests(lambda update: self._dispatch(self._request_started, update))
             self._set_output_interval(self.view.theme.output_refresh_interval)
             if self._sidebar_width_pending is not LiveController.ABSENT:
                 self._save_sidebar_width(self._sidebar_width_pending)

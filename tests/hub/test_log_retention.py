@@ -90,6 +90,20 @@ class LogRetentionTests(unittest.TestCase):
 
 
 class HubLogRetentionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_ui_reads_do_not_write_operational_logs_but_mutations_do(self):
+        with tempfile.TemporaryDirectory() as root:
+            async with create_backend(HubConfig(root, auto_title=False)) as app:
+                project = await app.projects.acreate('before')
+                log = project.paths.logs / 'service.log'
+                before = log.read_bytes()
+                for _ in range(3):
+                    await project.aget_data()
+                self.assertEqual(log.read_bytes(), before)
+                await project.asave(title='after')
+                events = [json.loads(line)['event'] for line in log.read_text().splitlines()]
+                self.assertIn('project.saved', events)
+                self.assertFalse(any(event.endswith('.loaded') for event in events))
+
     async def test_bootstrap_injects_explicit_sink_and_default_remains_append_only(self):
         with tempfile.TemporaryDirectory() as root:
             for name, sink, expected in (("default", None, 1), ("rotation", RotatingLogSink(220, 3), 4)):

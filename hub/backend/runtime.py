@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from ..model import ChatMessage, HubSnapshot, SubmissionResult, SessionSummary
+from ..model import ChatMessage, HubSnapshot, SubmissionResult, SessionSummary, RequestStarted
 from ..locales import Language
 from ..config.profile import UserProfile
 from ..config.view_state import ViewStateStore
@@ -204,6 +204,7 @@ class HubRuntime:
     FOREIGN_SESSION = "Session is not an active member of the selected Project"
     INTERNAL_RECIPIENT = "Internal Agent cannot receive conversation requests"
     FOREIGN_QUESTION = "Project changed; reload the question"
+    request_started: Callable[[RequestStarted], None] | None = None
 
     def __init__(
         self, config: HubConfig, backend_factory: Callable = create_backend
@@ -277,6 +278,10 @@ class HubRuntime:
         from .project.postprocessing_values import Postprocessing
         if event.run.engine == Postprocessing.ENGINE:
             return
+        if (event.run.status == RunStatus.RUNNING and self.request_started is not None
+                and event.run.session_id in self.sessions):
+            self.request_started(RequestStarted(
+                event.run.project_id, event.run.session_id, event.run.input_message_id, event.run.id))
         if event.run.status != RunStatus.RUNNING:
             self.snapshot_reader.drafts.forget(event.run.id)
         self.background_records.observe(event.run)
@@ -782,7 +787,13 @@ class HubRuntime:
     async def submission_state(
         self, session_id: str, agent_id: str | Sequence[str] | None = ABSENT
     ) -> dict:
-        status = await self.sessions[session_id].run.astatus(
+        session = self.sessions[session_id]
+        record = await session.aget_data()
+        if not record.active_run_ids:
+            # Fresh public Session data is enough to choose the idle UI path.
+            # The native submit still validates and durably admits the request.
+            return SubmissionResult.state_record(HubRuntime.ABSENT)
+        status = await session.run.astatus(
             queued_limit=HubRuntime.NO_QUEUED_IDS
         )
         selected = self.config.agent_id if agent_id is HubRuntime.ABSENT else agent_id

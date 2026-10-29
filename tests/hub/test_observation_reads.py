@@ -75,7 +75,57 @@ class ObservationReadTests(unittest.IsolatedAsyncioTestCase):
         self.session.run.astatus.assert_awaited_once()
         self.assertEqual(self.session.run.alist.await_count, 2)
         self.assertEqual(self.handle.steps.alist.await_count, 2)
-        self.assertEqual(self.handle.aget_data.await_count, 2)
+        self.assertEqual(self.handle.aget_data.await_count, 1)  # Persisted event already supplied the Run.
+
+    async def test_committed_run_event_reuses_handle_without_a_storage_read(self):
+        self.fixture()
+        with patch('hub.backend.observability.reads.monotonic', return_value=100):
+            await self.read()
+            changed = NS(**{**vars(self.run), 'status': 'completed', 'error': None})
+            self.reader.observe_run(changed)
+            _, record = await self.reader.read_run(self.session, 's', 'r')
+            self.assertEqual(record.status, 'completed')
+            self.handle.aget_data.assert_awaited_once()
+            self.session.run.aload.assert_not_awaited()
+            self.reader.observe_engine(self.run, EngineEvent(Event.STEERING_CHANGED))
+            _, record = await self.reader.read_run(self.session, 's', 'r')
+            self.assertEqual(record.status, 'completed')
+            changed.status = 'failed'
+            self.assertEqual(record.status, 'completed')  # Observation is an owned copy.
+            self.reader.invalidate_dropped_events()
+            await self.reader.read_run(self.session, 's', 'r')
+            self.assertEqual(self.handle.aget_data.await_count, 2)
+
+    async def test_event_during_service_read_is_published_without_regression(self):
+        cache, entered, release = ObservationReads(), asyncio.Event(), asyncio.Event()
+        key = (ReadKind.RUN, 's', 'r')
+        async def load():
+            entered.set()
+            await release.wait()
+            return 'old'
+        pending = asyncio.create_task(cache.read(key, load))
+        await entered.wait()
+        cache.remember(key, 'committed event')
+        release.set()
+        self.assertEqual(await pending, 'committed event')
+        fresh = AsyncMock()
+        self.assertEqual(await cache.read(key, fresh), 'committed event')
+        fresh.assert_not_awaited()
+
+    async def test_queue_status_is_read_after_a_slow_history_query(self):
+        self.fixture()
+        self.status = NS(status='idle', queued_count=1, active_runs=[])
+        async def history(*, query):
+            if query.status:
+                return []
+            self.status = NS(status='running', queued_count=0, active_runs=[NS(run_id='r')])
+            return [self.handle]
+        self.session.run.astatus.side_effect = lambda **kwargs: self.status
+        self.session.run.alist.side_effect = history
+        snapshot = await self.read()
+        self.assertEqual(snapshot.queued_count, 0)
+        self.assertTrue(snapshot.run.active)
+        self.session.run.astatus.assert_awaited_once()
 
     async def test_lifecycle_interaction_loss_and_expiry_reconcile(self):
         self.fixture()

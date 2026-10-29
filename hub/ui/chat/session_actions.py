@@ -10,6 +10,7 @@ from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
 from ...widget.dialog import PopupSize
 from ...widget.forms.session_form import SessionNameForm, SessionCloneForm
+from ...widget.section import Heading
 
 
 class SessionActions:
@@ -130,7 +131,8 @@ class SessionActions:
             return self.INVALID
 
         view.open_dialog(
-            view.t(MessageKey.SESSION_RENAME), HSplit([name], align=VerticalAlign.TOP),
+            view.t(MessageKey.SESSION_RENAME),
+            HSplit([Heading(view.t(MessageKey.SESSION_NAME)), name], align=VerticalAlign.TOP),
             rename, name, validate=validate,
             size=PopupSize.SMALL, allow_small_input=True,
         )

@@ -504,6 +504,7 @@ class MessageKey:
     MODEL_LINE = 'model_line'
     SESSION_DELETE = 'session_delete'
     SESSION_RENAME = 'session_rename'
+    SESSION_NAME = 'session_name'
     SESSION_DELETE_CONFIRM = 'session_delete_confirm'
     SESSION_NAME_REQUIRED = 'session_name_required'
     SESSION_BUSY = 'session_busy'

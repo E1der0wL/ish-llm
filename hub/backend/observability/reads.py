@@ -58,6 +58,13 @@ class ObservationReads:
             if key[:len(prefix)] == prefix:
                 del self.entries[key]
 
+    def remember(self, key: tuple, value: Any) -> None:
+        """Receive an already persisted public event, never execution authority."""
+        self.entries[key] = Observation(value, monotonic())
+        self.entries.move_to_end(key)
+        while len(self.entries) > self.LIMIT:
+            self.entries.popitem(last=False)
+
     async def read(self, key: tuple, load: Callable[[], Awaitable[Any]], *,
                    max_age: float = RECONCILE_SECONDS):
         cached = self.entries.get(key)
@@ -78,4 +85,10 @@ class ObservationReads:
             raise
         if self.entries.get(key) is pending:
             pending.value, pending.read_at = value, monotonic()
+        else:
+            # A newer committed event can arrive while a service read waits on
+            # storage. Do not publish that read over the newer observation.
+            newer = self.entries.get(key)
+            if newer is not None and newer.read_at is not None:
+                return newer.value
         return value

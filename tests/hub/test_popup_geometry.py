@@ -19,6 +19,49 @@ from tests.hub.support import SizedOutput
 
 
 class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_action_layout_reuses_windows_and_updates_dynamic_geometry(self):
+        from prompt_toolkit.layout.layout import walk
+        from hub.widget.actions import ActionBar
+
+        app, view, _ = create_preview(input=DummyInput(), output=SizedOutput(132, 40))
+        caption = "Save"
+        def paint_actions(bar, width, height):
+            screen = Screen()
+            bar.write_to_screen(screen, MouseHandlers(), WritePosition(0, 0, width, height),
+                                parent_style='', erase_bg=True, z_index=None)
+            screen.draw_all_floats()
+            return screen
+
+        try:
+            with set_app(app):
+                buttons = [Button(lambda: caption, width=6), Button('Close', width=8)]
+                bar = ActionBar(buttons, lambda: 90, equal_width=True)
+                before = tuple(walk(bar))
+                for _ in range(10):
+                    self.assertEqual(tuple(walk(bar)), before)
+                    bar.preferred_height(60, 20)
+                    screen = paint_actions(bar, 60, 3)
+                    positions = screen.visible_windows_to_write_positions
+                    self.assertEqual([positions[b.window].width for b in buttons], [8, 8])
+                self.assertEqual(tuple(walk(bar)), before)
+
+                caption = '* Save changes'
+                self.assertNotEqual(tuple(walk(bar)), before)
+                screen = paint_actions(bar, 60, 3)
+                self.assertEqual([screen.visible_windows_to_write_positions[b.window].width
+                                  for b in buttons], [16, 16])
+                inserted = Button('New', width=20)
+                bar.insert(1, inserted)
+                screen = paint_actions(bar, 60, 6)
+                self.assertEqual([screen.visible_windows_to_write_positions[b.window].width
+                                  for b in buttons], [20, 20, 20])
+                self.assertEqual([len(row) for row in bar.rows(60)], [2, 1])
+                for width in range(60, 80):
+                    bar.preferred_height(width, 20)
+                self.assertLessEqual(len(bar._layouts), bar.LAYOUT_CACHE_SIZE)
+        finally:
+            view.close()
+
     async def test_popup_footer_buttons_share_width_and_stay_centered(self):
         from prompt_toolkit.widgets import Label
         from hub.widget.actions import ActionBar

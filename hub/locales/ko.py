@@ -529,6 +529,7 @@ MESSAGES = {
     MessageKey.MODEL_LINE: "모델: {model}",
 
     MessageKey.SESSION_DELETE: "세션 삭제", MessageKey.SESSION_RENAME: "세션 편집",
+    MessageKey.SESSION_NAME: "세션 이름",
 
     MessageKey.SESSION_DELETE_CONFIRM: "'{title}' 세션을 소프트 삭제할까요? 기록은 보존됩니다.",
 
