@@ -1,5 +1,7 @@
 """공통 목록 조건. 정렬된 원본에서 커서, 상태, 오프셋, 개수 순으로 선택한다."""
 
+from llm.services.infrastructure.storage import record_stat
+
 from typing import Optional
 from functools import wraps
 from collections import OrderedDict
@@ -196,7 +198,7 @@ class FileCatalog:
         """파일 교체를 확인한 뒤 지정된 투영을 반환한다. 호출자는 같은 저장 잠금을 사용한다."""
         from llm.services.infrastructure.storage import read_domain_record
 
-        stat = path.stat()
+        stat = record_stat(path)
         signature = (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
         cached = self.entries.pop(path, self.UNSPECIFIED)
         if cached is self.UNSPECIFIED or cached.signature != signature:

@@ -4,6 +4,7 @@ from llm.core.configuration_views import ConfigurationView, EngineConfigurationK
 
 from llm.engines.base import Engine, required_capabilities, steering_mode, agent_mode
 from llm.core.steering import SteeringMode
+from llm.core.schema import reuse_schema_checks
 from .contracts import EngineAgentBinding, EngineHooks
 from copy import deepcopy
 import inspect
@@ -42,6 +43,7 @@ class EngineRegistry:
     def names(self) -> tuple[str, ...]:
         return tuple(self._engines)
 
+    @reuse_schema_checks()
     def validate_config(self, config, *, session_config=NO_SESSION_CONFIG) -> None:
         """저장 전 공개 설정 계약만 호출한다. execute/capability/모델 함수는 호출하지 않는다."""
         from llm.core.models import ProjectConfig

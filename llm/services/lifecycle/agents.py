@@ -110,7 +110,24 @@ class AgentRepository:
 
     @workspace_locked
     def load(self, project, identifier):
-        return AgentSnapshot.read(self.snapshot(project, identifier)).definition
+        # Inventory has already validated the record and its revision. Avoid
+        # serializing/revalidating an observation merely to read its definition.
+        return self.load_many(project, (identifier,))[identifier]
+
+    @workspace_locked
+    def load_many(self, project, identifiers):
+        identifiers = tuple(identifiers)
+        for identifier in identifiers:
+            AgentDefinition.identifier(identifier)
+        if not identifiers:
+            return {}
+        records = self._inventory(project).records
+        result = {}
+        for identifier in identifiers:
+            if identifier not in records:
+                raise FileNotFoundError(self.UNKNOWN_AGENT.format(identifier=identifier))
+            result[identifier] = records[identifier].definition
+        return result
 
     def _write(self, project, identifier, definition, manifest):
         value = AgentRecord.create(project.id, identifier, definition)

@@ -158,11 +158,25 @@ existing 68 unreviewed contract-inventory files remain explicitly unreviewed.
 
 ## Backend preparation follow-up
 
+HubConfig.prepare_provider selects local SDK initialization during startup (Hub's
+application default is true; false leaves lazy initialization in place). Hub uses
+the selected native adapter's public ainitialize(), without sending a model probe,
+loading credentials or adding inference defaults. A custom backend factory or Loop
+factory retains its own initialization. The backend's explicit-only configuration
+and Provider retry rules are unchanged. Cold import time moves to startup; it does
+not disappear, and warm requests must be measured separately.
+
+BindingCache retains its existing live signature/revision/constraint checks.
+ToolRegistry.copy() shares only unexposed definitions; prepare() detaches a shared
+entry before exposing its live Tool, and entries already exposed are copied.
+Handler identity lookup uses get_handler(), without copying schemas. Registration
+state and mutable subclass state remain isolated. No authorization result is cached.
+
 Hub's Tool input diagnostics copy an already validated standard ToolRegistry
 through Python's deepcopy protocol, substituting only that exact registry class
 and retaining handler identities. They do not reconstruct the same Tools through
 registration, read/write backend private fields, or bypass execution validation.
-The copy owns detached schemas and registrations; custom registry subclasses are
+The copy owns separate registrations and isolates schema mutations on exposure; custom registry subclasses are
 left unchanged. Native selection still validates its selected Tools once. Native
 registry merging, registration, authorization bindings and prepare retain their
 backend owner. The additional diagnostic copy performs no registrations.
@@ -424,3 +438,7 @@ is a toolbox selection hint, never an authorization decision.
 snapshot lock, acknowledgement ordering, stale reads, scope and terminal-state
 preservation, and mixed explanation/action requests. `test_log_retention` checks
 that display reads stop generating log writes while mutations remain recorded.
+
+Read-only directory maps and compatible-server Tool-call serialization are
+described in [Tool inspection](tool-inspection.md). Their caches and request-shape
+observations do not alter backend execution or storage ownership.

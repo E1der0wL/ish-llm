@@ -137,6 +137,21 @@ class LiteLLMCompletionAdapter:
         result.validate_exchanges()
         return result
 
+    def initialize(self) -> None:
+        """Explicit local SDK preparation; no request, credentials or inference defaults.
+
+        Applications choose when to pay the import cost. An injected transport
+        owns its initialization and must not load an unused LiteLLM dependency.
+        """
+        if self.completion_fn is completion:
+            from .runtime import litellm_sdk
+
+            litellm_sdk()
+
+    async def ainitialize(self) -> None:
+        """Prepare off-loop, using the SDK runtime's existing import lock/cache."""
+        await asyncio.to_thread(self.initialize)
+
     @classmethod
     def validate_input_ownership(cls, parameters, *, auxiliary=UNSELECTED):
         return LiteLLMParameters(parameters).validate_input_ownership(cls.INPUT_FIELDS, auxiliary=auxiliary)

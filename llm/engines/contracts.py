@@ -8,6 +8,7 @@ from llm.core.agents import AgentDefinition, AgentMode
 from llm.core.configuration import UNSET
 from llm.core.json_data import JsonObject
 from llm.core.steering import SteeringMode
+from llm.core.schema import reuse_schema_checks
 
 
 class EngineHooks:
@@ -170,6 +171,7 @@ class EngineAgentBinding:
         changed_checkpoint="Agent binding must preserve Engine checkpoint name")
 
     @classmethod
+    @reuse_schema_checks()
     def describe(cls, engine):
         """Optional pure schema hook; absence is not a guessed Engine contract."""
         from llm.core.schema import checked_schema, SchemaKeyword, SchemaType, SchemaBoolean
@@ -198,6 +200,7 @@ class EngineAgentBinding:
         return schema
 
     @classmethod
+    @reuse_schema_checks()
     def bind(cls, engine, definition):
         AgentDefinition.validate_mode(definition, agent_mode(engine))
         schema = cls.describe(engine)

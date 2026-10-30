@@ -1,12 +1,35 @@
 """UI에서 공유할 JSON Schema. 공급자의 열린 인자를 닫힌 목록으로 제한하지 않는다."""
 
 from copy import deepcopy
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 import json
 from urllib.parse import urldefrag, urljoin
 from jsonschema import Draft202012Validator
 from .implementation_parameters import ImplementationParameters
 from .json_data import JsonObject, JsonPointer
+
+
+_schema_checks = ContextVar("schema_checks", default=None)
+
+
+@contextmanager
+def reuse_schema_checks():
+    """Reuse exact syntax proofs within one synchronous schema/binding operation.
+
+    Nested owners share only successful JSON schema checks, never definitions,
+    configured values or authorization. No proof survives the outer operation.
+    Schema hooks and instance/semantic validation still run on every call.
+    """
+    if _schema_checks.get() is not None:
+        yield
+        return
+    token = _schema_checks.set(set())
+    try:
+        yield
+    finally:
+        _schema_checks.reset(token)
 
 
 class SchemaKeyword:
@@ -312,14 +335,27 @@ def _validate_schema_resources(value):
 
 def checked_schema(value):
     """UI 스키마는 JSON이며 외부 스키마를 내려받지 않는다."""
-    import json
-    json.dumps(value, allow_nan=JsonObject.ALLOW_NON_FINITE)
+    encoded = json.dumps(value, allow_nan=JsonObject.ALLOW_NON_FINITE)
+    proofs = _schema_checks.get()
+    key = None
+    if proofs is not None:
+        try:
+            # Python-only extensions must not borrow a proof for their lossy
+            # JSON encoding (e.g. tuple/list or integer/string object keys).
+            JsonObject.validate({"schema": value})
+            key = encoded
+        except (TypeError, ValueError):
+            pass
+        if key is not None and key in proofs:
+            return deepcopy(value)
     Draft202012Validator.check_schema(value)
     validate_local_refs(value)
     for item in schema_nodes(value):
         if SchemaKeyword.DEFAULT in item:
             raise ValueError(SchemaError.IMPLICIT_DEFAULT)
     _validate_schema_resources(value)
+    if key is not None:
+        proofs.add(key)
     return deepcopy(value)
 
 

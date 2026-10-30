@@ -1,5 +1,7 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
+from llm.services.infrastructure.storage import record_exists, record_children, record_directory
+
 from llm.services.runtime.subscription_state import EventChannel
 from .run_values import (
     RuntimeGauges,
@@ -413,15 +415,15 @@ class RunRepository:
         from llm.services.history.conversation import ConversationStore
 
         paths = {}
-        for directory in session.paths.runs.glob(RunRepository.ENTRY_PATTERN):
+        for directory in record_children(session.paths.runs) if record_exists(session.paths.runs) else ():
             reject_links(directory)
-            if directory.is_dir() and not directory.name.startswith(RunRepository.HIDDEN_PREFIX):
+            if record_directory(directory) and not directory.name.startswith(RunRepository.HIDDEN_PREFIX):
                 paths[directory.name] = self.paths(session, directory.name).record
         required = set(session.active_run_ids)
         # File conversations retain independent witnesses even if an entire Run tree is lost.
         # Memory conversations need not have this file; a missing optional file is not created.
         reject_links(session.paths.conversation)
-        if session.paths.conversation.exists():
+        if record_exists(session.paths.conversation):
             required.update(
                 run_id
                 for message in ConversationStore(session.paths.conversation).list()
@@ -503,14 +505,14 @@ class RunRepository:
         return OperationRepository().verify(session, key, observation, expected_version)
 
     def create(self, run: Run) -> None:
-        if run.paths.root.exists():
+        if record_exists(run.paths.root):
             raise FileExistsError(RunRepository.ALREADY_EXISTS)
         CompletionRecords.initialize(run.metadata)
         self._write(run, creating=RunRepository.CREATE)
 
     def save(self, run: Run) -> None:
         path = run.paths.record
-        if not path.exists():
+        if not record_exists(path):
             raise ValueError(RunRepository.MISSING_RECORD)
         prior = Run.from_record(read_domain_record(path), run.paths)
         if prior.id != run.id or prior.session_id != run.session_id:
@@ -1540,7 +1542,7 @@ class RunManager:
                 )
                 return message
 
-            message = await self._io.run(persist)
+            message = await self._io.run_records(persist)
             # Accepted submission is shielded through this insertion, including
             # caller cancellation and concurrent shutdown. The selected store is
             # updated first (fsync for the default file store).
@@ -2298,7 +2300,7 @@ class RunManager:
             self.sessions.transfers.execution, runtime.project, runtime.session, run
         )
         # ACK before resolving capabilities or invoking an Engine implementation.
-        await self._io.run(self._dispatch, run)
+        await self._io.run_records(self._dispatch, run)
         from llm.providers.runtime import logging_scope as provider_logging_scope
 
         policies = self.policy_resolver.resolve(RunPolicySnapshot.read(run.metadata))
@@ -2358,7 +2360,7 @@ class RunManager:
                     ),
                 )
             context = await self._io.run(self._context, runtime, run, policies, engine=engine)
-            await self._io.run(self._bind_execution, run, engine)
+            await self._io.run_records(self._bind_execution, run, engine)
             if context.checkpoint is not RunManager.ABSENT and context.steering is not RunManager.ABSENT:
                 await self._io.run(self._open_resumed_steering, run, context.checkpoint)
         except ExecutionLimitError:
@@ -2420,7 +2422,7 @@ class RunManager:
                         if directive.operation == SteeringOperation.SELECT
                         else RunManager.ABSENT
                     )
-                    messages, changed = await self._io.run(self._steering_boundary, run, store, event, usage)
+                    messages, changed = await self._io.run_records(self._steering_boundary, run, store, event, usage)
                     if directive.operation in (SteeringOperation.ROUTES, SteeringOperation.BIND):
                         channel.acknowledged = directive.request_id
                         if directive.operation == SteeringOperation.ROUTES:
@@ -2488,7 +2490,7 @@ class RunManager:
                     EngineEventType.STEP_CANCELLED,
                 ):
                     # 한 이벤트의 쓰기를 한 저장 경계에서 끝낸 뒤 런타임 상태를 진행한다.
-                    await self._io.run(self._record_engine_event, runtime.project, run, store, event)
+                    await self._io.run_records(self._record_engine_event, runtime.project, run, store, event)
                     if event.type == EngineEventType.STEP_STARTED:
                         active_steps.add(event.step_id)
                     elif event.type in (
@@ -2511,7 +2513,7 @@ class RunManager:
                 notifications.append(event)
             if pending_outputs:
                 await drain_on_cancel(
-                    self._io.run(self._record_deltas, run, store, pending_outputs, pending_deltas)
+                    self._io.run_records(self._record_deltas, run, store, pending_outputs, pending_deltas)
                 )
             for event in notifications:
                 await self.subscriptions.publish(
@@ -2695,7 +2697,7 @@ class RunManager:
         run = control.run
         started = time.monotonic()
         try:
-            await self._io.run(self._begin, runtime, run)
+            await self._io.run_records(self._begin, runtime, run)
             self.observability.record(
                 ObservationKind.RUNS.value,
                 ObservationStatus.STARTED.value,
@@ -2810,7 +2812,7 @@ class RunManager:
                     continue
                 recipients = set(admission.recipients)
                 if not runtime.closed and not self.pending_work.active and recipients - occupied:
-                    runs = await self._io.run(self._dispatch_request, runtime, message)
+                    runs = await self._io.run_records(self._dispatch_request, runtime, message)
                     runtime.groups[message_id] = runs
                 else:
                     occupied.update(recipients)

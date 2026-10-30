@@ -13,6 +13,7 @@ from unittest.mock import patch
 from llm.components.tools.builtin import BuiltinTools
 from llm.components.tools.builtin.files import FileTools
 from llm.components.tools.builtin.path_access import PathAccess
+from llm.services.runtime.tool_errors import ToolExecutionError
 
 
 class PathAccessTests(unittest.IsolatedAsyncioTestCase):
@@ -68,8 +69,11 @@ class PathAccessTests(unittest.IsolatedAsyncioTestCase):
                     await invoke("shell_execute", command="pwd", cwd=str(outside))
                 with self.assertRaises(FileExistsError):
                     await invoke("file_create", path="link/nested/a", content="overwrite")
-                with self.assertRaises(ValueError):
+                with self.assertRaises(ToolExecutionError) as stale:
                     await invoke("file_patch", path="link/nested/a", expected_sha256="0" * 64, old_text="before", new_text="after")
+                self.assertEqual(stale.exception.effect, ToolExecutionError.NO_EFFECT)
+                self.assertFalse(stale.exception.recoverable)
+                self.assertEqual((outside / "nested/a").read_text(), "before")
                 patched = await invoke("file_patch", path="link/nested/a", expected_sha256=created["sha256"], old_text="before", new_text="after")
                 moved = await invoke("file_move", path="link/nested/a", destination=str(outside / "b"), expected_sha256=patched["sha256"])
                 deleted = await invoke("file_delete", path=str(outside / "b"), expected_sha256=moved["sha256"])

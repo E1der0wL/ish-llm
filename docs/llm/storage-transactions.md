@@ -54,6 +54,58 @@ Run이 시작되기 전 저장 실패로 입력이 QUEUED로 돌아간 경우 En
 
 ## 저장 및 복구 방식
 
+저장 작업의 종류에 따라 두 가지 저널을 사용한다. 디렉터리 복사·삭제·복원과 임의 파일
+수정은 아래 undo 경로를 유지한다. Run의 기록 저장은 `StorageIO.run_records()`로 명시적으로
+선택하는 record batch를 사용한다. 두 경로 모두 같은 workspace 잠금, 중첩 트랜잭션,
+객체 rollback, 취소 drain, 저장 이후 관찰 계약에 참여한다. 예전 형식 호환이나 자동 migration이 아니다.
+
+### 기록 묶음 확정
+
+요청 QUEUED 저장, dispatch, Run 시작, 실행 binding/dispatch, steering 경계, Engine 이벤트와
+출력 델타 저장은 JSON·JSONL 변경을 하나의 파일에 모은다. Memory의 호출 전 context 관찰 저장도
+owner가 `@workspace_locked(records=True)`로 이 경로를 명시한다. Facade의 같은 StorageIO 실행기를
+사용하며, 일반 Component 작업을 일괄 전환하지 않는다. 원본 파일은 준비 중에는 수정하지 않는다.
+`read_json`, `open_record`, `record_stat`, `record_exists`, `record_children`, `record_directory`는
+잠금 안에서 준비된 변경을 포함하여 읽는다. 기존 JSONL은 복사하지 않고 기존 prefix와 새 byte
+range를 연결해 읽는다. 대화 projection은 성공적으로 확정된 동일 view에 한해 실제 파일 stamp로
+다시 연결하므로 매번 전체 대화를 재생하지 않는다.
+
+1. `records-pending-<id>`에 변경 bytes와 closed manifest·checksum·format footer를 준비한다.
+2. 파일 fsync 후 `records-<sequence>-<id>`로 rename하고 journal 디렉터리를 fsync한다. 이것이 commit decision이다.
+3. 전체 manifest/경로/범위/checksum을 검증하고 해당 bytes만 원본에 반영한다. 교체는 atomic rename,
+   JSONL은 증분 쓰기다. 이 단계에서는 target fsync 대신 영속 저널이 복구를 보장한다.
+4. 전체 파일 반영 뒤 observer/호출자에게 완료를 전달한다. 같은 OS 소유권이 유지되는 동안 후속
+   기록도 저널로 확정하고, target 파일·디렉터리의 동기화 대상은 합친다. 읽기만 하는 작업은 추가 동기화를 요구하지 않는다.
+5. 일반 undo 작업의 첫 변경 직전 또는 마지막 OS 소유권 해제 직전에 target을 한 번씩 동기화한다.
+   이후 최고 sequence의 `record-checkpoint`를 checksum과 함께 원자 교체·fsync한 뒤 해당 저널을 지운다.
+   Run 종료 저장은 일반 undo 경로이므로 이 경계에서 앞선 기록을 checkpoint한다.
+
+`record-checkpoint`는 저장 계층의 반영 완료 지점이며 Run/RAG의 재개 checkpoint와 별개다.
+삭제했던 저널이 전원 장애로 다시 보여도 완료 지점 이하이면 재생하지 않는다. 서로 다른 commit을
+개별 삭제한 상태만으로 완료를 판정하지 않는다. sequence 누락·중복은 fail-closed한다.
+OS 잠금을 새로 얻거나 파일 반영에 실패하면 메모리의 반영 증명을 버린다. 다음 읽기 전에는
+남은 전체 저널을 검증하고, 파일별 최종 교체와 append 범위를 합쳐 복구·동기화한다. 옛 append를
+먼저 truncate하여 최신 기록을 잃지 않는다. 도메인 동작이나 외부 효과는 재생하지 않는다.
+
+저널을 보유한 동안 파일별 fsync가 늦어지는 것이며 QUEUED/승인/receipt의 내구성을 늦추는 것이 아니다.
+잠금 안의 조회와 백업은 반영 완료된 파일을 읽는다. 파일만 별도로 복사하거나 소유권을 우회하여
+저널을 삭제하는 것은 지원하지 않는다. 긴 Run에서는 다음 checkpoint까지 저널 디스크 공간이 필요하다.
+임의의 시간·개수 기반 flush 설정, 별도 background worker, 전역 완화 옵션은 추가하지 않는다.
+
+publication 전 실패는 원본과 메모리 projection을 보존/복원한다. publication 후 실패는 commit 여부가
+호출자에게 불확실한 오류이며 되돌리거나 성공 알림을 보내지 않는다. 다음 소유권 진입에서 확정된
+묶음 전체를 먼저 복구한다. 복구 중 다시 종료되어도 동일 bytes를 적용할 수 있다. 부분 append는
+저널이 증명하는 prefix/최종 길이 범위에서만 복구하며 일반 손상 JSONL의 끝을 임의로 잘라내지 않는다.
+손상된 published 묶음은 fail-closed한다. 미확정 pending 파일은 버린다.
+
+record batch에는 raw 복사·삭제·truncate를 혼합하지 않는다. 해당 storage primitive는 즉시 거부하며
+작업을 여러 commit으로 몰래 나누거나 undo로 자동 전환하지 않는다. 이런 작업의 owner는 기존
+`StorageIO.run()`을 사용한다. record batch는 Engine/Tool을 실행하거나 재실행하지 않는다.
+승인·효과 전 저널의 저장 완료와 새 Run으로 명시적 재개하는 계약은 그대로다. 사용자 설정, 숨은 대기 시간,
+flush 생략 옵션, 처리 개수 상한은 추가하지 않는다. 도메인 JSON·schema/storage version도 바꾸지 않는다.
+
+### 일반 파일·트리 변경의 undo 저널
+
 ```text
 workspace/projects/
   .ish.lock
@@ -73,6 +125,28 @@ workspace/projects/
 되돌리고, 마커가 있으면 결과를 보존하고 저널만 정리한다. 복구 자체가 중단되어도
 완료한 undo 표시를 확인하여 계속 진행한다. 경로 이탈·심볼릭 링크·손상된 저널은
 읽기를 차단하며 임의로 데이터를 추측하거나 저널을 지우지 않는다.
+
+같은 저장 단위 안의 반복 append/replace는 같은 원본에 대한 undo를 재사용한다.
+작업 종류가 달라지거나 삭제·재생성되는 경우에는 새 undo가 필요하다. 중간 파일을 후속
+undo의 원본으로 사용할 때는 먼저 해당 파일과 아직 확정되지 않은 rename의 디렉터리를
+동기화한다. 교체 전 hard link와 undo entry는
+같은 저널 디렉터리 동기화로 보호하며 원본 변경 전에 모두 내구성을 확보한다.
+
+`atomic_bytes`/`append_bytes`가 활성 트랜잭션에 참여하면 파일의 최종 내용과 교체된 디렉터리는
+확정 직전에 모아서 동기화한다. 새 트리에 Component가 직접 복사한 파일도 포함하며 기존
+트리를 전체 순회하지 않는다. 최종 동기화에서는 같은 파일·디렉터리를 한 번씩 처리한다. 이는 동기화 생략이나
+백그라운드 확정이 아니다. `COMMITTED` 기록, callback, 비동기 저장 반환, 다음 Engine/Tool 실행은
+필요한 동기화가 모두 성공한 뒤에만 가능하다. 트랜잭션 밖의 공통 저장 호출은 즉시 동기화한다.
+
+새 디렉터리도 먼저 CREATE undo를 확정한 뒤 생성하고, directory entry의 동기화는 위
+최종 트리 확정에 합친다. 확정 전 새 디렉터리가 유실되는 것은 해당 CREATE의 rollback과
+같은 결과이며, 완료 반환 전에는 부모 디렉터리까지 동기화된다. 기존 파일의 원본이나
+삭제 격리 rename처럼 후속 복구가 의존하는 자료는 이 규칙으로 지연시키지 않는다.
+
+영속화된 `gc-*` rename 뒤의 물리 정리에는 추가 디렉터리 동기화를 요구하지 않는다.
+전원 장애로 정리 잔여물이 다시 보이면 GC 이름으로만 복구되며 확정 데이터를 rollback하지 않는다.
+저널 루트 생성의 동기화는 소유 Manager에서 성공 여부를 기억한다. 저장 형식·버전·도메인 저장
+단위·승인/재개 정책·사용자 설정은 바뀌지 않는다.
 
 JSONL은 이전 길이만 기록하고 입증된 미확정 쓰기를 되돌릴 때 truncate한다.
 H2-a에서 ConversationStore의 근거 없는 끝줄 수리 경로를 제거했다. 끝 newline이 없는

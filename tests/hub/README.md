@@ -11,6 +11,7 @@ python tests/hub/run_linux.py
 더미 터미널 검사는 실제 시스템 클립보드를 덮어쓰지 않도록 데스크톱 연결 환경을 제외합니다.
 `test_ish_integration.py`는 참조 ish의 Prompt를 직접 생성하되 실제 셸은 실행하지 않습니다.
 호스트 의존성인 prompt-toolkit 3.0.53, psutil, pygments, packaging 및 Rich 14가 필요합니다.
+레포 맵 검증에는 Hub 의존성인 pathspec도 필요합니다. CI 잠금 파일은 Hub의 `PLUGIN_META`를 함께 반영합니다.
 실제 백엔드 검사에는 llm 실행 의존성도 필요합니다. 외부 모델 서비스는 호출하지 않습니다.
 
 - Ctrl+Q 후 셸/입력창 초안과 포커스 보존.
@@ -26,6 +27,7 @@ python tests/hub/run_linux.py
 - 스트리밍 중 요청 대기, 활성 Run 중단, 여러 Session 동시 실행, 종료 후 대기 요청 복구.
 - 실제 ish Prompt의 반복 실행 사이 백엔드 유지 및 prompt.run() 종료 시 worker 정리.
 - 로컬 OpenAI 호환 SSE 서버를 통한 생산 코드의 LiteLLM HTTP 스트리밍.
+- 빈 Tool 호출 메시지의 `content`를 요구하는 호환 서버와, 권한·분량을 제한한 `repo_map` 검증.
 - 요청별 엔진 옵션, 같은 Run의 steering과 일반 요청 대기열 분리.
 - 공급자 reasoning 관찰값 저장/재열기, 제목 생성 격리, 이름 있는/없는 복제.
 - 언어팩 키 일치, 명령/엔진/파일 경로 자동완성, 한 번의 방향키로 즉시 스크롤.

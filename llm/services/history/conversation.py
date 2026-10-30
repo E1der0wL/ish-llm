@@ -1,5 +1,7 @@
 """Session 대화의 공통 API와 파일/메모리 저장소. 기본 JSONL은 fsync로 복구하고 메모리는 명시적으로 선택한다."""
 
+from llm.services.infrastructure.storage import open_record, record_stat
+
 from llm.core.results import OutputOperation
 
 from abc import ABC, abstractmethod
@@ -300,12 +302,14 @@ class ConversationStore(Conversation):
         self._validate(ConversationEvent(snapshot))
         self._enlist()
         append_bytes(self.path, data)
-        # Apply the serialized snapshot only after fsync succeeds.
+        # The workspace transaction owns durability and rolls this projection back
+        # before commit on failure. Outside a transaction, append fsyncs directly.
         self._apply(snapshot)
-        stat = self.path.stat()
+        stat = record_stat(self.path)
         self._offset = stat.st_size
         self._signature = self._stamp(stat)
-        # Text already has a durable JSONL record. Avoid a second file open and
+        self._commit_stamp()
+        # The transaction owns the JSONL record. Avoid a second file open and
         # rotation check for every token; lifecycle events remain operational logs.
         if ConversationEvent(event).kind != ConversationEvent.DELTA:
             ConversationEvent(event).log(SessionPaths(self.path.parent).logs)
@@ -320,8 +324,25 @@ class ConversationStore(Conversation):
         append_bytes(self.path, data)
         for line in data.splitlines():
             self._apply(json.loads(line))
-        stat = self.path.stat()
+        stat = record_stat(self.path)
         self._offset, self._signature = stat.st_size, self._stamp(stat)
+        self._commit_stamp()
+
+    def _commit_stamp(self):
+        # A staged view has a temporary file identity. Rebind only this exact
+        # projection after successful materialization, under the same owner lock.
+        # This avoids replaying all history just because its batch was committed.
+        from llm.services.infrastructure.storage import record_transaction
+        batch = record_transaction(self.path)
+        if batch is None:
+            return
+        signature = self._signature
+
+        def committed():
+            if self._signature == signature:
+                self._signature = self._stamp(self.path.stat())
+
+        batch.after_commit(committed)
 
     @staticmethod
     def _stamp(stat):
@@ -329,7 +350,7 @@ class ConversationStore(Conversation):
 
     def _refresh(self) -> None:
         try:
-            stat = self.path.stat()
+            stat = record_stat(self.path)
         except FileNotFoundError:
             self._clear()
             self._offset, self._signature = self.INITIAL_OFFSET, self.NO_SIGNATURE
@@ -347,7 +368,7 @@ class ConversationStore(Conversation):
             self._clear()
             self._offset = self.INITIAL_OFFSET
         try:
-            with self.path.open(ConversationJournal.READ_MODE) as stream:
+            with open_record(self.path) as stream:
                 stream.seek(self._offset)
                 for line in stream:
                     if not line.endswith(ConversationJournal.RECORD_END):

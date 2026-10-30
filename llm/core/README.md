@@ -35,6 +35,11 @@ Agent 정의·binding은 [agents.py](agents.py)가, 공개 설정 구조는 [imp
 - `EngineDelta`는 진행 중 변경, `EngineOutput`은 출력, `ExecutionResult`는 Run 결과 조회입니다. 서로를 새 저장 도메인으로 만들지 않습니다.
 - Interaction의 권한 판정·응답 저장은 서비스 책임입니다. 선택지 해석 함수 자체가 승인 권한을 부여하지 않습니다.
 
+Engine의 동기 schema 조회·Agent binding·설정 검증은 `reuse_schema_checks()` 안에서
+동일 JSON schema의 성공한 구조 검사만 재사용합니다. 범위가 끝나면 검사 기록을 버리며,
+schema hook, 실제 definition/config 값 검증과 구현체의 의미 검증은 매번 수행합니다.
+변경된 schema, Python 전용 확장 표현은 기존 검증 경로를 따릅니다. 반환값은 별도 복사본입니다.
+
 설정 규칙은 [CONFIGURATION.md](../CONFIGURATION.md), 저장·이벤트 처리는 [Services](../services/README.md)를 참고하세요.
 부분 출력·사용량·설정 제한·JSON 변환의 지원 범위는 [공통 경계](../../docs/llm/shared-contracts.md)에 정의되어 있습니다.
 

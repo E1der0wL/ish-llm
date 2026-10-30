@@ -74,11 +74,11 @@ class ToolInputRegistry(ToolRegistry):
     @classmethod
     def detached(cls, registry, *, adapt=False):
         """Copy validated definitions, never the runtime handlers or their state."""
-        handlers = (registry.get(name).handler for name in registry.names())
+        handlers = (registry.get_handler(name) for name in registry.names())
         memo = {id(handler): handler for handler in handlers}
         if adapt:
             memo[id(ToolRegistry)] = cls
-        return deepcopy(registry, memo)
+        return registry.copy(memo=memo)
 
     @classmethod
     def observe(cls, registry: ToolRegistry | None) -> ToolRegistry | None:

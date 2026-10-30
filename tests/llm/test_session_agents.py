@@ -26,6 +26,33 @@ class SessionAgentTests(unittest.IsolatedAsyncioTestCase):
     def bytes(self, session):
         return (session.paths.root / "session.json").read_bytes()
 
+    async def test_participant_validation_reads_agent_inventory_once(self):
+        from llm.services.lifecycle.agents import AgentRepository
+        from llm.services.lifecycle.sessions import SessionManager
+        session = await self.project.sessions.acreate(agent_ids=['reader', 'writer'])
+        calls = []
+        reads = []
+        original = AgentRepository._inventory
+        validate = SessionManager._validate_agents
+
+        def inventory(repository, project):
+            calls.append(project.id)
+            return original(repository, project)
+
+        def validate_agents(manager, project, identifiers):
+            before = len(calls)
+            result = validate(manager, project, identifiers)
+            reads.append(len(calls) - before)
+            return result
+
+        with patch.object(AgentRepository, '_inventory', inventory), patch.object(SessionManager, '_validate_agents', validate_agents):
+            loaded = await self.project.sessions.aload(session.id)
+        self.assertEqual(loaded.data.agent_ids, ['reader', 'writer'])
+        # A facade may deliberately re-check at multiple public boundaries;
+        # each membership check reads once, independent of participant count.
+        self.assertTrue(reads)
+        self.assertTrue(all(count == 1 for count in reads), reads)
+
     async def test_creation_is_empty_until_application_explicitly_selects_agents(self):
         session = await self.project.sessions.acreate()
         self.assertEqual(session.data.agent_ids, [])

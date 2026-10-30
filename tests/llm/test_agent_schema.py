@@ -5,19 +5,85 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from jsonschema import Draft202012Validator, ValidationError
+from jsonschema.exceptions import SchemaError
 
 from llm.core.agents import AgentDefinition
 from llm.core.models import RunStatus
-from llm.core.schema import checked_schema, nest_schema, object_schema, schema_nodes
+from llm.core.schema import checked_schema, nest_schema, object_schema, schema_nodes, reuse_schema_checks
 from llm.engines.base import BaseEngine
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.registry import EngineRegistry
 from llm.llm import LargeLanguageModel
 from llm.providers.litellm import LiteLLMCompletionAdapter
+
+
+class SchemaReuseTests(unittest.TestCase):
+    def test_exact_proofs_are_nested_detached_and_operation_local(self):
+        value = object_schema({'n': {'type': 'integer'}})
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            with reuse_schema_checks():
+                first = checked_schema(value)
+                with reuse_schema_checks():
+                    second = checked_schema(value)
+                self.assertEqual(check.call_count, 1)
+                first['properties']['n']['type'] = 'string'
+                self.assertEqual(second, value)
+                changed = deepcopy(value)
+                changed['properties']['n']['type'] = 'invalid'
+                for _ in range(2):
+                    with self.assertRaises(SchemaError):
+                        checked_schema(changed)
+                self.assertEqual(check.call_count, 3)
+            checked_schema(value)
+            self.assertEqual(check.call_count, 4)
+
+    def test_failure_resets_scope_and_non_json_extensions_cannot_share_proofs(self):
+        value = object_schema()
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            with self.assertRaisesRegex(RuntimeError, 'abort'):
+                with reuse_schema_checks():
+                    checked_schema(value)
+                    raise RuntimeError('abort')
+            with reuse_schema_checks():
+                checked_schema(value)
+                extension = {**value, 'x-extension': [1]}
+                checked_schema(extension)
+                checked_schema({**value, 'x-extension': (1,)})
+                checked_schema({**value, 'x-extension': (1,)})
+            self.assertEqual(check.call_count, 5)
+
+    def test_binding_keeps_live_schema_hooks_instance_checks_and_semantic_checks(self):
+        class Owner(BaseEngine):
+            def __init__(self):
+                super().__init__()
+                self.schema = AgentDefinition.describe()
+                self.described = self.bound = 0
+
+            def describe_agent(self):
+                self.described += 1
+                return checked_schema(self.schema)
+
+            def for_agent(self, definition):
+                self.bound += 1
+                Draft202012Validator(self.describe_agent()).validate(definition)
+                return self
+
+        owner = Owner()
+        registry = EngineRegistry()
+        registry.register('owner', owner)
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            registry.resolve_agent({'engine': 'owner'})
+            self.assertEqual(check.call_count, 1)
+            self.assertEqual((owner.described, owner.bound), (2, 1))
+            owner.schema['properties']['engine'] = {'const': 'different'}
+            with self.assertRaises(ValueError):
+                registry.resolve_agent({'engine': 'owner'})
+            self.assertEqual(check.call_count, 2)
+            self.assertEqual(owner.bound, 1)
 
 
 class SelectedAgentSchemaTests(unittest.IsolatedAsyncioTestCase):

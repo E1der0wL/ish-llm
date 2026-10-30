@@ -258,7 +258,7 @@ MESSAGES = {
     MessageKey.FAILURE_PERMISSION: "The operation lacked the required access. Check model/project access or the permissions of the target file and directory.",
     MessageKey.FAILURE_TIMEOUT: "The operation exceeded its time limit. Check network and provider status, split the task, or review timeout settings. Check for completed effects before retrying.",
     MessageKey.FAILURE_CONNECTION: "The network connection failed. Check internet access, DNS, proxy and firewall settings.",
-    MessageKey.FAILURE_REQUEST: "The model provider rejected the request format or target. Check the model name, API endpoint and supported options; reduce large inputs or attachments if needed.",
+    MessageKey.FAILURE_REQUEST: "The server rejected the request format. Check required message fields and types, model name, API endpoint and supported options. The message index and missing field in the log help locate the cause. Reducing input size or repeating an unchanged request may not resolve a schema error.",
     MessageKey.FAILURE_CONTEXT: "Input plus reserved output exceeded the context window. Check the Memory model connection and failed summary Steps; verify summarize, compact_active, keep_turns, active_keep_iterations, summary_chars and context_chars. Match Agent output limits and Engine input budgets to the server limit. Oversized current requests or Tool definitions must be reduced separately.",
     MessageKey.FAILURE_BUDGET: "The project's configured usage budget has been reached. Review usage statistics and the usage policy, and adjust the limit if needed.",
     MessageKey.FAILURE_FILE_MISSING: "A required file or directory could not be found. Check the path and ish's current working directory.",

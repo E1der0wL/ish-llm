@@ -124,6 +124,8 @@ WorkspaceOwnership 아래의 TransactionManager가 쓰기 전 undo, fsync, commi
 관리한다. 잠금 진입 후 읽기 전에 미완료 journal을 복구한다. Run 시작/종료, 출력 journal과 Conversation,
 승인 응답, 연결된 Step 완료/checkpoint receipt는 서비스가 정의한 저장 단위로 확정한다.
 성공 알림은 commit 뒤에만 전달한다. 첨부 checkpoint가 있는 STEP_COMPLETED는 둘이 함께 확정된다.
+한 저장 단위 안에서는 반복 undo와 파일·디렉터리 동기화를 합친다. undo는 원본 변경 전,
+최종 데이터 동기화는 commit marker 전에 끝낸다. 저장 단위 사이의 승인·실행·관찰 경계는 유지한다.
 
 외부 Tool 효과와 로컬 저장은 하나의 원자 작업이 아니다. 효과 뒤 저장 실패는 started/uncertain으로
 보호한다. 외부 결과 확인은 명령 재실행이 아니다. 파일 부재나 Step 부재로 효과 없음이라고 추론하지 않는다.
@@ -164,6 +166,14 @@ Builtin 명령의 선택적 영속 출력은 Builtin Component가 관측 레코�
 쓰기·sandbox 권한을 확대하지 않는다. [대용량 파일 계약](large-data-files.md)을 참고한다.
 
 ## 검증 상태
+
+Run의 JSON/JSONL 저장 경로는 명시적 record batch로 변경 내용을 모아 확정한다. 일반 파일·트리
+변경은 undo journal을 유지한다. 두 경로 모두 같은 workspace 소유권 아래 실행하며, 기록 준비 중의
+읽기는 공통 record view를 사용한다. 승인·Tool 효과·Run/Step 알림은 해당 저장의 완료 이후에만
+진행한다. 이 완료는 저널의 영속화와 파일 반영을 뜻한다. 같은 OS 소유권 아래 target fsync는
+모아서 일반 undo 변경/소유권 해제 경계에서 수행하고, 완료 지점을 확정한 뒤 저널을 회수한다.
+published bundle 이후 저장 장애는 재진입 시 전체 순서를 검증하여 최종 기록을 복구하며 외부 효과를
+재생하지 않는다. [저장 트랜잭션](storage-transactions.md)의 기록 묶음 절을 따른다.
 
 현재 기준선은 [작업 인계](handoff.md), 문서 변경은 [검토 기록](documentation-review.md), 운영상 한계는
 [운영 준비 상태](production-readiness.md)를 본다. 과거 기록의 시험 수나 문서 예제의 문법 검사를

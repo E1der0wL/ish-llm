@@ -4,6 +4,8 @@ The manifest and record digests remain linked to the Run's revision witness. All
 I/O runs under the caller's StorageIO/workspace transaction and ownership lock.
 """
 
+from llm.services.infrastructure.storage import record_exists, record_children
+
 from copy import deepcopy
 import hashlib
 import json
@@ -71,7 +73,7 @@ class CheckpointRepository:
         if record is None:
             return None
         record.require_retired(run)
-        if self._checked(run.paths.state / self.DIRECTORY).exists():
+        if record_exists(self._checked(run.paths.state / self.DIRECTORY)):
             raise ValueError(self.DELETED_FILES)
         return record
 
@@ -81,7 +83,7 @@ class CheckpointRepository:
         from llm.services.infrastructure.storage import remove_named_tree
         record = CheckpointDeletion(now(), revision, tuple(names), tuple(interactions))
         root = self._checked(run.paths.state / self.DIRECTORY)
-        if root.exists():
+        if record_exists(root):
             remove_named_tree(root.parent, root, self.DIRECTORY)
         CheckpointDeclarations.remove(run.metadata)
         record.store(run.metadata)
@@ -90,7 +92,7 @@ class CheckpointRepository:
         """Run declaration and owner revision distinguish absent from lost state."""
         names = CheckpointDeclarations.read(run.metadata).names
         root = self._checked(run.paths.state / self.DIRECTORY)
-        actual = {self._checked(path).name for path in root.iterdir()} if root.exists() else set()
+        actual = {self._checked(path).name for path in record_children(root)} if record_exists(root) else set()
         if actual != set(names):
             raise ValueError(self.UNDECLARED_DIRECTORIES)
         return list(names)
@@ -106,10 +108,10 @@ class CheckpointRepository:
         if revision_token(raw) != CheckpointDeclarations.read(run.metadata).revisions[name]:
             raise ValueError(self.MANIFEST_MISMATCH)
         directory = self._checked(root / self.RECORDS)
-        if {self._checked(path).name for path in root.iterdir()} != {self.MANIFEST, self.RECORDS}:
+        if {self._checked(path).name for path in record_children(root)} != {self.MANIFEST, self.RECORDS}:
             raise ValueError(self.INVALID_ENTRIES)
         expected = {self._filename(key) for key in data.record_revisions}
-        if {self._checked(path).name for path in directory.iterdir()} != expected:
+        if {self._checked(path).name for path in record_children(directory)} != expected:
             raise ValueError(self.UNDECLARED_RECORDS)
         records = deepcopy(data.records)
         for key, revision in data.record_revisions.items():
@@ -137,7 +139,7 @@ class CheckpointRepository:
         root = self._root(run, name)
         if write.operation == CheckpointOperation.INITIALIZE:
             names = self.names(run)
-            if name in names or root.exists():
+            if name in names or record_exists(root):
                 raise ValueError(self.ALREADY_INITIALIZED)
             manifest = write.initial_manifest(run)
             make_directory(self._checked(root / self.RECORDS))

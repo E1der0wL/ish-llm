@@ -30,6 +30,20 @@ class BackendComposition:
         return WorkspaceJSONStore.directory(workspace) / cls.TEST_WORKSPACES
 
 
+async def prepare_backend(config: "HubConfig") -> None:
+    """Hub chooses startup preparation only for its own native transport."""
+    factories = config.engine_factories if config.engine_factories is not None else {}
+    if (not config.prepare_provider
+            or HubEngineIdentity.LOOP in factories
+            or config.initial_engine not in (HubEngineIdentity.LOOP, HubEngineIdentity.GRAPH)):
+        return
+    from .execution.provider_adapter import HubCompletionAdapter
+    from llm.providers.runtime import logging_scope
+
+    with logging_scope(config.workspace):
+        await HubCompletionAdapter().ainitialize()
+
+
 def create_backend(config: "HubConfig"):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
     from llm.llm import LargeLanguageModel, BackendServices, ProviderDiagnostics
@@ -39,6 +53,7 @@ def create_backend(config: "HubConfig"):
     from ..config.preference_records import PreferenceSnapshot
     from llm.services.runtime.tools import ToolRuntime
     from .execution.retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
+    from .execution.provider_adapter import HubCompletionAdapter
     from llm.engines.graph import GraphEngine
     from llm.engines.graph.configuration import GraphRegistration
     from llm.engines.graph.agent import AgentNode
@@ -76,7 +91,7 @@ def create_backend(config: "HubConfig"):
         max_detail_chars=general.provider_max_detail_chars,
     )
     factories = {
-        HubEngineIdentity.LOOP: HubLoopEngine,
+        HubEngineIdentity.LOOP: lambda: HubLoopEngine(completion_adapter=HubCompletionAdapter()),
         **(
             config.engine_factories
             if config.engine_factories is not BackendComposition.ABSENT

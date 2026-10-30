@@ -62,8 +62,10 @@ def crash(fd):
         os._exit(75)
 os.fsync = crash
 with owner.scope():
+    atomic_json(root / "a.json", {"value": "intermediate"})
     atomic_json(root / "a.json", {"value": "new"})
-    append_bytes(root / "history", b"new\\n")
+    append_bytes(root / "history", b"new")
+    append_bytes(root / "history", b"\\n")
     remove_named_tree(root, root / "tree", "tree")
     atomic_json(root / "receipt.json", {"done": True})
 '''.replace("CUT", str(cut))

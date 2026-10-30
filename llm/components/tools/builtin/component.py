@@ -135,7 +135,7 @@ class BuiltinToolComponent(Component):
                 with output_scope(store), path_scope(access):
                     return await selected(arguments)
             return invoke
-        return ToolRegistry(tuple(Tool(tool.name, tool.description, tool.parameters,
+        return selected.derive(tuple(Tool(tool.name, tool.description, tool.parameters,
                                        handler(tool),
                                        definition=tool.definition, contract=bound_contract(tool),
                                        classification=tool.classification)

@@ -6,7 +6,7 @@ PLUGIN_META = {
     "description": "Prompt-toolkit AI sessions backed by the llm plugin.",
     "author": "",
     "requirements": ["llm"],
-    "dependencies": ["rich", "ascii-magic|ascii_magic", "pyfiglet"],
+    "dependencies": ["rich", "ascii-magic|ascii_magic", "pyfiglet", "pathspec"],
 }
 
 from prompt_toolkit.filters import Condition

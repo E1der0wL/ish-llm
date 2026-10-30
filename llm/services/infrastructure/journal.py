@@ -1,5 +1,7 @@
 """출력 JSONL의 재생성 가능한 희소 위치 인덱스. 원본 저널만 실행 결과의 기준이다."""
 
+from llm.services.infrastructure.storage import open_record, record_stat, record_exists
+
 import hashlib
 import json
 import os
@@ -62,7 +64,7 @@ class OutputJournal:
 
     def _index(self, path, source):
         cache = reject_links(path.with_name(OutputIndex.FILE))
-        stat = path.stat()
+        stat = record_stat(path)
         identity = [stat.st_dev, stat.st_ino]
         state = OutputJournal.ABSENT
         try:
@@ -71,7 +73,7 @@ class OutputJournal:
             if value.matches(stored.checksum, self._digest, identity, self.index_stride, stat):
                 # A cached prefix is usable only if all of its source bytes
                 # still match, not merely the last indexed range.
-                with path.open(OutputJournal.BINARY_READ) as stream:
+                with open_record(path) as stream:
                     remaining, prefix = value.size, hashlib.sha256()
                     while remaining:
                         chunk = stream.read(min(remaining, OutputJournal.HASH_BLOCK_BYTES))
@@ -89,7 +91,7 @@ class OutputJournal:
             state = OutputJournal.ABSENT
         if state is OutputJournal.ABSENT:
             state = OutputIndex.start(self.VERSION, identity, self.index_stride)
-        with path.open(OutputJournal.BINARY_READ) as stream:
+        with open_record(path) as stream:
             stream.seek(state.size)
             while True:
                 offset = stream.tell()
@@ -121,7 +123,7 @@ class OutputJournal:
     def initialize(self, path):
         """New output storage only; readers and append never recreate lost state."""
         reject_links(path)
-        if any(item.exists() for item in (path, self._manifest_path(path), path.with_name(OutputIndex.FILE))):
+        if any(record_exists(item) for item in (path, self._manifest_path(path), path.with_name(OutputIndex.FILE))):
             raise ValueError(OutputJournal.ALREADY_EXISTS)
         atomic_bytes(path, OutputJournal.EMPTY_BYTES)
         atomic_json(self._manifest_path(path), OutputSource.empty(self.SCHEMA_VERSION).record)
@@ -130,7 +132,7 @@ class OutputJournal:
         """Validate the authoritative source before using or rebuilding its cache."""
         reject_links(path)
         value = OutputSource.read(read_json(self._manifest_path(path)), self.SCHEMA_VERSION)
-        with path.open(OutputJournal.BINARY_READ) as stream:
+        with open_record(path) as stream:
             digest = hashlib.file_digest(stream, OutputJournal.HASH_NAME)
             size = stream.seek(OutputJournal.ZERO, os.SEEK_END)
             if size != value.byte_count or digest.hexdigest() != value.digest:
@@ -208,7 +210,7 @@ class OutputJournal:
             state = self._index(path, source)
             offset, sequence = state.cursor(after)
         count = OutputJournal.ZERO
-        with path.open(OutputJournal.BINARY_READ) as stream:
+        with open_record(path) as stream:
             stream.seek(offset)
             for line in stream:
                 if not line.endswith(OutputJournal.LINE_END):

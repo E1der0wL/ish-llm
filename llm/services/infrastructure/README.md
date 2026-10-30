@@ -11,6 +11,8 @@
 | [transaction_records.py](transaction_records.py) | undo envelope·operation의 단일 Reader/Writer와 journal 선언입니다. |
 | [durability.py](durability.py) | 저장·트랜잭션이 공유하는 directory fsync 구현입니다. |
 | [transactions.py](transactions.py) | 여러 파일 변경의 undo journal, fsync, commit·rollback·복구를 구현합니다. |
+| [record_transactions.py](record_transactions.py) | 명시적 기록 묶음의 staged 읽기와 durable redo 확정을 담당합니다. |
+| [record_journal.py](record_journal.py) | 확정 저널 보유, 파일별 동기화 병합, 완료 지점과 순서에 따른 복구를 담당합니다. |
 | [locking.py](locking.py) | Linux 파일 잠금과 workspace 소유권 범위를 관리합니다. |
 | [output_records.py](output_records.py) | 출력 event·필수 source manifest·재생성 가능한 index의 Reader/Writer와 typed projection입니다. |
 | [journal.py](journal.py) | JSONL 증분 읽기·projection·조회 인덱스입니다. |
@@ -34,6 +36,13 @@
 변경 가능한 JSON은 원자적으로 교체하고 대화·출력 journal은 append합니다. 여러 파일을 일관되게 변경해야 하는 경우 기존 서비스의 트랜잭션 범위에 참여합니다. worker나 Engine에서 임의 파일 쓰기로 이 경계를 우회하지 않습니다.
 
 StorageIO는 이벤트 루프 밖에서 저장을 수행하고 기존 소유권·취소 정리를 유지합니다. atomic write 하나만으로 모든 외부 효과가 트랜잭션이 되는 것은 아닙니다. Tool의 외부 작업은 별도의 operation receipt 계약을 사용합니다.
+
+`run_records()`는 기록 쓰기를 한 복구 묶음으로 확정합니다. 준비 중에는 공통 record 읽기 함수를
+사용하고, raw 파일·트리 변경은 기존 `run()`을 사용합니다. 확정된 묶음의 파일 반영이 실패하면
+다음 읽기 전에 복구하며 Tool 실행을 재생하지 않습니다. 파일별 fsync는 일반 undo 변경/소유권 해제
+경계에 합치고 그때까지 저널을 보유합니다. 완료 통지는 저널 영속화와 파일 반영 이후이며,
+승인·효과 앞의 저장 완료를 생략하지 않습니다. `workspace_locked(records=True)`는 같은 실행기에서
+owner가 JSON/JSONL 전용 작업임을 선언하는 내부 계약입니다.
 
 Observability는 누적 통계만 소유합니다. active/waiting/queue 상태는 기존 실행 owner에서 읽습니다. Activity는 검색을 위한 파생 인덱스이며 결과의 원본은 Run/Step입니다.
 
@@ -94,5 +103,7 @@ entry/backup/undo/commit/GC 이름·마커·파일 기술값의 단일 선언이
 복구는 전체 기록을 검증한 뒤에만 역순으로 적용한다. 실패·프로세스 중단 후 원본 또는 완전한
 새 상태를 유지하고, commit marker의 fsync가 불확실하면 게시된 마커를 되돌리지 않는다.
 복구 완료 마커·재복구·GC·관찰 callback 격리 및 메모리 객체 rollback 순서는 그대로다.
-shared directory fsync는 durability.py 한 곳에 있으며 기존 storage/transaction 호출 경계와
-파일 핸들 정리를 유지한다. 경로 guard의 서로 다른 계약은 합치지 않는다.
+shared directory fsync는 durability.py 한 곳에 있다. 같은 트랜잭션의 반복 append/replace는
+원본 undo를 재사용하고, 변경 파일·디렉터리의 동기화는 commit marker 전에 모아서 수행한다.
+후속 undo가 참조하는 중간 파일은 먼저 동기화한다. 트랜잭션 밖의 저장과 승인·효과 전 ACK,
+파일 핸들 정리와 각 경로 guard 계약은 유지한다. 상세 순서는 저장 트랜잭션 문서를 따른다.

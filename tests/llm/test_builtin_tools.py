@@ -25,7 +25,7 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
 from llm.services.composition import BackendServices
-from llm.services.runtime.tools import ToolRuntime, ToolExecutor, ToolExecutionScope, ToolApprovalRequired, ToolInvocationError
+from llm.services.runtime.tools import ToolRuntime, ToolExecutor, ToolExecutionScope, ToolApprovalRequired, ToolInvocationError, ToolExecutionError
 from llm.engines.base import EngineContext
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
@@ -47,6 +47,116 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 args.setdefault(key, value)
         tool, values = self.tools.registry.prepare(name, args)
         return await tool.handler(values)
+
+    async def test_patch_preflight_classifies_only_confirmed_no_effect_failures(self):
+        created = await self.invoke('file_create', path='patch.txt', content='x x')
+        arguments = dict(path='patch.txt', expected_sha256=created['sha256'], old_text='x', new_text='y')
+        for changed, repairable in (({}, True), ({'old_text': 'missing'}, True),
+                                    ({'expected_sha256': '0' * 64}, False), ({'path': 'missing.txt'}, False)):
+            with self.subTest(changed=changed), self.assertRaises(ToolExecutionError) as caught:
+                await self.invoke('file_patch', **{**arguments, **changed})
+            self.assertEqual(caught.exception.effect, ToolExecutionError.NO_EFFECT)
+            self.assertEqual(caught.exception.recoverable, repairable)
+            self.assertFalse(caught.exception.retryable)
+            self.assertEqual((self.work / 'patch.txt').read_text(), 'x x')
+        contract = self.tools.registry.get('file_patch').contract
+        self.assertEqual(contract.retry_fields, ('old_text', 'new_text'))
+        self.assertTrue(contract.approval_required)
+        # A failure in/after publication cannot inherit the preflight claim.
+        from llm.components.tools.builtin.files import FileTools
+        with patch.object(FileTools, 'write', side_effect=OSError('disk failure')):
+            with self.assertRaises(OSError):
+                await self.invoke('file_patch', **{**arguments, 'old_text': 'x x'})
+        (self.root / 'outside').write_text('denied')
+        with self.assertRaises(ValueError):
+            await self.invoke('file_patch', **{**arguments, 'path': '../outside'})
+
+    async def test_builtin_patch_repair_requires_new_approval_and_preserves_one_effect(self):
+        from llm.policies.retry import RetryDecision
+        from llm.components.tools.builtin.files import FileTools
+        original = 'x x'
+        (self.work / 'repair.txt').write_text(original)
+        digest = FileTools.digest(original.encode())
+        arguments = dict(path='repair.txt', expected_sha256=digest, old_text='x', new_text='y')
+        choices = []
+        def decide(failure):
+            choices.append(failure)
+            return RetryDecision({'old_text': 'x x'})
+        model = ScriptedCompletion(
+            [chunk(calls=[call(json.dumps(arguments), name='file_patch')], finish='tool_calls')],
+            [chunk('done', finish='stop')])
+        component = BuiltinToolComponent(self.tools, name='builtin')
+        with patch.object(FileTools, 'write', autospec=True, side_effect=FileTools.write) as write:
+            async with LargeLanguageModel(self.root / 'patch-backend', components=[component],
+                    engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
+                    services=BackendServices(tool_runtime=ToolRuntime(decide_retry=decide))) as backend:
+                project = await backend.projects.acreate(components=['builtin'], config={
+                    'parameters': {'components': {'builtin': {'config': {'enabled': ['file_patch']}}}},
+                    'policies': {'tool_retry': {'max_retries': 1}}})
+                await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/model'},
+                                             'tools': ['file_patch']}, identifier='loop')
+                session = await project.sessions.acreate(agent_ids=['loop'])
+                initial = (await (await session.run.submit('patch', recipients=['loop'])).wait())[0]
+                self.assertEqual(initial.data.status, RunStatus.PAUSED, initial.data.error)
+                approval, = await initial.ainteractions(pending_only=True)
+                await initial.arespond(approval.respond('approve'))
+                repaired = (await (await session.run.resume(initial.id, agent_id='loop')).wait())[0]
+                self.assertEqual(repaired.data.status, RunStatus.PAUSED, repaired.data.error)
+                write.assert_not_called()
+                self.assertEqual((self.work / 'repair.txt').read_text(), original)
+                approval, = await repaired.ainteractions(pending_only=True)
+                self.assertEqual(approval.action['arguments']['old_text'], original)
+                await repaired.arespond(approval.respond('approve'))
+                final = (await (await session.run.resume(repaired.id, agent_id='loop')).wait())[0]
+                self.assertEqual(final.data.status, RunStatus.COMPLETED, final.data.error)
+                self.assertEqual((self.work / 'repair.txt').read_text(), 'y')
+                self.assertEqual(write.call_count, 1)
+                self.assertEqual(len(choices), 1)
+                self.assertEqual(len(model.requests), 2)
+
+    async def test_patch_has_no_implicit_retry_or_permission_to_change_target(self):
+        from llm.policies.retry import RetryDecision
+        from llm.components.tools.builtin.files import FileTools
+        from unittest.mock import Mock
+        (self.work / 'fixed.txt').write_text('x x')
+        arguments = dict(path='fixed.txt', expected_sha256=FileTools.digest(b'x x'), old_text='x', new_text='y')
+        tool, arguments = self.tools.registry.prepare('file_patch', arguments)
+        for retries, decision in (({}, RetryDecision({'old_text': 'x x'})),
+                ({'max_retries': 1}, RetryDecision({'path': 'elsewhere'})),
+                ({'max_retries': 1}, RetryDecision({'expected_sha256': '0' * 64}))):
+            selector = Mock(return_value=decision)
+            scope = ToolExecutionScope(ToolRuntime(decide_retry=selector), retry=retries)
+            context = SimpleNamespace(project=SimpleNamespace(id='p'), session=SimpleNamespace(id='s'),
+                run=SimpleNamespace(id='r', input_message_id='m', metadata={}), tool_scope=scope)
+            with self.subTest(retries=retries, decision=decision), self.assertRaises((ToolExecutionError, ValueError)):
+                async for _ in ToolExecutor().execute(tool, arguments, context=context, decision=True, result={}):
+                    pass
+            if not retries:
+                selector.assert_not_called()
+            self.assertEqual((self.work / 'fixed.txt').read_text(), 'x x')
+
+    async def test_patch_publication_failure_does_not_repair_or_repeat_effect(self):
+        from llm.policies.retry import RetryDecision
+        from llm.components.tools.builtin.files import FileTools
+        from unittest.mock import Mock
+        (self.work / 'uncertain.txt').write_text('before')
+        tool, arguments = self.tools.registry.prepare('file_patch', dict(path='uncertain.txt',
+            expected_sha256=FileTools.digest(b'before'), old_text='before', new_text='after'))
+        selector = Mock(return_value=RetryDecision({'new_text': 'repeated'}))
+        scope = ToolExecutionScope(ToolRuntime(decide_retry=selector), retry={'max_retries': 2})
+        context = SimpleNamespace(project=SimpleNamespace(id='p'), session=SimpleNamespace(id='s'),
+            run=SimpleNamespace(id='r', input_message_id='m', metadata={}), tool_scope=scope)
+        original_write = FileTools.write
+        def fail_after_publish(*args, **kwargs):
+            original_write(*args, **kwargs)
+            raise OSError('post-publication failure')
+        with patch.object(FileTools, 'write', autospec=True, side_effect=fail_after_publish) as write:
+            with self.assertRaises(OSError):
+                async for _ in ToolExecutor().execute(tool, arguments, context=context, decision=True, result={}):
+                    pass
+            self.assertEqual(write.call_count, 1)
+        selector.assert_not_called()
+        self.assertEqual((self.work / 'uncertain.txt').read_text(), 'after')
 
     async def test_effect_contracts_cover_mutations_but_not_read_only_tools(self):
         async def adapter(args):
@@ -114,7 +224,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         hits = await self.invoke("file_search", query="한글", recursive=True, case_sensitive=False)
         self.assertEqual(hits["matches"][0]["line"], 1)
         changed = await self.invoke("file_patch", path="src/a.py", expected_sha256=read["sha256"], old_text="한글", new_text="hello")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ToolExecutionError):
             await self.invoke("file_patch", path="src/a.py", expected_sha256=read["sha256"], old_text="hello", new_text="stale")
         await self.invoke("file_move", path="src/a.py", destination="src/b.py", expected_sha256=changed["sha256"])
         deleted = await self.invoke("file_delete", path="src/b.py", expected_sha256=changed["sha256"])
@@ -128,7 +238,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         created = await self.invoke("file_create", path="a", content="x x")
         with self.assertRaises(FileExistsError):
             await self.invoke("file_create", path="a", content="overwritten")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ToolExecutionError):
             await self.invoke("file_patch", path="a", expected_sha256=created["sha256"], old_text="x", new_text="y")
         with self.assertRaises(OSError):
             await self.invoke("file_delete", path=".", expected_sha256=created["sha256"])

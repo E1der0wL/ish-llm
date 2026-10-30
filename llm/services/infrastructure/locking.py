@@ -95,6 +95,7 @@ class WorkspaceOwnership:
                     stream.close()
                     raise
                 self._stream = stream
+                self.transactions.records.reset()
             self._references += WorkspaceLock.REFERENCE
 
     def release(self) -> None:
@@ -103,23 +104,30 @@ class WorkspaceOwnership:
                 raise RuntimeError(WorkspaceLock.NOT_HELD)
             self._references -= WorkspaceLock.REFERENCE
             if not self._references:
-                self._stream.close()
-                self._stream = WorkspaceLock.ABSENT
+                try:
+                    self.transactions.records.checkpoint()
+                finally:
+                    self.transactions.records.reset()
+                    self._stream.close()
+                    self._stream = WorkspaceLock.ABSENT
 
     @contextmanager
-    def scope(self):
+    def scope(self, *, records=False):
         # Serializes synchronous transactions across threads sharing this owner.
         with self._mutex:
             self.retain()
             try:
-                with logging_scope(self.logger), self.transactions.scope():
+                with logging_scope(self.logger), self.transactions.scope(records=records):
                     yield
             finally:
                 self.release()
 
 
-def workspace_locked(method):
+def workspace_locked(method=None, *, records=False):
     """Hold ownership throughout a synchronous service transaction."""
+
+    if method is None:
+        return lambda operation: workspace_locked(operation, records=records)
 
     @wraps(method)
     def guarded(self, *args, **kwargs):
@@ -128,10 +136,13 @@ def workspace_locked(method):
         observer = getattr(self, ObservationRuntime.BINDING, WorkspaceLock.ABSENT)
         with (
             observer.scope() if observer is not WorkspaceLock.ABSENT else nullcontext(),
-            self.ownership.scope(),
+            self.ownership.scope(records=records),
         ):
             for value in (*args, *kwargs.values()):
                 watch(value)
             return method(self, *args, **kwargs)
 
+    # StorageIO enters the outer scope before invoking this decorated method.
+    # Only an explicit operation declaration selects the restricted record API.
+    guarded.__record_batch__ = records
     return guarded

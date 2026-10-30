@@ -64,8 +64,15 @@ class ParticipantBackendTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((await runtime.sessions[sid].aget_data()).agent_ids, ['a', 'b'])
                 result = await runtime.submit_input(sid, 'shared', ('a', 'b'))
                 await asyncio.wait_for(asyncio.gather(*(v.wait() for v in entered.values())), 10)
-                snapshot = await runtime.snapshot()
-                replies = [m for m in snapshot.messages if m.role == 'assistant']
+                # Emission precedes the native OutputBuffer's durable flush.
+                # Observe both streams while the engines are still held open.
+                async with asyncio.timeout(10):
+                    while True:
+                        snapshot = await runtime.snapshot()
+                        replies = [m for m in snapshot.messages if m.role == 'assistant']
+                        if len(replies) == 2 and all('first' in m.text for m in replies):
+                            break
+                        await asyncio.sleep(0.01)
                 self.assertEqual({m.author for m in replies}, {'Coder', 'Reviewer'})
                 self.assertEqual(len({m.id for m in replies}), 2)
                 self.assertTrue(all('first' in m.text for m in replies))

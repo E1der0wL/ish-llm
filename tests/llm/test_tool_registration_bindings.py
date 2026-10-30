@@ -1,9 +1,13 @@
 """Registration wire remains detached and cannot invent handler authority."""
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
+
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import SchemaError
 
 from llm.components.tools import Tool, ToolClassification, ToolContract, ToolRegistry
 from llm.components.tools.bindings import ToolHandlerBindings
@@ -15,10 +19,175 @@ CONTRACT = {"revision": "explicit", "effect": "read_only", "isolation": "none",
 
 
 class ToolRegistrationBindingTests(unittest.TestCase):
+    def test_registry_copy_reuses_private_definitions_and_detaches_all_public_data(self):
+        class Handler:
+            def __deepcopy__(self, memo):
+                raise AssertionError('runtime handler copied')
+        handler = Handler()
+        schema = {'type': 'object', 'properties': {'n': {'type': 'integer'}}, 'required': ['n']}
+        registry = ToolRegistry((Tool('read', 'read', schema, handler,
+            definition=ToolDefinition('read', 'read', schema), contract=ToolContract.from_dict(CONTRACT)),))
+        with patch('llm.components.tools.registry.copy_model', side_effect=AssertionError('definition copied')):
+            selected = registry.copy()
+            self.assertIs(selected.get_handler('read'), handler)
+        for item in (selected.get('read'), registry.get('read')):
+            item.parameters['properties']['n']['type'] = 'string'
+            item.definition.parameters['properties'].clear()
+        selected.definitions()[0].parameters.clear()
+        for target in (registry, selected):
+            self.assertEqual(target.get('read').parameters, schema)
+            with self.assertRaises(ValueError):
+                target.prepare('read', {'n': 'bad'})
+        # Preserve prepare's live-Tool contract without sharing exposed state.
+        prepared, _ = selected.prepare('read', {'n': 1})
+        prepared.parameters['properties']['n']['type'] = 'string'
+        self.assertEqual(registry.get('read').parameters, schema)
+        later = selected.copy()
+        prepared.parameters['properties']['n']['type'] = 'boolean'
+        self.assertEqual(later.get('read').parameters['properties']['n']['type'], 'string')
+        selected.register(self.tool(handler))
+        self.assertEqual(registry.names(), ('read',))
+
+    def test_registry_copy_retains_subclass_slots_and_validation(self):
+        class Custom(ToolRegistry):
+            __slots__ = ('limits',)
+            def prepare(self, *args, **kwargs):
+                raise ValueError('custom admission')
+        original = Custom()
+        original.limits = {'values': [1]}
+        copied = original.copy()
+        copied.limits['values'].append(2)
+        self.assertEqual(original.limits, {'values': [1]})
+        with self.assertRaisesRegex(ValueError, 'custom admission'):
+            copied.prepare('read', {})
+
+    def test_concurrent_copy_and_prepare_keep_exposed_definition_isolated(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            for _ in range(20):
+                registry = ToolRegistry((self.tool(SimpleNamespace()),))
+                barrier = Barrier(2)
+                def copy_registry():
+                    barrier.wait(timeout=5)
+                    return registry.copy()
+                def expose_tool():
+                    barrier.wait(timeout=5)
+                    return registry.prepare('selected', {})[0]
+                copied, exposed = pool.submit(copy_registry), pool.submit(expose_tool)
+                copied, exposed = copied.result(timeout=5), exposed.result(timeout=5)
+                exposed.parameters['description'] = 'original only'
+                self.assertNotIn('description', copied.get('selected').parameters)
+                cloned, _ = copied.prepare('selected', {})
+                cloned.parameters['description'] = 'copy only'
+                self.assertEqual(registry.get('selected').parameters['description'], 'original only')
+
     def tool(self, handler, *, classification=None, definition=None):
         return Tool("selected", "description", {"type": "object"}, handler,
                     definition=definition, classification=classification,
                     contract=ToolContract.from_dict(CONTRACT))
+
+    def test_selection_and_extension_reuse_only_exact_schema_validation(self):
+        tool = self.tool(SimpleNamespace())
+        with patch.object(Draft202012Validator, 'check_schema',
+                          wraps=Draft202012Validator.check_schema) as check:
+            registry = ToolRegistry([tool])
+            selected = registry.select(('selected',))
+            combined = ToolRegistry()
+            combined.extend(selected)
+            self.assertEqual(check.call_count, 1)
+            self.assertEqual(combined.execution_binding({}), registry.execution_binding({}))
+            with self.assertRaisesRegex(ValueError, 'duplicate'):
+                combined.extend(selected)
+        # Actual arguments are still validated each time, even after reuse.
+        original = Tool('typed', 'typed', {'type': 'object', 'properties': {'n': {'type': 'integer'}},
+                        'required': ['n'], 'additionalProperties': False}, SimpleNamespace(),
+                        contract=ToolContract.from_dict(CONTRACT))
+        copied = ToolRegistry([original]).select(('typed',))
+        for arguments in ({}, {'n': '1'}, {'n': 1, 'extra': True}):
+            with self.subTest(arguments=arguments), self.assertRaises(ValueError):
+                copied.prepare('typed', arguments)
+        self.assertEqual(copied.prepare('typed', {'n': 1})[1], {'n': 1})
+
+    def test_schema_mutation_cannot_reuse_proof_and_copies_remain_detached(self):
+        tool = self.tool(SimpleNamespace())
+        registry = ToolRegistry([tool])
+        selected = registry.select(('selected',))
+        tool.parameters['type'] = 'array'
+        registry.get('selected').parameters['type'] = 'array'
+        self.assertEqual(selected.get('selected').parameters, {'type': 'object'})
+        # prepare has always exposed the registered Tool. Even mutation through
+        # that surface must not let a later selection borrow an old proof.
+        registered, _ = registry.prepare('selected', {})
+        registered.parameters['properties'] = {'value': {'type': 'not-a-type'}}
+        with self.assertRaises(SchemaError):
+            registry.select(('selected',))
+        with self.assertRaises(SchemaError):
+            ToolRegistry().extend(registry)
+        self.assertEqual(selected.get('selected').parameters, {'type': 'object'})
+
+    def test_extension_preserves_registration_override_and_live_binding_checks(self):
+        calls = []
+        class Custom(ToolRegistry):
+            def register(self, tool):
+                calls.append(tool.name)
+                super().register(tool)
+
+        handler = SimpleNamespace(execution_binding={'revision': 'first'})
+        source = ToolRegistry([self.tool(handler)])
+        destination = Custom()
+        destination.extend(source)
+        self.assertEqual(calls, ['selected'])
+        handler.execution_binding['revision'] = 'second'
+        self.assertEqual(destination.contracts()['selected']['execution_binding'], {'revision': 'second'})
+        # Definition matching is not bypassed by cached parameter syntax.
+        registered, _ = source.prepare('selected', {})
+        object.__setattr__(registered, 'definition', ToolDefinition('other', 'description', {'type': 'object'}))
+        with self.assertRaisesRegex(ValueError, 'does not match'):
+            source.select(('selected',))
+
+    def test_non_json_schema_extensions_do_not_borrow_json_proofs(self):
+        registry = ToolRegistry([self.tool(SimpleNamespace())])
+        tool = Tool('second', 'description', {'type': 'object', 'x-extension': {1: 'value'}},
+                    SimpleNamespace(), contract=ToolContract.from_dict(CONTRACT))
+        with patch.object(Draft202012Validator, 'check_schema',
+                          wraps=Draft202012Validator.check_schema) as check:
+            registry.register(tool)
+            registry.select(('second',))
+            self.assertEqual(check.call_count, 2)
+
+    def test_derived_bindings_reuse_syntax_but_validate_new_contracts_and_definitions(self):
+        source = ToolRegistry([self.tool(SimpleNamespace())])
+        tool = source.get('selected')
+        handler = SimpleNamespace(execution_binding={'revision': 'new'})
+        changed = replace(tool, handler=handler, contract=replace(tool.contract, revision='new', approval_required=True))
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            derived = source.derive((changed,))
+            self.assertEqual(check.call_count, 0)
+            self.assertTrue(derived.get('selected').contract.approval_required)
+            self.assertEqual(derived.contracts()['selected']['execution_binding'], {'revision': 'new'})
+            self.assertFalse(source.get('selected').contract.approval_required)
+            with self.assertRaisesRegex(ValueError, 'does not match'):
+                source.derive((replace(changed, definition=ToolDefinition('wrong', 'description', tool.parameters)),))
+            with self.assertRaisesRegex(ValueError, 'retry_fields'):
+                source.derive((replace(changed, contract=replace(tool.contract, retry_fields=('missing',))),))
+            with self.assertRaises(SchemaError):
+                source.derive((replace(changed, parameters={'type': 'object', 'properties': {'n': {'type': 'invalid'}}}),))
+
+    def test_definitions_preserve_constraints_extensions_and_detachment(self):
+        schema = {'type': 'object', 'properties': {'n': {'type': 'integer'}}, 'required': ['n']}
+        definition = ToolDefinition('selected', 'description', schema, strict=True, opaque={'extension': [1]})
+        source = ToolRegistry([replace(self.tool(SimpleNamespace()), parameters=schema, definition=definition)])
+        result = source.definitions(constraints={'selected': {'n': {'mode': 'fixed', 'value': 3}}})[0]
+        self.assertTrue(result.strict)
+        self.assertEqual(result.opaque, {'extension': [1]})
+        Draft202012Validator(result.parameters).validate({'n': 3})
+        self.assertFalse(Draft202012Validator(result.parameters).is_valid({'n': 4}))
+        result.parameters.clear()
+        result.opaque['extension'].append(2)
+        fresh = source.definitions()[0]
+        self.assertEqual(fresh.parameters, schema)
+        self.assertEqual(fresh.opaque, {'extension': [1]})
 
     def test_exact_binding_wire_optional_presence_and_detached_extensions(self):
         extension = {1: ("opaque", {"version": "original"})}

@@ -9,9 +9,10 @@ from copy import copy
 from uuid import uuid4
 from .path_access import PathAccess
 from .file_text import TextIndex
-from contextlib import closing, contextmanager
+from contextlib import closing, contextmanager, ExitStack
 from llm.services.infrastructure.text_stream import read_text_range
 from llm.core.configuration import UNSET
+from llm.services.runtime.tool_errors import ToolExecutionError
 from llm.core.schema import SchemaKeyword, validate_declared_fields
 from .file_values import (FileLimits, FileReadArguments, FileListArguments, FileSearchArguments,
     FileCreateArguments, FilePatchArguments, FileMoveArguments, FileDeleteArguments, FileRestoreArguments,
@@ -326,12 +327,22 @@ class FileTools:
 
     def file_patch(self, args):
         args = FilePatchArguments.read(args)
-        with self.lock, self.mutation_path(args.path) as (parent, name):
-            original = self.read_bytes(name, parent_fd=parent)
-            self.check_version(original, args.expected_sha256)
+        with self.lock, ExitStack() as scope:
+            # Only failures proved to precede write() may claim no effects.
+            # A stale CAS token requires a fresh read/invocation, never a blind
+            # retry that changes the expected version or target path.
+            try:
+                parent, name = scope.enter_context(self.mutation_path(args.path))
+                original = self.read_bytes(name, parent_fd=parent)
+            except FileNotFoundError as error:
+                raise ToolExecutionError(self.MISSING_FILE.format(path=args.path),
+                                         effect=ToolExecutionError.NO_EFFECT) from error
+            if self.digest(original) != args.expected_sha256:
+                raise ToolExecutionError(self.CHANGED_FILE, effect=ToolExecutionError.NO_EFFECT)
             text = original.decode(self.TEXT_ENCODING)
             if text.count(args.old_text) != self.UNIQUE_MATCH:
-                raise ValueError(self.AMBIGUOUS_PATCH)
+                raise ToolExecutionError(self.AMBIGUOUS_PATCH, effect=ToolExecutionError.NO_EFFECT,
+                                         recoverable=True)
             value = text.replace(args.old_text, args.new_text, self.UNIQUE_MATCH).encode(self.TEXT_ENCODING)
             self.write(parent, name, value, replace=True)
             return FilePatched(args.path, self.digest(original), self.digest(value)).to_dict()

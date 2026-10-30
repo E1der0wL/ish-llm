@@ -39,6 +39,46 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         configure_logging(self.temp.name)
 
+    async def test_explicit_preparation_imports_once_off_loop_without_requests(self):
+        from llm.providers import runtime
+        sdk = SimpleNamespace(DEFAULT_MAX_RETRIES=7, completion=Mock(side_effect=AssertionError('inference')))
+        threads = []
+        def import_sdk(name):
+            threads.append(threading.get_ident())
+            self.assertEqual(name, 'litellm')
+            self.assertEqual(__import__('os').environ['DEFAULT_MAX_RETRIES'], '0')
+            return sdk
+        with patch.object(runtime, '_sdk', None), patch.object(runtime, 'configure_logging'), \
+                patch.object(runtime.importlib, 'import_module', side_effect=import_sdk) as imported:
+            adapter = LiteLLMCompletionAdapter()
+            await asyncio.gather(adapter.ainitialize(), adapter.ainitialize())
+            self.assertEqual(imported.call_count, 1)
+            self.assertTrue(all(value != threading.get_ident() for value in threads))
+            self.assertEqual(sdk.DEFAULT_MAX_RETRIES, 0)
+            self.assertIs(runtime.litellm_sdk(), sdk)
+            sdk.completion.assert_not_called()
+
+    async def test_injected_transport_is_not_initialized_as_litellm(self):
+        with patch('llm.providers.runtime.litellm_sdk', side_effect=AssertionError('unused SDK')):
+            await LiteLLMCompletionAdapter(completion_fn=Mock()).ainitialize()
+
+    async def test_preparation_failure_keeps_native_failure_and_can_be_retried_explicitly(self):
+        from llm.providers import runtime
+        failure = ModuleNotFoundError('dependency')
+        sdk = SimpleNamespace()
+        with patch.object(runtime, '_sdk', None), patch.object(runtime, 'configure_logging'), \
+                patch.object(runtime, 'diagnostic_failure') as diagnostic, \
+                patch.object(runtime.importlib, 'import_module', side_effect=[failure, sdk]) as imported:
+            adapter = LiteLLMCompletionAdapter()
+            with self.assertRaises(ModuleNotFoundError) as caught:
+                await adapter.ainitialize()
+            self.assertIs(caught.exception, failure)
+            self.assertIsNone(runtime._sdk)
+            self.assertEqual(imported.call_count, 1)
+            diagnostic.assert_called_once()
+            await adapter.ainitialize()
+            self.assertIs(runtime._sdk, sdk)
+
     async def test_final_litellm_params_and_globals(self):
         sdk = await asyncio.to_thread(litellm_sdk)
         original = response((0,))

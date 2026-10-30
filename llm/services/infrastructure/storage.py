@@ -198,16 +198,26 @@ def atomic_bytes(path: Path, data: bytes) -> None:
     """Replace owned bytes with the same transaction/fsync contract as JSON."""
     if not isinstance(data, bytes):
         raise TypeError(StorageFormat.INVALID_BYTES)
+    batch = record_transaction(path)
+    if batch is not None:
+        batch.write(path, data, append=False)
+        return
     prepare_replace(path)
+    transaction = current_transaction()
+    owned = transaction is not NO_TRANSACTION and transaction.owns(path)
     path.parent.mkdir(parents=StorageFormat.CREATE_PARENTS, exist_ok=StorageFormat.EXIST_OK)
     fd, temporary = temporary_file(path)
     try:
         with os.fdopen(fd, StorageFormat.BINARY_WRITE) as stream:
             stream.write(data)
             stream.flush()
-            os.fsync(stream.fileno())
+            if not owned:
+                os.fsync(stream.fileno())
         os.replace(temporary, path)
-        sync_directory(path.parent)
+        if owned:
+            transaction.defer_sync(path, directory=True)
+        else:
+            sync_directory(path.parent)
     finally:
         Path(temporary).unlink(missing_ok=StorageFormat.MISSING_OK)
 
@@ -246,16 +256,24 @@ def prepare_create(path: Path) -> None:
 def append_bytes(path: Path, data: bytes) -> None:
     if not data:
         return
+    batch = record_transaction(path)
+    if batch is not None:
+        batch.write(path, data, append=True)
+        return
     transaction = current_transaction()
-    if transaction is not NO_TRANSACTION and transaction.owns(path):
+    owned = transaction is not NO_TRANSACTION and transaction.owns(path)
+    if owned:
         transaction.before_append(path)
     first = not path.exists()
     path.parent.mkdir(parents=StorageFormat.CREATE_PARENTS, exist_ok=StorageFormat.EXIST_OK)
     with path.open(StorageFormat.BINARY_APPEND) as stream:
         stream.write(data)
         stream.flush()
-        os.fsync(stream.fileno())
-    if first:
+        if not owned:
+            os.fsync(stream.fileno())
+    if owned:
+        transaction.defer_sync(path, directory=first)
+    elif first:
         sync_directory(path.parent)
 
 
@@ -266,7 +284,43 @@ def unlink_file(path: Path) -> None:
 
 
 def read_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding=StorageFormat.ENCODING))
+    with open_record(path) as stream:
+        return json.loads(stream.read().decode(StorageFormat.ENCODING))
+
+
+def record_transaction(path):
+    transaction = current_transaction()
+    if transaction is not None and transaction.record_batch and transaction.owns(path):
+        return transaction
+    return None
+
+
+def open_record(path):
+    """Read current transaction bytes, including staged appends, without copying history."""
+    batch = record_transaction(path)
+    return batch.open(path) if batch is not None else path.open(StorageFormat.BINARY_READ)
+
+
+def record_stat(path):
+    batch = record_transaction(path)
+    return batch.stat(path) if batch is not None else path.stat()
+
+
+def record_exists(path):
+    batch = record_transaction(path)
+    return batch.exists(path) if batch is not None else path.exists()
+
+
+def record_children(path):
+    batch = record_transaction(path)
+    return batch.children(path) if batch is not None else path.iterdir()
+
+
+def record_directory(path):
+    batch = record_transaction(path)
+    if batch is not None:
+        return path.absolute() in batch.directories or path.is_dir()
+    return path.is_dir()
 
 
 def reject_links(path: Path) -> Path:
@@ -291,7 +345,7 @@ def read_domain_record(path: Path) -> dict:
 def atomic_domain_json(path: Path, data: dict) -> None:
     """오래된 핸들도 새 저장 버전의 파일을 덮어쓰지 못하게 한다."""
     validate_domain_version(data)
-    if path.exists():
+    if record_exists(path):
         read_domain_record(path)
     atomic_json(path, data)
 
@@ -429,6 +483,13 @@ class StorageIO:
         self._serial = self.UNBOUND
 
     async def run(self, operation, *args, **kwargs):
+        return await self._run(getattr(operation, '__record_batch__', False), operation, args, kwargs)
+
+    async def run_records(self, operation, *args, **kwargs):
+        """Commit record writes as one durable bundle; no raw filesystem mutations."""
+        return await self._run(True, operation, args, kwargs)
+
+    async def _run(self, records, operation, args, kwargs):
         if self._serial is self.UNBOUND:
             self._serial = asyncio.Lock()
         async with self._serial:
@@ -437,7 +498,7 @@ class StorageIO:
             cancellation = current_process_cancellation() or ProcessCancellation()
 
             def work():
-                with cancellation.scope(), self.ownership.scope():
+                with cancellation.scope(), self.ownership.scope(records=records):
                     for value in (*args, *kwargs.values()):
                         watch(value)
                     return operation(*args, **kwargs)

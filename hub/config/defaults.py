@@ -44,6 +44,15 @@ class HubDefaults:
     OUTPUT_BATCH_SIZE = 32
     OUTPUT_BATCH_DELAY = 0.1
     OUTPUT_BUFFER = OutputBuffer(batch_size=OUTPUT_BATCH_SIZE, max_delay=OUTPUT_BATCH_DELAY)
+    REPO_MAP_MAX_FILES = 1000
+    REPO_MAP_MAX_ENTRIES = 5000
+    REPO_MAP_MAX_DEPTH = 8
+    REPO_MAP_MAX_CHARS = 12000
+    REPO_MAP_FILE_BYTES = 131072
+    REPO_MAP_SECONDS = 3.0
+    REPO_MAP_CACHE_FILES = 256
+    REPO_MAP_EXCLUDED = (".git", ".hg", ".svn", ".venv", "venv", "node_modules",
+                         "__pycache__", ".mypy_cache", ".pytest_cache", "dist", "build", "target")
     ASSISTANT_RESOURCES = {AgentDefinition.ResourceField.RAG: True}
     PLANNER_AGENT_ID = "planner"
     CODING_WORKFLOW_ID = "hub-code-workflow"

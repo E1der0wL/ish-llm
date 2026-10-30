@@ -53,6 +53,10 @@ class BuiltinTools:
     FILE_MUTATIONS = frozenset((FileCreateArguments.NAME, FilePatchArguments.NAME, FileMoveArguments.NAME,
                                FileDeleteArguments.NAME, FileRestoreArguments.NAME))
     FILE_READ_CONTRACT = replace(READ_CONTRACT, retry_fields=(FileReadArguments.path.__name__,))
+    # Repair only patch text against the same observed file/version. The common
+    # executor revalidates/reclassifies/reapproves every changed invocation.
+    FILE_PATCH_CONTRACT = replace(MUTATION_CONTRACT, revision="2",
+        retry_fields=(FilePatchArguments.old_text.__name__, FilePatchArguments.new_text.__name__))
 
     INVALID_SWITCHES = "Tool feature switches must be booleans"
     SOURCE_MISMATCH = "Test workspace source must match the builtin file root"
@@ -94,7 +98,8 @@ class BuiltinTools:
                 parameters = WorkspaceSelection.add_to_file_schema(parameters)
             file_call = self.file_handler(name, self.files)
             self._register(name, declaration.DESCRIPTION, parameters, file_call,
-                           contract=mutation if name in self.FILE_MUTATIONS else
+                           contract=self.FILE_PATCH_CONTRACT if name == FilePatchArguments.NAME else
+                           mutation if name in self.FILE_MUTATIONS else
                            self.FILE_READ_CONTRACT if name == FileReadArguments.NAME else self.READ_CONTRACT)
 
         if test_workspaces is not None:

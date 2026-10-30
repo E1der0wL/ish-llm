@@ -17,13 +17,17 @@ python3.12 -m examples.llm.recovery_probe --output-dir ~/llm-probes
 | case | 재현 방법 | 성공 조건 |
 | --- | --- | --- |
 | `crash` | 부분 출력과 다음 QUEUED 요청이 저장된 것을 확인한 뒤 실행 프로세스에 실제 SIGKILL | 새 프로세스가 원래 Run/Step/Assistant를 interrupted로 복구하고 부분 본문을 보존. 이전 효과를 재실행하지 않고 대기 요청만 완료 |
-| `disk-full` | 별도 프로세스의 저장 함수에 ENOSPC를 한 번씩 주입: Run 시작의 Session 교체, 출력 저널 fsync, Run 완료 교체 | 시작 실패는 QUEUED와 원래 Session 상태로 rollback, 출력 실패는 미확정 델타 제거, 완료 실패는 미확정 완료 상태 rollback. 새 프로세스에서 다음 요청 처리 가능 |
+| `disk-full` | 별도 프로세스의 저장 함수에 ENOSPC를 한 번씩 주입: Run 시작·출력 record bundle의 확정 전 fsync, Run 완료의 undo 대상 교체 | 시작 실패는 QUEUED와 원래 Session 상태로 rollback, 출력 실패는 미확정 델타 제거, 완료 실패는 미확정 완료 상태 rollback. 새 프로세스에서 다음 요청 처리 가능 |
 | `connection` | 로컬 OpenAI 호환 HTTP/1.1 SSE 서버가 첫 토큰 전 또는 부분 토큰 후 TCP를 끊음. 실제 `litellm.completion(stream=True)` 경로 사용 | 실패 Run/Step이 남고 부분 응답이 중복 없이 보존. 다음 요청 성공, 재개방 후 실패 기록 유지. 테스트 설정상 공급자 재시도 없음 |
 | `multiprocess` | 한 프로세스가 실행권을 보유한 상태에서 기본 3개 경쟁 프로세스가 같은 workspace 생성·조회 시도 | 모두 WorkspaceBusyError로 거부되고 도메인 파일이 불변. 소유자 정상 종료 후 새 프로세스가 기록 조회/실행권 확보 가능 |
 
 `multiprocess`의 성공은 여러 프로세스가 같은 workspace를 동시에 변경한다는 의미가 아니다.
 현재의 단일 소유 프로세스 계약을 검증한다. 한 소유 프로세스 안의 여러 Session 동시 실행은
 `domain_performance.py`에서 별도로 검사한다.
+
+record batch에서는 저널 확정 뒤 대상 파일을 반영하므로 대상 파일의 교체·fsync 실패를
+확정 전 실패처럼 검사하지 않는다. 위 begin/output 검사는 실제 pending bundle의 fsync에
+실패를 주입한다. 확정 후 반영 실패는 저장소의 retained-journal 복구 검사에서 다룬다.
 
 ```sh
 python3.12 -m examples.llm.recovery_probe --case crash --output-dir ~/llm-probes

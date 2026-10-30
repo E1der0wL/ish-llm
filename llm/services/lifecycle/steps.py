@@ -1,5 +1,7 @@
 """Step의 시작, 완료, 실패, 중단 상태와 저장을 담당한다. 실제 LLM/Tool 작업은 실행하지 않으며 Engine 이벤트를 저장 상태로 변환한다."""
 
+from llm.services.infrastructure.storage import record_exists, record_children, record_directory
+
 from llm.core.execution_observations import ExecutionObservations
 from llm.core.models import StepErrorCode
 
@@ -82,7 +84,7 @@ class StepRepository:
 
     def exists(self, run: Run, step_id: str) -> bool:
         paths = self.paths(run, step_id)
-        if paths.root.exists():
+        if record_exists(paths.root):
             self.load(run, step_id)
             return StepRepository.EXISTS
         return StepRepository.MISSING
@@ -90,13 +92,13 @@ class StepRepository:
     def record_paths(self, run):
         from llm.services.infrastructure.storage import reject_links
 
-        for directory in run.paths.steps.glob(StepRepository.ENTRY_PATTERN):
+        for directory in record_children(run.paths.steps) if record_exists(run.paths.steps) else ():
             reject_links(directory)
-            if directory.is_dir() and not directory.name.startswith(StepRepository.HIDDEN_PREFIX):
+            if record_directory(directory) and not directory.name.startswith(StepRepository.HIDDEN_PREFIX):
                 yield self.paths(run, directory.name).record
 
     def create(self, step: Step) -> None:
-        if step.paths.root.exists():
+        if record_exists(step.paths.root):
             raise FileExistsError(StepRepository.ALREADY_EXISTS)
         self._write(step)
 

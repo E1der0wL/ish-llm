@@ -26,6 +26,8 @@ from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
 from llm.services.infrastructure.locking import WorkspaceBusyError
 from llm.services.infrastructure.storage import atomic_json
+from llm.services.infrastructure.transactions import current_transaction
+from llm.services.infrastructure.record_transactions import RecordTransaction
 
 
 CASES = ("crash", "disk-full", "connection", "multiprocess")
@@ -158,11 +160,12 @@ async def disk_failure(root, spec):
         session = await project.sessions.acreate(agent_ids=['probe-agent'])
         await session.run.start()
 
-        # Admission dispatch owns the complete Run group before any Run starts.
+        # Finalization still uses an undo transaction. Record batches commit
+        # before target replacement, so begin/output faults belong at the
+        # durable bundle fsync below, not at materialization after commit.
         def replace(source, destination, *args, **kwargs):
             path = Path(destination)
-            target = (stage == "begin" and path.name == "run.json" and read(Path(source)).get("status") == "pending" or
-                      stage == "finish" and path.name == "run.json" and read(Path(source)).get("status") == "completed")
+            target = stage == "finish" and path.name == "run.json" and read(Path(source)).get("status") == "completed"
             if target and not fired:
                 fired.append(str(path))
                 raise OSError(errno.ENOSPC, "Injected test disk full", str(path))
@@ -170,9 +173,20 @@ async def disk_failure(root, spec):
 
         def sync(fd):
             path = Path(os.readlink(f"/proc/self/fd/{fd}"))
-            # New Runs now commit an empty mandatory output journal. Inject at
-            # the first actual delta, not that pre-execution initialization.
-            if stage == "output" and path.name == "outputs.jsonl" and os.fstat(fd).st_size > 0 and not fired:
+            transaction = current_transaction()
+            target = False
+            if (isinstance(transaction, RecordTransaction) and transaction.spool is not None
+                    and fd == transaction.spool.fileno() and not fired):
+                for destination in transaction.records:
+                    if stage == "begin" and destination.name == "run.json":
+                        with transaction.open(destination) as stream:
+                            target = json.load(stream).get("status") == "pending"
+                    elif stage == "output" and destination.name == "outputs.jsonl":
+                        # The mandatory empty output journal is not a delta.
+                        target = transaction.stat(destination).st_size > 0
+                    if target:
+                        break
+            if target and not fired:
                 fired.append(str(path))
                 raise OSError(errno.ENOSPC, "Injected test disk full", str(path))
             return original_sync(fd)

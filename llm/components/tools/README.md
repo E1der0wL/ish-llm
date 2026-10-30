@@ -29,6 +29,29 @@ Project의 `policies.tools.argument_constraints`는 Project Tool뿐 아니라 RA
 Project는 Python 소스를 소유하고, ish Host는 공용 의존성을 소유하며,
 기존 `ToolRegistry → ToolExecutor`가 Run/Step 실행을 담당한다.
 
+`ToolRegistry.select()`, `extend()`, `derive(tools)`는 이미 검사한 동일 JSON parameter schema의
+구조 검사 결과만 재사용한다. 검사 기록은 registry 수명에 한정되며 schema 전체 내용이
+바뀌면 다시 검사한다. Tool 이름·계약·definition 일치 검사와 실제 인자·Project 제약,
+현재 handler binding·승인·재개 검사는 생략하지 않는다. 선택된 정의는 계속 복사되며
+이 기록은 저장 설정이나 실행 권한이 아니다.
+`derive()`는 전달된 Tool들을 새 registry에 등록한다. Builtin의 환경별 handler·contract
+binding을 새로 만들 때도 구조 검사만 재사용하며 새 revision과 승인 불변식은 다시 검사한다.
+모델용 정의는 최종 `ToolDefinition`에서 복사하여 중간 객체를 반복 생성하지 않는다.
+
+`ToolRegistry.copy()`는 미노출 정의를 내부적으로 공유하여 전체 스키마 복사를 줄인다.
+등록 목록·선택·subclass 상태는 분리한다. `get()`과 `definitions()`는 분리된 값을 반환하고,
+`prepare()`는 기존의 live Tool 계약을 유지하되 공유된 항목을 노출하기 전에 분리한다.
+이미 `prepare()`로 노출된 항목은 다음 copy에서 복사한다. `get_handler(name)`은
+스키마를 복사하지 않고 기존 runtime handler identity를 조회한다. 공유 정의는 권한 캐시가 아니다.
+
+Builtin `file_patch`의 문구 불일치/중복은 쓰기 전 확인된 `ToolExecutionError`로,
+`effect=none`, `recoverable=true`, `retryable=false`를 제공한다. 이 사실만으로 재시도하지 않는다.
+Project의 `policies.tool_retry`와 Host의 `ToolRuntime.decide_retry`가 명시되어야 하며,
+변경 가능한 인자는 `old_text`, `new_text`뿐이다. 대상 path와 `expected_sha256`는 유지한다.
+변경 후보는 기존 schema/constraint 검증, classification, 새 승인, 체크포인트 경로를 따른다.
+CAS 불일치는 효과 없음으로 보고하지만 자동 repair하지 않는다. 새 읽기와 새 호출이 필요하다.
+쓰기 도중/이후의 일반 I/O 실패, 권한 거부, schema 오류를 자동으로 복구 가능으로 바꾸지 않는다.
+
 ```text
 <project>/tools/
   packages.manifest.json    # 필수 패키지 목록·소유권·파일 해시

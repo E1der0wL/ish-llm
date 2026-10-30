@@ -258,7 +258,7 @@ MESSAGES = {
     MessageKey.FAILURE_PERMISSION: "필요한 접근 권한이 없어 작업을 완료하지 못했습니다. 모델·프로젝트의 사용 권한 또는 대상 파일·디렉터리 권한을 확인해 주세요.",
     MessageKey.FAILURE_TIMEOUT: "정해진 시간 안에 작업을 완료하지 못했습니다. 네트워크와 제공자 상태를 확인하고, 작업을 나누거나 설정의 제한 시간을 검토해 주세요. 재시도 전 이미 수행된 작업도 확인하세요.",
     MessageKey.FAILURE_CONNECTION: "네트워크 연결을 완료하지 못했습니다. 인터넷 연결, DNS, 프록시와 방화벽 설정을 확인해 주세요.",
-    MessageKey.FAILURE_REQUEST: "모델 제공자가 요청 형식이나 대상을 받아들이지 않았습니다. 모델 이름·API 주소·지원되는 옵션을 확인하고, 큰 입력이나 첨부가 있다면 줄여서 시도해 주세요.",
+    MessageKey.FAILURE_REQUEST: "서버가 요청 형식을 받아들이지 않았습니다. 메시지의 필수 필드·타입, 모델 이름·API 주소·지원 옵션을 확인하세요. 로그의 메시지 번호와 누락 필드가 원인을 좁히는 데 도움이 됩니다. 요청 형식 오류는 입력량을 줄이거나 같은 요청을 반복해도 해결되지 않을 수 있습니다.",
     MessageKey.FAILURE_CONTEXT: "모델 입력과 출력 예약량이 컨텍스트 한도를 초과했습니다. Memory 요약 모델의 연결·요약 Step 실패 여부를 확인하세요. summarize·compact_active가 켜져 있는지와 keep_turns·active_keep_iterations·summary_chars·context_chars를 확인하고, Agent 출력 한도와 엔진 입력 예산을 서버 한도에 맞추세요. 현재 요청·도구 정의 자체가 너무 크면 입력을 나누어야 합니다.",
     MessageKey.FAILURE_BUDGET: "프로젝트에 설정된 사용량 한도에 도달했습니다. 사용 통계와 사용량 정책을 확인하고, 필요하다면 한도를 조정해 주세요.",
     MessageKey.FAILURE_FILE_MISSING: "작업에 필요한 파일이나 디렉터리를 찾지 못했습니다. ish의 현재 디렉터리와 요청한 경로가 맞는지 확인해 주세요.",

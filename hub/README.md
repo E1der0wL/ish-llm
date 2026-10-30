@@ -124,6 +124,10 @@ if hub_plugin is not None:
 제공자 인증은 환경변수 또는 Agent의 `completion.api_key`로 설정합니다.
 기존 workspace와 모델을 지정하는 `install(prompt, config=HubConfig(...))`도 지원합니다.
 
+Hub는 기본 전송을 사용할 때 시작 중 SDK를 미리 불러옵니다. `HubConfig(prepare_provider=False)`로
+끄면 첫 요청 시 불러옵니다. 이는 Hub의 시작 정책이며 Project/Agent의 모델 설정을 바꾸거나
+시험 모델 요청을 보내지 않습니다. 사용자 정의 backend/Loop factory는 자체 초기화를 유지합니다.
+
 ### OpenAI 모델로 시험하기
 
 [OpenAI 공식 시작 안내](https://developers.openai.com/api/docs/quickstart)에 따라 API 키를 발급한 뒤,

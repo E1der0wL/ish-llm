@@ -123,6 +123,25 @@ class AgentStorageTests(unittest.TestCase):
         self.assertEqual(reopened.list(self.project), {})
         self.assertEqual(json.loads((self.root / self.repository.MANIFEST).read_bytes())['records'], {})
 
+    def test_bulk_load_reads_inventory_once_without_retaining_stale_definitions(self):
+        self.create()
+        self.repository.create(self.project, {'engine': 'second'}, identifier='second')
+        with patch.object(self.repository, '_inventory', wraps=self.repository._inventory) as inventory:
+            values = self.repository.load_many(self.project, ['worker', 'second'])
+            self.assertEqual(inventory.call_count, 1)
+            values['worker']['engine'] = 'detached'
+            self.assertEqual(self.repository.load(self.project, 'worker')['engine'], 'base')
+            self.assertEqual(inventory.call_count, 2)
+        before = self.repository.snapshot(self.project, 'worker')
+        self.repository.save(self.project, 'worker', {'engine': 'changed'}, expected_revision=before['revision'])
+        self.assertEqual(self.repository.load_many(self.project, ['worker'])['worker'], {'engine': 'changed'})
+        with self.assertRaises(FileNotFoundError):
+            self.repository.load_many(self.project, ['worker', 'missing'])
+        # A previous successful read must not hide later storage corruption.
+        (self.root / self.repository.RECORDS / 'second.json').write_text('{}')
+        with self.assertRaisesRegex(ValueError, 'integrity mismatch'):
+            self.repository.load_many(self.project, ['worker'])
+
     def test_concurrent_cas_has_one_winner_and_preserves_the_winning_definition(self):
         revision = self.create()['revision']
         def save(name):

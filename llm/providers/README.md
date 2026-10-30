@@ -10,6 +10,13 @@ Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 �
 선택적 MCP 어댑터도 이 폴더에서 SDK 연결을 담당합니다. MCP Tool 호출은 모델 호출의
 retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 ToolExecutor가 집행합니다.
 
+`LiteLLMCompletionAdapter.initialize()` / `await adapter.ainitialize()`는 선택적으로
+SDK를 미리 불러온다. 애플리케이션이 호출 시점을 결정하며 Backend 생성만으로 실행하지 않는다.
+비동기 API는 import를 이벤트 루프 밖에서 수행하고 기존 runtime lock/cache를 공유한다.
+모델 요청·인증 확인·연결 probe를 보내거나 timeout/retry/inference 설정을 만들지 않는다.
+주입한 `completion_fn`은 자체 초기화를 소유하므로 이 API에서 LiteLLM을 불러오지 않는다.
+import 실패는 그대로 전달하며 다음 명시적 호출에서 다시 준비할 수 있다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -70,6 +77,23 @@ CodedError는 계속 보존하며 이 enum으로 허용 코드를 제한하지 �
 - `DEFAULT_MAX_RETRIES=0`: 아래의 확인된 SDK 자동 retry를 막는 Adapter 불변식이다. 명시적 요청 retry는 보존한다.
 
 SDK를 외부 코드가 먼저 import했다면 이미 발생한 초기화 fetch를 되돌릴 수는 없다. 플러그인의 초기화 경계는 `litellm_sdk()`다.
+
+첫 요청의 import 지연을 줄이려면 LiteLLM을 선택한 애플리케이션이 준비 시점을 명시적으로
+선택할 수 있다. 기존 초기화 경계를 재사용하며, Backend가 시작할 때 모든 provider를
+자동으로 준비하거나 시험 추론 요청을 보내지는 않는다.
+
+```python
+import asyncio
+from llm.providers.runtime import litellm_sdk
+
+# LiteLLM 사용을 선택한 host의 명시적 준비 단계. 추론 요청/인증 확인이 아니다.
+await asyncio.to_thread(litellm_sdk)
+```
+
+이 호출은 이벤트 루프 밖에서 SDK import와 위 초기화 불변식을 적용한다. 이미 초기화된
+SDK를 재사용하며 실패는 기존 `initialize` / `sdk_import` 진단으로 전달된다.
+다른 adapter는 해당 구현의 초기화 경계를 사용한다. SDK가 첫 실제 요청에서 추가로
+지연 import하는 부분까지 모두 준비되거나, 서버 연결이 검증되었다는 보장은 없다.
 
 LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적용한다.
 `litellm_sdk()`는 import 후와 매 진입 시 `sdk.DEFAULT_MAX_RETRIES = 0`도 적용한다.

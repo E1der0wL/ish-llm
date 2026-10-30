@@ -158,6 +158,9 @@ class HubBuiltinTools(BuiltinToolComponent):
             )
         )
         toolkit.registry.register(QuestionTool.create(self.questions.ask))
+        from .repo_map import RepoMap
+
+        toolkit.registry.register(RepoMap(toolkit).tool())
         from ..execution.completion_review import TaskCompletion
         toolkit.registry.register(TaskCompletion.tool())
         for item in self.application.tools():
@@ -271,8 +274,7 @@ class HubBuiltinTools(BuiltinToolComponent):
                 registry = ResolvedToolkit.registry(cached)
             # Isolate mutable schemas/registrations while preserving runtime
             # handler identity (question broker, process registry, file root).
-            handlers = [registry.get(name).handler for name in registry.names()]
-            return deepcopy(registry, {id(handler): handler for handler in handlers})
+            return registry.copy()
 
     def resolve_runtime(self, project, capability, *, data_factory):
         if capability == ToolRegistry.CAPABILITY:

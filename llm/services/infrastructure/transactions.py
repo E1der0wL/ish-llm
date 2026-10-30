@@ -84,6 +84,7 @@ def watch(model: object) -> None:
 
 
 class Transaction:
+    record_batch = False
     CLEAN = False
     FAILED = True
     NO_WRITES = 0
@@ -99,6 +100,9 @@ class Transaction:
         self._rollback = {}
         self._errors = {}
         self._committed = []
+        self._prepared = {}
+        self._dirty_files = set()
+        self._dirty_directories = set()
         self.failed = self.CLEAN
         self.writes = self.NO_WRITES
 
@@ -112,10 +116,10 @@ class Transaction:
     def _ensure(self):
         if self.path.exists():
             return
-        self.manager.journal.mkdir(
-            exist_ok=TransactionJournal.EXIST_OK, mode=TransactionJournal.DIRECTORY_MODE
-        )
-        _sync(self.manager.root)
+        # Undo backups may depend on record projections. Make those projections
+        # independently durable before the first general filesystem mutation.
+        self.manager.records.checkpoint()
+        self.manager._ensure_journal()
         self.path.mkdir(mode=TransactionJournal.DIRECTORY_MODE)
         _sync(self.manager.journal)
 
@@ -132,9 +136,13 @@ class Transaction:
             root == path or root in path.parents for root in self.removed
         )
 
-    def _sync_created(self):
-        # 컴포넌트 초기화/clone이 복사한 파일도 마커 전에 내구성을 확보한다.
-        # 기존 트리는 순회하지 않는다. 새 트리/파일만 대상이다.
+    def _sync_changes(self):
+        # Undo is durable before mutation. Data/rename durability is needed at
+        # commit, before COMMITTED and observers, not after each in-scope write.
+        # Include raw component copies beneath newly created trees; existing
+        # trees are never scanned. Flush each final file/directory once.
+        files = set(self._dirty_files)
+        directories = set(self._dirty_directories)
         for root in self.created:
             if not root.exists():
                 continue
@@ -142,14 +150,61 @@ class Transaction:
             for path in paths:
                 mode = _checked(path).stat().st_mode
                 if stat.S_ISREG(mode):
-                    with path.open(TransactionJournal.BINARY_READ) as stream:
-                        os.fsync(stream.fileno())
-                elif not stat.S_ISDIR(mode):
+                    files.add(path)
+                elif stat.S_ISDIR(mode):
+                    directories.add(path)
+                else:
                     raise ValueError(TransactionStorage.INVALID_CREATION)
-            for path in reversed(paths):
+            directories.add(root.parent)
+        for path in sorted(files):
+            if not path.exists():
+                continue  # A later journalled removal superseded this write.
+            mode = _checked(path).stat().st_mode
+            if not stat.S_ISREG(mode):
+                if path in directories and stat.S_ISDIR(mode):
+                    continue
+                raise ValueError(TransactionStorage.INVALID_CREATION)
+            with path.open(TransactionJournal.BINARY_READ) as stream:
+                os.fsync(stream.fileno())
+        for path in sorted(directories, key=lambda p: (-len(p.parts), str(p))):
+            if path.exists():
+                path = _checked(path)
                 if path.is_dir():
                     _sync(path)
-            _sync(root.parent)
+
+    def defer_sync(self, path, *, directory=False):
+        """Track successful storage writes until this transaction's commit."""
+        path, _ = self._target(path)
+        self._dirty_files.add(path)
+        if directory:
+            self._dirty_directories.add(path.parent)
+
+    def _flush_file(self, path):
+        # A later undo entry may depend on this intermediate inode/length.
+        # Persist it before making a backup or changing its interpretation.
+        if path in self._dirty_files:
+            with path.open(TransactionJournal.BINARY_READ) as stream:
+                os.fsync(stream.fileno())
+            self._dirty_files.remove(path)
+        self._flush_directories(path.parent)
+
+    def _flush_directories(self, path):
+        # A dependent undo may need to restore into a newly created ancestor.
+        # That destination must survive a crash even before the final commit.
+        # Include copied directories between it and the pending ancestor entry.
+        pending = []
+        for directory in (path, *path.parents):
+            pending.append(directory)
+            if directory in self._dirty_directories:
+                for parent in pending:
+                    _sync(parent)
+                    self._dirty_directories.discard(parent)
+                pending.clear()
+
+    def _forget_prepared(self, path):
+        # A removal/recreation changes inode identity, including descendants.
+        self._prepared = {p: kind for p, kind in self._prepared.items()
+                          if p != path and path not in p.parents}
 
     def _undo(self):
         # 매번 전체 저널을 검증한 후 수정한다. 복구 중 실패해도 같은 정보로 재시도한다.
@@ -158,6 +213,24 @@ class Transaction:
         finally:
             for callback in reversed(tuple(self._rollback.values())):
                 callback()
+
+    def commit(self):
+        if self.path.exists():
+            self._sync_changes()
+            _write(self.path / TransactionJournal.COMMITTED, TransactionJournal.COMPLETE_MARKER)
+
+    def is_committed(self):
+        return (self.path / TransactionJournal.COMMITTED).exists()
+
+    def discard(self):
+        self._undo()
+        self.manager._retire(self.path)
+
+    def finish(self):
+        self.manager._retire(self.path)
+
+    def close(self):
+        pass
 
     def owns(self, path: Path) -> bool:
         path = Path(path).absolute()
@@ -222,13 +295,17 @@ class Transaction:
         for directory in reversed(missing):
             self.prepare_create(directory)
             directory.mkdir()
-            _sync(directory.parent)
+            # The CREATE undo is already durable. Until commit, losing a new
+            # directory is equivalent to rollback; publish its directory entry
+            # with the rest of the final tree, before COMMITTED/observers.
+            self._dirty_directories.add(directory.parent)
 
     def prepare_create(self, path: Path) -> None:
         """신규 디렉토리 복사/초기화도 하나의 공개 단위에 참여시킨다."""
         path, name = self._target(path)
         if path.exists():
             raise FileExistsError(path)
+        self._forget_prepared(path)
         self.changed()
         if not self._new(path):
             self._entry(UndoOperation.create(name))
@@ -246,11 +323,15 @@ class Transaction:
             return
         if not path.is_file():
             raise ValueError(TransactionStorage.INVALID_REPLACEMENT)
+        if self._prepared.get(path) == UndoKind.REPLACE:
+            return
+        self._flush_file(path)
         self._ensure()
         backup = TransactionJournal.backup(len(self.entries), UndoKind.REPLACE)
         os.link(path, self.path / backup)
-        _sync(self.path)
+        # _entry syncs both the backup link and undo entry before replacement.
         self._entry(UndoOperation.replace(name, backup))
+        self._prepared[path] = UndoKind.REPLACE
 
     def before_append(self, path: Path) -> None:
         path, name = self._target(path)
@@ -264,14 +345,20 @@ class Transaction:
         else:
             if not path.is_file():
                 raise ValueError(TransactionStorage.INVALID_APPEND)
+            if self._prepared.get(path) == UndoKind.APPEND:
+                return
+            self._flush_file(path)
             self._entry(UndoOperation.append(name, path.stat().st_size))
+            self._prepared[path] = UndoKind.APPEND
 
     def before_truncate(self, path: Path, size: int) -> None:
         """깨진 JSONL 끝을 수리할 때도 제거한 꼬리만 보관한다."""
         path, name = self._target(path)
         self.changed()
+        self._forget_prepared(path)
         if self._new(path):
             return
+        self._flush_file(path)
         self._ensure()
         backup = TransactionJournal.backup(len(self.entries), UndoKind.TRUNCATE)
         with path.open(TransactionJournal.BINARY_READ) as stream:
@@ -284,6 +371,11 @@ class Transaction:
         """큰 트리는 복사 없이 격리한다. 실제 제거는 확정 후 재시도 가능한 GC다."""
         path, name = self._target(path)
         self.changed()
+        self._forget_prepared(path)
+        for dirty in tuple(self._dirty_files):
+            if dirty == path or path in dirty.parents:
+                self._flush_file(dirty)
+        self._flush_directories(path.parent)
         self._ensure()
         backup = TransactionJournal.backup(len(self.entries), UndoKind.REMOVE)
         self._entry(UndoOperation.remove(name, backup))
@@ -315,6 +407,16 @@ class TransactionManager:
     def __init__(self, root: Path) -> None:
         self.root = Path(root).absolute()
         self.journal = WorkspacePaths(self.root).transactions
+        self._journal_ready = False
+        from .record_journal import RecordJournal
+        self.records = RecordJournal(self)
+
+    def _ensure_journal(self):
+        if not self._journal_ready:
+            self.journal.mkdir(exist_ok=TransactionJournal.EXIST_OK,
+                               mode=TransactionJournal.DIRECTORY_MODE)
+            _sync(self.root)
+            self._journal_ready = True
 
     def _entries(self, directory):
         _checked(directory)
@@ -401,16 +503,20 @@ class TransactionManager:
         _sync(self.journal)
         try:
             self._remove(garbage)
-            _sync(self.journal)
+            # The GC rename is already durable. A crash can resurrect only a
+            # gc-* directory, which recover reaps without undoing committed data.
         except OSError:
             warnings.warn(TransactionManager.CLEANUP_WARNING, RuntimeWarning)
 
     def recover(self) -> None:
         """읽기 전 OS 잠금을 가진 호출자만 사용한다. LLM/Tool을 호출하지 않는다."""
         _checked(self.journal)
+        self.records.recover()
         if not self.journal.exists():
             return
         for directory in sorted(self.journal.iterdir()):
+            if self.records.owns(directory):
+                continue
             if (
                 not re.fullmatch(TransactionJournal.DIRECTORY_PATTERN, directory.name)
                 or not directory.is_dir()
@@ -434,7 +540,7 @@ class TransactionManager:
             self._retire(directory)
 
     @contextmanager
-    def scope(self) -> Iterator[Transaction]:
+    def scope(self, *, records=False) -> Iterator[Transaction]:
         parent = current_transaction()
         if parent is not NO_TRANSACTION:
             if parent.manager is not self:
@@ -448,33 +554,35 @@ class TransactionManager:
                 raise
             return
         self.recover()
-        transaction = Transaction(self)
+        if records:
+            from .record_transactions import RecordTransaction
+            transaction = RecordTransaction(self)
+        else:
+            transaction = Transaction(self)
         token = _current.set(transaction)
         committed = self.PENDING_COMMIT
         try:
             yield transaction
             if transaction.failed:
                 raise RuntimeError(TransactionManager.NESTED_FAILURE)
-            if transaction.path.exists():
-                transaction._sync_created()
-                _write(transaction.path / TransactionJournal.COMMITTED, TransactionJournal.COMPLETE_MARKER)
+            transaction.commit()
             committed = self.COMMITTED
         except BaseException:
             # rename 이후 fsync 오류는 확정 여부가 불명확하다. 이미 공개된 마커를
             # 되돌리지 않고 다음 소유권 진입에서 판정한다. 실행 효과는 재시도하지 않는다.
             try:
-                if not (transaction.path / TransactionJournal.COMMITTED).exists():
-                    transaction._undo()
-                    self._retire(transaction.path)
+                if not transaction.is_committed():
+                    transaction.discard()
             finally:
                 for callback in reversed(tuple(transaction._errors.values())):
                     callback()
             raise
         finally:
             _current.reset(token)
+            transaction.close()
         if committed:
             try:
-                self._retire(transaction.path)
+                transaction.finish()
             except OSError:
                 warnings.warn(TransactionManager.CLEANUP_WARNING, RuntimeWarning)
             for callback in transaction._committed:

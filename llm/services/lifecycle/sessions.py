@@ -321,8 +321,8 @@ class SessionManager:
         Session.validate_agents(identifiers)
         if identifiers and self.agents is SessionManager.UNSPECIFIED:
             raise RuntimeError(SessionManager.UNBOUND_AGENTS)
-        for identifier in identifiers:
-            self.agents.repository.load(project, identifier)
+        if identifiers:
+            self.agents.repository.load_many(project, identifiers)
 
     def _conversation_storage(self, session: Session) -> Optional[str]:
         """오래된 핸들의 복사본 대신 소유 프로젝트의 현재 선택을 조회한다."""

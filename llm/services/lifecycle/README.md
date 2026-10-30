@@ -22,6 +22,11 @@ ComponentRegistry는 활성화 여부를, ConfigurationValidator는 주입 검�
 
 ComponentData의 `configure/aconfigure`는 ProjectConfig의 해당 설정을 교체합니다. 저장 설정의 유일한 위치는 `parameters.components`입니다. 사용자 정의 핸들도 이 경계를 유지해야 합니다.
 
+Session 참여 Agent 확인은 `AgentRepository.load_many()`로 한 잠금 안에서 inventory를
+한 번 읽습니다. manifest·파일 목록·내용 checksum·각 record 검증은 유지하며, 호출 간
+파일 캐시는 두지 않습니다. 단일 `load()`는 검증된 record의 definition을 복사해 반환하고
+조회용 snapshot JSON을 만들었다가 다시 해석하는 중간 왕복을 하지 않습니다.
+
 서비스를 직접 조합할 필요가 없다면 [LargeLanguageModel](../../README.md) → `projects` → `sessions` → `run` 경로를 사용하세요. 동기 API를 UI 루프에서 직접 호출하는 대신 비동기 Facade를 사용합니다.
 
 [상위 안내](../README.md)

@@ -22,6 +22,7 @@ from .completion_review import TaskCompletion
 from ..interactions.question_values import QuestionTool
 from ..tools.resource_contracts import RAGAuthoring, AuthoringTool, GoalAuthoring
 from ..tools.application import HubApplicationTools
+from ..tools.repo_map_values import RepoMapArguments
 from ...components import ManagedComponents
 
 
@@ -76,7 +77,7 @@ class ToolCatalog:
         ToolTag.QUESTION: (QuestionTool.NAME,),
         ToolTag.SHELL: (ShellArguments.NAME,),
         ToolTag.RAG: (*tuple(RAGToolName), RAGAuthoring.NAME),
-        ToolTag.FILE: tuple(declaration.NAME for declaration in FileTools.ARGUMENTS),
+        ToolTag.FILE: (*tuple(declaration.NAME for declaration in FileTools.ARGUMENTS), RepoMapArguments.NAME),
         ToolTag.REPORT: (TaskCompletion.NAME,),
         ToolTag.MEMORY: (MemoryToolDefinition.Name.READ_SOURCE, MemoryToolDefinition.Name.TOOL_RESULT,
             MemoryToolDefinition.Name.SEARCH, MemoryToolDefinition.Name.GET,

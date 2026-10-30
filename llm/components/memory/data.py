@@ -195,7 +195,7 @@ class MemoryData(ComponentData):
         Compactions(self, session_id, scope, tool_id=tool_id).checkpoint(
             identifier, run_id, fingerprint, total, progress, previous_offset)
 
-    @workspace_locked
+    @workspace_locked(records=True)
     def _observe_context(self, session_id, scope, view):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope)

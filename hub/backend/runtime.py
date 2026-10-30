@@ -85,6 +85,7 @@ class HubConfig:
     project_config: dict = field(default_factory=dict)
     file_root: str | Path | None = None
     auto_title: bool = True
+    prepare_provider: bool = True
     postprocess: bool | None = None
     user_profile: UserProfile = field(default_factory=UserProfile)
     language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
@@ -96,6 +97,8 @@ class HubConfig:
     log_sink: Callable | None = None
 
     def __post_init__(self) -> None:
+        if type(self.prepare_provider) is not bool:
+            raise TypeError('prepare_provider must be a boolean')
         if self.postprocess is not None and type(self.postprocess) is not bool:
             raise TypeError('postprocess must be a boolean or None')
         Language(self.language, self.language_packs)
@@ -314,6 +317,10 @@ class HubRuntime:
         from .progress import OperationProgress
 
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_PREPARE)
+        if self._factory is create_backend:
+            from .bootstrap import prepare_backend
+
+            await prepare_backend(self.config)
         self.backend = self._factory(self.config)
         from .tools.builtin import HubBuiltinTools
 
