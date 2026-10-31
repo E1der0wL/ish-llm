@@ -142,6 +142,34 @@ class AgentStorageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'integrity mismatch'):
             self.repository.load_many(self.project, ['worker'])
 
+    def test_identical_agent_bytes_reuse_decoding_but_read_current_files(self):
+        self.create()
+        path = self.root / 'records/worker.json'
+        read_bytes = Path.read_bytes
+        with patch.object(AgentRecord, 'read', wraps=AgentRecord.read) as decode, \
+                patch.object(Path, 'read_bytes', autospec=True, side_effect=read_bytes) as read:
+            result = self.repository.load(self.project, 'worker')
+            result['engine'] = 'unsaved'
+            self.assertEqual(self.repository.load(self.project, 'worker')['engine'], 'base')
+            self.assertEqual(decode.call_count, 0)
+            self.assertEqual(sum(call.args == (path,) for call in read.call_args_list), 2)
+
+            value = AgentRecord.create(self.project.id, 'worker', {'engine': 'changed'}).to_dict()
+            for version in (1, True):
+                value['storage_version'] = version
+                raw = json.dumps(value).encode()
+                path.write_bytes(raw)
+                manifest_path = self.root / self.repository.MANIFEST
+                manifest = json.loads(manifest_path.read_bytes())
+                manifest['records']['worker'] = hashlib.sha256(raw).hexdigest()
+                manifest_path.write_text(json.dumps(manifest))
+                if type(version) is int:
+                    self.assertEqual(self.repository.load(self.project, 'worker')['engine'], 'changed')
+                else:
+                    with self.assertRaisesRegex(ValueError, 'storage_version'):
+                        self.repository.load(self.project, 'worker')
+            self.assertEqual(decode.call_count, 2)
+
     def test_concurrent_cas_has_one_winner_and_preserves_the_winning_definition(self):
         revision = self.create()['revision']
         def save(name):

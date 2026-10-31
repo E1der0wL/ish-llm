@@ -46,7 +46,7 @@ class HubSkillComponent(SkillComponent):
 
             return query
 
-        return ToolRegistry(
+        return value.derive(
             tuple(
                 (
                     replace(value.get(name), handler=off_loop(value.get(name).handler))

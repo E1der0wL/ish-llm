@@ -223,7 +223,7 @@ class ObservationReadTests(unittest.IsolatedAsyncioTestCase):
         runtime.sessions['s'].run.start.assert_awaited_once()
         self.assertEqual(runtime.selected_id, 's')
 
-    async def test_slow_snapshot_does_not_cause_back_to_back_polling(self):
+    async def test_slow_snapshot_counts_toward_rate_limit_and_preserves_pending_change(self):
         worker = BackendWorker.__new__(BackendWorker)
         worker._restarting = False
         worker._output_interval = .1
@@ -249,9 +249,10 @@ class ObservationReadTests(unittest.IsolatedAsyncioTestCase):
         try:
             async with asyncio.timeout(3):
                 await released.wait()
-                finished = asyncio.get_running_loop().time()
                 await second.wait()
-            self.assertGreaterEqual(calls[1] - finished, .08)
+            # The change arrived during the read. Its duration already consumed
+            # the frame interval; do not add another full delay after finishing.
+            self.assertGreaterEqual(calls[1] - calls[0], worker._output_interval)
         finally:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)

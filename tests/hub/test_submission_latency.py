@@ -6,15 +6,86 @@ from dataclasses import replace
 import tempfile
 from types import SimpleNamespace as NS
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from hub.backend.runtime import HubConfig
 from hub.backend.worker import BackendWorker
-from hub.model import AgentSummary, ChatMessage, HubSnapshot, SessionSummary, SubmissionResult
+from hub.model import AgentSummary, ChatMessage, HubSnapshot, SessionSummary, SubmissionResult, RunSummary, RetrySummary
 from hub.ui.live import LiveController, LiveHubView
 
 
 class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
+    def test_simultaneous_agent_clocks_advance_without_backend_reads(self):
+        view = LiveHubView()
+        messages = (
+            ChatMessage('assistant', '', id='a', status='streaming', elapsed_seconds=2),
+            ChatMessage('assistant', '', id='b', status='streaming', elapsed_seconds=1),
+        )
+        snapshot = HubSnapshot('p', 'Project', 'test/model', 'file',
+            (SessionSummary('s', 'Session', 'running'),), 's', messages)
+        try:
+            with patch('hub.widget.feedback.preparing.monotonic', return_value=100.0) as clock:
+                view.apply_snapshot(snapshot)
+                clock.return_value = 101.0
+                displayed = view.preparing.project(('p', 's'), messages)
+            self.assertEqual([message.elapsed_seconds for message in displayed], [3, 2])
+            self.assertEqual([message.elapsed_seconds for message in snapshot.messages], [2, 1])
+        finally:
+            view.close()
+
+    async def test_retry_countdown_redraws_even_when_elapsed_label_is_unchanged(self):
+        view = LiveHubView()
+        view.apply_snapshot(HubSnapshot('p', 'Project', 'test/model', 'file',
+            (SessionSummary('s', 'Session', 'idle'),), 's', (),
+            run=RunSummary('r', 'running', 'loop', 0, True, (), '', RetrySummary(1, 4, 110.1))))
+        view.visible = True
+        preparing = view.preparing
+        preparing.clocks.clear()
+        preparing.pending[('p', 's')] = None
+        preparing.started[('p', 's')] = 100.0
+        try:
+            with patch('hub.widget.feedback.preparing.monotonic', return_value=100.0) as clock, \
+                    patch('hub.widget.feedback.retry_status.monotonic', new=clock):
+                preparing._painted_clock = preparing._clock_label()
+                times = iter((100.2,))
+                async def tick(_):
+                    clock.return_value = next(times)
+                def painted():
+                    preparing.pending.clear()
+                with patch('hub.widget.feedback.preparing.asyncio.sleep', side_effect=tick) as sleep, \
+                        patch.object(preparing, 'paint', side_effect=painted) as paint:
+                    await preparing._tick()
+                sleep.assert_called_once()
+                self.assertAlmostEqual(sleep.call_args.args[0], .1)
+                paint.assert_called_once_with()
+        finally:
+            view.close()
+
+    async def test_clock_ticks_redraw_only_when_displayed_duration_changes(self):
+        view = LiveHubView()
+        view.apply_snapshot(HubSnapshot('p', 'Project', 'test/model', 'file',
+            (SessionSummary('s', 'Session', 'idle'),), 's', ()))
+        view.visible = True
+        preparing = view.preparing
+        preparing.pending[('p', 's')] = None
+        preparing.started[('p', 's')] = 100.0
+        try:
+            with patch('hub.widget.feedback.preparing.monotonic', return_value=100.0) as clock:
+                preparing._painted_clock = preparing._clock_label()
+                times = iter((100.1, 100.2, 101.1))
+                async def tick(_):
+                    clock.return_value = next(times)
+                def painted():
+                    preparing.pending.clear()
+                with patch('hub.widget.feedback.preparing.asyncio.sleep', side_effect=tick) as sleep, \
+                        patch.object(preparing, 'paint', side_effect=painted) as paint:
+                    await preparing._tick()
+                self.assertEqual(sleep.call_count, 3)
+                self.assertEqual(sleep.call_args_list[0].args[0], 1.0)
+                paint.assert_called_once_with()
+        finally:
+            view.close()
+
     async def test_preparing_header_keeps_submitted_recipients_until_durable_response(self):
         view = LiveHubView()
         base = HubSnapshot('p', 'Project', 'test/model', 'file',

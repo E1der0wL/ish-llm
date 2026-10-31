@@ -23,6 +23,46 @@ from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class ExposureTests(unittest.IsolatedAsyncioTestCase):
+    def test_catalog_reads_each_detached_definition_once(self):
+        from hub.backend.execution.tool_lookup import ToolLookup
+
+        tools = self.tools()
+        with patch.object(tools, 'get', wraps=tools.get) as get:
+            lookup = ToolLookup(tools)
+        self.assertEqual(get.call_count, len(tools.names()))
+        self.assertEqual(lookup.search('file_read')['tools'][0]['parameters'], tools.get('file_read').parameters)
+
+    def test_environment_reuses_one_catalog_only_for_its_bound_snapshot(self):
+        from hub.backend.execution.environment import EnvironmentEngine
+        from hub.backend.execution.tool_lookup import ToolLookup
+        from llm.core.models import Project, Run
+        from llm.engines.base import EngineContext
+
+        project = Project('p', 'Project', None, components=('builtin_tools',))
+        run = Run('r', 's', 'u', 'a', 'loop', None, agent_id='assistant')
+        tools = self.tools()
+        context = EngineContext(project, NS(id='s'), run, (), tools=tools,
+                                capabilities={'tools': tools})
+        engine = EnvironmentEngine(LoopEngine(), NS(name='builtin_tools'))
+        engine.routing = RequestRouting({'engine': 'loop'}, RequestProfile(RequestMode.LOOKUP))
+        bound = engine.bind_context(context)
+        first = engine.routed_engine(bound).tool_selector
+        expected = HubToolSelector(bound.tools, RequestMode.LOOKUP, discovery=True)
+        self.assertEqual(first.revision, expected.revision)
+        with patch.object(ToolLookup, '__init__', side_effect=AssertionError('Repeated catalog')):
+            rebound = engine.bind_context(context)
+            second = engine.routed_engine(rebound).tool_selector
+            self.assertIs(second.lookup, first.lookup)
+            self.assertEqual(second.revision, first.revision)
+        # A different bound registry must not borrow another selection's catalog.
+        other = replace(bound, tools=tools.select(('hub_help', 'file_read')))
+        narrower = engine.routed_engine(other).tool_selector
+        self.assertNotEqual(narrower.revision, first.revision)
+        self.assertEqual([row['name'] for row in narrower.lookup.rows], ['file_read'])
+        project.config.update(data={'changed': True})
+        rebound = engine.bind_context(context)
+        self.assertIsNot(engine.routed_engine(rebound).tool_selector.lookup, first.lookup)
+
     def tools(self):
         async def handler(arguments):
             raise AssertionError('Exposure must never invoke a handler')

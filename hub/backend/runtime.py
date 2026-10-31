@@ -263,8 +263,13 @@ class HubRuntime:
         from .project.postprocessing_values import Postprocessing
         if run.engine == Postprocessing.ENGINE:
             return
-        self.snapshot_reader.observe_engine(run, event)
         from llm.engines.events import EngineEvent, EngineEventType
+        if EngineEvent.observed_type(event) == EngineEventType.CHECKPOINT:
+            # A stored checkpoint changes resume evidence, not displayed text,
+            # Steps or interaction state. Resume always queries the public API;
+            # its receipt alone must not trigger a full conversation read.
+            return
+        self.snapshot_reader.observe_engine(run, event)
         if EngineEvent.observed_type(event) in (
             EngineEventType.INTERACTION_CHANGED, EngineEventType.PAUSED,
         ):
@@ -335,6 +340,12 @@ class HubRuntime:
                 component.questions.changed = self._questions_changed
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_STORAGE)
         await self.backend.__aenter__()
+        from .execution.retries import RetryMonitor
+
+        monitor = BackendServices.observed_sink(self.backend.services)
+        if isinstance(monitor, RetryMonitor):
+            loop = asyncio.get_running_loop()
+            monitor.changed = lambda: loop.call_soon_threadsafe(self.dirty.set)
         for channel, callback in (
             (EventChannel.ENGINE.value, self._engine_event),
             (EventChannel.RUN.value, self._run_event),
@@ -1057,5 +1068,10 @@ class HubRuntime:
         self._subscriptions.clear()
         if self.backend is not HubRuntime.ABSENT:
             await self.backend.shutdown()
+            from .execution.retries import RetryMonitor
+
+            monitor = BackendServices.observed_sink(self.backend.services)
+            if isinstance(monitor, RetryMonitor):
+                monitor.changed = None
         if self.builtin_tools:
             await self.builtin_tools.close()

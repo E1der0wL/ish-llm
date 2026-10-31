@@ -54,6 +54,15 @@ def _checked(path):
     return path
 
 
+def _relative(path, root):
+    # These are lexical paths, not cached filesystem authority. Avoid building
+    # every ancestor Path merely to remove a known absolute root prefix.
+    parts, prefix = path.parts, root.parts
+    if parts[:len(prefix)] == prefix:
+        return Path(*parts[len(prefix):])
+    return path.relative_to(root)
+
+
 def _write(path, data):
     fd, name = tempfile.mkstemp(prefix=TransactionJournal.WRITE_PREFIX, dir=path.parent)
     try:
@@ -108,7 +117,7 @@ class Transaction:
 
     def _target(self, path):
         path = _checked(path)
-        relative = path.relative_to(self.manager.root)
+        relative = _relative(path, self.manager.root)
         if WorkspacePaths.reserved(relative):
             raise ValueError(UndoOperation.RESERVED_TARGET)
         return path, relative.as_posix()
@@ -234,7 +243,12 @@ class Transaction:
 
     def owns(self, path: Path) -> bool:
         path = Path(path).absolute()
-        return self.manager.root in path.parents and self.manager.journal not in path.parents
+        parts = path.parts
+        root, journal = self.manager.root.parts, self.manager.journal.parts
+        # Strict descendants, just like membership in Path.parents. Filesystem
+        # link checks still run in _target before any record is read or written.
+        return (len(parts) > len(root) and parts[:len(root)] == root
+                and not (len(parts) > len(journal) and parts[:len(journal)] == journal))
 
     def on_rollback(self, key, callback: Callable[[], None]) -> None:
         self._rollback.setdefault(key, callback)

@@ -45,14 +45,16 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         threads = []
         def import_sdk(name):
             threads.append(threading.get_ident())
-            self.assertEqual(name, 'litellm')
+            self.assertIn(name, ('litellm', *runtime.SDKRuntime.COMPLETION_MODULES))
             self.assertEqual(__import__('os').environ['DEFAULT_MAX_RETRIES'], '0')
             return sdk
         with patch.object(runtime, '_sdk', None), patch.object(runtime, 'configure_logging'), \
                 patch.object(runtime.importlib, 'import_module', side_effect=import_sdk) as imported:
             adapter = LiteLLMCompletionAdapter()
             await asyncio.gather(adapter.ainitialize(), adapter.ainitialize())
-            self.assertEqual(imported.call_count, 1)
+            self.assertEqual([call.args[0] for call in imported.call_args_list].count('litellm'), 1)
+            for module in runtime.SDKRuntime.COMPLETION_MODULES:
+                self.assertEqual([call.args[0] for call in imported.call_args_list].count(module), 2)
             self.assertTrue(all(value != threading.get_ident() for value in threads))
             self.assertEqual(sdk.DEFAULT_MAX_RETRIES, 0)
             self.assertIs(runtime.litellm_sdk(), sdk)
@@ -68,7 +70,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         sdk = SimpleNamespace()
         with patch.object(runtime, '_sdk', None), patch.object(runtime, 'configure_logging'), \
                 patch.object(runtime, 'diagnostic_failure') as diagnostic, \
-                patch.object(runtime.importlib, 'import_module', side_effect=[failure, sdk]) as imported:
+                patch.object(runtime.importlib, 'import_module',
+                    side_effect=[failure, sdk, *([sdk] * len(runtime.SDKRuntime.COMPLETION_MODULES))]) as imported:
             adapter = LiteLLMCompletionAdapter()
             with self.assertRaises(ModuleNotFoundError) as caught:
                 await adapter.ainitialize()
@@ -78,6 +81,28 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             diagnostic.assert_called_once()
             await adapter.ainitialize()
             self.assertIs(runtime._sdk, sdk)
+
+    async def test_optional_preparation_does_not_require_unused_sdk_extensions(self):
+        from llm.providers import runtime
+        sdk = SimpleNamespace(completion=Mock(side_effect=AssertionError('inference')))
+        for error in (ImportError('optional dependency'), RuntimeError('optional SDK extension')):
+            with self.subTest(error=type(error).__name__), \
+                    patch.object(runtime, 'litellm_sdk', return_value=sdk), \
+                    patch.object(runtime, 'configure_logging'), \
+                    patch.object(runtime.importlib, 'import_module', side_effect=error):
+                await LiteLLMCompletionAdapter().ainitialize()
+        sdk.completion.assert_not_called()
+
+    def test_native_preparation_does_not_connect_or_download_tokenizers(self):
+        source = '''
+from unittest.mock import patch
+from llm.providers.litellm import LiteLLMCompletionAdapter
+with patch('socket.socket.connect', side_effect=AssertionError('network during preparation')) as connect:
+    LiteLLMCompletionAdapter().initialize()
+    connect.assert_not_called()
+'''
+        result = subprocess.run([sys.executable, '-c', source], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     async def test_final_litellm_params_and_globals(self):
         sdk = await asyncio.to_thread(litellm_sdk)

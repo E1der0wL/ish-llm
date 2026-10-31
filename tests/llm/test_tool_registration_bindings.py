@@ -19,6 +19,36 @@ CONTRACT = {"revision": "explicit", "effect": "read_only", "isolation": "none",
 
 
 class ToolRegistrationBindingTests(unittest.TestCase):
+    def test_extension_detaches_both_sides_before_exposing_definitions(self):
+        source = ToolRegistry([self.tool(SimpleNamespace())])
+        destination = ToolRegistry()
+        with patch('llm.components.tools.registry.copy_model', side_effect=AssertionError('definition copied')), \
+                patch('llm.components.tools.registry.deepcopy', side_effect=AssertionError('registry copied')):
+            destination.extend(source)
+        left, _ = source.prepare('selected', {})
+        left.parameters['description'] = 'source only'
+        self.assertNotIn('description', destination.get('selected').parameters)
+        right, _ = destination.prepare('selected', {})
+        right.parameters['description'] = 'destination only'
+        self.assertEqual(source.get('selected').parameters['description'], 'source only')
+
+    def test_extension_rechecks_mutable_handler_selection_contract(self):
+        handler = SimpleNamespace()
+        tool = replace(self.tool(handler), parameters={'type': 'object', 'properties': {'path': {'type': 'string'}}},
+                       contract=ToolContract.from_dict({**CONTRACT, 'retry_fields': ['path']}))
+        source = ToolRegistry([tool])
+        setattr(handler, ToolHandlerBindings.BIND_ARGUMENTS, lambda *args: None)
+        with self.assertRaisesRegex(ValueError, 'Durable selected Tool'):
+            ToolRegistry().extend(source)
+
+    def test_extension_preserves_instance_registration_hook(self):
+        source = ToolRegistry([self.tool(SimpleNamespace())])
+        destination = ToolRegistry()
+        with patch.object(destination, 'register', wraps=destination.register) as register:
+            destination.extend(source)
+            register.assert_called_once()
+        self.assertEqual(destination.names(), source.names())
+
     def test_preparation_reuses_only_schema_syntax_across_fresh_registries(self):
         from llm.core.schema import checked_schema, reuse_schema_checks
         schema = {'type': 'object', 'properties': {'n': {'type': 'integer', 'default': 2}}}

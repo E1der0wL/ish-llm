@@ -18,11 +18,106 @@ from llm.services.infrastructure.transactions import after_commit
 
 
 class RecordTransactionTests(unittest.TestCase):
+    def test_lexical_routing_preserves_descendants_and_checked_targets(self):
+        from llm.services.infrastructure.transactions import Transaction, _relative
+
+        transaction = Transaction(self.owner.transactions)
+        root, journal = self.owner.transactions.root, self.owner.transactions.journal
+        paths = (root, root / 'one', root / '한글 /deep/file', root.parent,
+                 root.with_name(root.name + '-other') / 'file', journal,
+                 journal / 'nested/file', root / 'one/../two')
+        for path in paths:
+            with self.subTest(path=path):
+                expected = root in path.absolute().parents and journal not in path.absolute().parents
+                self.assertEqual(transaction.owns(path), expected)
+                try:
+                    relative = path.relative_to(root)
+                except ValueError:
+                    with self.assertRaises(ValueError):
+                        _relative(path, root)
+                else:
+                    self.assertEqual(_relative(path, root), relative)
+        with self.assertRaises(ValueError):
+            transaction._target(root / 'one/../two')
+        linked = root / 'linked'
+        linked.symlink_to(root / 'missing')
+        with self.assertRaises(ValueError):
+            transaction._target(linked / 'file')
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.owner = WorkspaceOwnership(self.root)
+
+    def test_prepared_next_segment_still_fsyncs_first_frame_before_ack(self):
+        path = self.root / 'value'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                atomic_bytes(path, b'first')
+            with self.owner.scope():
+                self.owner.transactions.records.checkpoint(prepare_next=True)
+            log = self.owner.transactions.records.log
+            self.assertEqual(log.stat().st_size, 0)
+            calls, seen, original = [], [], os.fsync
+            def sync(fd):
+                calls.append(Path(os.readlink(f'/proc/self/fd/{fd}')))
+                return original(fd)
+            with patch.object(os, 'fsync', sync), self.owner.scope(records=True):
+                atomic_bytes(path, b'second')
+                after_commit(lambda: seen.append(list(calls)))
+            self.assertEqual(calls, [log])
+            self.assertEqual(seen, [[log]])
+        finally:
+            self.owner.release()
+
+    def test_failed_preparation_publication_requires_recovery_before_next_commit(self):
+        import llm.services.infrastructure.record_journal as journal_module
+
+        path = self.root / 'value'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                atomic_bytes(path, b'first')
+            original = journal_module._sync
+            def sync(target):
+                if target == self.owner.transactions.journal:
+                    raise OSError('directory publication')
+                return original(target)
+            with self.assertRaisesRegex(OSError, 'publication'), patch.object(journal_module, '_sync', sync):
+                with self.owner.scope():
+                    self.owner.transactions.records.checkpoint(prepare_next=True)
+            self.assertFalse(self.owner.transactions.records.ready)
+            with self.owner.scope(records=True):
+                self.assertEqual(path.read_bytes(), b'first')
+                atomic_bytes(path, b'second')
+            self.assertEqual(path.read_bytes(), b'second')
+        finally:
+            self.owner.release()
+
+    def test_prepared_segment_recovers_after_crash_with_or_without_new_commit(self):
+        for committed in (False, True):
+            with self.subTest(committed=committed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                path = root / 'value'
+                pid = os.fork()
+                if pid == 0:
+                    owner = WorkspaceOwnership(root)
+                    owner.retain()
+                    with owner.scope(records=True):
+                        atomic_bytes(path, b'first')
+                    with owner.scope():
+                        owner.transactions.records.checkpoint(prepare_next=True)
+                    if committed:
+                        with owner.scope(records=True):
+                            atomic_bytes(path, b'second')
+                        path.write_bytes(b'first')  # Loss of an unsynchronized projection.
+                    os._exit(73)
+                _, status = os.waitpid(pid, 0)
+                self.assertEqual(os.waitstatus_to_exitcode(status), 73)
+                with WorkspaceOwnership(root).scope():
+                    self.assertEqual(path.read_bytes(), b'second' if committed else b'first')
 
     def test_existing_segment_uses_one_fsync_per_commit_before_observer(self):
         path = self.root / 'value'

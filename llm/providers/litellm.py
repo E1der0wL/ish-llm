@@ -144,9 +144,9 @@ class LiteLLMCompletionAdapter:
         owns its initialization and must not load an unused LiteLLM dependency.
         """
         if self.completion_fn is completion:
-            from .runtime import litellm_sdk
+            from .runtime import prepare_completion
 
-            litellm_sdk()
+            prepare_completion()
 
     async def ainitialize(self) -> None:
         """Prepare off-loop, using the SDK runtime's existing import lock/cache."""

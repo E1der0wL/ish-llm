@@ -22,6 +22,27 @@ from llm.providers.litellm import LiteLLMCompletionAdapter
 
 
 class SchemaReuseTests(unittest.TestCase):
+    def test_seeded_nested_owners_share_only_used_syntax_proofs(self):
+        first = object_schema({'n': {'type': 'integer'}})
+        second = object_schema({'value': {'type': 'string'}})
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            with reuse_schema_checks() as outer:
+                checked_schema(first)
+                with reuse_schema_checks(previous=()) as inner:
+                    checked_schema(first)
+                    checked_schema(second)
+                checked_schema(second)
+                self.assertEqual(len(inner), 2)
+                self.assertEqual(len(outer), 2)
+            with reuse_schema_checks(previous=frozenset(outer)):
+                with reuse_schema_checks(previous=()):
+                    checked_schema(second)
+                changed = deepcopy(second)
+                changed['properties']['value']['type'] = 'not-a-type'
+                with self.assertRaises(SchemaError):
+                    checked_schema(changed)
+            self.assertEqual(check.call_count, 3)
+
     def test_exact_proofs_are_nested_detached_and_operation_local(self):
         value = object_schema({'n': {'type': 'integer'}})
         with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:

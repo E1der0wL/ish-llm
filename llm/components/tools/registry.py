@@ -110,11 +110,7 @@ class ToolRegistry:
         ToolDefinition.require_object_parameters(schema)
         if set(tool.contract.retry_fields) - schema.get(SchemaKeyword.PROPERTIES, {}).keys():
             raise ValueError(self.INVALID_RETRY_FIELDS)
-        # A durable selected child cannot change identity through argument repair.
-        # A new selection requires a new invocation and its own approval binding.
-        if (tool.contract.retry_fields
-                and ToolHandlerBindings.declares_selection(tool.handler)):
-            raise ValueError(self.DURABLE_RETRY_FIELDS)
+        self._validate_selection(tool)
         try:
             JsonObject.validate(schema)
             schema_key = json.dumps(schema, allow_nan=False)
@@ -221,8 +217,39 @@ class ToolRegistry:
 
     def extend(self, other: "ToolRegistry") -> None:
         self._schemas.update(other._schemas)
-        for tool in other._tools.values():
-            self.register(tool)
+        # Custom registration/copy hooks retain their full public behavior.
+        # Native, unexposed definitions can use the same copy-on-write contract
+        # as copy(); prepare() detaches before exposing either registry's Tool.
+        if (getattr(self.register, '__func__', None) is not ToolRegistry.register
+                or getattr(other.register, '__func__', None) is not ToolRegistry.register
+                or getattr(other.copy, '__func__', None) is not ToolRegistry.copy):
+            for tool in other._tools.values():
+                self.register(tool)
+            return
+        with other._definition_lock:
+            entries = tuple((name, tool, name not in other._exposed)
+                            for name, tool in other._tools.items())
+            other._shared.update(name for name, _, shared in entries if shared)
+        # Do not deep-copy an entire registry merely to extend its definitions.
+        # Release the source lock before locking the destination (A.extend(B)
+        # and B.extend(A) must not introduce opposite lock acquisition orders).
+        with self._definition_lock:
+            for name, tool, shared in entries:
+                if not shared:
+                    self.register(tool)
+                    continue
+                if name in self._tools:
+                    raise ValueError(self.INVALID_NAME)
+                # Handler capabilities can change even when its definition has not.
+                self._validate_selection(tool)
+                self._tools[name] = tool
+                self._shared.add(name)
+
+    def _validate_selection(self, tool):
+        # A durable selected child cannot change identity through argument repair.
+        # A new selection requires a new invocation and its own approval binding.
+        if tool.contract.retry_fields and ToolHandlerBindings.declares_selection(tool.handler):
+            raise ValueError(self.DURABLE_RETRY_FIELDS)
 
     def prepare(self, name: str, arguments: dict, *, constraints=NO_CONSTRAINTS) -> tuple[Tool, dict[str, Any]]:
         """Validate before executing any tool in a returned batch."""

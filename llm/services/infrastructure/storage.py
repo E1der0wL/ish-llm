@@ -491,7 +491,7 @@ class StorageIO:
 
     async def checkpoint(self):
         """Settle materialized records at an owner-declared boundary, under the same lock/drain rules."""
-        await self.run(self.ownership.transactions.records.checkpoint)
+        await self.run(self.ownership.transactions.records.checkpoint, prepare_next=True)
 
     async def _run(self, records, operation, args, kwargs):
         if self._serial is self.UNBOUND:

@@ -1,6 +1,6 @@
 """Keep the LLM loop alive between ish's repeated prompt_async invocations."""
 
-from ..model import SnapshotActivity
+from .observability.reads import ObservationReads
 from .callbacks import CommandCallbacks
 from ..config.preferences import PreferencesStore
 import asyncio
@@ -39,11 +39,8 @@ class BackendWorker:
     SNAPSHOT_COUNT_FIELD = "snapshot_count"
     DEFAULT_OUTPUT_INTERVAL = 0.1
     RESTART_POLL = 0.1
-    IDLE_MIN_INTERVAL = 0.5
-    IDLE_MAX_INTERVAL = 2.0
-    IDLE_FACTOR = 10
+    RECONCILE_INTERVAL = ObservationReads.RECONCILE_SECONDS
     HIDDEN_INTERVAL = 1.0
-    MIN_TIMEOUT = 0
     CLEANUP_RESULT = -1
     THREAD_NAME = "hub-backend"
     DAEMON = True
@@ -157,8 +154,10 @@ class BackendWorker:
                 with OperationProgress.bind(self._report_startup):
                     await self.runtime.start()
                     OperationProgress.report(MessageKey.PROGRESS_BACKEND_HISTORY)
-                    self.publish(await self.runtime.snapshot())
-                refresher = asyncio.create_task(self._refresh())
+                    self.runtime.dirty.clear()
+                    initial = await self.runtime.snapshot()
+                    self.publish(initial)
+                refresher = asyncio.create_task(self._refresh(initial))
             except Exception as error:
                 self._failure = error
                 self.report_error(
@@ -250,55 +249,60 @@ class BackendWorker:
             if changed:
                 self.runtime.dirty.set()
 
-    async def _refresh(self) -> None:
-        last = BackendWorker.ABSENT
+    async def _refresh(self, initial=None) -> None:
+        last = initial
         preempt = True
         loop = asyncio.get_running_loop()
-        last_read = loop.time()
+        last_read = loop.time() if initial is not None or not self._visible else -float('inf')
+        reconcile_at = loop.time() + self.RECONCILE_INTERVAL
+        if initial is None:
+            self.runtime.dirty.set()
         while True:
             if self._restarting:
                 await asyncio.sleep(BackendWorker.RESTART_POLL)
                 continue
-            dirty = self.runtime.dirty.is_set()
-            self.runtime.dirty.clear()
-            active = SnapshotActivity.pending(last)
-            # Idle reconciliation is a safety net. Events wake it immediately,
-            # throttled only by the configured output interval.
-            deadline = last_read + (
-                self._refresh_interval()
-                if active or dirty
-                else max(
-                    BackendWorker.IDLE_MIN_INTERVAL,
-                    min(
-                        BackendWorker.IDLE_MAX_INTERVAL,
-                        self._refresh_interval() * BackendWorker.IDLE_FACTOR,
-                    ),
-                )
-            )
+            # Events request observations; the interval is only a rate ceiling.
+            # Quiet active Runs do not poll at the streaming frame rate. Keep a
+            # separate, low-frequency reconciliation for external API edits and
+            # subscription loss (neither is execution authority).
+            if not self.runtime.dirty.is_set():
+                try:
+                    async with asyncio.timeout(max(0, reconcile_at - loop.time())):
+                        await self.runtime.dirty.wait()
+                except TimeoutError:
+                    pass
             while True:
                 self._interval_changed.clear()
+                deadline = last_read + self._refresh_interval()
                 if loop.time() >= deadline:
                     break
-                wake = asyncio.create_task(self.runtime.dirty.wait())
-                changed = asyncio.create_task(self._interval_changed.wait())
+                # Leave dirty set until the read begins. A burst is one pending
+                # frame, not a debounce that postpones the final update forever.
+                wake = changed = None
                 try:
-                    done, _ = await asyncio.wait(
-                        (wake, changed),
-                        timeout=max(BackendWorker.MIN_TIMEOUT, deadline - loop.time()),
-                        return_when=asyncio.FIRST_COMPLETED,
-                    )
-                    if not done:
-                        break
-                    self.runtime.dirty.clear()
-                    deadline = last_read + self._refresh_interval()
+                    if not self._visible:
+                        # Hidden frames have a slower ceiling. A lifecycle or
+                        # interaction signal must be able to shorten that wait.
+                        # The pending read is already retained by this loop.
+                        self.runtime.dirty.clear()
+                        wake = asyncio.create_task(self.runtime.dirty.wait())
+                        changed = asyncio.create_task(self._interval_changed.wait())
+                        await asyncio.wait((wake, changed), timeout=deadline - loop.time(),
+                                           return_when=asyncio.FIRST_COMPLETED)
+                    else:
+                        async with asyncio.timeout(deadline - loop.time()):
+                            await self._interval_changed.wait()
+                except TimeoutError:
+                    break
                 finally:
-                    wake.cancel()
-                    changed.cancel()
-                    await asyncio.gather(
-                        wake, changed, return_exceptions=BackendWorker.CAPTURE_ERRORS
-                    )
+                    if wake is not None:
+                        wake.cancel()
+                        changed.cancel()
+                        await asyncio.gather(wake, changed, return_exceptions=True)
             try:
+                self.runtime.dirty.clear()
                 self.runtime.urgent_observation = False
+                last_read = loop.time()
                 self._snapshot_task = asyncio.create_task(self._read_snapshot())
                 try:
                     snapshot = await self._await_snapshot(preempt=preempt)
@@ -312,8 +316,7 @@ class BackendWorker:
                     continue
                 finally:
                     self._snapshot_task = BackendWorker.ABSENT
-                    # Slow reads must not make the next poll immediately overdue.
-                    last_read = loop.time()
+                    reconcile_at = loop.time() + self.RECONCILE_INTERVAL
                 preempt = True
                 if snapshot != last:
                     self.publish(snapshot)

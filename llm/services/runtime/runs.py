@@ -1388,8 +1388,7 @@ class RunManager:
         return self._store_instance
 
     def _prepare(self):
-        project = self.sessions._owner(self._session)
-        current = self.sessions.load(project, self._session.id)
+        project, current = self.sessions._current(self._session)
         if current.status == SessionStatus.DELETED:
             raise ValueError(RunManager.SESSION_DELETED)
         return project, current
@@ -1509,12 +1508,23 @@ class RunManager:
                 recovered = self._recover(fresh)
                 queued = [message.id for message in self._store(fresh).list() if is_queued_request(message)]
                 log_event(fresh.paths.logs, RuntimeLogEvent.STARTED, entity_id=fresh.id, count=len(queued))
+                from llm.services.infrastructure.activity import prepare_activity
+                from llm.services.infrastructure.transactions import after_commit
+
+                after_commit(lambda: prepare_activity(owner.paths))
                 return owner, fresh, queued, recovered
             except BaseException:
                 self.sessions.detach_runtime(fresh)
                 raise
 
         project, current, queued, recovered = await self._io.run_records(recover)
+        try:
+            # Prepare the journal name during explicit runtime startup. Request
+            # data is still fsynced when admitted, never acknowledged in advance.
+            await self._io.checkpoint()
+        except BaseException:
+            await self._io.run(self.sessions.detach_runtime, current)
+            raise
         for run in recovered:
             await self._publish_run(run)
         runtime = SessionRuntime(deepcopy(project), current)

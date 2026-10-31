@@ -22,7 +22,7 @@ from hub.ui.application import create_application
 from hub.widget.forms.component_manager import ComponentManager
 from hub.widget.forms.record_manager import RecordManager
 from llm.components.rag.component import RAGConflictError
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import SizedOutput, backend_ready, eventually
 from tests.hub.test_components import config as rag_config
 
 
@@ -37,7 +37,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected, timeout=10)
+                await backend_ready(lambda: view.connected, "component manager backend connection")
                 # The first visit loads the catalog/project; later visits reuse drafts.
                 for name in ("tools", "skills", "mcp", "rag", "workflows", "agents", "prompts", "memory", "tools"):
                     with self.subTest(component=name):
@@ -63,8 +63,10 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         pipe.send_text("\r")
                         # The first visit resolves the full backend schemas,
                         # including path grants and retained-output options.
-                        await eventually(lambda: view.settings_open and view._dialog is None and not screen.busy,
-                                         timeout=10)
+                        await backend_ready(
+                            lambda: view.settings_open and view._dialog is None and not screen.busy,
+                            "component settings schema load",
+                        )
                         page = screen.page
                         self.assertEqual(page.identifier, view.project_id)
                         self.assertEqual(page.section, "component:" + name)
@@ -97,7 +99,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected, timeout=10)
+                await backend_ready(lambda: view.connected, "record manager backend connection")
                 view.composer.text = "/skill"
                 view.composer.buffer.cancel_completion()
                 pipe.send_text("\r")
@@ -117,8 +119,13 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 from prompt_toolkit.application.current import set_app
                 with set_app(app):
                     popup.open_settings()
-                await eventually(lambda: view.settings_open and view._dialog is None and
-                                 view.settings.page is not None and not view.settings.busy)
+                # Schema retrieval is a backend transition. The keyboard and
+                # completion checks above retain their short UI deadlines.
+                await backend_ready(
+                    lambda: view.settings_open and view._dialog is None and
+                            view.settings.page is not None and not view.settings.busy,
+                    "record manager settings schema load",
+                )
                 self.assertEqual(view.settings.page.query, "")
                 self.assertEqual(view.settings.page.section, "component:skills")
             finally:

@@ -1,4 +1,4 @@
-"""Immediate feedback, periodic observations, incremental layout and queue cancellation."""
+"""Immediate feedback, signal-driven observations, incremental layout and queue cancellation."""
 
 import asyncio
 from dataclasses import replace
@@ -63,7 +63,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
                 view.close()
                 view.progress.close()
 
-    async def test_periodic_reads_without_events_use_configured_cadence(self):
+    async def test_changed_reads_use_rate_ceiling_without_post_read_delay(self):
         reads = []
         async def snapshot():
             reads.append(asyncio.get_running_loop().time())
@@ -77,16 +77,23 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
         worker._interval_changed = asyncio.Event()
         worker.publish = Mock()
         worker.report_error = Mock()
+        async def changes():
+            while True:
+                await asyncio.sleep(.02)
+                worker.runtime.dirty.set()
+        producer = asyncio.create_task(changes())
         task = asyncio.create_task(worker._refresh())
         try:
             async with asyncio.timeout(.8):
                 while len(reads) < 4:
                     await asyncio.sleep(.005)
             self.assertLess(reads[3] - reads[0], .5)
+            self.assertTrue(all(right - left >= .09 for left, right in zip(reads, reads[1:])))
             worker.report_error.assert_not_called()
         finally:
             task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
+            producer.cancel()
+            await asyncio.gather(task, producer, return_exceptions=True)
 
     def test_preparation_survives_stale_snapshot_and_stops_on_own_response(self):
         view = LiveHubView()

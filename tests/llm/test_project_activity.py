@@ -19,7 +19,7 @@ from llm.engines.graph import GraphEngine
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.llm import LargeLanguageModel
 from llm.providers.requests import ProviderError, invoke
-from llm.services.infrastructure.activity import activity_event, read_activity, _recent_lines
+from llm.services.infrastructure.activity import activity_event, read_activity, _recent_lines, prepare_activity
 from llm.services.infrastructure.storage import atomic_json
 from llm.services.infrastructure.transactions import TransactionManager, current_transaction
 from tests.llm.support.runtime_tools import TEST_CONTRACT
@@ -40,6 +40,20 @@ class ActivityStorageTests(unittest.TestCase):
 
     def append(self):
         activity_event(self.project, self.run, "run.started", time=now(), status="running")
+
+    def test_preparation_creates_no_activity_and_preserves_existing_index(self):
+        prepare_activity(self.project.paths)
+        self.assertEqual(self.path.read_bytes(), b'')
+        self.assertEqual(read_activity(self.project.paths), ())
+        self.append()
+        before = self.path.read_bytes()
+        prepare_activity(self.project.paths)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_preparation_failure_remains_best_effort(self):
+        with patch('llm.services.infrastructure.activity.sync_directory', side_effect=OSError('disk')), \
+                self.assertWarns(RuntimeWarning):
+            prepare_activity(self.project.paths)
 
     def test_contract_is_frozen_and_allowlisted(self):
         self.append()

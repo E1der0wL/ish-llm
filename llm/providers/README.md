@@ -15,7 +15,9 @@ SDK를 미리 불러온다. 애플리케이션이 호출 시점을 결정하며 
 비동기 API는 import를 이벤트 루프 밖에서 수행하고 기존 runtime lock/cache를 공유한다.
 모델 요청·인증 확인·연결 probe를 보내거나 timeout/retry/inference 설정을 만들지 않는다.
 주입한 `completion_fn`은 자체 초기화를 소유하므로 이 API에서 LiteLLM을 불러오지 않는다.
-import 실패는 그대로 전달하며 다음 명시적 호출에서 다시 준비할 수 있다.
+기본 LiteLLM import 실패는 그대로 전달하며 다음 명시적 호출에서 다시 준비할 수 있다.
+선택적인 사전 import 실패는 준비 단계만 건너뛰며, 실제 요청이 그 경로를 사용하면 SDK의
+정상 오류 경로로 전달된다. 취소·프로세스 종료 예외는 이 선택적 처리에서 잡지 않는다.
 
 ## 파일 안내
 
@@ -84,16 +86,21 @@ SDK를 외부 코드가 먼저 import했다면 이미 발생한 초기화 fetch�
 
 ```python
 import asyncio
-from llm.providers.runtime import litellm_sdk
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 # LiteLLM 사용을 선택한 host의 명시적 준비 단계. 추론 요청/인증 확인이 아니다.
-await asyncio.to_thread(litellm_sdk)
+adapter = LiteLLMCompletionAdapter()
+await asyncio.to_thread(adapter.initialize)
 ```
 
-이 호출은 이벤트 루프 밖에서 SDK import와 위 초기화 불변식을 적용한다. 이미 초기화된
-SDK를 재사용하며 실패는 기존 `initialize` / `sdk_import` 진단으로 전달된다.
-다른 adapter는 해당 구현의 초기화 경계를 사용한다. SDK가 첫 실제 요청에서 추가로
-지연 import하는 부분까지 모두 준비되거나, 서버 연결이 검증되었다는 보장은 없다.
+이 호출은 이벤트 루프 밖에서 SDK import와 위 초기화 불변식을 적용한다. Native completion
+adapter는 `prepare_completion()`을 통해 측정에서 확인한 HTTP/OpenAI, MCP routing, 파일 참조
+처리 모듈의 지연 import도 준비한다. 네트워크 접속·인증·시험 추론·tokenizer 다운로드는 하지 않는다.
+주입 transport는 자체 초기화를 소유하며 사용하지 않는 LiteLLM을 import하지 않는다.
+이미 초기화된 SDK를 재사용하며 필수 SDK import 실패는 기존 `initialize` / `sdk_import` 진단으로
+전달된다. 선택적 SDK 경로의 ImportError는 준비 단계에서 필수 의존성으로 바꾸지 않으며, 실제
+호출에 필요하면 SDK가 그 호출에서 검사한다. 다른 adapter는 해당 구현의 초기화 경계를 사용한다.
+SDK 버전별 모든 지연 import나 첫 서버 연결 비용까지 제거했다는 보장은 없다.
 
 LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적용한다.
 `litellm_sdk()`는 import 후와 매 진입 시 `sdk.DEFAULT_MAX_RETRIES = 0`도 적용한다.

@@ -14,6 +14,7 @@ from typing import Optional
 from llm.core.contracts import ProjectActivityEvent, ResourceRef
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import append_bytes, reject_links
+from llm.services.infrastructure.storage import sync_directory
 from llm.services.infrastructure.transactions import after_commit
 
 
@@ -80,6 +81,26 @@ def _append(paths, value):
             ).encode(ActivityIndex.ENCODING)
             + ActivityIndex.LINE_END,
         )
+    except Exception:
+        _warn()
+
+
+def prepare_activity(paths):
+    """Prepare an empty derived-index name during runtime startup, best effort.
+
+    No activity or execution fact is invented. Every later append still fsyncs
+    its actual contents; readers already treat an empty index as no activity.
+    """
+    try:
+        path = _path(paths)
+        if path.exists():
+            return
+        if not paths.root.is_dir():
+            raise ValueError(ActivityIndex.MISSING_ROOT)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open('xb'):
+            pass
+        sync_directory(path.parent)
     except Exception:
         _warn()
 

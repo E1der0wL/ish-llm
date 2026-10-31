@@ -672,9 +672,9 @@ MESSAGES = {
     MessageKey.SETTINGS_THEME_COMMENT2: "주석 색 2",
     MessageKey.SETTINGS_SIDEBAR_WIDTH_TITLE: "좌측 패널 너비",
     MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL: "출력창 갱신 간격 (초)",
-    MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION: "응답 스트리밍을 묶어 갱신하는 간격. 0.01~10초, 기본 0.1초. 저장 즉시 적용하며 요청 접수와 키 입력은 지연시키지 않습니다.",
+    MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION: "변경 신호를 모아 출력하는 최소 간격으로 최대 갱신 빈도를 제한합니다. 기본 0.1초는 최대 초당 10회입니다. 변경이 없으면 스트리밍 조회를 반복하지 않습니다. 0.01~10초, 저장 즉시 적용하며 요청 접수와 키 입력은 지연시키지 않습니다.",
     MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL: "로딩 바 갱신 간격 (초)",
-    MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL_DESCRIPTION: "로딩 바·스피너 애니메이션 갱신 간격. 0.01~10초, 기본 0.1초. 설정·대화 화면에 저장 즉시 적용됩니다.",
+    MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL_DESCRIPTION: "로딩 바 변경과 활성 스피너 애니메이션의 최대 갱신 빈도를 제한하는 간격. 기본 0.1초는 최대 초당 10회입니다. 진행 작업이 없으면 타이머를 사용하지 않습니다. 0.01~10초, 저장 즉시 적용됩니다.",
     MessageKey.RESPONSE_FAILED: "응답을 완료하지 못했습니다.",
     MessageKey.RESPONSE_EMPTY: "모델이 최종 답변 본문을 반환하지 않았습니다. 제공된 생각 과정이 있다면 위에 유지됩니다.",
 

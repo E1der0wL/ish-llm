@@ -3,12 +3,17 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import SchemaError, ValidationError
 
 from llm.components.base import Component
 from llm.components.definitions import DefinitionComponent
 from llm.components.registry import ComponentRegistry, ComponentDependencyError
 from llm.components.rag import RAGComponent
-from llm.core.schema import open_schema
+from llm.core.schema import open_schema, validate_schema
 from llm.llm import LargeLanguageModel
 
 
@@ -22,6 +27,34 @@ class B(Component):
 
 
 class ComponentDependencyTests(unittest.TestCase):
+    def test_export_reuses_syntax_but_rechecks_current_values_and_changed_schema(self):
+        class Export(B):
+            capabilities = ('value',)
+            schema = {'type': 'integer'}
+            calls = 0
+
+            def resolve(self, project, capability):
+                self.calls += 1
+                validate_schema(self.schema)
+                Draft202012Validator(self.schema).validate(project.value)
+                return project.value
+
+        owner = Export()
+        registry = ComponentRegistry((owner,))
+        project = SimpleNamespace(components=('b',), value=1)
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            self.assertEqual(registry.resolve(project, 'value'), (1,))
+            self.assertEqual(registry.resolve(project, 'value'), (1,))
+            self.assertEqual((owner.calls, check.call_count), (2, 1))
+            project.value = 'invalid'
+            with self.assertRaises(ValidationError):
+                registry.resolve(project, 'value')
+            self.assertEqual((owner.calls, check.call_count), (3, 1))
+            owner.schema = {'type': 'unsupported'}
+            with self.assertRaises(SchemaError):
+                registry.resolve(project, 'value')
+            self.assertEqual((owner.calls, check.call_count), (4, 2))
+
     def test_definition_default_and_explicit_open(self):
         class Closed(DefinitionComponent):
             name = directory = "closed"

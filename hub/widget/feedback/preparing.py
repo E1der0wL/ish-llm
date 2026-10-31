@@ -47,6 +47,7 @@ class PreparingResponse:
         self.clocks = {}
         self.resuming = {}
         self._ticker = self.ABSENT
+        self._painted_clock = self.ABSENT
 
     def visible(self):
         view = self.view
@@ -103,13 +104,45 @@ class PreparingResponse:
 
     async def _tick(self):
         while self.pending or self.clocks:
-            await asyncio.sleep(self.view.theme.output_refresh_interval)
-            if self.view.visible:
+            await asyncio.sleep(self._next_clock_change())
+            if self.view.visible and self._clock_label() != self._painted_clock:
                 self.paint()
 
-    def project(self, key, messages):
-        messages = self.view.question.project(key, messages)
-        clock = self.clocks.get(key)
+    def _next_clock_change(self):
+        """Generate a signal at the next displayed second, not every frame."""
+        key = SessionIdentity.current(self.view).to_tuple()
+        now = monotonic()
+        delays = [1.0]
+        if key in self.pending:
+            delays.append(1.0 - (now - self.started[key]) % 1.0)
+        for clock in self.clocks.get(key, {}).values():
+            delays.append(1.0 - (clock.elapsed_seconds + now - clock.observed_at) % 1.0)
+        snapshot = HubSnapshot.last_observed(self.view)
+        run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
+        if run and run.active and run.retry and run.retry.retry_at is not None:
+            remaining = run.retry.retry_at - now
+            if remaining > 0:
+                delays.append(remaining % 1.0 or 1.0)
+        return max(self.view.theme.output_refresh_interval, min(delays))
+
+    def _clock_label(self):
+        """Only a changed displayed duration needs a timer-driven redraw.
+
+        The locale owns duration precision. Submission/lifecycle changes still
+        call paint directly; this never delays a backend observation.
+        """
+        key = SessionIdentity.current(self.view).to_tuple()
+        now = monotonic()
+        clocks = self.clocks.get(key, {})
+        return (
+            key,
+            self.view.t.elapsed(now - self.started[key]) if key in self.pending else self.ABSENT,
+            tuple((clock.message_id, self.view.t.elapsed(clock.elapsed_seconds + now - clock.observed_at))
+                  for clock in clocks.values()),
+            self._activity(key),
+        )
+
+    def _activity(self, key):
         snapshot = HubSnapshot.last_observed(self.view)
         run = (
             snapshot.run
@@ -118,26 +151,36 @@ class PreparingResponse:
         )
         from .retry_status import retry_text
 
-        activity = retry_text(
+        return retry_text(
             run.retry if run and run.active else self.ABSENT, self.view.t
         )
+
+    def project(self, key, messages):
+        messages = self.view.question.project(key, messages)
+        clocks = dict(self.clocks.get(key, {}))
+        activity = self._activity(key)
+        updates = {}
+        last = True
+        now = monotonic()
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
             if (
                 message.role == MessageRole.ASSISTANT
                 and message.status in self.ACTIVE_STATES
             ):
+                clock = clocks.pop(message.id, None)
                 elapsed = (
-                    clock.elapsed_seconds + monotonic() - clock.observed_at
-                    if clock and message.id == clock.message_id
+                    clock.elapsed_seconds + now - clock.observed_at
+                    if clock
                     else message.elapsed_seconds
                 )
-                messages = (
-                    *messages[:index],
-                    replace(message, elapsed_seconds=elapsed, activity=activity),
-                    *messages[index + 1 :],
-                )
-                break
+                updates[index] = replace(message, elapsed_seconds=elapsed,
+                                         activity=activity if last else message.activity)
+                last = False
+                if not clocks:
+                    break
+        if updates:
+            messages = tuple(updates.get(index, message) for index, message in enumerate(messages))
         if key in self.pending:
             if key in self.resuming:
                 # Resume changes the existing response header, never its position
@@ -191,6 +234,7 @@ class PreparingResponse:
         )
 
     def paint(self):
+        self._painted_clock = self._clock_label()
         view = self.view
         session = view.sessions[view.selected]
         key = (HubSnapshot.project_identifier(view), session.id)
@@ -236,17 +280,15 @@ class PreparingResponse:
             if SessionIdentity(k).project_id == snapshot.project_id
             and any(s.id == SessionIdentity(k).session_id for s in snapshot.sessions)
         }
-        last = next(
-            (m for m in reversed(snapshot.messages) if m.role == MessageRole.ASSISTANT),
-            self.ABSENT,
-        )
-        if (
-            last
-            and last.role == MessageRole.ASSISTANT
-            and last.status in self.ACTIVE_STATES
-            and last.elapsed_seconds is not self.ABSENT
-        ):
-            self.clocks[key] = ResponseClock(last.id, last.elapsed_seconds, monotonic())
+        observed_at = monotonic()
+        clocks = {
+            message.id: ResponseClock(message.id, message.elapsed_seconds, observed_at)
+            for message in snapshot.messages
+            if message.role == MessageRole.ASSISTANT and message.status in self.ACTIVE_STATES
+            and message.elapsed_seconds is not None
+        }
+        if clocks:
+            self.clocks[key] = clocks
         else:
             self.clocks.pop(key, self.ABSENT)
         if key in self.resuming:

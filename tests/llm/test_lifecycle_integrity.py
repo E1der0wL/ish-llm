@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from llm.components.memory import MemoryComponent
 from llm.components.registry import ComponentRegistry
@@ -17,7 +18,7 @@ from llm.services.lifecycle.sessions import SessionManager
 from tests.llm import test_usage_deletion
 from tests.llm import test_persistence
 from tests.llm import test_refinement
-from llm.core.models import Run, Step, new_id
+from llm.core.models import Project, Run, Step, new_id
 from llm.services.runtime.runs import RunRepository
 from llm.services.lifecycle.steps import StepRepository
 
@@ -34,6 +35,26 @@ class StoredIdentityTests(unittest.TestCase):
             SessionManager(), components=registry)
         self.project = self.projects.create('integrity', components=['memory'])
 
+    def test_current_session_uses_one_fresh_owner_and_rejects_deleted_project(self):
+        sessions = self.projects.sessions
+        session = sessions.create(self.project, title='stored')
+        session.title = 'stale handle'
+        repository = self.projects.repository
+        with patch.object(repository, 'load', wraps=repository.load) as load:
+            owner, current = sessions._current(session)
+            self.assertEqual(load.call_count, 1)
+            self.assertEqual(current.title, 'stored')
+            owner.config.data['fresh'] = True
+            repository.save(owner)
+            load.reset_mock()
+            refreshed, _ = sessions._current(session)
+            self.assertTrue(refreshed.config.data['fresh'])
+            self.assertEqual(load.call_count, 1)
+        owner.deleted = True
+        repository.save(owner)
+        with self.assertRaisesRegex(ValueError, 'Project is deleted'):
+            sessions._current(session)
+
     def test_project_deleted_field_is_required_and_boolean(self):
         path = self.project.paths.root / 'project.json'
         original = json.loads(path.read_text())
@@ -49,6 +70,45 @@ class StoredIdentityTests(unittest.TestCase):
                     with self.assertRaises((ValueError, TypeError, KeyError)):
                         read()
                     self.assertEqual(path.read_bytes(), before)
+
+    def test_current_session_preserves_public_reader_hooks(self):
+        sessions = self.projects.sessions
+        session = sessions.create(self.project, title='custom reader')
+        with patch.object(sessions, 'load', wraps=sessions.load) as load:
+            owner, current = sessions._current(session)
+            load.assert_called_once_with(owner, session.id)
+            self.assertEqual(current.id, session.id)
+        with patch.object(sessions, 'load', side_effect=PermissionError('custom reader denied')):
+            with self.assertRaisesRegex(PermissionError, 'custom reader denied'):
+                sessions._current(session)
+
+    def test_project_decoding_reuses_content_but_not_mutations_or_agent_integrity(self):
+        repository = self.projects.repository
+        repository.load(self.project.id)
+        with patch.object(Project, 'from_record', wraps=Project.from_record) as decode:
+            loaded = repository.load(self.project.id)
+            loaded.config.data['unsaved'] = True
+            self.assertNotIn('unsaved', repository.load(self.project.id).config.data)
+            self.assertEqual(decode.call_count, 0)
+
+            path = self.project.paths.record
+            data = json.loads(path.read_bytes())
+            data['title'] = 'changed on disk'
+            path.write_text(json.dumps(data))
+            self.assertEqual(repository.load(self.project.id).title, 'changed on disk')
+            self.assertEqual(decode.call_count, 1)
+            # JSON identity must not equate a valid false with invalid integer 0.
+            data['deleted'] = 0
+            path.write_text(json.dumps(data))
+            with self.assertRaises((ValueError, TypeError)):
+                repository.load(self.project.id)
+            self.assertEqual(decode.call_count, 2)
+
+            data['deleted'] = False
+            path.write_text(json.dumps(data))
+            repository.agents.root(self.project).joinpath(repository.agents.MANIFEST).unlink()
+            with self.assertRaises((ValueError, OSError)):
+                repository.load(self.project.id)
 
     def test_memory_missing_identity_is_not_reissued_on_read_or_reselection(self):
         path = self.memory.root(self.project) / 'identity.json'

@@ -42,10 +42,13 @@ class InvocationMode:
 class HubToolSelector:
     VERSION = "hub.tool_exposure.v1"
 
-    def __init__(self, tools, mode, *, groups=None, discovery=False, constraints=None):
-        self.catalog = ToolCatalog.from_registry(tools, extra_groups=groups)
+    def __init__(self, tools, mode, *, groups=None, discovery=False, constraints=None, lookup=None):
+        self.lookup = None
+        if discovery:
+            self.lookup = lookup if lookup is not None else ToolLookup(tools, groups=groups, constraints=constraints)
+        self.catalog = (self.lookup.catalog if self.lookup is not None
+                        else ToolCatalog.from_registry(tools, extra_groups=groups))
         self.mode = InvocationMode(mode)
-        self.lookup = ToolLookup(tools, groups=groups, constraints=constraints) if discovery else None
         self.revision = revision_token({
             'version': self.VERSION, 'mode': mode,
             'catalog': [(entry.name, sorted(entry.tags)) for entry in self.catalog.entries],

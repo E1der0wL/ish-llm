@@ -282,8 +282,24 @@ class RecordJournal:
         self.sequence = frame.sequence
         self.frames.append(frame)
 
-    def checkpoint(self):
-        if not self.ready or self.sequence == self.checkpoint_sequence:
+    def checkpoint(self, *, prepare_next=False):
+        if not self.ready:
+            return
+        if self.sequence == self.checkpoint_sequence:
+            if prepare_next and self.log is None:
+                self.manager._ensure_journal()
+                path = self.manager.journal / f'records-{self.sequence + 1}-{uuid4().hex}'
+                try:
+                    with _checked(path).open('xb'):
+                        pass
+                    _sync(self.manager.journal)
+                except BaseException:
+                    self.reset()
+                    raise
+                self.log, self.log_size = path, 0
+            elif not prepare_next and self.log is not None and not self.log_size:
+                self.log.unlink(missing_ok=True)
+                self.log = None
             return
         # The current file projections are synchronized once, regardless of
         # how many retained transactions touched them. Owner-declared settlement,
@@ -297,13 +313,25 @@ class RecordJournal:
                  self.CHECKSUM: hashlib.sha256(str(self.sequence).encode()).hexdigest()}
         fd, name = tempfile.mkstemp(prefix=self.TEMPORARY, dir=self.manager.journal)
         temporary = Path(name)
+        next_log = None
         try:
             with os.fdopen(fd, 'wb') as stream:
                 stream.write(json.dumps(value, sort_keys=True).encode('utf-8'))
                 stream.flush()
                 os.fsync(stream.fileno())
+            if prepare_next:
+                next_log = self.manager.journal / f'records-{self.sequence + 1}-{uuid4().hex}'
+                with _checked(next_log).open('xb'):
+                    pass
             os.replace(temporary, self.manager.journal / self.CHECKPOINT)
+            # Publish the empty next segment name with the same directory ACK.
+            # Its first actual frame still requires fsync before observation.
             _sync(self.manager.journal)
+        except BaseException:
+            # An uncertain watermark/name publication must be recovered before
+            # another segment is allocated or a cached proof is reused.
+            self.reset()
+            raise
         finally:
             temporary.unlink(missing_ok=True)
         # Never delete individual commits before the durable watermark. A
@@ -313,7 +341,7 @@ class RecordJournal:
         self.directories.clear()
         segments = {frame.path for frame in self.frames}
         self.frames = []
-        self.log = None
+        self.log = next_log
         self.log_size = 0
         for path in segments:
             path.unlink(missing_ok=True)

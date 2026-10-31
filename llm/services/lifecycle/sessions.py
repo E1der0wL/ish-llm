@@ -324,6 +324,21 @@ class SessionManager:
         if identifiers:
             self.agents.repository.load_many(project, identifiers)
 
+    def _load(self, project, identifier):
+        session = self.repository.load(project, identifier)
+        self._validate_agents(project, session.agent_ids)
+        return session
+
+    @workspace_locked
+    def _current(self, session):
+        """Read one fresh owner and Session under the same workspace lock."""
+        project = self._owner(session)
+        if getattr(self.load, '__func__', None) is not SessionManager.load:
+            # Public overrides retain their validation/denial behavior. Only
+            # the native reader can omit its duplicate Project reload.
+            return project, self.load(project, session.id)
+        return project, self._load(project, session.id)
+
     def _conversation_storage(self, session: Session) -> Optional[str]:
         """오래된 핸들의 복사본 대신 소유 프로젝트의 현재 선택을 조회한다."""
         return self._owner(session, allow_deleted=ProjectAccess.INCLUDING_DELETED).conversation_storage
@@ -557,9 +572,7 @@ class SessionManager:
     @workspace_locked
     def load(self, project: Project, session_id: str) -> Session:
         project = self.require_project(project, allow_deleted=ProjectAccess.INCLUDING_DELETED)
-        session = self.repository.load(project, session_id)
-        self._validate_agents(project, session.agent_ids)
-        return session
+        return self._load(project, session_id)
 
     @workspace_locked
     @queryable

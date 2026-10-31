@@ -23,6 +23,14 @@ class SDKRuntime:
     VERSION_CACHE_SIZE = 1
     INITIALIZE = "initialize"
     SDK_IMPORT = "sdk_import"
+    # Local imports deferred by the SDK until its first chat/tool request.
+    # Preparation is explicit and advisory; these are not inference options.
+    COMPLETION_MODULES = (
+        "httpcore",
+        "openai.resources",
+        "litellm.responses.mcp.chat_completions_handler",
+        "litellm.proxy.openai_files_endpoints.common_utils",
+    )
 
     @classmethod
     def prepare_environment(cls):

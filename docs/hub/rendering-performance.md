@@ -24,6 +24,13 @@ PTK's context variable cannot accidentally enter the synchronous path.
 
 ## Bounded work and delivery
 
+The request-preparation clock sleeps until the next displayed whole second or
+retry-countdown change, bounded by the configured output interval. It does not
+rebuild the same card between visible clock changes. All active Agent headers
+advance from local observation timestamps, without reading history for a clock.
+Submission and execution-state events still request an immediate paint. This is
+presentation deduplication, not delayed execution or a new throttling setting.
+
 Completed reasoning belongs to the immutable history prefix along with its
 completed answer. Only reasoning paired with a committed/streaming Assistant
 message enters the mutable tail. This avoids reassembling every historical
@@ -143,11 +150,22 @@ formatting and display transformations for unchanged historical messages.
 
 ## Observation and progress clocks
 
-Active/queued work and dirty events use `output_refresh_interval` (default 0.1s).
-Idle safety reconciliation uses `max(0.5, min(2, interval * 10))` seconds (default
-1s). A dirty event wakes an idle observer, subject only to the active interval.
-Snapshot reads remain preemptible by submission/control commands. Dropped-event
-reconciliation and persisted state remain authoritative.
+Dirty events request observations; `output_refresh_interval` (default 0.1s) is
+the minimum interval between read starts, not an active-Run polling timer. A
+quiet active Run does not repeatedly read history at 10 Hz. The first pending
+change after the interval elapsed is immediate. Bursts share one pending read,
+and a change during that read remains pending for the next frame. Sustained
+signals never postpone the deadline as a debounce would. Startup's published
+snapshot is reused instead of requesting an identical initial frame again.
+
+A separate two-second safety reconciliation remains for external public-API
+edits and lost subscription events; unchanged observations are not published.
+The existing hidden-view ceiling and urgent lifecycle preemption remain.
+Snapshot reads are preemptible by submission/control commands; durable writes
+are not. Dropped-event reconciliation and persisted state remain authoritative.
+Provider retry changes signal the observer directly, even before another Engine
+event. Checkpoint-only receipts do not invalidate visible history: native
+persistence and fresh resume-plan queries retain ownership of that evidence.
 
 Progress model updates are immediate. Repaint requests coalesce through the
 existing `progress_refresh_interval` timer; start/finish invalidate immediately.

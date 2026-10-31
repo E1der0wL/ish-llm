@@ -1,7 +1,6 @@
 """Hub approval choices for reversible internal records; never external effects."""
 
 from dataclasses import replace
-from llm.components.tools import ToolRegistry
 from llm.components.goals.tool_values import GoalToolContract
 from .resource_contracts import GoalAuthoring
 
@@ -14,8 +13,8 @@ class InternalRecords:
 
     @classmethod
     def select(cls, registry, names):
-        return ToolRegistry(replace(tool,
+        return registry.derive(tuple(replace(tool,
             description=cls.PROGRESS if tool.name == GoalToolContract.PROGRESS_NAME else tool.description,
             contract=replace(tool.contract,
             revision=cls.REVISION, approval_required=False)) if tool.name in names else tool
-            for tool in (registry.get(name) for name in registry.names()))
+            for tool in (registry.get(name) for name in registry.names())))

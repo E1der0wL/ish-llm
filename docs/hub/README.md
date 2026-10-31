@@ -55,6 +55,7 @@ P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 s
 
 - [현재 llm 연결과 요청 지연 개선 작업 지침](request-latency-handoff.md): 2026-10-31 Hub 작업 범위, 이미 반영된 수정, 측정·검증 및 실제 ish 확인 절차. 향후 작업 지침이며 완료 보고가 아닙니다.
 - [요청 상태 전달·스트리밍 비용 검토](request-latency-review.md): 해당 지침에 따른 현재 변경, 격리 측정·검증 기록과 실제 ish 확인 절차.
+- [변경 신호 기반 갱신 검토](signal-refresh-review.md): 최대 갱신율, Run별 도구 카탈로그 재사용과 요청 준비 시간의 비교 검증.
 
 - [검사 자료와 UI 대기 검증](verification-stability.md): Linux 복사본·검토 해시·미리보기 정리·검사 진행 기록.
 

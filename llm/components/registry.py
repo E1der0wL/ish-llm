@@ -10,6 +10,7 @@ from copy import deepcopy
 from typing import Any
 
 from llm.core.models import Project
+from llm.core.schema import reuse_schema_checks
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.storage import prepare_create
@@ -54,6 +55,7 @@ class ComponentRegistry:
 
     def __init__(self, components: tuple[ProjectComponent, ...] = NO_COMPONENTS) -> None:
         self._components: dict[str, ProjectComponent] = {}
+        self._schema_checks = {}
         for component in components:
             self.register(component)
 
@@ -206,17 +208,23 @@ class ComponentRegistry:
         for name in self.validate(project.components):
             component = self._components[name]
             if capability in component.capabilities:
-                runtime = getattr(component, ComponentHook.RESOLVE_RUNTIME, self.ABSENT)
-                if data_factory is not self.ABSENT and runtime is not self.ABSENT:
-                    values.append(
-                        runtime(
-                            deepcopy(project),
-                            capability,
-                            data_factory=lambda name: data_factory(project, name),
+                # Reuse only exact schema-syntax proofs from this export. The
+                # selected implementation still runs and validates current data,
+                # configuration, references and authority on every resolution.
+                key = (name, capability)
+                with reuse_schema_checks(previous=self._schema_checks.get(key, ())) as checks:
+                    runtime = getattr(component, ComponentHook.RESOLVE_RUNTIME, self.ABSENT)
+                    if data_factory is not self.ABSENT and runtime is not self.ABSENT:
+                        values.append(
+                            runtime(
+                                deepcopy(project),
+                                capability,
+                                data_factory=lambda name: data_factory(project, name),
+                            )
                         )
-                    )
-                else:
-                    values.append(component.resolve(deepcopy(project), capability))
+                    else:
+                        values.append(component.resolve(deepcopy(project), capability))
+                self._schema_checks[key] = frozenset(checks)
         return tuple(values)
 
     def clone(self, source: Project, destination: Project) -> None:

@@ -4,7 +4,6 @@ from dataclasses import replace
 from copy import deepcopy
 import re
 
-from llm.components.tools import ToolRegistry
 from llm.components.tools.bindings import ToolHandlerBindings
 from llm.services.infrastructure.storage import revision_token
 
@@ -33,7 +32,8 @@ class ToolLookup:
     UNBOUND = {"tools": [], "notice": "Tool discovery is unavailable outside a bound Hub Run."}
 
     def __init__(self, allowed, *, groups=None, constraints=None):
-        tags = ToolCatalog.from_registry(allowed, extra_groups=groups)
+        tools = {name: allowed.get(name) for name in allowed.names()}
+        tags = self.catalog = ToolCatalog.from_tools(tools.values(), extra_groups=groups)
         # Only policy-bearing schemas need derivation. Reuse the provider's
         # public definition path once at binding, never per search/page/call.
         names = tuple(name for name in allowed.names() if (constraints or {}).get(name))
@@ -48,7 +48,7 @@ class ToolLookup:
             "unclassified": ToolCatalog.unclassified(entry),
             "approval_required": ToolTag.APPROVAL in entry.tags,
         } for entry in tags.entries if entry.name != HubApplicationTools.HELP
-            for tool in (allowed.get(entry.name),))
+            for tool in (tools[entry.name],))
 
     def search(self, query, offset=0):
         terms = re.findall(r"[\w-]+", query.casefold())
@@ -71,11 +71,11 @@ class ToolLookup:
             'notice': self.NOTICE}
 
     @classmethod
-    def bind(cls, allowed, *, groups=None, constraints=None):
+    def bind(cls, allowed, *, groups=None, constraints=None, lookup=None):
         if HubApplicationTools.HELP not in allowed.names():
             return allowed
         original = allowed.get(HubApplicationTools.HELP)
-        lookup = cls(allowed, groups=groups, constraints=constraints)
+        lookup = lookup if lookup is not None else cls(allowed, groups=groups, constraints=constraints)
 
         async def invoke(arguments):
             if cls.QUERY in arguments:
@@ -88,5 +88,5 @@ class ToolLookup:
             'original': ToolHandlerBindings.execution_binding(original.handler),
             'catalog': revision_token(lookup.rows),
         }
-        return ToolRegistry(tuple(replace(original, handler=invoke) if name == original.name
+        return allowed.derive(tuple(replace(original, handler=invoke) if name == original.name
             else allowed.get(name) for name in allowed.names()))

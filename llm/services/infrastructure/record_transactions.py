@@ -253,9 +253,10 @@ class RecordTransaction(Transaction):
             relative = Path(name)
             value = _checked(manager.root / relative)
             if (relative.is_absolute() or not relative.parts or '..' in relative.parts
-                    or relative.as_posix() != name or WorkspacePaths.reserved(relative)
-                    or manager.root not in value.parents):
+                    or relative.as_posix() != name or WorkspacePaths.reserved(relative)):
                 raise ValueError('Invalid record transaction target')
+            # A nonempty relative path with no parent traversal joined to root
+            # is already a strict child; _checked above still rejects symlinks.
             return value
 
         if not isinstance(manifest[RecordTransaction.DIRECTORIES], list) or not isinstance(manifest[RecordTransaction.RECORDS], list):

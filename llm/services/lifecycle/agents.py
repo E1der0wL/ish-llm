@@ -54,6 +54,7 @@ class AgentRepository:
 
     def __init__(self, ownership):
         self.ownership = ownership
+        self._read_inventory = None
 
     def root(self, project):
         expected = child(self.ownership.path.parent, project.id)
@@ -87,12 +88,26 @@ class AgentRepository:
             paths[AgentDefinition.identifier(path.stem)] = path
         if paths.keys() != manifest.records.keys():
             raise ValueError(self.INVENTORY_MISMATCH)
-        records = {}
+        identity = (root.absolute(), project_id)
+        prior_inventory = self._read_inventory
+        previous = (prior_inventory[1] if prior_inventory is not None and
+                    identity == prior_inventory[0] else {})
+        records, checked = {}, {}
         for identifier, path in sorted(paths.items()):
             raw = path.read_bytes()
-            if hashlib.sha256(raw).hexdigest() != manifest.records[identifier]:
+            digest = hashlib.sha256(raw).hexdigest()
+            if digest != manifest.records[identifier]:
                 raise ValueError(self.INTEGRITY_MISMATCH)
-            records[identifier] = AgentRecord.read(json.loads(raw), project_id=project_id, identifier=identifier)
+            prior = previous.get(identifier)
+            # Read and hash every current file. Only the immutable structural
+            # interpretation of identical bytes is reused; selected Engine and
+            # resource/approval validation still belongs to the execution path.
+            value = (prior[1] if prior is not None and prior[0] == digest else
+                     AgentRecord.read(json.loads(raw), project_id=project_id, identifier=identifier))
+            records[identifier] = value
+            checked[identifier] = digest, value
+        # Retain only this inventory, not all historical revisions/Projects.
+        self._read_inventory = identity, checked
         return AgentInventory(manifest, records)
 
     @workspace_locked

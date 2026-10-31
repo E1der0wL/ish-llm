@@ -148,7 +148,7 @@ class HubBuiltinTools(BuiltinToolComponent):
             handlers.update(
                 {name: process_handler(method) for name, method in methods.items()}
             )
-        toolkit.registry = ToolRegistry(
+        toolkit.registry = toolkit.registry.derive(
             tuple(
                 replace(tool, parameters=FileReadSchema.parameters(tool.parameters))
                 if name == FileReadArguments.NAME else
@@ -184,7 +184,7 @@ class HubBuiltinTools(BuiltinToolComponent):
             toolkit = self.toolkits[key]
         registry = self._bind_registry(project, toolkit, ToolRegistry.CAPABILITY)
         # All defaults that can alter effects participate in approval binding.
-        return ToolRegistry(
+        return registry.derive(
             tuple(
                 replace(
                     tool,

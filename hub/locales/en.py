@@ -672,9 +672,9 @@ MESSAGES = {
     MessageKey.SETTINGS_THEME_COMMENT2: "Comment 2",
     MessageKey.SETTINGS_SIDEBAR_WIDTH_TITLE: "Sidebar width",
     MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL: "Output refresh interval (seconds)",
-    MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION: "Interval for batching streamed response updates: 0.01–10 seconds, default 0.1. Applies on save without delaying request acknowledgements or keyboard input.",
+    MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION: "Minimum interval between change-driven output updates; 0.1 seconds allows at most 10 updates per second. No streaming polling while unchanged. Range 0.01–10 seconds, default 0.1. Applies on save without delaying request acknowledgements or keyboard input.",
     MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL: "Progress refresh interval (seconds)",
-    MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL_DESCRIPTION: "Refresh interval for progress bars and spinner animation: 0.01–10 seconds, default 0.1. Applies on save to both settings and chat.",
+    MessageKey.SETTINGS_PROGRESS_REFRESH_INTERVAL_DESCRIPTION: "Rate limit for progress changes and active spinner animation; 0.1 seconds allows at most 10 updates per second. No timer without active work. Range 0.01–10 seconds, default 0.1. Applies on save.",
     MessageKey.RESPONSE_FAILED: "The response could not be completed.",
     MessageKey.RESPONSE_EMPTY: "The model returned no final answer. Any provided reasoning remains visible above.",
 

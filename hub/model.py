@@ -291,44 +291,6 @@ class HubSnapshot:
         setattr(view, cls.LIVE_OBSERVATION, snapshot)
 
 
-class SnapshotActivity:
-    """Optional live observation for refresh pacing, never stored execution evidence."""
-
-    ABSENT = None
-    INACTIVE = False
-    NO_QUEUED = 0
-    NO_STATUS = ""
-    NO_SESSIONS = ()
-    ACTIVE_STATUSES = (
-        SessionStatus.RUNNING,
-        MessageStatus.STREAMING,
-        MessageStatus.QUEUED,
-    )
-
-    @classmethod
-    def pending(cls, snapshot):
-        active = (
-            snapshot is cls.ABSENT
-            or bool(
-                getattr(
-                    getattr(snapshot, HubSnapshot.run.__name__, cls.ABSENT),
-                    RunSummary.active.__name__,
-                    cls.INACTIVE,
-                )
-            )
-            or bool(getattr(snapshot, HubSnapshot.queued_count.__name__, cls.NO_QUEUED))
-        )
-        active = active or any(
-            getattr(session, SessionSummary.status.__name__, cls.NO_STATUS)
-            in cls.ACTIVE_STATUSES
-            or getattr(session, SessionSummary.queued_count.__name__, cls.NO_QUEUED)
-            for session in getattr(
-                snapshot, HubSnapshot.sessions.__name__, cls.NO_SESSIONS
-            )
-        )
-        return active
-
-
 class SessionIdentity:
     """Borrow the UI's existing (Project, Session) pair without eager reads."""
 

@@ -23,6 +23,22 @@ from tests.llm.configuration_fixtures import configure_engine
 
 
 class ProjectConfigPolicyTests(unittest.TestCase):
+    def test_empty_policy_validation_does_not_build_unused_policy_schemas(self):
+        from llm.core.policies import ApprovalPolicy, UsagePolicy, RunPolicy, normalize_policies
+
+        with patch.object(ApprovalPolicy, 'schema', side_effect=AssertionError('unused approval')), \
+                patch.object(UsagePolicy, 'schema', side_effect=AssertionError('unused usage')):
+            self.assertEqual(normalize_policies({}), {})
+            self.assertEqual(normalize_policies({'run': {'max_queued': None}}), {'run': {'max_queued': None}})
+            with self.assertRaises(ValueError):
+                normalize_policies({'unknown': {}})
+            with self.assertRaises(ValueError):
+                normalize_policies({'run': {'timeout_seconds': False}})
+        description = ProjectConfig.describe_policies()
+        self.assertEqual(description['properties']['run'], RunPolicy.schema())
+        self.assertIn('approval', description['properties'])
+        self.assertIn('usage', description['properties'])
+
     def test_partial_update_preserves_settings_and_detaches_input_and_result(self):
         config = ProjectConfig(policies={"context": {"mode": "recent"}}, data={"future": {"value": 1}}, parameters={"engines": {"loop": {'config': {'buffer_size': 8}}}})
         changes = {"context": {"max_turns": 3}}

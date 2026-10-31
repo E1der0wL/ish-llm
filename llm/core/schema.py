@@ -46,11 +46,18 @@ def reuse_schema_checks(*, previous=None):
         yield current.used
         return
     checks = _SchemaChecks(previous if previous is not None else ())
+    if current is not None:
+        checks.known.update(current.known)
     token = _schema_checks.set(checks)
     try:
         yield checks.used
     finally:
         _schema_checks.reset(token)
+        if current is not None:
+            # Nested owners share only exact syntax proofs, never input values
+            # or authorization. Retain only schemas actually used in the scope.
+            current.known.update(checks.used)
+            current.used.update(checks.used)
 
 
 class SchemaKeyword:

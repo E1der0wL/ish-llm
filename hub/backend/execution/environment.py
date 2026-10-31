@@ -85,6 +85,7 @@ class EnvironmentEngine:
         self.retry_monitor = retry_monitor
         self.provider_recovery = provider_recovery
         self._bindings = BindingCache()
+        self._lookup = self._lookup_tools = None
         self.routing = RequestRouting()
 
     def __getattr__(self, name):
@@ -110,6 +111,7 @@ class EnvironmentEngine:
             def compose(context, *, before=(), after=()):
                 worker = copy(self)
                 worker._bindings = BindingCache()
+                worker._lookup = worker._lookup_tools = None
                 worker.implementation = value(context, before=before, after=after)
                 worker.routing = RequestRouting(self.routing.definition, self.routing.profile,
                     (*self.routing.layers, (tuple(before), tuple(after))))
@@ -125,6 +127,7 @@ class EnvironmentEngine:
         registry.register(AgentDefinition.engine(definition), self.implementation)
         worker = copy(self)
         worker._bindings = BindingCache()
+        worker._lookup = worker._lookup_tools = None
         worker.implementation = registry.resolve_agent(definition)
         worker.routing = RequestRouting(definition)
         return worker
@@ -198,14 +201,20 @@ class EnvironmentEngine:
                     registry = self.builtins.resolve_environment(context.project, self.environment)
                     names = frozenset(registry.names())
                     # Preserve imported tools and Agent selections; never enable extra tools.
-                    selected = ToolInputRegistry(tuple(
+                    selected = ToolInputRegistry.observe(registry.derive(tuple(
                         registry.get(name) if name in names else selected.get(name)
-                        for name in selected.names()))
+                        for name in selected.names())))
                 if discovery:
-                    selected = ToolLookup.bind(selected, groups=groups, constraints=constraints)
+                    self._lookup = ToolLookup(selected, groups=groups, constraints=constraints)
+                    selected = ToolLookup.bind(selected, lookup=self._lookup)
+                else:
+                    self._lookup = None
                 return ToolInputRegistry.observe(selected)
             tools = self._bindings.bind(context, self.environment, build, constraints=constraints)
+        else:
+            self._lookup = None
         tools = ToolInputRegistry.observe(tools)
+        self._lookup_tools = tools
         if ToolRegistry.CAPABILITY in capabilities:
             capabilities[ToolRegistry.CAPABILITY] = tools
         if COMPLETION_PROCESSORS in capabilities:
@@ -221,13 +230,15 @@ class EnvironmentEngine:
     def routed_engine(self, bound):
         from .tool_catalog import ToolCatalog
         from ..tools.application import HubApplicationTools
+        lookup = self._lookup if bound.tools is self._lookup_tools else None
         groups = (ToolCatalog.project_groups(bound.project, self.builtins)
-                  if self.routing.enabled(bound, self.implementation) else None)
+                  if lookup is None and self.routing.enabled(bound, self.implementation) else None)
         discovery = (self.builtins is not None and self.builtins.name in bound.project.components
                      and HubApplicationTools.HELP in bound.tools.names())
         constraints = bound.tool_scope.argument_constraints if bound.tool_scope is not None else None
         return self.routing.engine(bound, self.implementation, groups=groups, discovery=discovery,
-                                   constraints=constraints)
+                                   constraints=constraints,
+                                   lookup=lookup)
 
     async def execute(self, context):
         bound = await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
@@ -252,5 +263,6 @@ class EnvironmentEngine:
                         self.retry_monitor.observe_tool(bound, event)
         finally:
             self._bindings.clear()
+            self._lookup = self._lookup_tools = None
             if self.retry_monitor is not self.ABSENT:
                 self.retry_monitor.clear_tools(bound.run.id)

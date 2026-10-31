@@ -180,6 +180,17 @@ Session runtime 접속 복구와 Run 종료를 포함한 JSON/JSONL 저장 경�
 검증하여 최종 기록을 복구하고 외부 효과는 재생하지 않는다. 미완료 마지막 append와 완성 frame 손상을
 구별하며, 손상은 fail-closed한다. [저장 트랜잭션](storage-transactions.md)의 기록 묶음·교체 절을 따른다.
 
+첫 요청 준비는 애플리케이션이 선택한 adapter 초기화와 Session runtime 시작 시점에 수행할 수 있다.
+SDK의 로컬 import와 빈 저널 이름 준비를 앞당기며, 실제 요청의 내구성 ACK는 앞당기지 않는다.
+Engine/Component registry는 같은 JSON 내용의 스키마 문법 검사만 재사용한다. 실제 구현체의
+검증 훅·현재 설정·참조·권한·인자 검사는 매번 수행한다. Tool registry의 공개 사본은 독립적이고,
+공유한 비공개 정의도 `prepare()`로 노출하기 전에 분리한다. 실행 handler와 승인 증거는 재사용
+허가를 새로 만들지 않는다. 정책 검증은 명시한 section만 구성하며 UI 설명은 전체 schema를 제공한다.
+Project/Agent 저장소는 마지막으로 읽은 내용의 구조 해석만 재사용할 수 있다. 현재 파일과
+Agent catalogue·내용 해시는 매번 읽고 확인하며, 변경·삭제·손상은 캐시로 숨기지 않는다.
+Project는 분리된 사본, Agent는 공개 속성에서 사본을 반환하는 검증된 값 객체를 사용한다.
+이 해석 결과는 실행 권한이나 승인 증명이 아니며, 현재 구현체의 실행 검증을 대신하지 않는다.
+
 현재 기준선은 [작업 인계](handoff.md), 문서 변경은 [검토 기록](documentation-review.md), 운영상 한계는
 [운영 준비 상태](production-readiness.md)를 본다. 과거 기록의 시험 수나 문서 예제의 문법 검사를
 제품 구현·실모델·CI 성공으로 해석하지 않는다. 핵심 승인·한도·중복 효과·저장 회귀가 해결되지 않으면

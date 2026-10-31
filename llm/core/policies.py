@@ -877,8 +877,9 @@ class ToolRetryPolicy(PolicyValue):
         retry.setdefault(cls.delay_seconds.__name__, delay_seconds)
 
 
-def describe_policies() -> dict:
-    """UI용 필드·설명을 포함한 독립 JSON Schema를 만든다."""
+def _policy_schema(sections):
+    # Validation needs only supplied sections. Keep the same closed envelope
+    # and declarations as the full UI schema; do not construct absent policies.
     return {
         SchemaKeyword.TYPE: SchemaType.OBJECT,
         SchemaKeyword.ADDITIONAL_PROPERTIES: SchemaBoolean.REJECT,
@@ -888,20 +889,29 @@ def describe_policies() -> dict:
             ]
         },
         SchemaKeyword.PROPERTIES: {
-            PolicySection.APPROVAL: ApprovalPolicy.schema(),
-            PolicySection.TOOLS: ToolPolicyValues.schema(),
-            PolicySection.CONTEXT: ContextPolicy.schema(),
-            PolicySection.OUTPUT: OutputBuffer.schema(),
-            PolicySection.TOOL_RETRY: ToolRetryPolicy.schema(),
-            PolicySection.USAGE: UsagePolicy.schema(),
-            PolicySection.RUN: RunPolicy.schema(),
+            name: owner.schema()
+            for name, owner in (
+                (PolicySection.APPROVAL, ApprovalPolicy),
+                (PolicySection.TOOLS, ToolPolicyValues),
+                (PolicySection.CONTEXT, ContextPolicy),
+                (PolicySection.OUTPUT, OutputBuffer),
+                (PolicySection.TOOL_RETRY, ToolRetryPolicy),
+                (PolicySection.USAGE, UsagePolicy),
+                (PolicySection.RUN, RunPolicy),
+            )
+            if sections is None or name in sections
         },
     }
 
 
+def describe_policies() -> dict:
+    """UI용 필드·설명을 포함한 독립 JSON Schema를 만든다."""
+    return _policy_schema(None)
+
+
 def normalize_policies(value: dict) -> dict:
     """명시된 키만 검증한다. 생략한 정책과 leaf는 그대로 생략한다."""
-    schema = describe_policies()
+    schema = _policy_schema(value if isinstance(value, dict) else ())
     json.dumps(value, allow_nan=JsonObject.ALLOW_NON_FINITE)
     errors = sorted(
         Draft202012Validator(schema).iter_errors(value), key=lambda e: str(list(e.path))
@@ -932,11 +942,13 @@ def normalize_policies(value: dict) -> dict:
                     raise ValueError(
                         PolicyDeclaration.INTEGER_REQUIRED.format(name=name, key=key)
                     )
-    ApprovalPolicy.validated(result.get(PolicySection.APPROVAL, {}))
+    if PolicySection.APPROVAL in result:
+        ApprovalPolicy.validated(result[PolicySection.APPROVAL])
     context = result.get(PolicySection.CONTEXT, {})
     ContextPolicy.validate_budget(
         context.get(ContextPolicy.mode.__name__),
         context.get(ContextPolicy.max_chars.__name__),
     )
-    UsagePolicy.from_policies(result)
+    if PolicySection.USAGE in result:
+        UsagePolicy.from_policies(result)
     return result

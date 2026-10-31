@@ -18,12 +18,17 @@ and Agent definitions. Public Run queries perform history integrity checks, so
 | Observation | Refresh trigger |
 | --- | --- |
 | Session/runtime/latest/paused | Run lifecycle, interaction/steering change, explicit Hub Session mutation |
-| Run metadata | Non-text Engine event, Run lifecycle, explicit Session mutation |
+| Run metadata | Visible non-text Engine event, Run lifecycle, explicit Session mutation |
 | Mutable Steps | Step lifecycle/update/output, Run lifecycle |
 | Conversation | User-visible output, Run lifecycle, interaction/steering change, explicit Session mutation |
 | Project/Agents | Settings or record-management completion, project activation |
 
 Selected-session, Run, Step, Project and Agent reads expire after two seconds.
+Display observation is driven by change signals, capped by the existing output
+interval. There is no frame-rate polling merely because a Run is active.
+Checkpoint receipts alone do not change visible state. Two-second reconciliation
+still observes external API changes and dropped events; it does not publish an
+unchanged frame. See [rendering](rendering-performance.md#observation-and-progress-clocks).
 Nonselected Session summaries reconcile at stable per-Session intervals between
 7.5 and 10 seconds, avoiding synchronized expiry; lifecycle and
 interaction events still invalidate them immediately. Missing events clear these

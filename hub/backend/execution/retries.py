@@ -89,6 +89,7 @@ class RetryMonitor:
     )
 
     def __init__(self) -> None:
+        self.changed = None
         self.run: ContextVar[str] = ContextVar(self.RUN_CONTEXT, default=self.NO_RUN)
         self.call: ContextVar[CompletionWatch | None] = ContextVar(
             self.CALL_CONTEXT, default=self.NO_WATCH
@@ -97,7 +98,11 @@ class RetryMonitor:
         self.tools: dict[tuple[str, str], ToolWatch] = {}
 
     def set(self, key, run_id, summary):
-        self.states[key] = RetryObservation(run_id, summary)
+        observation = RetryObservation(run_id, summary)
+        if self.states.get(key) != observation:
+            self.states[key] = observation
+            if self.changed is not None:
+                self.changed()
 
     def observe_tool(self, context, event):
         """Called after the owning service consumes each Engine event."""

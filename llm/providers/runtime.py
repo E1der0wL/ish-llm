@@ -452,6 +452,25 @@ def litellm_sdk():
         return _sdk
 
 
+def prepare_completion():
+    """Prepare local SDK code without a model request or tokenizer download.
+
+    Optional SDK paths may be absent (or lack optional dependencies). Loading
+    them early is only an optimization: the selected request still owns their
+    normal SDK validation/errors. Base SDK import failures remain fatal.
+    """
+    litellm_sdk()
+    for module in SDKRuntime.COMPLETION_MODULES:
+        try:
+            importlib.import_module(module)
+        except Exception:
+            # Optional warmup cannot turn an otherwise usable SDK into an
+            # initialization failure. A request selecting this path still gets
+            # the SDK's normal error; cancellation/process exits are not caught.
+            continue
+    configure_logging(refresh=ProviderLogging.REFRESH)
+
+
 @contextmanager
 def diagnostic_scope(callback):
     """동기 callback은 UI/보고서 수집용이다. 예외가 실행 결과를 바꾸지 않게 한다."""

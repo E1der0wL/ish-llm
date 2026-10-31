@@ -127,6 +127,11 @@ class ToolCatalog:
     @classmethod
     def from_registry(cls, tools: ToolRegistry, *,
                       extra_groups: Mapping[ToolTag, Sequence[str]] | None = None):
+        return cls.from_tools((tools.get(name) for name in tools.names()), extra_groups=extra_groups)
+
+    @classmethod
+    def from_tools(cls, tools, *, extra_groups=None):
+        """Tag detached definitions already fetched by the catalog owner."""
         by_name: dict[str, set[ToolTag]] = {}
         extra_items = () if extra_groups is None else extra_groups.items()
         for tag, names in (*cls.GROUPS.items(), *extra_items):
@@ -136,8 +141,8 @@ class ToolCatalog:
             for name in names:
                 by_name.setdefault(name, set()).add(tag)
         entries = []
-        for name in tools.names():
-            contract = tools.get(name).contract
+        for tool in tools:
+            name, contract = tool.name, tool.contract
             tags = {cls.EFFECT_TAGS[contract.effect], *by_name.get(name, ())}
             if contract.approval_required:
                 tags.add(ToolTag.APPROVAL)

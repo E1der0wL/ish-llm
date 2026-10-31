@@ -53,6 +53,7 @@ class ProjectRepository:
         self.root = root
         self.ownership = WorkspaceOwnership(root)
         self.agents = AgentRepository(self.ownership)
+        self._read_record = None
 
     def paths(self, project_id: str) -> ProjectPaths:
         return ProjectPaths(child(self.root, project_id))
@@ -92,7 +93,16 @@ class ProjectRepository:
         if ProjectRecordIdentity(data).id != project_id:
             raise ValueError(ProjectRepository.ID_MISMATCH)
         log_event(paths.logs, ProjectLogEvent.LOADED, entity_id=project_id)
-        project = Project.from_record(data, paths)
+        # Always read the current record. Cache only its pure domain decoding,
+        # never filesystem presence, Agent inventory or execution authorization.
+        # JSON identity distinguishes false/0 and integer/float representations.
+        key = (paths.root, revision_token(data))
+        previous = self._read_record
+        if previous is not None and key == previous[0]:
+            project = deepcopy(previous[1])
+        else:
+            project = Project.from_record(data, paths)
+            self._read_record = key, deepcopy(project)
         self.agents.validate_backup(project)
         return project
 
