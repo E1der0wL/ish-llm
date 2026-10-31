@@ -10,7 +10,6 @@ from collections.abc import Awaitable, Callable
 from copy import deepcopy
 from typing import Any, Optional
 
-from jsonschema import Draft202012Validator
 from llm.core.json_data import JsonObject
 from llm.core.model_protocol import ToolDefinition, copy_model, json_copy
 from llm.core.tool_contracts import ToolClassification, ToolContract, ToolEffect, ToolIsolation
@@ -124,9 +123,8 @@ class ToolRegistry:
             # they cannot borrow a proof for a JSON representation.
             schema_key = None
         if schema_key is None or schema_key not in self._schemas:
-            from llm.core.schema import validate_local_refs
-            validate_local_refs(schema)
-            Draft202012Validator.check_schema(schema)
+            from llm.core.schema import validate_schema
+            validate_schema(schema)
             if schema_key is not None:
                 self._schemas.add(schema_key)
         definition = copy_model(tool.definition)

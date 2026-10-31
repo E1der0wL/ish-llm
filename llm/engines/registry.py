@@ -24,6 +24,9 @@ class EngineRegistry:
 
     def __init__(self) -> None:
         self._engines: dict[str, Engine] = {}
+        # One latest syntax-proof set per registered implementation. No Agent,
+        # configuration, bound Engine, Tool scope or authorization is retained.
+        self._agent_schema_checks = {}
 
     def register(self, name: str, engine: Engine) -> None:
         if not isinstance(name, str) or not name.strip():
@@ -110,4 +113,10 @@ class EngineRegistry:
             engine = self.get(AgentDefinition.engine(definition))
         except KeyError:
             raise ValueError(self.UNREGISTERED_AGENT.format(name=AgentDefinition.engine(definition))) from None
-        return EngineAgentBinding.bind(engine, definition)
+        name = AgentDefinition.engine(definition)
+        with reuse_schema_checks(previous=self._agent_schema_checks.get(name, ())) as checks:
+            bound = EngineAgentBinding.bind(engine, definition)
+        # Replace, rather than accumulate past schema variants. The schema hook
+        # and factory above always run, including after host/adapter changes.
+        self._agent_schema_checks[name] = frozenset(checks)
+        return bound

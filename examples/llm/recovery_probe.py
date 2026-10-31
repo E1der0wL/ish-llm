@@ -19,6 +19,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from unittest.mock import patch
 
 from llm.core.models import ProjectConfig
 from llm.engines.base import BaseEngine, EngineEventType
@@ -26,7 +27,6 @@ from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
 from llm.services.infrastructure.locking import WorkspaceBusyError
 from llm.services.infrastructure.storage import atomic_json
-from llm.services.infrastructure.transactions import current_transaction
 from llm.services.infrastructure.record_transactions import RecordTransaction
 
 
@@ -151,7 +151,7 @@ async def recover(root, spec):
 async def disk_failure(root, spec):
     """실제 저장 경로에서 ENOSPC 한 번을 주입한다. 디스크 자체를 채우지 않는다."""
     fired = []
-    original_replace, original_sync = os.replace, os.fsync
+    original_commit = RecordTransaction.commit
     stage = spec["stage"]
     app = LargeLanguageModel(root / "workspace", components=[], engines={"probe": probe_engine(root)})
     try:
@@ -160,39 +160,34 @@ async def disk_failure(root, spec):
         session = await project.sessions.acreate(agent_ids=['probe-agent'])
         await session.run.start()
 
-        # Finalization still uses an undo transaction. Record batches commit
-        # before target replacement, so begin/output faults belong at the
-        # durable bundle fsync below, not at materialization after commit.
-        def replace(source, destination, *args, **kwargs):
-            path = Path(destination)
-            target = stage == "finish" and path.name == "run.json" and read(Path(source)).get("status") == "completed"
-            if target and not fired:
-                fired.append(str(path))
-                raise OSError(errno.ENOSPC, "Injected test disk full", str(path))
-            return original_replace(source, destination, *args, **kwargs)
-
-        def sync(fd):
-            path = Path(os.readlink(f"/proc/self/fd/{fd}"))
-            transaction = current_transaction()
+        # All three owner boundaries use record transactions. Inject a known
+        # pre-commit write failure at staging flush. Target replacement occurs
+        # after the durable journal decision and cannot imply rollback;
+        # uncertain fsync/materialization have separate recovery coverage.
+        def commit(transaction):
             target = False
-            if (isinstance(transaction, RecordTransaction) and transaction.spool is not None
-                    and fd == transaction.spool.fileno() and not fired):
+            if transaction.spool is not None and not fired:
                 for destination in transaction.records:
-                    if stage == "begin" and destination.name == "run.json":
+                    if stage in ("begin", "finish") and destination.name == "run.json":
                         with transaction.open(destination) as stream:
-                            target = json.load(stream).get("status") == "pending"
+                            target = json.load(stream).get("status") == (
+                                "pending" if stage == "begin" else "completed"
+                            )
                     elif stage == "output" and destination.name == "outputs.jsonl":
                         # The mandatory empty output journal is not a delta.
                         target = transaction.stat(destination).st_size > 0
                     if target:
                         break
             if target and not fired:
+                path = transaction.pending
                 fired.append(str(path))
-                raise OSError(errno.ENOSPC, "Injected test disk full", str(path))
-            return original_sync(fd)
+                with patch.object(transaction.spool, "flush",
+                                  side_effect=OSError(errno.ENOSPC, "Injected test disk full", str(path))):
+                    return original_commit(transaction)
+            return original_commit(transaction)
 
         # 전용 자식 프로세스에서만 교체한다. ish 호스트/다른 검사의 저장 함수는 건드리지 않는다.
-        os.replace, os.fsync = replace, sync
+        RecordTransaction.commit = commit
         try:
             request = await session.run.submit("work", recipients=["probe-agent"])
             try:
@@ -202,7 +197,7 @@ async def disk_failure(root, spec):
             else:
                 check(stage == "output" and (await run.aget_data()).status == "failed", "Disk error was reported as success")
         finally:
-            os.replace, os.fsync = original_replace, original_sync
+            RecordTransaction.commit = original_commit
         check(len(fired) == 1, "Fault boundary was not reached")
         runs = await session.run.alist()
         data = await session.aget_data()

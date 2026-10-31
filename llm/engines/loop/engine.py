@@ -481,10 +481,11 @@ class LoopEngine(BaseEngine):
             and LoopReview.has_contract(CheckpointContent.from_checkpoint(context.checkpoint).header)
         ):
             raise ValueError(LoopEngine.REVIEW_DISABLED)
+        initial_checkpoint = BaseEngine.ABSENT
         if (
             context.output_step_id is BaseEngine.ABSENT or context.checkpoint_scope is not BaseEngine.ABSENT
         ) and context.checkpoint is BaseEngine.ABSENT:
-            yield EngineEvent(
+            initial_checkpoint = EngineEvent(
                 EngineEventType.CHECKPOINT,
                 metadata=CheckpointWrite.initialize_event(
                     LoopEngine.checkpoint_name,
@@ -498,7 +499,7 @@ class LoopEngine(BaseEngine):
                     ),
                 ).to_dict(),
             )
-        async with aclosing(self.open_instructions(context)) as events:
+        async with aclosing(self.open_instructions(context, checkpoint_event=initial_checkpoint)) as events:
             async for event in events:
                 yield event
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.

@@ -489,6 +489,10 @@ class StorageIO:
         """Commit record writes as one durable bundle; no raw filesystem mutations."""
         return await self._run(True, operation, args, kwargs)
 
+    async def checkpoint(self):
+        """Settle materialized records at an owner-declared boundary, under the same lock/drain rules."""
+        await self.run(self.ownership.transactions.records.checkpoint)
+
     async def _run(self, records, operation, args, kwargs):
         if self._serial is self.UNBOUND:
             self._serial = asyncio.Lock()

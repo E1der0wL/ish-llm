@@ -93,6 +93,51 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         run = (await request.wait(timeout=5))[0]
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
 
+    async def test_wait_reads_once_before_sleep_and_keeps_durable_result_query(self):
+        self.engine.gates['held'] = asyncio.Event()
+        request = await self.session.run.submit('held', recipients=['test'])
+        await asyncio.wait_for(self.engine.entered['held'].wait(), 5)
+        manager = self.app._manager(self.session._snapshot)
+        attached = asyncio.Event()
+        original = manager._start
+
+        async def start():
+            runtime = await original()
+            attached.set()
+            return runtime
+
+        with patch.object(manager, '_request_runs', wraps=manager._request_runs) as reads, \
+                patch.object(manager, '_start', side_effect=start):
+            waiter = asyncio.create_task(request.wait(timeout=5))
+            try:
+                await asyncio.wait_for(attached.wait(), 5)
+                self.assertEqual(reads.call_count, 1)
+                self.engine.gates['held'].set()
+                result, = await waiter
+                self.assertGreaterEqual(reads.call_count, 2)
+                self.assertEqual((await result.aresult()).status, RunStatus.COMPLETED)
+            finally:
+                self.engine.gates['held'].set()
+                waiter.cancel()
+                await asyncio.gather(waiter, return_exceptions=True)
+
+    async def test_wait_does_not_miss_completion_during_attachment(self):
+        self.engine.gates['held'] = asyncio.Event()
+        request = await self.session.run.submit('held', recipients=['test'])
+        await asyncio.wait_for(self.engine.entered['held'].wait(), 5)
+        manager = self.app._manager(self.session._snapshot)
+        original = manager._start
+
+        async def start():
+            runtime = await original()
+            self.engine.gates['held'].set()
+            await runtime.queue.join()
+            return runtime
+
+        with patch.object(manager, '_start', side_effect=start):
+            result, = await request.wait(timeout=5)
+        self.assertEqual((await result.aresult()).status, RunStatus.COMPLETED)
+
     async def test_failures_and_interrupts_are_terminal_results(self):
         failed = await self.session.run.submit("fail", recipients=["test"])
         run = (await failed.wait(timeout=5))[0]

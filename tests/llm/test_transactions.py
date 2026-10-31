@@ -403,14 +403,14 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(EngineEventType.STEP_COMPLETED, [e.type for e in self.events])
 
     async def test_recovery_commit_failure_releases_runtime_claim(self):
-        import llm.services.infrastructure.transactions as transactions
-        original = transactions._write
-        def fail(path, data):
-            if path.name == "COMMITTED":
-                raise OSError("commit unavailable")
-            return original(path, data)
+        from llm.services.infrastructure.record_transactions import RecordTransaction
+        original = RecordTransaction.commit
+        def fail(transaction):
+            self.assertIsNotNone(transaction.spool)
+            with patch.object(transaction.spool, "flush", side_effect=OSError("commit unavailable")):
+                return original(transaction)
         manager = self.app._manager(self.session.data)
-        with patch.object(transactions, "_write", fail):
+        with patch.object(RecordTransaction, "commit", fail):
             with self.assertRaises(OSError):
                 await manager.start()
         self.assertEqual(self.app.project_manager.ownership.attached_sessions, ())
@@ -418,16 +418,19 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
 
     async def test_uncertain_commit_error_releases_runtime_claim_without_undoing_disk(self):
-        import llm.services.infrastructure.transactions as transactions
-        original = transactions._write
-        def fail(path, data):
-            original(path, data)
-            if path.name == "COMMITTED":
-                raise OSError("commit directory sync outcome unknown")
+        from llm.services.infrastructure.record_journal import RecordJournal
+        original, fired = os.fsync, []
+        def fail(fd):
+            original(fd)
+            name = Path(os.readlink(f"/proc/self/fd/{fd}")).name
+            if not fired and RecordJournal.BUNDLE.fullmatch(name):
+                fired.append(name)
+                raise OSError("commit fsync outcome unknown")
         manager = self.app._manager(self.session.data)
-        with patch.object(transactions, "_write", fail):
+        with patch.object(os, "fsync", fail):
             with self.assertRaises(OSError):
                 await manager.start()
+        self.assertEqual(len(fired), 1)
         self.assertEqual(self.app.project_manager.ownership.attached_sessions, ())
         run = (await (await self.session.run.submit("retry start", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED)

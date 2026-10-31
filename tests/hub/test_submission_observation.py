@@ -11,7 +11,8 @@ from hub.backend.execution.request_profile import RequestMode, RequestProfile
 from hub.model import ChatMessage, HubSnapshot, RequestStarted, SessionSummary
 from hub.ui.live import LiveHubView
 from hub.ui.submitted import SubmittedMessages
-from llm.core.models import MessageStatus, RunStatus
+from llm.core.models import MessageStatus, RunStatus, Run
+from llm.services.runtime.runs import RunEvent, RunEventType
 
 
 class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
@@ -62,7 +63,7 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
     async def test_runtime_start_signal_does_not_acquire_snapshot_lock(self):
         runtime = HubRuntime.__new__(HubRuntime)
         runtime.project = NS(id='project')
-        runtime.sessions = {'session': object()}
+        runtime.sessions = {'session': NS(project=runtime.project)}
         runtime.background_records = Mock()
         runtime.automatic_approvals = Mock()
         runtime.snapshot_reader = Mock()
@@ -71,7 +72,8 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
         runtime.dirty = asyncio.Event()
         runtime.lock = asyncio.Lock()
         runtime.request_started = Mock()
-        run = NS(id='run', project_id='project', session_id='session', input_message_id='request', engine='loop', status=RunStatus.RUNNING)
+        run = Run('run', 'session', 'request', 'answer', 'loop', None,
+                  status=RunStatus.RUNNING, agent_id='assistant')
         async with runtime.lock:
             async with asyncio.timeout(1):
                 await runtime._run_event(NS(run=run))
@@ -97,6 +99,35 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(result['run_id'])
         session.aget_data.assert_awaited_once()
         session.run.astatus.assert_not_awaited()
+
+    async def test_native_started_event_uses_session_owner_without_reading_history(self):
+        runtime = HubRuntime.__new__(HubRuntime)
+        # A real Run deliberately has no project_id. Its Session owns the
+        # Project identity, independently of the UI's currently selected page.
+        run = Run('run', 'session', 'request', 'answer', 'loop', None,
+                  status=RunStatus.RUNNING, agent_id='assistant')
+        runtime.project = NS(id='another-project')
+        runtime.sessions = {'session': NS(project=NS(id='project'),
+                                          aget_data=AsyncMock())}
+        runtime.request_started = Mock()
+        runtime.background_records = NS(observe=Mock())
+        runtime.automatic_approvals = NS(observe=Mock())
+        runtime.snapshot_reader = NS(observe_run=Mock(), drafts=NS(forget=Mock()))
+        runtime.notifications = NS(record_run=Mock())
+        runtime.urgent_observation = False
+        runtime.dirty = asyncio.Event()
+        await runtime._run_event(RunEvent(RunEventType.STARTED, run))
+        runtime.request_started.assert_called_once_with(self.notice)
+        runtime.sessions['session'].aget_data.assert_not_awaited()
+        runtime.snapshot_reader.observe_run.assert_called_once_with(run)
+        runtime.notifications.record_run.assert_called_once_with(run)
+        self.assertTrue(runtime.urgent_observation)
+        self.assertTrue(runtime.dirty.is_set())
+
+        runtime.request_started.reset_mock()
+        runtime.sessions.clear()  # A late event from the previously selected Project.
+        await runtime._run_event(RunEvent(RunEventType.STARTED, run))
+        runtime.request_started.assert_not_called()
 
     async def test_active_preflight_keeps_authoritative_recipient_lookup(self):
         runtime = HubRuntime.__new__(HubRuntime)

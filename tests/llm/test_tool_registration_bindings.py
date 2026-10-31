@@ -19,6 +19,32 @@ CONTRACT = {"revision": "explicit", "effect": "read_only", "isolation": "none",
 
 
 class ToolRegistrationBindingTests(unittest.TestCase):
+    def test_preparation_reuses_only_schema_syntax_across_fresh_registries(self):
+        from llm.core.schema import checked_schema, reuse_schema_checks
+        schema = {'type': 'object', 'properties': {'n': {'type': 'integer', 'default': 2}}}
+        tool = replace(self.tool(SimpleNamespace()), parameters=schema)
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            with reuse_schema_checks():
+                first, second = ToolRegistry([tool]), ToolRegistry([tool])
+                self.assertEqual(check.call_count, 1)
+                with self.assertRaises(ValueError):
+                    second.prepare(tool.name, {'n': 'wrong'})
+                # Parameter defaults must not bypass the stricter config schema contract.
+                with self.assertRaisesRegex(ValueError, 'default'):
+                    checked_schema(schema)
+                before = check.call_count
+                with self.assertRaisesRegex(ValueError, 'does not match'):
+                    ToolRegistry([replace(tool, definition=ToolDefinition('wrong', '', schema))])
+                self.assertEqual(check.call_count, before)
+                schema['properties']['n']['type'] = 'invalid'
+                for _ in range(2):
+                    with self.assertRaises(SchemaError):
+                        ToolRegistry([tool])
+                self.assertEqual(check.call_count, before + 2)
+                self.assertEqual(first.get(tool.name).parameters['properties']['n']['type'], 'integer')
+            ToolRegistry([first.get(tool.name)])
+            self.assertEqual(check.call_count, before + 3)
+
     def test_registry_copy_reuses_private_definitions_and_detaches_all_public_data(self):
         class Handler:
             def __deepcopy__(self, memo):

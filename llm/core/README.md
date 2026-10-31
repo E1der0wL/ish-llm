@@ -36,9 +36,16 @@ Agent 정의·binding은 [agents.py](agents.py)가, 공개 설정 구조는 [imp
 - Interaction의 권한 판정·응답 저장은 서비스 책임입니다. 선택지 해석 함수 자체가 승인 권한을 부여하지 않습니다.
 
 Engine의 동기 schema 조회·Agent binding·설정 검증은 `reuse_schema_checks()` 안에서
-동일 JSON schema의 성공한 구조 검사만 재사용합니다. 범위가 끝나면 검사 기록을 버리며,
-schema hook, 실제 definition/config 값 검증과 구현체의 의미 검증은 매번 수행합니다.
+동일 JSON schema의 성공한 구조 검사만 재사용합니다. 일반 범위의 검사 기록은 종료 시 버립니다.
+EngineRegistry는 등록 Engine별 마지막 성공한 binding에서 사용한 문법 증거만 보유하고 다음
+binding에서 교체합니다. schema hook, 실제 definition/config 값 검증과 구현체의 의미 검증은 매번 수행합니다.
 변경된 schema, Python 전용 확장 표현은 기존 검증 경로를 따릅니다. 반환값은 별도 복사본입니다.
+정의·설정값·실행 Engine·권한 결정을 캐시하지 않으며, 과거 스키마 변형을 누적하거나
+사용자 캐시 용량/유효기간 기본값을 만들지 않습니다.
+
+Run의 동기 준비도 같은 범위를 사용합니다. `validate_schema()`는 Tool parameter 등의 문법과
+로컬 참조를 검사하고 schema-owned default를 허용합니다. `checked_schema()`의 설정 schema는
+default 금지·resource identity 검사까지 수행하므로 두 검증의 성공 증거를 서로 대체하지 않습니다.
 
 설정 규칙은 [CONFIGURATION.md](../CONFIGURATION.md), 저장·이벤트 처리는 [Services](../services/README.md)를 참고하세요.
 부분 출력·사용량·설정 제한·JSON 변환의 지원 범위는 [공통 경계](../../docs/llm/shared-contracts.md)에 정의되어 있습니다.

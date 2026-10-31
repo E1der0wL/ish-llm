@@ -165,16 +165,19 @@ class BaseEngine:
             raise RuntimeError(BaseEngine.MISSING_INSTRUCTION_ACK)
 
     @classmethod
-    async def open_instructions(cls, context: EngineContext) -> AsyncIterator[EngineEvent]:
+    async def open_instructions(cls, context: EngineContext, *, checkpoint_event: Optional[EngineEvent] = ABSENT) -> AsyncIterator[EngineEvent]:
+        """Open with an optional prepared checkpoint, without advancing execution to collect events."""
         inbox = context.steering
         if inbox is BaseEngine.ABSENT or inbox.opened:
+            if checkpoint_event is not cls.ABSENT:
+                yield checkpoint_event
             return
         async with aclosing(cls.instruction_event(context, SteeringOperation.OPEN, target=SteeringTarget(
                 id=inbox.target_id, run_id=context.run.id, engine=inbox.engine,
                 mode=inbox.mode, scope=inbox.scope, node_id=inbox.node_id,
                 node_path=inbox.node_path, accepting=inbox.mode == SteeringMode.CONSUME).registration())) as events:
             async for event in events:
-                yield event
+                yield replace(event, checkpoint=checkpoint_event) if checkpoint_event is not cls.ABSENT else event
 
     @classmethod
     async def declare_instruction_routes(cls, context: EngineContext, routes) -> AsyncIterator[EngineEvent]:

@@ -19,6 +19,32 @@ from tests.llm.test_graph_engine import parallel, straight
 
 
 class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
+    async def test_resume_binding_and_steering_share_one_record_commit(self):
+        from llm.services.runtime.runs import RunManager
+        from llm.services.infrastructure.transactions import current_transaction
+        calls, boundaries = [], []
+        async def work(node):
+            calls.append(node.node_id)
+            return {}
+        await self.setup_graph(straight(pause_before=True), work)
+        paused = await self.run_graph()
+        original = RunManager._bind_execution
+        def bind(manager, run, engine, **kwargs):
+            if kwargs.get('checkpoint') is not None:
+                transaction = current_transaction()
+                self.assertTrue(transaction.record_batch)
+                with patch.object(manager.repository, 'save', wraps=manager.repository.save) as save:
+                    result = original(manager, run, engine, **kwargs)
+                boundaries.append(save.call_count)
+                return result
+            return original(manager, run, engine, **kwargs)
+        with patch.object(RunManager, '_bind_execution', bind):
+            resumed = await self.resume(paused)
+        self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
+        self.assertEqual(boundaries, [1])
+        self.assertEqual(calls, ['work'])
+        self.assertEqual(resumed.data.metadata['agent_execution'], paused.data.metadata['agent_execution'])
+
     async def test_resume_receipts_and_queued_request_roll_back_together(self):
         from llm.services.history.conversation import ConversationStore
         calls = []

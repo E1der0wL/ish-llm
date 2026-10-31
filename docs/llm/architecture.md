@@ -124,6 +124,8 @@ WorkspaceOwnership 아래의 TransactionManager가 쓰기 전 undo, fsync, commi
 관리한다. 잠금 진입 후 읽기 전에 미완료 journal을 복구한다. Run 시작/종료, 출력 journal과 Conversation,
 승인 응답, 연결된 Step 완료/checkpoint receipt는 서비스가 정의한 저장 단위로 확정한다.
 성공 알림은 commit 뒤에만 전달한다. 첨부 checkpoint가 있는 STEP_COMPLETED는 둘이 함께 확정된다.
+STEP_STARTED/STEERING은 준비된 초기 checkpoint도 첨부할 수 있다. 같은 완료 응답이나 다음 실행
+허용을 증명하는 기록만 owner가 명시적으로 묶으며, 미래 Engine 이벤트를 먼저 실행해 수집하지 않는다.
 한 저장 단위 안에서는 반복 undo와 파일·디렉터리 동기화를 합친다. undo는 원본 변경 전,
 최종 데이터 동기화는 commit marker 전에 끝낸다. 저장 단위 사이의 승인·실행·관찰 경계는 유지한다.
 
@@ -167,13 +169,16 @@ Builtin 명령의 선택적 영속 출력은 Builtin Component가 관측 레코�
 
 ## 검증 상태
 
-Run의 JSON/JSONL 저장 경로는 명시적 record batch로 변경 내용을 모아 확정한다. 일반 파일·트리
+Session runtime 접속 복구와 Run 종료를 포함한 JSON/JSONL 저장 경로는 명시적 record batch로
+변경 내용을 모아 확정한다. Activity 파생 인덱스는 계속 best-effort after-commit 저장이다. 일반 파일·트리
 변경은 undo journal을 유지한다. 두 경로 모두 같은 workspace 소유권 아래 실행하며, 기록 준비 중의
 읽기는 공통 record view를 사용한다. 승인·Tool 효과·Run/Step 알림은 해당 저장의 완료 이후에만
 진행한다. 이 완료는 저널의 영속화와 파일 반영을 뜻한다. 같은 OS 소유권 아래 target fsync는
-모아서 일반 undo 변경/소유권 해제 경계에서 수행하고, 완료 지점을 확정한 뒤 저널을 회수한다.
-published bundle 이후 저장 장애는 재진입 시 전체 순서를 검증하여 최종 기록을 복구하며 외부 효과를
-재생하지 않는다. [저장 트랜잭션](storage-transactions.md)의 기록 묶음 절을 따른다.
+모아서 Run 종료/일반 undo 변경/소유권 해제 경계에서 수행하고, 완료 지점을 확정한 뒤 저널을 회수한다.
+기록은 같은 저널에 길이·sequence·checksum을 가진 frame으로 추가하며, 후속 commit은 파일 fsync
+한 번으로 확정한다. 새 저널 이름은 디렉터리 fsync까지 필요하다. 저장 장애 후에는 전체 완성 frame을
+검증하여 최종 기록을 복구하고 외부 효과는 재생하지 않는다. 미완료 마지막 append와 완성 frame 손상을
+구별하며, 손상은 fail-closed한다. [저장 트랜잭션](storage-transactions.md)의 기록 묶음·교체 절을 따른다.
 
 현재 기준선은 [작업 인계](handoff.md), 문서 변경은 [검토 기록](documentation-review.md), 운영상 한계는
 [운영 준비 상태](production-readiness.md)를 본다. 과거 기록의 시험 수나 문서 예제의 문법 검사를

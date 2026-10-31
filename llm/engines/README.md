@@ -75,6 +75,10 @@ engines = {"assistant": LoopEngine()}
 - Step/Run/Session/대화/체크포인트 파일을 직접 쓰지 않습니다.
 - `STEP_COMPLETED`의 `checkpoint`에 CHECKPOINT record 이벤트를 첨부하면 Step 완료·출력·
   재개 영수증을 같은 서비스 트랜잭션에서 저장합니다. 실패하면 완료 상태를 재사용하지 않습니다.
+- `STEP_STARTED`/`STEERING`은 준비된 초기 checkpoint도 첨부할 수 있습니다.
+  `open_instructions(context, checkpoint_event=...)`는 초기 checkpoint와 채널 개방을 함께 확정한
+  뒤 계속합니다. 채널이 없거나 이미 열렸으면 checkpoint만 저장합니다. 이벤트를 미리 실행하여
+  묶지 않으며, 승인·Tool 효과 전후나 지시 선택 ACK를 건너뛰지 않습니다.
 - 선택 Engine은 순수 동기 `bind_execution(context)`로 JSON 실행 identity를 제공할 수 있습니다.
   Agent binding은 Engine 종류와 관계없이 이를 포함합니다. Host는 구현 동작 변경 시 기존 revision
   또는 이 identity를 변경해야 합니다.
@@ -89,6 +93,9 @@ UI에서 Engine별 Agent 폼을 만들려면 순수 동기 `describe_agent()`로
 대체하지 않습니다. 조회는 factory·모델·Tool을 실행하지 않으며 값을 만들거나 저장하지 않습니다.
 외부 API는 `project.agents.describe(engine=...)`와 `adescribe(engine=...)`입니다.
 hook이 없는 Engine의 기존 실행은 유지되지만 선택 폼 조회는 명시적으로 실패합니다.
+Registry는 등록 Engine별 마지막 binding에서 사용한 정확한 JSON 스키마 문법 증거만 재사용합니다.
+`describe_agent()`와 `for_agent()`는 매번 호출하며, 새 스키마와 실제 입력은 계속 검증합니다.
+정의·정책·호출별 Engine·승인 scope는 캐시하지 않습니다.
 상세 제약과 예제는 [Agent 문서](../../docs/llm/agents.md)를 참고하세요.
 
 `for_agent()`가 반환한 Engine의 `steering_mode`는 등록 Engine의 선언과 같아야 합니다.

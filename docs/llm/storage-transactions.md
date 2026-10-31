@@ -70,15 +70,16 @@ owner가 `@workspace_locked(records=True)`로 이 경로를 명시한다. Facade
 range를 연결해 읽는다. 대화 projection은 성공적으로 확정된 동일 view에 한해 실제 파일 stamp로
 다시 연결하므로 매번 전체 대화를 재생하지 않는다.
 
-1. `records-pending-<id>`에 변경 bytes와 closed manifest·checksum·format footer를 준비한다.
-2. 파일 fsync 후 `records-<sequence>-<id>`로 rename하고 journal 디렉터리를 fsync한다. 이것이 commit decision이다.
+1. `records-pending-<id>`에 변경 bytes와 closed manifest·checksum·format footer를 준비한다. 임시 준비 파일은 확정 근거가 아니므로 fsync하지 않는다.
+2. `records-<first-sequence>-<id>` 저널 끝에 sequence·길이·header checksum과 준비된 묶음을 하나의 frame으로 추가하고 파일을 fsync한다. 새 저널 파일일 때는 journal 디렉터리도 fsync한다. 이 완료가 commit decision이며, 같은 파일의 후속 확정은 파일 fsync 한 번을 사용한다.
 3. 전체 manifest/경로/범위/checksum을 검증하고 해당 bytes만 원본에 반영한다. 교체는 atomic rename,
    JSONL은 증분 쓰기다. 이 단계에서는 target fsync 대신 영속 저널이 복구를 보장한다.
 4. 전체 파일 반영 뒤 observer/호출자에게 완료를 전달한다. 같은 OS 소유권이 유지되는 동안 후속
    기록도 저널로 확정하고, target 파일·디렉터리의 동기화 대상은 합친다. 읽기만 하는 작업은 추가 동기화를 요구하지 않는다.
 5. 일반 undo 작업의 첫 변경 직전 또는 마지막 OS 소유권 해제 직전에 target을 한 번씩 동기화한다.
-   이후 최고 sequence의 `record-checkpoint`를 checksum과 함께 원자 교체·fsync한 뒤 해당 저널을 지운다.
-   Run 종료 저장은 일반 undo 경로이므로 이 경계에서 앞선 기록을 checkpoint한다.
+   이후 최고 sequence의 `record-checkpoint`를 checksum과 함께 원자 교체·fsync한 뒤 해당 저널을 지운다. 다음 기록은 새 저널 파일을 사용하며 이미 정리된 파일에 추가하지 않는다.
+   Run 종료는 마지막 기록 묶음을 확정한 뒤 이 저장 checkpoint를 수행하고 종료 알림을 보낸다.
+   종료 직전과 직후에 같은 파일을 두 번 동기화하지 않고, 완료한 Run의 저널을 Session 종료까지 누적하지 않는다.
 
 `record-checkpoint`는 저장 계층의 반영 완료 지점이며 Run/RAG의 재개 checkpoint와 별개다.
 삭제했던 저널이 전원 장애로 다시 보여도 완료 지점 이하이면 재생하지 않는다. 서로 다른 commit을
@@ -96,7 +97,72 @@ publication 전 실패는 원본과 메모리 projection을 보존/복원한다.
 호출자에게 불확실한 오류이며 되돌리거나 성공 알림을 보내지 않는다. 다음 소유권 진입에서 확정된
 묶음 전체를 먼저 복구한다. 복구 중 다시 종료되어도 동일 bytes를 적용할 수 있다. 부분 append는
 저널이 증명하는 prefix/최종 길이 범위에서만 복구하며 일반 손상 JSONL의 끝을 임의로 잘라내지 않는다.
-손상된 published 묶음은 fail-closed한다. 미확정 pending 파일은 버린다.
+완성된 frame의 header·manifest·payload checksum 오류와 sequence 누락은 fail-closed한다.
+끝에서 쓰다가 중단된 header/payload만 미확정 꼬리로 처리한다. 전체 완성 frame의 경로·범위·checksum을
+먼저 검사한 뒤에만 그 꼬리를 잘라낸다. 완성 frame의 손상을 미완료 기록으로 간주하지 않는다.
+fsync 실패 후 온전한 frame이 남은 경우 확정 여부는 호출자에게 불확실하다. 다음 소유권 진입은
+검증한 저널 자체를 먼저 fsync하고 복구하므로 읽기·효과보다 내구성 확정이 앞선다. 미확정 pending 파일은 버린다.
+
+### 준비 재사용과 확정 병합
+
+Run 접수 검사, 실행 전략 선택, context 준비는 각각 동기 `reuse_schema_checks()` 범위에서 동일
+스키마의 성공한 문법 검사만 재사용한다. Tool registry가 새로 만들어져도 그 범위 안의 동일 문법
+증거는 공유할 수 있다. 실제 값·Tool 인자·선택 binding·Host 권한과 의미 검증은 생략하지 않으며,
+Run·Session 간 runtime 객체나 승인 결정을 공유하지 않는다. 일반 범위의 임시 문법 증거는 종료 시 버린다.
+EngineRegistry는 등록된 구현체마다 마지막 성공한 Agent binding의 정확한 JSON 스키마 문법 증거만
+보유한다. 다음 binding에서도 schema hook과 설정값/의미 검증은 실행하고, 그 호출에서 실제 사용한
+증거로 교체한다. 변경된 스키마는 다시 검사하며, 실패한 검사나 과거 변형은 누적하지 않는다.
+이 내부 준비 자료는 설정·정의·권한의 source of truth가 아니며 용량/TTL 정책을 추가하지 않는다.
+
+재개 시 실행 binding 확인과 추가 지시 접수 상태 초기화는 Engine 호출 전에 한 record commit으로
+확정한다. 동일한 binding을 재검증했을 뿐인 경우 별도 재저장은 하지 않는다. 반면 승인 정보 상속과
+체크포인트 복사는 분리한다. 초기 복사가 실패해도 상속된 승인 근거로 명시적 재개가 가능해야 하기 때문이다.
+QUEUED 접수, 요청 그룹 dispatch, Run 시작, 실행 진입 ACK는 계속 분리한다. Engine event는
+아래의 명시적인 결합 계약을 사용한 경우에만 하나의 ACK로 확정한다.
+
+완전한 요청 이력 검증은 같은 조회에서 같은 User 객체와 전체 Run 집합으로 이미 검증한 recipient
+group을 recipient마다 재해석하지 않는다. 모든 Run의 원본 User/Assistant 연결, binding과 dispatch
+증거는 계속 검증한다. 이 조회가 끝나면 증거를 버리므로 이후 변경·손상·삭제는 다시 검사한다.
+`RequestHandle.wait()`는 영속 조회 전에 변경 알림을 확보하여 조회와 대기 사이 완료를 놓치지 않는다.
+대기 직전의 중복 전체 조회만 제거하며, 알림은 영속 결과를 다시 읽으라는 신호일 뿐 성공 근거가 아니다.
+대기 취소/timeout은 실행을 취소하지 않고, shutdown은 미완료 요청을 성공으로 바꾸지 않는다.
+
+### 관련 기록과 하나의 완료 경계
+
+관련 기록은 **하나의 공개 완료 응답 또는 다음 실행 허용을 함께 증명하는 기록**이다.
+같은 Run에 속하거나 가까운 시간에 생성됐다는 이유만으로 묶지 않는다. 도메인 owner가
+전부 준비한 유한한 변경 집합을 명시하며, 저장 계층은 원자적 확정과 복구만 담당한다.
+
+- Session runtime 접속 시 stale 상태 정리, Session 상태와 시작 기록은 접속 완료 전에 함께 확정한다.
+  재시작 복구는 저장 상태만 정리하며 Engine/Tool을 재실행하지 않는다.
+- Engine은 초기 checkpoint와 지시 수신 채널 개방을 같은 이벤트에 선언할 수 있다.
+  서비스는 둘을 함께 저장한 뒤 채널 ACK를 돌려준다. 기존 Step 완료와 checkpoint receipt도 같은 원칙이다.
+  초기 checkpoint를 단독으로 전달하는 Engine 역시 유효하다.
+- Run 종료의 Step 정리, Assistant 최종 상태, Run 최종 상태, Session 실행 목록은 한 종료 응답에 속한다.
+  이 기록을 redo journal로 확정한 뒤 `StorageIO.checkpoint()`로 최종 파일을 한 번씩 동기화하고
+  저널을 회수한다. 종료 알림은 이 과정 뒤에 보낸다. 기존 Run 종료의 저널 정리 경계는 유지한다.
+  조회는 이미 저널로 확정·반영된 최종 상태를 읽을 수 있다. 저널 회수는 실행의 새 성공 근거가 아니다.
+- 저널의 fsync와 전체 파일 반영이 끝난 뒤에만 성공 응답·관찰 이벤트·다음 실행을 허용한다.
+  마지막 workspace 소유권 해제나 일반 파일 변경 경계에서는 기존 target checkpoint를 유지한다.
+
+서로 다른 완료 경계는 그대로 분리한다. 승인 대기와 승인 응답, Tool 효과 전 authorization/operation
+reservation과 효과 후 receipt, 외부 구현체 호출 전후를 묶지 않는다. 추가 지시 SELECT의 확정 시점도
+유지한다. 저장기가 다음 Engine 이벤트를 미리 실행하여 묶음을 만들거나, 모델·Tool·사용자 응답을
+기다리는 동안 트랜잭션을 열어 두지 않는다. Activity는 best-effort 파생 인덱스이므로 필수 기록의
+성공 조건에 넣지 않으며 기존 after-commit 저장과 fsync를 유지한다.
+
+확정 전 오류는 공개하지 않고, 확정 시도 후 I/O 오류는 성공이나 rollback으로 단정하지 않는다.
+재접속 시 검증·동기화된 저널로 파일을 복구한다. 취소는 이미 접수한 저장 작업을 drain하며 완료
+증거 없이 Engine을 진행시키지 않는다. 단일 파일의 flush만으로 핵심 기록의 fsync를 대체하지 않는다.
+동기화 횟수는 이 경계의 결과이며 설정이나 고정 목표가 아니다. 최초 접속, 재개, 중첩 실행,
+명시적인 처리기·백업·retention 사용 여부에 따라 횟수가 달라질 수 있다.
+
+### 코드 교체와 내부 저널 형식
+
+Project/Session/Run/Step, 승인과 체크포인트의 저장 schema/version은 바뀌지 않는다. 내부 redo 저널에는
+frame 경계가 추가되었다. 이전 코드로 연 workspace를 정상 종료하여 저널 checkpoint·정리를 마친 뒤
+새 코드를 사용한다. 미완료된 이전 비프레임 저널이 남아 있으면 새 코드는 변환하거나 무시하지 않고
+거부한다. 그 경우 이전 코드로 먼저 복구·정상 종료해야 한다. 자동 migration이나 이중 reader는 없다.
 
 record batch에는 raw 복사·삭제·truncate를 혼합하지 않는다. 해당 storage primitive는 즉시 거부하며
 작업을 여러 commit으로 몰래 나누거나 undo로 자동 전환하지 않는다. 이런 작업의 owner는 기존

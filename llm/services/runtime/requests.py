@@ -312,17 +312,25 @@ class RequestAdmission:
     def history(cls, messages, records, *, project_id, session_id, persistent):
         """Validate complete dispatch witnesses before recovery or deletion writes."""
         by_id = {message.id: message for message in messages}
+        validated = set()
         for message in messages:
             if cls.present(message) or (message.role == MessageRole.USER
                     and not is_instruction(message) and message.status == MessageStatus.QUEUED):
                 cls.runs(message, records, project_id=project_id, session_id=session_id)
+                validated.add(id(message))
         for run in records:
             source = by_id.get(run.input_message_id)
             if source is None:
                 if persistent:
                     raise ValueError(cls.MISSING_USER)
                 continue  # Memory lifetime loss permits interruption, never replay.
-            cls.runs(source, records, project_id=project_id, session_id=session_id)
+            # Every recipient group was checked against the complete record set
+            # above. Re-reading its immutable dispatch history once per recipient
+            # adds no evidence. The proof is local to these exact in-memory
+            # witnesses; no later read, mutation or request can reuse it.
+            if id(source) not in validated:
+                cls.runs(source, records, project_id=project_id, session_id=session_id)
+                validated.add(id(source))
             assistant = by_id.get(run.assistant_message_id)
             if (assistant is None or assistant.role != MessageRole.ASSISTANT
                     or assistant.run_id != run.id):

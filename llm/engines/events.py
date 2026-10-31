@@ -43,7 +43,7 @@ class EngineEvent:
     NO_PROGRESS: ClassVar[None] = None
     NO_FAILURE_CODE: ClassVar[None] = None
     NO_STEP: ClassVar[None] = None
-    INVALID_CHECKPOINT: ClassVar[str] = "A Step completion can attach one checkpoint record"
+    INVALID_CHECKPOINT: ClassVar[str] = "A lifecycle event can attach one checkpoint; Step completion requires a record"
     INVALID_DIAGNOSTIC: ClassVar[str] = "diagnostic must be Diagnostic"
     INVALID_PROGRESS: ClassVar[str] = "progress must be OperationProgress"
     INVALID_FAILURE_CODE: ClassVar[str] = "failure_code requires a nonempty code on STEP_FAILED"
@@ -72,8 +72,8 @@ class EngineEvent:
     # 실행 중 fail-fast 합성용. Diagnostic의 임의 관찰 code와 달리 명시적 CodedError만 전달한다.
     # StepEventRecorder는 이 런타임 필드를 저장하지 않는다.
     failure_code: Optional[str] = NO_FAILURE_CODE
-    # A completed Step and its resume receipt commit in one service transaction.
-    # Only record operations are attachable; initialization remains a separate boundary.
+    # An explicitly prepared checkpoint and its lifecycle event share one ACK.
+    # Initializations may accompany Step start or steering; completion needs a receipt.
     checkpoint: Optional["EngineEvent"] = NO_CHECKPOINT
 
     @classmethod
@@ -105,10 +105,12 @@ class EngineEvent:
         return self.checkpoint or self
 
     def __post_init__(self):
-        if self.has_checkpoint and (self.type != EngineEventType.STEP_COMPLETED
+        if self.has_checkpoint and (self.type not in (
+                    EngineEventType.STEP_STARTED, EngineEventType.STEP_COMPLETED, EngineEventType.STEERING)
                 or not isinstance(self.checkpoint, EngineEvent)
                 or self.checkpoint.type != EngineEventType.CHECKPOINT
-                or not CheckpointWrite(self.checkpoint.metadata).is_record
+                or (self.type == EngineEventType.STEP_COMPLETED
+                    and not CheckpointWrite(self.checkpoint.metadata).is_record)
                 or self.checkpoint.has_checkpoint):
             raise ValueError(self.INVALID_CHECKPOINT)
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.

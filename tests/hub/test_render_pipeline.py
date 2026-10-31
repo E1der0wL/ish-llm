@@ -38,6 +38,28 @@ class CacheTests(unittest.TestCase):
         return self.cache.prepare(messages, width, self.theme, self.language,
             render=render_messages, renderers=self.registry, root=Path.cwd(), invalidate=lambda: None)
 
+    def test_streaming_suffix_does_not_measure_unchanged_block_rows(self):
+        from prompt_toolkit.formatted_text.utils import fragment_list_width
+        prefix = '```python\n' + "print('한글')\n" * 1000 + '```\n\n'
+        message = ChatMessage('assistant', prefix, id='a', status='streaming')
+        self.prepare((message,))
+        with patch('hub.widget.transcript.message_cache.fragment_list_width',
+                   wraps=fragment_list_width) as measure:
+            for index in range(5):
+                current = replace(message, text=prefix + f'**New suffix {index}**')
+                frame = self.prepare((current,))
+                self.assertEqual(frame.max_width, max(map(fragment_list_width, frame.lines)))
+            self.assertLess(measure.call_count, 80)  # Not the 1,000 prior rows per delta.
+        expected = render_messages((current,), 80, self.theme, self.language, renderers=self.registry)
+        self.assertEqual(tuple(frame.lines), frozen_rows(expected))
+        # A resize and final publication retain exact canonical geometry.
+        for width in (24, 120):
+            final = replace(current, status='completed')
+            frame = self.prepare((final,), width)
+            expected = render_messages((final,), width, self.theme, self.language, renderers=self.registry)
+            self.assertEqual(tuple(frame.lines), frozen_rows(expected))
+            self.assertEqual(frame.max_width, max(map(fragment_list_width, frame.lines)))
+
     def test_trace_changes_render_only_the_changed_item(self):
         trace = (TraceItem("c1", "reasoning", "**First thought**"),
                  TraceItem("t1", "tool", "file_read", "completed"),

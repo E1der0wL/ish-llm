@@ -79,11 +79,65 @@ class SchemaReuseTests(unittest.TestCase):
             registry.resolve_agent({'engine': 'owner'})
             self.assertEqual(check.call_count, 1)
             self.assertEqual((owner.described, owner.bound), (2, 1))
+            registry.resolve_agent({'engine': 'owner'})
+            self.assertEqual(check.call_count, 1)
+            self.assertEqual((owner.described, owner.bound), (4, 2))
+            with self.assertRaises(ValueError):
+                registry.resolve_agent({'engine': 'owner', 'unknown': True})
+            self.assertEqual(owner.bound, 2)
             owner.schema['properties']['engine'] = {'const': 'different'}
             with self.assertRaises(ValueError):
                 registry.resolve_agent({'engine': 'owner'})
             self.assertEqual(check.call_count, 2)
-            self.assertEqual(owner.bound, 1)
+            self.assertEqual(owner.bound, 2)
+
+    def test_retained_syntax_proofs_replace_old_variants_and_do_not_escape_registry(self):
+        class Owner(BaseEngine):
+            def __init__(self):
+                super().__init__()
+                self.schema = AgentDefinition.describe()
+
+            def describe_agent(self):
+                return self.schema
+
+            def for_agent(self, definition):
+                return Owner()
+
+        owner = Owner()
+        registry = EngineRegistry()
+        registry.register('owner', owner)
+        with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+            for variant in range(8):
+                owner.schema['title'] = str(variant)
+                first = registry.resolve_agent({'engine': 'owner'})
+                second = registry.resolve_agent({'engine': 'owner'})
+                self.assertIsNot(first, second)
+                self.assertEqual(check.call_count, variant + 1)
+                self.assertEqual(len(registry._agent_schema_checks['owner']), 1)
+            owner.schema['title'] = '0'
+            registry.resolve_agent({'engine': 'owner'})
+            self.assertEqual(check.call_count, 9)  # Obsolete proofs are not retained.
+            separate = EngineRegistry()
+            separate.register('owner', owner)
+            separate.resolve_agent({'engine': 'owner'})
+            self.assertEqual(check.call_count, 10)
+            owner.schema['properties']['engine']['type'] = 'invalid'
+            for _ in range(2):
+                with self.assertRaises(SchemaError):
+                    registry.resolve_agent({'engine': 'owner'})
+            self.assertEqual(check.call_count, 12)
+
+    def test_seeded_proofs_cannot_hide_changed_constraints(self):
+        schema = object_schema({'count': {'type': 'integer', 'minimum': 1}})
+        with reuse_schema_checks() as used:
+            checked_schema(schema)
+        with reuse_schema_checks(previous=frozenset(used)):
+            result = checked_schema(schema)
+            with self.assertRaises(ValidationError):
+                Draft202012Validator(result).validate({'count': 0})
+            schema['properties']['count']['default'] = 1
+            with self.assertRaisesRegex(ValueError, 'default'):
+                checked_schema(schema)
 
 
 class SelectedAgentSchemaTests(unittest.IsolatedAsyncioTestCase):

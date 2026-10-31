@@ -3,6 +3,7 @@
 from copy import deepcopy
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from llm.core.agents import AgentBinding
 from llm.core.models import Message, MessageRole, MessageStatus, new_id
@@ -146,6 +147,37 @@ class RequestAdmissionTests(unittest.TestCase):
         self.assertEqual(value["recipients"], ["writer"])
         self.assertIsNone(self.message.run_id)
         self.assertEqual(RequestAdmission.runs(self.message, runs, **self.owner), runs)
+
+    def test_history_validates_each_group_once_but_all_recipient_witnesses(self):
+        _, runs = self.dispatch()
+        assistants = [Message(run.assistant_message_id, MessageRole.ASSISTANT, 'answer',
+                      MessageStatus.COMPLETED, run_id=run.id) for run in runs]
+        messages = [self.message, *assistants]
+        with patch.object(RequestAdmission, 'runs', wraps=RequestAdmission.runs) as validate:
+            RequestAdmission.history(messages, runs, persistent=True, **self.owner)
+            self.assertEqual(validate.call_count, 1)
+        # The local proof must not outlive a read or cover only the first recipient.
+        runs[1].engine = 'changed'
+        with self.assertRaisesRegex(ValueError, 'binding'):
+            RequestAdmission.history(messages, runs, persistent=True, **self.owner)
+        runs[1].engine = 'base'
+        assistants[1].run_id = new_id()
+        with self.assertRaisesRegex(ValueError, 'Assistant'):
+            RequestAdmission.history(messages, runs, persistent=True, **self.owner)
+
+    def test_history_does_not_trust_duplicate_ids_or_imported_observations(self):
+        _, runs = self.dispatch()
+        assistants = [Message(run.assistant_message_id, MessageRole.ASSISTANT, 'answer',
+                      MessageStatus.COMPLETED, run_id=run.id) for run in runs]
+        forged = deepcopy(self.message)
+        forged.metadata = {}
+        # The second object has the same ID, but did not pass admission validation.
+        with self.assertRaises(ValueError):
+            RequestAdmission.history([self.message, forged, *assistants], runs,
+                                     persistent=True, **self.owner)
+        with self.assertRaises(ValueError):
+            RequestAdmission.history(assistants, runs, persistent=True, **self.owner)
+        RequestAdmission.history(assistants, runs, persistent=False, **self.owner)
 
 
 if __name__ == "__main__":

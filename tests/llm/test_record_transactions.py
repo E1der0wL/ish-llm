@@ -24,6 +24,155 @@ class RecordTransactionTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.owner = WorkspaceOwnership(self.root)
 
+    def test_existing_segment_uses_one_fsync_per_commit_before_observer(self):
+        path = self.root / 'value'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                atomic_bytes(path, b'first')
+            log = self.owner.transactions.records.log
+            calls, seen = [], []
+            original = os.fsync
+            def sync(fd):
+                calls.append(Path(os.readlink(f'/proc/self/fd/{fd}')))
+                return original(fd)
+            with patch.object(os, 'fsync', sync):
+                for index in range(3):
+                    with self.owner.scope(records=True):
+                        append_bytes(path, b'x')
+                        after_commit(lambda: seen.append(len(calls)))
+                        self.assertEqual(len(seen), index)
+            self.assertEqual(calls, [log] * 3)
+            self.assertEqual(seen, [1, 2, 3])
+            self.assertEqual(path.read_bytes(), b'firstxxx')
+        finally:
+            self.owner.release()
+
+    def test_fsync_failure_is_uncertain_and_recovery_durably_resolves_it(self):
+        path, seen = self.root / 'value', []
+        path.write_bytes(b'old')
+        original = os.fsync
+        def sync(fd):
+            name = Path(os.readlink(f'/proc/self/fd/{fd}')).name
+            if RecordJournal.BUNDLE.fullmatch(name):
+                raise OSError('journal fsync failed')
+            return original(fd)
+        with patch.object(os, 'fsync', sync), self.assertRaisesRegex(OSError, 'fsync failed'):
+            with self.owner.scope(records=True):
+                atomic_bytes(path, b'complete frame')
+                after_commit(lambda: seen.append('ack'))
+        self.assertEqual(seen, [])
+        self.assertEqual(path.read_bytes(), b'old')
+        # The complete but unacknowledged frame is made durable before observation.
+        with WorkspaceOwnership(self.root).scope():
+            self.assertEqual(path.read_bytes(), b'complete frame')
+        with WorkspaceOwnership(self.root).scope():
+            self.assertEqual(path.read_bytes(), b'complete frame')
+
+    def test_payload_copy_uses_bounded_reads_and_preserves_bytes(self):
+        payload = b'payload\n' * RecordTransaction.BLOCK
+        path, reads = self.root / 'large', []
+        original = RecordJournal.append
+        def append(journal, sequence, source):
+            read = source.read
+            def bounded(size):
+                self.assertGreater(size, 0)
+                self.assertLessEqual(size, RecordTransaction.BLOCK)
+                reads.append(size)
+                return read(size)
+            with patch.object(source, 'read', bounded):
+                return original(journal, sequence, source)
+        with patch.object(RecordJournal, 'append', append):
+            with self.owner.scope(records=True):
+                atomic_bytes(path, payload)
+        self.assertGreater(len(reads), 1)
+        self.assertEqual(path.read_bytes(), payload)
+
+    def test_failed_append_discards_only_incomplete_tail(self):
+        path = self.root / 'value'
+        path.write_bytes(b'old')
+        original = RecordJournal.append
+        def append(journal, sequence, source):
+            read = source.read
+            calls = 0
+            def partial(size):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    raise OSError('disk full during append')
+                return read(min(size, 5))
+            with patch.object(source, 'read', partial):
+                return original(journal, sequence, source)
+        with patch.object(RecordJournal, 'append', append), self.assertRaisesRegex(OSError, 'disk full'):
+            with self.owner.scope(records=True):
+                atomic_bytes(path, b'not committed')
+        with WorkspaceOwnership(self.root).scope():
+            self.assertEqual(path.read_bytes(), b'old')
+
+    def test_crash_in_final_header_or_payload_preserves_prior_commits(self):
+        import hashlib
+        for phase in ('header', 'payload'):
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                path = root / 'value'
+                path.write_bytes(b'old')
+                pid = os.fork()
+                if pid == 0:
+                    owner = WorkspaceOwnership(root)
+                    owner.retain()
+                    with owner.scope(records=True):
+                        atomic_bytes(path, b'committed')
+                    original = RecordJournal.append
+                    def interrupted(journal, sequence, source):
+                        size = source.seek(0, os.SEEK_END)
+                        source.seek(0)
+                        prefix = journal.PREFIX.pack(journal.MAGIC, sequence, size)
+                        header = prefix + hashlib.sha256(prefix).digest()
+                        with journal.log.open('ab') as stream:
+                            stream.write(header[:5] if phase == 'header' else header + source.read(5))
+                            stream.flush()
+                            os.fsync(stream.fileno())
+                        path.write_bytes(b'lost projection')
+                        os._exit(74)
+                    RecordJournal.append = interrupted
+                    with owner.scope(records=True):
+                        atomic_bytes(path, b'never acknowledged')
+                    os._exit(99)
+                _, status = os.waitpid(pid, 0)
+                self.assertEqual(os.waitstatus_to_exitcode(status), 74)
+                for _ in range(2):
+                    with WorkspaceOwnership(root).scope():
+                        self.assertEqual(path.read_bytes(), b'committed')
+
+    def test_corrupt_complete_later_frame_preserves_all_targets_and_evidence(self):
+        paths = [self.root / 'one', self.root / 'two']
+        self.owner.retain()
+        for path in paths:
+            with self.owner.scope(records=True):
+                atomic_bytes(path, b'committed')
+        frame = self.owner.transactions.records.frames[-1]
+        self.owner.transactions.records.reset()
+        self.owner.release()
+        for path in paths:
+            path.write_bytes(b'unchanged')
+        with frame.path.open('r+b') as stream:
+            stream.seek(frame.offset)
+            stream.write(b'X')
+        evidence = frame.path.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'checksum'), WorkspaceOwnership(self.root).scope():
+            pass
+        self.assertEqual([path.read_bytes() for path in paths], [b'unchanged'] * 2)
+        self.assertEqual(frame.path.read_bytes(), evidence)
+
+    def test_unframed_retained_journal_is_rejected_without_conversion(self):
+        self.owner.transactions.journal.mkdir()
+        path = self.owner.transactions.journal / ('records-1-' + 'a' * 32)
+        path.write_bytes(b'old unframed record payload')
+        before = path.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'frame'), self.owner.scope():
+            pass
+        self.assertEqual(path.read_bytes(), before)
+
     def test_staged_reads_replacement_append_and_directories(self):
         path = self.root / 'nested' / 'value'
         with self.owner.scope(records=True):
@@ -97,15 +246,14 @@ class RecordTransactionTests(unittest.TestCase):
         with WorkspaceOwnership(self.root).scope():
             self.assertEqual(path.read_bytes(), b'old')
 
-    def test_sync_failure_before_publication_rolls_back_without_observers(self):
+    def test_staging_failure_before_publication_rolls_back_without_observers(self):
         path, seen = self.root / 'value', []
         path.write_bytes(b'old')
-        original = os.fsync
-        def sync(fd):
-            if 'records-pending-' in os.readlink(f'/proc/self/fd/{fd}'):
-                raise OSError('disk full')
-            return original(fd)
-        with patch.object(os, 'fsync', sync), self.assertRaisesRegex(OSError, 'disk full'):
+        original = RecordTransaction.commit
+        def commit(transaction):
+            with patch.object(transaction.spool, 'flush', side_effect=OSError('disk full')):
+                return original(transaction)
+        with patch.object(RecordTransaction, 'commit', commit), self.assertRaisesRegex(OSError, 'disk full'):
             with self.owner.scope(records=True):
                 atomic_bytes(path, b'new')
                 after_commit(lambda: seen.append(True))
@@ -248,7 +396,7 @@ class RecordTransactionTests(unittest.TestCase):
         try:
             with self.owner.scope(records=True):
                 atomic_bytes(path, b'first')
-            garbage = self.owner.transactions.records.bundles[0]
+            garbage = self.owner.transactions.records.frames[0].path
             saved = garbage.read_bytes()
         finally:
             self.owner.release()
@@ -268,14 +416,16 @@ class RecordTransactionTests(unittest.TestCase):
             with self.assertRaises(OSError), self.owner.scope(records=True):
                 atomic_bytes(path, b'new')
         bundle = next(self.owner.transactions.journal.glob('records-*'))
-        data = bundle.read_bytes()
+        data = bundle.read_bytes()[RecordJournal.HEADER.size:]
         footer = RecordTransaction.FOOTER
         length, _, magic = footer.unpack(data[-footer.size:])
         boundary = len(data) - footer.size - length
         manifest = json.loads(data[boundary:-footer.size])
         manifest['records'][0]['path'] = '../outside'
         raw = json.dumps(manifest).encode()
-        bundle.write_bytes(data[:boundary] + raw + footer.pack(len(raw), hashlib.sha256(raw).digest(), magic))
+        body = data[:boundary] + raw + footer.pack(len(raw), hashlib.sha256(raw).digest(), magic)
+        prefix = RecordJournal.PREFIX.pack(RecordJournal.MAGIC, manifest['sequence'], len(body))
+        bundle.write_bytes(prefix + hashlib.sha256(prefix).digest() + body)
         with self.assertRaises(ValueError), WorkspaceOwnership(self.root).scope():
             pass
         self.assertEqual(path.read_bytes(), b'old')
@@ -300,7 +450,8 @@ class RecordTransactionTests(unittest.TestCase):
                 counts.append(len(calls))
                 self.assertEqual(observed, [len(calls)])
                 if records:
-                    self.assertTrue(any('records-pending-' in p for p in calls))
+                    self.assertTrue(any(RecordJournal.BUNDLE.fullmatch(Path(p).name) for p in calls))
+                    self.assertFalse(any('records-pending-' in p for p in calls))
                     self.assertFalse(any(Path(p).name.isdigit() for p in calls))
             finally:
                 self.owner.release()
@@ -313,7 +464,7 @@ class RecordTransactionTests(unittest.TestCase):
             for data in (b'a', b'b', b'c'):
                 with self.owner.scope(records=True):
                     append_bytes(path, data)
-            self.assertEqual(len(self.owner.transactions.records.bundles), 3)
+            self.assertEqual(len(self.owner.transactions.records.frames), 3)
             calls, original = [], os.fsync
             def sync(fd):
                 calls.append(os.readlink(f'/proc/self/fd/{fd}'))
@@ -324,7 +475,7 @@ class RecordTransactionTests(unittest.TestCase):
                 self.assertEqual(calls, [])  # A read is not a flush barrier.
                 with self.assertRaisesRegex(RuntimeError, 'abort'), self.owner.scope():
                     atomic_bytes(path, b'undo mutation')
-                    self.assertEqual(self.owner.transactions.records.bundles, [])
+                    self.assertEqual(self.owner.transactions.records.frames, [])
                     raise RuntimeError('abort')
             self.assertEqual(path.read_bytes(), b'abc')
             self.assertEqual(calls.count(str(path)), 1)
@@ -355,7 +506,10 @@ class RecordTransactionTests(unittest.TestCase):
         for data in (b'a', b'b', b'c'):
             with self.owner.scope(records=True):
                 append_bytes(path, data)
-        self.owner.transactions.records.bundles[1].unlink()
+        first, middle, last = self.owner.transactions.records.frames
+        data = first.path.read_bytes()
+        first.path.write_bytes(data[:middle.offset - RecordJournal.HEADER.size]
+                               + data[last.offset - RecordJournal.HEADER.size:])
         # End the proof lifetime without checkpointing, as a process crash does.
         self.owner.transactions.records.reset()
         self.owner.release()
@@ -398,7 +552,7 @@ class RecordTransactionTests(unittest.TestCase):
         path = self.root / 'value'
         with self.owner.scope(records=True):
             atomic_bytes(path, b'durable')
-        bundle = self.owner.transactions.records.bundles[0]
+        bundle = self.owner.transactions.records.frames[0].path
         from llm.services.infrastructure.record_journal import _sync
         def sync(directory):
             if directory == self.owner.transactions.journal:

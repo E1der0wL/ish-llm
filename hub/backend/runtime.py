@@ -284,7 +284,8 @@ class HubRuntime:
         if (event.run.status == RunStatus.RUNNING and self.request_started is not None
                 and event.run.session_id in self.sessions):
             self.request_started(RequestStarted(
-                event.run.project_id, event.run.session_id, event.run.input_message_id, event.run.id))
+                self.sessions[event.run.session_id].project.id,
+                event.run.session_id, event.run.input_message_id, event.run.id))
         if event.run.status != RunStatus.RUNNING:
             self.snapshot_reader.drafts.forget(event.run.id)
         self.background_records.observe(event.run)

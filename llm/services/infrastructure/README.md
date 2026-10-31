@@ -44,6 +44,11 @@ StorageIO는 이벤트 루프 밖에서 저장을 수행하고 기존 소유권�
 승인·효과 앞의 저장 완료를 생략하지 않습니다. `workspace_locked(records=True)`는 같은 실행기에서
 owner가 JSON/JSONL 전용 작업임을 선언하는 내부 계약입니다.
 
+기록 묶음은 유지 중인 저널에 길이·sequence·checksum이 있는 frame으로 추가합니다. 일반적인 후속
+확정은 파일 fsync 한 번이며 새 저널 생성 시에는 디렉터리도 동기화합니다. 미완료 마지막 frame과
+완성 frame 손상을 구별하고, 전체 저널 검증 후에만 복구합니다. 기록 수·시간에 따른 숨은 flush
+설정은 없습니다. 내부 저널 형식 교체 전에는 기존 코드의 정상 종료로 보유 저널을 정리해야 합니다.
+
 Observability는 누적 통계만 소유합니다. active/waiting/queue 상태는 기존 실행 owner에서 읽습니다. Activity는 검색을 위한 파생 인덱스이며 결과의 원본은 Run/Step입니다.
 
 프로세스 worker와 process group 관리는 runtime isolation입니다. filesystem/network sandbox는 명시적 별도 runner 정책이 필요합니다. [저장 트랜잭션](../../../docs/llm/storage-transactions.md)을 참고하세요.
@@ -107,3 +112,10 @@ shared directory fsync는 durability.py 한 곳에 있다. 같은 트랜잭션�
 원본 undo를 재사용하고, 변경 파일·디렉터리의 동기화는 commit marker 전에 모아서 수행한다.
 후속 undo가 참조하는 중간 파일은 먼저 동기화한다. 트랜잭션 밖의 저장과 승인·효과 전 ACK,
 파일 핸들 정리와 각 경로 guard 계약은 유지한다. 상세 순서는 저장 트랜잭션 문서를 따른다.
+
+record batch의 범위는 하나의 완료 응답/실행 허용을 증명하는 기록으로 owner가 명시한다.
+Session 접속 복구와 Run 종료도 이 경로를 사용한다. 초기 checkpoint를 첨부한 Engine lifecycle
+이벤트는 한 번의 저장 ACK를 공유한다. 핵심 기록의 journal fsync는 유지하며 Activity의
+best-effort after-commit 실패를 필수 저장 실패로 바꾸지 않는다.
+Run 종료는 `StorageIO.checkpoint()`를 통해 최종 파일을 함께 동기화하고 저널을 회수한 뒤 알린다.
+주기나 용량의 숨은 기본값을 도입하지 않고 기존 종료 시점의 정리 경계를 유지한다.

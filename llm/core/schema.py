@@ -14,20 +14,41 @@ from .json_data import JsonObject, JsonPointer
 _schema_checks = ContextVar("schema_checks", default=None)
 
 
-@contextmanager
-def reuse_schema_checks():
-    """Reuse exact syntax proofs within one synchronous schema/binding operation.
+class _SchemaChecks:
+    """Exact syntax proofs and the subset used by this preparation."""
 
-    Nested owners share only successful JSON schema checks, never definitions,
-    configured values or authorization. No proof survives the outer operation.
-    Schema hooks and instance/semantic validation still run on every call.
+    def __init__(self, previous):
+        self.known = set(previous)
+        self.used = set()
+
+    def __contains__(self, key):
+        if key not in self.known:
+            return False
+        self.used.add(key)
+        return True
+
+    def add(self, key):
+        self.known.add(key)
+        self.used.add(key)
+
+
+@contextmanager
+def reuse_schema_checks(*, previous=None):
+    """Reuse exact syntax proofs, never configuration or authorization decisions.
+
+    Nested operations share the synchronous scope. An implementation registry may
+    seed a separate scope with its last successful preparation's syntax proofs
+    and retain only the yielded, actually used subset. Hooks, instance validation
+    and semantic checks still run; changed JSON cannot borrow a different proof.
     """
-    if _schema_checks.get() is not None:
-        yield
+    current = _schema_checks.get()
+    if previous is None and current is not None:
+        yield current.used
         return
-    token = _schema_checks.set(set())
+    checks = _SchemaChecks(previous if previous is not None else ())
+    token = _schema_checks.set(checks)
     try:
-        yield
+        yield checks.used
     finally:
         _schema_checks.reset(token)
 
@@ -331,6 +352,29 @@ def _validate_schema_resources(value):
             visit(child, (*path, *location), uri)
 
     visit(value, (), JsonPointer.ROOT)
+
+
+def validate_schema(value):
+    """Validate syntax/local references, allowing schema-owned defaults.
+
+    Successful proofs are content keyed within the active preparation, which may
+    be seeded by a registry's last proof set. This never grants runtime authority.
+    Configuration schemas retain their stricter checks in checked_schema().
+    """
+    proofs = _schema_checks.get()
+    key = None
+    if proofs is not None:
+        try:
+            JsonObject.validate({"schema": value})
+            key = (validate_schema.__name__, json.dumps(value, allow_nan=JsonObject.ALLOW_NON_FINITE))
+        except (TypeError, ValueError):
+            pass
+        if key is not None and key in proofs:
+            return
+    validate_local_refs(value)
+    Draft202012Validator.check_schema(value)
+    if key is not None:
+        proofs.add(key)
 
 
 def checked_schema(value):

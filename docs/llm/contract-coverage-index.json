@@ -9,7 +9,7 @@
     "incomplete_contracts": 0,
     "unreviewed_dynamic_paths": 68,
     "unreadable_files": 0,
-    "candidates": 18068,
+    "candidates": 18104,
     "issues": 0
   },
   "issues": [],
@@ -582,7 +582,7 @@
     {
       "path": "hub/backend/runtime.py",
       "status": "unreviewed",
-      "sha256": "80903c81603457d318831f34d8b7a739437729be02b1435748ca41066282051d"
+      "sha256": "e5e29680ba36ae9bac65a3340b2d567bfdeeffc3ea0258ddcf485faed470d456"
     },
     {
       "path": "hub/backend/runtime_views.py",
@@ -1522,7 +1522,7 @@
     {
       "path": "hub/widget/transcript/message_cache.py",
       "status": "reviewed",
-      "sha256": "3cc51ca552ca5992e87c526b62217e56a7663bcb28124fad29a9a2cc33699400"
+      "sha256": "f0822104ca368b1a08758188b2352166eb62887adb60ce953f707c9efa6ced64"
     },
     {
       "path": "hub/widget/transcript/render_contract.py",
@@ -2397,7 +2397,7 @@
     {
       "path": "llm/components/tools/registry.py",
       "status": "reviewed",
-      "sha256": "bc2462d75bd5fba2adcf0e908034835e643906e60f0e96c39c0ccda1737ef647"
+      "sha256": "fb2f1d20f759b7e5635b81b28f1d2d403f9faf2fe0d992ff1e9092e8b51f4b34"
     },
     {
       "path": "llm/components/tools/resolver.py",
@@ -2522,7 +2522,7 @@
     {
       "path": "llm/core/README.md",
       "status": "reviewed",
-      "sha256": "cc3d1e7da7aa0bf386f9bbf54a88a170016e666bb49c7a167ab9614220c66709"
+      "sha256": "d8f678fd7059e932ea5f6167dc8757904168cdb55723be45719a03de36525f8e"
     },
     {
       "path": "llm/core/__init__.py",
@@ -2672,7 +2672,7 @@
     {
       "path": "llm/core/schema.py",
       "status": "reviewed",
-      "sha256": "a4992e5a7a5628c25c4c5bf3e707e160ba38f5d214da81cd772f8439aaee19a8"
+      "sha256": "4214bb2f74252b4c09b5671ed9c74d816bf57fc2fe3e690e177cfb02074233c2"
     },
     {
       "path": "llm/core/skills.py",
@@ -2752,7 +2752,7 @@
     {
       "path": "llm/engines/README.md",
       "status": "reviewed",
-      "sha256": "7f549bbe1fbf4090eeb3019c6bfb245c6f59560dbc849ccf73342d33cf032097"
+      "sha256": "bd1fffc735bd636763b91de334360ef265c5bec0e45adbc3f7400f7ac5b3d7b6"
     },
     {
       "path": "llm/engines/__init__.py",
@@ -2787,7 +2787,7 @@
     {
       "path": "llm/engines/base.py",
       "status": "reviewed",
-      "sha256": "8964fe775591299e2ff419b1530188d89b7eb93c278c4585c4ca2c8fedf0a843"
+      "sha256": "9367c211fff8a93507bd29ace90c2c21986864007abeb9ee5ad95c5deaec9b0c"
     },
     {
       "path": "llm/engines/completion_state.py",
@@ -2807,7 +2807,7 @@
     {
       "path": "llm/engines/events.py",
       "status": "reviewed",
-      "sha256": "fbfac6ff72e0ec0349cf596593aabef9d9873e0f2cd4fbacf706f63894a39028"
+      "sha256": "ca28d5a88b58ee972699b90d19a84a24fcd3bb933741437bc1502a8ad4aa6bc3"
     },
     {
       "path": "llm/engines/graph/README.md",
@@ -2912,7 +2912,7 @@
     {
       "path": "llm/engines/loop/engine.py",
       "status": "reviewed",
-      "sha256": "d8dec326842e1bb549c6633d839cbbbbed1cb4006a371778acd53fd992aa8cc3"
+      "sha256": "3e3a41cf831af8ac2414a06c37daed8c76d348b95259525d6654d953014e41c8"
     },
     {
       "path": "llm/engines/loop/records.py",
@@ -2927,7 +2927,7 @@
     {
       "path": "llm/engines/registry.py",
       "status": "reviewed",
-      "sha256": "a539d2fc92b70bd090ba661724150b0062cb4cb3e7231bba476aa46f03d55b0c"
+      "sha256": "a6f970a271796bd7d596408ec6a592e8ec2a2678297c63565168c4f8ee49125b"
     },
     {
       "path": "llm/errors.py",
@@ -3187,7 +3187,7 @@
     {
       "path": "llm/services/infrastructure/README.md",
       "status": "unreviewed",
-      "sha256": "bd7d7cd017cf126a2fe1ea08be4c96b90a02d625f533ace5ecb85abcfa60d790"
+      "sha256": "3d225048311be1f2562fbec36b018499150f7c1c9218127174691a20d36face8"
     },
     {
       "path": "llm/services/infrastructure/__init__.py",
@@ -3272,17 +3272,17 @@
     {
       "path": "llm/services/infrastructure/record_journal.py",
       "status": "reviewed",
-      "sha256": "52edeb538083f2e52784d7cea31e83fc7ca0309c873135fe8317adcafa1494e8"
+      "sha256": "8d15f168cb935d0d0a959844548f5d86c401a559683ab330782ac9870099056b"
     },
     {
       "path": "llm/services/infrastructure/record_transactions.py",
       "status": "reviewed",
-      "sha256": "5a66432535416150a5ece233e65d3bd790b9084c08eef351101f7450d38ea8e4"
+      "sha256": "96afcfbaac09c5f875341d39241577f0dfb797ebe02abc6fd5fb4c9ac3619779"
     },
     {
       "path": "llm/services/infrastructure/storage.py",
       "status": "reviewed",
-      "sha256": "ae40c5208d36013ea7861e1e6eea26a305efb9a3b4b55f360ab090ec1f9ada4e"
+      "sha256": "6276c743d4ea01056750b703d5ce9a44b9bb022dbd4d79af6aa0f02120ec6a9e"
     },
     {
       "path": "llm/services/infrastructure/text_stream.py",
@@ -3432,7 +3432,7 @@
     {
       "path": "llm/services/runtime/requests.py",
       "status": "reviewed",
-      "sha256": "bf28a9305e69576b0d86bb96b3a5677e85c5bc602b9a217718ad6ae4a6ad770e"
+      "sha256": "40520f452e42ee8ecfe4410dbbf08ce31211dde6f98620f7643a5ed09f00a343"
     },
     {
       "path": "llm/services/runtime/run_values.py",
@@ -3442,7 +3442,7 @@
     {
       "path": "llm/services/runtime/runs.py",
       "status": "reviewed",
-      "sha256": "338dc83adb73717dfbf67c3b0a3eaefff61e6115e0f789a12add8f914f2e6537"
+      "sha256": "70b6e6f7203d1fb163ff14e5e4768d457c16e5b25066a3bcca326dbbf1aaf58c"
     },
     {
       "path": "llm/services/runtime/steering.py",

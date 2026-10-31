@@ -2,7 +2,7 @@
 
 Only atomic byte replacement, append and directory creation participate. General
 tree mutations retain the undo transaction. No Engine/Tool execution is replayed.
-The published bundle is the commit decision; a post-publication I/O failure is
+The durable frame is the commit decision; a post-publication I/O failure is
 uncertain to the caller and must be completed by recovery, never rolled back.
 """
 
@@ -14,7 +14,7 @@ from pathlib import Path
 import struct
 from types import SimpleNamespace
 
-from .transactions import Transaction, _checked, _sync
+from .transactions import Transaction, _checked
 from .record_journal import RecordJournal
 from llm.core.paths import WorkspacePaths
 
@@ -80,7 +80,6 @@ class RecordTransaction(Transaction):
     APPEND = 'append'
     RANGES = 'ranges'
     PENDING = 'records-pending-'
-    PUBLISHED = 'records-'
     SEQUENCE = RecordJournal.SEQUENCE
     MAGIC = b'ISHRECORD1\n'
     # Framing/checksum and copy block size are storage implementation constants,
@@ -92,7 +91,7 @@ class RecordTransaction(Transaction):
         super().__init__(manager)
         self.pending = self.path.with_name(self.PENDING + self.path.name)
         self.sequence = manager.records.sequence + 1
-        self.path = self.path.with_name(f'{self.PUBLISHED}{self.sequence}-{self.path.name}')
+        self._publication_started = False
         self.records = {}
         self.directories = set()
         self.spool = None
@@ -192,11 +191,12 @@ class RecordTransaction(Transaction):
         self.spool.write(manifest)
         self.spool.write(self.FOOTER.pack(len(manifest), hashlib.sha256(manifest).digest(), self.MAGIC))
         self.spool.flush()
-        os.fsync(self.spool.fileno())
         try:
-            os.replace(self.pending, self.path)
-            _sync(self.manager.journal)
-            self.materialize(self.manager, self.path)
+            # A failure after beginning the append is uncertain, even when its
+            # complete frame is visible. Recovery decides before any new access.
+            self._publication_started = True
+            frame = self.manager.records.append(self.sequence, self.spool)
+            self.materialize(self.manager, frame)
         except BaseException:
             # Applied projections are no longer proven complete. The next
             # owned access validates/reconstructs the retained chain first.
@@ -204,7 +204,7 @@ class RecordTransaction(Transaction):
             raise
 
     def is_committed(self):
-        return self.path.exists()
+        return self._publication_started
 
     def discard(self):
         try:
@@ -219,31 +219,32 @@ class RecordTransaction(Transaction):
     def close(self):
         if self.spool is not None:
             self.spool.close()
+        if self._publication_started:
+            self.pending.unlink(missing_ok=True)
 
     def finish(self):
         # Retained until a checkpoint proves all target files durable.
         pass
 
     @classmethod
-    def _manifest(cls, manager, path, stream):
-        size = stream.seek(0, os.SEEK_END)
+    def _manifest(cls, manager, frame, stream):
+        size = frame.size
         if size < cls.FOOTER.size:
             raise ValueError('Incomplete record transaction')
-        stream.seek(-cls.FOOTER.size, os.SEEK_END)
+        stream.seek(frame.offset + size - cls.FOOTER.size)
         length, checksum, magic = cls.FOOTER.unpack(stream.read(cls.FOOTER.size))
         end = size - cls.FOOTER.size - length
         if magic != cls.MAGIC or end < 0:
             raise ValueError('Invalid record transaction framing')
-        stream.seek(end)
+        stream.seek(frame.offset + end)
         raw = stream.read(length)
         if hashlib.sha256(raw).digest() != checksum:
             raise ValueError('Record transaction manifest checksum mismatch')
         manifest = json.loads(raw.decode('utf-8'))
         if not isinstance(manifest, dict) or set(manifest) != {cls.SEQUENCE, cls.DIRECTORIES, cls.RECORDS}:
             raise ValueError('Invalid record transaction manifest')
-        match = manager.records.BUNDLE.fullmatch(path.name)
-        if (match is None or type(manifest[cls.SEQUENCE]) is not int
-                or manifest[cls.SEQUENCE] != int(match[1])):
+        if (type(manifest[cls.SEQUENCE]) is not int
+                or manifest[cls.SEQUENCE] != frame.sequence):
             raise ValueError('Invalid record transaction sequence')
 
         def target(name):
@@ -279,7 +280,7 @@ class RecordTransaction(Transaction):
                         or any(type(v) is not int or v < 0 for v in item[:2])
                         or item[0] + item[1] > end):
                     raise ValueError('Invalid record transaction range')
-                stream.seek(item[0])
+                stream.seek(frame.offset + item[0])
                 remaining, digest = item[1], hashlib.sha256()
                 while remaining:
                     chunk = stream.read(min(remaining, cls.BLOCK))
@@ -307,5 +308,5 @@ class RecordTransaction(Transaction):
         return directories, records
 
     @classmethod
-    def materialize(cls, manager, path):
-        manager.records.apply(path)
+    def materialize(cls, manager, frame):
+        manager.records.apply(frame)

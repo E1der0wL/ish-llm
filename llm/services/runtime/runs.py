@@ -44,6 +44,7 @@ from llm.core.contracts import ActivityEventType, ProjectActivityEvent
 from llm.core.plans import PlanBlockerCode
 
 from llm.core.models import ResourceKind
+from llm.core.schema import reuse_schema_checks
 
 from llm.core.continuations import (
     RestartRecord,
@@ -1354,6 +1355,10 @@ class RunManager:
         return value
 
     def _steering_boundary(self, run, store, event, tool_usage):
+        # Prepared checkpoint + channel transition form one explicit ACK. No
+        # Engine, provider or user callback runs inside this record transaction.
+        if event.has_checkpoint:
+            self.repository.record_checkpoint(run, event.checkpoint)
         return steering_boundary(self.repository, run, store, event, tool_usage=tool_usage)
 
     def _open_resumed_steering(self, run: Run, checkpoint: dict) -> None:
@@ -1389,6 +1394,7 @@ class RunManager:
             raise ValueError(RunManager.SESSION_DELETED)
         return project, current
 
+    @reuse_schema_checks()
     def _validate_request(self, recipients, request_context=UNSET):
         project, session = self._prepare()
         try:
@@ -1473,6 +1479,7 @@ class RunManager:
             raise ValueError(RunManager.ADMISSION_MISMATCH)
         return binding
 
+    @reuse_schema_checks()
     def _source_strategy(self, project, session, run, agent_id=ABSENT, *, records=ABSENT):
         binding = self._source_agent(project, session, run, agent_id, records=records)
         return self.agents.strategy(binding, request_context=AgentBinding.request_context(run.metadata))
@@ -1507,7 +1514,7 @@ class RunManager:
                 self.sessions.detach_runtime(fresh)
                 raise
 
-        project, current, queued, recovered = await self._io.run(recover)
+        project, current, queued, recovered = await self._io.run_records(recover)
         for run in recovered:
             await self._publish_run(run)
         runtime = SessionRuntime(deepcopy(project), current)
@@ -2149,6 +2156,7 @@ class RunManager:
             if not output.final and (output.step_id is RunManager.ABSENT or output.step_id in steps)
         )
 
+    @reuse_schema_checks()
     def _context(
         self, runtime: SessionRuntime, run: Run, policies=ABSENT, *, project=ABSENT, engine=ABSENT
     ) -> EngineContext:
@@ -2281,14 +2289,18 @@ class RunManager:
                 raise ValueError(RunManager.CHANGED_AGENT_CONFIG)
         return context
 
-    def _bind_execution(self, run, engine):
-        if (
-            AgentBinding.has_execution(run.metadata)
-            and AgentBinding.execution(run.metadata) != engine.runtime_binding
-        ):
+    def _bind_execution(self, run, engine, *, checkpoint=ABSENT):
+        bound = AgentBinding.has_execution(run.metadata)
+        if bound and AgentBinding.execution(run.metadata) != engine.runtime_binding:
             raise ValueError(RunManager.IMMUTABLE_EXECUTION)
-        AgentBinding.store_execution(run.metadata, engine.runtime_binding)
-        self.repository.save(run)
+        if not bound:
+            AgentBinding.store_execution(run.metadata, engine.runtime_binding)
+        if checkpoint is not RunManager.ABSENT:
+            # Both changes precede Engine invocation and have no intervening
+            # observer/effect. Persist through one durable record commit.
+            self._open_resumed_steering(run, checkpoint)
+        elif not bound:
+            self.repository.save(run)
 
     def _dispatch(self, run):
         RunExecutionEvidence.mark_started(run.metadata)
@@ -2360,9 +2372,10 @@ class RunManager:
                     ),
                 )
             context = await self._io.run(self._context, runtime, run, policies, engine=engine)
-            await self._io.run_records(self._bind_execution, run, engine)
-            if context.checkpoint is not RunManager.ABSENT and context.steering is not RunManager.ABSENT:
-                await self._io.run(self._open_resumed_steering, run, context.checkpoint)
+            await self._io.run_records(
+                self._bind_execution, run, engine,
+                checkpoint=context.checkpoint if context.steering is not RunManager.ABSENT else RunManager.ABSENT,
+            )
         except ExecutionLimitError:
             raise
         except Exception as error:
@@ -2394,15 +2407,16 @@ class RunManager:
                 if event.checkpoint is not RunManager.ABSENT:
                     receipt = event.checkpoint
                     write = CheckpointWrite(receipt.metadata)
-                    event = replace(
-                        event,
-                        checkpoint=replace(
-                            receipt,
-                            metadata=write.with_record(
-                                context.tool_scope.checkpoint_record(write.record.value)
-                            ).to_dict(),
-                        ),
-                    )
+                    if write.is_record:
+                        event = replace(
+                            event,
+                            checkpoint=replace(
+                                receipt,
+                                metadata=write.with_record(
+                                    context.tool_scope.checkpoint_record(write.record.value)
+                                ).to_dict(),
+                            ),
+                        )
                 value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
                 if event.type == EngineEventType.STEERING:
                     if context.steering is RunManager.ABSENT:
@@ -2423,6 +2437,8 @@ class RunManager:
                         else RunManager.ABSENT
                     )
                     messages, changed = await self._io.run_records(self._steering_boundary, run, store, event, usage)
+                    if event.has_checkpoint:
+                        notifications.append(event.checkpoint)
                     if directive.operation in (SteeringOperation.ROUTES, SteeringOperation.BIND):
                         channel.acknowledged = directive.request_id
                         if directive.operation == SteeringOperation.ROUTES:
@@ -2740,9 +2756,12 @@ class RunManager:
                     )
                 ExecutionObservations.store_diagnostic(run.metadata, issue)
             finally:
-                changed = await self._io.run(
+                changed = await self._io.run_records(
                     self._finish, runtime, run, outcome.status, outcome.error, outcome.error_code
                 )
+                # Retain the Run-end journal retirement boundary. Final records
+                # join earlier ones before targets are synchronized once.
+                await self._io.checkpoint()
                 self.observability.record(
                     ObservationKind.RUNS.value,
                     outcome.status.value,
@@ -2978,17 +2997,27 @@ class RunManager:
         """
 
         async def wait():
-            runs = await self._io.run(self._request_runs, message_id)
-            if runs and all(run.status not in Run.ACTIVE_STATES for run in runs):
-                return runs
-            runtime = await drain_on_cancel(self._start())
+            runtime = RunManager.ABSENT
             while True:
                 if self._request_changed is RunManager.ABSENT:
                     self._request_changed = asyncio.Event()
                 changed = self._request_changed
+                # Capture the wakeup before reading: a completion/cancellation
+                # between this read and runtime attachment cannot be missed.
+                # A second identical full-history read before waiting is needless.
                 runs = await self._io.run(self._request_runs, message_id)
                 if runs and all(run.status not in Run.ACTIVE_STATES for run in runs):
                     return runs
+                if runtime is RunManager.ABSENT:
+                    try:
+                        runtime = await drain_on_cancel(self._start())
+                    except RuntimeError:
+                        # This is an existing pending request, not new admission.
+                        # Shutdown during attachment has the same wait outcome
+                        # as shutdown after attachment; its queue remains stored.
+                        if self._closed:
+                            raise RuntimeError(RunManager.STOPPED_REQUEST) from None
+                        raise
                 if runtime.worker.done():
                     runtime.worker.result()
                     raise RuntimeError(RunManager.STOPPED_REQUEST)

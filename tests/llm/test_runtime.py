@@ -75,6 +75,39 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded.status, SessionStatus.IDLE)
         self.assertEqual(loaded.active_run_ids, [])
 
+    async def test_context_reuses_syntax_without_reusing_runtime_objects(self):
+        from jsonschema import Draft202012Validator
+        from llm.components.tools import Tool, ToolRegistry
+        from llm.core.tool_contracts import ToolContract
+        from types import SimpleNamespace
+
+        checks, registries = [], []
+        async def handler(arguments):
+            return arguments
+        def resolve(project, names):
+            schema = {'type': 'object', 'properties': {'n': {'type': 'integer'}}, 'required': ['n']}
+            tool = Tool('read', 'read', schema, handler, contract=ToolContract(
+                revision='test', effect='read_only', isolation='none', approval_required=False,
+                operation_key_required=False, retry_fields=()))
+            with patch.object(Draft202012Validator, 'check_schema', wraps=Draft202012Validator.check_schema) as check:
+                first, second = ToolRegistry([tool]), ToolRegistry([tool])
+                checks.append(check.call_count)
+            with self.assertRaises(ValueError):
+                second.prepare('read', {'n': 'wrong'})
+            registries.append(first)
+            return {'tools': first}
+
+        self.engine.required_capabilities = ('tools',)
+        self.manager.capabilities = SimpleNamespace(resolve=resolve)
+        for text in ('first', 'second'):
+            await self.manager.submit(text, recipients=['fake'])
+            await self.idle()
+        self.assertEqual(checks, [1, 1])
+        self.assertIsNot(registries[0], registries[1])
+        self.assertEqual([run.status for run in self.manager.repository.list(self.session)],
+                         [RunStatus.COMPLETED, RunStatus.COMPLETED])
+        self.assertIsNot(self.engine.contexts[0].tool_scope, self.engine.contexts[1].tool_scope)
+
     async def test_streaming_and_second_input_remains_queued(self) -> None:
         self.engine.gate = asyncio.Event()
         await self.manager.submit("first", recipients=["fake"])

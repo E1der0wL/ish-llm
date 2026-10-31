@@ -11,8 +11,19 @@ import os
 from pathlib import Path
 import re
 import tempfile
+import struct
+from dataclasses import dataclass
+from uuid import uuid4
 
 from .transactions import _checked, _sync
+
+
+@dataclass(frozen=True, slots=True)
+class RecordFrame:
+    sequence: int
+    path: Path
+    offset: int
+    size: int
 
 
 class RecordJournal:
@@ -22,6 +33,11 @@ class RecordJournal:
     CHECKSUM = 'checksum'
     BUNDLE = re.compile(r'records-([1-9][0-9]*)-([0-9a-f]{32})')
     PENDING = re.compile(r'records-pending-[0-9a-f]{32}')
+    # A checksummed frame length distinguishes an unfinished final append from
+    # a complete but corrupt record. No domain data or execution is interpreted.
+    MAGIC = b'ISHFRAME1\n'
+    PREFIX = struct.Struct('>10sQQ')
+    HEADER = struct.Struct('>10sQQ32s')
 
     def __init__(self, manager):
         self.manager = manager
@@ -33,7 +49,9 @@ class RecordJournal:
         self.checkpoint_sequence = 0
         self.files = set()
         self.directories = set()
-        self.bundles = []
+        self.frames = []
+        self.log = None
+        self.log_size = 0
 
     def _watermark(self):
         path = _checked(self.manager.journal / self.CHECKPOINT)
@@ -60,7 +78,7 @@ class RecordJournal:
             self.ready = True
             return
         watermark = self._watermark()
-        bundles, obsolete = [], []
+        segments, obsolete = [], []
         for path in journal.iterdir():
             if not self.owns(path):
                 continue
@@ -68,23 +86,42 @@ class RecordJournal:
                 raise ValueError('Invalid record journal file')
             match = self.BUNDLE.fullmatch(path.name)
             if match and int(match[1]) > watermark:
-                bundles.append((int(match[1]), path))
+                segments.append((int(match[1]), path))
             elif path.name != self.CHECKPOINT:
                 obsolete.append(path)
-        bundles.sort()
+        segments.sort()
         expected = watermark + 1
-        for sequence, _ in bundles:
+        frames, tails = [], []
+        for index, (sequence, path) in enumerate(segments):
             if sequence != expected:
                 raise ValueError('Invalid record journal sequence')
-            expected += 1
+            found, end = self._scan(path, sequence)
+            frames.extend(found)
+            expected += len(found)
+            if end != path.stat().st_size:
+                if index != len(segments) - 1:
+                    raise ValueError('Incomplete nonfinal record segment')
+                tails.append((path, end))
+            if not found:
+                obsolete.append(path)
         # Validate the entire retained chain before changing any target. Later
         # replacements supersede earlier ranges; appends must join exactly.
-        directories, records = self._plan(bundles)
-        if bundles:
+        directories, records = self._plan(frames)
+        # Prove every complete frame first. Only a framed, unfinished final
+        # append can be truncated; corrupt complete frames remain untouched.
+        for path, end in tails:
+            with path.open('r+b') as stream:
+                stream.truncate(end)
+        if segments:
+            # A complete write whose fsync failed is uncertain to its caller.
+            # Recovery makes its journal durable before applying/observing it.
+            for _, path in segments:
+                with path.open('rb') as stream:
+                    os.fsync(stream.fileno())
             _sync(journal)
-        self.sequence = bundles[-1][0] if bundles else watermark
+        self.sequence = frames[-1].sequence if frames else watermark
         self.checkpoint_sequence = watermark
-        self.bundles = [path for _, path in bundles]
+        self.frames = frames
         self._apply(directories, records)
         self.ready = True
         try:
@@ -99,16 +136,77 @@ class RecordJournal:
             self.reset()
             raise
 
-    def _plan(self, bundles):
+    def _scan(self, path, sequence):
+        """Return complete frames and the last complete byte boundary."""
+        from .record_transactions import RecordTransaction
+        frames, cursor = [], 0
+        with _checked(path).open('rb') as stream:
+            size = os.fstat(stream.fileno()).st_size
+            while cursor < size:
+                stream.seek(cursor)
+                raw = stream.read(self.HEADER.size)
+                if len(raw) < self.HEADER.size:
+                    if not self.MAGIC.startswith(raw[:len(self.MAGIC)]):
+                        raise ValueError('Invalid record frame prefix')
+                    break
+                magic, current, length, checksum = self.HEADER.unpack(raw)
+                if magic != self.MAGIC or hashlib.sha256(raw[:self.PREFIX.size]).digest() != checksum:
+                    raise ValueError('Record frame header checksum mismatch')
+                if current != sequence:
+                    raise ValueError('Invalid record frame sequence')
+                if length < RecordTransaction.FOOTER.size:
+                    raise ValueError('Invalid record frame length')
+                if size - cursor - self.HEADER.size < length:
+                    break
+                frames.append(RecordFrame(current, path, cursor + self.HEADER.size, length))
+                cursor += self.HEADER.size + length
+                sequence += 1
+        return frames, cursor
+
+    def append(self, sequence, source):
+        """Append one complete transaction; ACK requires its actual fsync."""
+        from .record_transactions import RecordTransaction
+        if not self.ready or sequence != self.sequence + 1:
+            raise ValueError('Invalid record commit sequence')
+        created = self.log is None
+        if created:
+            self.manager._ensure_journal()
+            self.log = self.manager.journal / f'records-{sequence}-{uuid4().hex}'
+            self.log_size = 0
+        size = source.seek(0, os.SEEK_END)
+        source.seek(0)
+        prefix = self.PREFIX.pack(self.MAGIC, sequence, size)
+        header = prefix + hashlib.sha256(prefix).digest()
+        with _checked(self.log).open('xb' if created else 'r+b') as stream:
+            if stream.seek(0, os.SEEK_END) != self.log_size:
+                raise ValueError('Record journal changed during ownership')
+            stream.write(header)
+            remaining = size
+            while remaining:
+                chunk = source.read(min(remaining, RecordTransaction.BLOCK))
+                if not chunk:
+                    raise ValueError('Incomplete staged record payload')
+                stream.write(chunk)
+                remaining -= len(chunk)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if created:
+            _sync(self.manager.journal)
+        frame = RecordFrame(sequence, self.log, self.log_size + len(header), size)
+        self.log_size = frame.offset + frame.size
+        return frame
+
+    def _plan(self, frames):
         from .record_transactions import RecordTransaction
         directories, records = set(), {}
-        for sequence, bundle in bundles:
-            with _checked(bundle).open('rb') as source:
-                declared, values = RecordTransaction._manifest(self.manager, bundle, source)
+        for frame in frames:
+            with _checked(frame.path).open('rb') as source:
+                declared, values = RecordTransaction._manifest(self.manager, frame, source)
             directories.update(declared)
             for path, value in values:
                 prefix = value[RecordTransaction.PREFIX]
-                ranges = [(bundle, offset, length) for offset, length, _ in value[RecordTransaction.RANGES]]
+                ranges = [(frame.path, frame.offset + offset, length)
+                          for offset, length, _ in value[RecordTransaction.RANGES]]
                 if value[RecordTransaction.APPEND] and path in records:
                     previous_prefix, previous_ranges = records[path]
                     if prefix != previous_prefix + sum(item[2] for item in previous_ranges):
@@ -176,21 +274,20 @@ class RecordJournal:
                 if temporary is not None:
                     temporary.unlink(missing_ok=True)
 
-    def apply(self, path):
-        match = self.BUNDLE.fullmatch(path.name)
-        if match is None or int(match[1]) != self.sequence + 1:
+    def apply(self, frame):
+        if frame.sequence != self.sequence + 1:
             raise ValueError('Invalid record commit sequence')
-        directories, records = self._plan([(int(match[1]), path)])
+        directories, records = self._plan([frame])
         self._apply(directories, records)
-        self.sequence = int(match[1])
-        self.bundles.append(path)
+        self.sequence = frame.sequence
+        self.frames.append(frame)
 
     def checkpoint(self):
         if not self.ready or self.sequence == self.checkpoint_sequence:
             return
         # The current file projections are synchronized once, regardless of
-        # how many retained transactions touched them. Ordinary undo mutation
-        # and final ownership release are barriers, not configurable timers.
+        # how many retained transactions touched them. Owner-declared settlement,
+        # ordinary undo mutation and final ownership release are barriers, not timers.
         for path in sorted(self.files):
             with _checked(path).open('rb') as stream:
                 os.fsync(stream.fileno())
@@ -214,6 +311,9 @@ class RecordJournal:
         self.checkpoint_sequence = self.sequence
         self.files.clear()
         self.directories.clear()
-        bundles, self.bundles = self.bundles, []
-        for path in bundles:
+        segments = {frame.path for frame in self.frames}
+        self.frames = []
+        self.log = None
+        self.log_size = 0
+        for path in segments:
             path.unlink(missing_ok=True)

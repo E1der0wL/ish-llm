@@ -15,6 +15,7 @@ from typing import NamedTuple
 from pathlib import Path
 from types import MappingProxyType
 from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.utils import get_cwidth
 from ...ui.output import OutputParser, RenderContext
 from ...ui.output.streaming import StreamingParse
 from .viewport import TranscriptViewport
@@ -100,7 +101,7 @@ class HeaderKey(NamedTuple):
     elapsed: object
 
 
-class TraceRows(NamedTuple):
+class MeasuredRows(NamedTuple):
     lines: tuple
     width: int
 
@@ -248,11 +249,13 @@ class MessageRenderCache:
 
                 def render_block(block, ctx):
                     key = (block, renderers.block_revision(block, ctx))
-                    rows = block_cache.get(key)
-                    if rows is MessageRenderCache.ABSENT:
+                    cached = block_cache.get(key)
+                    if cached is MessageRenderCache.ABSENT:
                         rows = frozen_rows(renderers.render(block, ctx))
-                    used_blocks[key] = rows
-                    return rows
+                        cached = MeasuredRows(rows, max(map(fragment_list_width, rows),
+                                                       default=MessageRenderCache.NO_WIDTH))
+                    used_blocks[key] = cached
+                    return cached.lines
 
                 anchors, objects = [], []
                 lines = frozen_rows(
@@ -276,10 +279,15 @@ class MessageRenderCache:
                     lines,
                     tuple(anchors),
                     tuple(objects),
-                    max(
-                        map(fragment_list_width, lines),
-                        default=MessageRenderCache.NO_WIDTH,
-                    ),
+                    # The canonical assistant block layout only prefixes INDENT
+                    # and appends blank MESSAGE_GAP rows. Reuse each block's
+                    # measured cells instead of rescanning all old code/table
+                    # characters on every streamed suffix or clock update.
+                    max((item.width + get_cwidth(TranscriptLayout.INDENT)
+                         for item in used_blocks.values() if item.lines),
+                        default=MessageRenderCache.NO_WIDTH)
+                    if used_blocks else max(map(fragment_list_width, lines),
+                                            default=MessageRenderCache.NO_WIDTH),
                 )
                 block_cache = used_blocks
                 self.body_renders += MessageRenderCache.COUNT_STEP
@@ -328,7 +336,7 @@ class MessageRenderCache:
                 cached = previous.trace_cache.get(item)
                 if cached is MessageRenderCache.ABSENT:
                     rows = render_trace_item(item, width, theme, language)
-                    cached = TraceRows(
+                    cached = MeasuredRows(
                         rows,
                         max(
                             map(fragment_list_width, rows),

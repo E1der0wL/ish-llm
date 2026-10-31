@@ -204,8 +204,10 @@ Checkpoint 형식은 `LoopEngine.CHECKPOINT_FORMAT` (`loop-iterations-v2`)이다
 - 추가 지시 예약의 정적 경로는 등록 Engine의 공개 지원 모드를 기준으로 열거한다. 실제 선택한
   factory 결과도 다시 검사하며, 미지원 실행기에 지시를 강제 전달하지 않는다.
 - `EngineEvent(STEP_COMPLETED, checkpoint=<CHECKPOINT record event>)`는 출력·Step 완료와
-  재개 receipt를 같은 StorageIO 트랜잭션에서 확정한다. checkpoint initialize와 다른 이벤트에는
-  첨부할 수 없다. 중첩 scope는 이 첨부 record도 같은 공개 bridge로 변환하고 ACK 후에만 캐시한다.
+  재개 receipt를 같은 StorageIO 트랜잭션에서 확정한다. `STEP_STARTED`와 `STEERING`도
+  미리 준비한 checkpoint를 첨부할 수 있으며 initialize를 허용한다. 초기 checkpoint와 채널 OPEN은
+  같은 실행 준비 완료를 나타내므로 한 ACK를 공유할 수 있다. 완료 이벤트에는 계속 record만 허용한다.
+  중첩 scope는 첨부 checkpoint도 같은 공개 bridge로 변환하고 ACK 후에만 캐시한다.
   Loop Tool과 Graph 노드가 사용한다. 저장 실패 시 시작 기록은 남고 완료 결과로 재사용하지 않는다.
   효과가 불확실하므로 명시적 재시도 승인 없이 실행을 반복하지 않는다.
   서비스 구독자는 commit 이후 CHECKPOINT와 STEP_COMPLETED 알림을 계속 받는다. CHECKPOINT를
