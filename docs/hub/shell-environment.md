@@ -13,6 +13,11 @@ Hub 사본만 분리합니다. Loop/Graph/사용자 엔진의 고유 옵션·설
 revision에 포함하여 다른 환경으로 기존 승인을 재사용하지 않습니다. 실행 준비는
 백엔드 작업 스레드에서 처리합니다.
 
+선택 Project와 셸 환경이 확인되면 `prepare_environment()`로 해당 Toolkit 자원을 미리
+준비합니다. 이때 실행 Tool binding이나 정책 결정을 저장하지 않습니다. 같은 환경의 준비는
+재사용하지만 Enter 시점에는 새 환경 사본을 캡처하고 실행 권한·승인 binding을 다시 확인합니다.
+준비 실패를 자동 재시도하지 않으며, 종료·취소는 이미 시작한 자원 준비가 끝날 때까지 정리합니다.
+
 `HubBuiltinTools`는 프로젝트·cwd·env별 Toolkit을 분리하고 백엔드 종료 때 정리합니다.
 `ShellProcessTools`가 ProcessTools를 상속하여 env 미지정 시의 기본값만 제공합니다.
 파일/Git/셸 도구는 해당 Toolkit의 root/processes를 사용합니다. 별도로 가져온 Tool과

@@ -23,6 +23,13 @@ class NativeToolViews:
     PARTIAL = ('This is a partial source page, not a summary. Use next_read for more evidence; '
                'do not rerun the command. Output source paths are Data references, not working-directory files.')
 
+    @classmethod
+    def applicable(cls, request):
+        calls = {call.id for item in request.messages for call in item.message.calls
+                 if call.name in cls.PROCESS_TOOLS or call.name == FileReadArguments.NAME}
+        return any(item.message.role == ModelRole.TOOL and item.message.result is not None
+                   and item.message.result.call_id in calls for item in request.messages)
+
     @staticmethod
     def encode(value):
         return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
@@ -142,6 +149,8 @@ class ToolViewSession(CompletionSession):
         self.context = context
 
     async def prepare(self, request):
+        if not NativeToolViews.applicable(request):
+            return
         # Parsing/encoding a large legacy result must not block the TUI loop.
         # Mutate the detached request only after the worker returns successfully.
         from copy import deepcopy

@@ -17,6 +17,82 @@ from llm.engines.events import EngineEvent, EngineEventType as Event
 
 
 class ObservationReadTests(unittest.IsolatedAsyncioTestCase):
+    async def test_run_display_omits_execution_payload_and_delta_reuses_receipt(self):
+        self.fixture()
+        self.run.metadata['policies'] = {'tools':[{'schema':{'large':['value'] * 1000}}] * 100}
+        from hub.backend.observability.run_display import RunDisplay
+        with patch.object(RunDisplay, 'capture', wraps=RunDisplay.capture) as capture:
+            self.reader.observe_run(self.run)
+            stored = self.reader.reads.entries[(ReadKind.RUN, 's', 'r')].value
+            self.assertEqual(set(stored.metadata), {'completions'})
+            for index in range(100):
+                self.reader.observe_engine(self.run, EngineEvent(Event.TEXT_DELTA,
+                    delta=EngineDelta(output_id='o', text='x', sequence=index + 1,
+                                      visibility=OutputVisibility.INTERNAL)))
+            self.assertEqual(capture.call_count, 1)
+            self.assertIs(self.reader.reads.entries[(ReadKind.RUN, 's', 'r')].value, stored)
+            self.run.metadata['completions'].append({'new':'receipt'})
+            self.assertEqual(stored.metadata['completions'], [])
+            self.run.metadata['completions'].clear()
+            self.reader.observe_engine(self.run, EngineEvent(Event.STEP_UPDATED, step_id='tool'))
+            self.assertIs(self.reader.reads.entries[(ReadKind.RUN, 's', 'r')].value, stored)
+
+    async def test_expired_background_session_cannot_hold_selected_frame(self):
+        self.fixture()
+        changed = asyncio.Event()
+        self.reader = SnapshotReader(changed=changed.set)
+        background = NS(aget_data=AsyncMock(return_value=NS(id='b', title='Other',
+                agent_ids=[], metadata={})),
+            run=NS(alist=AsyncMock(return_value=[]), astatus=AsyncMock(return_value=NS(
+                status='idle', queued_count=0, active_runs=[]))))
+        sessions = {'b':background, 's':self.session}
+        async def read():
+            return await self.reader.read(self.project, sessions, 's', config=self.config,
+                                          engines=self.engines, title_errors={})
+        try:
+            await read()
+            release, entered = asyncio.Event(), asyncio.Event()
+            async def delayed():
+                entered.set()
+                await release.wait()
+                return NS(id='b', title='Updated', agent_ids=[], metadata={})
+            background.aget_data.side_effect = delayed
+            self.reader.invalidate('b')
+            async with asyncio.timeout(3):
+                frame, observations = await read()
+                await entered.wait()
+            self.assertEqual([s.id for s in frame.sessions], ['b','s'])
+            self.assertEqual(frame.sessions[0].title, 'Other')
+            self.assertEqual([o.session_id for o in observations], ['s'])
+            self.assertFalse(changed.is_set())
+            release.set()
+            async with asyncio.timeout(3):
+                await changed.wait()
+            frame, observations = await read()
+            self.assertEqual(frame.sessions[0].title, 'Updated')
+            self.assertEqual({o.session_id for o in observations}, {'b','s'})
+        finally:
+            await self.reader.background.close()
+
+    async def test_background_lane_clear_discards_old_project_and_drains(self):
+        from hub.backend.observability.background import BackgroundObservations
+        changed = Mock()
+        lane = BackgroundObservations(changed)
+        entered, drained = asyncio.Event(), asyncio.Event()
+        async def blocked():
+            entered.set()
+            try:
+                await asyncio.Future()
+            finally:
+                drained.set()
+        lane.request('old', blocked)
+        await entered.wait()
+        lane.clear()
+        await lane.close()
+        self.assertTrue(drained.is_set())
+        self.assertFalse(lane.pending)
+        changed.assert_not_called()
+
     def fixture(self):
         self.reader = SnapshotReader()
         self.record = NS(id='s', title='Session', agent_ids=['assistant'], metadata={})
@@ -96,6 +172,25 @@ class ObservationReadTests(unittest.IsolatedAsyncioTestCase):
             await self.reader.read_run(self.session, 's', 'r')
             self.assertEqual(self.handle.aget_data.await_count, 2)
 
+    async def test_steering_refreshes_run_and_conversation_without_session_history_reads(self):
+        self.fixture()
+        with patch('hub.backend.observability.reads.monotonic', return_value=100):
+            await self.read()
+            self.message = replace(self.message, content='instruction display updated')
+            self.run.engine = 'changed'
+            self.reader.observe_engine(self.run, EngineEvent(Event.STEERING_CHANGED))
+            snapshot = await self.read()
+            self.assertEqual(snapshot.messages[-1].text, 'instruction display updated')
+            _, run = await self.reader.read_run(self.session, 's', 'r')
+            self.assertEqual(run.engine, 'changed')
+            self.session.aget_data.assert_awaited_once()
+            self.session.run.astatus.assert_awaited_once()
+            self.assertEqual(self.session.run.alist.await_count, 2)
+            self.assertEqual(self.session.aconversation.await_count, 2)
+            self.reader.observe_engine(self.run, EngineEvent(Event.INTERACTION_CHANGED))
+            await self.read()
+            self.assertEqual(self.session.run.astatus.await_count, 2)
+
     async def test_event_during_service_read_is_published_without_regression(self):
         cache, entered, release = ObservationReads(), asyncio.Event(), asyncio.Event()
         key = (ReadKind.RUN, 's', 'r')
@@ -126,6 +221,129 @@ class ObservationReadTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(snapshot.queued_count, 0)
         self.assertTrue(snapshot.run.active)
         self.session.run.astatus.assert_awaited_once()
+
+    async def test_admission_and_start_do_not_repeat_unchanged_paused_history(self):
+        self.fixture()
+        with patch('hub.backend.observability.reads.monotonic', return_value=100):
+            await self.read()
+            self.reader.invalidate('s', run_lists=False)
+            await self.read()
+            self.assertEqual(self.session.run.alist.await_count, 2)
+            self.reader.observe_run(self.run)
+            await self.read()
+            self.assertEqual(self.session.run.alist.await_count, 2)
+            self.assertEqual(self.session.run.astatus.await_count, 3)
+            self.reader.observe_engine(self.run, EngineEvent(Event.INTERACTION_CHANGED))
+            await self.read()
+            self.assertEqual(self.session.run.alist.await_count, 4)
+        with patch('hub.backend.observability.reads.monotonic', return_value=103):
+            await self.read()
+            self.assertEqual(self.session.run.alist.await_count, 6)
+
+    async def test_known_latest_event_does_not_extend_reconciliation_deadline(self):
+        self.fixture()
+        with patch('hub.backend.observability.reads.monotonic', return_value=100):
+            await self.read()
+        with patch('hub.backend.observability.reads.monotonic', return_value=101):
+            self.reader.observe_run(self.run)
+            await self.read()
+            self.assertEqual(self.session.run.alist.await_count, 2)
+        with patch('hub.backend.observability.reads.monotonic', return_value=103):
+            self.reader.observe_run(self.run)
+            await self.read()
+            self.assertEqual(self.session.run.alist.await_count, 4)
+
+    async def test_new_run_event_still_queries_latest_membership(self):
+        self.fixture()
+        await self.read()
+        self.run = NS(**{**vars(self.run), 'id': 'new'})
+        newer = NS(id='new', aget_data=AsyncMock(return_value=self.run),
+                   steps=NS(alist=AsyncMock(return_value=[])))
+        self.session.run.alist.side_effect = lambda *, query: [] if query.status else [newer]
+        self.status.active_runs = [NS(run_id='new')]
+        self.reader.observe_run(self.run)
+        frame = await self.read()
+        self.assertEqual(frame.run.id, 'new')
+        self.assertEqual(self.session.run.alist.await_count, 3)
+        newer.aget_data.assert_not_awaited()  # Persisted event already has its value.
+
+    async def test_completion_preserves_empty_paused_list_but_pause_reconciles(self):
+        self.fixture()
+        await self.read()
+        self.run.status = self.message.status = 'completed'
+        self.status.active_runs = []
+        self.status.status = 'idle'
+        self.reader.observe_run(self.run)
+        frame = await self.read()
+        self.assertEqual(frame.messages[-1].status, 'completed')
+        self.assertEqual(self.session.run.alist.await_count, 2)
+        self.run.status = 'paused'
+        self.reader.observe_run(self.run)
+        self.assertNotIn((ReadKind.PAUSED, 's'), self.reader.reads.entries)
+        self.reader.reads.remember((ReadKind.PAUSED, 's'), [self.handle])
+        self.run.status = 'cancelled'
+        self.reader.observe_run(self.run)
+        self.assertNotIn((ReadKind.PAUSED, 's'), self.reader.reads.entries)
+
+    async def test_concurrent_reads_share_only_one_generation_and_waiter_cancel_is_local(self):
+        cache, entered, release = ObservationReads(), asyncio.Event(), asyncio.Event()
+        key = (ReadKind.CONVERSATION, 's')
+        async def load():
+            entered.set()
+            await release.wait()
+            return 'old'
+        loader = AsyncMock(side_effect=load)
+        owner = asyncio.create_task(cache.read(key, loader))
+        await entered.wait()
+        waiter = asyncio.create_task(cache.read(key, loader))
+        cancelled = asyncio.create_task(cache.read(key, loader))
+        await asyncio.sleep(0)
+        cancelled.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await cancelled
+        self.assertFalse(owner.done())
+        cache.discard(*key)
+        fresh = AsyncMock(return_value='new')
+        self.assertEqual(await cache.read(key, fresh), 'new')
+        release.set()
+        self.assertEqual(await owner, 'new')
+        self.assertEqual(await waiter, 'new')
+        loader.assert_awaited_once()
+        fresh.assert_awaited_once()
+
+    async def test_owner_cancel_releases_waiter_for_fresh_read(self):
+        cache, entered = ObservationReads(), asyncio.Event()
+        key = (ReadKind.SESSION, 's')
+        async def load():
+            entered.set()
+            await asyncio.Future()
+        owner = asyncio.create_task(cache.read(key, load))
+        await entered.wait()
+        fresh = AsyncMock(return_value='fresh')
+        waiter = asyncio.create_task(cache.read(key, fresh))
+        await asyncio.sleep(0)
+        owner.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await owner
+        self.assertEqual(await waiter, 'fresh')
+        fresh.assert_awaited_once()
+
+    async def test_shared_read_failure_reaches_waiters_without_caching_or_retry(self):
+        cache, entered, release = ObservationReads(), asyncio.Event(), asyncio.Event()
+        async def load():
+            entered.set()
+            await release.wait()
+            raise ValueError('unavailable')
+        loader = AsyncMock(side_effect=load)
+        owner = asyncio.create_task(cache.read(('s',), loader))
+        await entered.wait()
+        waiter = asyncio.create_task(cache.read(('s',), loader))
+        await asyncio.sleep(0)
+        release.set()
+        results = await asyncio.gather(owner, waiter, return_exceptions=True)
+        self.assertTrue(all(isinstance(result, ValueError) for result in results))
+        self.assertFalse(cache.entries)
+        loader.assert_awaited_once()
 
     async def test_lifecycle_interaction_loss_and_expiry_reconcile(self):
         self.fixture()

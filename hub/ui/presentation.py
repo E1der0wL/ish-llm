@@ -12,6 +12,7 @@ from datetime import datetime
 from ..model import ChatMessage, HubSnapshot, SessionSummary, QuestionPresentation, ReasoningMessage, TraceItem
 from ..backend.execution.followup import split_followup
 from .error_presentation import error_text, failure_text
+from .message_changes import unchanged_prefix
 
 
 class PresentationFormat:
@@ -68,11 +69,16 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
             item.id + PresentationFormat.SUMMARY_SUFFIX, TraceItem.SUMMARY,
             PresentationFormat.EMPTY, StepStatus.RUNNING)))
     text = item.text
-    if item.role == MessageRole.ASSISTANT:
+    if item.role in (MessageRole.ASSISTANT, ReasoningMessage.ROLE):
         text = split_followup(
             text,
             final=item.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED),
         ).content
+        if item.trace:
+            item = replace(item, trace=tuple(
+                replace(trace, text=split_followup(trace.text, final=False).content)
+                if trace.kind == TraceItem.REASONING else trace for trace in item.trace
+            ))
     if (
         item.role == MessageRole.ASSISTANT
         and not text
@@ -140,6 +146,7 @@ class MessagePresentationCache:
         self.transformed = MessagePresentationCache.INITIAL_COUNT
         self.source_messages = None
         self.display_messages = ()
+        self.offsets = ()
 
     def messages(self, snapshot, t):
         context = PresentationKey(
@@ -148,8 +155,18 @@ class MessagePresentationCache:
         if context == self.context and snapshot.messages is self.source_messages:
             return self.display_messages
         previous = self.items if context == self.context else {}
-        retained, messages = {}, []
-        for index, item in enumerate(snapshot.messages):
+        start = unchanged_prefix(self.source_messages or (), snapshot.messages) if previous else 0
+        if previous and start == len(snapshot.messages) == len(self.source_messages):
+            self.source_messages = snapshot.messages
+            return self.display_messages
+        offset = self.offsets[start] if start < len(self.offsets) else len(self.display_messages)
+        messages = list(self.display_messages[:offset]) if start else []
+        offsets = list(self.offsets[:start])
+        retained = dict(previous)
+        for index, item in enumerate((self.source_messages or ())[start:], start):
+            retained.pop(item.id or index, None)
+        for index, item in enumerate(snapshot.messages[start:], start):
+            offsets.append(len(messages))
             key = item.id or index
             cached = previous.get(key)
             if cached is MessagePresentationCache.ABSENT or cached.source != item:
@@ -192,6 +209,7 @@ class MessagePresentationCache:
             messages.append(cached.display)
         self.context, self.items = context, retained
         self.source_messages = snapshot.messages
+        self.offsets = tuple(offsets)
         self.display_messages = tuple(messages)
         return self.display_messages
 

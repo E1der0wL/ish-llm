@@ -10,9 +10,36 @@ class MouseBinding:
     FOCUS = "hub_click_focus"
     HOVER_FOCUS = "hub_hover_focus"
     INTERACTIVE = "hub_interactive"
+    FOCUSED_CLICK = "hub_focused_click"
+    CLICK_AWAY = "hub_click_away"
+    EMPTY_CLICK_FOCUS = "hub_empty_click_focus"
+
+    @classmethod
+    def keep_selection_on_empty(cls, control):
+        setattr(control, cls.EMPTY_CLICK_FOCUS, True)
+
+    @classmethod
+    def focuses_empty_click(cls, control):
+        return getattr(control, cls.EMPTY_CLICK_FOCUS, False)
+
+    @classmethod
+    def set_click_away(cls, control, callback):
+        setattr(control, cls.CLICK_AWAY, callback)
+
+    @classmethod
+    def click_away(cls, control):
+        return getattr(control, cls.CLICK_AWAY, None)
     ABSENT = None
     INACTIVE = False
     ACTIVE = True
+
+    @classmethod
+    def set_focused_click(cls, control, callback):
+        setattr(control, cls.FOCUSED_CLICK, callback)
+
+    @classmethod
+    def focused_click(cls, control):
+        return getattr(control, cls.FOCUSED_CLICK, cls.ABSENT)
 
     @classmethod
     def controller(cls, target):

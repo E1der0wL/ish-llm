@@ -54,6 +54,11 @@ class HubDefaults:
     REPO_MAP_EXCLUDED = (".git", ".hg", ".svn", ".venv", "venv", "node_modules",
                          "__pycache__", ".mypy_cache", ".pytest_cache", "dist", "build", "target")
     ASSISTANT_RESOURCES = {AgentDefinition.ResourceField.RAG: True}
+    ASSISTANT_DESCRIPTION = (
+        "Answers questions and carries out tasks in your working directory. "
+        "Uses available tools and registered RAG documents when helpful. "
+        "Choose a model and its connection settings to get started."
+    )
     PLANNER_AGENT_ID = "planner"
     CODING_WORKFLOW_ID = "hub-code-workflow"
     PLANNER_AGENT = {

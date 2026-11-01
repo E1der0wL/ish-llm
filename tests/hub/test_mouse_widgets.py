@@ -11,7 +11,7 @@ from prompt_toolkit.widgets import Label
 
 from examples.hub.preview import install_preview
 from hub.model import ChatMessage
-from hub.widget.controls import Button, TextArea, RadioList, ScrollablePane
+from hub.widget.controls import Button, CheckboxList, TextArea, RadioList, ScrollablePane
 from hub.widget.dialog import Dialog
 from hub.widget.mouse import ScrollbarGeometry
 from hub.widget.focus_region import grayscale
@@ -21,6 +21,121 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
+    async def test_checkbox_empty_rows_focus_without_checking_nearest_item(self):
+        from prompt_toolkit.layout.dimension import Dimension
+        from prompt_toolkit.filters import to_filter
+        changes = []
+        choices = CheckboxList([('first', 'One'), ('last', 'Two')],
+                               default_values=['first'], on_select=changes.append)
+        choices.window.height = Dimension.exact(7)
+        choices.window.dont_extend_height = to_filter(False)
+        button = Button('Close')
+        with set_app(self.app):
+            self.view.dialogs.show(Dialog(title='Choices', body=choices, buttons=[button]), button)
+        await self.paint()
+        rect = self.position(choices.window)
+        self.assertGreater(rect.height, 2)
+        for row in (2, rect.height - 1):
+            with set_app(self.app):
+                self.app.layout.focus(button)
+            await self.mouse(0, rect.xpos + 2, rect.ypos + row)
+            await self.mouse(0, rect.xpos + 2, rect.ypos + row, release=True)
+            self.assertIs(self.app.layout.current_control, choices.control)
+            self.assertEqual(choices.current_values, ['first'])
+            self.assertEqual(choices.highlighted, 'first')
+            self.assertEqual(changes, [])
+        await self.mouse(0, rect.xpos + 2, rect.ypos + 1)
+        await self.mouse(0, rect.xpos + 2, rect.ypos + 1, release=True)
+        self.assertEqual(choices.current_values, ['first', 'last'])
+        self.assertEqual(changes, ['last'])
+
+    async def test_button_and_dropdown_hover_stay_inside_the_active_region(self):
+        dropdown = self.view.profile_bar.presets
+        await self.paint()
+        await self.mouse(35, *self.at(dropdown.button.window))
+        self.assertIs(self.app.layout.current_control, self.view.composer.control)
+        with set_app(self.app):
+            self.view.profile_bar.focus()
+        await self.paint()
+        await self.mouse(35, *self.at(dropdown.button.window))
+        self.assertIs(self.app.layout.current_control, dropdown.control)
+        with set_app(self.app):
+            self.view.toggle_settings()
+            self.view.settings.choose('appearance')
+            self.app.layout.focus(self.view.settings.global_list)
+        await self.paint()
+        button = self.view.settings.page.save
+        await self.mouse(35, *self.at(button.window))
+        self.assertIs(self.app.layout.current_control, self.view.settings.global_list)
+        with set_app(self.app):
+            self.view.settings.tabs.focus_tabs()
+        await self.paint()
+        await self.mouse(35, *self.at(button.window))
+        self.assertIs(self.app.layout.current_control, button.control)
+
+    async def test_settings_focused_field_click_edits_but_first_click_only_selects(self):
+        with set_app(self.app):
+            self.view.toggle_settings()
+            self.view.settings.choose('appearance')
+            self.view.settings.layout.focus_sidebar()
+        await self.paint()
+        field = self.view.settings.page.form.fields[('background',)]
+        for expected in (False, True):
+            await self.mouse(0, *self.at(field.input.window))
+            await self.mouse(0, *self.at(field.input.window), release=True)
+            self.assertIs(self.app.layout.current_control, field.input.control)
+            self.assertEqual(field.editing, expected)
+        # Clicking another region ends editing without discarding the draft.
+        field.input.text = '#123456'
+        x, y = self.at(field.input.window)
+        await self.mouse(0, x, y - 2)
+        await self.mouse(0, x, y - 2, release=True)
+        self.assertFalse(field.editing)
+        with set_app(self.app):
+            self.app.layout.focus(field.input)
+            field.begin()
+        with set_app(self.app):
+            self.view.settings.layout.focus_sidebar()
+        await self.paint()
+        self.assertFalse(field.editing)
+        self.assertEqual(field.text, '#123456')
+        with set_app(self.app):
+            self.app.layout.focus(field.input)
+            field.begin()
+        self.pipe.send_text('\r')
+        await eventually(lambda: not field.editing)
+        field.readonly = True
+        await self.mouse(0, *self.at(field.input.window))
+        await self.mouse(0, *self.at(field.input.window), release=True)
+        self.assertFalse(field.editing)
+
+    async def test_agent_field_uses_same_click_activation_and_essential_controls(self):
+        from hub.widget.forms.definition_manager import DefinitionManager
+        from hub.backend.project.management_values import EditorRecord
+        from llm.engines.registry import EngineRegistry
+        from llm.engines.loop import LoopEngine
+        registry = EngineRegistry()
+        registry.register('loop', LoopEngine())
+        def request(action, argument, revision, done):
+            done({'engines':['loop'], 'schema':registry.describe_agent('loop'), 'storage_version':1})
+        manager = DefinitionManager(self.view, request, name='agents', edit_text=None)
+        with set_app(self.app):
+            self.view.dialogs.show(manager, manager.path)
+            manager.agent_editor('assistant', EditorRecord.create(
+                '{"engine":"loop","completion":{"model":"local/model","seed":17}}', 'revision'))
+            editor = self.view._dialog
+            editor.workspace.select('completion')
+            editor.workspace.focus_sidebar()
+        await self.paint()
+        field = editor.form.fields[('completion','model')]
+        self.assertNotIn(editor.form.fields[('completion','seed')], editor.workspace.fields())
+        for expected in (False, True):
+            await self.mouse(0, *self.at(field.input.window))
+            await self.mouse(0, *self.at(field.input.window), release=True)
+            self.assertIs(self.app.layout.current_control, field.input.control)
+            self.assertEqual(field.editing, expected)
+        self.assertEqual(editor.definition()['completion']['seed'], 17)
+
     async def test_sidebar_heading_hover_focus_and_click_renames(self):
         from hub.asset.icon import AuxiliaryIcon
         from hub.widget.dialog import PopupSize
@@ -29,6 +144,14 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         for bar in (self.view.project_actions, self.view.session_buttons):
             await self.paint()
             button = bar.buttons[AuxiliaryIcon.EDIT]
+            previous = self.app.layout.current_control
+            if not self.view.chat_page.sidebar_focused:
+                await self.mouse(35, *self.at(button.window))
+                self.assertIs(self.app.layout.current_control, previous)
+            with set_app(self.app):
+                self.app.layout.focus(self.view.projects.control if bar is self.view.project_actions
+                                      else self.view._session_control)
+            await self.paint()
             await self.mouse(35, *self.at(button.window))
             self.assertIs(self.app.layout.current_control, button.control)
             self.assertTrue(self.view.chat_page.sidebar_focused)
@@ -236,7 +359,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(35, *self.at(buttons['history'].window))
         self.assertIs(app.layout.current_control, view.output.participants.control)
 
-    async def test_auxiliary_hover_does_not_restore_a_closed_dropdown(self):
+    async def test_auxiliary_hover_cannot_leave_profile_layout_but_click_can(self):
         app, view = self.app, self.view
         dropdown = view.profile_bar.presets
         dropdown.items = [('one', 'One'), ('two', 'Two')]
@@ -244,7 +367,13 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             dropdown.open()
         await self.paint()
         await self.mouse(35, *self.at(view.auxiliary.buttons['history'].window))
-        self.assertFalse(dropdown.expanded)
+        self.assertTrue(dropdown.expanded)
+        with set_app(app):
+            dropdown.close()
+            app.layout.focus(view.composer)
+        await self.paint()
+        await self.mouse(35, *self.at(view.auxiliary.buttons['history'].window))
+        self.assertIs(app.layout.current_control, view.auxiliary.buttons['history'].control)
         self.pipe.send_text('\x1b')
         await eventually(lambda: app.layout.current_control is view.composer.control)
 
@@ -752,7 +881,9 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.assertIs(self.app.layout.current_control, popup.receiver)
             self.assertFalse(control.is_focusable())
             with patch("hub.widget.output_inspector.copy_text", new=AsyncMock(return_value="clipboard_copied")) as copy:
-                self.pipe.send_text("c")
+                button = next(button for button in popup.buttons if button.text == self.view.t('shortcut_copy'))
+                await self.mouse(0, *self.at(button.window))
+                await self.mouse(0, *self.at(button.window), release=True)
                 await eventually(lambda: copy.await_count == 1)
                 copy.assert_awaited_once_with(selected)
             self.pipe.send_text("\x1b")

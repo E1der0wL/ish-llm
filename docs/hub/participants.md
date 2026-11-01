@@ -5,6 +5,8 @@ identifier, a display name, and its Engine/Tool/Prompt configuration. The editor
 queries `project.agents.adescribe(engine=...)` and renders the selected schema
 through `SchemaForm`: labels, descriptions, types and editable values. Engine
 selection keeps a separate unsaved draft per Engine; Graph has no model fields.
+The Agent editor's action title, like the settings page's project title, has no
+focus arrow, underline or reserved marker spacing.
 Root schema intersections are projected into individual inputs for display only;
 the complete original schema, including `allOf` and Engine selection constraints,
 is validated before saving and again by the backend. Invalid edits remain drafts.
@@ -25,14 +27,27 @@ same output sidebar as Tags; opening either closes the other. The sidebar captur
 keyboard and mouse focus until closed. Up/Down highlights a participant;
 Space/Enter opens actions: edit Agent, move group, change recipient or expel.
 A group offers change recipient and delete group. With no selected recipient, the request goes
-to everyone invited to the current session. The composer title shows the target.
-Tab moves to **Add agent**. Left/Right selects the adjacent **Add group** button.
-Add agent lists project Agents not already invited in a full-width CheckboxList.
-Check one or more Agents, then press Invite; nothing is preselected. The manager button
-opens their definitions. The entire selection is validated before one membership save,
+to everyone invited to the current session. The composer title shows the target
+without a focus arrow, underline or reserved marker spacing, regardless of focus.
+Tab moves to the full-width, one-row **** management button. It opens one popup
+with an Agent CheckboxList above a group list; category headings and one blank row
+separate them. Already invited Agents are marked, and nothing is prechecked.
+The group SidebarList shows member display names in comment color 1 beneath each
+group, including ungrouped participants. Groups are separated by exactly one
+empty row, including groups without members. The footer is ordered: invite, edit,
+expel, move group, add group, delete group, close. Editing requires exactly one
+checked Agent and opens its revisioned editor directly, without displaying the
+definition manager first. Save/cancel returns to the same participant popup with
+its checked Agents, selected group and focus preserved. Add group opens a small
+name popup; an empty name stays there and cancel leaves the groups unchanged.
+Empty rows in CheckboxLists and SidebarLists only focus the list; they never
+check or select the nearest item.
+The popup stays open after changes and owns its bottom progress/status row.
+The entire selection is validated before one membership/group save,
 so an invalid Agent does not leave a partially invited group. Existing single-ID callers
 use the same invitation service, and duplicate selections do not duplicate membership.
-Escape closes the sidebar. Both sidebars use the same width and inset.
+Escape closes the sidebar. Ctrl+C copies a selection only; it never closes a
+popup or sidebar. Both sidebars use the same width and inset.
 
 Groups live in Hub-owned `Session.metadata.hub_participant_groups`, written only
 through the public Session API. A group has a name and invited Agent IDs; one

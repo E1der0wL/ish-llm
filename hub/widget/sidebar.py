@@ -12,6 +12,7 @@ from prompt_toolkit.utils import get_cwidth
 from ..asset import icon
 from .section import section
 from .input_contract import MouseResult
+from .mouse_contract import MouseBinding
 from .auxiliary import AuxiliaryBar
 from ..asset.icon import AuxiliaryIcon
 from ..ui.input.keys import KeyName
@@ -98,6 +99,7 @@ class SidebarList(FormattedTextControl):
             key_bindings=key_bindings,
             get_cursor_position=self.cursor_position,
         )
+        MouseBinding.keep_selection_on_empty(self)
 
     def move(self, direction):
         """Arrow movement stays inside this category, including its boundaries."""

@@ -1,6 +1,6 @@
 """Public RAG/Vision APIs, safe cleanup and bounded completion context."""
 
-from llm.core.model_protocol import ModelMessage
+from llm.core.model_protocol import ModelMessage, ToolDefinition
 
 from llm.providers.operations import LiteLLMOperations
 
@@ -34,6 +34,23 @@ class OCR:
 
 
 class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_catalog_registration_time_reuses_jobs_without_document_reads(self):
+        from unittest.mock import Mock
+        from hub.backend.project.rag_management import RAGManagement
+        data = Mock()
+        data.alist_catalog = AsyncMock(return_value={'documents': [
+            {'id': 'note', 'title': 'Note', 'generation': 'g', 'revision': 1}], 'next_cursor': None})
+        data.ajobs = AsyncMock(return_value=[
+            {'id':'old', 'status':'completed', 'document_id':'note', 'created_at':'2026-01-01T00:00:00+00:00'},
+            {'id':'new', 'status':'completed', 'document_id':'note', 'created_at':'2026-01-02T00:00:00+00:00'},
+        ])
+        data.aget_document = AsyncMock(side_effect=AssertionError('Catalog must not load bodies'))
+        manager = RAGManagement(data, 'rag', '.', 'p')
+        rows = await manager.list()
+        self.assertEqual(rows[0]['modified'], '2026-01-02T00:00:00+00:00')
+        data.ajobs.assert_awaited_once()
+        data.aget_document.assert_not_awaited()
+
     async def test_popup_buttons_fit_80_columns_and_image_choice_is_explicit(self):
         from prompt_toolkit.application import Application
         from prompt_toolkit.application.current import set_app
@@ -231,7 +248,8 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
             "description": "B" * 2000}], "next_cursor": {"after": "note"}}
         session = RAGCatalogSession(data, True)
         def request():
-            return CompletionRequest({}, [CompletionMessage(ModelMessage("user", "Question"), "u")], 1)
+            return CompletionRequest({}, [CompletionMessage(ModelMessage("user", "Question"), "u")], 1,
+                tools=(ToolDefinition('rag_search', '', {'type': 'object'}),))
         for _ in range(2):
             current = request()
             async for _ in session.prepare(current):
@@ -254,3 +272,19 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
                 pass
             self.assertIn("unavailable", current.messages[0].message.text)
             report.assert_called_once()
+
+    async def test_catalog_waits_for_actual_exposure_and_can_activate_on_steering(self):
+        data = AsyncMock()
+        data.alist_catalog.return_value = {'documents': [], 'next_cursor': None}
+        session = RAGCatalogSession(data, True)
+        request = CompletionRequest({}, [CompletionMessage(ModelMessage('user', 'Hello'), 'u')], 1)
+        original = list(request.messages)
+        self.assertEqual([event async for event in session.prepare(request)], [])
+        data.alist_catalog.assert_not_awaited()
+        self.assertEqual(request.messages, original)
+        request.tools = (ToolDefinition('rag_search', '', {'type': 'object'}),)
+        self.assertEqual([event async for event in session.prepare(request)], [])
+        data.alist_catalog.assert_awaited_once_with(limit=20)
+        request.tools = ()
+        self.assertEqual([event async for event in session.prepare(request)], [])
+        data.alist_catalog.assert_awaited_once()

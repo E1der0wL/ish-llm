@@ -5,6 +5,7 @@ from ..input_contract import ControlFragment
 
 from .identity import TranscriptIdentity, TranscriptAnchor
 from .viewport import TranscriptViewport
+from ...ui.message_changes import unchanged_prefix
 from .render_contract import (
     RenderSection,
     TranscriptLayout,
@@ -73,18 +74,20 @@ def render_messages(
     index_offset=TranscriptPresentation.ORIGIN,
     section=RenderSection.ALL,
     blocks=TranscriptLayout.ABSENT,
-    render_block=TranscriptLayout.ABSENT
+    render_block=TranscriptLayout.ABSENT,
+    resources=None,
 ):
     """Return already-wrapped fragment lines using terminal-cell widths."""
     inner = TranscriptLayout.inner_width(width)
     t = language or Language(icons=for_style(theme.icon_style))
-    console = make_console(inner, theme)
+    console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
+    segment_style = resources.style if resources is not None else _segment_style
     lines = []
     account_name = UserProfile().display_name
     for local_index, message in enumerate(messages):
         if section == RenderSection.TOOLS:
             if not message.trace:
-                lines.extend(render_tool_history(message.tools, width, theme, t))
+                lines.extend(render_tool_history(message.tools, width, theme, t, resources=resources))
             continue
         index = local_index + index_offset
         if (
@@ -177,7 +180,7 @@ def render_messages(
                         TranscriptLayout.EMPTY,
                         TranscriptLayout.INDENT + TranscriptLayout.SPACE * pad,
                     ),
-                    *((ThemeStyle.joined(header_style, _segment_style(segment.style)), segment.text)
+                    *((ThemeStyle.joined(header_style, segment_style(segment.style)), segment.text)
                       for segment in segments if not segment.control),
                 ]
             )
@@ -188,7 +191,7 @@ def render_messages(
                 from .thought_trace import render_trace_item
 
                 for item in message.trace:
-                    lines.extend(render_trace_item(item, width, theme, t))
+                    lines.extend(render_trace_item(item, width, theme, t, resources=resources))
             continue
 
         def markdown_lines(value):
@@ -201,7 +204,7 @@ def render_messages(
                 _trim_right(
                     [
                         (
-                            _segment_style(segment.style, theme.code_background),
+                            segment_style(segment.style, theme.code_background),
                             segment.text,
                         )
                         for segment in segments
@@ -320,7 +323,7 @@ def render_messages(
             )
         lines.extend([list(row) for row in TranscriptLayout.MESSAGE_GAP])
         if section == RenderSection.ALL and message.tools:
-            lines.extend(render_tool_history(message.tools, width, theme, t))
+            lines.extend(render_tool_history(message.tools, width, theme, t, resources=resources))
     return (
         lines
         if section in (RenderSection.HEADER, RenderSection.TOOLS)
@@ -329,11 +332,12 @@ def render_messages(
     )
 
 
-def render_tool_history(steps, width, theme, language):
+def render_tool_history(steps, width, theme, language, *, resources=None):
     """Only names and states; arguments and Tool payloads never enter Markdown."""
     if not steps:
         return []
-    console = make_console(TranscriptLayout.inner_width(width), theme)
+    inner = TranscriptLayout.inner_width(width)
+    console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
     text = [ToolCaption.render(step.name, step.status, language) for step in steps]
     rows = console.render_lines(
         Text(TranscriptLayout.NEWLINE.join(text)),
@@ -469,13 +473,14 @@ class ConversationControl(SelectableControl):
         if value is not getattr(
             self, ConversationControl.MESSAGE_STORAGE, ConversationControl.ABSENT
         ):
+            start = unchanged_prefix(getattr(self, self.MESSAGE_STORAGE, ()), value)
+            urgent = {i:m for i,m in getattr(self, '_urgent_indices', {}).items() if i < start}
+            urgent.update((i,m) for i,m in enumerate(value[start:], start)
+                          if m.role == MessageRole.ASSISTANT
+                          and (m.phase == InterruptFeedback.PHASE or m.status in self.LIVE_HEADER_STATES))
             self._messages = value
-            self._urgent_messages = tuple(
-                m
-                for m in value
-                if m.role == MessageRole.ASSISTANT
-                and (m.phase == InterruptFeedback.PHASE or m.status in self.LIVE_HEADER_STATES)
-            )
+            self._urgent_indices = urgent
+            self._urgent_messages = tuple(urgent.values())
             self._message_revision = (
                 getattr(
                     self,
@@ -595,7 +600,8 @@ class ConversationControl(SelectableControl):
             if self.render_worker:
                 self.render_worker.cancel(RenderSlot.SEARCH)
             return
-        from ..output.search_index import index_lines
+        from ..output.search_index import index_lines, index_lines_iter
+        from ...ui.output.work import RenderWork
 
         lines, query = self._lines, self.search_query
         app = self._application()
@@ -612,7 +618,7 @@ class ConversationControl(SelectableControl):
         if self.render_worker and app.is_running:
             self.render_worker.request(
                 RenderSlot.SEARCH,
-                lambda: index_lines(lines, query),
+                lambda: RenderWork(index_lines_iter(lines, query)),
                 apply,
                 lambda _: IndexedLines.empty(),
             )

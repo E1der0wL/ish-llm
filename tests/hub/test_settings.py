@@ -365,9 +365,9 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     field.input.text = 'low'
                     editor.save()
-                await backend_ready(lambda:view._dialog is editor.manager, 'agent settings saved')
-                with set_app(app):
-                    view.close_dialog()
+                # Direct editing returns to its origin; it no longer opens the
+                # Agent management list before or after the editor.
+                await backend_ready(lambda:view._dialog is None and not editor.busy, 'agent settings saved')
                 pipe.send_text('/new\r\r')
                 await backend_ready(lambda:not view.no_sessions and view._dialog is None, 'session creation')
                 pipe.send_text('Explain\r')

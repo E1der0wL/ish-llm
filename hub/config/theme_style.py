@@ -28,6 +28,9 @@ class ThemeSelector(StrEnum):
     FOCUSED = "hub.focused"
     SETTINGS_INPUT = "hub.settings-input"
     SETTINGS_INPUT_FOCUSED = "hub.settings-input.focused"
+    USAGE_CHART = "hub-usage-chart"
+    USAGE_AXIS = "hub-usage-axis"
+    USAGE_BAR = "hub-usage-bar"
     DIVIDER = "hub.divider"
     TITLE = "hub.title"
     COMPOSER = "hub.composer"
@@ -154,6 +157,9 @@ class ThemeStyle:
             ThemeSelector.FOCUSED.value: "fg:{theme.accent} bold underline",
             ThemeSelector.SETTINGS_INPUT.value: "fg:{theme.foreground} bg:{theme.widget_background}",
             ThemeSelector.SETTINGS_INPUT_FOCUSED.value: "fg:{theme.accent} bg:{theme.widget_background} bold underline",
+            ThemeSelector.USAGE_CHART.value: "fg:{theme.comment} bg:{theme.accent5}",
+            ThemeSelector.USAGE_AXIS.value: "fg:{theme.comment}",
+            ThemeSelector.USAGE_BAR.value: "fg:{theme.accent1}",
             ThemeSelector.DIVIDER.value: "fg:{theme.muted}",
             ThemeSelector.TITLE.value: "bold",
             ThemeSelector.COMPOSER.value: "fg:{theme.foreground} bg:{theme.background}",

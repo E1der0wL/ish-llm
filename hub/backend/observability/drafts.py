@@ -41,6 +41,15 @@ class AnswerDrafts:
     def forget(self, run_id: str) -> None:
         self.runs.pop(run_id, None)
 
+    def started(self, run_id: str) -> None:
+        """A persisted Run start precedes Engine output, so its cursor starts empty.
+
+        Keep any state already received from the separate Engine subscription,
+        including a sequence gap or a loss-triggered reconciliation request.
+        Attaching without this event still reads the public output snapshot.
+        """
+        self.state(run_id)
+
     def invalidate(self) -> None:
         for state in self.runs.values():
             state.needs_sync, state.output = True, None

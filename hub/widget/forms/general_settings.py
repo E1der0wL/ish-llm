@@ -18,6 +18,8 @@ from prompt_toolkit.widgets import Label
 from ..section import section
 from ...locales import validate_packs
 from .settings import SchemaForm
+from .visibility import EssentialSettings
+from ...config.sections import PreferenceSection
 from ..controls import Button, RadioList, TextArea
 from ..section import Heading
 
@@ -103,6 +105,7 @@ class GeneralForm:
             },
             values,
             screen.t,
+            presentation=EssentialSettings(EssentialSettings.GLOBAL, PreferenceSection.GENERAL),
         )
         GeneralSettingsDraft(self.form.original).initialize_packs()
         self.add_button = Button(
@@ -118,8 +121,10 @@ class GeneralForm:
         self.set_debugging(False)
 
     def set_debugging(self, debugging):
-        self.groups = {category: keys for category, keys in self.GROUPS.items()
+        self.groups = {category: tuple(key for key in keys if (key,) in self.form.visible_fields)
+                       for category, keys in self.GROUPS.items()
                        if (category in self.DEBUG_CATEGORIES) == debugging}
+        self.groups = {category: keys for category, keys in self.groups.items() if keys}
         children, self.widgets = [], []
         screen = self.screen
         for category, keys in self.groups.items():
@@ -142,6 +147,8 @@ class GeneralForm:
                     ]
                 )
                 self.widgets.extend([self.add_button, self.delete_button])
+        if len(self.form.visible_fields) < len(self.form.fields):
+            children.append(Label(screen.t(MessageKey.SETTINGS_ESSENTIAL_NOTICE), style=ThemeSelector.MUTED.style))
         self.container = HSplit(children)
 
     def pack_names(self):

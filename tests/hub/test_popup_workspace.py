@@ -125,7 +125,7 @@ class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             field.validate_and_handle()
             self.assertIs(self.view._dialog, editor)
             self.assertTrue(editor.workspace.tabs.tabs_focused)
-            self.assertEqual([field.label for field in editor.workspace.fields()], ['completion.model'])
+            self.assertEqual([field.label for field in editor.workspace.fields()], ['model'])
             self.assertIn('model', editor.workspace.status_text())
             editor.workspace.query = 'engine'
             editor.workspace.select(editor.workspace.GENERAL)

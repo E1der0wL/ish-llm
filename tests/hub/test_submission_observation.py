@@ -112,7 +112,7 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
         runtime.request_started = Mock()
         runtime.background_records = NS(observe=Mock())
         runtime.automatic_approvals = NS(observe=Mock())
-        runtime.snapshot_reader = NS(observe_run=Mock(), drafts=NS(forget=Mock()))
+        runtime.snapshot_reader = NS(observe_run=Mock(), drafts=NS(forget=Mock(), started=Mock()))
         runtime.notifications = NS(record_run=Mock())
         runtime.urgent_observation = False
         runtime.dirty = asyncio.Event()
@@ -120,6 +120,7 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
         runtime.request_started.assert_called_once_with(self.notice)
         runtime.sessions['session'].aget_data.assert_not_awaited()
         runtime.snapshot_reader.observe_run.assert_called_once_with(run)
+        runtime.snapshot_reader.drafts.started.assert_called_once_with(run.id)
         runtime.notifications.record_run.assert_called_once_with(run)
         self.assertTrue(runtime.urgent_observation)
         self.assertTrue(runtime.dirty.is_set())

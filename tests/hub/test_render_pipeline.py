@@ -28,6 +28,50 @@ from tests.hub.support import SizedOutput, eventually
 
 
 class CacheTests(unittest.TestCase):
+    def test_render_resources_are_reused_and_bounded_across_widths(self):
+        from hub.ui.output.markdown import RenderResources, make_console, _segment_style
+        from rich.style import Style
+        resources = RenderResources()
+        with patch('hub.ui.output.markdown.make_console', wraps=make_console) as make:
+            first = resources.console(80, self.theme)
+            for _ in range(20):
+                self.assertIs(resources.console(80, self.theme), first)
+            self.assertEqual(make.call_count, 1)
+            for width in range(90, 100):
+                resources.console(width, self.theme)
+            self.assertEqual(len(resources.consoles), resources.CONSOLES)
+        style = Style(color=self.theme.accent, bold=True, bgcolor=self.theme.code_background)
+        self.assertEqual(resources.style(style, self.theme.code_background),
+                         _segment_style(style, self.theme.code_background))
+        with patch('hub.ui.output.markdown._segment_style', wraps=_segment_style) as convert:
+            resources.style(style, self.theme.code_background)
+            convert.assert_not_called()
+
+    def test_streaming_change_skips_prefix_and_unchanged_trace(self):
+        history = tuple(ChatMessage('assistant', 'History', id=str(i)) for i in range(80))
+        trace = tuple(TraceItem(str(i), TraceItem.TOOL, 'file_read', status='completed') for i in range(100))
+        active = ChatMessage('reasoning', '', id='active:reasoning', trace=trace)
+        messages = (*history, active)
+        self.prepare(messages)
+        examined, traces = self.cache.examined_messages, self.cache.examined_traces
+        for second in range(1, 5):
+            active = replace(active, elapsed_seconds=second)
+            self.prepare((*history, active))
+        self.assertEqual(self.cache.examined_messages - examined, 4)
+        self.assertEqual(self.cache.examined_traces, traces)
+        trace = (*trace[:-1], replace(trace[-1], status='running'))
+        active = replace(active, trace=trace)
+        frame = self.prepare((*history, active))
+        self.assertEqual(self.cache.examined_traces - traces, 1)
+        expected = render_messages((*history, active), 80, self.theme, self.language,
+                                   renderers=self.registry)
+        self.assertEqual(tuple(frame.lines), frozen_rows(expected))
+        # Removing/reordering rows invalidates from the changed position.
+        changed = (*history[2:], history[0], active)
+        frame = self.prepare(changed)
+        self.assertEqual(tuple(frame.lines), frozen_rows(render_messages(
+            changed, 80, self.theme, self.language, renderers=self.registry)))
+
     def setUp(self):
         self.cache = MessageRenderCache()
         self.registry = RendererRegistry()
@@ -230,6 +274,64 @@ class CacheTests(unittest.TestCase):
 
 
 class WorkerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_long_popup_yields_to_stream_and_cancellation_closes_work(self):
+        from hub.ui.output.work import RenderWork
+        worker, entered, release, finish, closed = RenderWorker(), Event(), Event(), Event(), Event()
+        applied = []
+        def rows():
+            try:
+                entered.set()
+                release.wait(5)
+                yield
+                finish.wait(5)
+                yield
+                return 'popup'
+            finally:
+                closed.set()
+        try:
+            with patch.object(RenderWork, 'SLICE_SECONDS', 0):
+                worker.request('popup', lambda: RenderWork(rows()), applied.append, str)
+                await eventually(entered.is_set)
+                worker.request('transcript', lambda: 'stream', applied.append, str, progressive=True)
+                release.set()
+                await eventually(lambda: 'stream' in applied)
+                self.assertNotIn('popup', applied)
+                worker.cancel('popup')
+                finish.set()
+                await eventually(closed.is_set)
+                await asyncio.sleep(.02)
+                self.assertEqual(applied, ['stream'])
+                self.assertLessEqual(worker.stats.pending_peak, len(worker.slots))
+                self.assertGreater(worker.stats.yielded, 0)
+        finally:
+            release.set(); finish.set(); worker.close()
+
+    async def test_sliced_markdown_popup_matches_canonical_rich_rows(self):
+        from hub.widget.output.text_viewport import TextViewport
+        from hub.ui.output.markdown import HubMarkdown, make_console, _segment_style
+        from hub.ui.output.work import RenderWork
+        theme = HubTheme()
+        text = '# Heading\n\n한글 **bold** [link][ref]\n\n' + ('```python\nprint(1)\n```\n\n' * 160) + '[ref]: https://example.test\n'
+        control = TextViewport(text, markdown=True, theme=lambda: theme)
+        for width in (23, 80):
+            _, build = control.render_request(width)
+            observed = RenderWork(control._prepare_rows_iter(build())).finish()
+            console = make_console(width, theme)
+            expected = tuple(tuple((_segment_style(s.style, theme.code_background), s.text) for s in row)
+                for row in console.render_lines(HubMarkdown(text, theme), console.options, pad=False))
+            self.assertEqual(len(observed.fragments), len(expected))
+            for row, (actual, canonical) in enumerate(zip(observed.fragments, expected)):
+                self.assertEqual(actual, canonical, f'Rich row {row} at width {width}')
+
+    async def test_sliced_search_preserves_cross_line_matches(self):
+        from hub.widget.output.search_index import index_lines, index_lines_iter
+        from hub.ui.output.work import RenderWork
+        lines = [('', 'ignored')] * 140
+        rows = [tuple([line]) for line in lines] + [(('', '한글 Alpha'),), (('', '  BETA xyz'),)]
+        for query in ('alpha beta', '한글', 'not present'):
+            self.assertEqual(RenderWork(index_lines_iter(rows, query)).finish(), index_lines(rows, query))
+        self.assertEqual(len(index_lines(rows, 'Alpha beta').hits), 1)
+
     async def test_replacing_history_cancels_pending_resize_before_next_frame(self):
         view = ConversationView((ChatMessage("assistant", "old", id="old"),), HubTheme())
         control, worker = view.control, RenderWorker()

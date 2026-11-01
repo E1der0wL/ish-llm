@@ -115,6 +115,7 @@ class LoopOutput(EngineOutput):
             view.close_dialog,
             lambda obj: SearchableOutputViewport(obj, self),
             view.render_worker,
+            view.progress.container,
         )
         popup = self.renderers.create_interaction(item, context)
         self.inspector = popup

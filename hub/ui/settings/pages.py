@@ -17,7 +17,7 @@ from copy import deepcopy
 from dataclasses import replace
 from enum import StrEnum
 
-from prompt_toolkit.layout import HSplit
+from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.widgets import Label
 
 from ...widget.section import section
@@ -37,6 +37,7 @@ from ...backend.project.settings_contracts import (
 from .global_schema import GlobalSettingsSchema
 from .sections import SettingsSection
 from ...widget.forms.settings import SchemaForm
+from ...widget.forms.visibility import EssentialSettings
 from ...widget.forms.settings_viewport import SettingsBody
 from ...config.theme import HubTheme
 from ...widget.controls import Button, TextArea
@@ -80,19 +81,21 @@ class Page:
         if not hasattr(self, self.UNFILTERED):
             self._unfiltered = self.container
         self.query = query.strip().casefold()
+        self.sync_tabs()
         self._filtered_fields = self._matching_fields()
         if not self.section_fields():
             self.container = SettingsBody(
-                [Label(self.screen.t(MessageKey.SETTINGS_TAB_EMPTY))], []
+                [Label(self.screen.t(MessageKey.SETTINGS_TAB_EMPTY)), *self.advanced_notice()], []
             )
             return
         self.container = (
             SettingsBody(
-                self.grouped_children(self.fields())
-                or [Label(self.screen.t(MessageKey.SETTINGS_SEARCH_EMPTY))],
+                [*(self.intro if isinstance(self, ProjectPage) else []),
+                 *(self.grouped_children(self.fields())
+                   or [Label(self.screen.t(MessageKey.SETTINGS_SEARCH_EMPTY))]), *self.advanced_notice()],
                 self.fields(),
             )
-            if self.query
+            if self.query or isinstance(self, ProjectPage)
             else self._unfiltered
         )
 
@@ -143,12 +146,25 @@ class Page:
     def visible_forms(self):
         return self.forms()
 
+    def advanced_notice(self):
+        return [Label(self.screen.t(MessageKey.SETTINGS_ESSENTIAL_NOTICE), style=ThemeSelector.MUTED.style)] if any(
+            len(form.visible_fields) < len(form.fields) for form in self.visible_forms()
+        ) else []
+
+    def sync_tabs(self, *, reset=False):
+        fields = [field for form in self.visible_forms() for field in form.visible_fields.values()]
+        if isinstance(self, GlobalPage) and self.general_form is not self.NO_GENERAL_FORM:
+            fields = [field for _, members in self.groups for field in members]
+        keys = {getattr(self, self.FIELD_TABS, {}).get(field, SettingsTab.CONFIG.value)
+                for field in fields}
+        self.screen.tabs.show_tabs(keys, reset=reset)
+
     def section_fields(self):
         tab = self.screen.tabs.selected
         return [
             field
             for form in self.visible_forms()
-            for field in form.fields.values()
+            for field in form.visible_fields.values()
             if getattr(self, self.FIELD_TABS, {}).get(field, SettingsTab.CONFIG.value)
             == tab
         ]
@@ -206,7 +222,7 @@ class ProjectPage(Page):
         self.component_schemas = forms.components
         engine_schemas = forms.engines
         engine_catalog = ProjectSchemaDescription.engine_catalog(schema)
-        from ...backend.project.naming import TITLE_ENGINE
+        from ...backend.execution.engine_selection import HubEngineIdentity
 
         keys = {
             name: EngineConfigurationKey.from_dict(spec).configuration_key
@@ -215,9 +231,10 @@ class ProjectPage(Page):
         self.engine_keys = {
             name: key
             for name, key in keys.items()
-            if name != TITLE_ENGINE and key != TITLE_ENGINE
+            if not HubEngineIdentity.internal(name) and not HubEngineIdentity.internal(key)
         }
-        self.form = SchemaForm(forms.general, values, screen.t)
+        self.form = SchemaForm(forms.general, values, screen.t,
+                               presentation=EssentialSettings(EssentialSettings.PROJECT))
         self.component_forms, self.engine_forms = {}, {}
         for key in dict.fromkeys(self.engine_keys.values()):
             effective = {
@@ -231,6 +248,7 @@ class ProjectPage(Page):
                 screen.t,
                 prefix=ProjectConfiguration.engine_form_path(key),
                 effective=effective,
+                presentation=EssentialSettings(EssentialSettings.ENGINE, key),
             )
             self.engine_forms[key] = form
         for name in self.components:
@@ -240,6 +258,7 @@ class ProjectPage(Page):
                 values,
                 screen.t,
                 prefix=ProjectConfiguration.component_form_path(name),
+                presentation=EssentialSettings(EssentialSettings.COMPONENT, name),
                 effective=(
                     {name: effective}
                     if effective is not self.NO_EFFECTIVE
@@ -257,7 +276,7 @@ class ProjectPage(Page):
             defaults = rag_defaults()
             for path, field in self.component_forms[
                 RAGIdentity.CAPABILITY
-            ].fields.items():
+            ].visible_fields.items():
                 default = at_path(
                     defaults,
                     path[
@@ -302,14 +321,18 @@ class ProjectPage(Page):
         return getattr(page, cls.SECTION, fallback)
 
     def section_choices(self):
-        return SettingsSection.choices(self.engine_forms, self.component_forms)
+        return SettingsSection.choices(
+            [name for name, form in self.engine_forms.items() if form.visible_fields],
+            [name for name, form in self.component_forms.items() if form.visible_fields],
+        )
 
     def set_section(self, section):
+        changed_section = self.section != section
         self.section = section
         form = self.visible_forms()[0]
         groups = {}
         self.field_tabs = {}
-        for path, field in form.fields.items():
+        for path, field in form.visible_fields.items():
             relative = path[len(form.prefix) :]
             if (
                 not form.prefix
@@ -344,6 +367,8 @@ class ProjectPage(Page):
                 )
             field.label = field.schema.get(SchemaKeyword.TITLE) or label
             groups.setdefault(category, []).append(field)
+
+        self.sync_tabs(reset=changed_section)
 
         def title(category):
             key = MessagePattern.settings_group(category)
@@ -380,8 +405,9 @@ class ProjectPage(Page):
                         )
                     )
                 )
+        self.intro = body
         self._unfiltered = SettingsBody(
-            [*body, *self.grouped_children(self.section_fields())],
+            [*body, *self.grouped_children(self.section_fields()), *self.advanced_notice()],
             self.section_fields(),
         )
         self.container = self._unfiltered
@@ -419,9 +445,7 @@ class GlobalPage(Page):
     NO_EVENT = None
     ALL_TIME = None
     USAGE_READ_ONLY = True
-    USAGE_SCROLLBAR = True
     USAGE_WRAP = True
-    USAGE_HEIGHT = 6
     NEWLINE = "\n"
     FOLLOW_TAIL_OFF = False
 
@@ -437,7 +461,8 @@ class GlobalPage(Page):
         schema = GlobalSettingsSchema.describe(
             name, screen.t, lambda: screen.view.profile_bar.minimum_width
         )
-        self.form = SchemaForm(schema, values, screen.t)
+        self.form = SchemaForm(schema, values, screen.t,
+                               presentation=EssentialSettings(EssentialSettings.GLOBAL, name))
         self.general_form = self.NO_GENERAL_FORM
         if name == PreferenceSection.GENERAL:
             from ...widget.forms.general_settings import GeneralForm
@@ -449,8 +474,8 @@ class GlobalPage(Page):
         )
         if name == PreferenceSection.APPEARANCE:
             self.container = SettingsBody(
-                [section(screen.t(MessagePattern.settings(name))), *self.form.children],
-                self.all_fields(),
+                [section(screen.t(MessagePattern.settings(name))), *self.form.children, *self.advanced_notice()],
+                list(self.form.visible_fields.values()),
             )
         if self.general_form is not self.NO_GENERAL_FORM:
             self.container = self.general_form.container
@@ -462,7 +487,7 @@ class GlobalPage(Page):
                 for category, keys in self.general_form.groups.items()
             ]
         else:
-            self.groups = [(screen.t(MessagePattern.settings(name)), self.all_fields())]
+            self.groups = [(screen.t(MessagePattern.settings(name)), list(self.form.visible_fields.values()))]
         self.usage_output = self.NO_USAGE_OUTPUT
         if name == PreferenceSection.PROFILE:
             from ...widget.usage_chart import DailyUsageChart
@@ -470,9 +495,10 @@ class GlobalPage(Page):
             self.usage_output = TextArea(
                 text=self.usage_text(),
                 read_only=self.USAGE_READ_ONLY,
-                scrollbar=self.USAGE_SCROLLBAR,
+                scrollbar=False,
                 wrap_lines=self.USAGE_WRAP,
-                height=self.USAGE_HEIGHT,
+                height=None,
+                dont_extend_height=True,
                 style=ThemeSelector.MUTED.style,
             )
             self.usage_chart = DailyUsageChart(screen.usage, screen.t)
@@ -482,7 +508,10 @@ class GlobalPage(Page):
                     *self.form.children,
                     section(screen.t(MessageKey.SETTINGS_USAGE)),
                     self.usage_output,
+                    Window(height=1),
+                    Label(screen.t(MessageKey.USAGE_DAILY_TITLE), style=ThemeSelector.ACCENT.style),
                     self.usage_chart,
+                    Window(height=1),
                 ],
                 self.all_fields(),
             )

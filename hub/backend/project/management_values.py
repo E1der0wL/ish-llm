@@ -1,6 +1,8 @@
 """Host management commands and view projections; Components retain write authority."""
 
 import json
+from copy import deepcopy
+from datetime import datetime, timezone
 from enum import StrEnum
 from hub.model import RAGAction
 from llm.core.agents import AgentDefinition
@@ -160,6 +162,31 @@ class ImportProvenance:
         RAGDocumentInput(values).metadata[cls.SOURCE] = str(path)
 
 
+class ResourceTimestamps:
+    """Hub-authored resource metadata, written only through public CRUD APIs."""
+
+    CREATED_AT = "created_at"
+    UPDATED_AT = "updated_at"
+    METADATA = AgentDefinition.Field.METADATA
+
+    @classmethod
+    def created(cls, values):
+        result = deepcopy(values)
+        metadata = result.setdefault(cls.METADATA, {})
+        if isinstance(metadata, dict):
+            metadata.setdefault(cls.CREATED_AT, datetime.now(timezone.utc).isoformat())
+            metadata.setdefault(cls.UPDATED_AT, metadata[cls.CREATED_AT])
+        return result
+
+    @classmethod
+    def modified(cls, values):
+        result = deepcopy(values)
+        metadata = result.setdefault(cls.METADATA, {})
+        if isinstance(metadata, dict):
+            metadata[cls.UPDATED_AT] = datetime.now(timezone.utc).isoformat()
+        return result
+
+
 class DefinitionSummary:
     """Optional presentation fields of current public snapshots, not a stored Reader."""
 
@@ -169,7 +196,7 @@ class DefinitionSummary:
     METADATA = AgentDefinition.Field.METADATA.value
     CONTENT = RAGDocumentInput.Field.CONTENT
     INSTRUCTIONS = "instructions"
-    UPDATED_AT = "updated_at"
+    UPDATED_AT = ResourceTimestamps.UPDATED_AT
     MAXIMUM_DESCRIPTION = 200
     EMPTY = ManagementEntry.EMPTY
 
@@ -187,7 +214,7 @@ class DefinitionSummary:
                 or values.get(cls.CONTENT)
                 or cls.EMPTY
             )[: cls.MAXIMUM_DESCRIPTION],
-            metadata.get(cls.UPDATED_AT, cls.EMPTY),
+            metadata.get(cls.UPDATED_AT) or metadata.get(ResourceTimestamps.CREATED_AT, cls.EMPTY),
             version,
         )
 

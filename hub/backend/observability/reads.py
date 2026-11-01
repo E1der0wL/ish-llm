@@ -1,6 +1,7 @@
 """Bounded, invalidation-aware cache of public service observations only."""
 
 from collections import OrderedDict
+import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import StrEnum
@@ -14,6 +15,8 @@ class ReadKind(StrEnum):
     AGENTS = "agents"
     SESSION = "session"
     RUN = "run"
+    LATEST = "latest_run"
+    PAUSED = "paused_runs"
     STEPS = "steps"
     CONVERSATION = "conversation"
 
@@ -22,6 +25,7 @@ class ReadKind(StrEnum):
 class Observation:
     value: Any = None
     read_at: float | None = None
+    pending: asyncio.Future | None = None
 
 
 class ObservationReads:
@@ -65,6 +69,13 @@ class ObservationReads:
         while len(self.entries) > self.LIMIT:
             self.entries.popitem(last=False)
 
+    def fresh(self, key: tuple, max_age: float):
+        cached = self.entries.get(key)
+        if (cached is not None and cached.read_at is not None
+                and monotonic() - cached.read_at < max_age):
+            return cached.value
+        return None
+
     async def read(self, key: tuple, load: Callable[[], Awaitable[Any]], *,
                    max_age: float = RECONCILE_SECONDS):
         cached = self.entries.get(key)
@@ -72,16 +83,33 @@ class ObservationReads:
                 and monotonic() - cached.read_at < max_age):
             self.entries.move_to_end(key)
             return cached.value
-        pending = Observation()
+        if cached is not None and cached.pending is not None:
+            # Share only the same invalidation generation. Cancelling a waiting
+            # screen must not cancel the owner or another screen's observation.
+            try:
+                return await asyncio.shield(cached.pending)
+            except asyncio.CancelledError:
+                if asyncio.current_task().cancelling():
+                    raise
+                # The owner was preempted by a command. Its storage drain has
+                # finished; a remaining observer can make a fresh public read.
+                return await self.read(key, load, max_age=max_age)
+        pending = Observation(pending=asyncio.get_running_loop().create_future())
+        shared = pending.pending
         self.entries[key] = pending
         self.entries.move_to_end(key)
         while len(self.entries) > self.LIMIT:
             self.entries.popitem(last=False)
         try:
             value = await load()
-        except BaseException:
+        except BaseException as error:
             if self.entries.get(key) is pending:
                 del self.entries[key]
+            if isinstance(error, asyncio.CancelledError):
+                shared.cancel()
+            else:
+                shared.set_exception(error)
+                shared.exception()  # The owner can be the only reader.
             raise
         if self.entries.get(key) is pending:
             pending.value, pending.read_at = value, monotonic()
@@ -90,5 +118,7 @@ class ObservationReads:
             # storage. Do not publish that read over the newer observation.
             newer = self.entries.get(key)
             if newer is not None and newer.read_at is not None:
-                return newer.value
+                value = newer.value
+        pending.pending = None
+        shared.set_result(value)
         return value

@@ -56,6 +56,23 @@ def emit(drafts, record, value):
 
 
 class DraftObservationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_run_start_needs_no_output_read_but_never_clears_later_loss(self):
+        drafts, record = AnswerDrafts(), run()
+        handle = NS(aview=AsyncMock(return_value=NS(run=record, cursor=0, outputs=[])))
+        drafts.started(record.id)
+        self.assertIsNone(await drafts.read(handle, record, ()))
+        handle.aview.assert_not_awaited()
+        start(drafts, record)
+        emit(drafts, record, delta('first', 1))
+        drafts.started(record.id)  # Delayed/duplicate lifecycle delivery.
+        self.assertEqual((await drafts.read(handle, record, ())).text, 'first')
+        handle.aview.assert_not_awaited()
+        drafts.invalidate()
+        drafts.started(record.id)
+        self.assertTrue(drafts.runs[record.id].needs_sync)
+        await drafts.read(handle, record, ())
+        handle.aview.assert_awaited_once()
+
     async def test_append_replace_duplicates_and_publication_keep_one_candidate(self):
         drafts, record = AnswerDrafts(), run()
         handle = NS(aview=AsyncMock())

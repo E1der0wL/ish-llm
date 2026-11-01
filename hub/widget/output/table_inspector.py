@@ -25,7 +25,7 @@ from ..output_inspector import ExpandedOutputDialog
 from ...ui.input.registry import MOVEMENT_KEYS
 from ...ui.output.table import TableData
 from ...ui.output.labels import LabelText
-from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
+from ...ui.input.keys import KeyName, ShortcutAction
 from ...config.theme_style import ThemeSelector
 from ..input_contract import MouseResult
 from typing import NamedTuple
@@ -120,26 +120,22 @@ class TableControl(SelectableControl):
 
     def _load(self):
         self._started = TableControl.STARTED
+        from ...ui.output.work import RenderWork
 
         def build():
             data = TableData.from_block(self.item.block)
             columns = tuple(map(display_cell, data.columns))
-            cells = tuple(tuple(map(display_cell, row)) for row in data.rows)
-            widths = tuple(
-                max(
-                    TableControl.MIN_COLUMN_WIDTH,
-                    get_cwidth(column) + TableControl.HEADER_PADDING,
-                    max(
-                        (
-                            get_cwidth(row[i]) + TableControl.CELL_PADDING
-                            for row in cells
-                        ),
-                        default=TableControl.NO_ROW_WIDTH,
-                    ),
-                )
-                for i, column in enumerate(columns)
-            )
-            return PreparedTable(data, columns, cells, widths)
+            cells = []
+            widths = [max(TableControl.MIN_COLUMN_WIDTH, get_cwidth(column) + TableControl.HEADER_PADDING)
+                      for column in columns]
+            for index, row in enumerate(data.rows):
+                cell = tuple(map(display_cell, row))
+                cells.append(cell)
+                for column, text in enumerate(cell):
+                    widths[column] = max(widths[column], get_cwidth(text) + TableControl.CELL_PADDING)
+                if index % RenderWork.ROW_BATCH == 0:
+                    yield
+            return PreparedTable(data, columns, tuple(cells), tuple(widths))
 
         def apply(result):
             if isinstance(result, str):
@@ -151,11 +147,11 @@ class TableControl(SelectableControl):
 
         if self.context.render_worker and get_app().is_running:
             self.context.render_worker.request(
-                RenderSlot.POPUP, build, apply, lambda error: str(error)
+                RenderSlot.POPUP, lambda: RenderWork(build()), apply, lambda error: str(error)
             )
         else:
             try:
-                apply(build())
+                apply(RenderWork(build()).finish())
             except Exception as error:
                 apply(str(error))
 
@@ -321,8 +317,6 @@ class TableControl(SelectableControl):
 class TableInspector(ExpandedOutputDialog):
     TABLE_MODE = False
     RAW_MODE = True
-    NEXT_MATCH = 1
-    PREVIOUS_MATCH = -1
     ACTION_POSITION = 1
     ABSENT = None
     EMPTY = ""
@@ -347,33 +341,6 @@ class TableInspector(ExpandedOutputDialog):
             self.t(MessageKey.SHORTCUT_MOVEMENT),
             ShortcutAction.SELECT,
             lambda e: self.move(e.key_sequence[-1].key),
-        )
-        self.shortcuts.add(
-            [KeyName.ENTER, KeyName.S],
-            ShortcutLabel.ENTER_S,
-            ShortcutAction.OBJECT_SORT,
-            lambda e: self.table.sort(),
-            when=lambda: not self.raw_mode,
-        )
-        self.shortcuts.add(
-            [KeyName.R],
-            KeyName.R,
-            ShortcutAction.OBJECT_RAW,
-            lambda e: self.toggle_raw(),
-        )
-        self.shortcuts.add(
-            [KeyName.N, KeyName.CONTROL_N],
-            ShortcutLabel.N_CONTROL_N,
-            ShortcutAction.NEXT_MATCH,
-            lambda e: output.move_match(TableInspector.NEXT_MATCH),
-            when=lambda: self.raw_mode,
-        )
-        self.shortcuts.add(
-            [KeyName.N_UPPER, KeyName.CONTROL_P],
-            ShortcutLabel.N_CONTROL_P,
-            ShortcutAction.PREVIOUS_MATCH,
-            lambda e: output.move_match(TableInspector.PREVIOUS_MATCH),
-            when=lambda: self.raw_mode,
         )
         self.buttons[
             TableInspector.ACTION_POSITION : TableInspector.ACTION_POSITION

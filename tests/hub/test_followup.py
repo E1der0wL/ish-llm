@@ -22,14 +22,29 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
     def test_metadata_is_trailing_bounded_and_never_code(self):
         tagged = "Answer\n<hub-next>Add a regression test</hub-next>"
         self.assertEqual(split_followup(tagged), ("Answer", "Add a regression test"))
-        for text in ("```xml\n" + tagged + "\n```", tagged + "\nMore text",
-                     "    <hub-next>Literal code</hub-next>",
-                     "Answer\n<hub-next>" + "a" * 241 + "</hub-next>",
-                     "Answer\n<hub-next>one\ntwo</hub-next>"):
+        for text in ("```xml\n" + tagged + "\n```",
+                     "    <hub-next>Literal code</hub-next>"):
             self.assertEqual(split_followup(text), (text, ""))
+        for text in ("Answer\n<hub-next>" + "a" * 241 + "</hub-next>",
+                     "Answer\n<hub-next>one\ntwo</hub-next>"):
+            self.assertEqual(split_followup(text), ("Answer", ""))
+        self.assertEqual(split_followup(tagged + "\nMore text").content, "Answer\n\nMore text")
+        self.assertEqual(split_followup('Answer\n  <hub-next>Next</hub-next>'), ('Answer', 'Next'))
         for tail in ("<hub-", "<hub-next>", "<hub-next>Next"):
             self.assertEqual(split_followup("Answer\n" + tail, final=False), ("Answer", ""))
-        self.assertEqual(split_followup("Answer\n<hub-next>Next"), ("Answer\n<hub-next>Next", ""))
+        self.assertEqual(split_followup("Answer\n<hub-next>Next"), ("Answer", ""))
+
+    def test_metadata_never_leaks_at_stream_boundaries_or_reasoning_projection(self):
+        from hub.ui.presentation import present_message
+        from hub.model import TraceItem
+        language = __import__('hub.locales', fromlist=['Language']).Language('en')
+        text = 'Answer\n<hub-next>다음 작업을 실행해 주세요.</hub-next>'
+        for end in range(text.index('<') + 1, len(text) + 1):
+            self.assertNotIn('<hub', split_followup(text[:end], final=False).content)
+        message = ChatMessage('reasoning', text, trace=(TraceItem.thought('r', text),))
+        shown = present_message(message, language)
+        self.assertNotIn('<hub', shown.text)
+        self.assertNotIn('<hub', shown.trace[0].text)
 
     def test_protocol_is_context_only_and_old_hints_are_removed(self):
         user = Message("u", MessageRole.USER, "task", MessageStatus.COMMITTED)

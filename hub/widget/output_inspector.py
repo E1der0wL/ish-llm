@@ -13,7 +13,7 @@ from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, HSplit, Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Frame
+from prompt_toolkit.widgets import Frame, Box
 
 from .clipboard import copy_text
 from .controls import Button, TextArea
@@ -21,10 +21,10 @@ from .focus import focus_control
 from .actions import ActionBar
 from .dialog import PopupInput
 from .output.output_viewport import OutputViewport
-from .output.search_index import index_lines, IndexedLines, SearchHighlight
-from ..ui.input.registry import MOVEMENT_KEYS, ShortcutRegistry, legend
+from .output.search_index import IndexedLines, SearchHighlight
+from ..ui.input.registry import MOVEMENT_KEYS, ShortcutRegistry
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
-from ..config.theme_style import ThemeSelector, ThemeStyle
+from ..config.theme_style import ThemeSelector
 from .output.text_viewport import TextViewport
 
 
@@ -88,16 +88,17 @@ class SearchableOutputViewport(OutputViewport):
 
         return base_key + (query,), rows
 
-    def _prepare_rows(self, value):
+    def _prepare_rows_iter(self, value):
         # TextViewport's error fallback supplies literal rows, without a query.
         rows, query = (
             (value.rows, value.query)
             if isinstance(value, SearchRows)
             else (value, SearchableOutputViewport.EMPTY_QUERY)
         )
-        base = super()._prepare_rows(rows)
+        base = yield from super()._prepare_rows_iter(rows)
+        from .output.search_index import index_lines_iter
         hits, matches = (
-            index_lines(base.fragments, query) if query else IndexedLines.empty()
+            (yield from index_lines_iter(base.fragments, query)) if query else IndexedLines.empty()
         )
         return PreparedSearch(base, hits, matches)
 
@@ -157,8 +158,6 @@ class ExpandedOutputDialog:
     MIN_DIMENSION = 1
     ACCEPT_QUERY = False
     CANCEL_QUERY = True
-    HINT_SEPARATOR = "  "
-    HINT_FORMAT = "{key} {action}"
 
     shortcut_context = DialogContext.READER
 
@@ -180,22 +179,10 @@ class ExpandedOutputDialog:
         self.shortcuts = registry = navigation.shortcuts
         self.receiver = navigation.receiver
         registry.add(
-            [KeyName.ESCAPE, KeyName.CONTROL_T],
-            ShortcutLabel.ESCAPE_CONTROL_T,
+            [KeyName.ESCAPE],
+            ShortcutLabel.ESCAPE,
             ShortcutAction.CLOSE,
             lambda e: context.close(),
-        )
-        registry.add(
-            [KeyName.CONTROL_F, KeyName.SLASH],
-            ShortcutLabel.CONTROL_F_SLASH,
-            ShortcutAction.FIND,
-            lambda e: self.start_query(),
-        )
-        registry.add(
-            [KeyName.C],
-            KeyName.C,
-            ShortcutAction.COPY,
-            lambda e: e.app.create_background_task(self.copy()),
         )
         query_keys = ShortcutRegistry()
         query_keys.add(
@@ -209,12 +196,6 @@ class ExpandedOutputDialog:
             ShortcutLabel.ESCAPE,
             ShortcutAction.CANCEL,
             lambda e: self.finish_query(cancel=ExpandedOutputDialog.CANCEL_QUERY),
-        )
-        query_keys.add(
-            [KeyName.CONTROL_T],
-            ShortcutLabel.CONTROL_T,
-            ShortcutAction.CLOSE,
-            lambda e: context.close(),
         )
         self.query.control.key_bindings = query_keys.bindings
         query_keys.attach(self.query.control)
@@ -235,22 +216,22 @@ class ExpandedOutputDialog:
             ),
             equal_width=True,
         )
+        self.status_bar = (
+            context.status_bar(self.status, surface=self)
+            if context.status_bar else
+            Window(FormattedTextControl(self.status), height=self.ROW_HEIGHT,
+                   style=ThemeSelector.NOTICE.style)
+        )
         self.container = Frame(
             HSplit(
                 [
                     body if body is not ExpandedOutputDialog.ABSENT else output,
                     ConditionalContainer(self.query, Condition(lambda: self.searching)),
-                    Window(
-                        FormattedTextControl(self.status),
-                        height=ExpandedOutputDialog.ROW_HEIGHT,
-                        style=ThemeSelector.MUTED.style,
-                    ),
-                    Window(
-                        FormattedTextControl(self.hints),
-                        height=ExpandedOutputDialog.ROW_HEIGHT,
-                        style=ThemeSelector.FOOTER.style,
-                    ),
+                    Window(height=self.ROW_HEIGHT),
                     self.actions,
+                    Window(height=self.ROW_HEIGHT),
+                    Box(self.status_bar, padding=0, padding_left=1, padding_right=1,
+                        height=self.ROW_HEIGHT),
                     Window(
                         self.receiver, height=ExpandedOutputDialog.KEY_RECEIVER_HEIGHT
                     ),
@@ -272,15 +253,6 @@ class ExpandedOutputDialog:
 
     def __pt_container__(self):
         return self.container
-
-    def hints(self):
-        local = ShortcutRegistry.for_control(
-            get_app().layout.current_control, self.shortcuts
-        )
-        return ExpandedOutputDialog.HINT_SEPARATOR.join(
-            ExpandedOutputDialog.HINT_FORMAT.format(key=key, action=action)
-            for key, action in legend(local.active(), self.t)
-        )
 
     def start_query(self):
         self._before_query = self.query.text
@@ -332,24 +304,10 @@ class OutputInspector(ExpandedOutputDialog):
             ShortcutAction.SCROLL,
             lambda e: self.output.scroll(e.key_sequence[-1].key),
         )
-        self.shortcuts.add(
-            [KeyName.N, KeyName.CONTROL_N],
-            ShortcutLabel.N_CONTROL_N,
-            ShortcutAction.NEXT_MATCH,
-            lambda e: self.output.move_match(OutputInspector.NEXT_MATCH),
-        )
-        self.shortcuts.add(
-            [KeyName.N_UPPER, KeyName.CONTROL_P],
-            ShortcutLabel.N_CONTROL_P,
-            ShortcutAction.PREVIOUS_MATCH,
-            lambda e: self.output.move_match(OutputInspector.PREVIOUS_MATCH),
-        )
-        self.shortcuts.add(
-            [KeyName.R],
-            KeyName.R,
-            ShortcutAction.OBJECT_RAW,
-            lambda e: self.toggle_raw(),
-        )
+        self.actions.insert(1, Button(self.t(MessageKey.SEARCH_PREVIOUS),
+                            handler=lambda: self.output.move_match(self.PREVIOUS_MATCH)))
+        self.actions.insert(2, Button(self.t(MessageKey.SEARCH_NEXT),
+                            handler=lambda: self.output.move_match(self.NEXT_MATCH)))
         self.actions.insert(
             OutputInspector.RAW_ACTION_POSITION,
             Button(self.t(MessageKey.OBJECT_RAW), handler=self.toggle_raw),

@@ -80,7 +80,7 @@ class RAGCatalogSession(CompletionSession):
         self.preview = RAGCatalogPreview.UNREAD
 
     async def prepare(self, request):
-        if not self.available:
+        if not self.available or not any(tool.name == RAGToolName.SEARCH.value for tool in request.tools):
             return
         if self.preview is RAGCatalogPreview.UNREAD:
             try:

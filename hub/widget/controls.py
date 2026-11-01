@@ -268,7 +268,19 @@ class Button(PTKButton):
         )
 
     def focus_from_hover(self):
-        focus_control(self)
+        if self.hover_focus_allowed():
+            focus_control(self)
+
+    def hover_focus_allowed(self):
+        from .focus_region import FocusRegion
+
+        layout = get_app().layout
+        parent = layout.get_parent(self.window)
+        while parent is not None:
+            if isinstance(parent, FocusRegion) and not parent.active():
+                return False
+            parent = layout.get_parent(parent)
+        return True
 
     def _activate(self):
         self._feedback()
@@ -341,6 +353,7 @@ class CheckboxList(PTKCheckboxList):
         self.on_select = on_select
         super().__init__(*args, **kwargs)
         _bind_choices(self, on_move=self.notify)
+        MouseBinding.keep_selection_on_empty(self.control)
 
     @property
     def highlighted(self):

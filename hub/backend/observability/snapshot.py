@@ -17,13 +17,13 @@ from llm.core.results import CompletionRecords
 from llm.services.runtime.requests import RequestAdmission
 from dataclasses import dataclass, replace
 from collections import OrderedDict
-from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 from llm.engines.events import EngineEvent, EngineEventType
 from llm.core.results import OutputVisibility
 from .reads import ObservationReads, ReadKind
 from .projection import ConversationProjection, MessageProjection, SessionProjection
+from .run_display import RunDisplay
 
 from ...model import (
     QuestionPresentation,
@@ -75,6 +75,8 @@ class SnapshotReader:
             self.submissions.pop(next(iter(self.submissions)))
 
     def invalidate_dropped_events(self):
+        if self.background is not None:
+            self.background.clear()
         for projection in set((self.projection, *self.projections.values())):
             focus = projection.focus_id
             projection.clear()
@@ -85,7 +87,9 @@ class SnapshotReader:
         self.step_observations.clear()
         self.drafts.invalidate()
 
-    def __init__(self):
+    def __init__(self, *, changed=None):
+        from .background import BackgroundObservations
+        self.background = BackgroundObservations(changed) if changed is not None else None
         self.cache = {}
         self.reads = ObservationReads()
         self.run_handles = OrderedDict()
@@ -109,6 +113,8 @@ class SnapshotReader:
         self.drafts = AnswerDrafts()
 
     def clear(self):
+        if self.background is not None:
+            self.background.clear()
         self.projections.clear()
         self.projection.clear()
         self.session_summaries.clear()
@@ -146,8 +152,9 @@ class SnapshotReader:
             self.step_observations[run.id] = tuple(await handle.steps.alist())
         return self.step_observations[run.id]
 
-    def invalidate(self, session_id):
-        self.session_summaries.pop(session_id, None)
+    def invalidate(self, session_id, *, run_lists=True, run_records=True):
+        # Keep the last sidebar observation while its replacement is read.
+        # It never supplies admission, interaction or execution decisions.
         projection = self.projections.get(session_id)
         if projection is not None:
             projection.changed()
@@ -155,7 +162,11 @@ class SnapshotReader:
             self.projection.changed()
         self.reads.discard(ReadKind.SESSION, session_id)
         self.reads.discard(ReadKind.CONVERSATION, session_id)
-        self.reads.discard(ReadKind.RUN, session_id)
+        if run_records:
+            self.reads.discard(ReadKind.RUN, session_id)
+        if run_lists:
+            self.reads.discard(ReadKind.LATEST, session_id)
+            self.reads.discard(ReadKind.PAUSED, session_id)
 
     def invalidate_project(self):
         self.reads.discard(ReadKind.PROJECT)
@@ -189,7 +200,20 @@ class SnapshotReader:
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
-        self.invalidate(run.session_id)
+        self.invalidate(run.session_id, run_lists=False, run_records=False)
+        latest = self.reads.fresh((ReadKind.LATEST, run.session_id),
+                                  ObservationReads.RECONCILE_SECONDS)
+        # A lifecycle update to the already known latest Run changes its value,
+        # not list membership. Preserve the original expiry: an event must not
+        # indefinitely hide external additions. Unknown/new Runs still reconcile.
+        if not latest or latest[0].id != run.id:
+            self.reads.discard(ReadKind.LATEST, run.session_id)
+        if run.status != RunStatus.RUNNING:
+            paused = self.reads.fresh((ReadKind.PAUSED, run.session_id),
+                                     ObservationReads.RECONCILE_SECONDS)
+            if (run.status == RunStatus.PAUSED or paused is None
+                    or any(handle.id == run.id for handle in paused)):
+                self.reads.discard(ReadKind.PAUSED, run.session_id)
         self._remember_run(run)
         self.reads.discard(ReadKind.STEPS, run.id)
         self.step_observations.pop(run.id, None)
@@ -202,7 +226,10 @@ class SnapshotReader:
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
-        if kind != EngineEventType.TEXT_DELTA:
+        # Delta bodies already have their own sequence-aware display owners.
+        # Refresh receipts on completion/lifecycle events. First attach still
+        # reconciles through the ordinary public Run read.
+        if kind != EngineEventType.TEXT_DELTA or EngineEvent.observed_completion(event) is not None:
             self._remember_run(run)
         if kind in EngineEvent.PHASES or kind == EngineEventType.OUTPUT:
             self.reads.discard(ReadKind.STEPS, run.id)
@@ -210,8 +237,12 @@ class SnapshotReader:
         value = EngineEvent.observed_delta(event) or EngineEvent.observed_output(event)
         if value is not None and value.visibility == OutputVisibility.USER:
             self.reads.discard(ReadKind.CONVERSATION, run.session_id)
-        if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED,
-                    EngineEventType.STEERING_CHANGED):
+        if kind == EngineEventType.STEERING_CHANGED:
+            # Steering changes Run descriptors/instruction messages, not Session
+            # execution/queue/approval state. The committed Run is remembered
+            # above; admission and instruction targeting still query live APIs.
+            self.reads.discard(ReadKind.CONVERSATION, run.session_id)
+        if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED):
             self.invalidate(run.session_id)
             self._remember_run(run)
 
@@ -224,7 +255,9 @@ class SnapshotReader:
     def _remember_run(self, run):
         if self._stale_run(run):
             return  # Separate Engine/lifecycle queues may deliver an older phase late.
-        self.reads.remember((ReadKind.RUN, run.session_id, run.id), deepcopy(run))
+        key = (ReadKind.RUN, run.session_id, run.id)
+        previous = self.reads.entries.get(key)
+        self.reads.remember(key, RunDisplay.capture(run, previous.value if previous else None))
 
     async def read_run(self, session, session_id, run_id, *, handle=None):
         current = handle if handle is not None else self.run_handles.get(run_id)
@@ -234,21 +267,25 @@ class SnapshotReader:
         self.run_handles.move_to_end(run_id)
         while len(self.run_handles) > self.CACHE_LIMIT:
             self.run_handles.popitem(last=False)
-        return current, await self.reads.read(
-            (ReadKind.RUN, session_id, run_id), current.aget_data)
+        previous = self.reads.entries.get((ReadKind.RUN, session_id, run_id))
+        async def load():
+            return RunDisplay.capture(await current.aget_data(), previous.value if previous else None)
+        return current, await self.reads.read((ReadKind.RUN, session_id, run_id), load)
 
     async def read_session(self, identifier, session):
         from llm.services.query import Query
 
         record = await session.aget_data()
-        latest = await session.run.alist(
-            query=Query(descending=self.NEWEST_FIRST, limit=self.LATEST_RUN_LIMIT))
+        latest = await self.reads.read((ReadKind.LATEST, identifier),
+            lambda: session.run.alist(
+                query=Query(descending=self.NEWEST_FIRST, limit=self.LATEST_RUN_LIMIT)))
         handle = latest[0] if latest else self.ABSENT
         run = (display_run(record, (await self.read_run(
             session, identifier, handle.id, handle=handle))[1]) if handle else self.ABSENT)
         question_handle = handle if run and str(run.status) == RunStatus.PAUSED else self.ABSENT
-        paused = {handle.id: handle for handle in await session.run.alist(
-            query=Query(status=RunStatus.PAUSED))}
+        paused = {handle.id: handle for handle in await self.reads.read(
+            (ReadKind.PAUSED, identifier),
+            lambda: session.run.alist(query=Query(status=RunStatus.PAUSED)))}
         # History queries can wait behind durable execution writes. Read the
         # live queue afterwards so an already dispatched request is not still
         # labelled queued in the frame assembled from those queries.
@@ -563,16 +600,29 @@ class SnapshotReader:
     ):
         data = await self.reads.read((ReadKind.PROJECT,), project.aget_data)
         observations, summaries = [], []
+        deferred = {}
+        if self.background is not None:
+            self.background.check()
         for identifier in self.projections.keys() - sessions.keys():
             del self.projections[identifier]
             self.reads.discard(ReadKind.CONVERSATION, identifier)
         for identifier in self.session_summaries.keys() - sessions.keys():
             del self.session_summaries[identifier]
-        for identifier, session in tuple(sessions.items()):
-            item = await self.reads.read((ReadKind.SESSION, identifier),
-                lambda: self.read_session(identifier, session),
-                max_age=(ObservationReads.RECONCILE_SECONDS if identifier == selected_id
-                         else ObservationReads.background_age(identifier)))
+        ordered = sorted(sessions.items(), key=lambda entry: entry[0] != selected_id)
+        for identifier, session in ordered:
+            age = (ObservationReads.RECONCILE_SECONDS if identifier == selected_id
+                   else ObservationReads.background_age(identifier))
+            async def load(identifier=identifier, session=session, age=age):
+                return await self.reads.read((ReadKind.SESSION, identifier),
+                    lambda: self.read_session(identifier, session), max_age=age)
+            item = self.reads.fresh((ReadKind.SESSION, identifier), age)
+            previous = self.session_summaries.get(identifier)
+            if (item is None and previous is not None and identifier != selected_id
+                    and self.background is not None):
+                item = previous.observation
+                deferred[identifier] = load
+            elif item is None:
+                item = await load()
             observations.append(item)
             status = (
                 waiting_status(item.questions)
@@ -710,7 +760,7 @@ class SnapshotReader:
             project_title=data.title,
             model=model,
             storage=data.conversation_storage,
-            sessions=tuple(summaries),
+            sessions=tuple(self.session_summaries[identifier].summary for identifier in sessions),
             selected_id=selected_id,
             messages=messages,
             run=summary,
@@ -743,4 +793,8 @@ class SnapshotReader:
             participant_ids=tuple(selected.record.agent_ids) if selected else (),
             active_run_ids=tuple(item.run_id for item in selected.runtime.active_runs) if selected else (),
         )
-        return snapshot, tuple(observations)
+        # Start the lower-priority lane only after the selected frame is ready.
+        # Stale sidebar rows are not notification/naming observations.
+        for identifier, load in deferred.items():
+            self.background.request(identifier, load)
+        return snapshot, tuple(item for item in observations if item.session_id not in deferred)

@@ -209,7 +209,7 @@ class PopupSuspendTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(self.view._dialog)
         self.assertIs(self.app.layout.current_control, self.view.composer.control)
 
-    async def test_agent_editor_loads_while_hidden_and_retains_editing_and_parent(self):
+    async def test_agent_editor_loads_while_hidden_and_retains_draft_and_parent(self):
         from hub.backend.project.management_values import EditorRecord
         from hub.widget.forms.definition_manager import DefinitionManager
         from llm.engines.loop import LoopEngine
@@ -239,12 +239,16 @@ class PopupSuspendTests(unittest.IsolatedAsyncioTestCase):
             field.begin()
             field.input.text = "test/unsaved"
             field.input.buffer.cursor_position = 4
+            self.assertTrue(field.editing)
         await self.minimize()
+        self.assertFalse(field.editing)
         await self.reopen()
         self.assertIs(self.app.layout.current_control, field.input.control)
-        self.assertTrue(field.editing)
+        self.assertFalse(field.editing)
         self.assertEqual((field.input.text, field.input.buffer.cursor_position), ("test/unsaved", 4))
         with set_app(self.app):
+            field.begin()
+            self.assertTrue(field.editing)
             editor.close()
         self.assertIs(self.view._dialog, manager)
 

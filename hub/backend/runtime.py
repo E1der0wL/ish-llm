@@ -229,7 +229,7 @@ class HubRuntime:
         self._dropped_observations = HubRuntime.INITIAL_DROPPED
         from .observability.snapshot import SnapshotReader
 
-        self.snapshot_reader = SnapshotReader()
+        self.snapshot_reader = SnapshotReader(changed=self.dirty.set)
         from .observability.failures import FailureDiagnostics
 
         self.failure_diagnostics = FailureDiagnostics(self)
@@ -291,7 +291,9 @@ class HubRuntime:
             self.request_started(RequestStarted(
                 self.sessions[event.run.session_id].project.id,
                 event.run.session_id, event.run.input_message_id, event.run.id))
-        if event.run.status != RunStatus.RUNNING:
+        if event.run.status == RunStatus.RUNNING:
+            self.snapshot_reader.drafts.started(event.run.id)
+        else:
             self.snapshot_reader.drafts.forget(event.run.id)
         self.background_records.observe(event.run)
         self.automatic_approvals.observe(event.run)
@@ -445,6 +447,18 @@ class HubRuntime:
         if message_id is not None:
             self.snapshot_reader.focus_history(session_id, message_id)
         self.dirty.set()
+
+    async def prepare_environment(self, project_id: str, environment: dict) -> None:
+        """Warm selected host resources without resolving any execution authority."""
+        from ..config.environment import ShellEnvironment
+        from llm.services.infrastructure.storage import drain_on_cancel
+
+        snapshot = ShellEnvironment.from_dict(environment)
+        if self.project is None or self.project.id != project_id or self.builtin_tools is None:
+            return
+        project = await self.project.aget_data()
+        if self.builtin_tools.name in project.components:
+            await drain_on_cancel(asyncio.to_thread(self.builtin_tools.prepare_environment, project, snapshot))
 
     async def focus_history(self, session_id: str, message_id: str) -> None:
         """Observation-only detail window; never an execution/history filter."""
@@ -768,7 +782,9 @@ class HubRuntime:
             text, recipients=recipients,
             request_context=RequestProfile.for_engines(text, request_context, engines)
         )
-        self.snapshot_reader.invalidate(session_id)
+        # QUEUED admission changes the conversation/queue, not the Run list.
+        # A persisted lifecycle event invalidates that list when dispatch occurs.
+        self.snapshot_reader.invalidate(session_id, run_lists=False, run_records=False)
         self.dirty.set()
         return request.id
 
@@ -1058,6 +1074,8 @@ class HubRuntime:
         )
 
     async def close(self) -> None:
+        if self.snapshot_reader.background is not None:
+            await self.snapshot_reader.background.close()
         await self.automatic_approvals.close()
         await self.background_records.close()
         if self.builtin_tools:

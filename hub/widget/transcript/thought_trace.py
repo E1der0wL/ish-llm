@@ -10,8 +10,10 @@ from rich.text import Text
 from ...ui.output.markdown import HubMarkdown, make_console, _segment_style, _trim_right
 
 
-def render_trace_item(item, width, theme, language):
-    console = make_console(TranscriptLayout.inner_width(width), theme)
+def render_trace_item(item, width, theme, language, *, resources=None):
+    inner = TranscriptLayout.inner_width(width)
+    console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
+    segment_style = resources.style if resources is not None else _segment_style
     if item.kind in (TraceItem.TOOL, TraceItem.SUMMARY):
         if item.kind == TraceItem.SUMMARY:
             label = language(MessageKey.CONTEXT_SUMMARIZING)
@@ -53,7 +55,7 @@ def render_trace_item(item, width, theme, language):
             (TranscriptLayout.EMPTY, TranscriptLayout.INDENT),
             *_trim_right(
                 [
-                    (_segment_style(s.style, theme.code_background), s.text)
+                    (segment_style(s.style, theme.code_background), s.text)
                     for s in row
                     if not s.control
                 ]

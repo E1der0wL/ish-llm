@@ -69,21 +69,26 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         )
                         page = screen.page
                         self.assertEqual(page.identifier, view.project_id)
-                        self.assertEqual(page.section, "component:" + name)
+                        populated = bool(page.component_forms[name].visible_fields)
+                        self.assertEqual(page.section, "component:" + name if populated else "project:general")
                         self.assertEqual(screen.selected, page.section)
                         self.assertEqual(screen.navigation.left_key, page.section)
                         self.assertEqual(page.query, "")
                         self.assertEqual(screen.query, "")
                         self.assertEqual(screen.tabs.selected, "config")
-                        self.assertEqual(page.fields(), [field for field in page.component_forms[name].fields.values()
-                                                        if page.field_tabs[field] == "config"])
+                        if populated:
+                            self.assertEqual(page.fields(), [field for field in page.component_forms[name].visible_fields.values()
+                                                            if page.field_tabs[field] == "config"])
+                        else:
+                            self.assertNotIn('component:' + name, page.section_choices())
                         if page.fields():
                             self.assertIs(app.layout.current_control, page.fields()[0].input.control)
                         else:
                             self.assertIs(app.layout.current_control, page.save.control)
                         with set_app(app):
                             screen.filter("no-such-setting")
-                            screen.tabs.select("policy")
+                            if any(key == 'policy' for key, _, _ in screen.tabs.tabs):
+                                screen.tabs.select("policy")
                             view.toggle_settings()
             finally:
                 app.exit()
@@ -127,7 +132,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                     "record manager settings schema load",
                 )
                 self.assertEqual(view.settings.page.query, "")
-                self.assertEqual(view.settings.page.section, "component:skills")
+                self.assertEqual(view.settings.page.section, "project:general")
+                self.assertNotIn('component:skills', view.settings.page.section_choices())
             finally:
                 app.exit()
                 await task

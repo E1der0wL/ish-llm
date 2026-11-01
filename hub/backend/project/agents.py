@@ -60,6 +60,7 @@ async def initialize(
         definition = AgentDefinition.selected(
             HubEngineIdentity.LOOP, tools=await asyncio.to_thread(selected_tools)
         )
+        definition[AgentDefinition.Field.DESCRIPTION] = HubDefaults.ASSISTANT_DESCRIPTION
         if RAGComponent.name in project.data.components:
             definition[AgentDefinition.Field.RESOURCES] = deepcopy(HubDefaults.ASSISTANT_RESOURCES)
         from llm.components.memory import MemoryComponent
@@ -71,6 +72,8 @@ async def initialize(
             definition[AgentDefinition.Field.TOOLS].append(MemoryToolDefinition.Name.TOOL_RESULT)
         from ...asset.guides import SYSTEM_PROMPT
         definition[AgentDefinition.Field.SYSTEM_PROMPT] = SYSTEM_PROMPT
+        from .management_values import ResourceTimestamps
+        definition = ResourceTimestamps.created(definition)
     else:
         definition = deepcopy(definition)
     if completion:

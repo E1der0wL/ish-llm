@@ -53,9 +53,16 @@ P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 s
 
 ## 사용법·검증 기록
 
+- [핵심 설정 화면과 전체 JSON 편집](essential-settings.md): 공통 항목 노출 기준, 원본 설정 보존과 클릭 편집.
+
+- [요청 준비 비용 분해와 중복 조회 제거](preparation-ownership-review.md): 저장 잠금 점유·대기와 Hub 준비 비용의 분리 계측, 조회 공유 및 전후 검증.
+
+- [조회·렌더링 3단계 최적화](observation-render-optimization.md): 선택 세션 우선 조회, 표시 변경 재사용, 협력적 렌더 작업과 전후 계측·회귀 검증.
+
 - [현재 llm 연결과 요청 지연 개선 작업 지침](request-latency-handoff.md): 2026-10-31 Hub 작업 범위, 이미 반영된 수정, 측정·검증 및 실제 ish 확인 절차. 향후 작업 지침이며 완료 보고가 아닙니다.
 - [요청 상태 전달·스트리밍 비용 검토](request-latency-review.md): 해당 지침에 따른 현재 변경, 격리 측정·검증 기록과 실제 ish 확인 절차.
 - [변경 신호 기반 갱신 검토](signal-refresh-review.md): 최대 갱신율, Run별 도구 카탈로그 재사용과 요청 준비 시간의 비교 검증.
+- [요청 준비 경로 추가 최적화](request-preparation-review.md): Run 목록·초안 조회와 요청별 도구 준비 비용, 동일 환경 측정 및 전체 Hub 회귀 근거.
 
 - [검사 자료와 UI 대기 검증](verification-stability.md): Linux 복사본·검토 해시·미리보기 정리·검사 진행 기록.
 

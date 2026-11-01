@@ -27,6 +27,34 @@ def snapshot(root, marker):
 
 
 class InvestigationGuidanceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_environment_preparation_only_creates_resources_and_keeps_authority_live(self):
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(Path(root)/'storage', auto_title=False,
+                engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(
+                    completion_fn=ScriptedCompletion([chunk('ok')])))}))
+            try:
+                await runtime.start()
+                component = runtime.builtin_tools
+                environment = snapshot(root, 'prepared')
+                with patch.object(component, '_create', wraps=component._create) as create, \
+                        patch.object(component, '_bind_registry', wraps=component._bind_registry) as bind:
+                    await runtime.prepare_environment(runtime.project.id, environment.to_dict())
+                    created = create.call_count
+                    self.assertGreater(created, 0)
+                    bind.assert_not_called()
+                    await runtime.prepare_environment(runtime.project.id, environment.to_dict())
+                    self.assertEqual(create.call_count, created)
+                    project = await runtime.project.aget_data()
+                    component.resolve_environment(project, environment)
+                    self.assertEqual(create.call_count, created)
+                    self.assertEqual(bind.call_count, 1)
+                    await runtime.prepare_environment('unselected-project', environment.to_dict())
+                    self.assertEqual(create.call_count, created)
+                    await runtime.prepare_environment(runtime.project.id, snapshot(root, 'changed').to_dict())
+                    self.assertEqual(create.call_count, created + 1)
+            finally:
+                await runtime.close()
+
     async def test_existing_project_receives_direct_investigation_and_search_order(self):
         from hub.backend.execution.environment import EnvironmentSession
         from hub.asset.guides import WORK_GUIDANCE

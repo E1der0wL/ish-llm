@@ -18,6 +18,7 @@ from prompt_toolkit.formatted_text.utils import fragment_list_width
 from prompt_toolkit.utils import get_cwidth
 from ...ui.output import OutputParser, RenderContext
 from ...ui.output.streaming import StreamingParse
+from ...ui.message_changes import unchanged_prefix
 from .viewport import TranscriptViewport
 
 
@@ -125,6 +126,8 @@ class CachedMessage:
     trace_key: object = None
     trace: object = None
     trace_cache: dict = field(default_factory=dict)
+    trace_width: int = 0
+    trace_widths: tuple = ()
     frame: object = None
 
 
@@ -139,6 +142,8 @@ class MessageRenderCache:
     VISITED_CONTEXTS = 4
 
     def __init__(self):
+        from ...ui.output.markdown import RenderResources
+        self.resources = RenderResources()
         self.context = MessageRenderCache.ABSENT
         self.items = {}
         self.parser = OutputParser()
@@ -151,11 +156,24 @@ class MessageRenderCache:
         self._contexts = OrderedDict()
         self._conversation = None
         self._translations = None
+        self._sources = ()
+        self._entries = []
+        self._visible = None
+        self._renderer_version = None
+        self._dynamic = set()
+        self._active = {}
+        self._reasoning = {}
+        self._prefix_count = 0
+        self._frame = None
+        self.examined_messages = 0
+        self.examined_traces = 0
 
     def prepare(
         self, messages, width, theme, language, *, render, renderers, root, invalidate,
         visible=None,
     ):
+        from functools import partial
+        render = partial(render, resources=self.resources)
         context = CacheContext(
             width,
             theme,
@@ -166,6 +184,7 @@ class MessageRenderCache:
         )
         conversation = messages[0].id if messages else None
         if context != self.context or conversation != self._conversation:
+            self._sources = ()
             if self.context is not None and self.items:
                 self._contexts[(self.context, self._conversation)] = (
                     self.items, self._prefix_key, self._prefix, self._translations)
@@ -178,6 +197,7 @@ class MessageRenderCache:
             # Retain identity sources while a context is cached; Python may reuse IDs.
             self._translations = language.messages
         if not messages:
+            self._sources = ()
             self.items.clear()
             self._prefix_key = MessageRenderCache.ABSENT
             rows = frozen_rows(render((), width, theme, language))
@@ -189,13 +209,33 @@ class MessageRenderCache:
                     map(fragment_list_width, rows), default=MessageRenderCache.NO_WIDTH
                 ),
             )
-        entries, retained = [], {}
         renderer_version = renderers.version
-        for index, message in enumerate(messages):
+        start = (unchanged_prefix(self._sources, messages)
+                 if self._renderer_version == renderer_version and self._visible == visible else 0)
+        if self._dynamic:
+            start = min(start, min(self._dynamic))
+        if self._frame is not None and start == len(messages) == len(self._sources):
+            self._sources = messages
+            return self._frame
+        entries, retained = self._entries[:start], dict(self.items) if start else {}
+        for index, message in enumerate(self._sources[start:], start):
+            retained.pop(TranscriptIdentity.message(message, index), None)
+        self._active = {key:index for key,index in self._active.items() if index < start}
+        self._reasoning = {key:index for key,index in self._reasoning.items() if index < start}
+        self._dynamic = {index for index in self._dynamic if index < start}
+        for index, message in enumerate(messages[start:], start):
+            self.examined_messages += 1
+            if message.role == ReasoningMessage.ROLE:
+                self._reasoning[ReasoningMessage.assistant_id(message.id)] = index
+            elif (message.role == MessageRole.ASSISTANT
+                    and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)):
+                self._active[message.id] = index
             identifier = TranscriptIdentity.message(message, index)
             previous = self.items.get(identifier)
             if previous is MessageRenderCache.ABSENT:
                 previous = CachedMessage()
+            if previous.dynamic_blocks:
+                self._dynamic.add(index)
             if (previous.source is message and previous.source_index == index
                     and previous.renderer_version == renderer_version
                     and not previous.dynamic_blocks and previous.body is not None):
@@ -218,6 +258,8 @@ class MessageRenderCache:
                     blocks, parsing = parsing.parse(self.parser, message.text, final=body_key.final)
                 else:
                     blocks, parsing = (), StreamingParse()
+            if renderers.has_block_revisions(blocks):
+                self._dynamic.add(index)
             if visible is not None and not visible[0] <= index < visible[1]:
                 if previous.body_key == body_key and previous.frame is not None:
                     frame = previous.frame
@@ -329,13 +371,21 @@ class MessageRenderCache:
                     else ()
                 )
                 self.tool_renders += bool(message.tools)
-            trace_cache, trace_parts, trace_width = {}, [], MessageRenderCache.NO_WIDTH
+            same_trace = previous.trace is not None and previous.trace_key == message.trace
+            trace_start = unchanged_prefix(previous.trace_key or (), message.trace)
+            trace_cache = previous.trace_cache if same_trace else dict(previous.trace_cache)
+            for item in (previous.trace_key or ())[trace_start:]:
+                trace_cache.pop(item, None)
+            trace_parts = list(previous.trace.parts[:trace_start]) if previous.trace is not None and not same_trace else []
+            trace_widths = list(previous.trace_widths[:trace_start]) if not same_trace else []
+            trace_width = previous.trace_width if same_trace else max(trace_widths, default=0)
             from .thought_trace import render_trace_item
 
-            for item in message.trace:
+            for item in (() if same_trace else message.trace[trace_start:]):
+                self.examined_traces += 1
                 cached = previous.trace_cache.get(item)
                 if cached is MessageRenderCache.ABSENT:
-                    rows = render_trace_item(item, width, theme, language)
+                    rows = render_trace_item(item, width, theme, language, resources=self.resources)
                     cached = MeasuredRows(
                         rows,
                         max(
@@ -346,10 +396,11 @@ class MessageRenderCache:
                     self.trace_renders += MessageRenderCache.COUNT_STEP
                 trace_cache[item] = cached
                 trace_parts.append(cached.lines)
+                trace_widths.append(cached.width)
                 trace_width = max(trace_width, cached.width)
             trace = (
                 previous.trace
-                if previous.trace_key == message.trace
+                if same_trace
                 else Joined(*trace_parts)
             )
             if (
@@ -404,43 +455,40 @@ class MessageRenderCache:
                 trace_key=message.trace,
                 trace=trace,
                 trace_cache=trace_cache,
+                trace_width=trace_width,
+                trace_widths=previous.trace_widths if same_trace else tuple(trace_widths),
                 frame=frame,
             )
             entries.append(frame)
         self.items = retained
+        self._sources, self._entries = messages, entries
+        self._visible, self._renderer_version = visible, renderer_version
         # Queued user messages can follow the currently streaming response.
         # Keep that whole changing region out of the historical prefix too.
-        active = {message.id for message in messages
-                  if message.role == MessageRole.ASSISTANT
-                  and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)}
-        tail_start = next(
-            (
-                index
-                for index, message in enumerate(messages)
-                if (message.role == ReasoningMessage.ROLE
-                    and ReasoningMessage.assistant_id(message.id) in active)
-                or message.role == MessageRole.ASSISTANT
-                and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)
-            ),
-            len(entries) - 1,
-        )
-        prefix_key = tuple(id(entry) for entry in entries[:tail_start])
-        if prefix_key != self._prefix_key:
+        tail_start = min((*self._active.values(),
+                          *(index for key,index in self._reasoning.items() if key in self._active)),
+                         default=len(entries) - 1)
+        prefix_key = self._prefix_key
+        if start < tail_start or self._prefix_count != tail_start or self._prefix is None:
+            prefix_key = tuple(id(entry) for entry in entries[:tail_start])
+        if prefix_key != self._prefix_key or self._prefix is None:
             self._prefix = self._assemble(
                 entries[:tail_start], messages, MessageRenderCache.ORIGIN
             )
             self._prefix_key = prefix_key
             self.prefix_builds += MessageRenderCache.COUNT_STEP
+        self._prefix_count = tail_start
         tail = self._assemble(
             entries[tail_start:], messages, tail_start, len(self._prefix.lines)
         )
-        return Frame(
+        self._frame = Frame(
             Joined(self._prefix.lines, tail.lines),
             Joined(self._prefix.anchors, tail.anchors),
             Joined(self._prefix.objects, tail.objects),
             max(self._prefix.max_width, tail.max_width),
             ChainMap(tail.starts, self._prefix.starts),
         )
+        return self._frame
 
     @staticmethod
     def _assemble(entries, messages, start, offset=ORIGIN):

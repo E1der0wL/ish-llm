@@ -111,16 +111,18 @@ class PresetBackendTests(unittest.IsolatedAsyncioTestCase):
                 page = ProjectPage(view.settings, record, suggest_defaults=False)
                 page.set_section("engine:loop")
                 before = page.values()
-                self.assertEqual(len(page.groups), 1)
-                for path, field in page.visible_forms()[0].fields.items():
+                self.assertTrue(page.groups)
+                for path, field in page.visible_forms()[0].visible_fields.items():
                     self.assertFalse(field.label.startswith("config.parameters.engines.loop"))
                     self.assertTrue(field.schema.get("description"), path)
-                page.filter("buffer_size")
+                page.filter("max_iterations")
                 self.assertEqual(len(page.fields()), 1)
-                self.assertEqual(len(page.container.children), 2)  # one heading + one field
+                self.assertEqual(len(page.container.children), 3)  # heading + field + JSON notice
+                page.filter("buffer_size")  # Advanced values remain in JSON, not the field list.
+                self.assertEqual(page.fields(), [])
                 page.filter("no-such-option-ever")
                 self.assertEqual(page.fields(), [])
-                self.assertEqual(len(page.container.children), 1)  # empty-state only
+                self.assertEqual(len(page.container.children), 2)  # empty state + JSON notice
                 self.assertEqual(page.values(), before)
             finally:
                 view.close()

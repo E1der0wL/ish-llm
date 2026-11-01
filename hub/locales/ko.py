@@ -5,6 +5,7 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.SETTINGS_ESSENTIAL_NOTICE: '핵심 설정만 표시합니다. 고급 항목은 보조 버튼의 JSON 편집에서 변경할 수 있으며, 화면에 없는 값도 저장 시 유지됩니다.',
     MessageKey.COMPONENT_HELP_TOOLS: '## 도구 패키지 관리\n도구는 파일 읽기·수정, 명령 실행처럼 실제 작업을 수행합니다. 새 프로젝트에는 Hub 내장 도구가 선택되어 있습니다. 이 창에서는 가져온 도구 패키지를 관리하고 내장 도구를 켜거나 끕니다.\n\n### 가져오기와 사용\n- 위 입력칸에 **도구 패키지 디렉토리 경로**를 넣고 가져오기를 실행하세요. 경로 자동완성도 사용할 수 있습니다.\n- 목록에서 Enter를 누르면 관리 중인 디렉토리를 파일 탐색기로 엽니다. 디렉토리의 코드를 고친 뒤 다음 실행에서 확인하세요.\n- 내장 도구는 Space로 활성화 여부를 바꿉니다. 삭제는 선택한 관리 항목에 적용되며 실행 중에는 제한될 수 있습니다.\n- 도구가 등록되어 있어도 Agent의 tools 목록과 프로젝트 도구 정책이 허용해야 호출할 수 있습니다. 승인 대상 작업은 승인 요청이 나옵니다.\n\n### 설정이 필요한 경우\n설정 버튼은 현재 프로젝트의 Tool 설정으로 이동합니다. 기본 파일·셸 도구는 ish의 작업 디렉토리와 환경을 사용합니다. 격리 테스트 실행에는 Bubblewrap 등 호스트 의존성이 필요하며 설치되지 않았다고 일반 셸로 자동 대체하지 않습니다.',
     MessageKey.COMPONENT_HELP_SKILLS: '## 스킬: 반복 작업의 지침\n스킬은 모델이 필요할 때 읽는 작업 지침입니다. 그 자체로 코드를 실행하거나 도구 권한을 추가하지 않습니다. 새 프로젝트에는 코드 수정·오류 진단·문서 작성과 리소스 생성 가이드가 들어 있습니다.\n\n- SKILL.md가 있는 **스킬 디렉토리**를 가져오세요. 이름·설명은 SKILL.md의 YAML 머리말에 둡니다.\n- 목록에서 Enter로 설정된 외부 에디터를 열어 편집하고 저장하세요. 파일 문법과 현재 리비전을 확인한 뒤 적용합니다.\n- 설명에는 언제 이 스킬을 읽어야 하는지 적고 본문에는 실행 단계와 완료 확인 방법을 적으세요.\n- Agent의 resources.skills를 제한했다면 새 스킬을 그 목록에도 연결해야 합니다. 다음 Run부터 새 정의를 사용합니다.\n- “스킬을 만들어줘”라고 요청해도 됩니다. 모델은 skill_schema/create 등 공개 도구를 사용해야 합니다.',
     MessageKey.COMPONENT_HELP_RAG: '## RAG: 내 문서를 찾아서 답변하기\nRAG는 등록한 문서를 키워드·의미·관계로 검색합니다. 대화용 모델 하나를 지정하는 것만으로 임베딩이나 리랭킹 모델이 설정되지는 않습니다.\n\n### 처음 설정\n1. 설정 버튼 → RAG의 **embedding_params**에 임베딩 전용 모델과 필요한 인증·주소를 입력하세요.\n2. 기본 검색은 hybrid(키워드+의미)와 리랭킹입니다. **rerank_params**를 설정하거나 search.rerank를 false로 바꾸세요.\n3. **extraction_params**에 관계 추출 모델을 지정하세요. 새 프로젝트의 extraction.failure_policy 기본값은 required이며 추출 실패 시 등록도 실패합니다. 일부 실패를 허용하려면 best_effort, 관계 추출을 생략하려면 disabled를 선택하세요. 기존 프로젝트의 정책은 유지됩니다.\n\n### 등록과 확인\n- 위 입력칸에서 문서 파일을 가져오세요. Markdown/텍스트는 직접 처리하며 이미지는 Vision OCR 환경도 필요합니다.\n- 아래 진행 영역에서 단계와 진행도를 확인합니다. 완료 후 모델에게 “등록한 문서에서 … 찾아줘”라고 요청하세요.\n- 실패 항목은 남아 있습니다. 재시도는 유효한 체크포인트를 재사용하고 삭제는 대상과 상태를 확인한 뒤 정리합니다. 취소된 작업의 재개 가능 여부는 백엔드 계획을 따릅니다.\n- 모델 연결이나 문서가 준비되지 않으면 검색할 자료가 없습니다. 등록 완료와 실제 검색 결과를 따로 확인하세요.',
@@ -113,6 +114,16 @@ MESSAGES = {
     MessageKey.AGENT_ENGINE: '엔진',
     MessageKey.SETTINGS_DEBUGGING: '디버깅',
     MessageKey.PARTICIPANTS_GROUP_ADD: '그룹 추가',
+    MessageKey.PARTICIPANTS_AGENTS: '에이전트',
+    MessageKey.PARTICIPANTS_GROUPS: '그룹',
+    MessageKey.PARTICIPANTS_GROUP_NAME: '새 그룹 이름',
+    MessageKey.PARTICIPANTS_GROUP_NAME_REQUIRED: '새 그룹 이름을 입력하세요.',
+    MessageKey.PARTICIPANTS_GROUP_SELECT: '삭제할 그룹을 선택하세요.',
+    MessageKey.PARTICIPANTS_JOINED: '참여 중',
+    MessageKey.PARTICIPANTS_SELECT: '에이전트를 하나 이상 체크하세요.',
+    MessageKey.PARTICIPANTS_EDIT_ONE: '편집할 에이전트를 하나만 체크하세요.',
+    MessageKey.PARTICIPANTS_INVITE_FIRST: '선택한 에이전트를 먼저 초대하세요.',
+    MessageKey.PARTICIPANTS_UPDATING: '대화 상대와 그룹 변경 중',
     MessageKey.PARTICIPANTS_GROUP_DELETE: '그룹 삭제',
     MessageKey.PARTICIPANTS_GROUP_MOVE: '그룹 변경',
     MessageKey.PARTICIPANTS_UNGROUPED: '그룹 없음',
@@ -162,7 +173,7 @@ MESSAGES = {
     MessageKey.OPERATION_ABANDON_REQUIRED: '재개에 필요한 기록이어서 바로 삭제할 수 없습니다. 삭제 화면에서 재개 포기 여부를 확인해 주세요.',
     MessageKey.OPERATION_FAILED: '요청한 작업을 처리하지 못했습니다. 입력과 현재 상태를 확인해 주세요. 자세한 오류는 로그 창의 Hub 조작 오류 상세에서 확인할 수 있습니다.',
     MessageKey.SYSTEM: '시스템',
-    MessageKey.USAGE_DAILY_TITLE: '일별 토큰 사용량 • 최근 최대 30일',
+    MessageKey.USAGE_DAILY_TITLE: '일별 토큰 사용량',
     MessageKey.USAGE_DAILY_RANGE: '{start} ~ {end} • 프로젝트 통계 조회 범위 합산',
     MessageKey.USAGE_DAILY_UNKNOWN: '선택 기간 사용량 미보고 호출: {count}회 (토큰 합계 제외)',
     MessageKey.PROMPTS_TITLE: 'Prompt 관리',

@@ -105,3 +105,4 @@ class OutputUIContext:
     close: Callable[[], None]
     viewport: Callable
     render_worker: object
+    status_bar: Callable | None = None

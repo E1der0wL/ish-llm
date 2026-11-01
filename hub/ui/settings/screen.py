@@ -47,9 +47,7 @@ class SettingsScreen:
     NO_DIALOG = None
     EMPTY_QUERY = Page.query
     EMPTY_TEXT = ""
-    EMPTY_STYLE = ""
     ICON_GAP = " "
-    UNSELECTED_PREFIX = "  "
     TITLE_SEPARATOR = " • "
     STATUS_SEPARATOR = " • "
     DIRTY_PREFIX = "* "
@@ -238,20 +236,11 @@ class SettingsScreen:
         # never a minimum that can make an otherwise usable page disappear.
         return Dimension(min=self.MINIMUM_WIDTH, preferred=self.main_width())
 
-    def action_title(self):
-        from ...asset.icon import SELECTED
-
+    def action_title(self) -> str:
         title = self._project_rows.title_or(
             self.drafts.current_project_id, self.view.project_title
         )
-        active = not self.layout.sidebar_focused
-        return [
-            (
-                ThemeSelector.FOCUSED.style if active else self.EMPTY_STYLE,
-                (SELECTED + self.ICON_GAP if active else self.UNSELECTED_PREFIX)
-                + self.t(MessageKey.SETTINGS_CURRENT_PROJECT, title=title),
-            )
-        ]
+        return self.t(MessageKey.SETTINGS_CURRENT_PROJECT, title=title)
 
     def page_title(self) -> str:
         if self.page is self.NO_PAGE:
@@ -569,6 +558,7 @@ class SettingsScreen:
             key = SettingsSection.GENERAL
         if key not in (*self.global_keys, *[item.key for item in self.project_items()]):
             return
+        self.tabs.reset()
         self.selected = key
         if key in self.navigation.left_items():
             self.navigation.left_key = key
@@ -601,6 +591,7 @@ class SettingsScreen:
         self.page = page
         if isinstance(page, GlobalPage) and page.general_form is not page.NO_GENERAL_FORM:
             page.set_section(self.selected)
+        page.sync_tabs(reset=True)
         page.filter(self.query)
         self.main.vertical_scroll = self.SCROLL_TOP
         self.navigation.reset_positions()
@@ -628,6 +619,9 @@ class SettingsScreen:
                 page.set_section(section)
                 self.select_location(section)
                 self.filter(self.EMPTY_QUERY)
+            else:
+                self.filter(self.EMPTY_QUERY)
+                self.status = self.t(MessageKey.SETTINGS_NO_FIELDS)
         if (
             self.view.visible
             and self.view.settings_open

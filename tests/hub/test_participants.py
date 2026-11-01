@@ -139,6 +139,97 @@ class ParticipantBackendTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_shared_manager_manages_groups_and_ctrl_c_does_not_close(self):
+        from examples.hub.preview import create_preview
+        from hub.backend.project.participant_groups import ParticipantAction, ParticipantGroups
+        from hub.asset.icon import AuxiliaryIcon, IconSet
+        from hub.widget.dialog import PopupSize
+        from hub.widget.sidebar import SidebarList
+        from hub.config.theme_style import ThemeSelector
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput(120, 40))
+            view.agents = view.participant_ids = ('a', 'b')
+            view.agent_titles = {'a': 'One', 'b': 'Two'}
+            view.on_invite_agent = Mock()
+            view.on_component = Mock()
+            metadata = {}
+            def change(action, identifier, value, done):
+                nonlocal metadata
+                metadata, members = ParticipantGroups.change(
+                    metadata, view.participant_ids, action, identifier, value)
+                view.participant_ids = tuple(members)
+                view._participant_groups[view._draft_key(view.selected)] = ParticipantGroups.read(metadata, members)
+                done(True)
+            view.on_change_participants = Mock(side_effect=change)
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: app.is_running)
+                with set_app(app):
+                    bar = view.output.participants
+                    self.assertEqual(bar.add_button.text, IconSet.action(view.icons, AuxiliaryIcon.PARTICIPANTS_MANAGE))
+                    self.assertEqual(bar.add_button.window.height.preferred, 1)
+                    bar.invite()
+                    popup = view._dialog
+                    self.assertIsInstance(popup.groups, SidebarList)
+                    self.assertFalse(hasattr(popup, 'group_name'))
+                    self.assertEqual([button.text for button in popup.buttons], [
+                        view.t(key) for key in ('participants_invite', 'definition_edit',
+                                               'participants_expel', 'participants_group_move',
+                                               'participants_group_add', 'participants_group_delete',
+                                               'history_close')])
+                    popup.manage()
+                    self.assertEqual(popup.status, view.t('participants_edit_one'))
+                    popup.agents.current_values = ['a', 'b']
+                    popup.manage()
+                    view.on_component.assert_not_called()
+                    popup.add_group()
+                    name_popup = view._dialog
+                    self.assertEqual(name_popup.size, PopupSize.SMALL)
+                    name_popup._buttons[0].handler()
+                    self.assertIs(view._dialog, name_popup)
+                    view.on_change_participants.assert_not_called()
+                    app.current_buffer.text = 'Reviewers'
+                    name_popup._buttons[0].handler()
+                    self.assertIs(view._dialog, popup)
+                    self.assertEqual(popup.agents.current_values, ['a', 'b'])
+                    group, = view.participant_groups
+                    self.assertEqual(popup.group_items[1].margin_top, 0)  # Member detail includes a gap.
+                    popup.select_group(group.id)
+                    popup.move()
+                    self.assertEqual(view.participant_groups[0].members, ('a', 'b'))
+                    self.assertEqual(popup.group_items[1].margin_top, 1)  # Empty ungrouped row needs a gap.
+                    self.assertIn((ThemeSelector.MUTED.style, '   One • Two'),
+                                  [(style, text.rstrip('\n')) for style, text in popup.groups.fragments()])
+                    view.on_change_participants.assert_called_with(
+                        ParticipantAction.MOVE, ('a', 'b'), group.id, unittest.mock.ANY)
+                    popup.add_group()
+                    view.close_dialog()
+                    self.assertIs(view._dialog, popup)
+                    self.assertEqual(popup.selected_group, group.id)
+                    popup.delete_group()
+                    self.assertEqual(view.participant_groups, ())
+                    self.assertEqual(view.participant_ids, ('a', 'b'))
+                    self.assertFalse(view.progress.progress.tasks)
+                pipe.send_text('\x03')
+                await asyncio.sleep(.05)
+                self.assertIs(view._dialog, popup)
+                with set_app(app):
+                    popup.agents.current_values = ['b']
+                    popup.manage()
+                    view.on_component.assert_called_once_with('agent', '', consume_input=False,
+                                                             edit_identifier='b', completed=unittest.mock.ANY)
+                    self.assertIs(view._dialog, popup)
+                    self.assertTrue(popup.busy)
+                    popup.manage()
+                    self.assertEqual(view.on_component.call_count, 1)
+                    view.on_component.call_args.kwargs['completed'](None)
+                    self.assertFalse(popup.busy)
+                    self.assertIs(view._dialog, popup)
+            finally:
+                app.exit()
+                await task
+                view.close()
+
     async def test_invitation_uses_full_width_and_submits_checked_agents_once(self):
         from examples.hub.preview import create_preview
         from hub.widget.controls import CheckboxList
@@ -154,8 +245,7 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.output.participants.invite()
                     popup = view._dialog
-                    window = popup.body.children[0]
-                    choices = window.content.text.__self__
+                    choices = popup.agents
                     self.assertIsInstance(choices, CheckboxList)
                     self.assertEqual(choices.current_values, [])
                     popup._buttons[0].handler()
@@ -165,7 +255,7 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                     position = app.renderer._last_screen.visible_windows_to_write_positions[choices.window]
                     self.assertEqual(position.width,
                         popup._width().preferred - 2 - 2 * popup._content_padding)
-                pipe.send_text(' \x1b[B ')
+                pipe.send_text('\x1b[B \x1b[B ')
                 await eventually(lambda: set(choices.current_values) == {'b', 'c'})
                 with set_app(app):
                     popup._buttons[0].handler()
@@ -178,6 +268,8 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                     popup._buttons[0].handler()
                     _, done = view.on_invite_agent.call_args.args
                     done(('a', 'b', 'c'))
+                    self.assertIs(view._dialog, popup)
+                    popup.close()
                     self.assertIsNone(view._dialog)
             finally:
                 app.exit()
@@ -282,7 +374,7 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                     bar.control.mouse_handler(MouseEvent(Point(2, 25), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
                     self.assertEqual(bar.selected, 'b')
                     lines = render_container(view.output, 100, 25)
-                    self.assertTrue(any(view.t('participants_add') in line for line in lines))
+                    self.assertTrue(any(bar.add_button.text in line for line in lines))
                     available = view.output.available_width
                     try:
                         for width in (14, 18, 24):

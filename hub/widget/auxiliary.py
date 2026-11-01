@@ -30,6 +30,8 @@ class AuxiliaryButton(Button):
         )
 
     def focus_from_hover(self):
+        if not self.hover_focus_allowed():
+            return
         if self.before_focus:
             self.before_focus()
         super().focus_from_hover()

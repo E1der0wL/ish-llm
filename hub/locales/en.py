@@ -5,6 +5,7 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.SETTINGS_ESSENTIAL_NOTICE: 'Essential settings are shown here. Edit advanced options with the JSON auxiliary button. Saving preserves hidden values.',
     MessageKey.COMPONENT_HELP_TOOLS: "## Tool packages\nTools perform work such as reading/writing files and executing commands. New projects select Hub built-ins. This manager imports packages and enables/disables built-ins.\n\n### Import and use\n- Enter a **tool-package directory** and activate Import; path completion is available.\n- Enter on a managed package opens its directory in the file manager. Verify code changes on a subsequent execution.\n- Space toggles a built-in tool. Delete acts on the selected managed item and may be blocked while work is active.\n- Registration does not override Agent tool selection, project policy or approval requirements.\n\nSettings opens the current project's Tool settings. Built-in file/shell tools use the ish working directory/environment. Sandboxed test execution requires host dependencies such as Bubblewrap; Hub does not silently substitute unrestricted execution.",
     MessageKey.COMPONENT_HELP_SKILLS: '## Skills: reusable working instructions\nSkills are guides the model reads when relevant. They neither execute code nor grant tools. New projects include coding, diagnosis, documentation and resource-authoring guides.\n\n- Import a **directory containing SKILL.md**, with its name/description in YAML frontmatter.\n- Enter edits a selected item in the configured external editor. Saving validates the document and current revision.\n- Describe when to use the skill, the work steps and how to verify completion.\n- If resources.skills is restricted on an Agent, add the new skill there too. New definitions apply to subsequent Runs.\n- You can ask the assistant to create a skill using the public skill schema/create tools.',
     MessageKey.COMPONENT_HELP_RAG: '## RAG: answers grounded in your documents\nRAG searches registered documents by keywords, meaning and relations. A conversational model does not also configure embeddings or reranking.\n\n### Initial setup\n1. Settings → RAG: choose an embedding model and connection in **embedding_params**.\n2. Default retrieval is hybrid with reranking. Configure **rerank_params**, or set search.rerank to false.\n3. Configure the relation extraction model in **extraction_params**. New projects default policy.extraction.failure_policy to required, so extraction errors fail ingestion. Select best_effort to allow partial extraction, or disabled to skip it. Existing project policies are preserved.\n\n### Register and verify\n- Import a document file above. Markdown/text is processed directly; images also need a working Vision OCR setup.\n- Observe stages/progress below. After ingestion, ask the assistant to find a specific fact in the document.\n- Failed jobs remain listed. Retry reuses eligible checkpoints; Delete validates state before cleanup. Backend resume plans govern cancelled jobs.\n- Verify retrieval separately from successful ingestion. Missing model connections or documents cannot be replaced by the chat model.',
@@ -113,6 +114,16 @@ MESSAGES = {
     MessageKey.AGENT_ENGINE: 'Engine',
     MessageKey.SETTINGS_DEBUGGING: 'Debugging',
     MessageKey.PARTICIPANTS_GROUP_ADD: 'Add group',
+    MessageKey.PARTICIPANTS_AGENTS: 'Agents',
+    MessageKey.PARTICIPANTS_GROUPS: 'Groups',
+    MessageKey.PARTICIPANTS_GROUP_NAME: 'New group name',
+    MessageKey.PARTICIPANTS_GROUP_NAME_REQUIRED: 'Enter a name for the new group.',
+    MessageKey.PARTICIPANTS_GROUP_SELECT: 'Select a group to delete.',
+    MessageKey.PARTICIPANTS_JOINED: 'Invited',
+    MessageKey.PARTICIPANTS_SELECT: 'Check at least one Agent.',
+    MessageKey.PARTICIPANTS_EDIT_ONE: 'Check exactly one Agent to edit.',
+    MessageKey.PARTICIPANTS_INVITE_FIRST: 'Invite the selected Agents first.',
+    MessageKey.PARTICIPANTS_UPDATING: 'Updating participants and groups',
     MessageKey.PARTICIPANTS_GROUP_DELETE: 'Delete group',
     MessageKey.PARTICIPANTS_GROUP_MOVE: 'Change group',
     MessageKey.PARTICIPANTS_UNGROUPED: 'Ungrouped',
@@ -162,7 +173,7 @@ MESSAGES = {
     MessageKey.OPERATION_ABANDON_REQUIRED: 'These records are needed for resume. Review abandonment in the deletion dialog before deleting them.',
     MessageKey.OPERATION_FAILED: 'The operation could not be completed. Check your input and current state. Open the log for Hub operation diagnostics.',
     MessageKey.SYSTEM: 'System',
-    MessageKey.USAGE_DAILY_TITLE: 'Daily token usage • up to 30 recent days',
+    MessageKey.USAGE_DAILY_TITLE: 'Daily token usage',
     MessageKey.USAGE_DAILY_RANGE: '{start} ~ {end} • combined project reporting windows',
     MessageKey.USAGE_DAILY_UNKNOWN: 'Calls without reported usage: {count} (excluded from token totals)',
     MessageKey.PROMPTS_TITLE: 'Prompt manager',

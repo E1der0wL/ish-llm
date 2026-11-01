@@ -163,32 +163,33 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(runtime.urgent_observation)
         self.assertTrue(runtime.dirty.is_set())
 
-    async def test_lifecycle_event_preempts_old_frame_but_drains_its_read(self):
+    async def test_lifecycle_event_discards_old_frame_without_restarting_its_read(self):
         worker = BackendWorker.__new__(BackendWorker)
         worker.runtime = NS(dirty=asyncio.Event(), urgent_observation=False)
-        entered, cancelled, drained = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        entered, release, drained = asyncio.Event(), asyncio.Event(), asyncio.Event()
         async def read():
             entered.set()
             try:
-                await asyncio.Future()
+                await release.wait()
+                return 'old frame'
             finally:
-                cancelled.set()
-                await drained.wait()  # Same cancellation contract as a public storage call.
+                drained.set()
         worker._snapshot_task = asyncio.create_task(read())
         pending = asyncio.create_task(worker._await_snapshot())
         try:
             await entered.wait()
             worker.runtime.urgent_observation = True
             worker.runtime.dirty.set()
-            async with asyncio.timeout(3):
-                await cancelled.wait()
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(drained.is_set())
             self.assertFalse(pending.done())
-            drained.set()
+            release.set()
             with self.assertRaises(asyncio.CancelledError):
                 await pending
             self.assertTrue(worker.runtime.dirty.is_set())
         finally:
-            drained.set()
+            release.set()
             pending.cancel()
             await asyncio.gather(pending, return_exceptions=True)
 
@@ -220,14 +221,14 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
         worker._output_interval = .001
         worker._interval_changed = asyncio.Event()
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), urgent_observation=False)
-        entered, published = asyncio.Event(), asyncio.Event()
+        entered, published, release = asyncio.Event(), asyncio.Event(), asyncio.Event()
         attempts = []
         frame = NS(run=None, queued_count=0, sessions=())
         async def snapshot():
             attempts.append(None)
             if len(attempts) == 1:
                 entered.set()
-                await asyncio.Future()
+                await release.wait()
             worker.runtime.urgent_observation = True
             worker.runtime.dirty.set()
             await asyncio.sleep(.01)
@@ -241,6 +242,7 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
                 await entered.wait()
                 worker.runtime.urgent_observation = True
                 worker.runtime.dirty.set()
+                release.set()
                 await published.wait()
             self.assertEqual(len(attempts), 2)
             worker.report_error.assert_not_called()
@@ -269,6 +271,13 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
             calls[0][1]([record])
             page = screen.drafts.pages[PreferenceSection.PROFILE.value]
             self.assertEqual(page.usage_chart.content.days['2026-10-28'].tokens, 120)
+            self.assertFalse(page.usage_output.window.right_margins)
+            page.usage_output.text = '\n'.join(['usage'] * 12)
+            self.assertEqual(page.usage_output.window.preferred_height(100, 100).preferred, 12)
+            page.usage_output.text = 'one\ntwo'
+            self.assertEqual(page.usage_output.window.preferred_height(100, 100).preferred, 2)
+            attrs = view.style.get_attrs_for_style_str('class:hub ' + page.usage_chart.style)
+            self.assertEqual(attrs.bgcolor, view.theme.accent5.lstrip('#'))
             screen.choose(PreferenceSection.PROFILE.value)
             self.assertEqual(len(calls), 1)
         finally:

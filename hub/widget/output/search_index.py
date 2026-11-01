@@ -5,6 +5,7 @@ import re
 from typing import NamedTuple
 from ..input_contract import ControlFragment
 from ...config.theme_style import ThemeSelector, ThemeStyle
+from ...ui.output.work import RenderWork
 
 
 class SearchPattern:
@@ -72,19 +73,25 @@ class SearchHighlight:
 
 
 def index_lines(lines, query):
+    return RenderWork(index_lines_iter(lines, query)).finish()
+
+
+def index_lines_iter(lines, query):
     hits, by_line = [], {}
     pattern = re.compile(
         re.escape(query).replace(SearchPattern.ESCAPED_SPACE, SearchPattern.WHITESPACE),
         re.IGNORECASE,
     )
     texts, starts, offset = [], [], 0
-    for fragments in lines:
+    for index, fragments in enumerate(lines):
         text = SearchPattern.EMPTY.join(
             ControlFragment.text(fragment) for fragment in fragments
         )
         starts.append(offset)
         texts.append(text)
         offset += len(text) + len(SearchPattern.NEWLINE)
+        if index % RenderWork.ROW_BATCH == 0:
+            yield
     for match in pattern.finditer(SearchPattern.NEWLINE.join(texts)):
         first = max(0, bisect_right(starts, match.start()) - 1)
         last = max(first, bisect_right(starts, match.end() - 1) - 1)
@@ -97,6 +104,15 @@ def index_lines(lines, query):
                 len(texts[row]), match.end() - starts[row]
             )
             by_line.setdefault(row, []).append(SearchSpan(index, start, end))
+            if row % RenderWork.ROW_BATCH == 0:
+                yield
+        if index % RenderWork.ROW_BATCH == 0:
+            yield
+    indexed = {}
+    for index, (row, values) in enumerate(by_line.items()):
+        indexed[row] = tuple(values)
+        if index % RenderWork.ROW_BATCH == 0:
+            yield
     return IndexedLines(
-        tuple(hits), {row: tuple(values) for row, values in by_line.items()}
+        tuple(hits), indexed
     )

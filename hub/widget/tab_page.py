@@ -55,7 +55,9 @@ class TabPage(HSplit):
             )
             for key, label, _ in self.tabs
         ]
-        bar = ActionBar(self.buttons, width)
+        self._all_tabs, self._all_buttons = list(self.tabs), list(self.buttons)
+        self._width = width
+        self.bar = ActionBar(self.buttons, width)
         for button in self.buttons:
             # Replace the generic button hints with the tab-specific contract.
             ShortcutRegistry.require(button.control).shortcuts.clear()
@@ -82,8 +84,27 @@ class TabPage(HSplit):
             when=lambda: self.content_focused,
         )
         super().__init__(
-            [bar, DynamicContainer(self.page)], key_bindings=self.shortcuts.bindings
+            [DynamicContainer(lambda: self.bar), DynamicContainer(self.page)], key_bindings=self.shortcuts.bindings
         )
+
+    def show_tabs(self, keys, *, reset=False):
+        """Select available pages on activation, never on a drawing tick."""
+        from prompt_toolkit.layout import Window
+
+        entries = [(tab, button) for tab, button in zip(self._all_tabs, self._all_buttons)
+                   if tab[self.KEY_POSITION] in keys]
+        tabs = [tab for tab, _ in entries]
+        changed = tabs != self.tabs
+        self.tabs = tabs
+        self.buttons = [button for _, button in entries]
+        if reset or self.selected not in keys:
+            self.selected = self.key_at(0) if self.tabs else self.NO_SELECTION
+        if changed:
+            self.bar = ActionBar(self.buttons, self._width, bind_navigation=False) if self.buttons else Window(height=0)
+
+    def reset(self):
+        if self.tabs:
+            self.selected = self.key_at(0)
 
     @property
     def tabs_focused(self):
@@ -102,6 +123,9 @@ class TabPage(HSplit):
     def focus_tabs(self):
         if self.on_leave and self.content_focused:
             self.on_leave()
+        if not self.buttons:
+            self.enter()
+            return
         index = next(
             i for i, (key, _, _) in enumerate(self.tabs) if key == self.selected
         )
@@ -123,6 +147,8 @@ class TabPage(HSplit):
         get_app().invalidate()
 
     def move(self, direction):
+        if not self.tabs:
+            return
         index = next(
             i for i, (key, _, _) in enumerate(self.tabs) if key == self.selected
         )
@@ -133,6 +159,8 @@ class TabPage(HSplit):
         return self.tabs[index][self.KEY_POSITION]
 
     def page(self):
+        if not self.tabs:
+            return self._all_tabs[0][2]
         return next(page for key, _, page in self.tabs if key == self.selected)
 
     def select(self, key):

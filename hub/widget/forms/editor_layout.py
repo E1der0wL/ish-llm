@@ -27,6 +27,8 @@ class SettingsEditorLayout:
     GENERAL = "general"
     CONFIG = "config"
     POLICY = "policy"
+    GENERAL_FIELDS = frozenset((AgentDefinition.Field.PURPOSE, AgentDefinition.Field.DESCRIPTION,
+                                AgentDefinition.Field.SYSTEM_PROMPT))
 
     def __init__(self, editor):
         self.editor = editor
@@ -112,25 +114,26 @@ class SettingsEditorLayout:
         title = next(item.title for item in self.sections if item.key == self.selected)
         return self.editor.view.t(MessageKey.AGENT_PAGE_TITLE, page=title)
 
-    def action_title(self):
-        from ...asset.icon import SELECTED
+    def action_title(self) -> str:
         editor = self.editor
-        active = not get_app().layout.has_focus(self.sidebar)
         name = editor.display_name.text.strip() or editor.identifier.text.strip()
-        return [(ThemeSelector.FOCUSED.style if active else "",
-                 (SELECTED + " " if active else "  ") +
-                 editor.view.t(MessageKey.AGENT_CURRENT, name=name))]
+        return editor.view.t(MessageKey.AGENT_CURRENT, name=name)
 
-    def fields(self):
+    def fields(self, tab=None):
         editor = self.editor
+        tab = self.tabs.selected if tab is None else tab
         if self.selected == self.GENERAL:
-            return [field for field in editor.identity.fields.values() if self.matches(field)] if self.tabs.selected == self.CONFIG else []
+            fields = list(editor.identity.fields.values())
+            if editor.form:
+                fields += [field for path, field in editor.form.visible_fields.items()
+                           if path and path[0] in self.GENERAL_FIELDS]
+            return [field for field in fields if self.matches(field)] if tab == self.CONFIG else []
         if editor.form is None:
             return []
-        return [field for path, field in editor.form.fields.items()
+        return [field for path, field in editor.form.visible_fields.items()
                 if path and path[0] == self.selected
                 and self.matches(field)
-                and ((self.POLICY in path) == (self.tabs.selected == self.POLICY))]
+                and ((self.POLICY in path) == (tab == self.POLICY))]
 
     def controls(self):
         result = [field.input for field in self.fields()]
@@ -145,16 +148,30 @@ class SettingsEditorLayout:
     def select(self, key):
         self.finish_edit()
         self.selected = key
-        self.refresh()
+        self.refresh(reset=True)
 
-    def refresh(self):
+    def refresh(self, *, reset=False):
         editor = self.editor
-        names = list(dict.fromkeys(path[0] for path in editor.form.fields if path)) if editor.form else []
+        if editor.form:
+            for path, field in editor.form.visible_fields.items():
+                relative = list(path[1:] or path)
+                while len(relative) > 1 and relative[0] in (self.CONFIG, self.POLICY, AgentDefinition.Field.COMPLETION):
+                    relative = relative[1:]
+                field.label = field.schema.get(SchemaKeyword.TITLE) or ".".join(relative)
+        names = list(dict.fromkeys(path[0] for path in editor.form.visible_fields
+                                  if path and path[0] not in self.GENERAL_FIELDS)) if editor.form else []
         self.sections = [SidebarItem(self.GENERAL, editor.view.t(MessageKey.SETTINGS_GENERAL))]
         properties = editor.schema.get(SchemaKeyword.PROPERTIES, {}) if editor.schema else {}
         self.sections += [SidebarItem(name, properties.get(name, {}).get(SchemaKeyword.TITLE) or name) for name in names]
         if self.selected not in {item.key for item in self.sections}:
             self.selected = self.GENERAL
+            reset = True
+        keys = {tab for tab in (self.CONFIG, self.POLICY) if self.fields(tab)}
+        if self.selected == self.GENERAL and self.matches_text(
+                AgentDefinition.Field.ENGINE, editor.engine.value,
+                editor.view.t(MessageKey.AGENT_ENGINE), editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE)):
+            keys.add(self.CONFIG)
+        self.tabs.show_tabs(keys, reset=reset)
         fields = self.fields()
         children = [field.container for field in fields]
         if self.engine_visible():
@@ -162,7 +179,10 @@ class SettingsEditorLayout:
             children += [Heading(editor.view.t(MessageKey.AGENT_ENGINE)),
                          Label(editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
                                style=ThemeSelector.MUTED.style), editor.engine]
-        self.body = SettingsBody(children or [Label(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))], fields)
+        children = children or [Label(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))]
+        if editor.form and len(editor.form.visible_fields) < len(editor.form.fields):
+            children.append(Label(editor.view.t(MessageKey.SETTINGS_ESSENTIAL_NOTICE), style=ThemeSelector.MUTED.style))
+        self.body = SettingsBody(children, fields)
         self.pane.vertical_scroll = 0
         get_app().layout.update_parents_relations()
         get_app().invalidate()

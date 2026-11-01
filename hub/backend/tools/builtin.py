@@ -170,8 +170,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         bind_advice(toolkit)
         return toolkit
 
-    def resolve_environment(self, project, environment):
-        """Immutable per-environment bindings preserve concurrent/queued Runs."""
+    def _environment_toolkit(self, project, environment):
         from llm.services.infrastructure.storage import revision_token
 
         identity = revision_token(environment.to_dict())
@@ -181,7 +180,18 @@ class HubBuiltinTools(BuiltinToolComponent):
                 self.toolkits[key] = self._create(
                     environment.cwd, dict(environment.variables)
                 )
-            toolkit = self.toolkits[key]
+            return self.toolkits[key], identity
+
+    def prepare_environment(self, project, environment):
+        """Prepare resources only; selection, contracts and policy remain live."""
+        self.for_project(project)
+        self._environment_toolkit(project, environment)
+
+    def resolve_environment(self, project, environment):
+        """Immutable per-environment bindings preserve concurrent/queued Runs."""
+        from llm.services.infrastructure.storage import revision_token
+
+        toolkit, identity = self._environment_toolkit(project, environment)
         registry = self._bind_registry(project, toolkit, ToolRegistry.CAPABILITY)
         # All defaults that can alter effects participate in approval binding.
         return registry.derive(

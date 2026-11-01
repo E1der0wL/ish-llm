@@ -348,6 +348,7 @@ class LiveController:
             else config.file_root
         )
         self.environment_provider = LiveController.ABSENT
+        self._environment_preparation = None
         if config.engine_factories:
             self.view.engines = tuple(config.engine_factories)
 
@@ -665,6 +666,12 @@ class LiveController:
                 return  # Shell context can arrive after plugin installation.
             self.view.file_root = environment.cwd
             self.view.output.set_file_root(environment.cwd)
+            key = (self.view.project_id, environment)
+            if self.worker and self.view.connected and key != self._environment_preparation:
+                # One attempt per selected environment, not an implicit retry.
+                # Actual requests still capture their own fresh shell snapshot.
+                self._environment_preparation = key
+                self._call(HubRuntime.prepare_environment.__name__, key[0], environment.to_dict())
 
     def _accept_input(self, project_id, session_id, text, result, operation):
         if result is LiveController.ABSENT or self.closed:

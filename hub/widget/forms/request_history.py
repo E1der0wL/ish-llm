@@ -123,7 +123,8 @@ class RequestHistoryDialog(Dialog):
                 Label(
                     lambda: clipped_summary(
                         view.t(MessageKey.HISTORY_HINT), width() - self.LABEL_MARGIN
-                    )
+                    ),
+                    style=ThemeSelector.MUTED.style,
                 ),
                 self.choices,
                 Label(

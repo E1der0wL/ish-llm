@@ -345,9 +345,7 @@ class HubView:
                     self.composer,
                 ]
             ),
-            title=lambda: self._focus_heading(
-                self.composer.control, self.recipient_title()
-            ),
+            title=self.recipient_title,
             hint=lambda: self.t(MessageKey.INPUT_HINT)
             + (
                 HubView.HINT_SEPARATOR + self.t(MessageKey.FOLLOWUP_HINT)

@@ -3,7 +3,7 @@
 from hub.locales.keys import MessageKey
 from ..backend.project.usage import DailyUsage, DailyUsageObservation
 from ..backend.project.settings_contracts import ProjectUsageObservation
-from ..config.theme_style import ThemeSelector, ThemeStyle
+from ..config.theme_style import ThemeSelector
 
 from datetime import date, timedelta
 from math import ceil
@@ -13,7 +13,7 @@ from prompt_toolkit.layout.controls import UIControl
 
 class UsageChartLayout:
     HEIGHT = 40
-    PLOT_HEIGHT = 34
+    PLOT_HEIGHT = HEIGHT - 2
     MIN_WIDTH = 16
     MAX_DAYS = 30
     AXIS_WIDTH = 12
@@ -59,7 +59,7 @@ class DailyUsageControl(UIControl):
             return [
                 [
                     (
-                        ThemeSelector.MUTED.style,
+                        ThemeSelector.USAGE_AXIS.style,
                         self.t(MessageKey.SETTINGS_USAGE_EMPTY)[:width],
                     )
                 ]
@@ -83,15 +83,7 @@ class DailyUsageControl(UIControl):
         cell = max(
             UsageChartLayout.MIN_SIZE, (width - UsageChartLayout.AXIS_WIDTH) // count
         )
-        rows = [
-            [
-                (
-                    ThemeStyle.joined(ThemeSelector.ACCENT.style, ThemeStyle.BOLD),
-                    self.t(MessageKey.USAGE_DAILY_TITLE),
-                )
-            ],
-            [(UsageChartLayout.EMPTY, UsageChartLayout.EMPTY)],
-        ]
+        rows = []
         for y in reversed(range(plot_height)):
             label = (
                 UsageChartLayout.LABEL_FORMAT.format(
@@ -114,14 +106,14 @@ class DailyUsageControl(UIControl):
             )
             rows.append(
                 [
-                    (ThemeSelector.MUTED.style, label + UsageChartLayout.Y_AXIS),
-                    (ThemeSelector.ACCENT.style, bars),
+                    (ThemeSelector.USAGE_AXIS.style, label + UsageChartLayout.Y_AXIS),
+                    (ThemeSelector.USAGE_BAR.style, bars),
                 ]
             )
         rows.append(
             [
                 (
-                    ThemeSelector.MUTED.style,
+                    ThemeSelector.USAGE_AXIS.style,
                     UsageChartLayout.SPACE * UsageChartLayout.AXIS_INDENT
                     + UsageChartLayout.CORNER
                     + UsageChartLayout.X_AXIS * (count * cell),
@@ -140,32 +132,9 @@ class DailyUsageControl(UIControl):
         rows.append(
             [
                 (
-                    ThemeSelector.MUTED.style,
+                    ThemeSelector.USAGE_AXIS.style,
                     UsageChartLayout.SPACE * UsageChartLayout.DATE_INDENT
                     + UsageChartLayout.EMPTY.join(labels),
-                )
-            ]
-        )
-        rows.append(
-            [
-                (
-                    ThemeSelector.MUTED.style,
-                    self.t(
-                        MessageKey.USAGE_DAILY_RANGE,
-                        start=dates[0].isoformat(),
-                        end=end.isoformat(),
-                    ),
-                )
-            ]
-        )
-        rows.append(
-            [
-                (
-                    ThemeSelector.MUTED.style,
-                    self.t(
-                        MessageKey.USAGE_DAILY_UNKNOWN,
-                        count=sum(v.unknown for v in values),
-                    ),
                 )
             ]
         )
@@ -185,5 +154,6 @@ class DailyUsageChart(Window):
         super().__init__(
             DailyUsageControl(records, t),
             height=UsageChartLayout.HEIGHT,
+            style=ThemeSelector.USAGE_CHART.style,
             wrap_lines=UsageChartLayout.WRAP,
         )

@@ -121,21 +121,22 @@ class TextViewport(SelectableControl):
         def build():
             source = self.plain_source(text)
             if not markdown:
-                return tuple(
-                    ((self.EMPTY_STYLE, line),) for line in source.splitlines()
-                ) or (((self.EMPTY_STYLE, self.EMPTY_TEXT),),)
+                yield from (((self.EMPTY_STYLE, line),) for line in source.splitlines())
+                return
             from ...ui.output.markdown import HubMarkdown, make_console, _segment_style
+            from rich.segment import Segment
 
             console = make_console(max(self.MIN_DIMENSION, width), theme)
-            return tuple(
+            yield from (
                 tuple(
                     (_segment_style(segment.style, theme.code_background), segment.text)
                     for segment in row
                 )
-                for row in console.render_lines(
-                    HubMarkdown(source, theme), console.options, pad=self.PAD_MARKDOWN
+                for row in Segment.split_and_crop_lines(
+                    console.render(HubMarkdown(source, theme), console.options),
+                    console.width, pad=self.PAD_MARKDOWN, include_new_lines=False
                 )
-            ) or (((self.EMPTY_STYLE, self.EMPTY_TEXT),),)
+            )
 
         return ViewportRenderKey.create(width, theme, id(text)), build
 
@@ -158,9 +159,10 @@ class TextViewport(SelectableControl):
             def request():
                 self._resize_timer = self.ABSENT
                 if self.render_worker and app.is_running:
+                    from ...ui.output.work import RenderWork
                     self.render_worker.request(
                         self.render_slot,
-                        lambda: self._prepare_rows(build_rows()),
+                        lambda: RenderWork(self._prepare_rows_iter(build_rows())),
                         apply,
                         lambda _: self._prepare_rows(
                             [
@@ -202,13 +204,24 @@ class TextViewport(SelectableControl):
         )
 
     def _prepare_rows(self, rows):
-        fragments = tuple(tuple(row) for row in rows) or (
-            ((self.EMPTY_STYLE, self.EMPTY_TEXT),),
-        )
-        lines = tuple(
-            self.EMPTY_TEXT.join(text for _, text in row) for row in fragments
-        )
-        return TextRows(fragments, lines, max(map(get_cwidth, lines)))
+        from ...ui.output.work import RenderWork
+        return RenderWork(self._prepare_rows_iter(rows)).finish()
+
+    def _prepare_rows_iter(self, rows):
+        from ...ui.output.work import RenderWork
+        fragments, lines, maximum = [], [], 0
+        for index, row in enumerate(rows):
+            row = tuple(row)
+            text = self.EMPTY_TEXT.join(text for _, text in row)
+            fragments.append(row)
+            lines.append(text)
+            maximum = max(maximum, get_cwidth(text))
+            if index % RenderWork.ROW_BATCH == 0:
+                yield
+        if not fragments:
+            fragments.append(((self.EMPTY_STYLE, self.EMPTY_TEXT),))
+            lines.append(self.EMPTY_TEXT)
+        return TextRows(tuple(fragments), tuple(lines), maximum)
 
     def _apply_rows(self, result):
         self.fragments, self.lines, self._max_width = result

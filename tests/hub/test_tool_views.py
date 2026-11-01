@@ -7,6 +7,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace as NS
 import unittest
+from unittest.mock import patch
 
 from llm.components.processing import CompletionInput, CompletionMessage, CompletionRequest
 from llm.components.tools.builtin import BuiltinTools
@@ -20,6 +21,12 @@ from hub.config.defaults import HubDefaults
 
 
 class ToolViewTests(unittest.IsolatedAsyncioTestCase):
+    async def test_initial_request_never_copies_or_dispatches_a_tool_view(self):
+        request = CompletionRequest({}, [CompletionMessage(ModelMessage('user', 'Hello'), 'u')], 1)
+        with patch('hub.backend.execution.tool_views.asyncio.to_thread',
+                   side_effect=AssertionError('no result to project')):
+            self.assertEqual([event async for event in ToolViewSession(None).prepare(request)], [])
+
     async def asyncSetUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)

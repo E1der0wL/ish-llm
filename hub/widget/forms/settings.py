@@ -23,6 +23,7 @@ from prompt_toolkit.application.current import get_app
 from ...ui.input.registry import ShortcutRegistry
 from prompt_toolkit.widgets import Label
 from ..controls import TextArea
+from ..mouse_contract import MouseBinding
 
 
 MISSING = object()
@@ -133,6 +134,7 @@ class SettingField:
             )
         )
         self.editing = self.VIEWING
+        self._editing_app = None
         self.readonly = readonly
         self.observations = tuple(observations)
         self.enabled = lambda: self.ENABLED
@@ -160,6 +162,8 @@ class SettingField:
         self.input.window.always_hide_cursor = Condition(
             lambda: not self.editing or self.readonly or not self.enabled()
         )
+        MouseBinding.set_focused_click(self.input.control, self.begin_if_viewing)
+        MouseBinding.set_click_away(self.input.control, self.finish)
         registry = ShortcutRegistry()
         editable = lambda: self.enabled() and not self.readonly
         registry.add(
@@ -273,14 +277,30 @@ class SettingField:
     def clear(self):
         self.text = FieldDisplay.EMPTY
 
+    def begin_if_viewing(self):
+        if not self.editing:
+            self.begin()
+
     def begin(self):
         if self.enabled() and not self.readonly:
             self.editing = self.EDITING
             self.input.buffer.cursor_position = len(self.input.text)
+            if self._editing_app is None:
+                self._editing_app = get_app()
+                self._editing_app.before_render += self._finish_on_blur
+                self._editing_app.on_invalidate += self._finish_on_blur
         get_app().invalidate()
+
+    def _finish_on_blur(self, app):
+        if app.layout.current_control is not self.input.control:
+            self.finish()
 
     def finish(self):
         self.editing = self.VIEWING
+        if self._editing_app is not None:
+            self._editing_app.before_render -= self._finish_on_blur
+            self._editing_app.on_invalidate -= self._finish_on_blur
+            self._editing_app = None
         get_app().invalidate()
 
     def value(self):
@@ -368,8 +388,10 @@ class SchemaForm:
         SchemaKeyword.REF,
     )
 
-    def __init__(self, schema, values, t, *, prefix=(), effective=NO_EFFECTIVE):
+    def __init__(self, schema, values, t, *, prefix=(), effective=NO_EFFECTIVE, presentation=None):
         self.schema, self.original, self.t = schema, deepcopy(values), t
+        self.presentation = presentation
+        self.required = set()
         # 적용값은 고정 경로와 확장 키 조회에만 사용하고 저장할 값과 혼합하지 않는다.
         self.prefix = prefix
         self.effective = {
@@ -385,10 +407,14 @@ class SchemaForm:
         self.fields = {}
         self._container = None
         self._walk(schema, prefix)
+        self.visible_fields = {
+            path: field for path, field in self.fields.items()
+            if presentation is None or presentation(path[len(prefix):], required=path in self.required)
+        }
 
     @property
     def children(self):
-        return [field.container for field in self.fields.values()]
+        return [field.container for field in self.visible_fields.values()]
 
     @property
     def container(self):
@@ -414,7 +440,7 @@ class SchemaForm:
             notes.append(self.t(MessageKey.SETTINGS_HOST_PARTIAL))
         return notes
 
-    def _walk(self, schema, path):
+    def _walk(self, schema, path, *, required=False):
         if schema is SchemaBoolean.REJECT:
             return
         schema = schema if isinstance(schema, dict) else {}
@@ -423,11 +449,16 @@ class SchemaForm:
                 and schema.get(SchemaKeyword.ADDITIONAL_PROPERTIES) is SchemaBoolean.REJECT
                 and not any(name in schema for name in self.OPAQUE_FIELDS)):
             return
-        # Nullable objects, unions and refs stay JSON editors so their semantics
-        # are not lost by flattening an arbitrary branch of the schema.
+        # Only an explicit object|null with ordinary properties may expose leaf
+        # controls in essential mode. Preserve the full schema and original
+        # object/null; unions, refs and conditional schemas remain JSON editors.
+        kind = schema.get(SchemaKeyword.TYPE)
         if (
             properties
-            and schema.get(SchemaKeyword.TYPE) == SchemaType.OBJECT
+            and (kind == SchemaType.OBJECT or (
+                self.presentation is not None and isinstance(kind, list)
+                and set(kind) == {SchemaType.OBJECT, SchemaType.NULL}
+            ))
             and not any(name in schema for name in self.OPAQUE_FIELDS)
         ):
             properties = dict(properties)
@@ -453,8 +484,12 @@ class SchemaForm:
                                 key, schema.get(SchemaKeyword.ADDITIONAL_PROPERTIES, {})
                             )
             for key, spec in properties.items():
-                self._walk(spec, (*path, key))
+                self._walk(spec, (*path, key), required=key in schema.get(SchemaKeyword.REQUIRED, ()))
         else:
+            # A root-only open schema has no named field. Its complete value
+            # remains in the JSON draft, rather than an unusable empty-path row.
+            if not path:
+                return
             if not schema.get(SchemaKeyword.DESCRIPTION) and (
                 self.prefix or path[: len(SchemaForm.CONFIG_PATH)] == SchemaForm.CONFIG_PATH
             ):
@@ -479,6 +514,8 @@ class SchemaForm:
                 observations=self._observations(path),
             )
             self.fields[path] = field
+            if required:
+                self.required.add(path)
 
     def values(self):
         values = deepcopy(self.original)

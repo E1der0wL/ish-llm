@@ -35,6 +35,8 @@ class AgentContractTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(agent['completion']['model'], 'test/model')
                 self.assertEqual(agent['completion']['api_base'], 'http://test.invalid')
                 self.assertTrue(agent['system_prompt'])
+                self.assertTrue(agent['description'])
+                self.assertEqual(agent['metadata']['updated_at'], agent['metadata']['created_at'])
                 record = await runtime.project.aget_data()
                 self.assertNotIn('completion', record.config.parameter_targets.engine('loop').config)
                 manager = await RecordManagement.for_project(runtime.project, 'agents')
@@ -59,8 +61,12 @@ class AgentContractTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.invite_agent(pid, sid, 'reviewer')
                 await runtime.change_participants(pid, sid, ParticipantAction.ADD_GROUP, '', 'Team')
                 group, = (await runtime.snapshot()).sessions[0].participant_groups
-                for agent in ('assistant', 'reviewer'):
-                    await runtime.change_participants(pid, sid, ParticipantAction.MOVE, agent, group.id)
+                with self.assertRaisesRegex(ValueError, 'not invited'):
+                    await runtime.change_participants(pid, sid, ParticipantAction.MOVE,
+                                                      ('assistant', 'missing'), group.id)
+                self.assertFalse((await runtime.snapshot()).sessions[0].participant_groups[0].members)
+                await runtime.change_participants(pid, sid, ParticipantAction.MOVE,
+                                                  ('assistant', 'reviewer'), group.id)
                 group, = (await runtime.snapshot()).sessions[0].participant_groups
                 self.assertEqual(set(group.members), {'assistant','reviewer'})
             finally:
@@ -175,6 +181,7 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     editor = view._dialog
                     self.assertIsInstance(editor, AgentEditor)
                     self.assertIs(app.layout.current_control, editor.workspace.sidebar)
+                    self.assertEqual(editor.workspace.action_title(), view.t('agent_current', name='Coder'))
                     self.assertFalse(editor.dirty)
                     self.assertNotIn('*', editor.buttons[0].text)
                     editor.display_name.text = 'Changed'
@@ -191,6 +198,7 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                                 editor.workspace.focus_sidebar()
                             else:
                                 editor.workspace.tabs.focus_tabs()
+                            self.assertEqual(editor.workspace.action_title(), view.t('agent_current', name='Coder'))
                         rendered_at = app.render_counter
                         app.invalidate()
                         await eventually(lambda: app.render_counter > rendered_at)
@@ -243,6 +251,9 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.layout.current_control is editor.workspace.sidebar)
                 with set_app(app):
                     editor.workspace.select('completion')
+                    self.assertEqual([key for key, _, _ in editor.workspace.tabs.tabs], ['config'])
+                    self.assertFalse(any(field.label.startswith(('completion.', 'engine_options.'))
+                                         for field in editor.workspace.fields()))
                     editor.workspace.focus_fields()
                     self.assertIn(('completion','model'), editor.form.fields)
                     editor.form.fields[('completion','model')].input.text = 'test/edited'

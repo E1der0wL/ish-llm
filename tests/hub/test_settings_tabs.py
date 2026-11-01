@@ -70,6 +70,10 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 record = await runtime.settings_service.load_project(runtime.project.id)
                 screen = self.view.settings
                 page = ProjectPage(screen, record, suggest_defaults=False)
+                self.assertFalse(any(name.startswith('_hub_') for name in page.engine_keys))
+                self.assertTrue(all(page.engine_forms[name].visible_fields for name in page.engine_forms))
+                self.assertNotIn('component:skills', page.section_choices())
+                self.assertNotIn('component:mcp', page.section_choices())
                 hidden = [f for form in [*page.engine_forms.values(), *page.component_forms.values()]
                           for f in form.fields.values()]
                 self.assertTrue(hidden)
@@ -77,7 +81,7 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 original = page.values()
                 self.assertFalse(page.dirty)
                 self.assertTrue(all(f._input is None for f in hidden))
-                page.set_section("engine:loop")
+                page.set_section("project:general")
                 screen.page = page
                 field = page.fields()[0]
                 widget = field.input
@@ -96,7 +100,7 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(all(page.field_tabs[f] == "policy" for f in page.fields()))
                 page.filter("no-match-anywhere")
                 self.assertEqual(page.fields(), [])
-                self.assertEqual(len(page.container.children), 1)
+                self.assertEqual(len(page.container.children), 2)  # No matches + JSON access notice.
                 self.assertEqual(page.values(), before)
                 with set_app(self.app):
                     screen.tabs.selected = "config"
@@ -104,19 +108,45 @@ class SettingsTabTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(field.input.text, "128")
                 self.assertIs(field.input, widget)
                 self.assertEqual(page.values(), before)
+                with set_app(self.app):
+                    screen.query = ''
+                    page.set_section('project:general')
+                    screen.tabs.selected = 'policy'
+                    screen.tab_changed('policy')
+                    screen.show_page(page)
+                self.assertEqual(screen.tabs.selected, 'config')
+                self.assertIn(field.container, page.container.children)
             finally:
                 await runtime.close()
 
-    async def test_empty_policy_tab_does_not_focus_hidden_global_fields(self):
+    async def test_empty_policy_tab_is_removed_and_reopening_selects_first_tab(self):
         with set_app(self.app):
             self.view.toggle_settings()
             screen = self.view.settings
             screen.choose("general")
-            screen.tabs.select("policy")
-        self.pipe.send_text("\r ")
+            self.assertEqual([key for key, _, _ in screen.tabs.tabs], ['config'])
+            screen.tabs.focus_tabs()
+        self.pipe.send_text("\x1b[C")
         await asyncio.sleep(.1)
-        self.assertTrue(screen.tabs.tabs_focused)
-        self.assertEqual(screen.page.body_widgets(), [])
+        self.assertEqual(screen.tabs.selected, 'config')
+        self.assertTrue(screen.page.body_widgets())
+
+    async def test_tab_availability_preserves_pages_and_resets_only_on_activation(self):
+        a, b = TextArea(text='draft a'), TextArea(text='draft b')
+        tabs = TabPage([('a', 'A', a), ('b', 'B', b)])
+        with set_app(self.app):
+            self.view.open_dialog('Tabs', tabs, focus=tabs.buttons[0])
+            tabs.select('b')
+            tabs.show_tabs({'a', 'b'})
+            self.assertEqual(tabs.selected, 'b')
+            tabs.show_tabs({'b'})
+            self.assertEqual(tabs.selected, 'b')
+            tabs.show_tabs({'a', 'b'}, reset=True)
+            self.assertEqual(tabs.selected, 'a')
+            self.assertEqual(b.text, 'draft b')
+            tabs.focus_tabs()
+        self.pipe.send_text('\x1b[C')
+        await eventually(lambda: tabs.selected == 'b')
 
     async def test_blank_sidebar_rows_focus_without_selection(self):
         selected = ["a"]

@@ -303,24 +303,10 @@ class HubBindings:
         )
         r.add(
             [KeyName.CONTROL_C],
-            ShortcutLabel.CONTROL_C,
-            ShortcutAction.CLOSE,
-            self.close,
-            when=lambda: view.visible
-            and not view.settings_open
-            and not c.composing
-            and not c.auxiliary
-            and not self.selection(),
-            global_=self.GLOBAL,
-            eager=self.DEFERRED,
-        )
-        r.add(
-            [KeyName.CONTROL_C],
             ShortcutLabel.HIDDEN,
             ShortcutAction.NONE,
             lambda e: self.NO_ACTION,
             when=lambda: view.visible
-            and (c.composing or c.auxiliary or view.settings_open)
             and not self.selection(),
             global_=self.GLOBAL,
         )
@@ -481,13 +467,3 @@ class HubBindings:
     def newline(self, event):
         self.view.composer.buffer.cancel_completion()
         self.view.composer.insert_text(TextEditing.NEWLINE)
-
-    def close(self, event):
-        view = self.view
-        if view._dialog:
-            view.close_dialog()
-        elif view.output.modal_container is not self.ABSENT:
-            view.output.deactivate()
-            view._focus_composer()
-        else:
-            view.hide(event.app)

@@ -60,6 +60,33 @@ class UsageAndSystemTests(unittest.TestCase):
             self.assertEqual(present(snapshot, t, cache).messages, display.messages)
         self.assertEqual(snapshot.messages, (message,))
 
+    def test_chart_cells_share_background_and_have_no_embedded_caption_or_footer(self):
+        # Changing visible captions must not invalidate already saved custom packs.
+        Language('custom', {'custom': {'usage_daily_range': '{start} ~ {end}',
+                                      'usage_daily_unknown': '{count}',
+                                      'participants_add': 'Invite'}})
+        from prompt_toolkit.layout.mouse_handlers import MouseHandlers
+        from prompt_toolkit.layout.screen import Screen, WritePosition
+        from hub.ui.live import LiveHubView
+        view = LiveHubView()
+        try:
+            for records in ([], [{"daily": [{"date": "2026-10-01", "tokens": 100, "unknown": 3}]}]):
+                chart = DailyUsageChart(records, view.t)
+                screen = Screen()
+                chart.write_to_screen(screen, MouseHandlers(), WritePosition(0, 0, 80, 40),
+                                      "class:hub", True, None)
+                text = "".join(screen.data_buffer[y][x].char for y in range(40) for x in range(80))
+                self.assertNotIn("최근 최대", text)
+                self.assertNotIn("일별 토큰 사용량", text)
+                self.assertNotIn("선택 기간", text)
+                for row in range(40):
+                    for column in range(80):
+                        style = screen.data_buffer[row][column].style
+                        self.assertEqual(view.style.get_attrs_for_style_str(style).bgcolor,
+                                         view.theme.accent5.lstrip('#'))
+        finally:
+            view.close()
+
     def test_workflow_diagram_branches_cycles_and_invalid_draft(self):
         flow = {"entry": "a", "nodes": {"a": {"type": "branch"}, "b": {"type": "end"}},
                 "edges": [{"source": "a", "target": "b", "port": "yes"}, {"source": "b", "target": "a"}]}

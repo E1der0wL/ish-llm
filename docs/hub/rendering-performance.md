@@ -8,7 +8,7 @@ Prompt Toolkit consumer of Hub snapshots and OutputBlock/OutputObject data.
 - The PTK loop owns input, focus, scroll positions, layout and terminal paint.
   `ConversationControl.create_content` requests preparation and consumes a ready
   immutable frame. It does not wait for a Future or render Markdown.
-- One lazy `hub-render` thread per Hub owns transcript/preview Markdown, Rich,
+- One lazy `hub-render` thread per Hub owns transcript Markdown, Rich,
   Pygments, structured JSON rendering, reader popups and search indexing.
 - The existing backend thread owns execution and authoritative snapshots.
   Approval review JSON is formatted there before publication.
@@ -37,14 +37,23 @@ message enters the mutable tail. This avoids reassembling every historical
 thought/tool trace on each current-response delta. A work-count regression checks
 prefix identity across updates and compares all rows with the canonical renderer.
 
-`RenderWorker` has one running job and one pending batch with five fixed slots:
-transcript, preview, popup, search and question. A slot holds only its latest request.
+`RenderWorker` has one running job and one pending batch with four fixed slots:
+transcript, popup, search and question. A slot holds only its latest request.
 The composer request card uses the same worker and cannot replace a full-details popup job.
-The bound is independent of update count; separate slots ensure a draft preview
+The bound is independent of update count; separate slots ensure a popup
 cannot erase a pending final transcript. Slots share one CPU thread. Generations
 are checked both when work finishes and when the UI callback runs. Closing a
 reader or Hub discards its pending results. Render failures use plain text on
 the worker; no traceback is printed into the terminal.
+
+Strict search/popup jobs may return `RenderWork`. Row preparation, search-index
+assembly and table-cell preparation yield at bounded row batches; after an 8ms
+cooperative slice the same job goes to the end of its existing slot queue. There
+is no extra executor, suspended-job queue or parallel Rich renderer. New requests,
+close and generation changes discard obsolete work. Progressive transcript frames
+retain their original completed-frame delivery. Canonical Markdown parsing, JSON
+decoding and one indivisible Rich element can exceed a slice; this is cooperative
+scheduling, not preemption of arbitrary Python calls.
 
 Resize requests debounce for 75ms. Old prepared rows remain usable while the
 new width is prepared. Reading anchors are resolved against the position at
@@ -125,8 +134,17 @@ tail and PTK painting its changed cells; this is not a promise of zero layout wo
 Each message retains its latest parsed blocks and rendered blocks. The parser
 instance is reused. Renderer registration changes invalidate the layout context;
 renderer completion revisions are checked per block. An image completion cannot
-invalidate unrelated Markdown bodies. Markdown renderers reuse their Console
-until width or theme changes.
+invalidate unrelated Markdown bodies. Each render owner retains at most four
+width/theme Consoles and 1,024 immutable Rich-style conversions. Header, body and
+thought rendering share the transcript owner's resources. Completed trace parts
+and widths are reused; changing one trace suffix does not revisit all prior rows.
+
+Presentation, urgent headers and the transcript cache share an unchanged-prefix
+comparison over immutable messages. The cache processes only the changed suffix
+when the viewport, theme, renderer revision and dynamic resources allow it.
+Deletion, reordering, resize and resource revisions still invalidate the affected
+region. Prefix comparisons/copies remain proportional to metadata size; this is
+not a claim that arbitrarily long histories use constant time or memory.
 
 For histories longer than 24 displayed messages, Rich/resource rendering covers
 the viewport and nearby messages. Follow-tail initially prepares the last 24;
@@ -160,7 +178,9 @@ snapshot is reused instead of requesting an identical initial frame again.
 
 A separate two-second safety reconciliation remains for external public-API
 edits and lost subscription events; unchanged observations are not published.
-The existing hidden-view ceiling and urgent lifecycle preemption remain.
+The existing hidden-view ceiling and urgent lifecycle wakeups remain. A lifecycle
+change lets an already-running read finish and retain reusable public observations,
+then rejects its obsolete frame. It does not cancel/restart storage reads per event.
 Snapshot reads are preemptible by submission/control commands; durable writes
 are not. Dropped-event reconciliation and persisted state remain authoritative.
 Provider retry changes signal the observer directly, even before another Engine

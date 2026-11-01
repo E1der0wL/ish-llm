@@ -18,6 +18,7 @@ class AuxiliaryIcon(StrEnum):
     HISTORY = "history"
     TAGS = "tags"
     PARTICIPANTS = "participants"
+    PARTICIPANTS_MANAGE = "participants_manage"
     FIND = "find"
     ATTACH = "attach"
     LOGS = "logs"
@@ -152,6 +153,7 @@ class IconGlyphs:
             AuxiliaryIcon.HISTORY.value: "☷",
             AuxiliaryIcon.TAGS.value: "▤",
             AuxiliaryIcon.PARTICIPANTS.value: "👥",
+            AuxiliaryIcon.PARTICIPANTS_MANAGE.value: "👤",
             AuxiliaryIcon.FIND.value: "⌕",
             AuxiliaryIcon.ATTACH.value: "📎",
             AuxiliaryIcon.LOGS.value: "≡",
@@ -270,6 +272,7 @@ class IconPalettes:
                 AuxiliaryIcon.HISTORY.value: "",
                 AuxiliaryIcon.TAGS.value: "",
                 AuxiliaryIcon.PARTICIPANTS.value: "",
+                AuxiliaryIcon.PARTICIPANTS_MANAGE.value: "",
                 AuxiliaryIcon.FIND.value: "",
                 AuxiliaryIcon.ATTACH.value: "",
                 AuxiliaryIcon.LOGS.value: "",

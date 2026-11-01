@@ -1,6 +1,7 @@
 """Rich Markdown renderer with Hub colors and PTK fragment output."""
 
 from io import StringIO
+from collections import OrderedDict
 from .rich_terminal import RichTerminal
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.markdown import HorizontalRule, Markdown
@@ -144,20 +145,43 @@ def make_console(inner, theme):
     return console
 
 
+class RenderResources:
+    """Bounded resources owned by one render surface/lane, never global."""
+    CONSOLES = 4
+    STYLES = 1024
+
+    def __init__(self):
+        self.consoles = OrderedDict()
+        self.styles = OrderedDict()
+
+    def console(self, width, theme):
+        key = width, theme
+        if key not in self.consoles:
+            self.consoles[key] = make_console(width, theme)
+        self.consoles.move_to_end(key)
+        while len(self.consoles) > self.CONSOLES:
+            self.consoles.popitem(last=False)
+        return self.consoles[key]
+
+    def style(self, value, background=HubTheme.DEFAULT_COLOR):
+        key = value, background
+        if key not in self.styles:
+            self.styles[key] = _segment_style(value, background)
+        self.styles.move_to_end(key)
+        while len(self.styles) > self.STYLES:
+            self.styles.popitem(last=False)
+        return self.styles[key]
+
+
 class MarkdownRenderer:
     ABSENT = None
     PAD = False
 
     def __init__(self):
-        self._console_key = self.ABSENT
-        self._console = self.ABSENT
+        self.resources = RenderResources()
 
     def render(self, block, context):
-        key = (context.width, context.theme)
-        if key != self._console_key:
-            self._console_key = key
-            self._console = make_console(*key)
-        console = self._console
+        console = self.resources.console(context.width, context.theme)
         rendered = console.render_lines(
             HubMarkdown(block.text, context.theme), console.options, pad=self.PAD
         )
@@ -165,7 +189,7 @@ class MarkdownRenderer:
             _trim_right(
                 [
                     (
-                        _segment_style(segment.style, context.theme.code_background),
+                        self.resources.style(segment.style, context.theme.code_background),
                         segment.text,
                     )
                     for segment in segments

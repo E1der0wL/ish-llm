@@ -297,9 +297,9 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view._dialog is not None and view._dialog.output.window.render_info is not None)
                 info = view._dialog.output.window.render_info
                 # Preview insets Hub by 1 row / 2 columns on each side.
-                # The interactive viewer also owns status and shortcut rows;
+                # The viewer owns one status row and padding above/below its actions;
                 # its enclosing frame still fills the complete Hub allocation.
-                self.assertEqual(info.window_height, output.rows - 7)
+                self.assertEqual(info.window_height, output.rows - 8)
                 self.assertGreaterEqual(info.window_width, output.columns - 7)
                 from prompt_toolkit.layout.containers import to_container
                 from prompt_toolkit.layout.layout import walk
@@ -307,6 +307,10 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 allocated = [positions[window] for window in walk(to_container(view._dialog)) if window in positions]
                 self.assertEqual(max(p.ypos + p.height for p in allocated) - min(p.ypos for p in allocated), output.rows - 2)
                 self.assertEqual(max(p.xpos + p.width for p in allocated) - min(p.xpos for p in allocated), output.columns - 4)
+                popup = view._dialog
+                pipe.send_text('\x03')
+                await asyncio.sleep(.05)
+                self.assertIs(view._dialog, popup)
                 pipe.send_text("\x1b")
                 await eventually(lambda: view._dialog is None)
                 self.assertIs(app.layout.current_control, view.output.tags.control)

@@ -121,13 +121,8 @@ class ShortcutAction:
 
 class ShortcutLabel:
     SPACE = "Space"
-    ENTER_S = "Enter/s"
-    ESCAPE_CONTROL_T = "ESC/Ctrl+T"
-    CONTROL_F_SLASH = "Ctrl+F / /"
     ENTER_TAB = "Enter/Tab"
     CONTROL_T = "Ctrl+T"
-    N_CONTROL_N = "n/Ctrl+N"
-    N_CONTROL_P = "N/Ctrl+P"
     ALT_P = "Alt+P"
     TAB_SPACE_ENTER = "Tab/Space/Enter"
     ENTER_SPACE = "Enter/Space"

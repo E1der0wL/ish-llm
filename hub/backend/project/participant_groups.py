@@ -60,14 +60,15 @@ class ParticipantGroups:
         elif action == ParticipantAction.DELETE_GROUP:
             del groups[identifier]
         else:
-            if identifier not in participants:
+            identifiers = (identifier,) if isinstance(identifier, str) else tuple(identifier)
+            if not identifiers or any(agent not in participants for agent in identifiers):
                 raise ValueError("Agent is not invited to this Session")
             if action == ParticipantAction.MOVE and value and value not in groups:
                 raise ValueError("Group no longer exists")
             for group in groups.values():
-                group[cls.MEMBERS] = [member for member in group[cls.MEMBERS] if member != identifier]
+                group[cls.MEMBERS] = [member for member in group[cls.MEMBERS] if member not in identifiers]
             if action == ParticipantAction.MOVE and value:
-                groups[value][cls.MEMBERS].append(identifier)
+                groups[value][cls.MEMBERS].extend(dict.fromkeys(identifiers))
             elif action == ParticipantAction.EXPEL:
-                participants.remove(identifier)
+                participants = [agent for agent in participants if agent not in identifiers]
         return {**metadata, cls.KEY: groups}, participants

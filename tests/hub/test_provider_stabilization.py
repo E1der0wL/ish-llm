@@ -53,8 +53,8 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(defaults["provider_request_summary"])
         form = GeneralForm(NS(t=Language()), defaults)
         form.set_debugging(True)
-        changed = dict(defaults, provider_request_summary=False,
-                       provider_max_detail_chars=1000)
+        changed = dict(defaults, provider_request_summary=False)
+        self.assertNotIn(('provider_max_detail_chars',), form.form.visible_fields)
         for name in form.groups["diagnostics"]:
             field = form.form.fields[(name,)]
             field.input.text = str(changed[name]).lower()
@@ -62,6 +62,12 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(form.form.values(), changed)
         self.assertEqual(set(restart_changes("general", changed, defaults)),
                          {"general." + key for key in form.groups["diagnostics"]})
+        # Advanced diagnostics remain editable through the complete JSON draft.
+        advanced = dict(changed, provider_max_detail_chars=1000)
+        from_json = GeneralForm(NS(t=Language()), asdict(GeneralSettings(**advanced)))
+        self.assertEqual(from_json.form.values(), advanced)
+        self.assertEqual(set(restart_changes('general', advanced, defaults)),
+                         {'general.provider_request_summary', 'general.provider_max_detail_chars'})
         for invalid in ({"provider_request_summary": 1},
                         {"provider_max_detail_chars": 0}, {"provider_max_detail_chars": True},
                         {"provider_max_detail_chars": 1.5}):

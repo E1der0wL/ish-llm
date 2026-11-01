@@ -18,6 +18,7 @@ from ...ui.input.json_document import JsonDocument
 from ..dialog import Dialog, PopupSize
 from ..dropdown import DropdownBox
 from .settings import SchemaForm, MISSING
+from .visibility import EssentialSettings
 from .manager_values import DefinitionDraft
 from ...backend.project.settings_descriptions import describe_options
 from ...backend.project.settings_help import SettingsHelp
@@ -27,8 +28,9 @@ class AgentEditor(Dialog):
     IDENTIFIER = "identifier"
     DISPLAY_NAME = "display_name"
 
-    def __init__(self, manager, name="", record=None):
+    def __init__(self, manager, name="", record=None, *, on_return=None):
         self.manager, self.view, self.original_name = manager, manager.view, name
+        self.on_return = on_return
         self.version = EditorRecord(record).version if record else None
         definition = json.loads(EditorRecord(record).text) if record else AgentDefinition.selected(HubEngineIdentity.LOOP)
         self.engine_name = AgentDefinition.engine(definition)
@@ -103,10 +105,11 @@ class AgentEditor(Dialog):
         describe_options(schema, self.view.t, scope=SettingsHelp.AGENT)
         schema[SchemaKeyword.PROPERTIES].pop(AgentDefinition.Field.ENGINE, None)
         schema.pop(SchemaKeyword.ALL_OF, None)
-        self.form = SchemaForm(schema, definition, self.view.t)
-        for field in self.form.fields.values():
+        self.form = SchemaForm(schema, definition, self.view.t,
+                               presentation=EssentialSettings(EssentialSettings.AGENT, self.engine_name))
+        for field in self.form.visible_fields.values():
             self.bind_field(field)
-        self.workspace.refresh()
+        self.workspace.refresh(reset=True)
         get_app().layout.update_parents_relations()
         get_app().invalidate()
 
@@ -207,4 +210,7 @@ class AgentEditor(Dialog):
 
     def close(self):
         if not self.busy:
-            self.view.dialogs.show(self.manager, self.manager.list)
+            if self.on_return:
+                self.on_return()
+            else:
+                self.view.dialogs.show(self.manager, self.manager.list)

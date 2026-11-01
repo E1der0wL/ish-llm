@@ -77,6 +77,7 @@ class BackendWorker:
     )
     OBSERVATION_OPERATIONS = frozenset(
         {
+            HubRuntime.prepare_environment.__name__,
             HubRuntime.submission_state.__name__,
             HubRuntime.instruction_targets.__name__,
             HubRuntime.snapshot.__name__,
@@ -216,7 +217,11 @@ class BackendWorker:
             return await self.runtime.snapshot()
 
     async def _await_snapshot(self, *, preempt=True):
-        """Lifecycle changes supersede an old observation, never a durable write."""
+        """Finish reusable reads, then discard a superseded lifecycle frame.
+
+        Commands/shutdown can still cancel this task. Lifecycle notifications
+        alone must not repeatedly drain and restart the same storage reads.
+        """
         read = self._snapshot_task
         if not preempt:
             return await read
@@ -230,9 +235,6 @@ class BackendWorker:
                     break
                 self.runtime.dirty.clear()
                 changed = True
-                if self.runtime.urgent_observation:
-                    read.cancel()
-                    break
             snapshot = await read
             if self.runtime.urgent_observation:
                 changed = True

@@ -8,9 +8,11 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.application.current import set_app
 
 from examples.hub.preview import create_preview
 from hub.model import ChatMessage
+from hub.locales.keys import MessageKey
 from hub.ui.output import OutputBlock, OutputObject, OutputParser, RendererRegistry
 from hub.ui.output.table import TableData
 from hub.widget.output_inspector import OutputInspector
@@ -80,25 +82,34 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         await eventually(lambda: self.view._dialog is not None)
         return self.view._dialog
 
+    async def action(self, popup, key):
+        button = next(button for button in popup.buttons if button.text == self.view.t(key))
+        before = button._pressed_until
+        with set_app(self.app):
+            self.app.layout.focus(button)
+        self.pipe.send_text('\r')
+        await eventually(lambda: button._pressed_until > before)
+
     async def test_code_search_source_toggle_copy_resize_and_focus(self):
         source = '```python\n' + '\n'.join(f'print("needle {i}")' for i in range(70)) + '\n```'
         popup = await self.expand(source)
         self.assertIsInstance(popup, OutputInspector)
         await eventually(lambda: popup.output._render_key is not None)
-        self.pipe.send_text("\x06needle\r")
+        await self.action(popup, MessageKey.SHORTCUT_FIND)
+        self.pipe.send_text("needle\r")
         await eventually(lambda: len(popup.output.hits) == 70 and not popup.searching)
-        self.pipe.send_text("n")
+        await self.action(popup, MessageKey.SEARCH_NEXT)
         await eventually(lambda: popup.output.hit_index == 1)
-        self.pipe.send_text("N")
+        await self.action(popup, MessageKey.SEARCH_PREVIOUS)
         await eventually(lambda: popup.output.hit_index == 0)
-        self.pipe.send_text("r")
+        await self.action(popup, MessageKey.OBJECT_RAW)
         await eventually(lambda: popup.output.raw_mode and any("```" in row for row in popup.output.lines))
         self.size.columns, self.size.rows = 48, 14
         self.app.invalidate()
         await eventually(lambda: popup.output._width < 48)
         self.assertEqual(len(popup.output.hits), 70)
         with patch("hub.widget.output_inspector.copy_text", new_callable=AsyncMock, return_value="clipboard_copied") as copied:
-            self.pipe.send_text("c")
+            await self.action(popup, MessageKey.SHORTCUT_COPY)
             await eventually(lambda: copied.await_count == 1)
             self.assertEqual(copied.call_args.args[0], source)
         self.pipe.send_text("\x1b")
@@ -120,24 +131,28 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
             await eventually(lambda: popup.table.data is not None)
         self.assertTrue(threads)
         self.assertNotIn(ui_thread, threads)
-        self.pipe.send_text("\x1b[C\r")
+        self.pipe.send_text("\x1b[C")
+        await eventually(lambda: popup.table.column == 1)
+        await self.action(popup, MessageKey.SHORTCUT_OBJECT_SORT)
         await eventually(lambda: popup.table.order == [1, 0, 2])
         self.assertEqual(popup.table.column, 1)
         self.assertEqual(popup.table.row, 1)  # Original Alpha remains selected.
         await eventually(lambda: popup.table.header.horizontal_scroll == popup.table.window.horizontal_scroll)
-        self.pipe.send_text("s")
+        await self.action(popup, MessageKey.SHORTCUT_OBJECT_SORT)
         await eventually(lambda: popup.table.order == [2, 0, 1])
-        self.pipe.send_text("\x06beta\r")
+        await self.action(popup, MessageKey.SHORTCUT_FIND)
+        self.pipe.send_text("beta\r")
         await eventually(lambda: popup.table.order == [1] and not popup.searching)
-        self.pipe.send_text("\x06\x01\x0bnothing")
+        await self.action(popup, MessageKey.SHORTCUT_FIND)
+        self.pipe.send_text("\x01\x0bnothing")
         await eventually(lambda: popup.table.order == [])
         self.pipe.send_text("\x1b")
         await eventually(lambda: not popup.searching)
         self.assertEqual(popup.table.order, [1])
-        self.pipe.send_text("r")
+        await self.action(popup, MessageKey.OBJECT_RAW)
         await eventually(lambda: popup.raw_mode and popup.output._render_key is not None)
         self.assertIn("hub-table", "\n".join(popup.output.lines))
-        self.pipe.send_text("r")
+        await self.action(popup, MessageKey.OBJECT_RAW)
         await eventually(lambda: not popup.raw_mode)
         self.assertEqual(popup.table.order, [1])
         self.assertEqual(popup.item.raw, source)
@@ -149,7 +164,7 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
             screen = self.app.renderer._last_screen
             painted = "\n".join("".join(screen.data_buffer[y][x].char for x in range(42)) for y in range(12))
             self.fail(f"Table viewport failed to shrink\n{painted}")
-        self.pipe.send_text("\x14")  # Expanded viewers retain their own close binding.
+        self.pipe.send_text("\x1b")
         await eventually(lambda: self.view._dialog is None)
         self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
 
@@ -157,7 +172,7 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         source = '<hub-table>{"columns":[],"rows":[]}</hub-table>'
         popup = await self.expand(source)
         await eventually(lambda: bool(popup.table.error))
-        self.pipe.send_text("r")
+        await self.action(popup, MessageKey.OBJECT_RAW)
         await eventually(lambda: popup.output._render_key is not None)
         self.assertEqual("\n".join(popup.output.lines), source)
         self.pipe.send_text("\x1b")
@@ -165,10 +180,11 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_markdown_card_body_search(self):
         popup = await self.expand('<hub-card title="본문">**Hello** world\n\nHello again</hub-card>')
-        self.pipe.send_text("\x06hello\r")
+        await self.action(popup, MessageKey.SHORTCUT_FIND)
+        self.pipe.send_text("hello\r")
         await eventually(lambda: len(popup.output.hits) == 2)
         self.assertFalse(popup.output.raw_mode)
-        self.pipe.send_text("\x0e")
+        await self.action(popup, MessageKey.SEARCH_NEXT)
         await eventually(lambda: popup.output.hit_index == 1)
 
     async def test_extension_failure_falls_back_and_custom_dispose_is_called(self):
@@ -186,3 +202,29 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         await eventually(lambda: self.view._dialog is None)
         self.assertEqual(disposed, [True])
         self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
+
+    async def test_removed_keys_do_not_close_or_change_view_and_status_stays_at_bottom(self):
+        popup = await self.expand('```text\nHello world\n```')
+        self.pipe.send_text('\x14\x06/cnNrs\x0e\x10\x03')
+        await asyncio.sleep(.05)
+        self.assertIs(self.view._dialog, popup)
+        self.assertFalse(popup.searching)
+        self.assertFalse(popup.output.raw_mode)
+        await eventually(lambda: popup.status_bar in
+                         self.app.renderer._last_screen.visible_windows_to_write_positions)
+        positions = self.app.renderer._last_screen.visible_windows_to_write_positions
+        status = positions[popup.status_bar]
+        self.assertEqual(status.height, 1)
+        screen = self.app.renderer._last_screen
+        self.assertEqual(screen.data_buffer[status.ypos + 1][status.xpos].char, '─')
+        button_row = positions[popup.buttons[0].window].ypos
+        self.assertEqual(status.ypos - button_row, 2)
+        for row in (button_row - 1, button_row + 1):
+            self.assertFalse(''.join(screen.data_buffer[row][x].char
+                                    for x in range(status.xpos, status.xpos + status.width)).strip())
+        self.assertFalse(self.view.progress.visible_on(None))
+        self.pipe.send_text('\x1b')
+        await eventually(lambda: self.view._dialog is None)
+        self.pipe.send_text('\x03')
+        await asyncio.sleep(.05)
+        self.assertTrue(self.view.output.tags.visible)

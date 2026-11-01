@@ -142,16 +142,16 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
     async def test_removing_current_component_in_json_keeps_navigation_consistent(self):
         screen = self.screen
         with set_app(self.app):
-            screen.choose('component:goals')
+            screen.choose('component:tools')
         def remove(text):
             values = json.loads(text)
-            values['components'].remove('goals')
+            values['components'].remove('tools')
             return json.dumps(values)
         await self.edit(remove)
         self.assertEqual(screen.page.section, 'project:general')
         self.assertEqual(screen.selected, 'project:general')
         self.assertEqual(screen.navigation.left_key, 'project:general')
-        self.assertNotIn('goals', screen.page.component_forms)
+        self.assertNotIn('tools', screen.page.component_forms)
         self.assertTrue(screen.page.dirty)
 
     async def test_hidden_engine_preservation_never_coerces_invalid_parents(self):

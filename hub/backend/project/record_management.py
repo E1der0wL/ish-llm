@@ -13,6 +13,7 @@ from .management_values import (
     DefinitionSummary,
     SelectedFileImport,
     ImportProvenance,
+    ResourceTimestamps,
 )
 
 import asyncio
@@ -238,6 +239,9 @@ class SkillManagement(RecordManagement):
 
 
 class AgentManagement(RecordManagement):
+    async def create(self, identifier, values):
+        await self.data.acreate(ResourceTimestamps.created(values), identifier=identifier)
+
     async def execute(self, action, argument=ManagementOperation.EMPTY_ARGUMENT,
                       expected_version=ManagementOperation.ABSENT):
         if action == ManagementAction.DESCRIBE:
@@ -258,7 +262,7 @@ class AgentManagement(RecordManagement):
         return EditableSnapshot(snapshot.definition, snapshot.revision).to_dict()
 
     async def save(self, identifier, values, version):
-        await self.data.arevise(identifier, values, expected_revision=version)
+        await self.data.arevise(identifier, ResourceTimestamps.modified(values), expected_revision=version)
 
     async def delete(self, identifier, version):
         await self.data.adelete(identifier, expected_revision=version)
@@ -291,13 +295,13 @@ class DocumentManagement(RecordManagement):
         )
 
     async def create(self, identifier, values):
-        await self.data.aadd_document(identifier=identifier, **values)
+        await self.data.aadd_document(identifier=identifier, **ResourceTimestamps.created(values))
 
     async def save(self, identifier, values, version):
         DocumentEdit.require_fields(values)
         await self.data.aupdate_document(
             identifier,
-            **values,
+            **ResourceTimestamps.modified(values),
             expected_revision=DocumentEdit(version).revision,
             expected_generation=DocumentEdit(version).generation
         )

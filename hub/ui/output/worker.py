@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from threading import Condition, Thread
 from time import perf_counter
 from typing import NamedTuple, Callable
+from .work import RenderWork
 
 
 @dataclass(slots=True)
@@ -15,6 +16,7 @@ class RenderStats:
     failures: int = 0
     seconds: float = 0
     pending_peak: int = 0
+    yielded: int = 0
 
 
 class RenderSlot:
@@ -37,6 +39,7 @@ class PendingRender(NamedTuple):
     build: Callable
     deliver: Callable
     fallback: Callable
+    work: RenderWork | None = None
 
 
 class RenderWorker:
@@ -73,7 +76,9 @@ class RenderWorker:
         with self._condition:
             self._generation[slot] += self.REVISION_STEP
             self._epoch[slot] += self.REVISION_STEP
-            self._pending.pop(slot, self.ABSENT)
+            removed = self._pending.pop(slot, self.ABSENT)
+        if removed is not None and removed.work is not None:
+            removed.work.close()
 
     def request(self, slot, build, deliver, fallback, *, progressive=PROGRESSIVE):
         if slot not in self.slots:
@@ -85,7 +90,8 @@ class RenderWorker:
             self._generation[slot] += self.REVISION_STEP
             generation = self._generation[slot]
             self.stats.requested += 1
-            if slot in self._pending:
+            removed = self._pending.get(slot)
+            if removed is not None:
                 self.stats.discarded += 1
             token = RenderToken(generation, self._epoch[slot], progressive)
             self._pending[slot] = PendingRender(token, loop, build, deliver, fallback)
@@ -96,6 +102,8 @@ class RenderWorker:
                 )
                 self._thread.start()
             self._condition.notify()
+        if removed is not None and removed.work is not None:
+            removed.work.close()
 
     def _current(self, slot, token):
         generation, epoch, progressive = token
@@ -118,11 +126,25 @@ class RenderWorker:
                 if self._closed:
                     return
                 slot = next(iter(self._pending))
-                token, loop, build, deliver, fallback = self._pending.pop(slot)
+                job = self._pending.pop(slot)
+                token, loop, build, deliver, fallback, work = job
             started = perf_counter()
+            complete = True
             try:
-                result = build()
+                result = work if work is not None else build()
+                if isinstance(result, RenderWork):
+                    work = result
+                    if token.progressive:
+                        # Transcript frames retain their existing progressive
+                        # delivery guarantee. Strict popups/search yield slices.
+                        result = work.finish()
+                    elif work.advance():
+                        result = work.result
+                    else:
+                        complete = False
             except Exception as error:
+                if work is not None:
+                    work.close()
                 self.stats.failures += 1
                 try:
                     result = fallback(error)
@@ -130,9 +152,18 @@ class RenderWorker:
                     continue
             finally:
                 self.stats.seconds += perf_counter() - started
-                self.stats.rendered += 1
+                self.stats.rendered += complete
             with self._condition:
                 current = self._current(slot, token)
+                if not complete and current and slot not in self._pending:
+                    self._pending[slot] = job._replace(work=work)
+                    self.stats.yielded += 1
+                    self.stats.pending_peak = max(self.stats.pending_peak, len(self._pending))
+                    continue
+            if not complete:
+                work.close()
+                self.stats.discarded += 1
+                continue
             if current:
                 try:
                     loop.call_soon_threadsafe(
@@ -146,5 +177,9 @@ class RenderWorker:
     def close(self):
         with self._condition:
             self._closed = self.CLOSED
+            removed = tuple(self._pending.values())
             self._pending.clear()
             self._condition.notify()
+        for job in removed:
+            if job.work is not None:
+                job.work.close()

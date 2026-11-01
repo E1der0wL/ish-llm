@@ -53,13 +53,18 @@ class ComponentUITests(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         view._dialog.open_settings()
                     await until(lambda: view.settings_open and not screen.busy)
-                    self.assertEqual(screen.selected, "component:" + name)
-                    self.assertEqual(screen.navigation.left_key, "component:" + name)
                     form = screen.page.component_forms[name]
-                    expected = next(iter(form.fields.values())).input if form.fields else screen.page.save
+                    selected = "component:" + name if form.visible_fields else "project:general"
+                    self.assertEqual(screen.selected, selected)
+                    self.assertEqual(screen.navigation.left_key, selected)
+                    if not form.visible_fields:
+                        self.assertNotIn("component:" + name, screen.page.section_choices())
+                        self.assertTrue(screen.status)
+                    visible = screen.page.fields()
+                    expected = visible[0].input if visible else screen.page.save
                     self.assertIs(app.layout.current_control, expected.control)
-                    self.assertEqual(screen.navigation.main_zone, 0 if form.fields else 1)
-                    if form.fields:
+                    self.assertEqual(screen.navigation.main_zone, 0 if visible else 1)
+                    if visible:
                         pipe.send_text("\t")
                     await until(lambda: app.layout.current_control == screen.page.save.control)
                     pipe.send_text("\r")

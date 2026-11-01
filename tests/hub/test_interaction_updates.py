@@ -97,9 +97,9 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                                   f"query={getattr(screen.page, 'query', None)}, busy={screen.busy}, status={screen.status}")
                     self.assertEqual(screen.page.query, "")
                     self.assertEqual(screen.query, "")
-                    self.assertEqual(screen.tabs.selected, "config")
-                    expected = [field for field in screen.page.engine_forms[engine].fields.values()
-                                if screen.page.field_tabs[field] == "config"]
+                    self.assertEqual(screen.tabs.selected, "policy")
+                    expected = [field for field in screen.page.engine_forms[engine].visible_fields.values()
+                                if screen.page.field_tabs[field] == "policy"]
                     self.assertEqual(screen.page.fields(), expected)
                     self.assertIs(app.layout.current_control, expected[0].input.control)
                     pipe.send_text("\x06\x01\x0bno-such-setting\r")

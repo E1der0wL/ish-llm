@@ -514,6 +514,11 @@ class MouseController:
         if window not in modal and pane_bar is self.ABSENT:
             self._hover(self.ABSENT)
             return MouseResult.HANDLED
+        if (event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT
+                and (window is self.ABSENT or window.content is not pressed_control)):
+            leave = MouseBinding.click_away(pressed_control)
+            if leave is not self.ABSENT:
+                leave()
         pane_hit = next(
             (
                 MouseHit(pane, area)
@@ -532,6 +537,12 @@ class MouseController:
         )
         target = pane_bar.target if pane_bar else window
         moved = self.INACTIVE
+        if (not bar and window is not self.ABSENT
+                and pressed_control is window.content
+                and event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT):
+            activate = MouseBinding.focused_click(window.content)
+            if activate is not self.ABSENT:
+                activate()
         from .sidebar import SidebarList
 
         if (window is not self.ABSENT and isinstance(window.content, SidebarList)
@@ -636,7 +647,7 @@ class MouseController:
                 return MouseResult.HANDLED
         if (
             window is not self.ABSENT
-            and isinstance(window.content, SidebarList)
+            and MouseBinding.focuses_empty_click(window.content)
             and event.button == MouseButton.LEFT
             and event.event_type in (M.MOUSE_DOWN, M.MOUSE_UP)
             and event.position.y - rect.ypos + window.vertical_scroll

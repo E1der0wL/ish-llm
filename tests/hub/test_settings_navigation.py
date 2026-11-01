@@ -32,7 +32,10 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("profile")
+                    title = view.t('settings_current_project', title=view.project_title)
+                    self.assertEqual(screen.action_title(), title)
                     screen.switch_panel()
+                    self.assertEqual(screen.action_title(), title)
                 profile = screen.page
                 profile.form.fields[("email",)].input.text = "draft@example.com"
                 for name in ("appearance", "general", "project:general"):

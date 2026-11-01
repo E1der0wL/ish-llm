@@ -17,7 +17,9 @@ and Agent definitions. Public Run queries perform history integrity checks, so
 
 | Observation | Refresh trigger |
 | --- | --- |
-| Session/runtime/latest/paused | Run lifecycle, interaction/steering change, explicit Hub Session mutation |
+| Session/runtime | Run lifecycle, interaction change, explicit Hub Session mutation |
+| Latest Run list | Unknown/new Run lifecycle, interaction change, explicit history mutation; an update to the known latest Run retains membership until original expiry |
+| Paused Run list | Pause or departure of a cached paused Run, interaction change, explicit history mutation; unrelated lifecycle updates retain membership until original expiry |
 | Run metadata | Visible non-text Engine event, Run lifecycle, explicit Session mutation |
 | Mutable Steps | Step lifecycle/update/output, Run lifecycle |
 | Conversation | User-visible output, Run lifecycle, interaction/steering change, explicit Session mutation |
@@ -37,11 +39,42 @@ net for changes outside Hub, not a delay imposed on delivered events. Existing
 terminal history projections remain reusable because completed records are
 immutable; history deletion and project activation still clear them.
 
+The selected Session is read first. Previously observed nonselected sidebar rows
+remain visible while a single bounded `BackgroundObservations` lane refreshes
+their expired/invalidated public observations. Only fresh observations reach
+notification reconciliation and title scheduling. New/unobserved Sessions are
+still loaded normally. This lane never fetches another Session's conversation.
+Project switch, dropped observations and shutdown cancel/drain its pending work;
+exceptions are surfaced through the existing observer error path.
+
+`RunDisplay` detaches only status/timing/identity and the declared completion,
+Agent-binding and resume receipts consumed by existing display validators. It
+does not copy execution policies, tool schemas or host request context. Equal
+display receipts retain identity; text deltas use the existing sequence-aware
+draft/thinking owners. The projection is never passed to execution or resume APIs.
+
 Cache entries are bounded to 1,024, and only the selected conversation is retained.
 Cancellation/errors never cache partial results. Invalidating during an awaited
 read prevents that result from repopulating the cache. A snapshot already in
 flight can still display an earlier observation once; the dirty wakeup fetches
 the newer state. No display cache is durable.
+
+Concurrent readers of one key share the in-flight result only within the same
+invalidation generation. Cancelling a waiter does not cancel the owner. If a
+foreground command cancels the owner, backend storage drains normally before a
+remaining observer can issue a fresh read. Errors reach all waiters without an
+automatic retry. No additional worker or unowned background read task is created.
+
+Queued admission invalidates conversation and Session/queue observations, not
+unmodified Run records. Persisted lifecycle events replace their own Run display
+value without evicting other Run values. Retaining known list membership never
+extends its original reconciliation deadline. Unknown/new Runs, interactions,
+history mutations, event loss and expiry still use the public service reads.
+
+Lifecycle events no longer cancel an in-progress public read solely to start it
+again. They invalidate its publication and leave a pending reconciliation. Input,
+selection, shutdown and control commands still preempt observation, and native
+cancellation/draining semantics are unchanged.
 
 If a completed/paused Assistant message is already visible but the cached runtime
 still lists its Run as active, the reader reconciles that Session once before
@@ -49,13 +82,20 @@ publishing. This closes the final-output/lifecycle delivery race: the next Enter
 must not offer steering merely because the runtime observation is older than the
 finished answer. This bounded retry does not poll or replay execution.
 
-The worker spaces polls from the **end** of the previous read, avoiding immediate
-repeated scans when a read is slow. Input still preempts background observation.
+The worker limits observation **start-to-start** spacing. A slow read counts
+toward that interval instead of adding a second delay. Input still preempts background observation.
 Opening an already-running Hub no longer selects/starts the same Session again.
 Selecting an opened Session reuses its worker; selection publishes through the
 normal dirty refresh instead of a second queued foreground snapshot. A waiting
 stage is reported only when initialization or the Hub command lock actually
 blocks the operation.
+
+Latest/paused lists use the same bounded observation cache and two-second expiry;
+their retention never replaces fresh admission, runtime-queue or pending-interaction
+queries. A received durable Run start also establishes the empty draft-output cursor.
+This avoids an output snapshot query before the Engine has emitted anything. A late
+start does not erase existing deltas or sequence-loss state. Attaching mid-Run and
+lost events still reconcile through the public Run view.
 
 ## Verification and limits
 

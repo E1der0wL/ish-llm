@@ -21,12 +21,22 @@ from tests.hub.support import SizedOutput, eventually
 
 class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
     async def test_paused_event_from_another_project_is_not_lost_or_repeated(self):
+        from llm.core.agents import AgentBinding, AgentDefinition
+        from llm.core.models import Run, RunStatus
+        from llm.core.paths import RunPaths
+
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
-        runtime.notifications.register_session("other-project", "s", "Other project session")
-        run = NS(id="r", session_id="s", engine="loop", status="paused")
+        project_id = "a" * 32
+        runtime.notifications.register_session(project_id, "s", "Other project session")
+        binding = AgentBinding.create(project_id, "assistant",
+                                      AgentDefinition.selected("loop", tools=[]))
+        run = Run("r", "s", "request", "response", "loop", RunPaths(Path("unused")),
+                  agent_id="assistant", status=RunStatus.PAUSED,
+                  started_at="2026-11-01T00:00:00+00:00", ended_at="2026-11-01T00:00:01+00:00",
+                  metadata={AgentBinding.METADATA_FIELD: binding.to_dict()})
         await runtime._run_event(NS(run=run))
         self.assertEqual(runtime.notifications.items()[-1].status, "paused")
-        runtime.notifications.record_question("other-project", "s", "Other project session",
+        runtime.notifications.record_question(project_id, "s", "Other project session",
                                        {"request": {"id": "approval", "kind": "approval"}})
         await runtime._run_event(NS(run=run))
         self.assertEqual([n.status for n in runtime.notifications.items()], ["paused", "waiting_approval"])

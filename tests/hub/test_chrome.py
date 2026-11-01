@@ -23,6 +23,8 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running and app.renderer._last_screen is not None)
+                self.assertIs(app.layout.current_control, view.composer.control)
+                self.assertEqual(view._composer_frame.title(), view.recipient_title())
                 def height():
                     return app.renderer._last_screen.visible_windows_to_write_positions[view.composer.window].height
                 for lines, expected in ((1, 2), (4, 4), (12, 8), (2, 2)):
@@ -30,6 +32,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                     await eventually(lambda: height() == expected)
                 pipe.send_text("\x1b")
                 await eventually(lambda: app.layout.current_control == view._session_control)
+                self.assertEqual(view._composer_frame.title(), view.recipient_title())
                 pipe.send_text("\x1b[1;5C")
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width + 1)
                 self.assertIs(app.layout.current_control, view._session_control)

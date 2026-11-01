@@ -7,7 +7,7 @@ import tempfile
 import threading
 from types import SimpleNamespace as NS
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.application import Application
@@ -380,7 +380,11 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: "중단 중" in drawn())
                 self.assertFalse(future.done())
                 self.assertIn("Previous response", drawn())
-                controller.worker.call.assert_called_once_with("interrupt", "s")
+                self.assertEqual(controller.worker.call.call_args_list, [
+                    call("prepare_environment", "p", {
+                        "cwd": directory, "env": {"PATH": "/usr/bin:/bin", "PWD": directory}}),
+                    call("interrupt", "s"),
+                ])
                 self.assertIs(app.layout.current_control, view.composer.control)
                 future.set_result(True)
             finally:

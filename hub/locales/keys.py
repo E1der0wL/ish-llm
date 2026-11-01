@@ -2,6 +2,7 @@
 
 
 class MessageKey:
+    SETTINGS_ESSENTIAL_NOTICE = 'settings_essential_notice'
     COMPONENT_HELP_TOOLS = 'tools_help'
     COMPONENT_HELP_SKILLS = 'skills_help'
     COMPONENT_HELP_RAG = 'rag_help'
@@ -111,6 +112,16 @@ class MessageKey:
     AGENT_ENGINE = 'agent_engine'
     SETTINGS_DEBUGGING = 'settings_debugging'
     PARTICIPANTS_GROUP_ADD = 'participants_group_add'
+    PARTICIPANTS_AGENTS = 'participants_agents'
+    PARTICIPANTS_GROUPS = 'participants_groups'
+    PARTICIPANTS_GROUP_NAME = 'participants_group_name'
+    PARTICIPANTS_GROUP_NAME_REQUIRED = 'participants_group_name_required'
+    PARTICIPANTS_GROUP_SELECT = 'participants_group_select'
+    PARTICIPANTS_JOINED = 'participants_joined'
+    PARTICIPANTS_SELECT = 'participants_select'
+    PARTICIPANTS_EDIT_ONE = 'participants_edit_one'
+    PARTICIPANTS_INVITE_FIRST = 'participants_invite_first'
+    PARTICIPANTS_UPDATING = 'participants_updating'
     PARTICIPANTS_GROUP_DELETE = 'participants_group_delete'
     PARTICIPANTS_GROUP_MOVE = 'participants_group_move'
     PARTICIPANTS_UNGROUPED = 'participants_ungrouped'
@@ -160,6 +171,7 @@ class MessageKey:
     OPERATION_FAILED = 'operation_failed'
     SYSTEM = 'system'
     USAGE_DAILY_TITLE = 'usage_daily_title'
+    # Persisted custom packs may contain these keys even when the chart hides its footer.
     USAGE_DAILY_RANGE = 'usage_daily_range'
     USAGE_DAILY_UNKNOWN = 'usage_daily_unknown'
     PROMPTS_TITLE = 'prompts_title'

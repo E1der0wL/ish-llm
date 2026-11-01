@@ -2,16 +2,16 @@
 
 from typing import TYPE_CHECKING
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.filters import to_filter
-from prompt_toolkit.widgets import Label
 
 from .tag_bar import TagBar
 from ..sidebar import SidebarItem
-from ..controls import Button, CheckboxList, RadioList, TextArea
-from ..dialog import Dialog, PopupSize
+from ..controls import Button, RadioList
+from ..dialog import PopupSize
+from ..forms.participant_manager import ParticipantManager
+from ...asset.icon import AuxiliaryIcon, IconSet
 from ...locales.keys import MessageKey
 from ...components import ManagedComponents
 from ...ui.input.registry import ShortcutRegistry
@@ -25,9 +25,6 @@ if TYPE_CHECKING:
 
 
 class ParticipantBar(TagBar):
-    INVITING = True
-    IDLE = False
-    PRESERVE_INPUT = False
     ACCEPTED = True
 
     def __init__(self, output: "EngineOutput", view: "HubView") -> None:
@@ -43,19 +40,19 @@ class ParticipantBar(TagBar):
                      lambda e: e.app.layout.focus(self.add_button))
         self.control.key_bindings = registry.bindings
         registry.attach(self.control)
-        self.add_button = Button(lambda: view.t(MessageKey.PARTICIPANTS_ADD), handler=self.invite)
-        self.group_button = Button(lambda: view.t(MessageKey.PARTICIPANTS_GROUP_ADD), handler=self.add_group)
-        for button in (self.add_button, self.group_button):
-            button.window.width = Dimension(min=self.MIN_WIDTH, preferred=button.width)
-        self.contents.children.append(VSplit([self.add_button, self.group_button], padding=1))
-        for button in (self.add_button, self.group_button, self.collapse):
+        self.add_button = Button(
+            lambda: IconSet.action(view.icons, AuxiliaryIcon.PARTICIPANTS_MANAGE),
+            handler=self.invite)
+        self.add_button.window.width = Dimension(min=1, weight=1)
+        self.add_button.window.height = Dimension.exact(1)
+        self.add_button.window.dont_extend_width = to_filter(False)
+        self.contents.children.append(self.add_button.window)
+        for button in (self.add_button, self.collapse):
             keys = ShortcutRegistry.require(button.control)
             keys.add([KeyName.TAB, KeyName.SHIFT_TAB, KeyName.UP], ShortcutLabel.TAB,
                      ShortcutAction.SELECT, lambda e: e.app.layout.focus(self.control))
             keys.add([KeyName.ESCAPE], ShortcutLabel.ESCAPE, ShortcutAction.CLOSE,
                      lambda e: self.close())
-        from ..actions import bind_button_navigation
-        bind_button_navigation([self.add_button, self.group_button])
 
     def track_position(self) -> None:
         ids = (*self.view.participant_ids, *(group.id for group in self.view.participant_groups))
@@ -126,15 +123,6 @@ class ParticipantBar(TagBar):
         if self.view.on_change_participants and not self.view.no_sessions:
             self.view.on_change_participants(action, identifier, value, lambda _: get_app().invalidate())
 
-    def add_group(self):
-        if self.view.no_sessions:
-            self.view.notice = self.view.t(MessageKey.SESSION_REQUIRED)
-            return
-        name = TextArea(multiline=False, height=1)
-        self.view.open_dialog(self.view.t(MessageKey.PARTICIPANTS_GROUP_ADD), name,
-            lambda: self.change(ParticipantAction.ADD_GROUP, value=name.text.strip()), name,
-            validate=lambda: bool(name.text.strip()))
-
     def move_group(self, identifier):
         choices = [("", self.view.t(MessageKey.PARTICIPANTS_UNGROUPED)),
                    *((group.id, group.title) for group in self.view.participant_groups)]
@@ -145,39 +133,5 @@ class ParticipantBar(TagBar):
         if view.no_sessions or not view.on_invite_agent:
             view.notice = view.t(MessageKey.SESSION_REQUIRED)
             return
-        choices = [(identifier, view.agent_titles.get(identifier, identifier))
-                   for identifier in view.agents if identifier not in view.participant_ids]
-        selection = CheckboxList(choices, default_values=[]) if choices else self.ABSENT
-        if selection is not self.ABSENT:
-            selection.window.dont_extend_width = to_filter(False)
-            selection.window.dont_extend_height = to_filter(False)
-        busy = self.IDLE
-
-        def manage():
-            view.dialogs.close()
-            if view.on_component:
-                view.on_component(
-                    ManagedComponents.AGENTS.tool_prefix, "",
-                    consume_input=self.PRESERVE_INPUT,
-                )
-
-        def accept():
-            nonlocal busy
-            if busy or selection is self.ABSENT or not selection.current_values:
-                return
-            busy = self.INVITING
-            def done(result):
-                nonlocal busy
-                busy = self.IDLE
-                if result is not self.ABSENT and view._dialog is popup:
-                    view.dialogs.close(accepted=self.ACCEPTED)
-            view.on_invite_agent(tuple(selection.current_values), done)
-
-        buttons = ([Button(view.t(MessageKey.PARTICIPANTS_INVITE), handler=accept)] if choices else [])
-        buttons += [Button(view.t(MessageKey.PARTICIPANTS_MANAGE), handler=manage),
-                    Button(view.t(MessageKey.HISTORY_CLOSE), handler=view.close_dialog)]
-        popup = Dialog(title=view.t(MessageKey.PARTICIPANTS_ADD),
-                       size=PopupSize.MEDIUM if choices else PopupSize.SMALL,
-                       body=HSplit([selection or Label(view.t(MessageKey.PARTICIPANTS_NO_AVAILABLE))]),
-                       buttons=buttons)
-        view.dialogs.show(popup, selection or buttons[self.FIRST])
+        popup = ParticipantManager(view)
+        view.dialogs.show(popup, popup.agents if view.agents else popup.groups)
