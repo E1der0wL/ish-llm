@@ -118,6 +118,41 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.view.composer.text, "keep draft")
         self.assertEqual(self.view.output.transcript.control.search_query, "")
 
+    async def test_image_modes_hide_and_source_revalidation_use_the_real_popup(self):
+        import tempfile
+        from pathlib import Path
+        from PIL import Image
+        from hub.widget.output.image_inspector import ImageInspector
+        from hub.ui.output.graphics import KittyGraphics
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'picture.png'
+            Image.new('RGB', (4, 4), 'blue').save(path)
+            self.view.output.transcript.control.file_root = root
+            popup = await self.expand('<hub-image src="picture.png" alt="fixture" />')
+            self.assertIsInstance(popup, ImageInspector)
+            with patch.object(KittyGraphics, 'supported', return_value=False):
+                popup.choose('auto')
+                self.assertFalse(popup.native)
+            with patch.object(KittyGraphics, 'supported', return_value=True):
+                popup.choose('native')
+                await eventually(lambda: popup.painter is not None)
+                painter = popup.painter
+                popup.suspend(self.app)
+                self.assertTrue(painter.closed)
+                self.assertIsNone(popup.painter)
+                # Changing the visible root cannot redirect this old artifact.
+                self.view.output.transcript.control.file_root = root / 'elsewhere'
+                path.unlink()
+                popup.resume(self.app)
+                await eventually(lambda: not popup.native)
+                self.assertIsNone(popup.painter)
+                self.assertTrue(popup.notice)
+            self.pipe.send_text('\x1b')
+            await eventually(lambda: self.view._dialog is None)
+            self.assertTrue(popup.closed)
+
     async def test_table_selection_sort_filter_no_matches_raw_and_cancel_query(self):
         source = '<hub-table>{"columns":["이름","점수"],"rows":[["Alpha",10],["Beta",2],["Gamma",30]]}</hub-table>'
         ui_thread, threads = threading.get_ident(), []

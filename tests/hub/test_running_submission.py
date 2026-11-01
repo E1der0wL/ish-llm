@@ -15,6 +15,7 @@ from hub.model import HubSnapshot, SessionSummary, SessionView
 from hub.ui.live import LiveController
 from hub.widget.dialog import PopupSize
 from tests.hub.support import SizedOutput
+from llm.core.steering import SteeringRoute
 
 
 class RunningSubmissionTests(IsolatedAsyncioTestCase):
@@ -108,6 +109,55 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
         self.assertIs(self.view._dialog, popup)
         popup._buttons[-1].handler()
         self.assertEqual(self.view.composer.text, 'Additional request')
+
+    async def test_reservation_explicitly_selects_run_without_queuing(self):
+        popup = self.open()
+        popup.body.current_value = 'reserve'
+        popup._buttons[0].handler()
+        self.controller._call.call_args.kwargs['completed']((('r-a', 'a'),))
+        self.controller.steer.assert_called_once()
+        self.assertTrue(self.controller.steer.call_args.kwargs['reserve'])
+        self.assertEqual(self.controller.steer.call_args.kwargs['expected_run_id'], 'r-a')
+        self.controller._send.assert_not_called()
+
+    async def test_route_selection_preserves_structured_nested_paths(self):
+        route = SteeringRoute(('outer/with/slash', 'child'), 'agent/node', 'loop')
+        handle = SimpleNamespace(id='r-a', ainstruction_routes=AsyncMock(return_value=[route]))
+        runs = SimpleNamespace(
+            astatus=AsyncMock(return_value=SimpleNamespace(active_runs=[SimpleNamespace(run_id='r-a', agent_id='a')])),
+            aload=AsyncMock(return_value=handle),
+            reserve_instruction=AsyncMock(return_value=SimpleNamespace(id='instruction')))
+        runtime = HubRuntime.__new__(HubRuntime)
+        runtime.sessions = {'s': SimpleNamespace(run=runs)}
+        runtime.dirty = Mock()
+        runtime.t = lambda key: str(key)
+        run_id, routes = await runtime.instruction_routes('s', 'r-a')
+        self.assertEqual(run_id, 'r-a')
+        self.assertEqual(routes[0][0], route.key)
+        self.assertEqual(await runtime.reserve_instruction('s', 'r-a', 'Change', [route.key]), 'instruction')
+        runs.reserve_instruction.assert_awaited_once_with('r-a', 'Change', targets=[route])
+        handle.ainstruction_routes.return_value = []
+        with self.assertRaises(ValueError):
+            await runtime.reserve_instruction('s', 'r-a', 'Change', [route.key])
+        self.assertEqual(runs.reserve_instruction.await_count, 1)
+
+    async def test_multiple_targets_require_explicit_selection_and_cancel_restores(self):
+        # Exercise the real controller target selector, not the mocked dispatch helper.
+        self.view.composer.text = 'Additional request'
+        from hub.ui.input.submission import SubmittedDraft
+        draft = SubmittedDraft('p', 's', 'Additional request')
+        draft.consume(self.view)
+        LiveController.steer(self.controller, 's', draft.text, expected_run_id='r-a', draft=draft, reserve=True)
+        self.assertEqual(self.controller._call.call_args.args[0], 'instruction_routes')
+        self.controller._call.call_args.kwargs['completed'](('r-a', (('x', 'X'), ('y', 'Y'))))
+        popup = self.view._dialog
+        popup._buttons[0].handler()
+        self.assertIs(self.view._dialog, popup)
+        self.controller._send.assert_not_called()
+        popup.body.current_values = ['x', 'y']
+        popup._buttons[0].handler()
+        self.controller._send.assert_called_once()
+        self.assertEqual(self.controller._send.call_args.args, ('reserve_instruction', 's', draft.text, 'r-a', draft.text, ['x', 'y']))
 
     async def test_running_recipients_uses_public_status_and_filters_current_recipient_ids(self):
         status = SimpleNamespace(active_runs=[SimpleNamespace(run_id='r-a', agent_id='a'),

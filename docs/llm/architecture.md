@@ -6,6 +6,11 @@
 
 ## 도메인과 책임
 
+Workflow 편집 검증, 호출자 접수 키, Tool 사이 지시 반영, 프로세스 관찰 및 선택적 음성 연결은
+[상호작용 계약](interactive-contracts.md)을 따른다. 편집 검증/조회/음성 stream은 실행 권한이나
+별도 영속 도메인이 아니다. 장치·VAD·읽기 시점은 Hub, SDK는 providers, 접수·승인·명시적 재개와
+Tool 효과 보호는 기존 저장/실행 Owner가 맡는다.
+
 ```text
 Project ─┬─ Agents (독립 정의·필수 목록)
          ├─ Components

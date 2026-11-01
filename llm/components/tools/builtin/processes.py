@@ -128,6 +128,24 @@ class ProcessTools:
     def snapshot(self, identifier):
         return self._session(identifier).snapshot(identifier)
 
+    async def observe(self):
+        """Read only native sessions belonging to the explicitly bound output owner."""
+        self.check()
+        current = current_output_store()
+        if current is None:
+            raise ValueError('Process observation requires a Project-bound output owner')
+        identifiers = [identifier for identifier, item in self.sessions.items()
+                       if item.store is not None and item.store.owner == current.owner]
+        return {identifier: await asyncio.to_thread(self.snapshot, identifier) for identifier in identifiers}
+
+    def contains(self, identifier):
+        """Check a native session identity, never an OS PID or reused process ID."""
+        self.check()
+        if identifier not in self.sessions:
+            return False
+        self._session(identifier)  # Enforce the bound Project/output owner.
+        return True
+
     async def start(self, args):
         self.check()
         args = ProcessStartArguments.read(args)

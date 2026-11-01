@@ -5,6 +5,7 @@ from tests.llm.configuration_fixtures import memory_settings
 """실제 Facade/저장/Loop 경계에서 추가 지시와 기존 실행 계약을 검증한다."""
 
 import asyncio
+import json
 from copy import deepcopy
 from pathlib import Path
 import tempfile
@@ -43,6 +44,53 @@ class Model:
 
 
 class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
+    async def test_instruction_after_first_tool_defers_remaining_calls_and_resume_never_runs_them(self):
+        for fail_completion in (False, True):
+            with self.subTest(resume=fail_completion):
+                entered, release = asyncio.Event(), asyncio.Event()
+                effects = []
+
+                async def act(arguments):
+                    if arguments['which'] == 'a':
+                        entered.set()
+                        await release.wait()
+                    effects.append(arguments['which'])
+                    return {'executed': arguments['which']}
+
+                component = RuntimeTools(ToolRegistry([Tool('act', 'test', {
+                    'type': 'object', 'properties': {'which': {'type': 'string'}},
+                    'required': ['which'], 'additionalProperties': False,
+                }, act, contract=TEST_CONTRACT)]))
+                responses = [[chunk(calls=[call(json.dumps({'which': name}), name='act',
+                    call_id=name, index=i) for i, name in enumerate(('a', 'b', 'c'))], finish='tool_calls')]]
+                if fail_completion:
+                    responses.append([ConnectionError('test interruption before revised answer')])
+                responses.append([chunk('replanned', finish='stop')])
+                model = Model(*responses, gate=False)
+                _, session, request, run = await self.setup_backend(model, components=[component])
+                self.addCleanup(release.set)
+                await asyncio.wait_for(entered.wait(), 10)
+                instruction = await session.run.steer(run.id, 'Stop the old plan and reconsider')
+                release.set()
+                result = (await request.wait(timeout=10))[0]
+                if fail_completion:
+                    self.assertEqual(result.data.status, 'failed', result.data.error)
+                    result = (await (await session.run.resume(run.id, agent_id='worker')).wait(timeout=10))[0]
+                self.assertEqual(result.data.status, 'completed', result.data.error)
+                self.assertEqual(effects, ['a'])
+                checkpoint = await result.acheckpoint('loop')
+                for name in ('b', 'c'):
+                    value = checkpoint['records'][f'tool:1:{name}']
+                    self.assertEqual(value['status'], 'not_applied')
+                    self.assertEqual(value['deferred_by'], [instruction.id])
+                messages = model.requests[-1]['messages']
+                tool_results = [message for message in messages if message['role'] == 'tool']
+                self.assertEqual([message['tool_call_id'] for message in tool_results], ['a', 'b', 'c'])
+                for message in tool_results[1:]:
+                    self.assertEqual(json.loads(message['content'])['status'], 'not_executed')
+                self.assertEqual([message.get('content') for message in messages].count(
+                    'Stop the old plan and reconsider'), 1)
+
     async def setup_backend(self, model, *, options=None, config=None, components=None, observer=None, services=None):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)

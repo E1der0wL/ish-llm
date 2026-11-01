@@ -31,12 +31,15 @@ class ComponentCatalogTests(unittest.TestCase):
             component_spec("tools").name = "changed"
 
     def test_starter_guides_have_unique_ids_and_load_complete_instructions(self):
-        self.assertEqual(len({skill.identifier for skill in STARTER_SKILLS}), 7)
+        identifiers = [skill.identifier for skill in STARTER_SKILLS]
+        self.assertEqual(len(set(identifiers)), len(identifiers))
         self.assertEqual(tuple(skill.load() for skill in STARTER_SKILLS), SKILLS)
         expected = {"hub-code-change": "test_workspace", "hub-diagnose": "reproduction",
             "hub-document": "audience", "hub-create-rag": "rag_add_document",
             "hub-create-workflow": "workflow_schema", "hub-create-skill": "skill_create",
-            "hub-create-agent": "agent_create"}
+            "hub-create-agent": "agent_create", "hub-code-review": "approval",
+            "hub-data-analysis": "character offsets"}
+        self.assertEqual(set(identifiers), set(expected))
         for identifier, title, description, instructions in SKILLS:
             self.assertIn(expected[identifier], instructions)
             self.assertNotRegex(title + description + instructions, "[가-힣]")

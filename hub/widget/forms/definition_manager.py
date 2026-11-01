@@ -64,7 +64,7 @@ class DefinitionManager(RecordManager):
             if self.name == ManagedComponents.AGENTS.name:
                 self.agent_editor()
                 return
-            editor = DefinitionEditor(self)
+            editor = self.definition_editor()
             self.view.dialogs.show(editor, editor.identifier)
 
     def open_item(self):
@@ -77,7 +77,7 @@ class DefinitionManager(RecordManager):
                 if self.name == ManagedComponents.AGENTS.name:
                     self.agent_editor(name, record)
                     return
-                editor = DefinitionEditor(self, name, record)
+                editor = self.definition_editor(name, record)
                 self.view.dialogs.show(editor, editor.input)
 
         self.call(ManagementAction.READ, name, completed=ready)
@@ -87,6 +87,12 @@ class DefinitionManager(RecordManager):
         editor = AgentEditor(self, name, record)
         self.view.dialogs.show(editor, editor.workspace.sidebar)
         editor.load()
+
+    def definition_editor(self, name='', record=None):
+        if self.name == ManagedComponents.WORKFLOWS.name:
+            from .workflow_editor import WorkflowEditor
+            return WorkflowEditor(self, name, record)
+        return DefinitionEditor(self, name, record)
 
 
 class DefinitionEditor(Dialog):

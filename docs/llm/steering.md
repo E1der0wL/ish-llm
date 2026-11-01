@@ -1,5 +1,9 @@
 # 실행 중 추가 지시
 
+Loop의 Tool 호출 사이 미시작 호출 생략과 선택적 호출자 `request_key` 접수 계약은
+[상호작용 계약](interactive-contracts.md#loop의-tool-호출-사이-추가-지시)을 따른다.
+완료된 Tool과 started/waiting 효과를 되감지 않고 미시작 호출만 닫아 다음 모델 입력에서 재판단한다.
+
 추가 지시는 같은 Run의 실행 입력에 보태는 사용자 메시지다. 일반 `submit()`은 다음
 Run으로 대기하고, `steer()`는 지정한 실행으로만 전달한다. RunStatus와
 Project → Session → Run → Step 소유 관계는 바꾸지 않는다.

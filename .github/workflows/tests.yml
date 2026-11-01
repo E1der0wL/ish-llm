@@ -23,7 +23,7 @@ jobs:
       matrix:
         suite: [llm, hub]
     env:
-      ISH_REVISION: d833790959a76ac457fdeea3f21a6bea1eecfe12
+      ISH_REVISION: 1459abbc271e272e74c909d0696e938113f07d97
       TERM: xterm-256color
       HUB_TEST_XVFB: /usr/bin/Xvfb
       HUB_TEST_XCLIP: /usr/bin/xclip

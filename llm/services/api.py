@@ -452,21 +452,25 @@ class Runs(AsyncFacade):
     async def start(self) -> None:
         await self.session.app._manager(self.session._snapshot).start()
 
-    async def submit(self, content: str, *, recipients, request_context=UNSET) -> "RequestHandle":
+    async def submit(self, content: str, *, recipients, request_context=UNSET, request_key=UNSET) -> "RequestHandle":
         """Project Agent와 요청별 JSON 문맥을 저장한다."""
         message = await self.session.app._manager(self.session._snapshot).submit(
-            content, recipients=recipients, request_context=request_context
+            content, recipients=recipients, request_context=request_context, request_key=request_key
         )
         return RequestHandle(self.session, message.id)
 
-    async def steer(self, run_id: str, content: str, *, targets=UNSPECIFIED):
-        """실행 중 대상에 지시를 저장한다. Graph는 instruction_targets()의 ID 목록이 필수다."""
-        return await self.app._manager(self.session._snapshot).steer(run_id, content, targets=targets)
+    async def get_receipt(self, request_key):
+        """Resolve a caller's acceptance key without resubmission or execution."""
+        return await self.app._manager(self.session._snapshot).get_receipt(request_key)
 
-    async def reserve_instruction(self, run_id: str, content: str, *, targets):
+    async def steer(self, run_id: str, content: str, *, targets=UNSPECIFIED, request_key=UNSET):
+        """실행 중 대상에 지시를 저장한다. Graph는 instruction_targets()의 ID 목록이 필수다."""
+        return await self.app._manager(self.session._snapshot).steer(run_id, content, targets=targets, request_key=request_key)
+
+    async def reserve_instruction(self, run_id: str, content: str, *, targets, request_key=UNSET):
         """Run의 예약 경로별 다음 Agent 실행에 한 번만 전달한다."""
         return await self.app._manager(self.session._snapshot).reserve_instruction(
-            run_id, content, targets=targets
+            run_id, content, targets=targets, request_key=request_key
         )
 
     async def resume_plan(self, run_id: str, *, agent_id: str) -> ResumePlan:
@@ -789,21 +793,38 @@ class RunHandle(AsyncFacade):
         with self.app.project_manager.ownership.scope():
             return self.app.run_repository.interaction_responses(self.session.data, self.data)
 
-    def respond(self, response: InteractionResponse) -> InteractionResponse:
+    def respond(self, response: InteractionResponse, *, request_key=UNSET) -> InteractionResponse:
         """응답을 원자적으로 저장한다. 실행은 session.run.resume(run.id, agent_id=...)로 명시한다."""
         self.app._check_open()
-        with self.app.project_manager.ownership.scope():
+        from llm.services.runtime.client_inputs import InputReceipt, response_payload
+        with self.app.project_manager.ownership.scope(records=request_key is not UNSET):
             session, run = self.session.data, self.data
-            if run.status not in Run.RESUMABLE_STATES:
-                raise ValueError(RunHandle.ACTIVE_RESPONSE)
-            store = self.app.project_manager.sessions.conversations(session)
-            if any(self.app.run_repository.resume_link(session, run, store)):
-                raise ValueError(RunHandle.ALREADY_RESUMED)
             if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER.value:
                 raise ValueError(RunHandle.USER_CHOICE_REQUIRED)
+            store = self.app.project_manager.sessions.conversations(session)
+            payload = response_payload(run.id, response)
+            if request_key is not UNSET:
+                previous = InputReceipt.find(store, session, request_key)
+                if previous is not None:
+                    previous.require('interaction', payload)
+                    responses = [item for item in self.app.run_repository.interaction_responses(session, run)
+                                 if item.request_id == previous.interaction_id
+                                 and item.request_revision == previous.interaction_revision]
+                    if len(responses) != 1 or response_payload(run.id, responses[0]) != payload:
+                        raise ValueError('Accepted interaction response is missing or changed')
+                    return responses[0]
+            if run.status not in Run.RESUMABLE_STATES:
+                raise ValueError(RunHandle.ACTIVE_RESPONSE)
+            if any(self.app.run_repository.resume_link(session, run, store)):
+                raise ValueError(RunHandle.ALREADY_RESUMED)
             result = self.app.run_repository.respond(session, run, response)
-            self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
-            return result
+            if request_key is not UNSET:
+                InputReceipt.record(store, session, run.assistant_message_id, request_key, 'interaction', payload,
+                                    run_id=run.id, interaction_id=result.request_id,
+                                    interaction_revision=result.request_revision)
+            views = self.app.run_repository.interaction_views(session, run, store)
+        self.app._interaction_changed(run, views)
+        return result
 
     def interaction_views(self):
         self.app._check_open()

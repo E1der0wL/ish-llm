@@ -21,6 +21,9 @@ dependencies = [
 rag = ["chromadb", "kuzu", "rank-bm25"]
 vision = ["Pillow"]
 mcp = ["mcp>=2.3,<3"]
+speech-local = ["faster-whisper", "piper-tts"]
+speech-server = ["openai", "websockets>=14"]
+hub-audio = ["sounddevice"]
 
 # ish reads a literal PLUGIN_META before importing the plugin. Its dependency
 # list is generated from this file, including these installed feature groups.

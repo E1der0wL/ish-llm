@@ -24,7 +24,12 @@ def Prompt(*args, **kwargs):
     if str(HOST) not in sys.path:
         sys.path.insert(0, str(HOST))
     from ish.ui.prompt import Prompt as HostPrompt
-    return HostPrompt(*args, **kwargs)
+    prompt = HostPrompt(*args, **kwargs)
+    # These UI tests never start an OS shell. ish 1.2.0 obtains completion paths
+    # from that live shell, so provide the fixture directory explicitly while
+    # keeping the real Prompt, completer, keys, focus and rendering paths.
+    prompt.default_completer.path_completer.get_paths = lambda: [str(HOST)]
+    return prompt
 
 
 class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):

@@ -1,5 +1,10 @@
 # BuiltinTools — 호스트가 선택해 제공하는 Tool
 
+선택 ComponentData의 `alist_processes()`와
+`aread_process(id, stdout_offset=..., stderr_offset=..., max_chars=...)`는 기존 native 관찰과
+저장 출력을 Project 범위에서 조회합니다. 프로세스 생성·재실행 권한은 주지 않으며 재시작 후에는
+retained 출력으로 구분합니다. [관찰 계약](../../../../docs/llm/interactive-contracts.md#프로세스-관찰)을 참고하세요.
+
 파일 읽기·편집과 선택적인 셸/프로세스·서비스 어댑터를 ToolRegistry로 묶습니다. Project의 Python Tool 패키지와 별개이며 호스트 코드가 등록하고 수명을 관리합니다.
 
 ## 파일 안내

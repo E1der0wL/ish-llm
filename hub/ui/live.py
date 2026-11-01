@@ -309,6 +309,10 @@ class LiveController:
         self._save_timer = LiveController.ABSENT
         self._last_notification = LiveController.INITIAL_NOTIFICATION
         self._diagnosing = set()
+        from .speech.controller import SpeechController
+        self.speech = SpeechController(self)
+        self.view.on_voice = self.speech.command
+        self.view.on_terminal = self.open_terminal
         HubView.bind_default_agent(self.view, config.agent_id)
         self.view.agent_id = config.agent_id
         self.view.on_open = self.open
@@ -436,6 +440,7 @@ class LiveController:
                 self._error(error)
         target = self._select_new
         self.view.apply_snapshot(snapshot, select_id=target)
+        self.speech.observe(snapshot)
         self._finish_startup()
         presets = self.view.profile_bar.preset_ui
         if not presets.loaded and not presets.loading and not self.view.settings.busy:
@@ -643,6 +648,7 @@ class LiveController:
         self.worker.set_visible(True)
 
     def hide(self):
+        self.speech.hide()
         if self.worker:
             self.worker.set_visible(False)
 
@@ -676,6 +682,7 @@ class LiveController:
     def _accept_input(self, project_id, session_id, text, result, operation):
         if result is LiveController.ABSENT or self.closed:
             return
+        self.speech.accepted((project_id, session_id), text)
         view = self.view
         if isinstance(result, SubmissionResult):
             if result.message is LiveController.ABSENT:
@@ -688,7 +695,7 @@ class LiveController:
         if current_id == session_id:
             view.notice = view.t(
                 MessageKey.INSTRUCTION_SAVED
-                if operation == HubRuntime.steer.__name__
+                if operation in (HubRuntime.steer.__name__, HubRuntime.reserve_instruction.__name__)
                 else MessageKey.SAVED
             )
             if view.general.auto_scroll:
@@ -722,6 +729,9 @@ class LiveController:
                 draft.restore(self.view)
             self._accept_input(project_id, session_id, text, request_id, operation)
 
+        from llm.core.configuration import UNSET
+        if draft.request_key is not UNSET:
+            args = (*args, draft.request_key)
         self._call(operation, session_id, *args, completed=accepted)
 
     def review_approval(self, request):
@@ -780,7 +790,17 @@ class LiveController:
             acknowledged=acknowledged,
         )
 
+    def open_terminal(self):
+        if (not self.view.connected or not self.view.sessions
+                or not all(SessionIdentity.current(self.view).to_tuple())):
+            self.view.notice = self.view.t(MessageKey.SESSION_REQUIRED)
+            return
+        from .chat.terminal import TerminalReview
+        TerminalReview(self).open()
+
     def submit(self, session_id: str, text: str):
+        from llm.core.configuration import UNSET
+
         if not session_id:
             self.view.notice = self.view.t(MessageKey.SESSION_REQUIRED)
             self.view.session_dialog(SessionMode.NEW.value)
@@ -809,6 +829,9 @@ class LiveController:
         from .input.submission import SubmittedDraft
 
         draft = SubmittedDraft(SessionIdentity(identity).project_id, session_id, text)
+        voice = getattr(self, 'speech', None)
+        if voice is not None:
+            draft.request_key = voice.request_key(identity, text)
         draft.consume(view)
         snapshot = view._last_snapshot
         if (snapshot is not None and snapshot.project_id == identity[0]
@@ -857,21 +880,27 @@ class LiveController:
             text,
             agent_id,
             options,
+            *((True, draft.request_key) if draft.request_key is not UNSET else ()),
             completed=ready,
         )
 
     def steer(
-        self, session_id: str, text: str, *, expected_run_id=ABSENT, draft=ABSENT
+        self, session_id: str, text: str, *, expected_run_id=ABSENT, draft=ABSENT, reserve=False
     ):
         if not text.strip() or session_id in self._submitting:
             if draft:
                 draft.restore(self.view)
             return
 
+        operation = HubRuntime.reserve_instruction.__name__ if reserve else HubRuntime.steer.__name__
+
         def ready(value):
             if value is LiveController.ABSENT:
                 if draft:
                     draft.restore(self.view)
+                return
+            if draft and not draft.is_current(self.view):
+                draft.restore(self.view)
                 return
             run_id, targets = value
             if (
@@ -884,7 +913,7 @@ class LiveController:
                 return
             if len(targets) == LiveController.SINGLE_TARGET:
                 self._send(
-                    HubRuntime.steer.__name__,
+                    operation,
                     session_id,
                     text,
                     run_id,
@@ -893,30 +922,30 @@ class LiveController:
                     draft=draft,
                 )
             else:
-                from ..widget.controls import RadioList
+                from ..widget.controls import CheckboxList
 
-                choices = RadioList(
-                    list(targets),
-                    select_on_focus=True,
-                )
+                choices = CheckboxList(list(targets))
+
+                def validate_selection():
+                    if not choices.current_values:
+                        self.view.notice = self.view.t(MessageKey.NO_TARGETS)
+                        return False
+                    return True
+
+                def send_selected():
+                    self._send(operation, session_id, text, run_id, text,
+                               list(choices.current_values), draft=draft)
                 self.view.open_dialog(
                     self.view.t(MessageKey.CHOOSE_TARGET),
                     choices,
-                    lambda: self._send(
-                        HubRuntime.steer.__name__,
-                        session_id,
-                        text,
-                        run_id,
-                        text,
-                        [choices.current_value],
-                        draft=draft,
-                    ),
+                    send_selected,
                     choices,
+                    validate=validate_selection,
                     on_cancel=lambda: draft and draft.restore(self.view),
                 )
 
         self._call(
-            HubRuntime.instruction_targets.__name__,
+            HubRuntime.instruction_routes.__name__ if reserve else HubRuntime.instruction_targets.__name__,
             session_id,
             expected_run_id,
             completed=ready,
@@ -1055,6 +1084,7 @@ class LiveController:
     def _prepare_close(self):
         if self.closed:
             return LiveController.CLOSE_ALREADY_PREPARED
+        self.speech.close()
         self.view.close()
         self.view.remember_position()
         self._save_view()
@@ -1068,6 +1098,7 @@ class LiveController:
 
     async def aclose(self):
         if self._prepare_close():
+            await self.speech.aclose()
             await asyncio.to_thread(self._finish_close)
 
     def close(self):

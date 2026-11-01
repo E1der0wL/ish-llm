@@ -31,6 +31,51 @@ class JsonDocument:
         return json.loads(text, parse_constant=cls._invalid_constant)
 
     @classmethod
+    def locate(cls, text, pointer):
+        """Locate the nearest existing JSON-pointer value without rewriting a draft.
+
+        Missing fields and external Workflow paths stop at their visible parent.
+        The standard decoder owns JSON syntax, escapes and duplicate-key behavior.
+        """
+        from llm.core.json_data import JsonPointer
+
+        cls.parse(text)
+        decoder = json.JSONDecoder(parse_constant=cls._invalid_constant)
+        def space(position):
+            while position < len(text) and text[position].isspace():
+                position += 1
+            return position
+        position = space(0)
+        for part in JsonPointer.parse(pointer):
+            start, candidate = space(position + 1), None
+            if text[position] == '{':
+                while text[start] != '}':
+                    key, end = decoder.raw_decode(text, start)
+                    value_start = space(space(end) + 1)
+                    _, end = decoder.raw_decode(text, value_start)
+                    if key == part:
+                        candidate = value_start
+                    start = space(end)
+                    if text[start] == ',':
+                        start = space(start + 1)
+                # The last duplicate key is the value used by json.loads.
+            elif text[position] == '[' and part.isdecimal():
+                ordinal = 0
+                while text[start] != ']':
+                    _, end = decoder.raw_decode(text, start)
+                    if str(ordinal) == part:
+                        candidate = start
+                        break
+                    ordinal += 1
+                    start = space(end)
+                    if text[start] == ',':
+                        start = space(start + 1)
+            if candidate is None:
+                break
+            position = candidate
+        return position
+
+    @classmethod
     def same(cls, left, right, *, missing):
         if left is missing or right is missing:
             return left is right

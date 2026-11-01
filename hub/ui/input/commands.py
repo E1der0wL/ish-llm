@@ -18,6 +18,8 @@ class CoreCommand(StrEnum):
     CLONE = SessionMode.CLONE.value
     STOP = "stop"
     DETAILS = "details"
+    VOICE = "voice"
+    TERMINAL = "terminal"
 
 
 class CommandSyntax:
@@ -92,6 +94,8 @@ COMMANDS = (
         and view.on_interrupt(view.sessions[view.selected].id),
     ),
     CommandSpec(CoreCommand.DETAILS.value, lambda view, argument: view.toggle_details()),
+    CommandSpec(CoreCommand.VOICE.value, lambda view, argument: view.on_voice and view.on_voice(argument)),
+    CommandSpec(CoreCommand.TERMINAL.value, lambda view, argument: view.on_terminal and view.on_terminal()),
 )
 
 

@@ -50,10 +50,16 @@ class DialogController:
         """Hide with Hub without closing, cancelling or disposing the popup."""
         if self.current is not None and app.layout.current_control in self._controls(self.current):
             self._focus = app.layout.current_control
+        suspend = getattr(self.current, 'suspend', None)
+        if suspend is not None:
+            suspend(app)
 
     def resume(self, app: Application) -> bool:
         if self.current is None:
             return False
+        resume = getattr(self.current, 'resume', None)
+        if resume is not None:
+            resume(app)
         app.layout.update_parents_relations()
         controls = self._controls(self.current)
         if controls:

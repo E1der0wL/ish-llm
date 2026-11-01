@@ -1,5 +1,11 @@
 # Providers — SDK 연결과 공통 보호 경계
 
+선택적 음성은 `audio.py`의 stream 값/순서/admission 계약,
+`local_speech.py`의 설치된 faster-whisper/Piper 모델, `server_speech.py`의 명시적
+Realtime transcription/streaming speech endpoint로 분리한다. 마이크·스피커와 제출/읽기 선택은
+Hub 소유다. 자동 다운로드·endpoint/model 선택·outer retry는 하지 않는다.
+설정·프로토콜 불변식·진단·취소 제약은 [음성 계약](../../docs/llm/interactive-contracts.md#선택적-음성-provider)을 따른다.
+
 공통 typed 모델과 실제 SDK Adapter 사이의 계약이다. [리팩터링 계약](../../docs/llm/clean-refactor.md)과 [공통 모델 프로토콜](../../docs/llm/model-protocol.md)을 따르며 실제 Adapter·외부 프로토콜 불변식을 유지한다.
 
 현재 SDK 지원 범위는 [pyproject.toml](../../pyproject.toml), 검증 조합과 재현 명령은

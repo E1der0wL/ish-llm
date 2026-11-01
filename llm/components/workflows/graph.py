@@ -132,6 +132,7 @@ class WorkflowHandlerContract:
     DESCRIBE_CONFIG_METHOD = "describe_config"
     VALIDATE_METHOD = "validate"
     DECLARE_METHOD = "workflow_handlers"
+    REFERENCES_METHOD = "definition_references"
     ABSENT = None
 
     @classmethod
@@ -342,6 +343,14 @@ def _condition(value) -> None:
         raise ValueError(WorkflowValidation.INVALID_MEMBERSHIP)
 
 
+class WorkflowStructureError(ValueError):
+    """Structural failure with an owner-supplied path, never parsed from prose."""
+
+    def __init__(self, message, path=()):
+        super().__init__(message)
+        self.path = tuple(path)
+
+
 def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -> None:
     """닫힌 그래프 구조와 도달성·연결·합류·반복 상한을 검사한다."""
     if (
@@ -384,7 +393,7 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
         raise ValueError(WorkflowValidation.INVALID_COLLECTIONS)
     entry = _text(data.get(WorkflowDocument.ENTRY), WorkflowDocument.ENTRY)
     if entry not in nodes:
-        raise ValueError(WorkflowValidation.UNKNOWN_ENTRY)
+        raise WorkflowStructureError(WorkflowValidation.UNKNOWN_ENTRY, (WorkflowDocument.ENTRY,))
     outgoing = {name: [] for name in nodes}
     incoming = {name: [] for name in nodes}
     for name, node in nodes.items():
@@ -402,7 +411,10 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             and type(node[WorkflowNode.PAUSE_BEFORE]) is not bool
         ):
             raise ValueError(WorkflowValidation.INVALID_PAUSE)
-        validate_contract(node)
+        try:
+            validate_contract(node)
+        except ValueError as error:
+            raise WorkflowStructureError(str(error), (WorkflowDocument.NODES, name)) from error
         if node[WorkflowNode.TYPE] in ControlNodeType.structural() and any(
             (
                 key in node
@@ -416,7 +428,7 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
         ):
             raise ValueError(WorkflowValidation.CONTROL_BINDING)
     seen = set()
-    for edge in edges:
+    for edge_index, edge in enumerate(edges):
         if not isinstance(edge, dict):
             raise ValueError(WorkflowValidation.INVALID_EDGE)
         source, target = (
@@ -424,18 +436,18 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             _text(edge.get(WorkflowEdge.TARGET), WorkflowEdge.TARGET),
         )
         if source not in nodes or target not in nodes:
-            raise ValueError(WorkflowValidation.UNKNOWN_ENDPOINT)
+            raise WorkflowStructureError(WorkflowValidation.UNKNOWN_ENDPOINT, (WorkflowDocument.EDGES, edge_index))
         port = edge.get(WorkflowEdge.PORT)
         if WorkflowEdge.PORT in edge:
             _text(port, WorkflowEdge.PORT)
         key = (source, target, port)
         if key in seen:
-            raise ValueError(WorkflowValidation.DUPLICATE_EDGE)
+            raise WorkflowStructureError(WorkflowValidation.DUPLICATE_EDGE, (WorkflowDocument.EDGES, edge_index))
         seen.add(key)
         outgoing[source].append(edge)
         incoming[target].append(source)
     if incoming[entry]:
-        raise ValueError(WorkflowValidation.ENTRY_INCOMING)
+        raise WorkflowStructureError(WorkflowValidation.ENTRY_INCOMING, (WorkflowDocument.EDGES,))
     # Detect cycles before reachability; bounded loop bodies are the only repetition syntax.
     counts = {name: len(items) for name, items in incoming.items()}
     ready = deque(
@@ -454,19 +466,19 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             if counts[edge[WorkflowEdge.TARGET]] == WorkflowValidation.READY_INDEGREE:
                 ready.append(edge[WorkflowEdge.TARGET])
     if len(ordered) != len(nodes):
-        raise ValueError(WorkflowValidation.UNBOUNDED_CYCLE)
+        raise WorkflowStructureError(WorkflowValidation.UNBOUNDED_CYCLE, (WorkflowDocument.NODES,))
     reachable = {entry}
     for name in ordered:
         if name in reachable:
             reachable.update((edge[WorkflowEdge.TARGET] for edge in outgoing[name]))
     if reachable != set(nodes):
-        raise ValueError(WorkflowValidation.UNREACHABLE)
+        raise WorkflowStructureError(WorkflowValidation.UNREACHABLE, (WorkflowDocument.NODES,))
     joins = {}
     for name, node in nodes.items():
         kind, links = (node[WorkflowNode.TYPE], outgoing[name])
         if kind == ControlNodeType.END:
             if links:
-                raise ValueError(WorkflowValidation.END_OUTGOING)
+                raise WorkflowStructureError(WorkflowValidation.END_OUTGOING, (WorkflowDocument.NODES, name))
         elif kind == ControlNodeType.BRANCH:
             cases = node.get(WorkflowNode.CASES)
             if not isinstance(cases, list) or not cases:
@@ -491,7 +503,7 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
             if len(set(ports)) != len(ports) or sorted(actual, key=str) != sorted(
                 ports
             ):
-                raise ValueError(WorkflowValidation.BRANCH_EDGES)
+                raise WorkflowStructureError(WorkflowValidation.BRANCH_EDGES, (WorkflowDocument.NODES, name))
         elif kind == ControlNodeType.PARALLEL:
             join = _text(
                 node.get(WorkflowNode.JOIN), WorkflowValidation.PARALLEL_JOIN_LABEL
@@ -501,7 +513,7 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
                 or nodes[join][WorkflowNode.TYPE] != ControlNodeType.JOIN
                 or join in joins
             ):
-                raise ValueError(WorkflowValidation.PARALLEL_JOIN)
+                raise WorkflowStructureError(WorkflowValidation.PARALLEL_JOIN, (WorkflowDocument.NODES, name, WorkflowNode.JOIN))
             joins[join] = name
             if len(links) < WorkflowValidation.MINIMUM_BRANCHES or len(
                 {edge[WorkflowEdge.TARGET] for edge in links}
@@ -514,7 +526,7 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
                 len(links) != WorkflowValidation.SINGLE_SUCCESSOR_COUNT
                 or WorkflowEdge.PORT in links[WorkflowValidation.SINGLE_EDGE_INDEX]
             ):
-                raise ValueError(WorkflowValidation.SINGLE_SUCCESSOR)
+                raise WorkflowStructureError(WorkflowValidation.SINGLE_SUCCESSOR, (WorkflowDocument.NODES, name))
             if (
                 kind == ControlNodeType.JOIN
                 and node.get(WorkflowNode.WAIT, JoinWait.ALL) != JoinWait.ALL
@@ -531,13 +543,17 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
                     _condition(node[WorkflowNode.WHILE])
                 if node.get(WorkflowNode.ON_LIMIT) not in tuple(LoopLimit):
                     raise ValueError(WorkflowValidation.LOOP_LIMIT)
-                validate_graph(
-                    node.get(WorkflowNode.BODY),
-                    _depth=_depth + WorkflowValidation.NESTED_DEPTH_INCREMENT,
-                )
+                try:
+                    validate_graph(
+                        node.get(WorkflowNode.BODY),
+                        _depth=_depth + WorkflowValidation.NESTED_DEPTH_INCREMENT,
+                    )
+                except WorkflowStructureError as error:
+                    raise WorkflowStructureError(str(error),
+                        (WorkflowDocument.NODES, name, WorkflowNode.BODY, *error.path)) from error
     for name, node in nodes.items():
         if node[WorkflowNode.TYPE] == ControlNodeType.JOIN and name not in joins:
-            raise ValueError(WorkflowValidation.ORPHAN_JOIN)
+            raise WorkflowStructureError(WorkflowValidation.ORPHAN_JOIN, (WorkflowDocument.NODES, name))
     for join, fork in joins.items():
         # Every branch must reach its own join with no early merge or external entry.
         reaches_join = {join}
@@ -557,7 +573,7 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
         for edge in outgoing[fork]:
             start = edge[WorkflowEdge.TARGET]
             if start not in reaches_join or start == join:
-                raise ValueError(WorkflowValidation.UNREACHABLE_JOIN)
+                raise WorkflowStructureError(WorkflowValidation.UNREACHABLE_JOIN, (WorkflowDocument.NODES, fork))
             region, pending = (set(), [start])
             while pending:
                 name = pending.pop()
@@ -566,12 +582,12 @@ def validate_graph(data: dict, *, _depth: int = WorkflowValidation.ROOT_DEPTH) -
                 region.add(name)
                 pending.extend((item[WorkflowEdge.TARGET] for item in outgoing[name]))
             if any((region & previous for previous in branch_regions)):
-                raise ValueError(WorkflowValidation.EARLY_MERGE)
+                raise WorkflowStructureError(WorkflowValidation.EARLY_MERGE, (WorkflowDocument.NODES, fork))
             branch_regions.append(region)
         region = set().union(*branch_regions)
         for name in region | {join}:
             if any((parent not in region | {fork} for parent in incoming[name])):
-                raise ValueError(WorkflowValidation.REGION_INCOMING)
+                raise WorkflowStructureError(WorkflowValidation.REGION_INCOMING, (WorkflowDocument.NODES, name))
 
 
 class WorkflowGraph:

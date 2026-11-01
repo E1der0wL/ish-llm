@@ -1,6 +1,7 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
 from llm.services.infrastructure.storage import record_exists, record_children, record_directory
+from .client_inputs import InputReceipt
 
 from llm.services.runtime.subscription_state import EventChannel
 from .run_values import (
@@ -1340,7 +1341,7 @@ class RunManager:
         )
         return run, RunInstruction.from_message(message)
 
-    async def _send_instruction(self, run_id, content, targets, *, reserved=DIRECT_INSTRUCTION):
+    async def _send_instruction(self, run_id, content, targets, *, reserved=DIRECT_INSTRUCTION, request_key=UNSET):
         if not isinstance(content, str) or not content.strip():
             raise ValueError(RunManager.EMPTY_INSTRUCTION)
 
@@ -1348,10 +1349,29 @@ class RunManager:
             async with self._control_lock():
                 if self._closed:
                     raise RuntimeError(RunManager.SHUT_DOWN)
-                return await self._io.run(self._accept_instruction, run_id, content, targets, reserved)
+                if request_key is UNSET:
+                    run, value = await self._io.run(self._accept_instruction, run_id, content, targets, reserved)
+                    return run, value, True
 
-        run, value = await drain_on_cancel(accept())
-        await self._publish_instructions(run, [value])
+                def persist():
+                    _, session = self._prepare()
+                    store = self._store(session)
+                    kind = 'reservation' if reserved else 'instruction'
+                    payload = {'run_id': run_id, 'content': content, 'targets':
+                               [v.to_dict() for v in targets] if reserved else
+                               list(targets) if targets is not RunManager.ABSENT else None}
+                    previous = InputReceipt.find(store, session, request_key)
+                    if previous is not None:
+                        previous.require(kind, payload)
+                        return self.repository.load(session, run_id), RunInstruction.from_message(store.get(previous.message_id)), False
+                    run, value = self._accept_instruction(run_id, content, targets, reserved)
+                    InputReceipt.record(store, session, value.id, request_key, kind, payload, run_id=run_id)
+                    return run, value, True
+                return await self._io.run_records(persist)
+
+        run, value, accepted = await drain_on_cancel(accept())
+        if accepted:
+            await self._publish_instructions(run, [value])
         return value
 
     def _steering_boundary(self, run, store, event, tool_usage):
@@ -1548,10 +1568,27 @@ class RunManager:
         async with self._control_lock():
             return await self._runtime()
 
-    async def _submit(self, content: str, recipients, request_context) -> Message:
+    async def _submit(self, content: str, recipients, request_context, request_key=UNSET) -> Message:
         async with self._control_lock():
             if self._closed:
                 raise RuntimeError(RunManager.SHUT_DOWN)
+            payload = {'content': content, 'recipients': list(recipients) if isinstance(recipients, tuple) else recipients}
+            if request_context is not UNSET:
+                payload['request_context'] = request_context
+            if request_key is not UNSET:
+                def repeated():
+                    _, session = self._prepare()
+                    store = self._store(session)
+                    previous = InputReceipt.find(store, session, request_key)
+                    if previous is not None:
+                        previous.require('request', payload)
+                        return store.get(previous.message_id)
+                    return None
+                previous = await self._io.run(repeated)
+                if previous is not None:
+                    if previous.status == MessageStatus.QUEUED:
+                        await self._runtime()
+                    return previous
             runtime = await self._runtime(
                 preflight=lambda: self._validate_request(recipients, request_context)
             )
@@ -1560,6 +1597,9 @@ class RunManager:
                 bindings = self._validate_request(recipients, request_context)
                 self._check_queue(runtime.session)
                 message = self._admit(runtime, content, bindings, request_context)
+                if request_key is not UNSET:
+                    InputReceipt.record(self._store(runtime.session), runtime.session, message.id,
+                                        request_key, 'request', payload)
                 log_event(
                     runtime.session.paths.logs,
                     RuntimeLogEvent.QUEUED,
@@ -2955,7 +2995,7 @@ class RunManager:
         """Session을 복구하고 선택한 대화 저장소에 남아 있는 대기 요청만 예약한다."""
         await drain_on_cancel(self._start())
 
-    async def submit(self, content: str, *, recipients, request_context=UNSET) -> Message:
+    async def submit(self, content: str, *, recipients, request_context=UNSET, request_key=UNSET) -> Message:
         """Persist the selected Project Agent and the separate request context."""
         if request_context is not UNSET:
             from llm.core.json_data import JsonObject
@@ -2964,9 +3004,16 @@ class RunManager:
                 raise TypeError(EngineContextBinding.INVALID_CONTEXT)
             JsonObject.validate(request_context)
             request_context = deepcopy(request_context)
-        return await drain_on_cancel(self._submit(content, recipients, request_context))
+        return await drain_on_cancel(self._submit(content, recipients, request_context, request_key))
 
-    async def steer(self, run_id: str, content: str, *, targets=ABSENT) -> RunInstruction:
+    async def get_receipt(self, request_key):
+        """Acceptance lookup only; never starts/resumes an execution."""
+        def read():
+            _, session = self._prepare()
+            return InputReceipt.find(self._store(session), session, request_key)
+        return await self._io.run(read)
+
+    async def steer(self, run_id: str, content: str, *, targets=ABSENT, request_key=UNSET) -> RunInstruction:
         """현재 Run에 추가 지시를 저장한다. 일반 요청 큐나 새 Run을 만들지 않는다."""
         if targets is not RunManager.ABSENT:
             if not isinstance(targets, (list, tuple)) or any(
@@ -2974,14 +3021,14 @@ class RunManager:
             ):
                 raise ValueError(RunManager.INVALID_STEERING_TARGETS)
             targets = tuple(targets)
-        return await self._send_instruction(run_id, content, targets)
+        return await self._send_instruction(run_id, content, targets, request_key=request_key)
 
-    async def reserve_instruction(self, run_id: str, content: str, *, targets) -> RunInstruction:
+    async def reserve_instruction(self, run_id: str, content: str, *, targets, request_key=UNSET) -> RunInstruction:
         """경로별 다음 Agent 실행 한 번에 예약한다. 실행 중 대상에는 소급 적용하지 않는다."""
         if not isinstance(targets, (list, tuple)) or any(not isinstance(v, SteeringRoute) for v in targets):
             raise ValueError(RunManager.INVALID_ROUTES)
         return await self._send_instruction(
-            run_id, content, tuple(targets), reserved=RunManager.RESERVED_INSTRUCTION
+            run_id, content, tuple(targets), reserved=RunManager.RESERVED_INSTRUCTION, request_key=request_key
         )
 
     async def resume_plan(self, run_id: str, *, agent_id: str) -> ResumePlan:

@@ -11,6 +11,7 @@ from llm.components.rag.document_records import RAGDocumentInput, RAGDocument
 
 class ManagementAction(StrEnum):
     DESCRIBE = "describe"
+    INSPECT = "inspect"
     LIST = "list"
     READ = "read"
     IMPORT = RAGAction.IMPORT.value

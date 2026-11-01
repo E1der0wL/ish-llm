@@ -6,6 +6,7 @@ from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Lock
+from contextlib import contextmanager
 
 from .registry import literal_lines, RendererCapabilities
 from .model import DisplayAttributes
@@ -127,8 +128,8 @@ class ImageRenderer:
             self.revision += self.REVISION_STEP
 
     @staticmethod
-    def _convert(root, source, artifact, width):
-        from ascii_magic import AsciiArt
+    @contextmanager
+    def _image(root, source, artifact):
         from PIL import Image
 
         if artifact is not ImageRenderer.ABSENT:
@@ -145,6 +146,28 @@ class ImageRenderer:
         with Image.open(path) as image:
             if image.width * image.height > ImageRenderer.MAX_PIXELS:
                 raise ValueError(ImageRenderer.INVALID_PIXELS)
+            image.load()
+            yield image
+
+    def read_png(self, block, root):
+        """Decode trusted image sources through the same path and size checks."""
+        from io import BytesIO
+
+        source = ImageAttributes.from_block(block).src
+        with self._lock:
+            artifact = ImageSource.artifact(source, self._artifacts)
+        if ImageSource.is_artifact(source) and artifact is None:
+            raise ValueError(self.UNKNOWN_ARTIFACT)
+        with self._image(root, source, artifact) as image:
+            target = BytesIO()
+            image.convert('RGBA').save(target, format='PNG')
+            return target.getvalue()
+
+    @staticmethod
+    def _convert(root, source, artifact, width):
+        from ascii_magic import AsciiArt
+
+        with ImageRenderer._image(root, source, artifact) as image:
             columns = max(
                 ImageRenderer.MIN_DIMENSION,
                 min(
@@ -167,7 +190,6 @@ class ImageRenderer:
                     ),
                 ),
             )
-            image.load()
             thumbnail = image.convert(ImageRenderer.IMAGE_MODE).resize((columns, rows))
             cells = AsciiArt.from_pillow_image(thumbnail).to_character_list(
                 columns=columns,

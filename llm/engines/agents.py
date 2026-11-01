@@ -82,6 +82,13 @@ class AgentExecution:
         """The action owner interprets its stored selection without resolving an Engine."""
         return AgentNodeDefinition(node).references()
 
+    @classmethod
+    def definition_references(cls, node):
+        from llm.core.resource_references import ResourceTarget
+        from llm.core.agents import AgentDefinition
+        return tuple(ResourceTarget(AgentDefinition.REFERENCE_COMPONENT, name)
+                     for name in cls.agent_references(node))
+
     @staticmethod
     def referenced_agents(record):
         """Read only execution-owned selections, never arbitrary application metadata."""

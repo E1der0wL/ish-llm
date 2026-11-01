@@ -45,6 +45,7 @@ class SteeringEventData:
         BOUNDARY = "boundary"
         ENVELOPE = "envelope"
         ALLOW_CONTINUE = "allow_continue"
+        ONLY_PENDING = "only_pending"
         FINAL = "final"
         DETAILS = "details"
 
@@ -126,6 +127,10 @@ class SteeringEventData:
     @property
     def final(self):
         return self._value[self.Field.FINAL]
+
+    @property
+    def only_pending(self):
+        return self._value.get(self.Field.ONLY_PENDING, False)
 
     @property
     def details(self):

@@ -233,6 +233,10 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         pending = [m for m in instructions(store, run.id, pending=InstructionQuery.PENDING)
                    if any(target.pending_for(identifier) for target in InstructionMessageRecord.from_message(m).targets)]
         messages = pending if data.allow_continue else []
+        # A live execution boundary can probe without fixing an empty selection
+        # or closing the channel. Only a nonempty selection creates a checkpoint.
+        if data.only_pending and not messages:
+            return (), opened
         if data.final and not messages:
             return (), [*opened, *close(data.reason or SteeringReason.COMPLETED)]
         selected = {mid for _, value in instruction_records(checkpoint) if value.target_scope == target.scope

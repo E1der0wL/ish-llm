@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 704,
-    "unreviewed_files": 67,
+    "files": 721,
+    "unreviewed_files": 107,
     "stale_files": 0,
-    "unclassified": 4704,
+    "unclassified": 6730,
     "violations": 0,
     "incomplete_contracts": 0,
-    "unreviewed_dynamic_paths": 67,
+    "unreviewed_dynamic_paths": 107,
     "unreadable_files": 0,
-    "candidates": 18594,
+    "candidates": 19774,
     "issues": 0
   },
   "issues": [],
@@ -17,7 +17,7 @@
     {
       "path": "hub/README.md",
       "status": "unreviewed",
-      "sha256": "268d4137f2b0cc960ba47a84fb4144a088ef018c4ea9731ab7a64222ce945d7d"
+      "sha256": "f3f2584af7eb2edd07abf12c38ecee6fc2e5a291e3295e85e8c2c10e46f8ac18"
     },
     {
       "path": "hub/__init__.py",
@@ -105,6 +105,11 @@
       "sha256": "e51e2ced51d06496511f3f8b918379b7a583b38c09844455ef3f10d2c8b647ee"
     },
     {
+      "path": "hub/asset/skills/hub-code-review/SKILL.md",
+      "status": "unreviewed",
+      "sha256": "0450babef6b0d45a0deaeb39c1fd01181a23aeb165ffbd785b9b6c672741fd0d"
+    },
+    {
       "path": "hub/asset/skills/hub-create-agent/SKILL.md",
       "status": "reviewed",
       "sha256": "ce9528c41d4d7b132b456d16190d6d8f9b214633cc29f5ad543ba0310dd484d7"
@@ -123,6 +128,11 @@
       "path": "hub/asset/skills/hub-create-workflow/SKILL.md",
       "status": "reviewed",
       "sha256": "992a8812f0b198e1f91776354341512e14f33636ef85d4adaae4e8f819c36789"
+    },
+    {
+      "path": "hub/asset/skills/hub-data-analysis/SKILL.md",
+      "status": "unreviewed",
+      "sha256": "c148f06118828d943d793d56ff4c2eebaf4ee1eb14f65f3cf2ed0f38e7624c8c"
     },
     {
       "path": "hub/asset/skills/hub-diagnose/SKILL.md",
@@ -476,8 +486,8 @@
     },
     {
       "path": "hub/backend/project/management_values.py",
-      "status": "reviewed",
-      "sha256": "db7a5ecca9d2c358bdb0d90382fc3342a66f19bd2f35f7d265353689db91e037"
+      "status": "unreviewed",
+      "sha256": "778ba3af389ae2e366f9e3cd61b9b47616a529b34c392316d0e2df981d0bfd99"
     },
     {
       "path": "hub/backend/project/memory_management.py",
@@ -592,7 +602,7 @@
     {
       "path": "hub/backend/runtime.py",
       "status": "unreviewed",
-      "sha256": "72bba692c097461ec13b1a81b8941f1e9a43d6fc879f9ca45f8f3d7a41bc4133"
+      "sha256": "c8f1e6fdbb6ea7cdcc84e91bfb54fe8cad7459cdad2b358f74faa660099b0ea8"
     },
     {
       "path": "hub/backend/runtime_views.py",
@@ -603,6 +613,11 @@
       "path": "hub/backend/session_contracts.py",
       "status": "reviewed",
       "sha256": "31de378d72710f0f0618bc5bb89779aca848846c8e9679c79df8d2285e6563c9"
+    },
+    {
+      "path": "hub/backend/terminal.py",
+      "status": "unreviewed",
+      "sha256": "846f75af628eb658f58e0f3e72b72dae6418c031d01857a4d715d62c75ab50e1"
     },
     {
       "path": "hub/backend/tools/__init__.py",
@@ -621,8 +636,8 @@
     },
     {
       "path": "hub/backend/tools/builtin.py",
-      "status": "reviewed",
-      "sha256": "40812e8b14283deee896f0d84c1f3fb3d9a3eff05ed180dfcaa119dfcefc5c77"
+      "status": "unreviewed",
+      "sha256": "051c78be2e73c7dd4b94603845471ddfdaed9ddae7517ae3382c2095022648a5"
     },
     {
       "path": "hub/backend/tools/builtin_values.py",
@@ -701,8 +716,8 @@
     },
     {
       "path": "hub/backend/worker.py",
-      "status": "reviewed",
-      "sha256": "c893d515f88718d4f82ccc0ac03107ed4fd013838ff08eb5a3bdce022d3e5d23"
+      "status": "unreviewed",
+      "sha256": "4b2a6f861ef55bd50d8f1e3d60f090445619413d53274777a683a4665daf183f"
     },
     {
       "path": "hub/components.py",
@@ -773,6 +788,11 @@
       "path": "hub/config/sections.py",
       "status": "reviewed",
       "sha256": "ef5e9a2ec929b974e13359fa583b1d469ffbdd084a474b6ac6a54699fff912b8"
+    },
+    {
+      "path": "hub/config/speech.py",
+      "status": "unreviewed",
+      "sha256": "0bacf0adc593de8b9901a9a1aad275a97a0cb1e427953f88053dde846571d0df"
     },
     {
       "path": "hub/config/store.py",
@@ -857,17 +877,17 @@
     {
       "path": "hub/locales/en.py",
       "status": "unreviewed",
-      "sha256": "e95be9d24e6eeb8544b767534225d77021d6d68f37988fec22e6653456c43b3c"
+      "sha256": "6f0598d85f471816d6ecb8bd11469611ff3db4a56f15e10ffa68fdbf234d4c9b"
     },
     {
       "path": "hub/locales/keys.py",
       "status": "unreviewed",
-      "sha256": "3b791a8107796fea0d7ce8418e5443a5a29e4d1f3951d70a45c759f0bbe5fb9f"
+      "sha256": "ed2c472328c5976aec1525b0b50420ef9aab2c98925334dcf7ec25d08f185f4f"
     },
     {
       "path": "hub/locales/ko.py",
       "status": "unreviewed",
-      "sha256": "f05f3a5ce489e7a3cfeca563139fb9d206426b84f870d319994a66ad9767778d"
+      "sha256": "cbba3841204e0248f694da24fd7e4e995011460a4d8809b6e6348be7e5543625"
     },
     {
       "path": "hub/model.py",
@@ -922,12 +942,17 @@
     {
       "path": "hub/ui/chat/submission_ui.py",
       "status": "unreviewed",
-      "sha256": "129184759177fa1e98c7ff62ff96d2e4b978858e7f2062fbc3a8e90ecb6c3780"
+      "sha256": "143788550574f329f8b605dfbcffb7c34da8c7ae8410efca7784158bfeab12df"
+    },
+    {
+      "path": "hub/ui/chat/terminal.py",
+      "status": "unreviewed",
+      "sha256": "2273422da2adc019be8b78d2bb94e6506feb89ec949e004973e5b17c8375b0eb"
     },
     {
       "path": "hub/ui/dialogs.py",
-      "status": "reviewed",
-      "sha256": "408e97ba0179e4b1feed42e3eae211f5c086e77a81b1081208d28119680f7197"
+      "status": "unreviewed",
+      "sha256": "dfaf40fef7970d9d347a20be48fc51f4e827478783cc5b65eba08520a84b292c"
     },
     {
       "path": "hub/ui/error_presentation.py",
@@ -951,8 +976,8 @@
     },
     {
       "path": "hub/ui/input/commands.py",
-      "status": "reviewed",
-      "sha256": "1e787deae5c7b21d276f1c8baf8bbda43fd4fa4c69655a629918d9787fe643eb"
+      "status": "unreviewed",
+      "sha256": "bb33f435d2fad444fc7f22fe918a2ed6387f1d70cfb05b40decb8119c8574e42"
     },
     {
       "path": "hub/ui/input/context.py",
@@ -966,8 +991,8 @@
     },
     {
       "path": "hub/ui/input/json_document.py",
-      "status": "reviewed",
-      "sha256": "2d3cb85eb8d7ad6a02f20e81da7bed0b83088104cf8345ec1eed719a3adb201e"
+      "status": "unreviewed",
+      "sha256": "4a3cee8912b3bf0fa69458463bfcf654f3bc75435643047d105c940895470459"
     },
     {
       "path": "hub/ui/input/keys.py",
@@ -981,8 +1006,8 @@
     },
     {
       "path": "hub/ui/input/submission.py",
-      "status": "reviewed",
-      "sha256": "f01c4a56e49345592c5e73be14084ed19ea558a5ca576df5584a77a8e60ca696"
+      "status": "unreviewed",
+      "sha256": "09afc820e92ff939c955fec0c5f26a7915c6749d5c159ed8ef89fb65e0650dc7"
     },
     {
       "path": "hub/ui/installation.py",
@@ -1002,7 +1027,7 @@
     {
       "path": "hub/ui/live.py",
       "status": "unreviewed",
-      "sha256": "4341ff326963e557facf0671545505d3802442dfa7eefa34083bac062e417e31"
+      "sha256": "0d9b68240c60efe48830d41e1d3e53969c23db2a764ef78fb718fcbf8fcad9df"
     },
     {
       "path": "hub/ui/message_changes.py",
@@ -1020,9 +1045,14 @@
       "sha256": "3c0a35705661d42115b4951eb08edea23736e5f1151077a73576a50cbb18488c"
     },
     {
+      "path": "hub/ui/output/graphics.py",
+      "status": "unreviewed",
+      "sha256": "1f3aba3cc1f014891fb67b2ec1e65f7d7343f1378d98766af93679b87051f70f"
+    },
+    {
       "path": "hub/ui/output/images.py",
-      "status": "reviewed",
-      "sha256": "2e82258fc852ea09b384ee1b1d5eaafcd2ceb0e1607b8ecc4aecf886eb92b945"
+      "status": "unreviewed",
+      "sha256": "587a021c8504172222726476f0245b3b8567bcb913c1216ec0e592107bdafc93"
     },
     {
       "path": "hub/ui/output/labels.py",
@@ -1155,6 +1185,26 @@
       "sha256": "4017ff62c3796d5a0514c6aa641f27be57da008a09ad8d0779529b37a256cadb"
     },
     {
+      "path": "hub/ui/speech/__init__.py",
+      "status": "unreviewed",
+      "sha256": "fcfc98b260d3709bf899f1a69ed4c96897b948d00b774f6c967233be6466d6e0"
+    },
+    {
+      "path": "hub/ui/speech/controller.py",
+      "status": "unreviewed",
+      "sha256": "d71b220fb496e1df6dc0a785baa14b6dae005d908f7b4445150083eb399ea1b3"
+    },
+    {
+      "path": "hub/ui/speech/devices.py",
+      "status": "unreviewed",
+      "sha256": "ff1325e39eb096f5e4d3d4f180c18fc5c108d601816fd9a5903c361da971280d"
+    },
+    {
+      "path": "hub/ui/speech/session.py",
+      "status": "unreviewed",
+      "sha256": "2d95f2a682be5e79f8952512c13df4490647bbd861b9ec53cd1910fadd045f49"
+    },
+    {
       "path": "hub/ui/submitted.py",
       "status": "reviewed",
       "sha256": "ffae19196132f42e38d1fa3bf479ea143307105b79fbfba5e95a9db932ec1a0c"
@@ -1167,7 +1217,7 @@
     {
       "path": "hub/ui/view.py",
       "status": "unreviewed",
-      "sha256": "995bc289d0bb8e8eb3abcb51d00014f25766ac97e3e08895c253f52c1d7a7045"
+      "sha256": "d7768881373e48b7af53714085427900590f6fbdef81097e3f05beb0fd1f5c11"
     },
     {
       "path": "hub/widget/__init__.py",
@@ -1307,7 +1357,7 @@
     {
       "path": "hub/widget/forms/definition_manager.py",
       "status": "unreviewed",
-      "sha256": "b9e81fcebc3ebebeb12361f8e1b25a929398b6cb8ea68c0722b100c3b668ec50"
+      "sha256": "7c3652800ca6e589bc921e8bfd1669ac61bc77a474f7c50327aeacd2827fbe50"
     },
     {
       "path": "hub/widget/forms/editor_layout.py",
@@ -1395,6 +1445,11 @@
       "sha256": "61f9554786b89951185ae1e4ba850ba928f9dbfe139d665b7308e40071f984e2"
     },
     {
+      "path": "hub/widget/forms/workflow_editor.py",
+      "status": "unreviewed",
+      "sha256": "c00be040cf382401deffa11714ee86ada6f7e142525453e9913e2cc2fe61bab8"
+    },
+    {
       "path": "hub/widget/header.py",
       "status": "reviewed",
       "sha256": "d2d89988a8077faf95671dcd9e067508b52392164f69ab5ba4cbf781bc48da70"
@@ -1438,6 +1493,11 @@
       "path": "hub/widget/output/engine.py",
       "status": "reviewed",
       "sha256": "814a25c0c6cbe96fe7ae91089764261606a08482a100f06737807eef29ce4470"
+    },
+    {
+      "path": "hub/widget/output/image_inspector.py",
+      "status": "unreviewed",
+      "sha256": "5b1bdaea000913b7dffa8bd78b1f5f2831fb31fc462e25065570faa92e5f6f16"
     },
     {
       "path": "hub/widget/output/loop.py",
@@ -1542,7 +1602,7 @@
     {
       "path": "hub/widget/transcript/conversation.py",
       "status": "unreviewed",
-      "sha256": "f7b1a05a300382297c1caf0ad750bcc4d0dc89c26586f02534c903a85d2ad4ba"
+      "sha256": "ba51bd278e6acb2320e032d3e9929123ffed13e5c43738031cc200f9db072dfb"
     },
     {
       "path": "hub/widget/transcript/identity.py",
@@ -2277,7 +2337,7 @@
     {
       "path": "llm/components/tools/builtin/README.md",
       "status": "unreviewed",
-      "sha256": "44d703cb2b68a0f981fd6f29e74925dbf3d4f613505b362399858d9ee8b7a816"
+      "sha256": "17f238fcca4fe6cf6a8d7687fff38ef29df4b9103e153a2f4278687646e7744e"
     },
     {
       "path": "llm/components/tools/builtin/__init__.py",
@@ -2307,7 +2367,7 @@
     {
       "path": "llm/components/tools/builtin/component.py",
       "status": "unreviewed",
-      "sha256": "d7e800ac6432cfb5115df1af727a25d3cafbcdf050c74636c2e6cb8880a791d4"
+      "sha256": "c064b9e08b978fb472972f7c7fd186e09453d485e1dab910c8c925ee59e9d79b"
     },
     {
       "path": "llm/components/tools/builtin/diagnostic_values.py",
@@ -2337,7 +2397,7 @@
     {
       "path": "llm/components/tools/builtin/output.py",
       "status": "unreviewed",
-      "sha256": "87f023f1dfc66a6eda235ea06303a12efdeca1a65b9a125dcbc9fa3144fd0602"
+      "sha256": "0ba1105cda9bcc41ef6476cacae3c4a52a50f4ff2f66b9f0113c708b8e84ac93"
     },
     {
       "path": "llm/components/tools/builtin/path_access.py",
@@ -2357,7 +2417,7 @@
     {
       "path": "llm/components/tools/builtin/processes.py",
       "status": "unreviewed",
-      "sha256": "6eea685842fb8b9a6a54d30f50ad6be0cc601b46f73eb0584ae44a1cdfdadb8a"
+      "sha256": "ebff49dcad10c1b42e5268a616b31f043dddd051eec96efd2a23c79544704599"
     },
     {
       "path": "llm/components/tools/builtin/workspace_records.py",
@@ -2511,13 +2571,13 @@
     },
     {
       "path": "llm/components/workflows/README.md",
-      "status": "reviewed",
-      "sha256": "bbbb7422b8a0da7aabb68ab34bc7e8d6f7232dd458e0d86664570b647296f7cc"
+      "status": "unreviewed",
+      "sha256": "73487d7789955650483de72b6e937bcfa3f2123bd5e09e3443394cc81aed7738"
     },
     {
       "path": "llm/components/workflows/__init__.py",
-      "status": "reviewed",
-      "sha256": "b758ac966a6b92fb67f395b7dc522fcaac76e7a7af1565ece7b85ba063e74702"
+      "status": "unreviewed",
+      "sha256": "11316cf114e32792fbba8d1aa8bfc2c80f5488a60533de68a0ede342b534e72e"
     },
     {
       "path": "llm/components/workflows/bindings.py",
@@ -2536,13 +2596,18 @@
     },
     {
       "path": "llm/components/workflows/data.py",
-      "status": "reviewed",
-      "sha256": "7254a9fa801565ed05d44be52dcf1e8d9802e373f5144bf2d2d0c7e434327c73"
+      "status": "unreviewed",
+      "sha256": "cbfa13b488860f669160822603dc6d860fdc31fd3b01ada2ad54c79bcb431b18"
     },
     {
       "path": "llm/components/workflows/graph.py",
-      "status": "reviewed",
-      "sha256": "dbe89ad594c9407b52682fd4cc219922718512303d013750d28abf4ef841519a"
+      "status": "unreviewed",
+      "sha256": "bd071c281a8b2333490e48a20d7677a9d82b879e0f3a11bc863659dccaa86861"
+    },
+    {
+      "path": "llm/components/workflows/inspection.py",
+      "status": "unreviewed",
+      "sha256": "35f3782660de8f8fc16bca8b806b5435eb9623fffdc5436ac9b966e2b6b9c266"
     },
     {
       "path": "llm/components/workflows/references.py",
@@ -2721,8 +2786,8 @@
     },
     {
       "path": "llm/core/steering_events.py",
-      "status": "reviewed",
-      "sha256": "e1fb1ae67fc4b3e6e8919a2f2bfc1a1e343c781d5e28e8403ff880199bf60347"
+      "status": "unreviewed",
+      "sha256": "c81ec45715806c94feee836547880e88573553fcb7e5666c40bd3d0d7a417c2f"
     },
     {
       "path": "llm/core/step_event_metadata.py",
@@ -2811,13 +2876,13 @@
     },
     {
       "path": "llm/engines/agents.py",
-      "status": "reviewed",
-      "sha256": "948155862b52ed925d7e30b6aded8d774c101914df06bb5143fdd5c069f6cc0d"
+      "status": "unreviewed",
+      "sha256": "6cf7076ecbb42d450aee0c3811cd01129ab0cbcdfb927264d440dfd699513280"
     },
     {
       "path": "llm/engines/base.py",
-      "status": "reviewed",
-      "sha256": "89fff0083922fcefebae1d91615f65f06558a9c77565345c6404bea969e6117d"
+      "status": "unreviewed",
+      "sha256": "e08204919de6b359d01855eab242686794874daa28271a3e61f82774ea7397fa"
     },
     {
       "path": "llm/engines/completion_state.py",
@@ -2911,8 +2976,8 @@
     },
     {
       "path": "llm/engines/graph/tool.py",
-      "status": "reviewed",
-      "sha256": "7dfb7768e4bf8156da518f814c2d797e931c56d7a9eeb9dec8c63311c9f42b93"
+      "status": "unreviewed",
+      "sha256": "669bc6ffbba881b9d0b3f688f0e6bb49bd5999f0adcfd3c64afbde8351e94ae3"
     },
     {
       "path": "llm/engines/graph/tool_definition.py",
@@ -2941,13 +3006,13 @@
     },
     {
       "path": "llm/engines/loop/engine.py",
-      "status": "reviewed",
-      "sha256": "5e1e15d350c64c3977317cc20070d08e0889ecf5c69eab5b85a0e0ac7e03985f"
+      "status": "unreviewed",
+      "sha256": "7f323510472a82061e8c7dfab86b3dc71d2dc132b313e4d51091ee2e138afff2"
     },
     {
       "path": "llm/engines/loop/records.py",
-      "status": "reviewed",
-      "sha256": "7a46d0b7f764d08f71ac340aa8d4c9f208c49ef3c3acf3f0e29c1966ade57406"
+      "status": "unreviewed",
+      "sha256": "bdaeb627471ff08dd3e2c38c1a8d5c203f2b834824a683b5a295beabfbe47225"
     },
     {
       "path": "llm/engines/loop/review.py",
@@ -3001,13 +3066,18 @@
     },
     {
       "path": "llm/providers/README.md",
-      "status": "reviewed",
-      "sha256": "b55843bf93df9171d221e0e7bd189fadf5938e849b2902c08652841ae60ce62c"
+      "status": "unreviewed",
+      "sha256": "6e5288c15cb4647cf58b7792cec66e93b5d49586c1ebe8905469cb2e8534a50c"
     },
     {
       "path": "llm/providers/__init__.py",
       "status": "reviewed",
       "sha256": "89eebb9b222acd71e7334a56f1254ed98fac37ba69babd8524751361aea8f86f"
+    },
+    {
+      "path": "llm/providers/audio.py",
+      "status": "unreviewed",
+      "sha256": "841cc344ea71814b5a95ff5ed73f91590a76502b82f376556f6460b25b602900"
     },
     {
       "path": "llm/providers/calls.py",
@@ -3038,6 +3108,11 @@
       "path": "llm/providers/litellm.py",
       "status": "reviewed",
       "sha256": "1fac59ff66d5d4dec27e05678076aa41ebd0dc3b9c448262b61136053a85b502"
+    },
+    {
+      "path": "llm/providers/local_speech.py",
+      "status": "unreviewed",
+      "sha256": "6efea101c43271664798dcf3a53f2a6dacf1c1888dd1da861bc5ea0a7f85499b"
     },
     {
       "path": "llm/providers/mcp.py",
@@ -3091,13 +3166,18 @@
     },
     {
       "path": "llm/providers/runtime_values.py",
-      "status": "reviewed",
-      "sha256": "c4e900bfe90ce8141b08a836ffec32528d3167986222946f9d94b2f79944f3cc"
+      "status": "unreviewed",
+      "sha256": "83e9f7a621b237d4e9fd5a42af996a63ec52c4582c3a6a106d39175ba6131353"
     },
     {
       "path": "llm/providers/schema.py",
       "status": "reviewed",
       "sha256": "c7f0d9619b99123fa63504c2bd1aa292bd0de439bc934f3dc9ccd360ed3b8cf4"
+    },
+    {
+      "path": "llm/providers/server_speech.py",
+      "status": "unreviewed",
+      "sha256": "e6e2427ace1e0d4290fafcea1daca8bf5915a86c2b362754f80e8f549cff7ddd"
     },
     {
       "path": "llm/providers/stream_records.py",
@@ -3131,8 +3211,8 @@
     },
     {
       "path": "llm/services/api.py",
-      "status": "reviewed",
-      "sha256": "b00f73be87fa2616cefe1bb2215960ea6054c7b1f4711a04c8b8948c592df3ba"
+      "status": "unreviewed",
+      "sha256": "05005c054f79f9fdcf64f906332e677e6b3d8e7ea91d1ad65d6e431140d21e8d"
     },
     {
       "path": "llm/services/command_line.py",
@@ -3415,6 +3495,11 @@
       "sha256": "a3802bef0479d0bc07f006bb2315c5908a2ef83d79e3726311fa6f5a06a6b611"
     },
     {
+      "path": "llm/services/runtime/client_inputs.py",
+      "status": "unreviewed",
+      "sha256": "97ef3b40b90d361c56702de630ff53d7dc9a141f044ba6e587bd43401564b928"
+    },
+    {
       "path": "llm/services/runtime/events.py",
       "status": "reviewed",
       "sha256": "cb2c5c743ae5ae80f02aa1b523c59d3b00861147f99ae8c44deeb6830769891b"
@@ -3471,13 +3556,13 @@
     },
     {
       "path": "llm/services/runtime/runs.py",
-      "status": "reviewed",
-      "sha256": "e43a4a40eda3c260bab1e34a57f137519714b6fb39bfc64cc9a93f6a6d0a1b09"
+      "status": "unreviewed",
+      "sha256": "1a0184116495e4464bbc4e5b59514e33b742ff8ab17ec31280b9d37be3e27829"
     },
     {
       "path": "llm/services/runtime/steering.py",
-      "status": "reviewed",
-      "sha256": "f74d2643f9aacc7afa3947bf2aebec3c418590a2a10787aa3039d60af7243337"
+      "status": "unreviewed",
+      "sha256": "82606533e0191437100a3fc236761bed714e9a3cefea8192276547f6f9bce3c7"
     },
     {
       "path": "llm/services/runtime/subscription_state.py",

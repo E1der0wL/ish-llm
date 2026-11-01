@@ -83,6 +83,10 @@ class ProviderLogging:
         "httpx",
         "httpcore",
         "dotenv",
+        "openai",
+        "websockets",
+        "faster_whisper",
+        "piper",
         "py.warnings",
         LOGGER,
     )

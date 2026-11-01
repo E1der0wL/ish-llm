@@ -34,6 +34,8 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
             ("/clone Copy", "session_dialog", ("clone", "Copy")),
             ("/stop", "on_interrupt", ("session",)),
             ("/details", "toggle_details", ()),
+            ("/voice", "on_voice", ("",)),
+            ("/terminal", "on_terminal", ()),
         )
         self.assertEqual([item.text for item in suggestions], [text.split()[0] for text, _, _ in cases])
         for suggestion, (text, method, arguments) in zip(suggestions, cases):

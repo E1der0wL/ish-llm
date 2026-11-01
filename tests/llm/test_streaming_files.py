@@ -379,6 +379,56 @@ class StreamingFileTests(unittest.IsolatedAsyncioTestCase):
 
 
 class StoredOutputTests(unittest.IsolatedAsyncioTestCase):
+    async def test_public_process_observation_is_scoped_and_survives_restart_without_execution(self):
+        from llm.llm import LargeLanguageModel, DataComponent
+        from llm.components.tools.builtin import BuiltinToolComponent
+        from llm.components.tools import ToolRegistry
+
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            marker = root / 'effects.txt'
+            async with BuiltinTools(root, allow_commands=True, shell=['/bin/sh', '-c']) as toolkit:
+                component = BuiltinToolComponent(toolkit, name='builtin')
+                async with LargeLanguageModel(root / 'backend', components=[DataComponent(), component]) as app:
+                    project = await app.projects.acreate(components=['data', 'builtin'])
+                    identifier = project.id
+                    data, builtin = project.components['data'], project.components['builtin']
+                    await data.acreate({}, identifier='results')
+                    await builtin.aconfigure({'config': {'enabled': ['process_start', 'process_output'],
+                        'output': {'component': 'data', 'identifier': 'results'}},
+                        'policy': {'output_preview_chars': 1}})
+                    registry = component.resolve_runtime(project.data, ToolRegistry.CAPABILITY,
+                        data_factory=lambda name: project.components[name])
+                    tool, args = registry.prepare('process_start', {'argv': [sys.executable, '-c',
+                        "from pathlib import Path; import sys; Path(sys.argv[1]).write_text('once'); print('한글AB')", str(marker)]})
+                    result = await tool.handler(args)
+                    process_id = result['process_id']
+                    await toolkit.processes.sessions[process_id].task
+                    observations = await builtin.alist_processes()
+                    self.assertEqual(observations[process_id].source, 'runtime')
+                    self.assertEqual(observations[process_id].record.returncode, 0)
+                    first = await builtin.aread_process(process_id, stdout_offset=0, stderr_offset=0, max_chars=2)
+                    self.assertEqual(first['stdout'], '한글')
+                    self.assertEqual(first['next_stdout_offset'], 2)
+                    other = await app.projects.acreate(components=['data', 'builtin'])
+                    await other.components['data'].acreate({}, identifier='results')
+                    await other.components['builtin'].aconfigure(await builtin.aget_config())
+                    self.assertNotIn(process_id, await other.components['builtin'].alist_processes())
+                    with self.assertRaises(ValueError):
+                        await other.components['builtin'].aread_process(process_id,
+                            stdout_offset=0, stderr_offset=0, max_chars=2)
+            async with BuiltinTools(root, allow_commands=True, shell=['/bin/sh', '-c']) as toolkit:
+                component = BuiltinToolComponent(toolkit, name='builtin')
+                async with LargeLanguageModel(root / 'backend', components=[DataComponent(), component]) as app:
+                    project = await app.projects.aload(identifier)
+                    builtin = project.components['builtin']
+                    observations = await builtin.alist_processes()
+                    self.assertEqual(observations[process_id].source, 'retained')
+                    rest = await builtin.aread_process(process_id, stdout_offset=2, stderr_offset=0, max_chars=3)
+                    self.assertEqual(rest['stdout'], 'AB\n')
+                    self.assertEqual(toolkit.processes.sessions, {})
+                    self.assertEqual(marker.read_text(), 'once')
+
     async def test_cancel_retains_partial_output_and_publication_failure_rolls_back(self):
         from llm.llm import LargeLanguageModel, DataComponent
         from llm.components.tools.builtin import BuiltinToolComponent

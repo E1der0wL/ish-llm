@@ -3,6 +3,7 @@
 from hub.locales.keys import MessageKey
 
 from dataclasses import dataclass
+from llm.core.configuration import UNSET
 
 
 @dataclass(slots=True)
@@ -13,6 +14,7 @@ class SubmittedDraft:
     project_id: str
     session_id: str
     text: str
+    request_key: object = UNSET
 
     def is_current(self, view):
         return (view.project_id, view.sessions[view.selected].id) == (

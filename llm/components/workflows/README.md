@@ -1,5 +1,10 @@
 # Workflows — 실행 그래프 정의 저장
 
+`ComponentData.inspect()/ainspect()`는 저장 전 초안을 선택된 handler 선언과 참조 snapshot으로
+검사한다. `WorkflowInspection`은 오류 위치·참조 revision·미검증 범위를 반환한다.
+Run 생성/Tool 준비·실행/Provider 호출은 하지 않는다. 성공은 실행 허가가 아니며 저장 CAS와
+실행·재개 검사는 유지한다. [공개 계약](../../../docs/llm/interactive-contracts.md#실행-없는-workflow-초안-검증)을 참고한다.
+
 UI가 조립한 노드·간선·입출력 mapping을 JSON으로 저장하고 구조를 검증합니다. 이 폴더의 WorkflowGraph는 데이터 빌더이며 실제 실행기는 GraphEngine입니다.
 
 ## 파일 안내

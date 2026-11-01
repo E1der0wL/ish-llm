@@ -71,6 +71,9 @@ class LoopToolRecord(LoopCheckpointRecord):
     RUN_ID = "run_id"
     PROMPT = "prompt"
     ERROR = "error"
+    DEFERRED_BY = "deferred_by"
+    DEFERRED_BOUNDARY = "deferred_boundary"
+    NOT_EXECUTED = "not_executed"
     KEY_TEMPLATE = "tool:{iteration}:{call_id}"
     PAUSE_TOOL_KEY = "tool_key"
 
@@ -113,6 +116,31 @@ class LoopToolRecord(LoopCheckpointRecord):
     @classmethod
     def not_applied(cls, status, error):
         return {cls.STATUS: status, cls.ERROR: error}
+
+    @classmethod
+    def deferred(cls, *, name, arguments, boundary, instructions):
+        from llm.core.checkpoints import CheckpointStatus
+        if not instructions:
+            raise ValueError('Deferred Tools require selected instructions')
+        return {cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.NAME: name,
+                cls.ARGUMENTS: arguments, cls.DEFERRED_BOUNDARY: boundary,
+                cls.DEFERRED_BY: list(instructions)}
+
+    def deferred_content(self, *, name, arguments, boundary, instructions):
+        expected = self.deferred(name=name, arguments=arguments, boundary=boundary, instructions=instructions)
+        # The checkpoint owner adds scope/usage envelopes. Compare only the Loop
+        # deferral payload; common metadata remains validated by its own owner.
+        if any(key not in self._value or self._value[key] != value for key, value in expected.items()):
+            raise ValueError('Deferred Tool identity or instruction selection changed')
+        return json.dumps({'status': self.NOT_EXECUTED, 'reason': 'superseded_by_instruction',
+                           'instruction_ids': list(instructions)}, ensure_ascii=False)
+
+    @property
+    def is_deferred(self):
+        from llm.core.checkpoints import CheckpointStatus
+        # The existing no-effect failure record owns ERROR; deferral is a separate
+        # no-execution record. Missing evidence must not turn into a fresh effect.
+        return self.optional_status == CheckpointStatus.NOT_APPLIED and self.ERROR not in self._value
 
     @classmethod
     def completed(cls, status, result, step_id, run_id):

@@ -897,10 +897,46 @@ class LoopEngine(BaseEngine):
                 yield self.output_event(context, EngineOutput(text=response.message.text))
                 return
             messages.append(CompletionMessage(response.message))
-            for call, (tool, arguments) in zip(calls, prepared):
+            for call_index, (call, (tool, arguments)) in enumerate(zip(calls, prepared)):
                 seen_call_ids.add(call.id)
                 key = LoopToolRecord.key(iteration, call.id)
                 stored = records.get(key, {})
+                # Only a not-yet-started invocation may be displaced by a new
+                # instruction. Completed/uncertain/approval records retain their
+                # existing effect and resume rules.
+                if (inbox is not BaseEngine.ABSENT and not inbox.closed and call_index > 0
+                    and LoopCheckpointRecord(stored).optional_status not in
+                        (CheckpointStatus.COMPLETED, CheckpointStatus.STARTED, CheckpointStatus.WAITING)):
+                    boundary = LoopInstructionBoundary.key(iteration + LoopIterationRecord.ITERATION_INCREMENT)
+                    if boundary not in records:
+                        allowed = self.max_iterations is BaseEngine.ABSENT or iteration < self.max_iterations
+                        async with aclosing(self.select_instructions(
+                            context, checkpoint=self.checkpoint_name, boundary=boundary,
+                            final=BaseEngine.INTERMEDIATE_BOUNDARY, allow_continue=allowed, only_pending=True,
+                            reason=BaseEngine.ABSENT if allowed else LoopInstructionBoundary.ITERATION_LIMIT,
+                        )) as events:
+                            async for event in events:
+                                yield event
+                        following = [message.id for message in inbox.messages]
+                        # Do not freeze an empty selection: instructions may arrive
+                        # during the next Tool. A nonempty selection is durable.
+                        if following:
+                            records[boundary] = InstructionCheckpoint.create(inbox.scope, following).to_dict()
+                    else:
+                        following = InstructionCheckpoint.read(records[boundary]).message_ids
+                    if following:
+                        if not stored or not LoopToolRecord(stored).is_deferred:
+                            stored = LoopToolRecord.deferred(name=tool.name, arguments=arguments,
+                                boundary=boundary, instructions=following)
+                            yield self._record(key, stored)
+                            records[key] = stored
+                        content = LoopToolRecord(stored).deferred_content(name=tool.name, arguments=arguments,
+                            boundary=boundary, instructions=following)
+                        messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
+                            result=ToolResult(call.id, content, tool.name))))
+                        continue
+                    if LoopToolRecord(stored).is_deferred:
+                        raise ValueError('Deferred Tool lost its selected instructions')
                 result = deepcopy(LoopToolRecord(stored).result_or_empty)
                 result_ref = (
                     ResourceRef(

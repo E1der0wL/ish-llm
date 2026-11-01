@@ -43,6 +43,10 @@ class BuiltinToolComponent(Component):
         schema["properties"]["output_preview_chars"] = {"type": "integer", "minimum": 0}
         return self.parameter_layout.schema(schema)
 
+    def get_observers(self, project):
+        """Selected Host implementations supply existing process observation sources."""
+        return (self.toolkit.processes,)
+
     def validate_config(self, value):
         super().validate_config(value)
         options = self.parameter_layout.unpack(value)

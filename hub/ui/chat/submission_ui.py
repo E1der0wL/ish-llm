@@ -14,14 +14,17 @@ from ..input.keys import KeyName, ShortcutAction, ShortcutLabel
 class RunningSubmission:
     STEER = 'steer'
     FOLLOW_UP = 'follow_up'
+    RESERVE = 'reserve'
 
     def __init__(self, controller, session_id, text, recipients, options, draft):
         self.controller, self.view = controller, controller.view
         self.session_id, self.text = session_id, text
         self.recipients, self.options, self.draft = recipients, options, draft
         self.busy = self.selecting_run = False
+        self.reserving = False
         self.choices = self._choices([
             (self.STEER, self.view.t(MessageKey.SEND_STEERING)),
+            (self.RESERVE, self.view.t(MessageKey.SEND_INSTRUCTION_RESERVATION)),
             (self.FOLLOW_UP, self.view.t(MessageKey.SEND_FOLLOW_UP)),
         ], default=self.FOLLOW_UP)
         self.popup = Dialog(
@@ -44,7 +47,8 @@ class RunningSubmission:
 
     def _steer(self, run_id):
         self.view.dialogs.close(accepted=True)
-        self.controller.steer(self.session_id, self.text, expected_run_id=run_id, draft=self.draft)
+        options = {'reserve': True} if self.reserving else {}
+        self.controller.steer(self.session_id, self.text, expected_run_id=run_id, draft=self.draft, **options)
 
     def accept(self):
         if self.busy or self.view._dialog is not self.popup:
@@ -60,6 +64,7 @@ class RunningSubmission:
                                   self.text, self.recipients, self.options, False, draft=self.draft,
                                   recipients=self.recipients)
         else:
+            self.reserving = self.choices.current_value == self.RESERVE
             self.busy = True
             self.controller._call(HubRuntime.running_recipients.__name__, self.session_id,
                                   self.recipients, completed=self._runs_ready)

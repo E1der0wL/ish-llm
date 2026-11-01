@@ -721,7 +721,14 @@ class HubRuntime:
         progress=ABSENT
     ):
         from .project.record_management import RecordManagement
+        from .project.management_values import ManagementAction
+        from llm.components.workflows import WorkflowComponent
         from .progress import OperationProgress
+
+        if name == WorkflowComponent.name and action == ManagementAction.DESCRIBE:
+            return await self.workflow_catalog(project_id)
+        if name == WorkflowComponent.name and action == ManagementAction.INSPECT:
+            return await self.inspect_workflow(project_id, argument['definition'], argument['engine'])
 
         OperationProgress.report(OperationProgress.management(action))
         project = await self.backend.projects.aload(project_id)
@@ -737,16 +744,44 @@ class HubRuntime:
         finally:
             self.snapshot_reader.invalidate_project()
 
+    async def inspect_workflow(self, project_id: str, definition: dict, engine_name: str):
+        """Use only the explicitly selected Engine's public handler declarations."""
+        from llm.components.workflows.graph import WorkflowHandlerContract
+        from llm.components.workflows import WorkflowComponent
+        project = await self.backend.projects.aload(project_id)
+        from .execution.environment import underlying_engine
+        engine = underlying_engine(self.backend.engines.get(engine_name))
+        declare = WorkflowHandlerContract.declaration(engine)
+        if declare is None:
+            raise ValueError('Selected Engine does not expose Workflow handlers')
+        data = await project.components.aget(WorkflowComponent.name)
+        report = await data.ainspect(definition, handlers=declare(),
+                                     declared_tools=self.builtin_tools.toolkit.registry if self.builtin_tools else None)
+        return {'valid': report.valid, **report.to_dict()}
+
+    async def workflow_catalog(self, project_id: str):
+        from .execution.environment import underlying_engine
+        from llm.components.workflows.graph import WorkflowHandlerContract, workflow_schema, COMMON_NODE_FIELDS
+        await self.backend.projects.aload(project_id)
+        environments = {}
+        for name in self.backend.engines.names():
+            declare = WorkflowHandlerContract.declaration(underlying_engine(self.backend.engines.get(name)))
+            if declare is not None:
+                environments[name] = {kind: WorkflowHandlerContract.describe_snapshot(handler)
+                                      for kind, handler in declare().items()}
+        return {'schema': workflow_schema(), 'engines': environments, 'common_fields': sorted(COMMON_NODE_FIELDS)}
+
     async def submit(
         self,
         session_id: str,
         text: str,
         agent_id: str | Sequence[str] | None = ABSENT,
         request_context=UNSET,
+        request_key=UNSET,
     ) -> str:
         selected = self.config.agent_id if agent_id is HubRuntime.ABSENT else agent_id
         recipients = [selected] if isinstance(selected, str) else list(selected)
-        return await self._submit_recipients(session_id, text, recipients, request_context)
+        return await self._submit_recipients(session_id, text, recipients, request_context, request_key)
 
     async def invite_agent(self, project_id, session_id, agent_id):
         from .project.participants import invite
@@ -756,7 +791,7 @@ class HubRuntime:
         from .project.participants import change
         return await change(self, project_id, session_id, action, identifier, value)
 
-    async def _submit_recipients(self, session_id, text, recipients, request_context):
+    async def _submit_recipients(self, session_id, text, recipients, request_context, request_key=UNSET):
         """Application-selected recipients share one durable Backend admission."""
         if not text.strip():
             raise ValueError(self.t(MessageKey.EMPTY_MESSAGE))
@@ -780,7 +815,8 @@ class HubRuntime:
         from .execution.request_profile import RequestProfile
         request = await session.run.submit(
             text, recipients=recipients,
-            request_context=RequestProfile.for_engines(text, request_context, engines)
+            request_context=RequestProfile.for_engines(text, request_context, engines),
+            **({} if request_key is UNSET else {'request_key': request_key})
         )
         # QUEUED admission changes the conversation/queue, not the Run list.
         # A persisted lifecycle event invalidates that list when dispatch occurs.
@@ -795,16 +831,19 @@ class HubRuntime:
         agent_id: str | Sequence[str],
         request_context=UNSET,
         check_running: bool = CHECK_RUNNING,
+        request_key=UNSET,
     ) -> SubmissionResult:
         """Check and admit in one UI command; acknowledge only persisted input."""
         from datetime import datetime, timezone
 
         timestamp = datetime.now(timezone.utc).isoformat()
-        if check_running:
+        receipt = (await self.get_input_receipt(session_id, request_key)
+                   if request_key is not UNSET else None)
+        if check_running and receipt is None:
             state = await self.submission_state(session_id, agent_id)
             if SubmissionResult.state_run_id(state):
                 return SubmissionResult(run_id=SubmissionResult.state_run_id(state))
-        identifier = await self.submit(session_id, text, agent_id, request_context)
+        identifier = await self.submit(session_id, text, agent_id, request_context, request_key)
         self.snapshot_reader.record_submission(identifier, timestamp)
         # No extra reads after admission: a later read failure must not make a
         # durable request look rejected. The next snapshot supplies exact state.
@@ -843,8 +882,19 @@ class HubRuntime:
     async def instruction_targets(
         self, session_id: str, run_id: str | None = ABSENT
     ) -> tuple[str, tuple[tuple[str, str], ...]]:
+        run = await self._instruction_run(session_id, run_id)
+        targets = tuple(
+            (target.id, target.node_path or target.node_id or target.engine)
+            for target in await run.ainstruction_targets()
+            if target.accepting and str(target.mode) == SteeringMode.CONSUME.value
+        )
+        if not targets:
+            raise ValueError(self.t(MessageKey.NO_TARGETS))
+        return run.id, targets
+
+    async def _instruction_run(self, session_id, run_id):
         session = self.sessions[session_id]
-        status = await session.run.astatus()
+        status = await session.run.astatus(queued_limit=self.NO_QUEUED_IDS)
         selected = next(
             (
                 run
@@ -859,15 +909,47 @@ class HubRuntime:
         )
         if selected is HubRuntime.ABSENT:
             raise ValueError(self.t(MessageKey.NO_ACTIVE_RUN))
-        run = await session.run.aload(selected.run_id)
-        targets = tuple(
-            (target.id, target.node_path or target.node_id or target.engine)
-            for target in await run.ainstruction_targets()
-            if target.accepting and str(target.mode) == SteeringMode.CONSUME.value
-        )
-        if not targets:
-            raise ValueError(self.t(MessageKey.NO_TARGETS))
-        return selected.run_id, targets
+        return await session.run.aload(selected.run_id)
+
+    async def instruction_routes(self, session_id: str, run_id: str):
+        """Expose backend-owned structural keys, never reconstruct paths from labels."""
+        run = await self._instruction_run(session_id, run_id)
+        routes = await run.ainstruction_routes()
+        if not routes:
+            raise ValueError(self.t(MessageKey.NO_INSTRUCTION_ROUTES))
+        return run.id, tuple((route.key, ' / '.join((*route.workflow_path, route.node_id)))
+                             for route in routes)
+
+    async def get_input_receipt(self, session_id: str, request_key: str):
+        return await self.sessions[session_id].run.get_receipt(request_key)
+
+    async def get_speech_resources(self):
+        """Share Host admission and its explicit diagnostic choice with audio."""
+        return {'calls': self.backend.provider_calls,
+                'diagnostics': self.backend.services.provider_diagnostics}
+
+    async def terminal_catalog(self, session_id):
+        from .terminal import catalog
+        return await catalog(self, session_id)
+
+    async def terminal_steps(self, session_id, run_id):
+        from .terminal import steps
+        return await steps(self, session_id, run_id)
+
+    async def terminal_page(self, session_id, target, offsets, limit):
+        from .terminal import page
+        return await page(self, session_id, target, offsets, limit)
+
+    async def reserve_instruction(self, session_id: str, run_id: str, text: str, targets: list[str], request_key=UNSET) -> str:
+        run = await self._instruction_run(session_id, run_id)
+        routes = {route.key: route for route in await run.ainstruction_routes()}
+        if not targets or len(set(targets)) != len(targets) or any(key not in routes for key in targets):
+            raise ValueError(self.t(MessageKey.NO_INSTRUCTION_ROUTES))
+        receipt = await self.sessions[session_id].run.reserve_instruction(
+            run_id, text, targets=[routes[key] for key in targets],
+            **({} if request_key is UNSET else {'request_key': request_key}))
+        self.dirty.set()
+        return receipt.id
 
     async def running_recipients(
         self, session_id: str, recipients: Sequence[str]
@@ -878,10 +960,11 @@ class HubRuntime:
                      if run.agent_id in recipients)
 
     async def steer(
-        self, session_id: str, run_id: str, text: str, targets: list[str]
+        self, session_id: str, run_id: str, text: str, targets: list[str], request_key=UNSET
     ) -> str:
         result = await self.sessions[session_id].run.steer(
-            run_id, text, targets=targets
+            run_id, text, targets=targets,
+            **({} if request_key is UNSET else {'request_key': request_key})
         )
         self.dirty.set()
         return result.id

@@ -1,6 +1,7 @@
 """Builtin-owned completed output references; file bytes remain with the selected Component."""
 
 from copy import deepcopy
+from dataclasses import dataclass
 from pathlib import Path
 import tempfile
 
@@ -14,7 +15,59 @@ from llm.services.lifecycle.components import ComponentData
 from .process_values import ProcessOutput, ProcessSnapshot, StoredOutput, OutputReference
 
 
+@dataclass(frozen=True, slots=True)
+class ProcessObservation:
+    """Origin is observation provenance, never permission to restart a command."""
+    source: str
+    record: StoredOutput
+
+    def __post_init__(self):
+        if self.source not in {'runtime', 'retained'} or not isinstance(self.record, StoredOutput):
+            raise ValueError('Invalid process observation')
+
+    def to_dict(self):
+        return {'source': self.source, 'record': self.record.to_dict()}
+
+
 class BuiltinOutputData(ComponentData):
+    @workspace_locked
+    def _process_binding(self):
+        project, component = self._current()
+        options = component._options(project)
+        if 'output' not in options:
+            raise ValueError('Process observation requires an explicitly configured output destination')
+        return component.get_observers(project), ProcessOutputStore(self, options['output'], options['output_preview_chars'])
+
+    async def alist_processes(self):
+        """List Project-owned live observations and retained output after restart."""
+        from .capture import output_scope
+
+        observers, store = await self._async_call(self._process_binding)
+        records = {identifier: ProcessObservation('retained', StoredOutput(**record))
+                   for identifier, record in (await self.alist()).items()}
+        with output_scope(store):
+            for processes in observers:
+                records.update({identifier: ProcessObservation('runtime', StoredOutput(**record))
+                                for identifier, record in (await processes.observe()).items()})
+        return records
+
+    async def aread_process(self, identifier, *, stdout_offset, stderr_offset, max_chars):
+        """Read character ranges without spawning, writing stdin or reviving a PID."""
+        from .capture import output_scope
+        from .process_values import ProcessOutputArguments
+
+        from jsonschema import Draft202012Validator
+
+        arguments = {'process_id': identifier, 'stdout_offset': stdout_offset,
+                     'stderr_offset': stderr_offset, 'max_chars': max_chars}
+        Draft202012Validator(ProcessOutputArguments.schema()).validate(arguments)
+        observers, store = await self._async_call(self._process_binding)
+        with output_scope(store):
+            for processes in observers:
+                if processes.contains(identifier):
+                    return await processes.output(arguments)
+            return await store.read(ProcessOutputArguments.read(arguments))
+
     def create(self, data, *, identifier=ComponentData.UNSPECIFIED):
         raise ValueError("Process output records are published by the execution owner")
 

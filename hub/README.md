@@ -1,5 +1,11 @@
 # 현행 리팩터링 브랜치 안내
 
+Workflow 편집·실행 없는 검사, 실행 중 Graph 노드 예약, `/terminal` 관측·리뷰,
+확장 이미지 팝업의 ASCII/native 선택과 `/voice` 설정은
+[기능 연결 안내](../docs/hub/interactive-features.md)에 정리했습니다.
+음성은 비활성 상태로 시작하며 로컬 설치 모델/음성 서버와 장치·버퍼를 명시해야 합니다.
+실제 장치·Provider·터미널 검증 범위는 모의 회귀와 구분합니다.
+
 `refactor/llm-clean`의 실행·저장 계약은 [현재 설계](../docs/llm/clean-refactor.md)와
 [계약 소유권](../docs/llm/contract-ownership.md)을 기준으로 합니다. 아래 main 사용법은 해당
 시점의 참고 자료이며 현재 브랜치의 API·저장 형식·검증 완료 증거로 승계하지 않습니다.

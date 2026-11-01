@@ -1,0 +1,20 @@
+{
+  "input": {
+    "implementation": "realtime-server",
+    "config": {
+      "url": "wss://speech.example.internal/v1/realtime",
+      "transcription": {"model": "YOUR_TRANSCRIPTION_MODEL"},
+      "connection_options": {"additional_headers": {"Authorization": "Bearer YOUR_KEY"}}
+    }
+  },
+  "output": {
+    "implementation": "speech-server",
+    "config": {
+      "client_options": {"base_url": "https://speech.example.internal/v1", "api_key": "YOUR_KEY"},
+      "speech": {"model": "YOUR_SPEECH_MODEL", "voice": "YOUR_VOICE"}
+    }
+  },
+  "capture": {"device": null, "block_frames": 2400, "queue_size": 8},
+  "playback": {"device": null, "block_frames": 2400, "queue_size": 8},
+  "interaction": {"submit": "confirm", "read_responses": true, "text_chunk_chars": 160}
+}

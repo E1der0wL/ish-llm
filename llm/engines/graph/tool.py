@@ -47,6 +47,12 @@ class ToolNode:
     def describe_config():
         return GraphToolDefinition.schema()
 
+    @staticmethod
+    def definition_references(definition):
+        from llm.core.resource_references import ResourceTarget
+        from llm.components.tools import ToolComponent
+        return (ResourceTarget(ToolComponent.name, GraphToolDefinition(definition).tool),)
+
     def validate(self, definition, context):
         scope = ToolExecutionScope.require(context)
         context.tools.get(GraphToolDefinition(definition).tool)

@@ -286,7 +286,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(state["run_id"])
                 pipe.send_text("\r")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\x1b[A\r")  # Select live instruction.
+                pipe.send_text("\x1b[A\x1b[A\r")  # Pass reservation and select live instruction.
                 await until(lambda: any(m.text == "redirect" for m in view.output.transcript.control.messages))
                 await until(lambda: view.composer.text == "")
                 pipe.send_text("queued request\r")

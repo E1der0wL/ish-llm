@@ -210,12 +210,12 @@ class BaseEngine:
     @classmethod
     async def select_instructions(cls, context: EngineContext, *, checkpoint: str, boundary: str,
                                   final: bool = INTERMEDIATE_BOUNDARY, allow_continue: bool = ALLOW_CONTINUE,
-                                  reason: Optional[str] = ABSENT) -> AsyncIterator[EngineEvent]:
+                                  reason: Optional[str] = ABSENT, only_pending: bool = False) -> AsyncIterator[EngineEvent]:
         """boundary는 엔진 소유의 안정적인 키다. 반복 횟수/노드 의미는 해석하지 않는다."""
         if not isinstance(boundary, str) or not boundary or not isinstance(checkpoint, str) or not checkpoint:
             raise ValueError(BaseEngine.INVALID_INSTRUCTION_BOUNDARY)
         async with aclosing(cls.instruction_event(context, SteeringOperation.SELECT, checkpoint=checkpoint, boundary=boundary,
-                final=final, allow_continue=allow_continue, reason=reason)) as events:
+                final=final, allow_continue=allow_continue, reason=reason, only_pending=only_pending)) as events:
             async for event in events:
                 yield event
 

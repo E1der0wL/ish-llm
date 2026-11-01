@@ -223,6 +223,13 @@ class HubBuiltinTools(BuiltinToolComponent):
                 )
             return self.toolkits[key]
 
+    def get_observers(self, project):
+        # Observation must not create a toolkit or guess the current shell's
+        # environment. Include only already existing sources for this Project.
+        with self._toolkit_lock:
+            return tuple(toolkit.processes for key, toolkit in self.toolkits.items()
+                         if key == project.id or isinstance(key, tuple) and key[0] == project.id)
+
     def select_tools(self):
         """새 Project 생성 초기값. 이미 명시한 선택은 호출자가 보존한다."""
         # 선택된 Tool은 Run 시작 전에 검증된다. 사용할 수 없는 선택적 sandbox가

@@ -419,7 +419,9 @@ class ConversationControl(SelectableControl):
         self.file_root = Path.cwd()
         self.renderers = RendererRegistry()
         self.images = ImageRenderer()
-        self.renderers.register(OutputBlock.HUB_IMAGE, self.images)
+        from ..output.image_inspector import ImageInspector
+        self.renderers.register(OutputBlock.HUB_IMAGE, self.images,
+            interaction=lambda item, context: ImageInspector(item, context, self.images, lambda: self.file_root))
         self.cursor_line = ConversationControl.ORIGIN
         self.top_line = ConversationControl.ORIGIN
         self.left_column = ConversationControl.ORIGIN
