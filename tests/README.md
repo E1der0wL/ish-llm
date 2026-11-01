@@ -1,6 +1,6 @@
 # 플러그인별 테스트
 
-`llm/`, `hub/` 하위에서 각 플러그인의 테스트를 관리합니다. 제품 패키지를 테스트
+`llm/`, `hub/`, `dok/` 하위에서 각 플러그인의 테스트를 관리합니다. 제품 패키지를 테스트
 디렉토리가 가리지 않도록 저장소 루트에서 모듈로 실행하고 discovery에 `-t .`를 줍니다.
 
 ```sh
@@ -9,6 +9,9 @@
 
 # llm 설정 계약과 연결된 hub UI까지 함께 검사
 .venv-linux312/bin/python tests/llm/run_linux.py --full --hub
+
+# 독립 dok 플러그인 전체 검사: Linux 소스 스냅샷, 호스트 로더·UI·오디오·PTY
+.venv-linux312/bin/python tests/dok/run_linux.py
 
 # 이미 소스와 환경이 Linux 파일시스템에 있을 때
 .venv-linux312/bin/python -m unittest discover -s tests/llm -t . -v

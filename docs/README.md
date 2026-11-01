@@ -1,6 +1,7 @@
 # 개발 문서
 
 현재 `main`의 사용법과 계약은 [LLM 문서 안내](llm/README.md)와 [Hub 문서 안내](hub/README.md)에서 찾습니다.
+독립 셸 dock 플러그인은 [Dok 설치·사용 안내](dok/README.md)와 [설계](dok/design.md)를 따릅니다.
 최신 작업 인계와 검증 범위는 [handoff](llm/handoff.md)를 확인하세요.
 `refactor/llm-clean`의 변경은 main에 병합되었습니다. 과거 작업 브랜치 지시와 당시 통과 수는
 현재 개발·배포 상태를 대신하지 않습니다.
