@@ -301,7 +301,10 @@ class FileData(ComponentData):
     @workspace_locked
     def read_file(self, identifier, path, *, expected_revision=NO_REVISION, offset=FileRange.START, length=FileRange.TO_END):
         project, component = self._current()
-        check_revision(component.load(project, identifier), expected_revision)
+        # Without a requested revision there is no facade CAS to check.
+        # The selected reader still owns the full current package validation.
+        if expected_revision is not self.NO_REVISION:
+            check_revision(component.load(project, identifier), expected_revision)
         return component.read_file(project, identifier, path, offset=offset, length=length)
 
     @workspace_locked

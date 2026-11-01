@@ -8,9 +8,10 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
 from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 
 from llm.components.tools.builtin.process_values import (ProcessStartArguments, ShellArguments, CheckArguments,
-    ProcessLimits, ProcessStatus, ProcessInvocation)
+    ProcessLimits, ProcessStatus, ProcessInvocation, ProcessSnapshot, StoredOutput, OutputReference)
 from llm.components.tools.builtin.processes import ProcessSession, OutputPage, ProcessTools
 from llm.components.tools.builtin.files import FileTools
 from llm.services.infrastructure.process_environment import ProcessEnvironment
@@ -19,6 +20,35 @@ from llm.services.infrastructure.captured_text import CapturedText
 
 
 class BuiltinProcessValuesTests(unittest.TestCase):
+    def test_stored_output_declaration_preserves_wire_and_rejects_invalid_records(self):
+        reference = {"component": "data", "identifier": "results", "path": "output.txt", "revision": "a" * 64}
+        wire = {"process_id": "id", "status": "completed", "returncode": 0, "pid": None,
+            "argv": ["echo", "한글"], "cwd": "/work", "started_at": "start", "ended_at": "end",
+            "stdin_open": False, "stdout": "한", "stderr": "", "truncated": False,
+            "output_sources": {"stdout": reference, "stderr": reference},
+            "stdout_chars": 2, "stderr_chars": 0, "preview_chars": 1}
+        snapshot = ProcessSnapshot("id", "completed", 0, None, ["echo", "한글"], "/work", "start", "end", False, "한", "", False)
+        value = StoredOutput.from_snapshot(snapshot, sources=None, stdout_chars=2, stderr_chars=0, preview_chars=1)
+        with self.assertRaises(ValidationError):
+            StoredOutput.read(value.to_dict(), identifier="id")
+        value = value.with_sources(wire["output_sources"])
+        self.assertEqual(value.to_dict(), wire)
+        self.assertEqual(StoredOutput.read(wire, identifier="id").to_dict(), wire)
+        self.assertEqual(value.reference("stdout"), OutputReference(**reference))
+        self.assertEqual(value.total("stderr"), 0)
+        for changes in ({"extra": 1}, {"pid": True}, {"stdout_chars": -1}, {"output_sources": {"stdout": reference}},
+                        {"output_sources": {"stdout": {**reference, "revision": "invalid"}, "stderr": reference}}):
+            with self.subTest(changes=changes), self.assertRaises(ValidationError):
+                StoredOutput.read({**wire, **changes}, identifier="id")
+        with self.assertRaisesRegex(ValueError, "identity"):
+            StoredOutput.read(wire, identifier="different")
+        parsed = StoredOutput.read(wire, identifier="id")
+        wire["argv"].append("mutated")
+        self.assertEqual(parsed.argv, ["echo", "한글"])
+        schema = StoredOutput.schema()
+        schema["properties"]["output_sources"]["properties"]["stdout"]["properties"]["path"]["minLength"] = 0
+        self.assertEqual(StoredOutput.schema()["properties"]["output_sources"]["properties"]["stdout"]["properties"]["path"]["minLength"], 1)
+
     def test_environment_omission_empty_and_explicit_null_are_distinct(self):
         raw={"argv": ["/bin/true"]};original=deepcopy(raw)
         value=ProcessStartArguments.read(raw)

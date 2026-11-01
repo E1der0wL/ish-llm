@@ -3,6 +3,10 @@
 from copy import deepcopy
 import hashlib
 import os
+import errno
+import subprocess
+import sys
+from types import SimpleNamespace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -14,6 +18,61 @@ from llm.core.configuration import UNSET
 
 
 class BuiltinFileValuesTests(unittest.TestCase):
+    def test_move_and_restore_preserve_concurrent_destination(self):
+        for operation in ("move", "restore"):
+            for link in (False, True):
+                with self.subTest(operation=operation, link=link), TemporaryDirectory() as root:
+                    root = Path(root)
+                    tools = FileTools(root)
+                    source = root / "original"
+                    source.write_bytes(b"source bytes")
+                    expected = hashlib.sha256(source.read_bytes()).hexdigest()
+                    if operation == "restore":
+                        receipt = tools.file_delete({"path": "original", "expected_sha256": expected})
+                        source = tools.trash_path(receipt["trash_id"])
+                    target = root / "target"
+                    victim = root / "victim"
+                    victim.write_bytes(b"external bytes")
+                    original = FileTools._rename_exclusive
+
+                    def competing(parent, name, destination, following):
+                        # A separate process creates the destination after path
+                        # admission, immediately before the real atomic syscall.
+                        subprocess.run([sys.executable, "-I", "-c",
+                            "import pathlib,sys; p=pathlib.Path(sys.argv[1]); "
+                            + ("p.symlink_to(sys.argv[2])" if link else "p.write_bytes(b'external bytes')"),
+                            str(target), str(victim)], check=True)
+                        return original(parent, name, destination, following)
+
+                    with patch.object(FileTools, "_rename_exclusive", staticmethod(competing)):
+                        with self.assertRaises(FileExistsError):
+                            if operation == "move":
+                                tools.file_move({"path": "original", "destination": "target", "expected_sha256": expected})
+                            else:
+                                tools.file_restore({"path": "target", "trash_id": receipt["trash_id"]})
+                    self.assertEqual(source.read_bytes(), b"source bytes")
+                    self.assertEqual(target.read_bytes(), b"external bytes")
+                    self.assertEqual(target.is_symlink(), link)
+                    self.assertEqual(victim.read_bytes(), b"external bytes")
+
+    def test_move_unsupported_and_post_move_sync_failure_do_not_fall_back(self):
+        with TemporaryDirectory() as root:
+            tools = FileTools(Path(root))
+            source, target = Path(root, "source"), Path(root, "target")
+            source.write_bytes(b"source")
+            args = {"path": "source", "destination": "target", "expected_sha256": hashlib.sha256(b"source").hexdigest()}
+            with patch("ctypes.CDLL", return_value=SimpleNamespace()):
+                with self.assertRaises(OSError) as caught:
+                    tools.file_move(args)
+            self.assertEqual(caught.exception.errno, errno.ENOSYS)
+            self.assertEqual(source.read_bytes(), b"source")
+            self.assertFalse(target.exists())
+            with patch("llm.components.tools.builtin.files.os.fsync", side_effect=OSError("sync failed")):
+                with self.assertRaisesRegex(OSError, "sync failed"):
+                    tools.file_move(args)
+            self.assertFalse(source.exists())
+            self.assertEqual(target.read_bytes(), b"source")
+
     def test_read_presence_original_input_and_independent_wire(self):
         with TemporaryDirectory() as root:
             tools = FileTools(Path(root))

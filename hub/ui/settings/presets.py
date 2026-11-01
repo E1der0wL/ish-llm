@@ -152,7 +152,6 @@ class PresetUI:
             return
         view, screen = self.view, self.view.settings
         draft = PresetEditorDraft.from_export(exported)
-        status = Label(lambda: draft.error)
 
         def open_editor():
             if draft.editing:
@@ -221,7 +220,6 @@ class PresetUI:
                     ),
                     Heading(view.t(MessageKey.PRESET_NAME)),
                     name,
-                    status,
                 ]
             ),
             buttons=[
@@ -229,4 +227,5 @@ class PresetUI:
                 Button(view.t(MessageKey.CANCEL), handler=view.close_dialog),
             ],
         )
+        popup.status_bar = view.progress.container(lambda: draft.error or view.notice, surface=popup)
         view.dialogs.show(popup, name.input)

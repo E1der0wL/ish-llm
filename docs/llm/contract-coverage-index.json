@@ -4,12 +4,12 @@
     "files": 704,
     "unreviewed_files": 67,
     "stale_files": 0,
-    "unclassified": 4808,
+    "unclassified": 4704,
     "violations": 0,
     "incomplete_contracts": 0,
     "unreviewed_dynamic_paths": 67,
     "unreadable_files": 0,
-    "candidates": 18626,
+    "candidates": 18594,
     "issues": 0
   },
   "issues": [],
@@ -17,7 +17,7 @@
     {
       "path": "hub/README.md",
       "status": "unreviewed",
-      "sha256": "c5864e572032c67ec17e22c89643ba45a98ee768fb30e30253f89acadb44e63c"
+      "sha256": "268d4137f2b0cc960ba47a84fb4144a088ef018c4ea9731ab7a64222ce945d7d"
     },
     {
       "path": "hub/__init__.py",
@@ -1132,7 +1132,7 @@
     {
       "path": "hub/ui/settings/presets.py",
       "status": "unreviewed",
-      "sha256": "cb0ba8efbd5faa33b0ea35ccdcf2aa8885a725d0f09bee93e3a6fdd8a5dfd2af"
+      "sha256": "ed5350012914ac9d0491a0586909a66dc47f2e04a12cf0bd73339d86c7f01e52"
     },
     {
       "path": "hub/ui/settings/screen.py",
@@ -1687,7 +1687,7 @@
     {
       "path": "llm/components/files.py",
       "status": "unreviewed",
-      "sha256": "6dfd73a24f107966eb1a4a2e04413a5e9f3fb9ddcbfd5ac0f2a91ef92d567970"
+      "sha256": "a5ffbcc5dbb2b83f7bf2ab61704f6de2a5c7ce8bed5c183e4f6f8623c4e73f0d"
     },
     {
       "path": "llm/components/goals/README.md",
@@ -2277,7 +2277,7 @@
     {
       "path": "llm/components/tools/builtin/README.md",
       "status": "unreviewed",
-      "sha256": "bd3558c9bd20e52868be6686b909b70aed3ea09d9a448fe666a264ac8c24b40b"
+      "sha256": "44d703cb2b68a0f981fd6f29e74925dbf3d4f613505b362399858d9ee8b7a816"
     },
     {
       "path": "llm/components/tools/builtin/__init__.py",
@@ -2307,7 +2307,7 @@
     {
       "path": "llm/components/tools/builtin/component.py",
       "status": "unreviewed",
-      "sha256": "7fccd9b495b0427b71113902cc440bf38a2699988d0586874e88f44c0b270a65"
+      "sha256": "d7e800ac6432cfb5115df1af727a25d3cafbcdf050c74636c2e6cb8880a791d4"
     },
     {
       "path": "llm/components/tools/builtin/diagnostic_values.py",
@@ -2332,12 +2332,12 @@
     {
       "path": "llm/components/tools/builtin/files.py",
       "status": "unreviewed",
-      "sha256": "91fb219c4588d11c54a919bf0c4ca2f9df08eff25e928191fa7ffe7cd3780bcd"
+      "sha256": "5886939684bc980f67166077112857081215f041d41ce1159a7540fa88fcd599"
     },
     {
       "path": "llm/components/tools/builtin/output.py",
       "status": "unreviewed",
-      "sha256": "de72f7b3af5309c5331c057ed48baa4ebf29473202a574bab0d941ee8b7fc671"
+      "sha256": "87f023f1dfc66a6eda235ea06303a12efdeca1a65b9a125dcbc9fa3144fd0602"
     },
     {
       "path": "llm/components/tools/builtin/path_access.py",
@@ -2352,12 +2352,12 @@
     {
       "path": "llm/components/tools/builtin/process_values.py",
       "status": "reviewed",
-      "sha256": "a2b2ea037906ac1c1754a63f58da31bed7eaaa1ef73ad5f666f8c0c35de11c01"
+      "sha256": "dd3274ed1513c16d50057932e1ba7016ccb29a263a0f8a291edcbb360ffae575"
     },
     {
       "path": "llm/components/tools/builtin/processes.py",
       "status": "unreviewed",
-      "sha256": "8f2b27467a137f92d72cc1b96edff6ad37215e00e2e81749ac38c129cf8bc1d5"
+      "sha256": "6eea685842fb8b9a6a54d30f50ad6be0cc601b46f73eb0584ae44a1cdfdadb8a"
     },
     {
       "path": "llm/components/tools/builtin/workspace_records.py",

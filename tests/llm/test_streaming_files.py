@@ -256,6 +256,40 @@ class PathAccessTests(unittest.IsolatedAsyncioTestCase):
 
 
 class StreamingFileTests(unittest.IsolatedAsyncioTestCase):
+    async def test_range_read_verifies_once_without_cas_and_rejects_external_changes(self):
+        from llm.llm import LargeLanguageModel, DataComponent
+        from llm.components.file_evidence import FileEvidence
+        component = DataComponent()
+        with tempfile.TemporaryDirectory() as root:
+            async with LargeLanguageModel(root, components=[component]) as app:
+                project = await app.projects.acreate(components=["data"])
+                data = project.components["data"]
+                await data.acreate({}, identifier="source")
+                snapshot = await data.asnapshot("source")
+                snapshot = await data.awrite_file("source", "small", b"hello world", expected_revision=snapshot["version"])
+                snapshot = await data.awrite_file("source", "large", b"x" * (1024 * 1024), expected_revision=snapshot["version"])
+                measured = []
+                measure = FileEvidence.measure
+                def inspect(stream, *args, **kwargs):
+                    value = measure(stream, *args, **kwargs)
+                    measured.append((stream.name, value.bytes))
+                    return value
+                with patch.object(FileEvidence, "measure", side_effect=inspect):
+                    self.assertEqual(await data.aread_file("source", "small", offset=0, length=5), b"hello")
+                self.assertEqual(sorted(size for _, size in measured), [11, 1024 * 1024])
+                with self.assertRaisesRegex(ValueError, "edit_conflict"):
+                    await data.aread_file("source", "small", expected_revision="stale", length=5)
+                # Same-length modification with restored mtime must still fail;
+                # no cross-request path/revision/stat cache replaces verification.
+                large = next(Path(root).rglob("large"))
+                before = large.stat()
+                large.write_bytes(b"y" * before.st_size)
+                os.utime(large, ns=(before.st_atime_ns, before.st_mtime_ns))
+                with self.assertRaises(ValueError):
+                    await data.aread_file("source", "small", length=5)
+                with self.assertRaises(ValueError):
+                    await data.aread_text("source", "small", expected_revision=snapshot["version"], offset=0, limit=5)
+
     async def test_explicit_output_limit_is_shared_by_both_async_readers(self):
         with tempfile.TemporaryDirectory() as root:
             async with BuiltinTools(root, allow_commands=True, shell=["/bin/sh", "-c"]) as toolkit:

@@ -8591,708 +8591,1140 @@
   },
   {
     "path": "llm/components/tools/builtin/process_values.py",
-    "sha256": "a2b2ea037906ac1c1754a63f58da31bed7eaaa1ef73ad5f666f8c0c35de11c01",
-    "reason": "Reviewed all process/check/shell fields, Schema derivation, explicit-only invocation projection, effective limits/input validation and wire serialization. Environment semantics delegate to ProcessEnvironment. Six old/new catalog configurations preserve definitions/contracts/bindings. Output fields and status values are declared before conversion. Host toolkit consumes Process/Shell argument declarations and preserves exact shell forwarding, env schema membership, approval revision payloads, registry caching and handler identity. Skill immutable snapshot queries retain their existing off-loop whitelist.",
+    "sha256": "dd3274ed1513c16d50057932e1ba7016ccb29a263a0f8a291edcbb360ffae575",
+    "reason": "Reviewed all process/check/shell fields, Schema derivation, explicit-only invocation projection, effective limits/input validation and wire serialization. Environment semantics delegate to ProcessEnvironment. Six old/new catalog configurations preserve definitions/contracts/bindings. Output fields and status values are declared before conversion. Host toolkit consumes Process/Shell argument declarations and preserves exact shell forwarding, env schema membership, approval revision payloads, registry caching and handler identity. Skill immutable snapshot queries retain their existing off-loop whitelist. Retained output declaration reviewed: ProcessSnapshot fields drive the unchanged wire schema; StoredOutput owns publication validation and OutputReference owns Data pointers. Writers and readers use these declarations. Transient source-less drafts cannot pass stored-record validation. Component validation remains the publication/load boundary; already validated records are wrapped without a second schema validation. Unknown fields, stale identity and invalid references are rejected.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
-        "id": "13aec3fac71f0158b957dc5d98eb2c679c699b3627fae4d3da4e6ec6bfecac78",
+        "id": "2687650a780a544430edd481ace5f51f5ab9114eb4b83db38c2b239402af9ee1",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "cb0329d389baab7b414b921077b14ca6c8f3730099b54e11b57f4c92a7aaddfc",
+        "id": "a2e73e2e885e1561d9f9476d3179953e61d935572fe5640747dab3dd274fc6c7",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "21681b3002399b67c5c7d776387f0d51bc82e37dd62bd011812ad08792612a10",
+        "id": "21fd3c32f3065ada64a2aaa469445d598b2aacb20a315f6b6cb1b8345d189677",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "7aa24fbc8d08a148fea6222f6bebc52fc4b038f784a60256e5bacf28be259e0b",
+        "id": "4ec0cb6cb3f92ae5dd42a44e6ae47a7f4868db9ebc4fd9cb7a3574bb60d6c612",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "9d0d0960610420f131d14c34b6bd1e03ed56cc7e5a360ae3340238e843e38a7e",
+        "id": "378392f5fdf4f5f697445c78b2d1f77f75c48fdb9522c0cd958b192b9376fc75",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "95677fb63d083135a6d16d99b9a5a55db3ae3ac5badd1daae516934e5f83f1cd",
+        "id": "4f738f4f80039c836dd3bb63bab0ed8c33ebb8ce8bac22e2611291cf82e6d6f1",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "5fcee66e4741d4fd6e57a31c976e6c198ab4089adc134ed21534b6288fdb6b11",
+        "id": "b32478b262940bf6d31943e35ef414895a29ff053aca5f8d68a1f8753c910337",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "1513376fb54820f3877bc7df0e700426cb8b471fb41d8e00dc9e94a6f0ff96d8",
+        "id": "5a2a81a0d2e3d06bad640eb63ea0e3bdb48e065e431f820c3e81a70090007a5a",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "fb00bc6c27013ad06ab7c39b1154f312636c044dd9f86e9e75dab320fd012d6e",
+        "id": "92bfac268c897988a125e4f934bb33a850b98d352cb418c0c34eaddcd56f6c4c",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "470f20317654e0a83fb632646dc9f322dfd43c054a18dbf942788f16291a1e6f",
+        "id": "bea76508c7c8a287e55f01f762263d4f068a786237d5d13d06b3e7f5cc8fe0bb",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "335467eecd07f7008b3649a3edc29794943cb82545e9ceba60693114f6fd0f46",
+        "id": "6761369af7c02afd6d55c007649c84b284c42dc848db8c2b71063a0753cd3f2b",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "1d891c83cdd4c1b2d01637bc73cb9b5d75213f74a921bcdcf8b612d434844913",
+        "id": "7ac1d7b2793591850a487fba2157b6c53807e2e07363727da8b1b7013c14f976",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "2a29bcb8b5eb06f8c40d29551cbdba8274449d02692a648fbcfdc2bd9d2fc179",
+        "id": "1c7078c6af7a0525698d41f4d75ecfef056775d4a2088bd07681872bb51a7b20",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "c60ead4caa80518528707228458f27bcf6cca8ec17a45750202f57bb04620f80",
+        "id": "9d24246f2afc41cd8fe7a5edc5648099fe4a75b46f2e53cce4768f6130d9df46",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "dbfd6047db089d4ccb49850637e3eac7d4fe03c288da4da5e09df47c068e1b3d",
+        "id": "fa78b77b17a5ec4c8053815bff98ae04d243700f4c96e5b2b1643e99d1ae2ef8",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "a459f63b03d7e110fe76a42e055b2fc67bec18b2968669ca8f2be20b5e024edb",
+        "id": "61cac3db0699a9df76a4235bd62d3b409d53af9c73328238c62267971f4b12a0",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "626be4cec15acb98e7ce6ef84d6ebbd2869c375b3ea87dba0a7452ea789cf330",
+        "id": "66da52af0bbb5aa88ce55990928c06f2de44da1c3b0e31ffca5d1d07aa9680c0",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "df6c41ce87d14550d4d003c4b86a41506098376841d3e7a00a33dc5a07e9b374",
+        "id": "2c643ab2e53d69fdaf3f9d075a7156d9bcd49e5bffe7408c6a974ac09de56b3f",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "72c957a25d8b12b99059d01fe71b84bee54f7449a8afbb7086cd9a1ae9915941",
+        "id": "20e84bd740d6f473ead1bc8369f49c073ed3fa1d633c488b38435aba14680ec4",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "147d84284a23bc570e02ad45078f48ec8778c0d1f4812939003af8126f98bfb2",
+        "id": "f28447fe6d8147db3e0afa141c23cd52a80a2f7c32c59e3793dc109da9fc7295",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "979c0c3959012985ee03400d3a733aa388e3b9e75a2222c524392843ac74b9ac",
+        "id": "d72cce127b4546d0e16d4d3f8153619eb5508192e61b54611f4f82cbfb17a8f7",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "80e038d2fa9519cfdd19503f738cff1c58d697af7469a9d7f0d5ecbb41f7e250",
+        "id": "6a8f2871f99fdf11ed1ab275f3733c8eeb89fab8e2034e4c0739b5bdd7db4ad3",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
       },
       {
-        "id": "fbe08d3f4e1f4a4ae7f57bf241c239f21d191f43cac26731fb9484def8dcc0db",
+        "id": "46ac886d4d6af0b3882734883083043f9fd0d13f0d457311371c5e519695b4e1",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Local loop/reference/optional-value/regex absence or byte-availability floor. Domain limits, status, defaults and output field meaning are separately declared and consumed through Owners."
       },
       {
-        "id": "5c1b69ef5c62ededdc4477dc1695280bb86dae7dc68e80fb50529ee89a700634",
+        "id": "69ac7aae3fcb496b56a23244952500ae15dce6fc4fc518a28685f63dd21d86a3",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "c9453646ebdd2b253ee5ba9c20f8864e6c57192ff247cdd70e01eb228440013b",
+        "id": "9c1f2bdfd95d218a4e71b5618815b9a77315b4b39c9012b29e7d2f44c13f093f",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "892421585744190963085e7f0f1c48ceae22fb61f7bc29ddbedc141e394315b2",
+        "id": "8c180b3fb1ef8dc57be98d722d472551e98ed0b10eed0f7ff71b7c8624f47fee",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "8543f1d1cb22847a8d29c9738ab9060887b2728b22721fc25e17001afc523cc1",
+        "id": "7d16f50260f002e28d89643c8def82ca98a25f8cf7798ce1a26418af24bba8ff",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "00c50ba0ad67dfdb2191fc30ea4d344565bafd4d9244289b1049f25ef24d3c53",
+        "id": "63c7a2db6124aca229b23cd65a57650bb3c61ade601523ee504573adedc1fceb",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "94136777b8d6773ae8e415748f6dcc192702bd966d808fafb8cea8ea3037fc91",
+        "id": "4d6c27807d626afebcfa7098a732511a1b84af8d2285f981767bfdee745c80f0",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "f9fc9e55b303c1740bfa812d141d9b4e99acceba9ae8c5ba759de9f9606f3631",
+        "id": "fa5e16b6f1cb8817bb3d22957fd897e9a894d4a52a166a2542bcbf62e5610f6c",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "c4be165510640a8b7d36b7bf523c1a8aace73f996e6dad3ea1b47f7f016f9c2e",
+        "id": "f1748e07361c4154b41f7d467b89e5d9e04aef0b08f106cf5ca95f9ed4252cda",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "62aac798125bee5dab343961d573a4e232bda182086947e1d0a1a6a1e61920e3",
+        "id": "294d9782e3b25981d46981309d1215b9a24476e2ef14351e9189cff26882304b",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "1309e75b06f5aa55273e09a6d0a83350bee47675e6f26978fe03e867a17af77c",
+        "id": "5a51a7f5d8627d6f7e22f452bdb66548a6c984ebb025c46634205e943637ab34",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "d5011eec39d76a2e256fa32f46077ac1623d72536aafbace7c8c32d6d4c73907",
+        "id": "c7bf74d61726713adf06bf52ca0bab97fbac32f591853cddf3694b05fba3d087",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "860c47892634a62e1cbd613f1cc5ad6c9429d2111e5041ff05960396dd530d3d",
+        "id": "dd288ae85d0dc0742a6377c984275d38eadecd9f804ef2122b0883aa6523efc8",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "ceb1da0745fb9c0fe40fb177076f6adc748ccc914c5ebc0018f1afc47fa7a3b1",
+        "id": "69a4f1079701543d5c96ad7bb3c8a802efa5940ccaf296b682f08cf07e45b393",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "560eb44e1ac0c45d254d52354a981ef55b9cf5d673ef700c0c07c57a1df52a26",
+        "id": "723c64ec7e5e12f294fbd76d172a9ed05e64280abaf9fb29a275504ab168e7d3",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "289532d6ce1466a0207c916f1e6902885c2d418e8ff30560b8a6c2a5fa25fd01",
+        "id": "c02a45ed3b88f4d42e796e26ca0361dca31947d86d80e9ab06574b9b79941a66",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "70d786358668defc443b25053e9fb059af657c1956c1fcf4bc4e27ab18e5ad6a",
+        "id": "9334ff1dad8552dddbcd84b0ceee98128a4601577c10a926beb8c5947cb86533",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "7a312d4f4d384a2e84b87c78329758b4284700d4b0a51d5f444afe36a22f4659",
+        "id": "704199318587db70b7d9b8a413687e0f57a46edaa59e8d5b2191bdff089c6894",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "0f436ce66470b064026b9c5f5d0d2730449158497b6fc9626508046fc46ec75e",
+        "id": "007e583f975dbdf2c50c1405c2215f63d83ffc9ebfc3b6eaa7afc9c6c9b1b2e5",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "841025a1f47f22a91234c964347bec1eb57b85c916e778937b94dfc5095be22f",
+        "id": "1a88e6ad7a2e9ec0b4960b39c7ad6f150594076393e773649ad3858224654f52",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "33b96f6d62280163d122001ab7dd54b54e1da09e1c0025c86139ad88bf7b1afb",
+        "id": "a563cd052fa6685563fdf2e82b0abeb7134df4b41a182b7ee1ffb57ab87fe8c6",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "7eb121f996ef8349b5b0d362c30f444b713421243f9b15328ee375e775757b90",
+        "id": "48fad3c121b0fec5da2f19164a70cb9aa0cb6046f1c16919e1f1449ea5916cff",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "555e75dbeefad552ca50006a40a6202b97995cd8eb7db14239030be6f763e44d",
+        "id": "131df007e363e19c02c087fbfe63678b1c7bdfe0b35dd3a0970b2c40a0a256c5",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "0b3947e8f5786c13db4261a649a679c5b8c4c43a90710920784ed4064cafe85c",
+        "id": "f67e0c861994e712da4fee3ce4db55e7bf63dd0bc5cb76968bbce175d8459cfb",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "480e7f90a9a66fc1ab10fdd2c8b4638bcb64c7e4d80b25247773a1a8c0673eba",
+        "id": "c912a061c70b13c644046432046df11b120e777de5e21b1c9e4535782860d956",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "f5688988af938d9fca783c45208a7e70c21cd8ded7a518a0bc74bb3219454c4c",
+        "id": "2b5cb8fbace000df7a8b23f0872cfd9fc4683b0b7989f3af3224c87e55d46b8e",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "fa3e77ddf908cfb309792f98607dc2f50f1a268ee27f13217d6b2a556edd2ed4",
+        "id": "71e54d04b5b50d0acfb9eef3ed4744eefec1dc1d05921940f197323569f483fd",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "35fa5f865ee9d9cf917722438d4c5c560f8ea7c68e142b4288158662b7cdffd6",
+        "id": "85d283a154fa8823a242316318a337344949101ac989e881374e688f480ba472",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "dddaac01f5b6cef1513b003259695e98522230e4d4cb77d8f58508050d5f2290",
+        "id": "3522f4a07fb87beb0c31d3edcbaececbee4b2ec1a8ae23f88efc5a13901b0d77",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "6fe4ce23dd91b43b83d52d6d7daeeae13ba5f607a07895574e7856e60c103409",
+        "id": "6981c1b170c8a95804587124dc98e608f8ab2e6c843766f69cf057a786adc5e0",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "c2837da14f0f12e8803921bb997183a009ec5cde336f4b902cf4d3a4daa3f20a",
+        "id": "41d94a2332ef3caa016dc681386beb8c694d8fa9d2624f78afb75bb52d4b7de9",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "047f78e6bb54cb90cc73c13082d9b58e261155bf4451e9697690a8216eb20d81",
+        "id": "54bbd3adccff8985c22c4b55d3607760409af7180bca9a566cb161ee4810bd73",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "e2189d4339084ea5d61de66efdc0655098c3f95ffadb1a924ec57bab30dbfcad",
+        "id": "082e1cf18e086d7fcc3a3daec1199466b024e0473069330437bfac2aa4df08c1",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "e4fbb809d7e0f6545188d792d507f631ecbdb32d8594656e0732e31edb8a5a29",
+        "id": "ae958bc4d67ff73382fad2be0f2b717ab51d56b2685cb0ea0e964626cb2871f4",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "ef71e1332751016e5e94022596b1ed1a6af1a1f81d7e247988c299e40d710093",
+        "id": "36ceaf66cd9da36db9f712e892dd7fc9f09f8daee96650d27aa99ef851339b7c",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "c9a73881a75607bd73e26275caf6bad3160a96b0f529356303749060ce77dd5b",
+        "id": "5b83e31282c556597e137781c9ffc2940487f0063429126ba2c1a4c42f4437be",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "5696ae4b08c5c69c38cd9760e8c5f2f1c3ee72287afd62a5857b3ff7536a566e",
+        "id": "51d8b3e4dd5e11cff11f6584848cffed14ecc1c62eb167531ee37f80cb7b2976",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "7964394b5fecfa10da116bf94af341c457867815509989c8252395271a5d45a0",
+        "id": "13a5cef984c3db50b245702004e04b738b4abcaf48fdd1f1623228f6c543cdae",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "1126bef7f1dbcb5cdcefe1d6abca9ec02194941b280ef0727b07748f29fa2396",
+        "id": "0de976c5ad7a369ce4c5828abd7e0a74f78524bde4df07cbd2297f5eb17a4011",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "2f141a53f9c3f1ecbd01b4621d69e513353dec4bf16602ecbea4363d5eb104e7",
+        "id": "0f46de6381e2400c346a4cfb204180d7800c1346426eb3aa7fc7d01f87b1755a",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "68dfebc6334aae39624778420e244b32a28de1d884afcdf9cb4ef4903dbf0254",
+        "id": "9a08ce90253674d189932a940876a244b78b4310d5760746a6b14d818e82a395",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "b7e4b26db95f8dd2b64ca313536f3bbf36611e626488c7d288cf919d12d76648",
+        "id": "caed44db4bf03c27ca0f30264830af821cc37d8e4b7a1085dccffe77734af6d3",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "94e37a2890a0501c7052efad0b57f7b7585d802c501d652e6e6fff92f0445313",
+        "id": "c2aa309a953261a3aaf0495af2f1cebf923c3c6e1415b043ffbe60f56d978ee9",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "2a19afcf381d332b2204e4517c87e0792508c001c3189790472ac6be0f6ab292",
+        "id": "97a4b1b05f17c6daf2478447d29c0d88c1e847387c8dd4f985ab87e41ff153ae",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "56f0dfdc02cb447fab7a785e3ca52f74b1336b6b058dd17435e297163cd55401",
+        "id": "47eb26e820ff01cae0fb415ceff0df95dc8c4c5b904b708d174daa5c9e67e716",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "a4bfa25debc2ba0b6b2ea2c39b672043886e1b478c1aeef525e22e038022546d",
+        "id": "a2afe2a896415c56f3842d46d9ae0fd3b5cfa4d7e6496683230847ff11f8c053",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "cda214e35c09eb0f4c032788015f46ac7d45b1fdf5a586cc623b00a95661d6bb",
+        "id": "a7e259d87a933c9c17780e4befb3f0ed48acb5e7744130c02f2cd3b11154acfe",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "14a5817c7c9e3358a6d597cd25af9d2c93e16407fd9e78989659610c61e8fdb0",
+        "id": "bd844bf4509b2e6b4a605b8f9536a3091705ff8d2df193d5cefc57ba80f3dab8",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "7165733f0520a551a7e11928c91d66563109b21d8a7c99fda7b0c29ff7b162fe",
+        "id": "8e3c811177986a8a79fde227b69dcc01faaa7f16fb9067e5a081bfadcbfa7a3b",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "4d2b5f306a34999b39ddd9927a5f9a0645e8bdba58c10d41f74f2026f7db7b28",
+        "id": "34cea073c9efba79698d68f45a575774cf28f1f14b5e34f4024dc02e5516d5f2",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "04b5a02fcb18f227a481583cfd326bfb5512831885a49ffcf2f75e3197332d9f",
+        "id": "4157d03835317a822eef5cb564d8c43dc56053a5d205982a23f10feb0f54d152",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "6682981e5ff7649f409d3817558cc22e20b2960ad147da7d9cad16f3b5bbdf91",
+        "id": "fa2f19f841538e96dcf6bdb684d44b435c93447fa8a0dbc36a9e5b107e735235",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "846cfc2230a25056221b84d4a8d6e099e1c2df3d5aa1d887cb997bd9f0e8660d",
+        "id": "5b1cfaec99aaf818d274e7ecc3ac639c1b955eb1ffcde09bb3c2fc21cb00fdde",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "d69767860d14b0e0a81bb58368040e6900a9eba42406e031f1d5591f9b71cf23",
+        "id": "821ad49ac453a483890a64c4a9d6c047ad2809c224846cc8495546cfe5ccfe23",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "2323ef1f9999419036f8e3310b845cc78306b4aa2c45174bd25846b049fef1d0",
+        "id": "98d174c37d3a96c35544142f53ad4d3208082f283f645dc427055c433b1d4247",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "0c9f3b6b688f1326422702523e513d22045bfaae3bdab1a406f0cd9f450d2e4b",
+        "id": "d2aba0c2da9e0bfd7bc843b26ca7f52a3deb3d8ade7a60e65e78fbf1e61dd9a9",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "e83593f20c5abfe97f2551349560c78f48335a39ea4c8739dea23e3927d061a8",
+        "id": "852a15cc9565189efde23a3d9190d3b405f28d34cf9f3b6699501ee8a88b93e8",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "bb281c5d601cabbb93de040cc59f020386976a25039d76e0a6460303575252bb",
+        "id": "0e5e0ec7b2e510ec12f277c6c24964641696002020903f2508196ba672ea459e",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "3a56e1ad0679ed0b0e61c172d3bf9a83c6d7dc8c4ab257fbfdac3dac62c1f3dc",
+        "id": "b455e226fcb66b43d1f519d94ef961f1622c35d45ce4ff2489482067f9a3f2fd",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "9bb1fd5cf08b46107d52e4a78c419d57da57b643c5b6a5e719ff29bb1e9bd911",
+        "id": "4856516a2591844665cdcb770ee3c64bd98bde17658706164cd6d454531aac6b",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "28b270a819afccfe42d2d276aebb95245736c9a8e3cfb5d3f1aa92ecdaa11192",
+        "id": "e4ae909ac7aa8a865fea28f79a660121e5fa52b1da6f313ba954129bfa1ea3ab",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "f6e881f56f489a5a8b478a92289de1a16769ebfbb01e53a6463a1e346eb4d3f3",
+        "id": "0fa1114559cb25e311c401044b98bd4d05d53023dc31c71c96b1543fa9840b2b",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "99ff0c158ccd300f8896008198deb52bb8b426de08f32d559031c42a4bb5e5d2",
+        "id": "ff5e847e7b7c07cc1352928d0b031e70ccc3dbf79d0d32d50d4e01efa9852ecd",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "cf16e20dde37dce5735523d9278a5fb5fb1660cc360118df262d59725eef954a",
+        "id": "119dad78562460ef5cc3b50fb878a9c307e479fafb62699510c58b7df5d55844",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "6990730ad62537865eebb9464597a9ea7beeb155cb944ac0064fee2294d347dc",
+        "id": "8fbc6c0f56e9130ee883b42a8cd3bbfecc7a4647abb32f1c31e7db2719667f37",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "e1c4ecab99a4a30f9ae618392329d01539871628310ff547260911d9f1cddff3",
+        "id": "1f2f8b213eb4c9e187ab2b59ad965786844aa2188d61a122ae275b5384378ddf",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "0852d5c84f8ecd74aca1f2f96b01850cf590b95a33960d9774dc308f2a67a386",
+        "id": "46ff2afc3e13b5f7bbb4aa08ee69964bb1f7c46f8df68fd9138e35abe3ce52c6",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "6c0eda00776f3fc00f8b63f235ea99a3f3cce599b8a15b62c8ca816486fb320b",
+        "id": "e7bbfe3692f1c612556e4bfa9dcc21cec9536c785a2ba0c7b106e3eb2255e1ef",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "156a0b741705c938bd57a68c6159e1e8ec42327dc44121ed52fb687f338ac97d",
+        "id": "57ac7084eb5e2ad526a3f077fa476b47f031a0ad6990629725da880c89295662",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "cf79e93c7e2cb48597061ba0491ea23e9bed6ceffb545e4f7c8efc0b87821c48",
+        "id": "f881ff139a28d8c4866f93e0eaeb5a5542221c999a86d83693d178c3540a43ef",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "79e97f13be5b1f9e57dbb16e118632a41f257bf90777654e692e2571d2bc961f",
+        "id": "3503849c12070624f962fe60d95493ca0123e9b3f86cd4dc3e394f8310c18723",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "8360d07bc1c10d1ea6205db67e424dd286765571e31d48dfd20a0b423d88d7ab",
+        "id": "60ad8e8db1589f62cdecd8d3677a863fda8e6d0267f80d286194bacc83bd4796",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "e07c8a93dcff7581a1922eb44def14817a89d9ebd2f7c2d92c086e6823ccc954",
+        "id": "b12b6747e4256a7d0daf4b8d05648a481859c233e6b43e580b662f0c04a3fc60",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "0e01b01864e5d1edf0827c8da6a7116d2300727710565e5f247e518c34bf4cd3",
+        "id": "1931cc8be3824a45ffaee21ce73e9de50fe01c0e059b1a595f1e140537fd7233",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "a16e54b0fe2d99185afc1c7ca6e51dc761baf2eaa618bb815076dbb2d7d82eaa",
+        "id": "68bef7178306c3642aecbb9601ec91c163eb33bef81d09dd98b9e3225a2b8fd7",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "afa8efe7c2a8cc72311fb22cd97f4145826ba95176d9359e12e6881719cb9d51",
+        "id": "5b0a766184addbeddb526d6a98763b7e88d088e1ab5f2879ca79dda8fa38b171",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "9a8796053f468bbfc30d4859adc6eab15b88dc923e9511f8ce7fa22e1a2df0c2",
+        "id": "9f8376559cb8e4327c775357b6be79546b31f5c50c72c3adbfcbbbdea9e515d4",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "b924cc7e052e779e1da69539f7c5f131883bcc92b9e37ef3aa6190c41e66b177",
+        "id": "66250f57f9cd3f82eaa847126dc75de31795645f17776e911600d1be460523fe",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "235afb3666a7f4da2427887e072fb5425cec89e6c15114376e97217f9dbd5680",
+        "id": "c7f50e7d7f6a13537c7acd0696eeb28cf43ae37faabcd268dc8e337b01b63018",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "453e979935807e74f9abd3985e252e6f7f49d4aa9400d511008dd477b7acc07b",
+        "id": "d10800385319ee5058c1639d0414bdfcdd60b3435a8c3fdd74cf1d87f1db4a9c",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "e5ad733f89551d7de47f39c6053fa55731cd46bd70906648e78cf964ac76cb04",
+        "id": "57850a9f882dca23e93ada3cf578a7b3e41d39701f3aeb98b4b70486fad789fd",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "184de85b4a2ae35d0163d7fd6d941803dc0fa7de4aed7b56f86188c19ab3b94c",
+        "id": "5a673a0e4a75db965dff39fbc03752a5a2969faa774fb901da63cebeed46771b",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "a4ba6f79907a98d37ec495d73578c8ac2058671bdcfe5f66710b7cdb35e278f0",
+        "id": "fc27672673d2b85661ed93ca69f18002e7292e258dd9c6e74abe58f587b48c91",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "6caea032659efabdab4b78e823581787e14e0735615efce3421716b30033ce7e",
+        "id": "d341afcca100a92f05e697f54f3455a4f1ae24fad94f3e2e8b68ea17d861aa9b",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "f89db587781a9d5069576aa16fcf236fff02994610a78a37ee7261fedbd8d4d5",
+        "id": "52d70dbf3094f78808c072dcc8ed7084dc3dedc213dde3c6e632d6b929f00a50",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "853e8e0e89d371b89a5aacc936e11e8297417a7c559507215548831326d57b41",
+        "id": "332a28a73ef4ab7fe98af5583ec672f35173ea2c90bf59be35998a7ceac9becf",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "b899ae3b70c49cda3a48f8d9fb1db7391ab752e639682ebde7ac7d1550ca9e09",
+        "id": "8f1e1a6c1656cfb09f8a6c11d5228e0284d51cca603465fa7e6737d3d189859d",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "f852f1dd35a6195e53af7f646a4ed392aa68f7f0ccc73eec261b0d1ea5f8f88c",
+        "id": "22d6e5384c0ac35ff09bb3093244bf04e13107508091263df2bd66c98c0ebbcf",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "dbc4fe2fcabf8a586b050ea7e2ad3bd59a7a61e19b2b74fa355db558dab20fb1",
+        "id": "1ae551c7067a445eeb63450ce2f81a956a574bbed7d7f44c2266a452fafd30fa",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "cef0c204f881fc77845285339b377d479f7bbba11e5656c1546fd859a3184102",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "4af50f77d1bda01698e6132a219cddc342b3fd69f1ba9465fc53ab0746e32e97",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "c28ed26b04bf917f7590a39a346b3c254652da41d6f1b8868549ec0d14087b87",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "adf80dc58c832c8974e76c32b68c36a433c5a96a9c1a3dbdf283f77f43b005ba",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "45beccb2a97ea154862f8e9f7595d7f0d1df17e35145550569d6f5f32b454a5a",
+        "id": "99613863fddb239dab3933e62dbb55d0f51b10bcee19d6b34ac11ff8a47af478",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "c0e3596b25998a8f818a35958231a3933b122ccb6cdad26153bb2d6ee5d34be1",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "570e2263765d9f11561e1a5f88a7b3ffde981826ff805f3a841e049c246b2daa",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "ec18a79df3e47fb940a70c80c3f12e0cf0e009260a4c2a5076ac02a08f171cac",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "cac0e6df5570de040a3ee8d81b6d329ced9b8d091c742d29434a20c92f06b5ed",
+        "id": "61e010bced81ffd194f598c88d5798fcda3742e73406fda736eed426f0048889",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "5ae5a3cfd02d6318a5abae5d375028fa0f0d1735646cb38d31d5bcbeddc7adcb",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "0e2b5e20ebf226f4ace46a0946eaa4a8013281f17107d8f4e83f5c7e393f1480",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "c9bec08ecc4ca080cbbfc2a9cdbd4dab65cfc978d747030afa39c1748ad339e5",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "9bfdfe8bd923e9ce17a0d9e1f5159780adde5260f39b34d37d97d4728c9a7ced",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "53153cee9e89d821c43dd57c2c35b294efd86cde0d35c17d5a0f3fb6ba9476a1",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "bd9644093e65e5fbe5ee7f985d5705c9094dff31cc4eda00231a8f3fc4f39313",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "f7a09fe587fb2a09efec18e8904a81a2e32c739671defda44f9cd1c44738a0fa",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "da1b238cd8917f3e1f3e9487a24378148077a7494f59f21aa7e18ba72e239123",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "e01c2bb1fff0a6c2519ee2d5ef8e2a442001eb5db6b5e8b9b70a71404f428397",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "018e60200ab54ad7e950451947ce9c43598635e005efcea9bf1f46e56811faa4",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "2a39388428b12fa7bcd712db95211a44d98347733a2f1ad6be0ad451f40c9293",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "6034c75d13a9bbdaf8205a58ca6289fa1b244348ceea29307800a594f4e61781",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "935f909b01cdc054194876ab93f18283ea2506678c99f44aab8a04fd9dd59faa",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "77f3ac1edb45092bd84b5bc63bb1b44c4668205a2609306ab3a4aa46556d3b2a",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "16b063ee0b4d966b1c38a750c06fb2e0a968c9106683eb21f8d117e3bc911994",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "b18e26ea7f5ae14dd9382f23112c9520e73c17ba0bd9d80afa85482811d89ee1",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "5f6265e7c6a954bb07daade7d8c3fe1393322255dd0fe13a91216fcd733a599d",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "77a34ab4fc85151b77311de5063378228badd0cda877bf7cd6976ce9d19e1014",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "3a75cc11b3dd62ab866a6b2e8bbebd9b7a3150129cfba47412a4f321d65124f7",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "83faa4dd4108d5495f66943484c30f90843c5c6a6a06e6680dd36af1c2b1c188",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "231a0dcf90feadc08c50d3ec54673a5246e9b540f185893a38a172afaf83b7a0",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "86f00fb40b4b57ce33d15a5e824cbd4876d220a107f3ca8eb1b3a13e13bc3792",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "4321741dd994b4657262761f678d4e4ebc9f7aed88358e925a06b9f2a8844db7",
+        "classification": "declaration",
+        "owner": "ProcessSnapshot",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "4fad6c0c823c8eb90c5e67e0f10e6ca70f4bc4f84c45a42bc12e4861415eef9b",
+        "classification": "non_contract",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "225cbcbecf74cac38cdae19fce097118cf73a665ac67b44751e95600b3f1ebc7",
+        "classification": "non_contract",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "280ec87882bb2135cb04701c1c925672cffa4fd6713a9a7f9c2326a5e507cb94",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "195d56b3598ec658c053bb0d49bc6d4d5fe392ca800df77a0f3be388a01a6a6a",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "a325413d34781482ebe88ec8055aa4eafd82e04e8a4230da67a439b90a234564",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "cae56f6846202b2e0aff847c89ccf99493ab168cecd2fa845b4f021a107d65e8",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "7926e0f2b28d546046b036a4a2462647fed1ed77f8f0204b776cc2ac4889a2d6",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "50b30f6e9e125f582e2193fb6c5a2443406a9055600d69969f283e238eb1cc0c",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "94d9ca346d2f23f23ef545effda0ca8b68bcfa4c2c3386677ba1df551b971d26",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "0e2be916e9d3c055a4f4a5caa624940b8f6611a08f2c4d6441fc1e070aab86db",
+        "classification": "declaration",
+        "owner": "OutputDestination",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "d31de331c5ef3dfcc72c313492bcf07fb16ae08ffeaa0537e83821217e1b252a",
+        "classification": "non_contract",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "57ca85d187ba87533b46095400129acae7af07c5877a434e88e4ef98e2cec3e8",
+        "classification": "non_contract",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "d6352ec5e744c65fd099e9ced70b9dd42e83f48081da7824e7004591f53ad527",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "46bc01d119095e69fae8cfe75d5ee7bc6f98ff9bf7a9dfb33f80b03081dd197a",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "8d92a57aae6cd258db78cfeec02b8ecb98dfbc4cae8b3c8a800704932b67249b",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "b4244cd84161c827de69e0cd9ca7780250ea4874a4c94ae9001cea7b23e88a87",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "e060b67302db8cd91da772fb7462fd9fe83a259b64daedfc3ef39d015e4b0d07",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "133fbd06b0111cda931deb5037d3f94c7ebda5569a607373f96a503c7ec53255",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "7e667e338fe1195987417fe96471fa782565bfb72c0197ab2b28c98fbd1bb88e",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "36cba36139b2ecbf21e1f79cc7916cb1618e43d475f57748c3a06fa128e1deef",
+        "classification": "declaration",
+        "owner": "OutputReference",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "52d6ab695f71e803fed656697fb3000e58d0837b13e9e3b960dbf5595e581fa0",
+        "classification": "non_contract",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "305750023a0271e69f3b8576af685b2d4bea86a60242bbc938c341f01e002553",
+        "classification": "non_contract",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "e52c6e60a362d2c78f0d092d6e555ed717e201eebc1d63781fa94960482c6111",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "4433e04b6f4a1a26466fccada455afcea9fd02ca4d5db22ec2192d4d43c79d41",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "5187d224e989f379169dcab7471ed5e82717c4b4137135085ee42cc48e27181a",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "36f0c5e01623abac525c10419eea3a8f6fae08a92d2f73010685ce39298b776a",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "d09ec8662d4aa00e215580a5307f62edfb1917670e1eb784350eb3faac01a17e",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "63151376309c3e51ed38880db7b7d8b06d3a13b9b2900a623cd54da46093241f",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "0c07b275a28d066797e9afc1b9de7db0e2d0f0d4d21e2f43852b9cb782ddb618",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "68423bb4013d9978128f1366833b0949cf915d31b0aefa26733dc56a41b43950",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "d84faa5c20205a937a72d081df571dc90d8ddd29d76819fe74551d6a32ccca7c",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "7ea0c32d6c57ec5cf28385f36abce07a7c756faf98b78d2fd62f5320e10ba6f3",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "d2108f1ff74b5967f8827eba0123075149471884bac1b5b64b7d1b6827d5df8c",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "1de201bf6d62576a68ee8c4a9df51818915a7c87b25bfbffc4c017075835ff9d",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "189b214e36f6afadafde1c3758205e2a67827ae942711dd24d2d187f14dfe490",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "317b52567baedbec3f85374d8f0fd02bf824bc70ac192d767c91e33466c457b4",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "b614a79f133869cd4ca6996f0d01b60717f562b0482b8b65cf57514df29f60e9",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "fbe8593068509b58ac56b1aa4065eb277105850b79100bb32eece7406b4d8fd1",
+        "classification": "declaration",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "a0af5e9a5d77742b35c0583f651bba2a0e43f43ae87dd99bd56a0dbb0a9ced7f",
+        "classification": "non_contract",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "194c91b2dbe4bb076afb7ce8162f5b37a34eb61ec34d0ff1d33e796651c0195b",
+        "classification": "non_contract",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "bc259f3888e2b7f34f3d7b3ad38058d3f87c67531d6b0e39fe848d09ab0931b1",
+        "classification": "non_contract",
+        "owner": "StoredOutput",
+        "reason": "The value Owner declares its closed wire schema and explicit structural validation; metadata types, nullable fields, nonnegative character counts and reference digest syntax match the previous retained record. Conversion consumes these declarations without generating configuration. Stream names select declared stdout/stderr fields; the identity error rejects a record for another identifier. No effect, retry, approval or size policy is added."
+      },
+      {
+        "id": "1c8f8512cf3dd4f7455735ed2231e2fee3af580216af96e3e77a1760827fb89c",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "6c3d33836069fe75666e77ffe9e89eaf6c4b4105b525b7e553588e0bb5654772",
+        "id": "7b8a37c046b6d7607452e911ae887b56c5439e287b4a4593359238c2f54119ba",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "b0b824c3797336445c381fc5d4cb2df8552c1bacdb1e34a2f3b6f5bb7d760a9b",
+        "id": "c9a07b0a65fd52423cf3abfad0c58ed258a98c4cd2831fb0e46288567df35092",
         "classification": "declaration",
         "owner": "Process input, limits and response Owners",
         "reason": "Owner fields, optional absence/defaults, Schema/limits, state/lifetime/IO/diagnostic declarations precede implementation."
       },
       {
-        "id": "bdf4ab2f989e8384af987a9f34a0fc30ad93e4ca2357e567a74dbaba1df86099",
+        "id": "b5f639dae5b1884d7c3defe9dd690ec02855f031b28e00d91048ffa50aeab8b8",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
       },
       {
-        "id": "f414358f6cd11177e78118bea31539b1ffb631cd364d14e28a8d888e111b2ccd",
+        "id": "9e86d00343e7c65b354969a0fe30bcd6e0a423da91180c817f72d761765ff33e",
         "classification": "non_contract",
         "owner": "Process input, limits and response Owners",
         "reason": "Python dataclass construction flags."
@@ -9305,6 +9737,8 @@
         "consumers": [
           "hub/backend/tools/builtin.py",
           "llm/components/tools/builtin/catalog.py",
+          "llm/components/tools/builtin/component.py",
+          "llm/components/tools/builtin/output.py",
           "llm/components/tools/builtin/processes.py"
         ],
         "tests": [
@@ -9329,6 +9763,7 @@
           "tests/llm/test_operation_integrity.py",
           "tests/llm/test_process_group_cleanup.py",
           "tests/llm/test_sandbox_contracts.py",
+          "tests/llm/test_streaming_files.py",
           "tests/llm/test_test_workspaces.py",
           "tests/llm/test_transactions.py",
           "tests/llm/test_usage_deletion.py"

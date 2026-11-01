@@ -5,22 +5,13 @@ from pathlib import Path
 import tempfile
 
 from llm.core.configuration import UNSET
-from llm.core.schema import object_schema
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import revision_token, async_method, drain_on_cancel
 from llm.services.infrastructure.text_stream import text_blocks
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.file_manifest import FileManifest
 from llm.services.lifecycle.components import ComponentData
-from .process_values import ProcessOutput
-
-
-class OutputDestination:
-    @staticmethod
-    def schema():
-        return object_schema({"component": {"type": "string", "minLength": 1},
-                              "identifier": {"type": "string", "minLength": 1}},
-                             required=["component", "identifier"])
+from .process_values import ProcessOutput, ProcessSnapshot, StoredOutput, OutputReference
 
 
 class BuiltinOutputData(ComponentData):
@@ -52,23 +43,24 @@ class BuiltinOutputData(ComponentData):
         if any(path in FileManifest(snapshot.data).entries for path in paths):
             raise ValueError("Process output already exists; cannot replay publication")
         snapshot = EditableSnapshot.read(files.import_files(destination["identifier"], paths, expected_revision=snapshot.version))
-        references = {name: {**destination, "path": path,
-            "revision": revision_token(FileManifest(snapshot.data).require(path))}
+        references = {name: OutputReference(**destination, path=path,
+            revision=revision_token(FileManifest(snapshot.data).require(path))).to_dict()
             for name, path in zip(sources, paths)}
-        record = {**record, "output_sources": references}
+        record = StoredOutput(**record).with_sources(references).to_dict()
         project, component = self._current()
         component.create(project, record, identifier=identifier)
         return references
 
     @workspace_locked
     def read_output(self, identifier, name, *, offset, limit):
-        record = self.load(identifier)
-        reference = record["output_sources"][name]
-        files = self.related(reference["component"])
-        snapshot = EditableSnapshot.read(files.snapshot(reference["identifier"]))
-        if revision_token(FileManifest(snapshot.data).require(reference["path"])) != reference["revision"]:
+        # ComponentData.load has already validated this retained record.
+        record = StoredOutput(**self.load(identifier))
+        reference = record.reference(name)
+        files = self.related(reference.component)
+        snapshot = EditableSnapshot.read(files.snapshot(reference.identifier))
+        if revision_token(FileManifest(snapshot.data).require(reference.path)) != reference.revision:
             raise ValueError("Stored process output changed")
-        return files.read_text(reference["identifier"], reference["path"],
+        return files.read_text(reference.identifier, reference.path,
                                expected_revision=snapshot.version, offset=offset, limit=limit)
 
     aread_output = async_method(read_output)
@@ -118,28 +110,27 @@ class ProcessOutputStore:
         identifier = uuid4().hex
         timestamp = datetime.now(timezone.utc).isoformat()
         from .process_values import ProcessStatus
-        record = {"process_id": identifier, "status": ProcessStatus.COMPLETED.value, "returncode": code,
-            "pid": None, "argv": list(argv), "cwd": str(cwd), "started_at": started_at,
-            "ended_at": timestamp, "stdin_open": False, "truncated": False,
-            "stdout": await asyncio.to_thread(stdout.read, 0, self.preview_chars),
-            "stderr": await asyncio.to_thread(stderr.read, 0, self.preview_chars),
-            "stdout_chars": stdout.characters, "stderr_chars": stderr.characters,
-            "preview_chars": self.preview_chars}
-        record["output_sources"] = await self.publish_capture(identifier, record, stdout, stderr)
-        return record
+        snapshot = ProcessSnapshot(identifier, ProcessStatus.COMPLETED.value, code, None,
+            list(argv), str(cwd), started_at, timestamp, False,
+            await asyncio.to_thread(stdout.read, 0, self.preview_chars),
+            await asyncio.to_thread(stderr.read, 0, self.preview_chars), False)
+        record = StoredOutput.from_snapshot(snapshot, sources=None, stdout_chars=stdout.characters,
+                                           stderr_chars=stderr.characters, preview_chars=self.preview_chars)
+        sources = await self.publish_capture(identifier, record.to_dict(), stdout, stderr)
+        return record.with_sources(sources).to_dict()
 
     async def load(self, identifier):
         return await self.data.aload(identifier)
 
     async def read(self, args):
-        record = await self.load(args.process_id)
+        record = StoredOutput(**await self.load(args.process_id))
         limit = None if args.max_chars is UNSET else args.max_chars
         values = {}
         for name, offset in (("stdout", args.stdout_offset), ("stderr", args.stderr_offset)):
-            total = record[name + "_chars"]
+            total = record.total(name)
             if not 0 <= offset <= total:
                 raise ValueError("Output offset is outside the retained stream")
             text = await self.data.aread_output(args.process_id, name, offset=offset, limit=limit)
             values[name] = (text, offset + len(text), total - offset - len(text))
-        return ProcessOutput(args.process_id, record["status"], record["returncode"], record["truncated"],
+        return ProcessOutput(args.process_id, record.status, record.returncode, record.truncated,
             *values["stdout"], *values["stderr"]).to_dict()

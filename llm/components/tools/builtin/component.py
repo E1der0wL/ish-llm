@@ -8,11 +8,10 @@ from llm.core.parameters import ParameterLayout
 from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.selection import ToolSelection
 from .path_access import PathAccess, path_scope
-from .output import BuiltinOutputData, OutputDestination, ProcessOutputStore
+from .output import BuiltinOutputData, ProcessOutputStore
+from .process_values import OutputDestination, StoredOutput
 from .capture import output_scope
-from llm.core.schema import object_schema
 from llm.services.infrastructure.storage import revision_token
-from jsonschema import Draft202012Validator
 
 
 class BuiltinParameter(StrEnum):
@@ -61,31 +60,13 @@ class BuiltinToolComponent(Component):
         if not self._has_storage(project):
             return refs
         for identifier, record in self.list(project).items():
-            for reference in record["output_sources"].values():
+            for reference in StoredOutput(**record).output_sources.values():
                 refs.append({**reference, "source": f"{self.name}/{identifier}"})
         return refs
 
     def validate_record(self, identifier, value):
         # The source record is a retained observation, never an execution request.
-        keys = ("process_id", "status", "returncode", "pid", "argv", "cwd", "started_at",
-                "ended_at", "stdin_open", "stdout", "stderr", "truncated", "output_sources",
-                "stdout_chars", "stderr_chars", "preview_chars")
-        reference = {**OutputDestination.schema(), "required": ["component", "identifier", "path", "revision"]}
-        reference["properties"].update(path={"type": "string", "minLength": 1},
-                                       revision={"type": "string", "pattern": "^[a-f0-9]{64}$"})
-        properties = {key: {"type": "string"} for key in keys}
-        for key in ("returncode", "pid"):
-            properties[key] = {"type": ["integer", "null"]}
-        for key in ("stdout_chars", "stderr_chars", "preview_chars"):
-            properties[key] = {"type": "integer", "minimum": 0}
-        for key in ("stdin_open", "truncated"):
-            properties[key] = {"type": "boolean"}
-        properties["argv"] = {"type": "array", "items": {"type": "string"}}
-        properties["ended_at"] = {"type": ["string", "null"]}
-        properties["output_sources"] = object_schema({"stdout": reference, "stderr": reference}, required=["stdout", "stderr"])
-        Draft202012Validator(object_schema(properties, required=list(keys))).validate(value)
-        if value["process_id"] != identifier:
-            raise ValueError("Output record identity mismatch")
+        StoredOutput.read(value, identifier=identifier)
 
     def resolve_runtime(self, project, capability, *, data_factory):
         options = self._options(project)

@@ -6,7 +6,8 @@ from enum import StrEnum
 import math
 
 from llm.core.configuration import UNSET
-from llm.core.schema import SchemaKeyword
+from llm.core.schema import SchemaKeyword, object_schema
+from jsonschema import Draft202012Validator
 from llm.services.infrastructure.process_environment import ProcessEnvironment
 from .arguments import BuiltinArguments
 
@@ -268,18 +269,23 @@ class CheckArguments(ProcessLimits):
 
 @dataclass(frozen=True, slots=True)
 class ProcessSnapshot:
-    process_id: str
-    status: str
-    returncode: int | None
-    pid: int
-    argv: list[str]
-    cwd: str
-    started_at: str
-    ended_at: str | None
-    stdin_open: bool
-    stdout: str
-    stderr: str
-    truncated: bool
+    process_id: str = field(metadata={"type": "string"})
+    status: str = field(metadata={"type": "string"})
+    returncode: int | None = field(metadata={"type": ["integer", "null"]})
+    pid: int | None = field(metadata={"type": ["integer", "null"]})
+    argv: list[str] = field(metadata={"type": "array", "items": {"type": "string"}})
+    cwd: str = field(metadata={"type": "string"})
+    started_at: str = field(metadata={"type": "string"})
+    ended_at: str | None = field(metadata={"type": ["string", "null"]})
+    stdin_open: bool = field(metadata={"type": "boolean"})
+    stdout: str = field(metadata={"type": "string"})
+    stderr: str = field(metadata={"type": "string"})
+    truncated: bool = field(metadata={"type": "boolean"})
+
+    @classmethod
+    def schema(cls):
+        properties = {item.name: deepcopy(dict(item.metadata)) for item in fields(cls)}
+        return object_schema(properties, required=list(properties))
 
     def to_dict(self):
         return asdict(self)
@@ -287,6 +293,60 @@ class ProcessSnapshot:
     @classmethod
     def identifier(cls, value):
         return value[cls.process_id.__name__]
+
+
+@dataclass(frozen=True, slots=True)
+class OutputDestination:
+    component: str = field(metadata={"type": "string", "minLength": 1})
+    identifier: str = field(metadata={"type": "string", "minLength": 1})
+
+    @classmethod
+    def schema(cls):
+        properties = {item.name: deepcopy(dict(item.metadata)) for item in fields(cls)}
+        return object_schema(properties, required=list(properties))
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class OutputReference(OutputDestination):
+    path: str = field(metadata={"type": "string", "minLength": 1})
+    revision: str = field(metadata={"type": "string", "pattern": "^[a-f0-9]{64}$"})
+
+
+@dataclass(frozen=True, slots=True)
+class StoredOutput(ProcessSnapshot):
+    """Retained output wire contract; read() validates publication, not live drafts."""
+
+    output_sources: dict = field(metadata=object_schema(
+        {name: OutputReference.schema() for name in ("stdout", "stderr")}, required=["stdout", "stderr"]))
+    stdout_chars: int = field(metadata={"type": "integer", "minimum": 0})
+    stderr_chars: int = field(metadata={"type": "integer", "minimum": 0})
+    preview_chars: int = field(metadata={"type": "integer", "minimum": 0})
+
+    @classmethod
+    def from_snapshot(cls, snapshot, *, sources, stdout_chars, stderr_chars, preview_chars):
+        return cls(**snapshot.to_dict(), output_sources=deepcopy(sources),
+                   stdout_chars=stdout_chars, stderr_chars=stderr_chars, preview_chars=preview_chars)
+
+    @classmethod
+    def read(cls, value, *, identifier):
+        Draft202012Validator(cls.schema()).validate(value)
+        result = cls(**deepcopy(value))
+        if result.process_id != identifier:
+            raise ValueError("Output record identity mismatch")
+        return result
+
+    def with_sources(self, sources):
+        from dataclasses import replace
+        return replace(self, output_sources=deepcopy(sources))
+
+    def reference(self, name):
+        return OutputReference(**self.output_sources[name])
+
+    def total(self, name):
+        return {"stdout": self.stdout_chars, "stderr": self.stderr_chars}[name]
 
 
 @dataclass(frozen=True, slots=True)

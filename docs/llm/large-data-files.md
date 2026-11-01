@@ -26,6 +26,17 @@ page = await data.aread_text(
 기존 workspace transaction으로 확정한다. 파일 쓰기와 참조 등록 실패는 함께 롤백된다.
 기존 `write_file`은 이미 메모리에 있는 bytes/str 입력용으로 유지한다.
 
+`read_file`에서 `expected_revision`을 생략하면 facade의 의미 없는 CAS용 선행 load를
+하지 않고 파일 소유자의 현재 패키지 검증을 한 번 수행한다. 명시한 revision 검사는 유지한다.
+패키지 전체의 바이트 무결성은 여전히 검사하므로 작은 범위 조회도 같은 패키지의 큰 파일을
+해시할 수 있다. revision·경로·mtime만을 근거로 검증을 재사용하지 않는다. 외부에서 내용만
+바꾸거나 mtime을 복원해도 다음 조회가 손상을 검출해야 한다.
+
+보관된 프로세스 출력의 wire 선언은 `builtin/process_values.py`의 `StoredOutput`이 소유한다.
+Component 검증, 출력 작성·조회, stdout/stderr Data 참조가 같은 선언을 사용하며 저장 JSON은
+바뀌지 않는다. 실행 중 draft의 미공개 참조는 저장을 통과할 수 없고, 원문과 참조가 함께
+공개된 뒤에만 보관 기록으로 조회할 수 있다.
+
 `read_file(offset, length)`는 byte 범위를 seek/read한다. `read_text(offset, limit)`는
 UTF-8 문자 범위만 반환하고 앞부분을 작은 buffer로 해독한다. byte와 문자 cursor는
 서로 바꾸어 쓰지 않는다. `limit=None`을 명시하면 남은 텍스트 전부를 반환한다.

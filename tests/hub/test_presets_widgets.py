@@ -187,6 +187,26 @@ class WidgetFlowTests(unittest.IsolatedAsyncioTestCase):
         await eventually(lambda: picked == ["b"])
         self.assertIs(self.app.layout.current_control, dropdown.control)
 
+    async def test_invalid_preset_keeps_draft_and_uses_common_footer(self):
+        from prompt_toolkit.formatted_text import to_plain_text
+        from hub.widget.feedback.progress import ProgressControl
+
+        calls = []
+        self.view.settings.request = lambda *args: calls.append(args)
+        with set_app(self.app):
+            self.view.profile_bar.preset_ui.create({"unknown": True})
+            popup = self.view._dialog
+            name = popup.body.children[2]
+            name.text = "Keep draft"
+            popup._buttons[0].handler()
+            control = popup.status_bar.content
+            self.assertIsInstance(control, ProgressControl)
+            self.assertTrue(to_plain_text(control.create_content(100, 1).get_line(0)).strip())
+            self.assertEqual(len(popup.body.children), 3)
+            self.assertIs(self.view._dialog, popup)
+            self.assertEqual(name.text, "Keep draft")
+            self.assertEqual(calls, [])
+
     async def test_preset_creation_uses_configured_editor_and_validates_saved_json(self):
         value = {"version": 1, "global": {"profile": asdict(UserProfile()), "appearance": asdict(HubTheme()),
                 "general": asdict(GeneralSettings())}, "project": {"config": {}, "components": [], "conversation_storage": "file"}}

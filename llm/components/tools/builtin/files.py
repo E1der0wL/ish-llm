@@ -65,7 +65,6 @@ class FileTools:
     EXISTS = "File already exists"
     AMBIGUOUS_PATCH = "Patch text must match exactly once"
     RESTORE_EXISTS = "Restore destination already exists"
-    MOVE_EXISTS = "Move destination already exists"
 
     @classmethod
     def argument_schema(cls):
@@ -370,14 +369,27 @@ class FileTools:
         target, following = destination
         if not stat.S_ISREG(os.stat(name, dir_fd=parent, follow_symlinks=False).st_mode):
             raise ValueError(self.REGULAR_FILE)
-        try:
-            os.stat(following, dir_fd=target, follow_symlinks=False)
-        except FileNotFoundError:
-            pass
-        else:
-            raise FileExistsError(self.MOVE_EXISTS)
-        os.rename(name, following, src_dir_fd=parent, dst_dir_fd=target)
+        self._rename_exclusive(parent, name, target, following)
         os.fsync(parent); os.fsync(target)
+
+    @staticmethod
+    def _rename_exclusive(parent, name, target, following):
+        # Linux owns the absence check and move atomically. A Python lock cannot
+        # exclude external creators. No overwrite or partially applied link/unlink fallback.
+        import ctypes
+        import errno
+
+        libc = ctypes.CDLL(None, use_errno=True)
+        try:
+            rename = libc.renameat2
+        except AttributeError as error:
+            raise OSError(errno.ENOSYS, "Atomic no-replace move is unavailable") from error
+        rename.argtypes = (ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint)
+        rename.restype = ctypes.c_int
+        rename_noreplace = 1  # Linux UAPI flag, not configurable behavior.
+        if rename(parent, os.fsencode(name), target, os.fsencode(following), rename_noreplace):
+            code = ctypes.get_errno()
+            raise OSError(code, os.strerror(code), name, None, following)
 
     def file_restore(self, args):
         args = FileRestoreArguments.read(args)

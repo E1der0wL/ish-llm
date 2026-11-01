@@ -11,7 +11,7 @@ from asyncio import timeout
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.core.configuration import UNSET
 from .process_values import (ProcessStatus, ProcessText, ProcessStartArguments, ProcessReferenceArguments,
-    ProcessOutputArguments, ProcessWriteArguments, ProcessSnapshot, ProcessOutput, ProcessWritten)
+    ProcessOutputArguments, ProcessWriteArguments, ProcessSnapshot, ProcessOutput, ProcessWritten, StoredOutput)
 from .capture import current_output_store
 from llm.services.infrastructure.captured_text import CapturedText
 from .path_access import current_path_access, PathAccess
@@ -38,11 +38,11 @@ class ProcessSession:
         value = ProcessSnapshot(identifier, self.status.value, self.process.returncode, self.process.pid,
             list(self.argv), self.cwd, self.started_at, self.ended_at,
             self.process.stdin is not None and not self.process.stdin.is_closing(),
-            self.stdout.read(0, maximum), self.stderr.read(0, maximum), self.truncated).to_dict()
+            self.stdout.read(0, maximum), self.stderr.read(0, maximum), self.truncated)
         if self.store is not None:
-            value.update(output_sources=self.sources, stdout_chars=self.stdout.characters,
-                         stderr_chars=self.stderr.characters, preview_chars=maximum)
-        return value
+            value = StoredOutput.from_snapshot(value, sources=self.sources, stdout_chars=self.stdout.characters,
+                                               stderr_chars=self.stderr.characters, preview_chars=maximum)
+        return value.to_dict()
 
 
 @dataclass(frozen=True, slots=True)

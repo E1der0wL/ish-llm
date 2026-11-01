@@ -58,6 +58,12 @@ file_read는 tail_lines 또는 줄 범위를 받으므로 기존 앱 로그도 �
 file_search 페이지는 현재 파일을 다시 읽으며 파일 변경 시 처음부터 검색해야 합니다.
 file_read의 expected_sha256으로 동일 파일 버전 여부를 확인할 수 있습니다.
 
+file_move와 file_restore는 Linux `renameat2(RENAME_NOREPLACE)`로 이동합니다.
+경로 검사를 통과한 뒤 다른 프로세스가 목적지 파일이나 심볼릭 링크를 만들어도 덮어쓰지 않습니다.
+해당 연산을 지원하지 않는 환경·파일시스템이나 서로 다른 파일시스템 사이의 이동은 실패하며,
+덮어쓰는 rename 또는 복사 후 삭제로 우회하지 않습니다. 이동 뒤 디렉터리 동기화에 실패하면
+이미 이동했을 수 있으므로 no-effect 오류로 바꾸거나 자동 재실행하지 않습니다.
+
 process_start에 stdin=true를 주면 process_write로 정확한 문자열 또는 EOF(close=true)를 보냅니다.
 이것은 pipe이며 PTY·기존 ish 터미널 연결은 아닙니다. process_output은 stdout_offset,
 stderr_offset, max_chars를 받고 next_stdout_offset/next_stderr_offset을 반환합니다.
