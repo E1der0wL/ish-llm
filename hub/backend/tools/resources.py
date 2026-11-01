@@ -198,7 +198,9 @@ class HubRAGComponent(RAGComponent):
             schema = deepcopy(search.parameters)
             if rerank not in schema[SchemaKeyword.REQUIRED]:
                 schema[SchemaKeyword.REQUIRED].append(rerank)
-            registry = ToolRegistry(tuple(
+            # Reuse native syntax proofs for unchanged definitions. The altered
+            # search schema and all runtime bindings still pass registration.
+            registry = registry.derive(tuple(
                 replace(search, parameters=schema) if name == search.name else registry.get(name)
                 for name in registry.names()))
 

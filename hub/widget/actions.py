@@ -8,6 +8,7 @@ from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Frame
 from prompt_toolkit.utils import get_cwidth
+from ..config.theme_style import ThemeSelector
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 
 
@@ -30,7 +31,7 @@ class ActionFrame(Frame):
 
     PADDING_ROWS = 1
 
-    def __init__(self, actions, *, hint=None, **kwargs):
+    def __init__(self, actions, *, hint=None, style=ThemeSelector.ACTION_FRAME.style, **kwargs):
         # Let the actual available width determine wrapped button rows. An
         # unbounded explicit height would reserve unused space below the frame.
         super().__init__(
@@ -41,6 +42,7 @@ class ActionFrame(Frame):
                     hint if hint is not None else Window(height=self.PADDING_ROWS),
                 ]
             ),
+            style=style,
             **kwargs
         )
 

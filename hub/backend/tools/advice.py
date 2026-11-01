@@ -10,7 +10,7 @@ from llm.core.tool_contracts import ToolClassification
 from llm.core.interactions import InteractionRequestObservation
 from llm.services.runtime.tool_approval_records import ToolApprovalActionView
 from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean
-from llm.components.tools import Tool, ToolRegistry
+from llm.components.tools import Tool
 from llm.components.tools.builtin import BuiltinTools
 
 
@@ -158,4 +158,4 @@ def bind_advice(toolkit: BuiltinTools) -> None:
                 ),
             )
         tools.append(tool)
-    toolkit.registry = ToolRegistry(tuple(tools))
+    toolkit.registry = toolkit.registry.derive(tuple(tools))

@@ -21,16 +21,22 @@ from ..sidebar import SidebarItem, SidebarList
 class ParticipantManager(Dialog):
     """Only immutable view observations feed the lists; no reads during paint."""
 
+    EMPTY_TEXT = ""
+    UNGROUPED = ""
+    DETAIL_SEPARATOR = " • "
+    GROUP_LABEL = "{title} ({count})"
+    EDIT_SELECTION_COUNT = 1
+
     def __init__(self, view):
         self.view = view
         self.busy = False
-        self.status = ""
+        self.status = self.EMPTY_TEXT
         self._signature = None
-        self.agents = CheckboxList([("", "")], default_values=[])
+        self.agents = CheckboxList([(self.EMPTY_TEXT, self.EMPTY_TEXT)], default_values=[])
         self.agents.window.dont_extend_width = to_filter(False)
         self.agents.window.dont_extend_height = to_filter(False)
         self.agents.window.height = Dimension(min=1, weight=2)
-        self.selected_group = ""
+        self.selected_group = self.UNGROUPED
         self.group_items = []
         self.groups = SidebarList(lambda: self.group_items, lambda: self.selected_group,
                                   self.select_group)
@@ -85,11 +91,11 @@ class ParticipantManager(Dialog):
             self._signature = signature
             suffix = view.t(MessageKey.PARTICIPANTS_JOINED)
             self._update_list(self.agents, [
-                (identifier, title + (" • " + suffix if identifier in view.participant_ids else ""))
+                (identifier, title + (self.DETAIL_SEPARATOR + suffix if identifier in view.participant_ids else self.EMPTY_TEXT))
                 for identifier, title in signature[0]
-            ] or [("", "")])
+            ] or [(self.EMPTY_TEXT, self.EMPTY_TEXT)])
             grouped = {member for group in view.participant_groups for member in group.members}
-            groups = [("", view.t(MessageKey.PARTICIPANTS_UNGROUPED),
+            groups = [(self.UNGROUPED, view.t(MessageKey.PARTICIPANTS_UNGROUPED),
                        tuple(member for member in view.participant_ids if member not in grouped)),
                       *((group.id, group.title, group.members) for group in view.participant_groups)]
             self.group_items = []
@@ -98,12 +104,12 @@ class ParticipantManager(Dialog):
                 # need the same separation, not a second spacer after details.
                 margin = int(bool(self.group_items) and not self.group_items[-1].detail)
                 self.group_items.append(SidebarItem(
-                    identifier, f"{title} ({len(members)})",
-                    " • ".join(view.agent_titles.get(member, member) for member in members),
+                    identifier, self.GROUP_LABEL.format(title=title, count=len(members)),
+                    self.DETAIL_SEPARATOR.join(view.agent_titles.get(member, member) for member in members),
                     margin_top=margin,
                 ))
             if self.selected_group not in {item.key for item in self.group_items}:
-                self.selected_group = ""
+                self.selected_group = self.UNGROUPED
         return self.content
 
     def select_group(self, identifier):
@@ -148,7 +154,7 @@ class ParticipantManager(Dialog):
         if selected:
             self.call(lambda done: self.view.on_invite_agent(selected, done))
 
-    def change(self, action, identifier="", value=""):
+    def change(self, action, identifier=EMPTY_TEXT, value=EMPTY_TEXT):
         if not self.busy and self.view.on_change_participants:
             self.call(lambda done: self.view.on_change_participants(action, identifier, value, done))
 
@@ -187,7 +193,7 @@ class ParticipantManager(Dialog):
                        buttons=[Button(view.t(MessageKey.CONFIRM), handler=confirm),
                                 Button(view.t(MessageKey.CANCEL), handler=restore)],
                        size=PopupSize.SMALL, allow_small_input=True)
-        popup.status = ""
+        popup.status = self.EMPTY_TEXT
         popup.status_bar = view.progress.container(lambda: popup.status, surface=popup)
         popup.on_close = restore
         view.dialogs.show(popup, name)
@@ -202,7 +208,7 @@ class ParticipantManager(Dialog):
         if self.busy or not self.view.on_component:
             return
         selected = tuple(identifier for identifier in self.agents.current_values if identifier)
-        if len(selected) != 1:
+        if len(selected) != self.EDIT_SELECTION_COUNT:
             self.status = self.view.t(MessageKey.PARTICIPANTS_EDIT_ONE)
             get_app().invalidate()
             return
@@ -210,11 +216,11 @@ class ParticipantManager(Dialog):
 
         def ready(record):
             self.busy = False
-            self.status = "" if record is not None else self.view.t(MessageKey.TOOLS_FAILED)
+            self.status = self.EMPTY_TEXT if record is not None else self.view.t(MessageKey.TOOLS_FAILED)
             get_app().invalidate()
 
         try:
-            self.view.on_component(ManagedComponents.AGENTS.tool_prefix, "", consume_input=False,
+            self.view.on_component(ManagedComponents.AGENTS.tool_prefix, self.EMPTY_TEXT, consume_input=False,
                                    edit_identifier=selected[0], completed=ready)
         except Exception:
             self.busy = False

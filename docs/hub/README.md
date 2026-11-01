@@ -1,6 +1,6 @@
 # Hub 설계 문서
 
-기준: main `94229cb865374d99f20ec48c5e48269488041a4e`. Hub는 현재 동작하는 ish 인터페이스
+Hub는 현재 동작하는 ish 인터페이스
 플러그인이다. 이 문서는 현재 책임과 정규 문서의 진입점이다. 날짜별 개발 내역과 이전 UX 설명은
 [개발 기록](history.md)에 보존했다. [클린 리팩터링 목표](../llm/clean-refactor.md)는 미구현 상태다.
 
@@ -52,6 +52,8 @@ P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 s
 적용한 완전한 section을 저장한다. 환경 없는 구 Run fallback은 C의 실행 binding 전환 대상이다.
 
 ## 사용법·검증 기록
+
+- [계약 감사 기록 갱신과 회귀 검증](contract-audit-refresh.md): 최근 UI·도구 구성의 개별 검토, 현재 소스 근거와 전체 Hub 회귀 결과. 과거 전수 감사와 현재 미검토 범위를 구분한다.
 
 - [핵심 설정 화면과 전체 JSON 편집](essential-settings.md): 공통 항목 노출 기준, 원본 설정 보존과 클릭 편집.
 

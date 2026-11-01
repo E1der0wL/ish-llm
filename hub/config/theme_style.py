@@ -33,8 +33,11 @@ class ThemeSelector(StrEnum):
     USAGE_BAR = "hub-usage-bar"
     DIVIDER = "hub.divider"
     TITLE = "hub.title"
+    ACTION_FRAME = "hub.action-frame"
+    ACTION_FRAME_LABEL = "hub.action-frame frame.label"
     COMPOSER = "hub.composer"
     INPUT_FRAME = "hub.input-frame"
+    INPUT_FRAME_LABEL = "hub.input-frame frame.label"
     QUESTION = "hub.question"
     QUESTION_HEADING = "hub.question-heading"
     QUESTION_CHOICE = "hub.question-choice"
@@ -162,6 +165,8 @@ class ThemeStyle:
             ThemeSelector.USAGE_BAR.value: "fg:{theme.accent1}",
             ThemeSelector.DIVIDER.value: "fg:{theme.muted}",
             ThemeSelector.TITLE.value: "bold",
+            ThemeSelector.ACTION_FRAME_LABEL.value: "fg:{theme.accent1} bold",
+            ThemeSelector.INPUT_FRAME_LABEL.value: "fg:{theme.accent1} bold",
             ThemeSelector.COMPOSER.value: "fg:{theme.foreground} bg:{theme.background}",
             ThemeSelector.QUESTION.value: "",
             ThemeSelector.QUESTION_HEADING.value: "fg:{theme.accent} bg:{theme.header_background} bold",
