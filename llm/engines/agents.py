@@ -397,6 +397,8 @@ class AgentExecution:
 class AgentInvocation:
     """One admitted root Agent; scheduling and persisted effects stay in RunManager."""
 
+    prepares_execution = True
+
     NO_RESOURCES = None
     NO_BINDING = None
     NO_CONFIGURATION = None
@@ -474,6 +476,11 @@ class AgentInvocation:
         if self.runtime_binding is self.NO_BINDING:
             raise RuntimeError(self.NOT_PREPARED)
         policy = self.profile.policy
+        # The wrapper owns resource composition. Unknown child strategies and
+        # resource connections retain their durable binding before entry. This
+        # separate binding ACK stays outside the Agent action timeout, as before.
+        if self.profile.resources.mcp or not EngineHooks.prepares_execution(self.engine):
+            yield BaseEngine.execution_boundary()
         async with timeout(policy.timeout_seconds), AsyncExitStack() as stack:
             if self.resources is not self.NO_RESOURCES:
                 await self.selection.connect_resources(self.resources, context, context.tools, stack)

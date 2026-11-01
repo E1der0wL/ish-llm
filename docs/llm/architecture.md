@@ -120,12 +120,29 @@ Run에 연결된 Tool 실행은 서비스가 전달한 `ToolExecutionScope`를 �
 
 ## 저장·복구와 관찰
 
+실행 준비와 실행 허용은 구별한다. 명시적인 준비 계약을 제공하는 Engine/Adapter만 외부 효과 없는
+구간에서 기록을 함께 준비할 수 있다. 실행 허용은 현재 권한·예산·취소를 확인한 강한 저장 ACK다.
+RunManager는 child의 private 옵션이나 Engine 이름으로 이 구간을 추정하지 않는다.
+선택 구현의 공개 계약과 이미 준비한 이벤트 조합만 사용한다. 자세한 계약은
+[저장 트랜잭션](storage-transactions.md)의 준비/실행 허용 절을 따른다.
+
 WorkspaceOwnership 아래의 TransactionManager가 쓰기 전 undo, fsync, commit marker, rollback/recovery를
 관리한다. 잠금 진입 후 읽기 전에 미완료 journal을 복구한다. Run 시작/종료, 출력 journal과 Conversation,
 승인 응답, 연결된 Step 완료/checkpoint receipt는 서비스가 정의한 저장 단위로 확정한다.
-성공 알림은 commit 뒤에만 전달한다. 첨부 checkpoint가 있는 STEP_COMPLETED는 둘이 함께 확정된다.
+실행/종료 성공 알림은 내구성 확정 뒤에만 전달한다. 부분 출력과 초기 채널 준비 알림은
+flush된 원자 읽기 view 이후 전달할 수 있으며 전원 장애 보존을 뜻하지 않는다.
+첨부 checkpoint가 있는 STEP_COMPLETED는 둘이 함께 내구성을 확정한다.
+Run 시작과 실행 진입 허용 증거도 한 확정에 포함한다. 실제 dispatch 전 취소는 살아 있는
+scheduler의 미진입 근거로만 명시적 restart 가능 상태를 보존하며, 재시작 후 추측하지 않는다.
+Activity append는 같은 저널 frame에 근거를 보존하고 핵심 기록 다음에 best-effort로 반영한다.
+파생 인덱스의 실패는 실행 성공·승인 여부를 바꾸지 않는다.
 STEP_STARTED/STEERING은 준비된 초기 checkpoint도 첨부할 수 있다. 같은 완료 응답이나 다음 실행
 허용을 증명하는 기록만 owner가 명시적으로 묶으며, 미래 Engine 이벤트를 먼저 실행해 수집하지 않는다.
+추가 지시 OPEN은 첫 선택 boundary를 선언하여 채널 등록·예약 활성화·pending 선택과
+초기 checkpoint를 함께 준비할 수 있다. 선택은 서비스가 현재 기록으로 수행하고 ACK 전에는
+Engine이 사용하지 않는다. 준비 ACK는 외부 실행을 허용하지 않는다. Step 시작/승인/예약 또는
+`BaseEngine.execution_boundary()`의 서비스 ACK가 의존 준비 기록을 fsync한다. 확장 hook을
+Step 전에 호출하는 Engine은 이 공통 경계를 사용한다. 이후 지시는 다음 선택에 남는다.
 한 저장 단위 안에서는 반복 undo와 파일·디렉터리 동기화를 합친다. undo는 원본 변경 전,
 최종 데이터 동기화는 commit marker 전에 끝낸다. 저장 단위 사이의 승인·실행·관찰 경계는 유지한다.
 
@@ -170,10 +187,13 @@ Builtin 명령의 선택적 영속 출력은 Builtin Component가 관측 레코�
 ## 검증 상태
 
 Session runtime 접속 복구와 Run 종료를 포함한 JSON/JSONL 저장 경로는 명시적 record batch로
-변경 내용을 모아 확정한다. Activity 파생 인덱스는 계속 best-effort after-commit 저장이다. 일반 파일·트리
+변경 내용을 모아 확정한다. Activity는 record batch에서 같은 frame의 파생 append로,
+일반 undo 경로에서는 after-commit으로 저장하는 best-effort 인덱스다. 일반 파일·트리
 변경은 undo journal을 유지한다. 두 경로 모두 같은 workspace 소유권 아래 실행하며, 기록 준비 중의
-읽기는 공통 record view를 사용한다. 승인·Tool 효과·Run/Step 알림은 해당 저장의 완료 이후에만
-진행한다. 이 완료는 저널의 영속화와 파일 반영을 뜻한다. 같은 OS 소유권 아래 target fsync는
+읽기는 공통 record view를 사용한다. 승인·Tool 효과·Run/Step 완료는 내구성 확정 이후에만
+진행한다. `prepare_records()`는 journal을 flush하고 잠금 안의 읽기 view에 공개하며,
+`run_records()`는 앞선 준비까지 fsync한 뒤 파일에 반영한다. 조회/진행 알림은 준비 상태를 볼 수
+있지만 실행 권한이 아니다. OS 장애 때 최근 준비 기록은 유실될 수 있다. target fsync는
 모아서 Run 종료/일반 undo 변경/소유권 해제 경계에서 수행하고, 완료 지점을 확정한 뒤 저널을 회수한다.
 기록은 같은 저널에 길이·sequence·checksum을 가진 frame으로 추가하며, 후속 commit은 파일 fsync
 한 번으로 확정한다. 새 저널 이름은 디렉터리 fsync까지 필요하다. 저장 장애 후에는 전체 완성 frame을
@@ -182,6 +202,10 @@ Session runtime 접속 복구와 Run 종료를 포함한 JSON/JSONL 저장 경�
 
 첫 요청 준비는 애플리케이션이 선택한 adapter 초기화와 Session runtime 시작 시점에 수행할 수 있다.
 SDK의 로컬 import와 빈 저널 이름 준비를 앞당기며, 실제 요청의 내구성 ACK는 앞당기지 않는다.
+`ParameterLayout`은 경로 선언과 입력 스키마의 JSON 내용이 정확히 같을 때 마지막 공개 스키마
+변환 결과를 재사용한다. 반환값은 매번 분리하며, 경로나 스키마 변경은 다시 계산한다.
+Python 전용 확장은 재사용하지 않는다. 이 순수 변환은 설정값·정책 판단·실행 권한을 저장하지 않으며
+선택 구현체의 schema hook과 현재 설정 검증을 생략하지 않는다.
 Engine/Component registry는 같은 JSON 내용의 스키마 문법 검사만 재사용한다. 실제 구현체의
 검증 훅·현재 설정·참조·권한·인자 검사는 매번 수행한다. Tool registry의 공개 사본은 독립적이고,
 공유한 비공개 정의도 `prepare()`로 노출하기 전에 분리한다. 실행 handler와 승인 증거는 재사용

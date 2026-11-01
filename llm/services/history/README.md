@@ -72,8 +72,10 @@ ConversationEvent가 고정 이벤트 종류·필드와 변이 검증을 소유�
 받아들이지 않는다. 기존 생략 operation의 append 의미와 명시적 null Run 연결은 유지한다.
 
 ConversationJournal은 기존 JSONL 바이트 형식을, ConversationFileStamp는 증분 읽기의 파일
-identity·크기·수정 시각을 소유한다. fsync 후 상태 적용·rollback 무효화·부분 끝줄 거부·명시적
-prune의 원자 교체 순서는 유지하며, 토큰마다 전체 대화나 누적 본문을 복사하지 않는다.
+identity·크기·수정 시각을 소유한다. 준비/부분 출력은 flush 후 소유권 안의 view와 캐시에 공개할 수
+있으며, 실행 허용과 최종 상태는 선행 기록까지 fsync한다. 공개 후 캐시 stamp도 동일한 view를
+따른다. rollback 무효화·부분 끝줄 거부·명시적 prune의 원자 교체는 유지하며,
+토큰마다 전체 대화나 누적 본문을 복사하지 않는다.
 
 
 ## 복구·보존 기록의 단일 Owner

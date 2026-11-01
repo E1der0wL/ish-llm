@@ -111,7 +111,9 @@ instruction = await session.run.reserve_instruction(
 않는다. `applied`는 검증된 입력 준비의 저장 확인이며 provider 수신이나 모델 이행 증명이
 아니다. 저장과 외부 모델 요청 사이에서 연결 실패나 취소가 발생할 수 있다.
 
-`STEERING_CHANGED`는 저장 완료 후 발행한다. `metadata.instructions` 또는
+`STEERING_CHANGED`는 원자 읽기 view 공개 후 발행한다. 초기 OPEN 관찰은 아직 fsync 전일 수
+있고 실행 허용이나 장애 복구 보장이 아니다. 나머지 선택/반영·승인 경계는 내구성 확정을 유지한다.
+`metadata.instructions` 또는
 `metadata.targets` 또는 `metadata.routes`가 포함될 수 있으므로 키 존재를 확인한다. Run 종료 알림도 처리하고,
 구독 누락/drop 발생 또는 API 대기 취소 뒤에는 instructions/targets/routes 조회 API로 다시 읽는다.
 알림 순서보다 저장된 상태가 우선이다.
@@ -122,11 +124,16 @@ BaseEngine 상속은 자동 지원 선언이 아니다. 새 소비자는
 `steering_mode = SteeringMode.CONSUME`과 `checkpoint_name`을 선언하고 다음을 구현한다.
 
 1. 자신의 체크포인트를 초기화하거나 검증된 재개 스냅샷을 사용한다.
-2. `open_instructions(context)`의 이벤트를 끝까지 전달한다.
+2. `open_instructions(context)`의 이벤트를 끝까지 전달한다. 새 checkpoint와 첫 선택을
+   준비한 경우 `checkpoint_event=..., boundary=...`를 함께 전달하여 같은 준비 ACK를 받을 수 있다.
+   이때 서비스가 pending 지시를 선택하며 Engine은 ACK 뒤의 inbox를 사용한다.
 3. 안전한 경계에서 `select_instructions(context, checkpoint=..., boundary=...)`를 전달한다.
+   OPEN에서 이미 확정한 첫 boundary는 다시 선택하지 않는다. Loop의 첫 선택 이후 processor
+   준비 중 도착한 지시는 다음 선택 경계에 남는다.
 4. 저장 ACK 이후 `context.steering.messages`를 자신의 입력으로 변환·검증한다.
 5. `apply_instructions(context, checkpoint=..., boundary=..., details=...)`를 전달한다.
-6. 저장 ACK 이후 모델 등 실제 작업을 진행한다.
+6. 실행을 허용하는 Step/승인/예약 ACK 이후 모델 등 실제 작업을 진행한다. Step 전에 외부
+   확장 hook을 호출한다면 `yield self.execution_boundary()`의 ACK로 준비 기록을 먼저 fsync한다.
 7. 정상 종료 전에 `close_instructions(context)`를 전달한다.
 
 helper는 async iterator다. `async with aclosing(...)` / `async for ...: yield event`

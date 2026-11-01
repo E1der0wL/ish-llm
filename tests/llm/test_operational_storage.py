@@ -313,8 +313,10 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 def observe(run, event):
                     if event.delta is not None:
                         try:
-                            self.assertEqual(backend.run_repository.output_events(run,
-                                after=event.delta.sequence - 1, limit=1), [event.delta])
+                            # Observers read the current prepared view under ownership.
+                            with backend.project_manager.ownership.scope():
+                                self.assertEqual(backend.run_repository.output_events(run,
+                                    after=event.delta.sequence - 1, limit=1), [event.delta])
                         except Exception as error:
                             errors.append(error)
                 backend.events.subscribe(observe, channel="engine")

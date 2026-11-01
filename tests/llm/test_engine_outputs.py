@@ -78,11 +78,12 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
             yield EngineOutput(text="final", data={"items": [1, 2]}, metadata={"format": "example"})
         await self.backend(BaseEngine(action=work))
         seen, errors = [], []
-        def observe(run, event):
+        async def observe(run, event):
             value = event.delta or event.output
             if value is not None:
                 try:
-                    stored = self.app.run_repository.output_events(run, after=value.sequence - 1)
+                    handle = await self.session.run.aload(run.id)
+                    stored = await handle.aoutput_events(after=value.sequence - 1)
                     self.assertEqual(stored[0], value)
                     seen.append(value)
                 except Exception as error:

@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 import unittest
+from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
 from llm.core.implementation_parameters import ImplementationParameters, ParameterLookup
@@ -12,6 +13,60 @@ from llm.components.workflows.bindings import pointer_parts, read_pointer
 
 
 class ParameterValuesTests(unittest.TestCase):
+    def test_schema_projection_reuses_exact_content_and_returns_detached_values(self):
+        layout = ParameterLayout(config=('value',))
+        schema = {'type': 'object', 'properties': {'value': {'type': 'integer', 'minimum': 1}},
+                  'additionalProperties': False}
+        with patch.object(layout, '_build_schema', wraps=layout._build_schema) as build:
+            first = layout.schema(schema)
+            first['properties']['config']['properties']['value']['minimum'] = 99
+            second = layout.schema(deepcopy(schema))
+            self.assertEqual(build.call_count, 1)
+            validator = Draft202012Validator(second)
+            self.assertTrue(validator.is_valid({'config': {'value': 1}}))
+            self.assertFalse(validator.is_valid({'config': {'value': 0}}))
+            schema['properties']['value']['minimum'] = 2
+            changed = layout.schema(schema)
+            self.assertEqual(build.call_count, 2)
+            self.assertFalse(Draft202012Validator(changed).is_valid({'config': {'value': 1}}))
+            layout.paths['value'] = 'policy.value'
+            moved = layout.schema(schema)
+            self.assertEqual(build.call_count, 3)
+            self.assertIn('value', moved['properties']['policy']['properties'])
+            self.assertNotIn('value', moved['properties']['config']['properties'])
+
+    def test_schema_projection_does_not_hide_invalid_changes_or_python_extensions(self):
+        layout = ParameterLayout(config=('value',))
+        schema = {'type': 'object', 'properties': {'value': {'type': 'integer'}},
+                  'additionalProperties': False, 'x-extension': [1]}
+        layout.schema(schema)
+        with patch.object(layout, '_build_schema', wraps=layout._build_schema) as build:
+            for _ in range(2):
+                with self.assertRaises(ValueError):
+                    layout.schema({**schema, 'allOf': []})
+            for _ in range(2):
+                value = layout.schema({**schema, 'x-extension': (1,)})
+                self.assertIsInstance(value['x-extension'], tuple)
+            self.assertEqual(build.call_count, 4)
+            # Equal Python values (True == 1) are different JSON declarations.
+            value = layout.schema({**schema, 'x-extension': [True]})
+            self.assertIs(value['x-extension'][0], True)
+            self.assertEqual(build.call_count, 5)
+
+    def test_schema_projection_keeps_only_latest_variant_and_instance_owner(self):
+        layout = ParameterLayout(config=('value',))
+        schema = {'type': 'object', 'properties': {'value': {'type': 'integer'}},
+                  'additionalProperties': False}
+        with patch.object(layout, '_build_schema', wraps=layout._build_schema) as build:
+            for title in ('first', 'second', 'first'):
+                layout.schema({**schema, 'title': title})
+                layout.schema({**schema, 'title': title})
+            self.assertEqual(build.call_count, 3)
+        other = ParameterLayout(config=('value',))
+        with patch.object(other, '_build_schema', wraps=other._build_schema) as build:
+            other.schema({**schema, 'title': 'first'})
+            self.assertEqual(build.call_count, 1)
+
     def test_envelope_preserves_omission_null_false_zero_and_detaches(self):
         raw = {"config": {"sdk": {"timeout": None, "enabled": False, "retries": 0, "extra": [1]}}}
         view = ImplementationParameters.read(raw)

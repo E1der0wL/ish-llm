@@ -14,10 +14,292 @@ from llm.services.infrastructure.storage import (
     StorageIO, atomic_bytes, atomic_json, append_bytes, read_json, open_record,
     record_exists, record_children, make_directory, prepare_create,
 )
-from llm.services.infrastructure.transactions import after_commit
+from llm.services.infrastructure.transactions import after_commit, current_transaction
 
 
 class RecordTransactionTests(unittest.TestCase):
+    def test_prepared_conversation_cache_matches_published_view(self):
+        from llm.core.models import MessageRole, MessageStatus
+        from llm.services.history.conversation import ConversationStore
+        path = self.root/'conversation.jsonl'
+        store = ConversationStore(path)
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                message = store.create(MessageRole.ASSISTANT, 'first', status=MessageStatus.STREAMING)
+            before = path.read_bytes()
+            with self.owner.scope(records=True, durable=False):
+                store.delta(message.id, ' second')
+            self.assertEqual(path.read_bytes(), before)
+            # Publication callbacks must bind to the prepared view, not stale
+            # canonical bytes and not the now-closed transaction spool.
+            with patch('llm.services.history.conversation.open_record', side_effect=AssertionError('unnecessary replay')):
+                with self.owner.scope():
+                    self.assertEqual(store.get(message.id).content, 'first second')
+            with self.owner.scope(records=True):
+                pass
+            self.assertEqual(ConversationStore(path).get(message.id).content, 'first second')
+        finally:
+            self.owner.release()
+
+    def test_prepared_view_preserves_canonical_files_until_one_strong_boundary(self):
+        value, added = self.root/'value', self.root/'new'/'item'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                atomic_bytes(value, b'old')
+            calls, original = [], os.fsync
+            def sync(fd):
+                calls.append(Path(os.readlink(f'/proc/self/fd/{fd}')))
+                self.assertEqual(value.read_bytes(), b'old')
+                self.assertFalse(added.exists())
+                return original(fd)
+            with patch.object(os, 'fsync', sync):
+                with self.owner.scope(records=True, durable=False):
+                    atomic_bytes(value, b'new')
+                    atomic_bytes(added, b'first')
+                with self.owner.scope(records=True, durable=False):
+                    append_bytes(added, b' second')
+                with self.owner.scope():
+                    self.assertTrue(record_exists(added))
+                    self.assertIn(added, list(record_children(added.parent)))
+                    with open_record(added) as stream:
+                        self.assertEqual(stream.read(), b'first second')
+                self.assertEqual(calls, [])
+                # An otherwise empty strong record operation is still a fence.
+                with self.owner.scope(records=True):
+                    pass
+                self.assertEqual(calls, [self.owner.transactions.records.log])
+            self.assertEqual(value.read_bytes(), b'new')
+            self.assertEqual(added.read_bytes(), b'first second')
+        finally:
+            self.owner.release()
+
+    def test_loss_of_prepared_tail_leaves_no_phantom_files_or_changed_old_record(self):
+        value, added = self.root/'value', self.root/'new'/'item'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                atomic_bytes(value, b'old')
+            journal = self.owner.transactions.records
+            path, durable_end = journal.log, journal.log_size
+            with self.owner.scope(records=True, durable=False):
+                atomic_bytes(value, b'new')
+                atomic_bytes(added, b'new')
+            # Fault injection: the OS loses every byte since the last fsync.
+            with path.open('r+b') as stream:
+                stream.truncate(durable_end)
+            journal.reset()
+            with self.owner.scope():
+                self.assertEqual(value.read_bytes(), b'old')
+                self.assertFalse(record_exists(added))
+                self.assertFalse(added.parent.exists())
+        finally:
+            self.owner.release()
+
+    def test_recovery_can_preserve_a_complete_prepared_frame_without_replaying_work(self):
+        value = self.root/'value'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True, durable=False):
+                atomic_bytes(value, b'prepared')
+            self.assertFalse(value.exists())
+            self.owner.transactions.records.reset()
+            with self.owner.scope():
+                self.assertEqual(value.read_bytes(), b'prepared')
+        finally:
+            self.owner.release()
+
+    def test_failed_prepared_transaction_keeps_previous_prepared_view(self):
+        value = self.root/'value'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True, durable=False):
+                atomic_bytes(value, b'accepted')
+            with self.assertRaisesRegex(ValueError, 'reject'), self.owner.scope(records=True, durable=False):
+                atomic_bytes(value, b'rejected')
+                raise ValueError('reject')
+            with self.owner.scope():
+                with open_record(value) as stream:
+                    self.assertEqual(stream.read(), b'accepted')
+            self.assertFalse(value.exists())
+        finally:
+            self.owner.release()
+
+    def test_general_undo_captures_prepared_value_before_mutation(self):
+        value = self.root/'value'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True, durable=False):
+                atomic_bytes(value, b'accepted')
+            with self.assertRaisesRegex(ValueError, 'reject'), self.owner.scope():
+                atomic_bytes(value, b'rejected')
+                raise ValueError('reject')
+            self.assertEqual(value.read_bytes(), b'accepted')
+        finally:
+            self.owner.release()
+
+    def test_failed_fence_does_not_publish_prepared_files_or_success_callback(self):
+        value, observed = self.root/'value', []
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True, durable=False):
+                atomic_bytes(value, b'prepared')
+            with patch.object(os, 'fsync', side_effect=OSError('fence failed')):
+                with self.assertRaisesRegex(OSError, 'fence failed'), self.owner.scope(records=True):
+                    after_commit(lambda: observed.append('authorized'))
+            self.assertFalse(value.exists())
+            self.assertEqual(observed, [])
+            with self.owner.scope():
+                self.assertEqual(value.read_bytes(), b'prepared')
+        finally:
+            self.owner.release()
+
+    def test_projection_adds_no_fsync_before_ack(self):
+        value, index = self.root/'value', self.root/'index'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                atomic_bytes(value, b'initial')
+            calls, original = [], os.fsync
+            def sync(fd):
+                calls.append(Path(os.readlink(f'/proc/self/fd/{fd}')))
+                return original(fd)
+            with patch.object(os, 'fsync', sync), self.owner.scope(records=True):
+                atomic_bytes(value, b'final')
+                current_transaction().project_append(index, b'event\n')
+            self.assertEqual(calls, [self.owner.transactions.records.log])
+            self.assertEqual(index.read_bytes(), b'event\n')
+        finally:
+            self.owner.release()
+
+    def test_failed_projection_keeps_offsets_for_later_recovery(self):
+        import llm.services.infrastructure.record_journal as journal
+        value, index = self.root/'value', self.root/'index'
+        original = journal._checked
+        def checked(path):
+            if path == index:
+                raise OSError('derived target unavailable')
+            return original(path)
+        self.owner.retain()
+        try:
+            with patch.object(journal, '_checked', checked):
+                for item in (b'first\n', b'second\n'):
+                    with self.assertWarns(RuntimeWarning), self.owner.scope(records=True):
+                        atomic_bytes(value, item)
+                        current_transaction().project_append(index, item)
+            self.assertEqual(value.read_bytes(), b'second\n')
+            self.assertFalse(index.exists())
+            self.owner.transactions.records.reset()
+            with self.owner.scope():
+                self.assertEqual(index.read_bytes(), b'first\nsecond\n')
+        finally:
+            self.owner.release()
+
+    def test_existing_projection_append_does_not_resync_unchanged_directory(self):
+        index = self.root/'derived'/'index'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                current_transaction().project_append(index, b'first\n')
+            journal = self.owner.transactions.records
+            self.assertIn(index.parent, journal.projection_directories)
+            with self.owner.scope():
+                journal.checkpoint()
+            with self.owner.scope(records=True):
+                current_transaction().project_append(index, b'second\n')
+            self.assertNotIn(index.parent, journal.projection_directories)
+            self.assertEqual(index.read_bytes(), b'first\nsecond\n')
+        finally:
+            self.owner.release()
+
+    def test_projection_crash_recovery_preserves_core_and_exactly_one_append(self):
+        for before_apply in (False, True):
+            with self.subTest(before_apply=before_apply), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                pid = os.fork()
+                if pid == 0:
+                    owner = WorkspaceOwnership(root)
+                    owner.retain()
+                    if before_apply:
+                        RecordTransaction.materialize = classmethod(lambda *args: os._exit(75))
+                    with owner.scope(records=True):
+                        atomic_bytes(root/'value', b'committed')
+                        current_transaction().project_append(root/'derived'/'index', b'event\n')
+                    (root/'derived'/'index').write_bytes(b'ev')
+                    os._exit(75)
+                _, status = os.waitpid(pid, 0)
+                self.assertEqual(os.waitstatus_to_exitcode(status), 75)
+                with WorkspaceOwnership(root).scope():
+                    self.assertEqual((root/'value').read_bytes(), b'committed')
+                    self.assertEqual((root/'derived'/'index').read_bytes(), b'event\n')
+
+    def test_projection_shares_commit_and_recovery_does_not_duplicate(self):
+        value, index = self.root/'value', self.root/'derived'/'events'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                transaction = current_transaction()
+                atomic_bytes(value, b'committed')
+                transaction.project_append(index, b'first\n')
+                transaction.project_append(index, b'second\n')
+                self.assertFalse(index.exists())
+            self.assertEqual(index.read_bytes(), b'first\nsecond\n')
+            self.assertEqual(len(self.owner.transactions.records.frames), 1)
+            # Crash after a torn projection, with the complete source frame retained.
+            index.write_bytes(b'first\nsec')
+            self.owner.transactions.records.reset()
+            with self.owner.scope():
+                self.assertEqual(value.read_bytes(), b'committed')
+                self.assertEqual(index.read_bytes(), b'first\nsecond\n')
+            with self.owner.scope():
+                self.assertEqual(index.read_bytes(), b'first\nsecond\n')
+        finally:
+            self.owner.release()
+
+    def test_projection_failure_cannot_fail_authoritative_commit(self):
+        value, index = self.root/'value', self.root/'index'
+        self.owner.retain()
+        try:
+            with self.assertWarns(RuntimeWarning):
+                with self.owner.scope(records=True):
+                    transaction = current_transaction()
+                    atomic_bytes(value, b'committed')
+                    transaction.project_append(index, b'event\n')
+                    index.mkdir()  # Target changed after staging; never publish authority there.
+            self.assertEqual(value.read_bytes(), b'committed')
+            self.assertTrue(index.is_dir())
+        finally:
+            self.owner.release()
+
+    def test_projection_rollback_and_authority_collision(self):
+        index = self.root/'index'
+        with self.assertRaisesRegex(RuntimeError, 'rollback'):
+            with self.owner.scope(records=True):
+                transaction = current_transaction()
+                transaction.project_append(index, b'event\n')
+                raise RuntimeError('rollback')
+        self.assertFalse(index.exists())
+
+    def test_retained_projection_cannot_become_an_authoritative_record(self):
+        index = self.root/'index'
+        self.owner.retain()
+        try:
+            with self.owner.scope(records=True):
+                current_transaction().project_append(index, b'event\n')
+            with self.assertRaises(ValueError), self.owner.scope(records=True):
+                atomic_bytes(index, b'authority')
+            self.assertEqual(len(self.owner.transactions.records.frames), 1)
+            with self.owner.scope():
+                self.assertEqual(index.read_bytes(), b'event\n')
+        finally:
+            self.owner.release()
+        with self.assertRaises(ValueError), self.owner.scope(records=True):
+            transaction = current_transaction()
+            transaction.project_append(index, b'event\n')
+            atomic_bytes(index, b'authority')
+        self.assertEqual(index.read_bytes(), b'event\n')
+
     def test_lexical_routing_preserves_descendants_and_checked_targets(self):
         from llm.services.infrastructure.transactions import Transaction, _relative
 

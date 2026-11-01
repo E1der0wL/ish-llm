@@ -55,6 +55,14 @@ class ActivityStorageTests(unittest.TestCase):
                 self.assertWarns(RuntimeWarning):
             prepare_activity(self.project.paths)
 
+    def test_derived_activity_never_creates_a_missing_project(self):
+        for records in (False, True):
+            with self.subTest(records=records):
+                self.project.paths = ProjectPaths(self.root/'missing')
+                with self.assertWarns(RuntimeWarning), TransactionManager(self.root).scope(records=records):
+                    self.append()
+                self.assertFalse(self.project.paths.root.exists())
+
     def test_contract_is_frozen_and_allowlisted(self):
         self.append()
         value = read_activity(self.project.paths)[0]
@@ -268,7 +276,7 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
             if failure[0]:
                 raise failure[0]
         await self.setUpBackend(BaseEngine(action=action))
-        with patch("llm.services.infrastructure.activity.append_bytes", side_effect=OSError("SECRET")), warnings.catch_warnings():
+        with patch("llm.services.infrastructure.activity._path", side_effect=OSError("SECRET")), warnings.catch_warnings():
             warnings.simplefilter("error")
             for error, status, code in ((None, RunStatus.COMPLETED, None),
                     (ProviderError("provider_rate_limit"), RunStatus.FAILED, "provider_rate_limit")):
@@ -280,7 +288,7 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_tool_arguments_are_absent_and_activity_observes_committed_files(self):
         from llm.components.tools import Tool
         from llm.services.runtime.tools import ToolExecutor
-        from llm.services.infrastructure.activity import append_bytes
+        from llm.services.infrastructure.record_journal import RecordJournal
         async def fail(arguments):
             raise ProviderError("provider_rate_limit")
         class ToolEngine(BaseEngine):
@@ -291,17 +299,18 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     yield event
         await self.setUpBackend(ToolEngine())
         observed = []
-        def committed(path, payload):
-            value = json.loads(payload)
-            source = value["source"]
-            run_path = self.project.paths.sessions / source["session_id"] / "runs" / source["run_id"]
-            record = (run_path / "steps" / source["step_id"] / "step.json"
-                      if source["kind"] == "step" else run_path / "run.json")
-            self.assertIsNone(current_transaction())
-            self.assertEqual(json.loads(record.read_text())["status"], value["status"])
-            observed.append(value["event"])
-            append_bytes(path, payload)
-        with patch("llm.services.infrastructure.activity.append_bytes", side_effect=committed):
+        project = RecordJournal._project
+        def committed(journal, projections):
+            for path, prefix, payload in projections:
+                value = json.loads(payload)
+                source = value["source"]
+                run_path = self.project.paths.sessions / source["session_id"] / "runs" / source["run_id"]
+                record = (run_path / "steps" / source["step_id"] / "step.json"
+                          if source["kind"] == "step" else run_path / "run.json")
+                self.assertEqual(json.loads(record.read_text())["status"], value["status"])
+                observed.append(value["event"])
+            project(journal, projections)
+        with patch.object(RecordJournal, '_project', new=committed):
             handle = await self.run_request()
         self.assertEqual(observed, ["run.started", "step.failed", "run.failed"])
         self.assertEqual((await handle.aresult()).error_code, "provider_rate_limit")

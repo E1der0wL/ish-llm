@@ -101,13 +101,13 @@ class SkillComponent(DefinitionComponent):
 
     def resolve_runtime(self, project, capability, *, data_factory):
         data = data_factory(self.name)
-        for identifier in self.list(project):
-            data.validate_references(identifier)
+        records = self.list(project)
+        data._validate_records(records)
         if capability == ToolRegistry.CAPABILITY:
             from .tools import skill_tools
             from .views import SkillResourceRequest
             registry = self.resolve(project, capability)
-            registry.register(skill_tools(self.list(project), read_resource=data.aread_resource,
+            registry.register(skill_tools(records, read_resource=data.aread_resource,
                 read_file=data.aread_file).get(SkillResourceRequest.NAME))
             return registry
         return self.resolve(project, capability)

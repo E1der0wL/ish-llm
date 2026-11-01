@@ -165,9 +165,23 @@ class BaseEngine:
             raise RuntimeError(BaseEngine.MISSING_INSTRUCTION_ACK)
 
     @classmethod
-    async def open_instructions(cls, context: EngineContext, *, checkpoint_event: Optional[EngineEvent] = ABSENT) -> AsyncIterator[EngineEvent]:
-        """Open with an optional prepared checkpoint, without advancing execution to collect events."""
+    async def open_instructions(cls, context: EngineContext, *, checkpoint_event: Optional[EngineEvent] = ABSENT,
+                                boundary: Optional[str] = ABSENT) -> AsyncIterator[EngineEvent]:
+        """Open and optionally select the first boundary under one storage ACK.
+
+        The caller supplies a prepared checkpoint and stable boundary before any
+        execution; the service selects actual pending instructions transactionally.
+        """
+        selection = {}
+        if boundary is not cls.ABSENT:
+            if checkpoint_event is cls.ABSENT or not isinstance(boundary, str) or not boundary:
+                raise ValueError(BaseEngine.INVALID_INSTRUCTION_BOUNDARY)
+            selection = dict(checkpoint=CheckpointWrite(checkpoint_event.metadata).name,
+                             boundary=boundary, final=cls.INTERMEDIATE_BOUNDARY,
+                             allow_continue=cls.ALLOW_CONTINUE)
         inbox = context.steering
+        if selection and (inbox is cls.ABSENT or inbox.opened):
+            raise ValueError(BaseEngine.INVALID_INSTRUCTION_BOUNDARY)
         if inbox is BaseEngine.ABSENT or inbox.opened:
             if checkpoint_event is not cls.ABSENT:
                 yield checkpoint_event
@@ -175,7 +189,7 @@ class BaseEngine:
         async with aclosing(cls.instruction_event(context, SteeringOperation.OPEN, target=SteeringTarget(
                 id=inbox.target_id, run_id=context.run.id, engine=inbox.engine,
                 mode=inbox.mode, scope=inbox.scope, node_id=inbox.node_id,
-                node_path=inbox.node_path, accepting=inbox.mode == SteeringMode.CONSUME).registration())) as events:
+                node_path=inbox.node_path, accepting=inbox.mode == SteeringMode.CONSUME).registration(), **selection)) as events:
             async for event in events:
                 yield replace(event, checkpoint=checkpoint_event) if checkpoint_event is not cls.ABSENT else event
 
@@ -259,20 +273,24 @@ class BaseEngine:
     def step(self, context: EngineContext,
              action: Callable[[EngineContext], Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]], *,
              name: str, kind: str = DEFAULT_KIND, timeout_seconds: Optional[float] = ABSENT,
-             metadata: Optional[dict] = ABSENT,
+             metadata: Optional[dict] = ABSENT, prepare: bool = False,
              error_message: str = DEFAULT_ERROR_MESSAGE) -> AsyncIterator[EngineEvent]:
         """Wrap one operation when an Engine needs several Steps in execute().
 
         Consume under aclosing() so early exit closes the operation promptly.
         Only events are emitted; RunManager and StepManager own persistence.
+        prepare=True explicitly promises no effects before the first event ACK.
+        A first pending Completion can share the Step start's durable boundary.
         """
         if timeout_seconds is not BaseEngine.ABSENT and (
             isinstance(timeout_seconds, bool) or not math.isfinite(timeout_seconds) or timeout_seconds <= BaseEngine.EXPIRED_TIMEOUT
         ):
             raise ValueError(BaseEngine.INVALID_TIMEOUT)
+        if not isinstance(prepare, bool):
+            raise TypeError("Step prepare must be boolean")
         return BaseEngine(name, kind=kind, action=action,
                           metadata=metadata, error_message=error_message)._execute(
-                              context, publish_output=BaseEngine.STEP_ONLY, timeout_seconds=timeout_seconds)
+                              context, publish_output=BaseEngine.STEP_ONLY, timeout_seconds=timeout_seconds, prepare=prepare)
 
     @staticmethod
     def _bind_output(context: EngineContext, value: _OutputValue, *,
@@ -537,13 +555,26 @@ class BaseEngine:
             async for event in events:
                 yield event
 
-    async def _execute(self, context: EngineContext, *, publish_output: bool, timeout_seconds=ABSENT) -> AsyncIterator[EngineEvent]:
+    @staticmethod
+    def execution_boundary() -> EngineEvent:
+        """Require durable preparation before an external hook without its own Step gate.
+
+        The service ACK, not this event's construction, permits the next action.
+        Engines never flush or write storage directly.
+        """
+        return EngineEvent(EngineEventType.EXECUTION_BOUNDARY)
+
+    async def _execute(self, context: EngineContext, *, publish_output: bool, timeout_seconds=ABSENT,
+                       prepare=False) -> AsyncIterator[EngineEvent]:
         step_id = new_id()
         parts = []
         visibility = BaseEngine.ABSENT
         result = BaseEngine.ABSENT
-        yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
-                          kind=self.kind, name=self.name, metadata=deepcopy(self.metadata))
+        start = EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
+                            kind=self.kind, name=self.name, metadata=deepcopy(self.metadata))
+        started_step = not prepare
+        if started_step:
+            yield start
         termination = BaseEngine.ABSENT
         guard = BaseEngine.ABSENT
         try:
@@ -573,6 +604,24 @@ class BaseEngine:
                                     text = await iterator.__anext__()
                         except StopAsyncIteration:
                             break
+                        if not started_step:
+                            if isinstance(text, EngineEvent) and text.type == EngineEventType.COMPLETION:
+                                if text.completion is BaseEngine.ABSENT:
+                                    raise ValueError(BaseEngine.MISSING_COMPLETION_RESULT)
+                                prepared_start = replace(start, completion=replace(text.completion, step_id=step_id))
+                                started_step = True
+                                yield prepared_start
+                                continue
+                            started_step = True
+                            starting_at = asyncio.get_running_loop().time()
+                            yield start
+                            if deadline is not BaseEngine.ABSENT:
+                                # An uncombined Step-start ACK was outside the
+                                # action timeout before opt-in preparation too.
+                                deadline += asyncio.get_running_loop().time() - starting_at
+                            if isinstance(text, EngineEvent) and text.type == EngineEventType.EXECUTION_BOUNDARY:
+                                # This strong Step-start ACK also satisfies the requested fence.
+                                continue
                         if isinstance(text, EngineOutput):
                             if result is not BaseEngine.ABSENT:
                                 raise ValueError(BaseEngine.DUPLICATE_OUTPUT)
@@ -588,6 +637,9 @@ class BaseEngine:
                             continue
                         if isinstance(text, EngineEvent) and text.type == EngineEventType.STEERING:
                             yield replace(text, step_id=step_id)
+                            continue
+                        if isinstance(text, EngineEvent) and text.type == EngineEventType.EXECUTION_BOUNDARY:
+                            yield text
                             continue
                         if isinstance(text, EngineEvent) and text.type not in EngineEventType._value2member_map_:
                             yield text
@@ -630,10 +682,15 @@ class BaseEngine:
             # 소유한 기한만 분류한다. action이 직접 던진 TimeoutError를 wrapper timeout으로 오인하지 않는다.
             failure = (ExecutionLimitError(StepErrorCode.TIMEOUT, BaseEngine.TIMEOUT_MESSAGE)
                        if isinstance(error, TimeoutError) and guard is not BaseEngine.ABSENT and guard.expired() else error)
+            if not started_step:
+                started_step = True
+                yield start
             yield self.step_failed_event(step_id, failure, message=f"{self.error_message}{BaseEngine.ERROR_SEPARATOR}{failure}")
             if failure is not error:
                 raise failure from error
             raise
+        if not started_step:
+            yield start
         yield completed
         if publish_output:
             yield self.output_event(output_context, completed.output)

@@ -120,6 +120,10 @@ class Transaction:
         relative = _relative(path, self.manager.root)
         if WorkspacePaths.reserved(relative):
             raise ValueError(UndoOperation.RESERVED_TARGET)
+        if not self.record_batch and self.manager.records.prepared:
+            # An undo must inspect the actual latest canonical value, not take
+            # a backup of a projection predating an accepted prepared record.
+            self.manager.records.checkpoint()
         return path, relative.as_posix()
 
     def _ensure(self):
@@ -554,7 +558,9 @@ class TransactionManager:
             self._retire(directory)
 
     @contextmanager
-    def scope(self, *, records=False) -> Iterator[Transaction]:
+    def scope(self, *, records=False, durable=True) -> Iterator[Transaction]:
+        if not records and not durable:
+            raise ValueError('Only record batches support prepared storage')
         parent = current_transaction()
         if parent is not NO_TRANSACTION:
             if parent.manager is not self:
@@ -570,7 +576,7 @@ class TransactionManager:
         self.recover()
         if records:
             from .record_transactions import RecordTransaction
-            transaction = RecordTransaction(self)
+            transaction = RecordTransaction(self, durable=durable)
         else:
             transaction = Transaction(self)
         token = _current.set(transaction)

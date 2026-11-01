@@ -1,4 +1,4 @@
-"""Project lifecycle의 after-commit 파생 JSONL 인덱스. 호출자는 workspace 잠금을 소유한다.
+"""Project lifecycle의 확정 후 파생 JSONL 인덱스. 호출자는 workspace 잠금을 소유한다.
 
 Run/Step 원본을 재해석하거나 복구하지 않는다. 쓰기는 best effort, 조회 오류는 명시적이다.
 """
@@ -15,7 +15,7 @@ from llm.core.contracts import ProjectActivityEvent, ResourceRef
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import append_bytes, reject_links
 from llm.services.infrastructure.storage import sync_directory
-from llm.services.infrastructure.transactions import after_commit
+from llm.services.infrastructure.transactions import after_commit, current_transaction
 
 
 class ActivityIndex:
@@ -61,26 +61,25 @@ def _warn():
         pass
 
 
+def _prepare_append(paths, value):
+    path = _path(paths)
+    if not paths.root.is_dir():
+        raise ValueError(ActivityIndex.MISSING_ROOT)
+    if path.exists():
+        with path.open(ActivityIndex.BINARY_READ) as stream:
+            stream.seek(ActivityIndex.ZERO, os.SEEK_END)
+            if stream.tell():
+                stream.seek(-ActivityIndex.BYTE, os.SEEK_END)
+                if stream.read(ActivityIndex.BYTE) != ActivityIndex.LINE_END:
+                    raise ValueError(ActivityIndex.INCOMPLETE_TAIL)
+    payload = json.dumps(value.to_dict(), ensure_ascii=ActivityIndex.ENSURE_ASCII,
+                         allow_nan=ActivityIndex.ALLOW_NAN).encode(ActivityIndex.ENCODING)
+    return path, payload + ActivityIndex.LINE_END
+
+
 def _append(paths, value):
     try:
-        path = _path(paths)
-        if not paths.root.is_dir():
-            raise ValueError(ActivityIndex.MISSING_ROOT)
-        if path.exists():
-            with path.open(ActivityIndex.BINARY_READ) as stream:
-                stream.seek(ActivityIndex.ZERO, os.SEEK_END)
-                if stream.tell():
-                    stream.seek(-ActivityIndex.BYTE, os.SEEK_END)
-                    if stream.read(ActivityIndex.BYTE) != ActivityIndex.LINE_END:
-                        # 불완전한 tail에 새 이벤트를 붙이거나 자동 복구하지 않는다.
-                        raise ValueError(ActivityIndex.INCOMPLETE_TAIL)
-        append_bytes(
-            path,
-            json.dumps(
-                value.to_dict(), ensure_ascii=ActivityIndex.ENSURE_ASCII, allow_nan=ActivityIndex.ALLOW_NAN
-            ).encode(ActivityIndex.ENCODING)
-            + ActivityIndex.LINE_END,
-        )
+        append_bytes(*_prepare_append(paths, value))
     except Exception:
         _warn()
 
@@ -88,8 +87,8 @@ def _append(paths, value):
 def prepare_activity(paths):
     """Prepare an empty derived-index name during runtime startup, best effort.
 
-    No activity or execution fact is invented. Every later append still fsyncs
-    its actual contents; readers already treat an empty index as no activity.
+    No activity or execution fact is invented. Later event bytes are fsynced
+    by their record frame or standalone append; an empty index has no activity.
     """
     try:
         path = _path(paths)
@@ -127,6 +126,10 @@ def activity_event(
         )
         value = ProjectActivityEvent(time, event, source, status, code)
         paths = project.paths
+        transaction = current_transaction()
+        if transaction is not ActivityIndex.ABSENT and transaction.record_batch:
+            transaction.project_append(*_prepare_append(paths, value))
+            return
         after_commit(lambda: _append(paths, value))
     except Exception:
         _warn()

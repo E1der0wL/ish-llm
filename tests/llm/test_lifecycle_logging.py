@@ -271,9 +271,15 @@ class RuntimeLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.manager = RunManager(self.sessions, self.registry, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
         await self.manager.submit("private-prompt", recipients=["blocked"])
+
+        def has_partial_output():
+            # Live prepared records are visible through the ownership-scoped view.
+            with self.sessions.ownership.scope():
+                return any(message.status == MessageStatus.STREAMING and message.content
+                           for message in ConversationStore(self.session.paths.conversation).list())
+
         async with timeout(10):
-            while not any(message.status == MessageStatus.STREAMING and message.content
-                          for message in ConversationStore(self.session.paths.conversation).list()):
+            while not has_partial_output():
                 await asyncio.sleep(0.001)
         self.assertTrue(await self.manager.interrupt())
         await self.manager.wait_idle()

@@ -94,7 +94,7 @@ from llm.core.paths import RunPaths
 from llm.core.configuration import UNSET
 from llm.core.agents import AgentBinding
 from llm.services.runtime.agents import RunAgentResolver
-from llm.services.runtime.requests import RequestAdmission
+from llm.services.runtime.requests import RequestAdmission, reuse_admission_checks
 from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse, InteractionView
 from llm.engines.base import (
     EngineContext,
@@ -1408,6 +1408,7 @@ class RunManager:
         self._validate_project_request(project)
         return bindings
 
+    @reuse_admission_checks()
     def _admit(self, runtime, content, bindings, request_context=UNSET, *, metadata=ABSENT):
         self._history(runtime.project, runtime.session)
         message_id = new_id()
@@ -1483,12 +1484,19 @@ class RunManager:
         binding = self._source_agent(project, session, run, agent_id, records=records)
         return self.agents.strategy(binding, request_context=AgentBinding.request_context(run.metadata))
 
-    async def _runtime(self) -> SessionRuntime:
+    async def _runtime(self, *, preflight=ABSENT) -> SessionRuntime:
         # Caller holds _control. OS ownership is retained before recovery; the
         # worker and all pending storage finish before that ownership is released.
         if self._closed:
             raise RuntimeError(RunManager.SHUT_DOWN)
-        project, current = await self._io.run(self._prepare)
+        def prepare():
+            # Submission's read-only checks and runtime lookup share ownership.
+            # No acceptance, recovery or effect occurs before these checks pass.
+            if preflight is not RunManager.ABSENT:
+                preflight()
+            return self._prepare()
+
+        project, current = await self._io.run(prepare)
         if self._active is not RunManager.ABSENT:
             runtime = self._active
             if runtime.worker is not RunManager.ABSENT and runtime.worker.done():
@@ -1544,8 +1552,9 @@ class RunManager:
         async with self._control_lock():
             if self._closed:
                 raise RuntimeError(RunManager.SHUT_DOWN)
-            await self._io.run(self._validate_request, recipients, request_context)
-            runtime = await self._runtime()
+            runtime = await self._runtime(
+                preflight=lambda: self._validate_request(recipients, request_context)
+            )
 
             def persist():
                 bindings = self._validate_request(recipients, request_context)
@@ -2049,6 +2058,7 @@ class RunManager:
         self.repository.create(run)
         return run
 
+    @reuse_admission_checks()
     def _dispatch_request(self, runtime: SessionRuntime, message: Message) -> list[Run]:
         from llm.services.infrastructure.transactions import watch
 
@@ -2070,7 +2080,8 @@ class RunManager:
             for identifier in admission.recipients
         ]
         # One transaction owns the whole group and its shared history. No child
-        # task or Provider can start before every recipient is durably linked.
+        # Engine or Provider can start before every recipient is durably linked
+        # by _begin. Scheduler tasks may exist before that execution permission.
         history = self.context_builder.snapshot_for_run(messages, message.id)
         history = tuple(
             replace(item, status=MessageStatus.COMMITTED) if item.id == message.id else item
@@ -2095,6 +2106,7 @@ class RunManager:
         from llm.services.infrastructure.transactions import watch
 
         watch(runtime.session)
+        watch(run)
         session, store = runtime.session, self._store(runtime.session)
         current = self.repository.load(session, run.id)
         validate_run_transition(current.status, RunStatus.RUNNING, reason=RunTransition.START)
@@ -2105,6 +2117,9 @@ class RunManager:
         session.status = SessionStatus.RUNNING
         self.sessions._save_runtime(session)
         run.status, run.started_at = RunStatus.RUNNING, now()
+        # Run entry and permission to invoke external hooks are one ACK.
+        # This is not proof that any model/Tool effect actually occurred.
+        RunExecutionEvidence.mark_started(run.metadata)
         self.repository.save(run)
         log_event(
             run.paths.logs,
@@ -2170,10 +2185,11 @@ class RunManager:
     def _context(
         self, runtime: SessionRuntime, run: Run, policies=ABSENT, *, project=ABSENT, engine=ABSENT
     ) -> EngineContext:
+        admitted_policies = RunPolicySnapshot.read(run.metadata)
         context_policy, limits = (
             policies
             if policies is not RunManager.ABSENT
-            else self.policy_resolver.resolve(RunPolicySnapshot.read(run.metadata))
+            else self.policy_resolver.resolve(admitted_policies)
         )
         checkpoint = RunManager.ABSENT
         store = self._store(runtime.session)
@@ -2212,7 +2228,7 @@ class RunManager:
             )
         names = required_capabilities(engine)
         project = deepcopy(project if project is not RunManager.ABSENT else runtime.project)
-        project.config.bind_policy_snapshot(RunPolicySnapshot.read(run.metadata))
+        project.config.bind_policy_snapshot(admitted_policies)
         values = {}
         if names:
             values = self.capabilities.resolve(project, names)
@@ -2236,7 +2252,6 @@ class RunManager:
             if not isinstance(resolved, dict) or any(name not in resolved for name in missing):
                 raise ValueError(RunManager.MISSING_CAPABILITY)
             values.update(resolved)
-        admitted_policies = RunPolicySnapshot.read(run.metadata)
         retries = admitted_policies.get(PolicySection.TOOL_RETRY, {})
         tool_scope = ToolExecutionScope(
             self.tool_runtime,
@@ -2312,17 +2327,13 @@ class RunManager:
         elif not bound:
             self.repository.save(run)
 
-    def _dispatch(self, run):
-        RunExecutionEvidence.mark_started(run.metadata)
-        self.repository.save(run)
-
     async def _consume_limited(self, runtime, run):
         # Revalidate transport authority and absolute deadline before execution.
         transport_seconds = await self._io.run(
             self.sessions.transfers.execution, runtime.project, runtime.session, run
         )
-        # ACK before resolving capabilities or invoking an Engine implementation.
-        await self._io.run_records(self._dispatch, run)
+        runtime.executions[run.id].entered = True
+        # _begin committed entry evidence before observers or implementation hooks.
         from llm.providers.runtime import logging_scope as provider_logging_scope
 
         policies = self.policy_resolver.resolve(RunPolicySnapshot.read(run.metadata))
@@ -2382,7 +2393,8 @@ class RunManager:
                     ),
                 )
             context = await self._io.run(self._context, runtime, run, policies, engine=engine)
-            await self._io.run_records(
+            bind_records = self._io.prepare_records if EngineHooks.prepares_execution(engine) else self._io.run_records
+            await bind_records(
                 self._bind_execution, run, engine,
                 checkpoint=context.checkpoint if context.steering is not RunManager.ABSENT else RunManager.ABSENT,
             )
@@ -2401,6 +2413,9 @@ class RunManager:
             for event in batch:
                 if paused:
                     raise ValueError(RunManager.EVENT_AFTER_PAUSE)
+                if event.type == EngineEventType.EXECUTION_BOUNDARY:
+                    await self._io.run_records(lambda: None)
+                    continue
                 event, change = outputs.accept(
                     event, active_steps, has_result=ExecutionObservations.has_output(run.metadata)
                 )
@@ -2443,10 +2458,14 @@ class RunManager:
                             raise ValueError(RunManager.TARGET_MISMATCH)
                     usage = (
                         context.tool_scope.checkpoint()
-                        if directive.operation == SteeringOperation.SELECT
+                        if directive.selects
                         else RunManager.ABSENT
                     )
-                    messages, changed = await self._io.run_records(self._steering_boundary, run, store, event, usage)
+                    # OPEN prepares a channel/initial checkpoint, never permits
+                    # effects. The next execution/approval boundary persists the
+                    # entire dependency prefix before it can authorize work.
+                    save = self._io.prepare_records if directive.operation == SteeringOperation.OPEN else self._io.run_records
+                    messages, changed = await save(self._steering_boundary, run, store, event, usage)
                     if event.has_checkpoint:
                         notifications.append(event.checkpoint)
                     if directive.operation in (SteeringOperation.ROUTES, SteeringOperation.BIND):
@@ -2533,13 +2552,17 @@ class RunManager:
                         EventContext(run, context, self._io, self.repository), event
                     )
                 # Keep checkpoint observers independent of event composition.
-                # Both observations are published only after the atomic commit.
+                # Observations follow atomic publication. Prepared OPEN/partial
+                # output ACKs do not claim power-loss durability or allow effects.
                 if event.checkpoint is not RunManager.ABSENT:
                     notifications.append(event.checkpoint)
-                notifications.append(event)
+                if event.has_completion_start:
+                    notifications.extend((replace(event, completion=RunManager.ABSENT), event.completion_start))
+                else:
+                    notifications.append(event)
             if pending_outputs:
                 await drain_on_cancel(
-                    self._io.run_records(self._record_deltas, run, store, pending_outputs, pending_deltas)
+                    self._io.prepare_records(self._record_deltas, run, store, pending_outputs, pending_deltas)
                 )
             for event in notifications:
                 await self.subscriptions.publish(
@@ -2587,6 +2610,8 @@ class RunManager:
                 if event.type == EngineEventType.OUTPUT:
                     event = replace(event, type=EngineEventType.STEP_UPDATED)
                 self.recorder.record(run, event)
+                if event.has_completion_start:
+                    self._record_completion(run, event.completion_start)
                 if event.checkpoint is not RunManager.ABSENT:
                     self.repository.record_checkpoint(run, event.checkpoint)
                 if event.type == EngineEventType.STEP_FAILED:
@@ -2675,6 +2700,7 @@ class RunManager:
         status: RunStatus,
         error: Optional[str] = ABSENT,
         error_code: Optional[str] = ABSENT,
+        *, unentered: bool = False,
     ) -> list[RunInstruction]:
         # 변경 전 검증한다. 중복 종료로 시각/오류/Step을 덮거나 다음 Run의 Session을 해제하지 않는다.
         validate_run_transition(run.status, status, reason=RunTransition.FINISH)
@@ -2684,6 +2710,11 @@ class RunManager:
         from llm.services.infrastructure.transactions import watch
 
         watch(runtime.session)
+        watch(run)
+        if unentered:
+            # Only the live scheduler can prove that dispatch was never entered.
+            # A crash cannot manufacture this proof from absent Steps/checkpoints.
+            run.metadata[RunExecutionEvidence.KEY] = RunExecutionEvidence.NOT_STARTED
         for step in self.steps.list(run):
             if step.status in Step.ACTIVE_STATES:
                 if status == RunStatus.FAILED:
@@ -2767,7 +2798,8 @@ class RunManager:
                 ExecutionObservations.store_diagnostic(run.metadata, issue)
             finally:
                 changed = await self._io.run_records(
-                    self._finish, runtime, run, outcome.status, outcome.error, outcome.error_code
+                    self._finish, runtime, run, outcome.status, outcome.error, outcome.error_code,
+                    unentered=not control.entered,
                 )
                 # Retain the Run-end journal retirement boundary. Final records
                 # join earlier ones before targets are synchronized once.
@@ -2841,7 +2873,9 @@ class RunManager:
                     continue
                 recipients = set(admission.recipients)
                 if not runtime.closed and not self.pending_work.active and recipients - occupied:
-                    runs = await self._io.run_records(self._dispatch_request, runtime, message)
+                    # No Engine/observer runs here. _begin durably includes this
+                    # whole recipient group before publishing RUNNING/entry.
+                    runs = await self._io.prepare_records(self._dispatch_request, runtime, message)
                     runtime.groups[message_id] = runs
                 else:
                     occupied.update(recipients)

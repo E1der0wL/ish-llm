@@ -60,6 +60,7 @@ from llm.core.contracts import ResourceRef
 from llm.core.checkpoints import CheckpointStatus
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionScope, ToolExecutionError, ToolApprovalRequired
+from llm.services.runtime.usage import current_usage
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.policies import CompletionPolicy, ExecutionLimitError
 from llm.components.review import CompletionReview, CompletionReviewObservation, ReviewAction, ReviewPolicy
@@ -388,6 +389,10 @@ class LoopEngine(BaseEngine):
         worker._require_tool = LoopAgentOptions(definition).require_tool
         return worker
 
+    @property
+    def prepares_execution(self):
+        return CompletionAdapterContract.has_pure_preparation(self.completion_adapter)
+
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         ToolExecutionScope.require(context)
         context.tools.validate_selections(context)
@@ -499,9 +504,23 @@ class LoopEngine(BaseEngine):
                     ),
                 ).to_dict(),
             )
-        async with aclosing(self.open_instructions(context, checkpoint_event=initial_checkpoint)) as events:
+        # The first selection is already known structurally. Its pending messages
+        # are selected by the service with OPEN, never guessed from an empty inbox.
+        first_boundary = (
+            LoopInstructionBoundary.key(LoopIterationRecord.FIRST_ITERATION)
+            if initial_checkpoint is not BaseEngine.ABSENT
+            and context.steering is not BaseEngine.ABSENT and not context.steering.opened
+            else BaseEngine.ABSENT
+        )
+        async with aclosing(self.open_instructions(context, checkpoint_event=initial_checkpoint,
+                                                  boundary=first_boundary)) as events:
             async for event in events:
                 yield event
+        initial_records = {}
+        if first_boundary is not BaseEngine.ABSENT:
+            initial_records[first_boundary] = InstructionCheckpoint.create(
+                context.steering.scope, (m.id for m in context.steering.messages)
+            ).to_dict()
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
         processor_context = (
             replace(context, output_visibility=OutputVisibility.INTERNAL)
@@ -516,7 +535,8 @@ class LoopEngine(BaseEngine):
         ) as processors:
             if processors.reviewers != reviewers:
                 raise ValueError(LoopEngine.CHANGED_REVIEWERS)
-            async with aclosing(self._iterate(context, params, messages, processors, review)) as events:
+            async with aclosing(self._iterate(context, params, messages, processors, review,
+                                             initial_records=initial_records)) as events:
                 async for event in events:
                     yield event
 
@@ -544,7 +564,7 @@ class LoopEngine(BaseEngine):
             ),
         )
 
-    async def _iterate(self, context, params, messages, processors, review=BaseEngine.ABSENT):
+    async def _iterate(self, context, params, messages, processors, review=BaseEngine.ABSENT, *, initial_records=None):
         """반복마다 입력 사본을 만들고 관찰 훅을 Tool 효과보다 먼저 처리한다."""
         seen_call_ids: set[str] = set()
         continuations = LoopReview.INITIAL_CONTINUATIONS
@@ -556,6 +576,7 @@ class LoopEngine(BaseEngine):
             if durable and context.checkpoint
             else {}
         )
+        records.update(initial_records or {})
         inbox = context.steering
         for iteration in count(LoopIterationRecord.FIRST_ITERATION):
             if self.max_iterations is not BaseEngine.ABSENT and iteration > self.max_iterations:
@@ -587,6 +608,11 @@ class LoopEngine(BaseEngine):
                 ModelResponse.from_dict(LoopIterationRecord.response(saved)) if saved else BaseEngine.ABSENT
             )
             calls, prepared = [], []
+            if (not self.prepares_execution or self.tool_selector is not BaseEngine.ABSENT
+                    or context.capabilities.get(COMPLETION_PROCESSORS)):
+                # Registered extension hooks can perform work before the model
+                # Step exists. Persist initial input/selection before entering them.
+                yield self.execution_boundary()
             names, mode = await self._select_tools(context, messages, iteration, saved)
             invocation = self._request(context, params, names=names, mode=mode)
             request = CompletionRequest(
@@ -626,6 +652,12 @@ class LoopEngine(BaseEngine):
 
             async def complete(_context):
                 nonlocal calls, prepared, prepared_request, response
+                usage = current_usage()
+                if (not self.prepares_execution or context.completion_policy is not BaseEngine.ABSENT
+                        or usage is not BaseEngine.ABSENT and usage.requires_reservation):
+                    # Counters/policies and undeclared adapters can execute hooks.
+                    # Commit Step start before entering them, as before.
+                    yield self.execution_boundary()
 
                 async def recover(diagnostic, failed_request, attempt):
                     nonlocal prepared_request
@@ -741,6 +773,7 @@ class LoopEngine(BaseEngine):
                         ),
                         complete,
                         name=LoopEngine.COMPLETION_STEP_NAME,
+                        prepare=True,
                         kind=StepKind.LLM,
                         timeout_seconds=self.request_timeout,
                         metadata=LoopStepMetadata.completion(

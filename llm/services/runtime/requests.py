@@ -5,8 +5,11 @@ creates a Run or replays an effect. Runtime integration supplies the transaction
 """
 
 from copy import deepcopy
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from enum import StrEnum
+import json
 from pathlib import Path
 
 from llm.core.agents import AgentBinding, AgentDefinition
@@ -14,6 +17,27 @@ from llm.core.models import Message, MessageRole, MessageStatus
 from llm.core.json_data import JsonObject
 from llm.core.steering import is_instruction
 from llm.services.infrastructure.storage import child, record, revision_token
+
+
+_admission_checks = ContextVar('admission_checks', default=None)
+
+
+@contextmanager
+def reuse_admission_checks():
+    """Reuse immutable decoded evidence within one synchronous preparation.
+
+    Exact JSON content is the key, not message identity or file timestamps.
+    Ownership/status, Run relationships and live policy checks remain at callers.
+    No proof survives the preparation or is stored in user metadata.
+    """
+    if _admission_checks.get() is not None:
+        yield
+        return
+    token = _admission_checks.set({})
+    try:
+        yield
+    finally:
+        _admission_checks.reset(token)
 
 
 @dataclass(frozen=True, init=False, slots=True)
@@ -149,6 +173,7 @@ class RequestAdmission:
 
     _value: dict
     _dispatch: RequestDispatch | None
+    _bindings: dict[str, AgentBinding]
 
     @classmethod
     def identifiers(cls, values, *, empty=DEFAULT_ALLOW_EMPTY):
@@ -185,6 +210,10 @@ class RequestAdmission:
         if not isinstance(value, dict) or value.keys() != set(cls.Field):
             raise ValueError(cls.INVALID_FIELDS)
         JsonObject.validate(value)
+        checks = _admission_checks.get()
+        key = (cls, json.dumps(value, allow_nan=False)) if checks is not None else None
+        if key is not None and key in checks:
+            return checks[key]
         if type(value[cls.Field.SCHEMA_VERSION]) is not int or value[cls.Field.SCHEMA_VERSION] != cls.SCHEMA_VERSION:
             raise ValueError(cls.INVALID_VERSION)
         for name in cls.IDENTITY_FIELDS:
@@ -197,16 +226,21 @@ class RequestAdmission:
         bindings = value[cls.Field.BINDINGS]
         if not isinstance(bindings, dict) or bindings.keys() != set(recipients):
             raise ValueError(cls.INCOMPLETE_BINDINGS)
+        decoded = {}
         for identifier, binding in bindings.items():
             binding = AgentBinding.read(binding)
             if binding.agent_id != identifier or binding.project_id != value[cls.Field.PROJECT_ID]:
                 raise ValueError(cls.BINDING_OWNER_MISMATCH)
+            decoded[identifier] = binding
         dispatch = value[cls.Field.DISPATCH]
         if dispatch is not cls.UNDISPATCHED:
             dispatch = RequestDispatch.read(dispatch, recipients=recipients, message_id=value[cls.Field.MESSAGE_ID])
         result = object.__new__(cls)
         object.__setattr__(result, cls._value.__name__, deepcopy(value))
         object.__setattr__(result, cls._dispatch.__name__, dispatch)
+        object.__setattr__(result, cls._bindings.__name__, decoded)
+        if key is not None:
+            checks[key] = result
         return result
 
     @classmethod
@@ -240,7 +274,8 @@ class RequestAdmission:
         return self._dispatch
 
     def binding(self, identifier):
-        return AgentBinding.read(self._value[self.Field.BINDINGS][identifier])
+        # Both objects are immutable and expose detached JSON projections.
+        return self._bindings[identifier]
 
     def to_dict(self):
         return deepcopy(self._value)

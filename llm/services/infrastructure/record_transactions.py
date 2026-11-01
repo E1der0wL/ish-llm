@@ -1,9 +1,10 @@
-"""Explicit record batches: durable redo once, then materialize under workspace ownership.
+"""Explicit record batches: atomically prepare, then durably authorize/materialize.
 
 Only atomic byte replacement, append and directory creation participate. General
 tree mutations retain the undo transaction. No Engine/Tool execution is replayed.
-The durable frame is the commit decision; a post-publication I/O failure is
-uncertain to the caller and must be completed by recovery, never rolled back.
+Prepared frames are read through the owned view without changing canonical files.
+Only a strong commit fsyncs the dependency prefix and permits effects. A failure
+after publication is uncertain and requires recovery, never guessed rollback.
 """
 
 import hashlib
@@ -75,6 +76,7 @@ class RecordTransaction(Transaction):
     record_batch = True
     DIRECTORIES = 'directories'
     RECORDS = 'records'
+    PROJECTIONS = 'projections'
     PATH = 'path'
     PREFIX = 'prefix'
     APPEND = 'append'
@@ -87,12 +89,15 @@ class RecordTransaction(Transaction):
     FOOTER = struct.Struct('>Q32s11s')
     BLOCK = 65536
 
-    def __init__(self, manager):
+    def __init__(self, manager, *, durable=True):
         super().__init__(manager)
+        self.durable = durable
         self.pending = self.path.with_name(self.PENDING + self.path.name)
         self.sequence = manager.records.sequence + 1
         self._publication_started = False
         self.records = {}
+        self.projections = []
+        self._projection_ends = {}
         self.directories = set()
         self.spool = None
         self._stamps = {}
@@ -108,9 +113,10 @@ class RecordTransaction(Transaction):
         path, _ = self._target(path)
         cursor = path
         while cursor != self.manager.root:
-            if cursor in self.records or (cursor.exists() and not cursor.is_dir()):
+            if cursor in self.records or (self.manager.records.exists(cursor)
+                                         and not self.manager.records.is_directory(cursor)):
                 raise NotADirectoryError(cursor)
-            if cursor.exists() or cursor in self.directories:
+            if self.manager.records.exists(cursor) or cursor in self.directories:
                 break
             self.directories.add(cursor)
             self.changed()
@@ -118,15 +124,18 @@ class RecordTransaction(Transaction):
 
     def write(self, path, data, *, append):
         path, name = self._target(path)
+        if path in self.manager.records.projection_ends or path in self._projection_ends:
+            raise ValueError('A derived projection cannot also be an authoritative record')
         if not isinstance(data, bytes):
             raise TypeError('Record storage requires bytes')
-        if path in self.directories or (path.exists() and not path.is_file()):
+        if (path in self.directories or self.manager.records.is_directory(path)
+                or path.exists() and not path.is_file()):
             raise ValueError('Record storage requires a regular file')
         self.mkdir(path.parent)
         self._ensure()
         record = self.records.get(path)
         if not append or record is None:
-            prefix = path.stat().st_size if append and path.exists() else 0
+            prefix = self.manager.records.stat(path).st_size if append and self.manager.records.exists(path) else 0
             record = self.records[path] = {
                 self.PATH: name, self.PREFIX: prefix, self.APPEND: append, self.RANGES: [],
             }
@@ -137,14 +146,33 @@ class RecordTransaction(Transaction):
         self.changed()
         self._stamps.pop(path, None)
 
+    def project_append(self, path, data):
+        """Declare a non-authoritative append; the frame owns its durable bytes."""
+        path, name = self._target(path)
+        if (not isinstance(data, bytes) or path in self.records or path in self.directories
+                or path in self.manager.records.prepared_directories
+                or path in self.manager.records.files or path in self.manager.records.prepared_records):
+            raise ValueError('Invalid derived append')
+        if path.exists() and not path.is_file():
+            raise ValueError('Derived append requires a regular file')
+        if path in self._projection_ends:
+            prefix = self._projection_ends[path]
+        else:
+            prefix = path.stat().st_size if path.exists() else 0
+            # Failed projections still own their slots in retained source frames.
+            prefix = max(prefix, self.manager.records.projection_ends.get(path, prefix))
+        self.projections.append({self.PATH: name, self.PREFIX: prefix, 'data': data.hex()})
+        self._projection_ends[path] = prefix + len(data)
+        self.changed()
+
     def exists(self, path):
         path, _ = self._target(path)
-        return path in self.records or path in self.directories or path.exists()
+        return path in self.records or path in self.directories or self.manager.records.exists(path)
 
     def children(self, path):
         path, _ = self._target(path)
-        actual = set(path.iterdir()) if path.exists() else set()
-        if not path.exists() and path not in self.directories:
+        actual = set(self.manager.records.children(path)) if self.manager.records.exists(path) else set()
+        if not self.manager.records.exists(path) and path not in self.directories:
             raise FileNotFoundError(path)
         return iter(sorted(actual | {p for p in (*self.records, *self.directories) if p.parent == path}))
 
@@ -152,17 +180,21 @@ class RecordTransaction(Transaction):
         path, _ = self._target(path)
         record = self.records.get(path)
         if record is None:
-            return path.open('rb')
+            return self.manager.records.open(path)
         self.spool.flush()
-        segments = [(path, 0, record[RecordTransaction.PREFIX])] if record[RecordTransaction.PREFIX] else []
+        segments = self.manager.records.segments(path, record[RecordTransaction.PREFIX])
         segments.extend((self.pending, offset, length) for offset, length, _ in record[RecordTransaction.RANGES])
         return io.BufferedReader(RecordReader(segments))
 
     def stat(self, path):
         path, _ = self._target(path)
+        # After-commit consumers observe the published view, which may still
+        # live in the journal. The private staging file has already closed.
+        if self.spool is not None and self.spool.closed:
+            return self.manager.records.stat(path)
         record = self.records.get(path)
         if record is None:
-            return path.stat()
+            return self.manager.records.stat(path)
         self.spool.flush()
         if path not in self._stamps:
             stamp = os.fstat(self.spool.fileno())
@@ -179,13 +211,16 @@ class RecordTransaction(Transaction):
     remove = staging_directory = temporary_file = defer_sync = _unsupported
 
     def commit(self):
-        if not self.records and not self.directories:
+        if not self.records and not self.directories and not self.projections:
+            if self.durable:
+                self.manager.records.synchronize()
             return
         self._ensure()
         manifest = json.dumps({
             self.SEQUENCE: self.sequence,
             RecordTransaction.DIRECTORIES: sorted(p.relative_to(self.manager.root).as_posix() for p in self.directories),
             RecordTransaction.RECORDS: list(self.records.values()),
+            self.PROJECTIONS: self.projections,
         }, sort_keys=True, separators=(',', ':'), allow_nan=False).encode('utf-8')
         self.spool.seek(0, os.SEEK_END)
         self.spool.write(manifest)
@@ -196,7 +231,10 @@ class RecordTransaction(Transaction):
             # complete frame is visible. Recovery decides before any new access.
             self._publication_started = True
             frame = self.manager.records.append(self.sequence, self.spool)
-            self.materialize(self.manager, frame)
+            if self.durable:
+                self.materialize(self.manager, frame)
+            else:
+                self.manager.records.apply(frame, durable=False)
         except BaseException:
             # Applied projections are no longer proven complete. The next
             # owned access validates/reconstructs the retained chain first.
@@ -241,23 +279,23 @@ class RecordTransaction(Transaction):
         if hashlib.sha256(raw).digest() != checksum:
             raise ValueError('Record transaction manifest checksum mismatch')
         manifest = json.loads(raw.decode('utf-8'))
-        if not isinstance(manifest, dict) or set(manifest) != {cls.SEQUENCE, cls.DIRECTORIES, cls.RECORDS}:
+        if not isinstance(manifest, dict) or set(manifest) != {cls.SEQUENCE, cls.DIRECTORIES, cls.RECORDS, cls.PROJECTIONS}:
             raise ValueError('Invalid record transaction manifest')
         if (type(manifest[cls.SEQUENCE]) is not int
                 or manifest[cls.SEQUENCE] != frame.sequence):
             raise ValueError('Invalid record transaction sequence')
 
-        def target(name):
+        def target(name, *, physical=True):
             if not isinstance(name, str):
                 raise ValueError('Invalid record transaction target')
             relative = Path(name)
-            value = _checked(manager.root / relative)
+            value = manager.root / relative
             if (relative.is_absolute() or not relative.parts or '..' in relative.parts
                     or relative.as_posix() != name or WorkspacePaths.reserved(relative)):
                 raise ValueError('Invalid record transaction target')
             # A nonempty relative path with no parent traversal joined to root
             # is already a strict child; _checked above still rejects symlinks.
-            return value
+            return _checked(value) if physical else value
 
         if not isinstance(manifest[RecordTransaction.DIRECTORIES], list) or not isinstance(manifest[RecordTransaction.RECORDS], list):
             raise ValueError('Invalid record transaction entries')
@@ -306,7 +344,22 @@ class RecordTransaction(Transaction):
         for directory in directories:
             if directory.exists() and not directory.is_dir():
                 raise NotADirectoryError(directory)
-        return directories, records
+        projections = []
+        if not isinstance(manifest[cls.PROJECTIONS], list):
+            raise ValueError('Invalid derived append list')
+        for item in manifest[cls.PROJECTIONS]:
+            if (not isinstance(item, dict) or set(item) != {cls.PATH, cls.PREFIX, 'data'}
+                    or type(item[cls.PREFIX]) is not int or item[cls.PREFIX] < 0
+                    or not isinstance(item['data'], str)):
+                raise ValueError('Invalid derived append')
+            destination = target(item[cls.PATH], physical=False)
+            data = bytes.fromhex(item['data'])
+            if data.hex() != item['data'] or destination in seen:
+                raise ValueError('Invalid derived append')
+            if any(p in files for p in destination.parents):
+                raise ValueError('Derived append conflicts with authoritative storage')
+            projections.append((destination, item[cls.PREFIX], data))
+        return directories, records, projections
 
     @classmethod
     def materialize(cls, manager, frame):

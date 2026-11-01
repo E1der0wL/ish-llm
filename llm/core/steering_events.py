@@ -69,6 +69,13 @@ class SteeringEventData:
         return SteeringOperation(self._value[self.Field.OPERATION])
 
     @property
+    def selects(self):
+        """OPEN may also select its first boundary in the same durable decision."""
+        return self.operation == SteeringOperation.SELECT or (
+            self.operation == SteeringOperation.OPEN and self.Field.BOUNDARY in self._value
+        )
+
+    @property
     def target_id(self):
         return self._value[self.Field.TARGET_ID]
 

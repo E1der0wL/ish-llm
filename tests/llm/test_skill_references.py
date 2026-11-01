@@ -28,6 +28,34 @@ async def main():
 
 
 class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_runtime_preparation_reuses_inventory_but_rechecks_changed_sources(self):
+        from llm.components.skills.storage import SkillStorage
+        from llm.components.tools import ToolRegistry
+
+        for identifier in ('second', 'third'):
+            await self.skills.acreate({'markdown': skill_markdown(identifier, 'Instructions')}, identifier=identifier)
+        component = self.parts[0]
+        project = await self.project.aget_data()
+        seen = []
+        original = SkillStorage.inventory
+        def inventory(storage):
+            seen.append(storage.project.id)
+            return original(storage)
+        def resolve():
+            return component.resolve_runtime(project, ToolRegistry.CAPABILITY,
+                data_factory=lambda name: self.project.components[name])
+        with patch.object(SkillStorage, 'inventory', inventory):
+            registry = resolve()
+        self.assertEqual(len(seen), 2)
+        self.assertIn('skill_list', registry.names())
+        await self.data.awrite_file('manual', 'reference.md', 'Changed', expected_revision=self.refs[0]['revision'])
+        with self.assertRaisesRegex(ValueError, 'reference revision'):
+            resolve()
+        path = self.project.paths.root/'skills/third/SKILL.md'
+        path.write_text(skill_markdown('third', 'Untracked edit'))
+        with self.assertRaisesRegex(ValueError, 'integrity'):
+            resolve()
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

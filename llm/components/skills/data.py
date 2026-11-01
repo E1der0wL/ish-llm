@@ -43,6 +43,17 @@ class SkillData(FileData):
         return target
 
     @workspace_locked
+    def _validate_records(self, records):
+        """Validate references in the owner's freshly read inventory, once per preparation.
+
+        The inventory already verified package contents. External references still
+        consult their current owners; this is not a cross-request validity cache.
+        """
+        self._current()
+        for identifier, value in records.items():
+            self._validate_resources(Record.read(value, identifier=identifier))
+
+    @workspace_locked
     def create(self, data, *, identifier=None):
         self.registry.get(self.name).validate_record(identifier, data)
         value = Record.read(data, identifier=identifier)

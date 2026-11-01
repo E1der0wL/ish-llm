@@ -138,7 +138,7 @@ class EngineCheckpointScope:
     def wrap_instruction(self, event):
         """입력 선택/반영도 같은 부모 저장 ACK를 사용한다. 본문은 여기에 저장하지 않는다."""
         data = SteeringEventData(event.metadata)
-        if data.operation not in (SteeringOperation.SELECT, SteeringOperation.APPLY):
+        if not data.selects and data.operation != SteeringOperation.APPLY:
             return event
         if data.checkpoint != self.name:
             raise ValueError(self.WRONG_INSTRUCTION_CHECKPOINT)
@@ -148,7 +148,7 @@ class EngineCheckpointScope:
         return replace(event, metadata=data.scoped(self.parent_name, self.key(local), envelope).to_dict())
 
     def accepted_instruction(self, event, inbox):
-        if SteeringEventData(event.metadata).operation == SteeringOperation.SELECT and not inbox.closed:
+        if SteeringEventData(event.metadata).selects and not inbox.closed:
             data = SteeringEventData(event.metadata)
             self.records[data.boundary] = CheckpointEnvelope.attach(data.envelope,
                 InstructionCheckpoint.create(self.owner, (m.id for m in inbox.messages)).to_dict())

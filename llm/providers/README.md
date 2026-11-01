@@ -7,6 +7,12 @@
 
 Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 경계입니다. SDK 초기화, 호출 admission, 명시적 timeout/retry, 오류 분류, 로그·진단을 담당합니다. Project/Run/Step 파일은 저장하지 않습니다.
 
+Completion Adapter는 설명·검증·binding·retry 계산이 외부 호출이나 도메인 쓰기를 수행하지 않는
+경우에만 `pure_preparation=True`를 선언할 수 있습니다. LiteLLM Adapter는 이 계약을 따릅니다.
+실제 transport는 호출 예약 저장 ACK 뒤의 `stream()`에서 시작합니다. 미선언 Adapter는 기존처럼
+Step 시작을 먼저 확정한 뒤 들어갑니다. 이 선언은 Host 구현 계약이며 SDK kwarg나 사용자 설정이
+아닙니다. 선언한 Adapter의 override도 같은 무효과 준비 계약을 지켜야 합니다.
+
 선택적 MCP 어댑터도 이 폴더에서 SDK 연결을 담당합니다. MCP Tool 호출은 모델 호출의
 retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 ToolExecutor가 집행합니다.
 

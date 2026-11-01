@@ -67,6 +67,11 @@ class UsageScope:
             return TokenReservation.UNRESERVED
         return await TokenReservation.count(invocation, self.counter)
 
+    @property
+    def requires_reservation(self):
+        """Whether preparing this call invokes the configured external token counter."""
+        return self.policy.requires_reservation
+
 
 def project_usage_policies(project, sessions):
     """Read current policy and active Run snapshots under workspace ownership."""

@@ -97,9 +97,11 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
     def observe(self, run, event) -> None:
         self.events.append(event)
         if event.type == EngineEventType.TEXT_DELTA:
-            # A UI sees only deltas already durably appended.
-            if not self.store.get(run.assistant_message_id).content.endswith(event.delta.text):
-                self.observer_errors.append(event.delta.text)
+            # Progress is atomically visible through owned queries; physical
+            # files may lag until the next durable execution/terminal boundary.
+            with self.sessions.ownership.scope():
+                if not self.store.get(run.assistant_message_id).content.endswith(event.delta.text):
+                    self.observer_errors.append(event.delta.text)
 
     async def until(self, predicate) -> None:
         async with timeout(10):
@@ -137,8 +139,9 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         return self.manager.repository.list(self.session)[-1].status
 
     def output(self) -> str:
-        run = self.manager.repository.list(self.session)[-1]
-        return self.store.get(run.assistant_message_id).content
+        with self.sessions.ownership.scope():
+            run = self.manager.repository.list(self.session)[-1]
+            return self.store.get(run.assistant_message_id).content
 
     async def test_failed_provider_log_is_correlated_with_persisted_run(self):
         from llm.providers import runtime

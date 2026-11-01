@@ -297,30 +297,41 @@ def record_transaction(path):
 
 def open_record(path):
     """Read current transaction bytes, including staged appends, without copying history."""
-    batch = record_transaction(path)
+    batch = record_view(path)
     return batch.open(path) if batch is not None else path.open(StorageFormat.BINARY_READ)
 
 
 def record_stat(path):
-    batch = record_transaction(path)
+    batch = record_view(path)
     return batch.stat(path) if batch is not None else path.stat()
 
 
 def record_exists(path):
-    batch = record_transaction(path)
+    batch = record_view(path)
     return batch.exists(path) if batch is not None else path.exists()
 
 
 def record_children(path):
-    batch = record_transaction(path)
+    batch = record_view(path)
     return batch.children(path) if batch is not None else path.iterdir()
 
 
 def record_directory(path):
     batch = record_transaction(path)
     if batch is not None:
-        return path.absolute() in batch.directories or path.is_dir()
+        return path.absolute() in batch.directories or batch.manager.records.is_directory(path)
+    view = record_view(path)
+    if view is not None:
+        return view.is_directory(path)
     return path.is_dir()
+
+
+def record_view(path):
+    """Prepared records are visible only through the owning locked storage view."""
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(path):
+        return transaction if transaction.record_batch else transaction.manager.records
+    return None
 
 
 def reject_links(path: Path) -> Path:
@@ -489,11 +500,19 @@ class StorageIO:
         """Commit record writes as one durable bundle; no raw filesystem mutations."""
         return await self._run(True, operation, args, kwargs)
 
+    async def prepare_records(self, operation, *args, **kwargs):
+        """Flush an atomic live view; a later strong boundary provides durability.
+
+        This ACK never authorizes external effects or promises crash preservation.
+        Canonical files remain unchanged until a durable record commit/checkpoint.
+        """
+        return await self._run(True, operation, args, kwargs, durable=False)
+
     async def checkpoint(self):
         """Settle materialized records at an owner-declared boundary, under the same lock/drain rules."""
         await self.run(self.ownership.transactions.records.checkpoint, prepare_next=True)
 
-    async def _run(self, records, operation, args, kwargs):
+    async def _run(self, records, operation, args, kwargs, *, durable=True):
         if self._serial is self.UNBOUND:
             self._serial = asyncio.Lock()
         async with self._serial:
@@ -502,7 +521,7 @@ class StorageIO:
             cancellation = current_process_cancellation() or ProcessCancellation()
 
             def work():
-                with cancellation.scope(), self.ownership.scope(records=records):
+                with cancellation.scope(), self.ownership.scope(records=records, durable=durable):
                     for value in (*args, *kwargs.values()):
                         watch(value)
                     return operation(*args, **kwargs)

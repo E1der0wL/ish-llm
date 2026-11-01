@@ -1,9 +1,10 @@
 """구현체 설정의 공개 경로와 내부 인자 이름을 연결한다. 값이나 정책을 생성하지 않는다."""
 
 from copy import deepcopy
+import json
 from .schema import (implementation_schema, object_schema, schema_nodes, SchemaKeyword,
                      SchemaType, SchemaBoolean, SchemaExtension, SchemaReference)
-from .json_data import JsonPointer
+from .json_data import JsonObject, JsonPointer
 from .implementation_parameters import ImplementationParameters, ParameterLookup
 
 
@@ -38,6 +39,8 @@ class ParameterLayout:
     UNSUPPORTED_REFERENCE = 'ParameterLayout cannot relocate this reference; use implementation_schema'
 
     def __init__(self, *, config=(), policy=(), paths=NO_PATH_OVERRIDES):
+        # One latest pure schema projection, never configuration or authority.
+        self._schema_projection = None
         self.paths = {**{key: ParameterLayout.CONFIG_PREFIX + key for key in config},
                       **{key: ParameterLayout.POLICY_PREFIX + key for key in policy}, **(paths or {})}
         targets = list(self.paths.values())
@@ -115,6 +118,24 @@ class ParameterLayout:
         return result
 
     def schema(self, schema):
+        # Content, not object identity, owns reuse. Keep Python-only extensions
+        # on the uncached path so tuple/list or numeric/string keys cannot alias.
+        key = None
+        try:
+            source = {"paths": self.paths, "schema": schema}
+            JsonObject.validate(source)
+            key = json.dumps(source, allow_nan=JsonObject.ALLOW_NON_FINITE)
+        except (TypeError, ValueError):
+            pass
+        previous = self._schema_projection
+        if key is not None and previous is not None and previous[0] == key:
+            return deepcopy(previous[1])
+        result = self._build_schema(schema)
+        # Replace obsolete variants; no growing cache or user tuning default.
+        self._schema_projection = (key, deepcopy(result)) if key is not None else None
+        return result
+
+    def _build_schema(self, schema):
         # 전체 JSON Schema 검증은 registry의 checked_implementation_schema 경계가
         # 담당한다. 실행별 설정 조회마다 같은 메타스키마를 중복 검증하지 않는다.
         def classified(spec, prefix=self.ROOT):

@@ -171,7 +171,11 @@ class RestartRecord(RunLink):
 
 
 class RunExecutionEvidence:
-    """Service-persisted dispatch entry; absence never proves no execution."""
+    """Durable dispatch permission; absence never proves no execution.
+
+    Run entry reserves this before external hooks. A live scheduler can record
+    an unentered outcome at settlement; crash recovery cannot infer that proof.
+    """
 
     KEY = "execution_started"
     NOT_STARTED = False

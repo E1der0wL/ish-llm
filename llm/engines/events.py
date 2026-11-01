@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import ClassVar, Optional, Union
 
-from llm.core.models import ResourceKind, StepKind, StepErrorCode
+from llm.core.models import ResourceKind, StepKind, StepErrorCode, RunStatus
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from llm.core.interactions import InteractionRequest
@@ -27,6 +27,7 @@ class EngineEventType(StrEnum):
     INTERACTION_CHANGED = "interaction_changed"
     STEERING = "steering"
     STEERING_CHANGED = "steering_changed"
+    EXECUTION_BOUNDARY = "execution_boundary"
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,7 +105,31 @@ class EngineEvent:
     def checkpoint_receipt(self):
         return self.checkpoint or self
 
+    @property
+    def has_completion_start(self):
+        return self.type == EngineEventType.STEP_STARTED and self.completion is not self.NO_COMPLETION
+
+    @property
+    def completion_start(self):
+        """The separate public observation after the shared start/reservation commit."""
+        if not self.has_completion_start:
+            return self.NO_COMPLETION
+        return EngineEvent(EngineEventType.COMPLETION, step_id=self.step_id, completion=self.completion)
+
     def __post_init__(self):
+        if self.has_completion_start and (
+                not isinstance(self.completion, CompletionResult) or self.step_id is None
+                or self.completion.step_id != self.step_id or self.completion.status != RunStatus.RUNNING
+                or self.completion.ended_at is not None or self.completion.usage_complete):
+            raise ValueError('Step start can attach only its own pending Completion reservation')
+        if self.type == EngineEventType.EXECUTION_BOUNDARY and any((
+            self.delta is not None, self.step_id is not None, self.name, self.metadata,
+            self.error is not None, self.completion is not None, self.output is not None,
+            self.interaction is not None, self.diagnostic is not None,
+            self.progress is not None, self.failure_code is not None, self.has_checkpoint,
+            self.kind != StepKind.LLM.value,
+        )):
+            raise ValueError('Execution boundary cannot carry observations or record mutations')
         if self.has_checkpoint and (self.type not in (
                     EngineEventType.STEP_STARTED, EngineEventType.STEP_COMPLETED, EngineEventType.STEERING)
                 or not isinstance(self.checkpoint, EngineEvent)

@@ -191,6 +191,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         channel.store(run)
         repository.save(run)
         return (), changed
+    opened = []
     if operation == SteeringOperation.OPEN:
         target = data.target
         channel.register(identifier, target)
@@ -204,7 +205,9 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
                 changed.append(_save_instruction(store, message, value))
         channel.store(run)
         repository.save(run)
-        return (), changed
+        if not data.selects:
+            return (), changed
+        opened = changed
     target = channel.target(identifier)
 
     def close(reason):
@@ -224,14 +227,14 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
     if (envelope is None and target.scope is not None or envelope is not None
             and CheckpointEnvelope.from_dict(envelope).engine_scope != target.scope):
         raise ValueError(InstructionBoundaryError.CHECKPOINT_TARGET)
-    if operation == SteeringOperation.SELECT:
+    if data.selects:
         if key in CheckpointRecords.from_checkpoint(checkpoint).records:
             raise ValueError(InstructionBoundaryError.SELECTED)
         pending = [m for m in instructions(store, run.id, pending=InstructionQuery.PENDING)
                    if any(target.pending_for(identifier) for target in InstructionMessageRecord.from_message(m).targets)]
         messages = pending if data.allow_continue else []
         if data.final and not messages:
-            return (), close(data.reason or SteeringReason.COMPLETED)
+            return (), [*opened, *close(data.reason or SteeringReason.COMPLETED)]
         selected = {mid for _, value in instruction_records(checkpoint) if value.target_scope == target.scope
                     for mid in value.message_ids}
         if selected.intersection(m.id for m in messages):
@@ -241,7 +244,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
             record = CheckpointEnvelope.attach(envelope, record)
         record = ToolUsageCheckpoint.attach(record, tool_usage)
         repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata=CheckpointWrite.record_event(name, key, record).to_dict()))
-        return tuple(messages), []
+        return tuple(messages), opened
     if operation == SteeringOperation.APPLY:
         record = dict(instruction_records(checkpoint))[key]
         if record.target_scope != target.scope:

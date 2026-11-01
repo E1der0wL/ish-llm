@@ -8,10 +8,51 @@ from unittest.mock import patch
 from llm.core.agents import AgentBinding
 from llm.core.models import Message, MessageRole, MessageStatus, new_id
 from llm.services.infrastructure.storage import revision_token
-from llm.services.runtime.requests import RequestAdmission
+from llm.services.runtime.requests import RequestAdmission, reuse_admission_checks
 
 
 class RequestAdmissionTests(unittest.TestCase):
+    def test_reuse_requires_exact_content_and_still_checks_owner_and_state(self):
+        with patch.object(AgentBinding, 'read', wraps=AgentBinding.read) as checked:
+            with reuse_admission_checks():
+                first = RequestAdmission.read(self.message, **self.owner)
+                count = checked.call_count
+                copy = deepcopy(self.message)
+                second = RequestAdmission.read(copy, **self.owner)
+                binding = first.binding('reader')
+                definition = binding.definition
+                definition['tools'].append('untrusted')
+                self.assertNotIn('untrusted', second.binding('reader').definition['tools'])
+                self.assertEqual(checked.call_count, count)
+                self.assertEqual(first.to_dict(), second.to_dict())
+                detached = second.to_dict()
+                detached['recipients'].clear()
+                self.assertTrue(RequestAdmission.read(copy, **self.owner).recipients)
+                with self.assertRaises(ValueError):
+                    RequestAdmission.read(copy, project_id=new_id(), session_id=self.session)
+                copy.status = MessageStatus.COMMITTED
+                with self.assertRaises(ValueError):
+                    RequestAdmission.read(copy, **self.owner)
+                changed = deepcopy(self.value)
+                changed['bindings']['reader']['definition']['tools'].append('changed')
+                with self.assertRaises(ValueError):
+                    RequestAdmission.validate(changed)
+                self.assertGreater(checked.call_count, count)
+            before = checked.call_count
+            RequestAdmission.read(self.message, **self.owner)
+            self.assertGreater(checked.call_count, before)
+
+    def test_failed_preparation_does_not_export_validation_proofs(self):
+        with patch.object(AgentBinding, 'read', wraps=AgentBinding.read) as checked:
+            with self.assertRaisesRegex(RuntimeError, 'abort'):
+                with reuse_admission_checks():
+                    RequestAdmission.validate(self.value)
+                    raise RuntimeError('abort')
+            count = checked.call_count
+            with reuse_admission_checks():
+                RequestAdmission.validate(self.value)
+            self.assertGreater(checked.call_count, count)
+
     def setUp(self):
         self.project, self.session, self.message_id = new_id(), new_id(), new_id()
         self.bindings = {identifier: AgentBinding.create(self.project, identifier,

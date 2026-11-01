@@ -15,13 +15,67 @@
 
 ## 적용 범위
 
+### 실행 안전과 관찰 기록의 저장 보장
+
+저장에는 두 완료 경계가 있다. **준비 완료**는 checksum으로 닫힌 record frame을
+flush하고 소유권 잠금 안의 읽기 view에 원자적으로 공개하는 것이다. **내구성 확정**은
+그 frame까지의 의존 기록을 함께 fsync한 것이다. 준비 완료를 장애 복구 보장으로 표시하지 않는다.
+이 구분은 저장 구현의 명시적 API 계약이며 timeout, 개수, 용량 또는 background flush 기본값이 아니다.
+
+- 요청 QUEUED 접수, 일반 설정/정의/데이터 변경은 기존 내구성 확정 계약을 유지한다.
+- dispatch와 초기 실행 준비, 부분 출력은 명시적인 준비 저장을 사용할 수 있다.
+  준비 기록은 journal의 읽기 view에만 공개한다. fsync 전 canonical 파일을 먼저 덮어쓰지 않는다.
+- Run 실행 진입, 효과를 허용하는 Step/승인/예약, 사용량 예약과 효과 결과 영수증은
+  의존 준비 기록까지 함께 내구성을 확정한다. 승인 응답 후에는 여전히 명시적 resume이 필요하다.
+- Engine은 실제 작업을 시작하기 전에 실행 허용 이벤트의 ACK를 기다린다. 초기 채널/체크포인트
+  준비 ACK는 외부 효과를 허용하지 않는다. 임의 Engine/Host 호출의 기존 진입 경계는 유지한다.
+- 출력/진행 관찰 이벤트는 준비 완료 후 전달할 수 있다. OS 장애·전원 차단 시 마지막
+  내구성 확정 이후의 관찰 꼬리는 유실될 수 있다. Run 종료, 실패, 취소, 중단, pause는
+  최종 상태와 필요한 checkpoint를 확정한 뒤 알린다. 정상 shutdown도 남은 기록을 확정한다.
+- 결과가 불확실한 효과를 자동 재실행하지 않는다. 복구는 온전한 frame만 검증하고 확정하며,
+  깨진 완성 frame이나 의존성이 없는 기록을 정상 상태로 추측하지 않는다.
+
+저장 계층은 Tool/Engine/provider 종류로 분기하지 않는다. 도메인 owner가 자신의 공개
+완료 의미에 맞는 저장 API를 선택한다. 어떤 기록을 재개·권한·예산 판단에 사용한다면,
+그 판단으로 외부 실행을 허용하기 전까지 해당 기록의 내구성이 확정되어야 한다.
+
+### 요청 지연 개선의 확정 경계
+
+요청 접수의 QUEUED 확정은 계속 독립적이다. Run 시작은 RUNNING/STREAMING/Session
+활성 집합과 함께 실행 진입 증거를 확정한다. 이 증거는 모델이나 Tool을 이미 호출했다는
+뜻이 아니라, 이후 Host 실행 hook·Engine 코드가 실행될 수 있어 자동 재생으로 안전성을
+추측할 수 없다는 뜻이다. RUNNING 관찰자는 반드시 이 확정 이후 호출한다. 전송 권한과
+deadline은 실행 직전 다시 검증한다. 살아 있는 scheduler가 dispatch 미진입을 직접 확인한
+취소·검증 실패는 종료 transaction에 미진입 근거를 기록하여 기존 명시적 restart를 유지한다.
+이 runtime 증거 없이 재시작한 경우에는 Step 부재로 미진입을 추측하지 않는다.
+
+서로 다른 Engine 이벤트를 미리 소비하거나 외부 callback을 트랜잭션 안에서 실행하여
+확정 횟수를 줄이지 않는다. 준비된 실행 binding과 초기 checkpoint/지시 선택은 다음 실행 허용에
+함께 확정할 수 있다. Step authorization과 호출 예약도 명시적인 준비 계약 아래 합성할 수 있다.
+효과 전후 영수증과 승인은 소비자가 요구하는 ACK를 유지한다. 동기화 횟수는 결과로 측정하며
+고정 횟수나 시간에 맞추려고 안전 경계를 생략하지 않는다.
+
+Record batch는 owner가 명시한 best-effort 파생 append를 같은 내구성 frame에 담을 수 있다.
+원본을 먼저 반영하고 파생 append를 반영하며, 파생 대상의 장애는 원본 확정을 실패시키지 않는다.
+저널의 경로·checksum 검증 자체는 여전히 fail-closed다. 파생 자료는 실행 권한·승인·receipt나
+성공 판단의 원본으로 사용할 수 없다. Activity가 이 경계를 사용하며 새로운 비동기 queue,
+임의 flush 간격이나 용량 설정은 만들지 않는다. 같은 frame의 fsync가 파생 이벤트의 근거도
+보존하므로 별도의 Activity fsync를 요청마다 기다리지 않는다. checkpoint에서 파생 파일도
+best-effort로 동기화하며 복구 append는 이미 반영된 동일 bytes를 중복 추가하지 않는다.
+정상 저장에서는 관찰 전에 반영되며, 대상 손상·I/O 실패 시 인덱스가 불완전할 수 있다는
+기존 best-effort 계약은 유지한다. 일반 undo transaction/독립 Activity 쓰기는 기존 경로다.
+
+이 변경은 Project/Session/Run/Step·승인·재개 checkpoint 형식을 바꾸지 않는다. 내부 record
+manifest에는 파생 append 목록이 명시된다. 이전 프로세스를 정상 종료한 뒤 코드를 교체하며,
+미완료 옛 저널을 자동 변환하지 않는다.
+
 | 서비스 작업 | 함께 확정하는 원본 |
 | --- | --- |
 | 요청 제출·취소 | 선택된 Conversation의 메시지 상태·메타데이터; 큐 투입은 확정 후 |
-| 요청 dispatch | 모든 수신자의 PENDING Run·빈 출력 원본/manifest, 입력 COMMITTED·완전한 Run map·동일 history snapshot, 각 Assistant QUEUED |
-| Run 시작 | 해당 Run RUNNING, Assistant STREAMING, Session.active_run_ids/status |
+| 요청 dispatch | 모든 수신자의 PENDING Run·빈 출력 원본/manifest, 입력 COMMITTED·완전한 Run map·동일 history snapshot, 각 Assistant QUEUED; 준비 view로 공개하고 Run 진입 전에 함께 fsync |
+| Run 시작 | 해당 Run RUNNING·실행 진입 허용 증거, Assistant STREAMING, Session.active_run_ids/status |
 | Run 완료·실패·중단·일시정지 | 미완료 Step 상태, Assistant 상태, Run 상태·사용량 확정, Session 활성 집합에서 해당 Run 제거 |
-| 출력 델타 묶음 | outputs.jsonl 추가·필수 manifest 갱신·대화 JSONL 추가 |
+| 출력 델타 묶음 | outputs.jsonl 추가·필수 manifest 갱신·대화 JSONL 추가; 준비 view로 공개하고 다음 강한 경계에서 함께 fsync |
 | 최종 출력·Step 완료 | 출력 저널과 Run 결과/대화 또는 Step 결과 |
 | Step 생성·시작·수정·종료 | 이벤트 하나에 대응하는 Step 기록 |
 | 체크포인트 초기화 | 체크포인트 원본과 Run.metadata.checkpoints/checkpoint_revisions 연결 |
@@ -56,12 +110,13 @@ Run이 시작되기 전 저장 실패로 입력이 QUEUED로 돌아간 경우 En
 
 저장 작업의 종류에 따라 두 가지 저널을 사용한다. 디렉터리 복사·삭제·복원과 임의 파일
 수정은 아래 undo 경로를 유지한다. Run의 기록 저장은 `StorageIO.run_records()`로 명시적으로
-선택하는 record batch를 사용한다. 두 경로 모두 같은 workspace 잠금, 중첩 트랜잭션,
+선택하는 record batch를 사용한다. `StorageIO.prepare_records()`는 같은 형식으로 준비만
+공개하고 다음 `run_records()`가 그 의존 기록까지 확정한다. 두 경로 모두 같은 workspace 잠금, 중첩 트랜잭션,
 객체 rollback, 취소 drain, 저장 이후 관찰 계약에 참여한다. 예전 형식 호환이나 자동 migration이 아니다.
 
 ### 기록 묶음 확정
 
-요청 QUEUED 저장, dispatch, Run 시작, 실행 binding/dispatch, steering 경계, Engine 이벤트와
+요청 QUEUED 저장, dispatch, Run 시작·실행 진입, 실행 binding, steering 경계, Engine 이벤트와
 출력 델타 저장은 JSON·JSONL 변경을 하나의 파일에 모은다. Memory의 호출 전 context 관찰 저장도
 owner가 `@workspace_locked(records=True)`로 이 경로를 명시한다. Facade의 같은 StorageIO 실행기를
 사용하며, 일반 Component 작업을 일괄 전환하지 않는다. 원본 파일은 준비 중에는 수정하지 않는다.
@@ -71,11 +126,12 @@ range를 연결해 읽는다. 대화 projection은 성공적으로 확정된 동
 다시 연결하므로 매번 전체 대화를 재생하지 않는다.
 
 1. `records-pending-<id>`에 변경 bytes와 closed manifest·checksum·format footer를 준비한다. 임시 준비 파일은 확정 근거가 아니므로 fsync하지 않는다.
-2. `records-<first-sequence>-<id>` 저널 끝에 sequence·길이·header checksum과 준비된 묶음을 하나의 frame으로 추가하고 파일을 fsync한다. 새 저널 파일일 때는 journal 디렉터리도 fsync한다. 이 완료가 commit decision이며, 같은 파일의 후속 확정은 파일 fsync 한 번을 사용한다.
-3. 전체 manifest/경로/범위/checksum을 검증하고 해당 bytes만 원본에 반영한다. 교체는 atomic rename,
+2. `records-<first-sequence>-<id>` 저널 끝에 sequence·길이·header checksum과 준비된 묶음을 하나의 frame으로 추가하고 flush한다. 검증한 준비 view는 다음 저장/조회에서 사용할 수 있다. 강한 경계는 이 prefix를 파일 fsync 한 번으로 확정한다. 아직 공개하지 않은 새 저널 이름이면 디렉터리도 fsync한다.
+3. 전체 manifest/경로/범위/checksum을 검증하고 **fsync한 prefix만** 원본에 반영한다. 교체는 atomic rename,
    JSONL은 증분 쓰기다. 이 단계에서는 target fsync 대신 영속 저널이 복구를 보장한다.
-4. 전체 파일 반영 뒤 observer/호출자에게 완료를 전달한다. 같은 OS 소유권이 유지되는 동안 후속
-   기록도 저널로 확정하고, target 파일·디렉터리의 동기화 대상은 합친다. 읽기만 하는 작업은 추가 동기화를 요구하지 않는다.
+4. 준비 API는 읽기 view 공개 후, 강한 API는 fsync와 파일 반영 뒤 완료를 전달한다. 같은 OS
+   소유권 아래 후속 준비의 byte ranges를 연결하며 target 파일·디렉터리의 동기화 대상은 합친다.
+   읽기만 하는 작업은 추가 동기화를 요구하지 않는다. 실행 허용은 강한 ACK만 사용한다.
 5. 일반 undo 작업의 첫 변경 직전 또는 마지막 OS 소유권 해제 직전에 target을 한 번씩 동기화한다.
    이후 최고 sequence의 `record-checkpoint`를 checksum과 함께 원자 교체·fsync한 뒤 해당 저널을 지운다. 다음 기록은 새 저널 파일을 사용하며 이미 정리된 파일에 추가하지 않는다.
    Run 종료는 마지막 기록 묶음을 확정한 뒤 이 저장 checkpoint를 수행하고 종료 알림을 보낸다.
@@ -89,7 +145,8 @@ OS 잠금을 새로 얻거나 파일 반영에 실패하면 메모리의 반영 
 먼저 truncate하여 최신 기록을 잃지 않는다. 도메인 동작이나 외부 효과는 재생하지 않는다.
 
 저널을 보유한 동안 파일별 fsync가 늦어지는 것이며 QUEUED/승인/receipt의 내구성을 늦추는 것이 아니다.
-잠금 안의 조회와 백업은 반영 완료된 파일을 읽는다. 파일만 별도로 복사하거나 소유권을 우회하여
+잠금 안의 서비스 조회는 준비된 최신 view를 읽고, 일반 파일 변경·백업은 준비 기록을 먼저 확정한다.
+잠금을 거치지 않는 raw 파일 조회는 진행 중 최신 view를 보장하지 않는다. 파일만 별도로 복사하거나 소유권을 우회하여
 저널을 삭제하는 것은 지원하지 않는다. 긴 Run에서는 다음 checkpoint까지 저널 디스크 공간이 필요하다.
 임의의 시간·개수 기반 flush 설정, 별도 background worker, 전역 완화 옵션은 추가하지 않는다.
 
@@ -105,6 +162,28 @@ fsync 실패 후 온전한 frame이 남은 경우 확정 여부는 호출자에�
 
 ### 준비 재사용과 확정 병합
 
+처음 추가 지시 채널을 여는 `OPEN`은 Engine이 준비한 초기 checkpoint와 첫
+선택 `boundary`를 함께 보낼 수 있다. 서비스는 채널 등록·예약 지시 활성화·실제
+pending 지시 선택·선택 checkpoint를 한 트랜잭션으로 준비한다. Engine은 준비 ACK 이후에만
+그 선택을 사용한다. 첫 선택은 processor 준비 전에 확정되며 그 후 도착한 지시는
+다음 선택 경계에서 처리한다. 지시가 없다는 추측으로 선택 기록을 생략하지 않는다.
+중첩 Engine도 같은 checkpoint envelope와 Tool 사용량 기록을 유지한다. 재개 때는
+저장된 선택을 재사용하며 이미 선택한 boundary를 다시 선택하지 않는다.
+따라서 기본 Loop의 첫 호출 전 동기화에서 OPEN과 첫 SELECT를 따로 확정할 필요가 없다.
+
+성공한 검증 결과는 **검증한 입력 스냅샷과 결과에 영향을 주는 의존성이 동일함을 확인할 수 있는 범위**에서
+재사용한다. 변경 이력이 없다는 사실, 객체 ID, 파일명, mtime만으로 동일성을 추정하지 않는다.
+현재 준비 작업이 이미 읽고 검증한 자료는 수정 없이 공유할 수 있다. 참조 대상·설정·제약·검증 구현이
+달라지거나 동일성을 확인할 수 없으면 다시 검증한다. 외부 파일 변경을 추적할 수 없는 owner는 다음
+준비 작업에서 원본 무결성을 다시 확인한다. 실패·취소·rollback은 새로운 성공 증거가 아니다.
+이 재사용은 권한이나 실행 완료를 뜻하지 않는다. 실제 Tool 인자와 제약, 현재 Host 거부, 남은 예산,
+승인/재개 binding과 operation receipt는 실행 경계에서 계속 확인한다. 영속 `validated` 표시나
+숨은 TTL·용량 설정을 만들지 않는다. 검증과 재사용 범위는 해당 데이터 owner가 소유한다.
+
+Skill capability 준비는 전체 목록을 검증해 얻은 자료로 참조 검사를 수행한다. 각 Skill의 참조를
+확인할 때 같은 전체 목록을 다시 읽지 않는다. 외부 Tool/Data 참조의 현재 revision 확인과 실행 중
+resource 조회의 expected_revision 검사는 유지한다. 다음 준비 요청은 저장 원본을 다시 읽는다.
+
 Run 접수 검사, 실행 전략 선택, context 준비는 각각 동기 `reuse_schema_checks()` 범위에서 동일
 스키마의 성공한 문법 검사만 재사용한다. Tool registry가 새로 만들어져도 그 범위 안의 동일 문법
 증거는 공유할 수 있다. 실제 값·Tool 인자·선택 binding·Host 권한과 의미 검증은 생략하지 않으며,
@@ -114,10 +193,12 @@ EngineRegistry는 등록된 구현체마다 마지막 성공한 Agent binding의
 증거로 교체한다. 변경된 스키마는 다시 검사하며, 실패한 검사나 과거 변형은 누적하지 않는다.
 이 내부 준비 자료는 설정·정의·권한의 source of truth가 아니며 용량/TTL 정책을 추가하지 않는다.
 
-재개 시 실행 binding 확인과 추가 지시 접수 상태 초기화는 Engine 호출 전에 한 record commit으로
-확정한다. 동일한 binding을 재검증했을 뿐인 경우 별도 재저장은 하지 않는다. 반면 승인 정보 상속과
+재개 시 실행 binding 확인과 추가 지시 접수 상태 초기화는 하나의 record 단위로 준비하고
+Engine의 외부 실행 전에 확정한다. 준비 계약 미선언 경로는 Engine 진입 전에 강하게 확정한다.
+동일한 binding을 재검증했을 뿐인 경우 별도 재저장은 하지 않는다. 반면 승인 정보 상속과
 체크포인트 복사는 분리한다. 초기 복사가 실패해도 상속된 승인 근거로 명시적 재개가 가능해야 하기 때문이다.
-QUEUED 접수, 요청 그룹 dispatch, Run 시작, 실행 진입 ACK는 계속 분리한다. Engine event는
+QUEUED 접수는 독립적으로 확정한다. dispatch는 준비 ACK로 공개하고 Run 시작의 강한 ACK가
+전체 수신자 연결까지 확정한다. 실행 진입 허용은 Run 시작에 포함하며 실제 호출 직전 권한·기한 재검증은 유지한다. Engine event는
 아래의 명시적인 결합 계약을 사용한 경우에만 하나의 ACK로 확정한다.
 
 완전한 요청 이력 검증은 같은 조회에서 같은 User 객체와 전체 Run 집합으로 이미 검증한 recipient
@@ -129,6 +210,45 @@ group을 recipient마다 재해석하지 않는다. 모든 Run의 원본 User/As
 
 ### 관련 기록과 하나의 완료 경계
 
+요청의 읽기 전용 사전검사와 런타임의 현재 Project/Session 조회는 같은 `StorageIO` 소유권
+범위에서 연속 수행할 수 있다. QUEUED 저장 직전에는 선택 Agent·현재 정책·등록·큐 제한을
+다시 검사한다. 이전 사전검사 성공은 접수 권한이 아니며, 저장 확정 경계도 합치지 않는다.
+Run context를 구성하는 한 동기 호출에서는 동일한 admitted policy snapshot을 한 번 해석해
+전달한다. 현재 Project 권한/사용량 검사나 승인 영수증을 이 사본으로 대체하지 않는다.
+취소 경계를 사이에 둔 Engine factory, capability resolver와 context hook 호출은 임의로 묶지 않는다.
+
+#### 준비와 실행 허용을 결합하는 명시적 계약
+
+준비는 호출할 자료와 기록 내용을 만드는 구간이다. 실행 허용은 현재 권한·취소·기한·예산을
+확인하고 그 실행을 증명하는 기록까지 fsync하는 구간이다. 준비만으로 실행 권한이 생기지 않는다.
+이름이 prepare인 함수나 임의 metadata를 근거로 무효과를 추정하지 않는다.
+
+- `prepares_execution=True`를 선언한 Engine은 실행 시작부터 첫 강한 이벤트 ACK까지
+  데이터 준비와 준비 이벤트만 수행한다. 외부 hook 앞에서는 `execution_boundary()`를 먼저
+  기다린다. 선언이 없는 Engine은 기존의 실행 전 강한 binding 확정을 유지한다.
+- root Agent invocation은 이 계약 아래 binding을 준비하고, 선택 Engine 진입이나 MCP 연결이
+  강한 경계를 요구하면 먼저 확정한다. Run 진입 허용은 그대로 강하게 저장하므로 capability
+  resolver 및 구성 hook의 기존 실행 경계를 임의로 옮기지 않는다.
+- Adapter의 `pure_preparation=True`는 설명·검증·binding·retry 계산이 데이터 처리라는
+  구현 선언이다. 외부 호출 또는 도메인 쓰기를 포함하지 않는다. 미선언 Adapter는 강한 경계를
+  거쳐 진입하며 기존 기능을 유지한다. 사용자 설정이나 저장 metadata로 이 선언을 만들지 않는다.
+- `step(..., prepare=True)`는 action이 첫 실행 허용 이벤트까지 무효과 준비만 한다는 명시적인
+  계약이다. 준비한 첫 Completion 예약은 STEP_STARTED에 첨부할 수 있다. 서비스가 Step 시작과
+  예산 검사·예약을 한 transaction에서 확정한 뒤에만 SDK를 호출한다. 공개 Step/Completion
+  관찰은 둘 다 이 확정 뒤 전달한다. 임의 action의 기본 step 계약은 바꾸지 않는다.
+- token counter·입력 policy 등 외부 hook이 먼저 필요하면 실행 경계를 요청하여 Step을 먼저
+  확정한다. 재시도는 각 실제 호출의 예약을 유지하고 승인·Tool 효과 receipt와 결합하지 않는다.
+
+준비 단계에서 취소되면 외부 호출하지 않는다. 준비만 한 뒤 아직 시작하지 않은 Step을 실행된
+것처럼 만들지 않는다. 준비 중 일반 오류는 기존 Step 실패 진단 경로로 기록한다. 기존 timeout은
+준비 시간을 포함하며 새 phase를 이유로 재시작하지 않는다. 별도로 필요한 Step 시작 ACK의
+저장 대기는 기존처럼 action 기한에 포함하지 않고, 호출 예약 ACK는 계속 포함한다. 현재 권한·예산은 준비 cache에서
+재사용하지 않는다. 준비와 승인 사이 변경은 기존 binding/CAS/취소 검증으로 거부한다.
+
+서비스가 다음 Engine 이벤트를 미리 실행해서 묶음을 찾지 않는다. 선언한 준비를 소유한 Engine이
+이미 준비한 기록만 합성한다. 새로운 Run 상태·별도 저널·배경 확정·숨은 tuning 값은 만들지 않는다.
+동기화 4회는 단순 Loop 측정 경로의 목표이며 모든 Engine/확장 기능에 강제하는 계약이 아니다.
+
 관련 기록은 **하나의 공개 완료 응답 또는 다음 실행 허용을 함께 증명하는 기록**이다.
 같은 Run에 속하거나 가까운 시간에 생성됐다는 이유만으로 묶지 않는다. 도메인 owner가
 전부 준비한 유한한 변경 집합을 명시하며, 저장 계층은 원자적 확정과 복구만 담당한다.
@@ -136,20 +256,25 @@ group을 recipient마다 재해석하지 않는다. 모든 Run의 원본 User/As
 - Session runtime 접속 시 stale 상태 정리, Session 상태와 시작 기록은 접속 완료 전에 함께 확정한다.
   재시작 복구는 저장 상태만 정리하며 Engine/Tool을 재실행하지 않는다.
 - Engine은 초기 checkpoint와 지시 수신 채널 개방을 같은 이벤트에 선언할 수 있다.
-  서비스는 둘을 함께 저장한 뒤 채널 ACK를 돌려준다. 기존 Step 완료와 checkpoint receipt도 같은 원칙이다.
+  서비스는 둘을 함께 준비한 뒤 채널 ACK를 돌려준다. Step/외부 hook의 실행 경계에서 먼저 fsync한다.
+  기존 Step 완료와 checkpoint receipt는 강한 저장 완료를 유지한다.
   초기 checkpoint를 단독으로 전달하는 Engine 역시 유효하다.
 - Run 종료의 Step 정리, Assistant 최종 상태, Run 최종 상태, Session 실행 목록은 한 종료 응답에 속한다.
   이 기록을 redo journal로 확정한 뒤 `StorageIO.checkpoint()`로 최종 파일을 한 번씩 동기화하고
   저널을 회수한다. 종료 알림은 이 과정 뒤에 보낸다. 기존 Run 종료의 저널 정리 경계는 유지한다.
   조회는 이미 저널로 확정·반영된 최종 상태를 읽을 수 있다. 저널 회수는 실행의 새 성공 근거가 아니다.
-- 저널의 fsync와 전체 파일 반영이 끝난 뒤에만 성공 응답·관찰 이벤트·다음 실행을 허용한다.
+- 저널의 fsync와 전체 파일 반영 뒤에만 강한 성공 응답과 다음 실행을 허용한다. 준비/부분 출력
+  관찰은 원자 읽기 view 이후 발행하며 장애 복구를 보증하는 응답과 구별한다.
   마지막 workspace 소유권 해제나 일반 파일 변경 경계에서는 기존 target checkpoint를 유지한다.
 
 서로 다른 완료 경계는 그대로 분리한다. 승인 대기와 승인 응답, Tool 효과 전 authorization/operation
-reservation과 효과 후 receipt, 외부 구현체 호출 전후를 묶지 않는다. 추가 지시 SELECT의 확정 시점도
-유지한다. 저장기가 다음 Engine 이벤트를 미리 실행하여 묶음을 만들거나, 모델·Tool·사용자 응답을
+reservation과 효과 후 receipt, 외부 구현체 호출 전후를 묶지 않는다. 추가 지시 SELECT는 사용 전
+ACK가 필요하다. 첫 선택만 OPEN과 함께 준비할 수 있으며, 외부 실행을 허용하기 전에 강한 경계가
+그 준비까지 확정한다. 이후 선택은 별도의 강한 경계다.
+저장기가 다음 Engine 이벤트를 미리 실행하여 묶음을 만들거나, 모델·Tool·사용자 응답을
 기다리는 동안 트랜잭션을 열어 두지 않는다. Activity는 best-effort 파생 인덱스이므로 필수 기록의
-성공 조건에 넣지 않으며 기존 after-commit 저장과 fsync를 유지한다.
+성공 조건에 넣지 않는다. Record batch에서는 검증된 파생 append bytes를 같은 frame에 넣고
+핵심 기록 다음에 반영한다. 일반 undo 저장에서는 기존 after-commit fsync를 유지한다.
 
 명시적인 Session runtime 시작과 Run 종료의 checkpoint에서는 다음 빈 저널 파일 이름을
 미리 만들고 디렉터리를 동기화할 수 있다. Run 종료에서는 watermark 확정에 필요한 기존
@@ -158,9 +283,11 @@ reservation과 효과 후 receipt, 외부 구현체 호출 전후를 묶지 않�
 마지막 소유권 해제에서는 사용하지 않은 빈 파일도 정리한다. 준비 중 I/O 실패는 확정 여부를
 추측하지 않고 저널 검증·복구를 거치며, 빈 파일만 남은 재시작에서도 외부 효과를 실행하지 않는다.
 Activity의 빈 인덱스 이름도 runtime 시작 시 best-effort로 준비할 수 있다. 가짜 Activity는 만들지
-않고 실제 이벤트 append의 fsync는 유지한다. 저장 형식이나 version은 변경하지 않는다.
+않고 실제 이벤트 bytes는 journal frame 또는 독립 append의 fsync로 보존한다. 도메인 저장
+형식·version은 유지하며, 내부 record manifest 변경은 앞 절의 배포 경계를 따른다.
 
-확정 전 오류는 공개하지 않고, 확정 시도 후 I/O 오류는 성공이나 rollback으로 단정하지 않는다.
+준비가 실패하면 준비 관찰을 보내지 않는다. 강한 확정이 실패하면 다음 실행을 허용하지 않으며,
+확정 시도 후 I/O 오류를 성공이나 rollback으로 단정하지 않는다.
 재접속 시 검증·동기화된 저널로 파일을 복구한다. 취소는 이미 접수한 저장 작업을 drain하며 완료
 증거 없이 Engine을 진행시키지 않는다. 단일 파일의 flush만으로 핵심 기록의 fsync를 대체하지 않는다.
 동기화 횟수는 이 경계의 결과이며 설정이나 고정 목표가 아니다. 최초 접속, 재개, 중첩 실행,
@@ -293,8 +420,10 @@ fsync 및 협력하는 workspace 잠금을 전제로 한다. 파일을 직접 �
 자동으로 원자화되지 않는다. 사용자 저장소를 기본 구현으로 교체하지 않는다.
 
 `current_transaction().on_rollback(key, callback)`은 확장 메모리 투영을 복원하고
-`after_commit(callback)`은 확정 후 관찰을 연결한다. 이 훅 자체는 외부 저장소의
-crash recovery를 보장하지 않는다. 기본 MemoryConversation은 메시지 단위 rollback을
+`after_commit(callback)`은 소유 저장 단위의 성공적인 공개 후 관찰을 연결한다. 강한 단위에서는
+fsync 이후이며 준비 단위에서는 flush/view 공개 이후다. callback 자체를 다음 외부 실행의
+허가로 사용하지 않으며, 이 훅 자체는 외부 저장소의 crash recovery를 보장하지 않는다.
+기본 MemoryConversation은 메시지 단위 rollback을
 지원하지만 프로세스가 종료되면 사라지는 기존 수명은 바뀌지 않는다.
 
 commit 마커 rename 직후 fsync가 실패한 경우 확정 결과가 불명확한 오류가 전달될 수 있다.

@@ -86,6 +86,11 @@ EngineEvent는 첨부 checkpoint 유무와 실제 receipt 조회를 제공한다
 snapshot을 갱신하지 않으며, 초기화의 유일성·부모/자식 fingerprint·선택·재시도 범위를
 재검증한다. 자식 private payload를 부모가 업무 정책으로 해석하지 않는다.
 
+초기 OPEN의 ACK는 준비 view 공개일 수 있다. 자식은 이를 입력 준비에 사용할 수 있지만,
+Step/승인/예약 또는 공통 execution boundary가 의존 기록을 fsync하기 전 외부 효과를 시작하지
+않는다. 완료 receipt와 pause/resume 근거의 강한 저장 계약은 유지한다. 활성 실행의 계획 조회는
+관찰이며 실행 권한이 아니다. 파일 대화와 달리 명시적 memory 대화는 종료 후 입력 복구를 보장하지 않는다.
+
 부분 출력과 중첩 기록의 전달 계약은 [공통 경계](shared-contracts.md)를 참고한다.
 
 `CheckpointPlan`은 다음 필드를 가진 JSON 직렬화 가능한 관찰 계약이다.

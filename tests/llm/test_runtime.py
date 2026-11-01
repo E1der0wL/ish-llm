@@ -108,10 +108,66 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                          [RunStatus.COMPLETED, RunStatus.COMPLETED])
         self.assertIsNot(self.engine.contexts[0].tool_scope, self.engine.contexts[1].tool_scope)
 
+    async def test_submission_batches_reads_but_revalidates_before_acceptance(self):
+        from llm.services.infrastructure.transactions import current_transaction
+
+        await self.manager.start()
+        validations, preparations, entries = [], [], []
+        validate, prepare = self.manager._validate_request, self.manager._prepare
+        storage_run = self.manager._io._run
+
+        def checked(*args):
+            validations.append(current_transaction())
+            return validate(*args)
+
+        def fresh():
+            preparations.append(current_transaction())
+            return prepare()
+
+        async def entry(records, operation, args, kwargs, **options):
+            entries.append(operation)
+            return await storage_run(records, operation, args, kwargs, **options)
+
+        with patch.object(self.manager, '_validate_request', checked), \
+                patch.object(self.manager, '_prepare', fresh), \
+                patch.object(self.manager._io, '_run', entry):
+            await self.manager.submit('request', recipients=['fake'])
+        self.assertEqual(len(validations), 2)
+        self.assertEqual(len(entries), 2)
+        self.assertIs(preparations[0], preparations[1])
+        self.assertIs(validations[0], preparations[0])
+        self.assertIsNot(validations[0], validations[1])
+        await self.idle()
+        self.assertEqual(self.manager.repository.list(self.session)[0].status, RunStatus.COMPLETED)
+
+    async def test_second_admission_validation_can_still_deny_after_preflight(self):
+        await self.manager.start()
+        validate = self.manager._validate_request
+        calls = []
+
+        def checked(*args):
+            calls.append(args)
+            if len(calls) == 2:
+                raise ValueError('current authority denied')
+            return validate(*args)
+
+        with patch.object(self.manager, '_validate_request', checked):
+            with self.assertRaisesRegex(ValueError, 'current authority denied'):
+                await self.manager.submit('request', recipients=['fake'])
+        self.assertEqual(self.store.list(), [])
+        self.assertEqual(self.manager.repository.list(self.session), [])
+        self.assertEqual(self.engine.contexts, [])
+
     async def test_streaming_and_second_input_remains_queued(self) -> None:
         self.engine.gate = asyncio.Event()
         await self.manager.submit("first", recipients=["fake"])
-        await self.until(lambda: any(message.content == "Hello" for message in self.store.list()))
+        def partial_output():
+            # Prepared streaming deltas are visible through the owner's live
+            # view; canonical files may lag until the next durable boundary.
+            with self.sessions.ownership.scope():
+                return any(message.content == "Hello" for message in self.store.list())
+
+        await self.until(partial_output)
         run, = self.manager.repository.list(self.session)
         self.assertEqual(run.status, RunStatus.RUNNING)
         self.assertEqual(self.store.get(run.assistant_message_id).status, MessageStatus.STREAMING)

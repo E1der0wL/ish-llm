@@ -207,6 +207,9 @@ Checkpoint 형식은 `LoopEngine.CHECKPOINT_FORMAT` (`loop-iterations-v2`)이다
   재개 receipt를 같은 StorageIO 트랜잭션에서 확정한다. `STEP_STARTED`와 `STEERING`도
   미리 준비한 checkpoint를 첨부할 수 있으며 initialize를 허용한다. 초기 checkpoint와 채널 OPEN은
   같은 실행 준비 완료를 나타내므로 한 ACK를 공유할 수 있다. 완료 이벤트에는 계속 record만 허용한다.
+  초기 OPEN의 ACK는 flush된 준비 view를 뜻한다. 다음 Step/승인/예약의 강한 ACK 또는
+  payload 없는 `EXECUTION_BOUNDARY` ACK가 그 준비까지 fsync하기 전 외부 효과를 허용하지 않는다.
+  이후 checkpoint receipt와 완료 이벤트의 강한 저장 보장은 바뀌지 않는다.
   중첩 scope는 첨부 checkpoint도 같은 공개 bridge로 변환하고 ACK 후에만 캐시한다.
   Loop Tool과 Graph 노드가 사용한다. 저장 실패 시 시작 기록은 남고 완료 결과로 재사용하지 않는다.
   효과가 불확실하므로 명시적 재시도 승인 없이 실행을 반복하지 않는다.

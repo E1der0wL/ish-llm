@@ -112,6 +112,9 @@ def prepare_stream(request):
 class LiteLLMCompletionAdapter:
     """LiteLLM-specific request/retry/decoder semantics behind a replaceable boundary."""
 
+    # Preparation inspects model values only; transport begins inside stream().
+    pure_preparation = True
+
     INPUT_FIELDS = LiteLLMParameters.INPUT_FIELDS
     PROCESSOR_FIELDS = LiteLLMParameters.PROCESSOR_FIELDS
     AUXILIARY_FIELDS = LiteLLMParameters.AUXILIARY_FIELDS

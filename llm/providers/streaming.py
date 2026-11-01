@@ -70,6 +70,7 @@ class CompletionAdapterContract:
     """Optional public identity and explicit adapter invocation flags; no SDK fields."""
 
     EXECUTION_BINDING = "execution_binding"
+    PURE_PREPARATION = "pure_preparation"
     ABSENT = None
     REQUIRE_MODEL = True
     AUXILIARY = False
@@ -79,6 +80,14 @@ class CompletionAdapterContract:
     @classmethod
     def execution_binding(cls, adapter):
         return getattr(adapter, cls.EXECUTION_BINDING, cls.ABSENT)
+
+    @classmethod
+    def has_pure_preparation(cls, adapter):
+        """Descriptions/validation/binding/retry calculations perform no external calls."""
+        value = getattr(adapter, cls.PURE_PREPARATION, False)
+        if not isinstance(value, bool):
+            raise TypeError("Completion adapter pure_preparation must be boolean")
+        return value
 
 
 class CompletionAdapter(Protocol):
@@ -96,6 +105,9 @@ class CompletionAdapter(Protocol):
     Loop additionally requires describe_config() and validate_request(parameters,
     require_model=False). SDK options belong to the adapter; message/Tool/response
     meanings belong to the common model values.
+    Optional pure_preparation=True promises that descriptions, validation,
+    binding and retry calculation make no external calls or domain writes.
+    An undeclared adapter keeps its existing durable entry gate.
     """
 
     def validate_input_ownership(self, parameters: dict, *, auxiliary=CompletionAdapterContract.AUXILIARY) -> None: ...

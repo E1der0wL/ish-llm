@@ -112,12 +112,12 @@ class WorkspaceOwnership:
                     self._stream = WorkspaceLock.ABSENT
 
     @contextmanager
-    def scope(self, *, records=False):
+    def scope(self, *, records=False, durable=True):
         # Serializes synchronous transactions across threads sharing this owner.
         with self._mutex:
             self.retain()
             try:
-                with logging_scope(self.logger), self.transactions.scope(records=records):
+                with logging_scope(self.logger), self.transactions.scope(records=records, durable=durable):
                     yield
             finally:
                 self.release()

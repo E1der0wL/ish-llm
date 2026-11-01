@@ -330,7 +330,7 @@ class ConversationStore(Conversation):
 
     def _commit_stamp(self):
         # A staged view has a temporary file identity. Rebind only this exact
-        # projection after successful materialization, under the same owner lock.
+        # projection after successful publication, under the same owner lock.
         # This avoids replaying all history just because its batch was committed.
         from llm.services.infrastructure.storage import record_transaction
         batch = record_transaction(self.path)
@@ -340,7 +340,7 @@ class ConversationStore(Conversation):
 
         def committed():
             if self._signature == signature:
-                self._signature = self._stamp(self.path.stat())
+                self._signature = self._stamp(batch.stat(self.path))
 
         batch.after_commit(committed)
 

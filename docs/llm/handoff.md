@@ -1,6 +1,139 @@
 # 최신 작업 인계 — 2026-10-31
 
-## 요청 준비 경로 정리와 검증
+## 순수 스키마 재사용과 준비 조회 병합 — 최신 후속 단계
+
+후속 후보 1·2번 중 안전한 범위만 적용했다. `ParameterLayout`은 같은 schema/path 내용의
+순수 변환 결과 하나를 재사용하고 반환값을 분리한다. 입력이 변경되거나 JSON 이외의 확장값이면
+다시 계산한다. 현재 설정값·승인·권한·사용량 판단이나 구현체 hook을 생략하지 않는다.
+
+요청의 읽기 전용 사전 검사와 runtime 조회는 한 `StorageIO` 호출로 묶었다. QUEUED 접수
+transaction 안의 최종 검증은 독립적으로 유지한다. 한 context를 만드는 동안 같은
+Run 정책 snapshot을 반복해서 해석하던 부분도 한 번으로 줄였다. 취소 경계가 다른 준비 hook,
+외부 효과와 저장 확정은 합치지 않았다. 이 단계의 Hub production 변경은 없다.
+
+측정 조건은 Linux Python 3.12.14, native filesystem, SDK/Session 사전 준비, 실제 LiteLLM과
+로컬 HTTP fixture다. backend submit → 서버 수신을 전/후 각 16회 비교했다.
+
+| 항목 | 변경 전 | 변경 후 |
+| --- | ---: | ---: |
+| 중앙값 | 0.812초 | 0.788초 |
+| 평균 | 0.904초 | 0.975초 |
+| 범위 | 0.664–1.505초 | 0.577–2.794초 |
+| 호출 전 fsync | 4회 | 4회 |
+
+중복 계산/StorageIO 진입 감소는 집중검사로 확인했지만 **전체 지연 개선은 입증하지 못했다.**
+모든 표본을 보존했고, 과거 다른 부하에서 측정한 0.601초와 직접 비교하지 않는다.
+원본과 검증 이력은 `tests/llm/reports/preparation-reads-20261031/results.md`에 있다.
+
+전체 회귀는 Linux Python 3.12.14에서 새로 실행했다. 첫 전체 시도는 WSL 종료/재시작으로
+미완료였고, 같은 snapshot으로 다시 실행한 결과는 LLM **2,743 통과 / 3 실패**, Hub
+**918 통과 / 1 실패**였다(skip·누락·중복 0). 실패 네 건은 개별 정적 검토 근거 누락,
+준비 중 기록을 소유권 없이 직접 조회한 테스트 두 건, 기존 환경 준비 호출을 세지 않은
+Hub mock 기대값이었다. 조회 테스트와 Hub 실패는 최적화 전 snapshot에서도 재현했다.
+
+검토 기록/테스트만 수정한 뒤 관련 LLM 모듈 **86개**, Hub 모듈 **17개**가 모두 통과했다
+(실패·skip 0). 원래 실패 로그를 보존했고 전체 suite가 한 번에 모두 통과했다고 기록하지
+않는다. 전체 실행 후 제품 코드 hash는 동일하다. 접수 최종 검증, 승인·명시적 재개·효과 중복
+방지, 취소와 저장 경계는 유지했다. 이번 단계에서 Hub 제품 코드 수정·커밋·업로드는 하지 않았다.
+
+## 실행 준비와 실행 허용 결합 — 이전 단계
+
+기존 미커밋 상태를 기준으로 binding 준비와 첫 모델 Step/호출 예약을 묶었다.
+`prepares_execution` / Adapter의 `pure_preparation`은 Host 구현의 명시적 무효과 준비 계약이며
+사용자 설정값이 아니다. 미선언 구현, MCP, 입력 정책/counter 및 외부 selector/processor에는
+필요한 강한 경계를 유지한다. 승인·명시적 재개·Tool 효과 영수증의 기존 owner와 저장 버전은 같다.
+서비스가 임의 Engine 이벤트를 앞당겨 실행하지 않으며 기존 공개 Step/Completion 관찰은
+결합 저장을 확정한 뒤 각각 발행한다. 이번 후속 단계에서 Hub 코드는 수정하지 않았다.
+
+Linux Python 3.12.14, native filesystem, SDK/Session 사전 준비, 실제 LiteLLM/로컬 HTTP fixture에서
+backend submit → 서버 수신을 전/후 각 16회 측정했다. 전체 회귀와 측정을 동시에 실행하지 않았다.
+
+| 항목 | 변경 전 | 변경 후 |
+| --- | ---: | ---: |
+| 평균 | 0.720초 | 0.601초 |
+| 중앙값 | 0.717초 | 0.576초 |
+| 호출 전 fsync | 6회 | 4회 |
+| 프로세스별 첫 요청 2회 | 0.718 / 0.720초 | 1.046 / 0.544초 |
+
+평균 16.4% 단축이다. 긴 첫 표본도 포함했으며 모든 요청이 0.8초 아래라고 보장하지 않는다.
+Hub 전체/사내 endpoint/차가운 SDK 초기화의 측정값이 아니다. 원본과 상세 결과는
+`tests/llm/reports/execution-groups-20261031/results.md` 및 같은 폴더의 trace/manifest에 있다.
+
+단계별 집중 검사: 44, 243, 124, 52개 모두 통과(각 실패/skip 0).
+중복 제외 LLM 337개와 Hub 공개 API 검사 26개다. 최종 Python 소스 hash가 측정본과 일치한다.
+초기 신규 timeout 검사 1개는 오류 문구 가정이 틀려 실패했고, 안정적인 오류 코드 검사로
+수정한 뒤 통과했다. 원래 실패 보고서도 보존했다.
+이전 단계에서는 전체 LLM/Hub 회귀를 속도 결과를 보고 사용자가 결정하기로 하여 실행하지 않았다.
+커밋·업로드도 이번 요청에는 포함하지 않았다.
+
+## 저장 확정과 Hub 준비 경로 — 이번 작업
+
+기준 commit은 `e9fc844c78c219ef51742411d95d6aaa12bd66ba`다. 이번 작업은 아직
+커밋하지 않았다. 저장 계약은 [storage-transactions.md](storage-transactions.md)에 정리했다.
+
+- Run 시작과 실행 진입 허용 증거를 한 journal 확정으로 묶었다. 실제 권한·기한 검증은
+  실행 직전에 유지한다. 살아 있는 scheduler가 미진입을 확인한 취소만 명시적 restart의
+  기존 조건을 유지하며, 프로세스 재시작 후 Step 부재로 안전성을 추측하지 않는다.
+- Activity의 비권한성 append를 핵심 기록과 같은 frame에 보존한다. 핵심 파일 다음에
+  반영하고, 파생 인덱스 장애가 실행 성공을 바꾸지 않는다. 부분 append는 복구 시 중복하지 않는다.
+- Hub는 명시적 셸 환경별 Toolkit 자원을 준비한다. 실제 Tool binding·현재 권한·승인은
+  재사용하지 않는다. 추가 지시 변경은 Run·대화만 갱신하며 승인·종료·손실 재조정은 유지한다.
+- 새 timeout·retry·캐시 크기·flush 간격을 만들지 않았다. QUEUED 접수와 실행 허용,
+  승인·Tool 효과 영수증은 여전히 영속 확정 뒤에만 후속 실행을 허용한다.
+- Skill의 같은 준비 작업에서 반복하던 inventory/참조 검사를 줄였다. public resolve hook은
+  유지하며 외부 파일 변경과 Data/Tool 참조 revision은 다음 준비에서 다시 검사한다.
+- admission JSON의 순수 해석은 같은 동기 준비 scope의 동일한 JSON 내용에 대해서만 재사용한다.
+  Message 소유권·상태·Run 연결 및 현재 실행 권한은 캐시의 판단 대상이 아니다.
+- 초기 checkpoint·지시 채널 OPEN·첫 SELECT를 한 저장 단위에 묶었다. 실제 pending 선택은
+  서비스가 수행한다. 첫 선택 이후 processor 준비 중 도착한 지시는 다음 경계에서 처리한다.
+  중첩 checkpoint envelope·Tool 사용량·재개 선택은 기존 형식을 유지한다.
+
+Project/Session/Run/Step과 승인·checkpoint의 저장 버전은 유지한다. 내부 record manifest에는
+파생 append가 추가되므로 기존 프로세스를 정상 종료한 후 배포한다. 미완료 구 journal을
+자동 변환하거나 버리는 호환 경로는 없다.
+
+현재 작업의 재현 자료는 `tests/llm/reports/request-boundaries-20261031/`에 있다.
+
+### 준비 기록과 실행 허용의 저장 경계
+
+후속 절충안은 dispatch, 초기 OPEN과 부분 출력을 `prepare_records()`로 준비한다.
+최신 단계는 명시적 준비 계약의 실행 binding도 이 경로에 포함한다.
+완전한 journal frame을 flush하고 잠금 안의 조회 view에 함께 공개하지만, 아직 원본 파일을
+덮어쓰지는 않는다. 따라서 공개 조회는 최신 내용을 볼 수 있고 전원 장애로 최근 준비가
+유실될 수 있다. Run 시작·외부 실행 경계·Step 실행·승인·예약·receipt의 `run_records()`가 선행
+준비까지 fsync한 뒤 원본 파일에 반영한다. Run 종료·pause·마지막 소유권 해제 역시 강하게 확정한다.
+
+Step보다 먼저 외부 hook을 호출하는 Engine은 공통 `execution_boundary()` ACK를 기다린다.
+Loop의 외부 tool selector/입력 처리기도 이 경계를 사용한다. Engine 종류별 저장 예외나
+배경 flush worker, 임의 대기 간격은 없다. 대화 캐시의 공개 후 stamp도 같은 준비 view를 따른다.
+실시간 조회는 소유권을 사용하는 공개 API를 거쳐야 하며, 외부의 직접 파일 읽기는 늦을 수 있다.
+
+이번 후속 작업의 측정 원본은 `tests/llm/reports/request-boundaries-20261031/prepared-records-comparison/`
+아래에 있다. 해당 단계의 전체 실행은 사용자 요청으로 중단되었으며 성공으로 간주하지 않는다.
+최신 후속 단계의 집중검사/측정 결과는 위 절을 따른다.
+
+### 절충안 이전 단계의 속도 측정
+
+`reuse-selection-results.md`와 원본 trace에 변경 전/후/반복 표본을 모두 남겼다.
+Linux Python 3.12.14, native Linux filesystem, 실제 fsync, 로컬 HTTP fixture이며
+앱·Session 사전 준비와 모델 답변 생성 시간은 제외한다. 사내 endpoint 검증은 아니다.
+
+| 백엔드 submit → 모델 서버 | 변경 전 | 변경 후 | 같은 변경 후 재측정 |
+|---|---:|---:|---:|
+| 첫 요청 | 0.857초 | 0.679초 | 1.064초 |
+| 8건 중앙값 | 0.876초 | 0.969초 | 0.837초 |
+| 범위 | 0.792–1.151초 | 0.679–1.270초 | 0.706–1.140초 |
+| 호출 전 fsync | 8회 | 7회 | 7회 |
+| fsync 시간 중앙값 | 0.505초 | 0.415초 | 0.435초 |
+
+Hub의 첫/다음 짧은 입력은 2.073/2.422초 → 2.127/1.844초였다. 읽기 작업은
+2.888/3.514초 → 2.255/2.375초였으나 긴 입력 표본은 더 느린 경우도 있었다.
+호스트 부하를 통제하지 못했으므로 총 지연 감소율을 일반화하지 않는다. fsync 1회 감소는
+반복 확인했지만 모든 요청의 1초 미만 도달을 보장하지는 않는다.
+
+아래 항목은 이번 작업 전의 검증 이력이다.
+
+## 이전 작업 — 요청 준비 경로 정리와 검증
 
 기준 commit은 `a99dbe888a6c35774ae8df6b4b11ee8feeab73b4`이며, 이번 변경은 아직
 커밋하지 않았다. 사용자는 필요한 Hub 연결 수정을 허용했고, 최종적으로는
@@ -62,7 +195,7 @@ WSL에는 CI의 Xvfb/xclip 의존성을 추가했다. WSLg의 공유 `/tmp/.X11-
 제품 소스 hash와 test ID를 대조해 **LLM 2,705개 + Hub 907개 모두의 통과 결과를 확보**했다.
 기록·테스트만 수정한 뒤 전체를 재실행한 것은 아니다. 원래 전체 실행의 오류·skip 기록은 보존했다.
 상세 조건·한계·실행 흔적은
-[`review.md`](../../tests/llm/reports/request-preparation-20261031/review.md)와 같은 폴더의
+로컬 전용 `tests/llm/reports/request-preparation-20261031/review.md`와 같은 폴더의
 `verification.json`, 각 snapshot의 `snapshot.json`/결과 JSON에 있다. 보고서는 자동 발견·배포에서 제외된다.
 실제 사내 모델/외부 endpoint 및 원격 CI는 실행하지 않았다.
 

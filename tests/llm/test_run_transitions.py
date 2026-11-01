@@ -179,6 +179,9 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
             persisted = manager.repository.load(session, event.run.id)
             # 알림은 Run 저장 성공 이후에만 전달된다.
             self.assertEqual(persisted.status, event.run.status)
+            if event.type == RunEventType.STARTED:
+                # The same durable Run entry guards every external observer/hook.
+                self.assertIs(persisted.metadata['execution_started'], True)
             events.append(event)
             if cancel_before_execution and event.type == RunEventType.STARTED:
                 manager._active.executions[event.run.id].interrupt_requested = True

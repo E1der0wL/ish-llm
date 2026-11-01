@@ -76,9 +76,15 @@ engines = {"assistant": LoopEngine()}
 - `STEP_COMPLETED`의 `checkpoint`에 CHECKPOINT record 이벤트를 첨부하면 Step 완료·출력·
   재개 영수증을 같은 서비스 트랜잭션에서 저장합니다. 실패하면 완료 상태를 재사용하지 않습니다.
 - `STEP_STARTED`/`STEERING`은 준비된 초기 checkpoint도 첨부할 수 있습니다.
-  `open_instructions(context, checkpoint_event=...)`는 초기 checkpoint와 채널 개방을 함께 확정한
+  `open_instructions(context, checkpoint_event=...)`는 초기 checkpoint와 채널 개방을 함께 준비한
   뒤 계속합니다. 채널이 없거나 이미 열렸으면 checkpoint만 저장합니다. 이벤트를 미리 실행하여
   묶지 않으며, 승인·Tool 효과 전후나 지시 선택 ACK를 건너뛰지 않습니다.
+  첫 선택까지 준비된 소비 Engine은 `boundary=...`를 함께 전달할 수 있습니다. 이 경우
+  새 채널과 초기 checkpoint가 필요하며 서비스가 pending 지시를 같은 트랜잭션에서 선택합니다.
+  ACK 뒤의 `context.steering.messages`를 사용하고 같은 boundary를 다시 SELECT하지 않습니다.
+  OPEN ACK는 준비 완료이며 외부 효과를 허용하지 않습니다. 다음 Step/승인/예약의 ACK가
+  준비 기록까지 fsync합니다. Step 전에 외부 hook을 호출하면 `yield self.execution_boundary()`로
+  먼저 확정합니다. 이 제어 이벤트에는 출력·체크포인트·임의 metadata를 붙이지 않습니다.
 - 선택 Engine은 순수 동기 `bind_execution(context)`로 JSON 실행 identity를 제공할 수 있습니다.
   Agent binding은 Engine 종류와 관계없이 이를 포함합니다. Host는 구현 동작 변경 시 기존 revision
   또는 이 identity를 변경해야 합니다.
@@ -128,6 +134,17 @@ Prompt/Skill 자원을 사용하는 Agent Engine은 `with_instructions(context, 
 문자열은 BaseEngine이 EngineDelta로 연결합니다. 최종 출력은 EngineOutput, 모델 사용량과 종료 이유는 CompletionResult입니다. UI는 TEXT_DELTA/OUTPUT/COMPLETION 등 EngineEvent를 읽고, 저장 결과는 RunHandle에서 조회합니다.
 
 BaseEngine의 `step()`으로 하위 작업을 Step 이벤트로 감쌀 수 있습니다. Step 시작·진행·실패 이벤트를 발생시켜도 Engine이 persistence owner가 되는 것은 아닙니다. 사용자 출력과 내부 Agent 출력의 visibility, 중첩 Step의 output ownership을 보존하세요.
+
+Engine의 선택적 `prepares_execution=True`는 첫 강한 이벤트 ACK까지 외부 효과를 내지 않는다는
+구현 계약입니다. 미선언 Engine은 기존의 실행 전 확정을 유지합니다. Root Agent wrapper는
+MCP 연결 또는 미선언 Engine 진입 전에 `execution_boundary()`를 기다립니다.
+
+`step(..., prepare=True)`는 action의 최초 실행 허용 전 준비가 무효과임을 명시합니다.
+첫 pending Completion 예약을 `STEP_STARTED.completion`에 붙여 서비스가 Step 시작과 사용량
+검사·예약을 한 번에 확정할 수 있습니다. 외부 hook이 먼저 필요하면 준비 action이
+`execution_boundary()`를 yield하여 Step을 먼저 확정해야 합니다. 임의 action을 이 옵션으로
+감싸서는 안 됩니다. 기존 `step()`의 기본 실행 경계는 유지됩니다. 서비스는 결합된 기록을
+확정한 뒤 기존 STEP_STARTED와 COMPLETION 관찰을 각각 발행하므로 UI 소비 방식을 바꾸지 않습니다.
 
 ## Durable Tool 호출 연결
 

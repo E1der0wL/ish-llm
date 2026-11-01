@@ -26,6 +26,7 @@ class EngineHooks:
     WITH_INSTRUCTIONS = "with_instructions"
     DESCRIBE_CONFIG = "describe_config"
     DESCRIBE_AGENT = "describe_agent"
+    PREPARES_EXECUTION = "prepares_execution"
     ABSENT = None
     NO_CAPABILITIES = ()
     INVALID_CAPABILITIES = "Engine required_capabilities must be a tuple of distinct names"
@@ -43,6 +44,14 @@ class EngineHooks:
     @classmethod
     def executor(cls, engine):
         return getattr(engine, cls.EXECUTE, cls.ABSENT)
+
+    @classmethod
+    def prepares_execution(cls, engine):
+        """Trusted opt-in: no external effect before the first strong event ACK."""
+        value = getattr(engine, cls.PREPARES_EXECUTION, False)
+        if not isinstance(value, bool):
+            raise TypeError("Engine prepares_execution must be boolean")
+        return value
 
     @classmethod
     def checkpoint_name(cls, engine):

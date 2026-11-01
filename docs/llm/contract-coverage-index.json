@@ -1,15 +1,15 @@
 {
   "complete": false,
   "counts": {
-    "files": 698,
+    "files": 703,
     "unreviewed_files": 67,
     "stale_files": 0,
-    "unclassified": 4736,
+    "unclassified": 4772,
     "violations": 0,
     "incomplete_contracts": 0,
     "unreviewed_dynamic_paths": 67,
     "unreadable_files": 0,
-    "candidates": 18180,
+    "candidates": 18545,
     "issues": 0
   },
   "issues": [],
@@ -197,7 +197,7 @@
     {
       "path": "hub/backend/execution/followup.py",
       "status": "reviewed",
-      "sha256": "dffc826a47a6d7a9f02a047952f7260e5207921bd772575c3b111690e510c880"
+      "sha256": "2c09d6ebbf26d25ba0bad5c65cd59b556e47322420830e32087ae6e0f2c797f9"
     },
     {
       "path": "hub/backend/execution/input_context.py",
@@ -217,7 +217,7 @@
     {
       "path": "hub/backend/execution/rag_catalog.py",
       "status": "reviewed",
-      "sha256": "139aa1e3cd26c36c07a0b3a25d541621d3743efc70c7af0cee5b557fdcef4e11"
+      "sha256": "2df646fb6d4529020fa58a1dd798433e3141ab785cd87d27350ab96334b4a1ff"
     },
     {
       "path": "hub/backend/execution/reader_calls.py",
@@ -312,7 +312,7 @@
     {
       "path": "hub/backend/execution/tool_views.py",
       "status": "reviewed",
-      "sha256": "7530e0fd547162180dad6130e1d200c1629fa3713e3c6c5b63b781890f1f7fc9"
+      "sha256": "6ac3a5cdd037084aafaeb59328a1c15f3fc88d557c30cfe792da258874ee02a6"
     },
     {
       "path": "hub/backend/execution/trace.py",
@@ -385,9 +385,14 @@
       "sha256": "fbf1995cdc1c237ecee1a7a282be67f867e4d1f98b61d8afe15d8b10f50c3657"
     },
     {
+      "path": "hub/backend/observability/background.py",
+      "status": "reviewed",
+      "sha256": "a1039e3c59c4e7b09c68e1dd29fc6c2d179ff899f16907af6d38f889021d4aa3"
+    },
+    {
       "path": "hub/backend/observability/drafts.py",
       "status": "reviewed",
-      "sha256": "55b6c13ecf5ceeb02551c3c1789fe9c275f1a119b43c8679d2b9f7d2c42893dd"
+      "sha256": "8e9947819785cf5ecb3ed27d6b7141b848c3134cb9631674efbe2ffe1ce400b2"
     },
     {
       "path": "hub/backend/observability/failures.py",
@@ -417,12 +422,17 @@
     {
       "path": "hub/backend/observability/reads.py",
       "status": "reviewed",
-      "sha256": "7cf20e440af27d36e6e3c7a80438483f0e2263ea05ac1712793af0268e284187"
+      "sha256": "070f998983b1100f1cd2926e73dddb39334f845a45790e5bc4c5a971ef13bb3b"
+    },
+    {
+      "path": "hub/backend/observability/run_display.py",
+      "status": "reviewed",
+      "sha256": "c858980433a2a7d77530ef03ece16b9673b03b6d2713efa3c0a033ee30193cc7"
     },
     {
       "path": "hub/backend/observability/snapshot.py",
       "status": "reviewed",
-      "sha256": "5ef64c7649e1488076a34c6413ec2db9027c74fc732a80af2a562f26a1843b20"
+      "sha256": "15f144fbc6f051de7a083c118a79bd0c41cdad94ea8c602a713241916ef99ac7"
     },
     {
       "path": "hub/backend/observability/workflow.py",
@@ -442,7 +452,7 @@
     {
       "path": "hub/backend/project/agents.py",
       "status": "reviewed",
-      "sha256": "608d0fbcac719ed21e2daa6d5d46c5014f22a24b43531c6c733c3645d0899acc"
+      "sha256": "49df435625e130b211bb9a04e93965e8360f3b5bc5ddf8f691d09efc5d8be5bc"
     },
     {
       "path": "hub/backend/project/bootstrap.py",
@@ -467,7 +477,7 @@
     {
       "path": "hub/backend/project/management_values.py",
       "status": "reviewed",
-      "sha256": "cc8faad72cf1fb2b2c84b926204fc652c27ddd015817d6281bf64fe889103dfb"
+      "sha256": "db7a5ecca9d2c358bdb0d90382fc3342a66f19bd2f35f7d265353689db91e037"
     },
     {
       "path": "hub/backend/project/memory_management.py",
@@ -517,7 +527,7 @@
     {
       "path": "hub/backend/project/rag_management.py",
       "status": "reviewed",
-      "sha256": "ad4fd8592488885e2f435b9235e8e0add5a67af80823902141a70adaa7010c87"
+      "sha256": "dfc8366a2fcf88ba84d86336b739f56ea35e357485a4406122ae8e759218dad2"
     },
     {
       "path": "hub/backend/project/rag_progress.py",
@@ -532,7 +542,7 @@
     {
       "path": "hub/backend/project/record_management.py",
       "status": "reviewed",
-      "sha256": "7a237f400f7e16e0e941e8cffc0f1ebb6090a20ac71b3f01e9e12efc2243d35e"
+      "sha256": "53c4adc2089e8c146c1508875f60a8ae6547105c119bdfb96b26bb9a53890272"
     },
     {
       "path": "hub/backend/project/settings.py",
@@ -582,7 +592,7 @@
     {
       "path": "hub/backend/runtime.py",
       "status": "unreviewed",
-      "sha256": "6643d774e4ea7c8be32ca1fb5f979a49553966d5d8be80efcf1e6eb5858a8dac"
+      "sha256": "72bba692c097461ec13b1a81b8941f1e9a43d6fc879f9ca45f8f3d7a41bc4133"
     },
     {
       "path": "hub/backend/runtime_views.py",
@@ -612,7 +622,7 @@
     {
       "path": "hub/backend/tools/builtin.py",
       "status": "reviewed",
-      "sha256": "9a7aa69726fee4dcf3cf69129de9671d4bc7d02ea28f8c0e9471a1c4b16062f4"
+      "sha256": "40812e8b14283deee896f0d84c1f3fb3d9a3eff05ed180dfcaa119dfcefc5c77"
     },
     {
       "path": "hub/backend/tools/builtin_values.py",
@@ -692,7 +702,7 @@
     {
       "path": "hub/backend/worker.py",
       "status": "reviewed",
-      "sha256": "d288c22d279df86bef499dcf43814f0b29b793ecc58515c34d5fc6b70cbeb874"
+      "sha256": "c893d515f88718d4f82ccc0ac03107ed4fd013838ff08eb5a3bdce022d3e5d23"
     },
     {
       "path": "hub/components.py",
@@ -707,7 +717,7 @@
     {
       "path": "hub/config/defaults.py",
       "status": "unreviewed",
-      "sha256": "14e204e83a90bfc0ade123347a1821bf740f1719336cf45efee6955d6255f8f3"
+      "sha256": "8937d7c9a0bbdb31274135bdfb204ce237d126ba4393fe78a0096c0c55bb5434"
     },
     {
       "path": "hub/config/environment.py",
@@ -847,17 +857,17 @@
     {
       "path": "hub/locales/en.py",
       "status": "unreviewed",
-      "sha256": "1da7d694190f46b049b1a0b79ebca3d34e55ddbe30481db4732773bf400613f8"
+      "sha256": "a1540e9a9e874c389b95b62c40eea2b4edba364c8232eb8be66c503de813d9e6"
     },
     {
       "path": "hub/locales/keys.py",
       "status": "unreviewed",
-      "sha256": "fb62eb2e7a504f902a23ccbc974673ea3d17fc8de4c9f23c63bfe019457de316"
+      "sha256": "b73faee3f76ae284605787a51548b19ce502c1b7a38f070a5fea8c871fa465bb"
     },
     {
       "path": "hub/locales/ko.py",
       "status": "unreviewed",
-      "sha256": "d660ce1669f6099f36d8224c92aba3cab8987924fa45bce0f60b77814dc4b587"
+      "sha256": "ee3c89189cbff4d239c50aca66b395566e6ea70099fbe27cb63b7c292d87ceca"
     },
     {
       "path": "hub/model.py",
@@ -992,7 +1002,12 @@
     {
       "path": "hub/ui/live.py",
       "status": "unreviewed",
-      "sha256": "af2f82af030aa2a53d2ac4908cea32cf94cd803af9bfa51058c6348b19590e75"
+      "sha256": "4341ff326963e557facf0671545505d3802442dfa7eefa34083bac062e417e31"
+    },
+    {
+      "path": "hub/ui/message_changes.py",
+      "status": "reviewed",
+      "sha256": "7d92d2ca12e2c90ba68f68f052d47a31750d8ea94a79e71c03e0d14f9205c3a8"
     },
     {
       "path": "hub/ui/operation_diagnostics.py",
@@ -1017,7 +1032,7 @@
     {
       "path": "hub/ui/output/markdown.py",
       "status": "reviewed",
-      "sha256": "3004faee43344c24541432d334d3245aa685ecf029c64ebbae59a913462ce2c0"
+      "sha256": "2629a66cb7eef5d5dbbcad5374aaf646307fbe52552d5cc9b7cc6fb7ba87ae36"
     },
     {
       "path": "hub/ui/output/markdown_syntax.py",
@@ -1060,14 +1075,19 @@
       "sha256": "5dfa6cee012d00692dd47f5689c1565a273395acf37d4c2fbf13d1cc263bdadc"
     },
     {
+      "path": "hub/ui/output/work.py",
+      "status": "reviewed",
+      "sha256": "dacb636aeff715eaba797f6b36c9400eaa4d2f1474590929241f9c707331c280"
+    },
+    {
       "path": "hub/ui/output/worker.py",
       "status": "reviewed",
-      "sha256": "60a8290124fc506029f2e11f0d512bcfd75bd3d5cab1640612473cc8c9045707"
+      "sha256": "92e357ea477a322cdae865ff99bd5dc9f172c6d5338b3497c26ddfdd93ef9881"
     },
     {
       "path": "hub/ui/presentation.py",
       "status": "reviewed",
-      "sha256": "9e16f9547a03af12012681947290e4d4c7ea9af04a291b8f23a4f258e1298eed"
+      "sha256": "65e8f7912591068b381e52bba25057c956402ddfc7550c7790e364ad375ff2fe"
     },
     {
       "path": "hub/ui/requests.py",
@@ -1107,7 +1127,7 @@
     {
       "path": "hub/ui/settings/pages.py",
       "status": "reviewed",
-      "sha256": "2eb247ce09550a4e55aacf98ad5783c4690ae1e6e3a9550bd208f120f3a6ab41"
+      "sha256": "3e0f87555aeb391054d346b527239e8740a7a151e25793193c91cd7f1b8b98e1"
     },
     {
       "path": "hub/ui/settings/presets.py",
@@ -1117,7 +1137,7 @@
     {
       "path": "hub/ui/settings/screen.py",
       "status": "reviewed",
-      "sha256": "4ce400e577f4b3348cb0d6a150ed7f001e6772e7799156cb90012827f61fa847"
+      "sha256": "d72e7cdce0266e6294cc389a13c5d6f9004999fd3ecc93de33006860727c045c"
     },
     {
       "path": "hub/ui/settings/sections.py",
@@ -1167,7 +1187,7 @@
     {
       "path": "hub/widget/auxiliary.py",
       "status": "unreviewed",
-      "sha256": "a7a98e3cc3d1b8ab3444eaa999080f38019ea56a1b31cda93884c9b43bc1d4ac"
+      "sha256": "d59300b2bc807dee957313f5dd45181d8021f3b1b55ba499c9e968a05450e70b"
     },
     {
       "path": "hub/widget/buttons.py",
@@ -1197,7 +1217,7 @@
     {
       "path": "hub/widget/controls.py",
       "status": "unreviewed",
-      "sha256": "4cae658a2a6f6e9fcf2e52afcb9554451a12f4b3c86c47e7acd8c61ae21c8f34"
+      "sha256": "10c3bd61408d90a6345e3f51b29ed6d8db65d7557c9caff3e3bd8de6ace49309"
     },
     {
       "path": "hub/widget/dialog.py",
@@ -1272,7 +1292,7 @@
     {
       "path": "hub/widget/forms/agent_editor.py",
       "status": "reviewed",
-      "sha256": "7a669bfb52eafc8843bf4de3ed6b0bbc8345c504335422bed65b94e14fa46552"
+      "sha256": "3b1638829d64773b722579e144a4ea1622aaaa5508074ec6606d0026705452b2"
     },
     {
       "path": "hub/widget/forms/answer_choices.py",
@@ -1292,7 +1312,7 @@
     {
       "path": "hub/widget/forms/editor_layout.py",
       "status": "unreviewed",
-      "sha256": "39b4308ef659acc2ca5afa940ce85a28f62296f42ed5f82d7f88ae8b7e789962"
+      "sha256": "f325acd88cc1aa72a872614724f5592a8b432fe224f13dd8a2d38510fada8920"
     },
     {
       "path": "hub/widget/forms/file_attachment.py",
@@ -1307,7 +1327,7 @@
     {
       "path": "hub/widget/forms/general_settings.py",
       "status": "unreviewed",
-      "sha256": "1a475fe5ce1ba4cec777b3d136e311025dfd372dea6213d964dcb46fa4bdfc90"
+      "sha256": "33bbe9ca2200cac4fa76227171bcd8eab814f03d8a0634ff63a9a9191d847bc0"
     },
     {
       "path": "hub/widget/forms/manager_values.py",
@@ -1352,7 +1372,7 @@
     {
       "path": "hub/widget/forms/settings.py",
       "status": "reviewed",
-      "sha256": "8b2c731444beb9beeeda02d5c4502ff2b27083c0a30677c63b113480e203c04c"
+      "sha256": "c14338f1441ca9cc77d0b9643162fccb13259acdfc62b9b6365fe3dd2692c82b"
     },
     {
       "path": "hub/widget/forms/settings_viewport.py",
@@ -1363,6 +1383,11 @@
       "path": "hub/widget/forms/tool_manager.py",
       "status": "reviewed",
       "sha256": "f8d4aa9df5939531a01aaf8c81d3edc4194132951bca65f10b93bb7f6f538d18"
+    },
+    {
+      "path": "hub/widget/forms/visibility.py",
+      "status": "reviewed",
+      "sha256": "61f9554786b89951185ae1e4ba850ba928f9dbfe139d665b7308e40071f984e2"
     },
     {
       "path": "hub/widget/header.py",
@@ -1387,12 +1412,12 @@
     {
       "path": "hub/widget/mouse.py",
       "status": "unreviewed",
-      "sha256": "b10f77379ee2f3dd2f876d8ac72f1c8d70d9aa2e7e3ffde116aa68cf938e6385"
+      "sha256": "039d30047f5ea0c230532116bb15c60c6337b65078b2760b8c6867acd905f3ad"
     },
     {
       "path": "hub/widget/mouse_contract.py",
       "status": "unreviewed",
-      "sha256": "beadc2a27715ae4f1a705d3a92462162eafaffeba255e6e6a752210dccdd9cb1"
+      "sha256": "3790ad386c1262cc1afd7202bc504a7aacb5931a7a1862379e3fad04226df806"
     },
     {
       "path": "hub/widget/output/__init__.py",
@@ -1432,7 +1457,7 @@
     {
       "path": "hub/widget/output/search_index.py",
       "status": "reviewed",
-      "sha256": "aca4d7fd211fc1473312eba9cffa143ad74f67a02c8a5d0af866b050354d47a2"
+      "sha256": "b1d6d58a20df9653d4aeb2ed14a9de6483f9926c830a66b95b1614bb15a043d4"
     },
     {
       "path": "hub/widget/output/selection.py",
@@ -1442,7 +1467,7 @@
     {
       "path": "hub/widget/output/table_inspector.py",
       "status": "reviewed",
-      "sha256": "5d0c3dd1de5ccbe3b67d439ac7e2acd96d5e86efa261bed1e79e6aec741d3bf7"
+      "sha256": "121b7c634c03a7d6262617ded50698c0059f506268565d7f3aa486075487268d"
     },
     {
       "path": "hub/widget/output/tag_bar.py",
@@ -1452,12 +1477,12 @@
     {
       "path": "hub/widget/output/text_viewport.py",
       "status": "reviewed",
-      "sha256": "101bed82d35bb159003ed176eb372be40a548bc69cafa7b1eb21175ad9226bf7"
+      "sha256": "38babea5bba13f4f7f8e0c96e7a3ecbd53098f5c6531dabdeaa1ba8df882c0fe"
     },
     {
       "path": "hub/widget/output_inspector.py",
       "status": "reviewed",
-      "sha256": "e55b646ebbc2a047fe69986a55b0bc0e598658c39e6ac00907ab23ba6348975a"
+      "sha256": "f7b5ded95a1dc21c15a021a9c7fc74334c11e647d4d5591cb1dbd929d49b161b"
     },
     {
       "path": "hub/widget/panel_edge.py",
@@ -1497,7 +1522,7 @@
     {
       "path": "hub/widget/tab_page.py",
       "status": "reviewed",
-      "sha256": "3bd94e736091b6772a7e748d99854bc078b86330cf6577545ad15bc11d7ca1b3"
+      "sha256": "5180aec59b267bf0b69aab48e2f8d9ac50d80a61c9cfbdcdf29f240b1dbff023"
     },
     {
       "path": "hub/widget/text_editing.py",
@@ -1512,7 +1537,7 @@
     {
       "path": "hub/widget/transcript/conversation.py",
       "status": "unreviewed",
-      "sha256": "b0d524f97cadc444b436842248c18f5246f40d4be29dd9894d69c5862748fc61"
+      "sha256": "f7b1a05a300382297c1caf0ad750bcc4d0dc89c26586f02534c903a85d2ad4ba"
     },
     {
       "path": "hub/widget/transcript/identity.py",
@@ -1522,7 +1547,7 @@
     {
       "path": "hub/widget/transcript/message_cache.py",
       "status": "reviewed",
-      "sha256": "f0822104ca368b1a08758188b2352166eb62887adb60ce953f707c9efa6ced64"
+      "sha256": "281ff01bd7210de4920fa9ab6ca39408865d4f57ffaf12de6998739b28403f0d"
     },
     {
       "path": "hub/widget/transcript/render_contract.py",
@@ -1537,7 +1562,7 @@
     {
       "path": "hub/widget/transcript/thought_trace.py",
       "status": "reviewed",
-      "sha256": "bbebe711e1afa9fa66746fa6414e59b33832e43a669615bf487566ef51bd0444"
+      "sha256": "b18e08befe6d3c3eca75bd7b385927ec0bb928d4fc3bdc5ddaacbe8fb0d8b15e"
     },
     {
       "path": "hub/widget/transcript/viewport.py",
@@ -1547,7 +1572,7 @@
     {
       "path": "hub/widget/usage_chart.py",
       "status": "reviewed",
-      "sha256": "419e3ebc3d03446bd381a7fc7b0b1456ff579259fa8912b4d4c5bba690754ab8"
+      "sha256": "38cf1f22ec03c88adcf59db7088e06e88c867110e1501c793c1c2068b1cbf497"
     },
     {
       "path": "hub/widget/welcome.py",
@@ -2177,12 +2202,12 @@
     {
       "path": "llm/components/skills/component.py",
       "status": "unreviewed",
-      "sha256": "11af9d44694b37fb9ce8c5a2ea5841600909863e431d195e4f6cbe97ceefb277"
+      "sha256": "c4a3410ae30e28087ae904e12b005291ca2217ec21ce9f35c6decdd9e351c651"
     },
     {
       "path": "llm/components/skills/data.py",
       "status": "reviewed",
-      "sha256": "c05f407dfd486ffee3b50ab1cef8e50386920c5f28f3738a19a27bd3d592b45c"
+      "sha256": "121f7d85b38be171d8c782840444189a679eaca0cb29c1f72b43e2076d227703"
     },
     {
       "path": "llm/components/skills/dependencies.py",
@@ -2572,7 +2597,7 @@
     {
       "path": "llm/core/continuations.py",
       "status": "reviewed",
-      "sha256": "c346add35eaf0f789800f0754843953579005ee8269703fb6b492da5a228d3d0"
+      "sha256": "2b17d72b55197a95fe1511ca6c174c40eafbeac901be2ad25785bbf7466bfde6"
     },
     {
       "path": "llm/core/contracts.py",
@@ -2642,7 +2667,7 @@
     {
       "path": "llm/core/parameters.py",
       "status": "reviewed",
-      "sha256": "7a385f49f73023a2e51fe6f1a5cf78085ed0417cdf1b1e515acd70ed695091e9"
+      "sha256": "c6454f6f68b62e76c9cd9aae87021860c360699f9a147a0a0a623394d09be512"
     },
     {
       "path": "llm/core/paths.py",
@@ -2692,7 +2717,7 @@
     {
       "path": "llm/core/steering_events.py",
       "status": "reviewed",
-      "sha256": "78e72743f3adecdf11fd34ff51efcac14955ad33eb1f3f3704c39c8137154229"
+      "sha256": "e1fb1ae67fc4b3e6e8919a2f2bfc1a1e343c781d5e28e8403ff880199bf60347"
     },
     {
       "path": "llm/core/step_event_metadata.py",
@@ -2752,7 +2777,7 @@
     {
       "path": "llm/engines/README.md",
       "status": "reviewed",
-      "sha256": "bd1fffc735bd636763b91de334360ef265c5bec0e45adbc3f7400f7ac5b3d7b6"
+      "sha256": "38074bec773506091c73eeb7d7fb466979565e7bddca13b6699ae7a54be3303c"
     },
     {
       "path": "llm/engines/__init__.py",
@@ -2782,12 +2807,12 @@
     {
       "path": "llm/engines/agents.py",
       "status": "reviewed",
-      "sha256": "fb48899f5860e4627e7f60bd835c7d5ebe0bca3d24133da1385adfff22962d69"
+      "sha256": "948155862b52ed925d7e30b6aded8d774c101914df06bb5143fdd5c069f6cc0d"
     },
     {
       "path": "llm/engines/base.py",
       "status": "reviewed",
-      "sha256": "9367c211fff8a93507bd29ace90c2c21986864007abeb9ee5ad95c5deaec9b0c"
+      "sha256": "89fff0083922fcefebae1d91615f65f06558a9c77565345c6404bea969e6117d"
     },
     {
       "path": "llm/engines/completion_state.py",
@@ -2802,12 +2827,12 @@
     {
       "path": "llm/engines/contracts.py",
       "status": "reviewed",
-      "sha256": "618fe7c4d130deffdd4dc901353eb8077e0fb01c6dbebb4d11bd898789025fd3"
+      "sha256": "28769d1fee9b579b25d223fd3284c87e5cc0990acfbbf8ce6243d81b0b32b217"
     },
     {
       "path": "llm/engines/events.py",
       "status": "reviewed",
-      "sha256": "ca28d5a88b58ee972699b90d19a84a24fcd3bb933741437bc1502a8ad4aa6bc3"
+      "sha256": "e1058ea22ea1276a44ef8c9e77484d7b30e6f8987c5f57cbfd2ff1738e082139"
     },
     {
       "path": "llm/engines/graph/README.md",
@@ -2827,7 +2852,7 @@
     {
       "path": "llm/engines/graph/checkpoints.py",
       "status": "reviewed",
-      "sha256": "b8379b0b13ac3435d06dea2daaf3b86be5ad77cd9ef71695804e9b560aa3da9b"
+      "sha256": "429ecf42bcf56f13fa782d249682bfa00777227cefe3f01fefa4314fe9677ac9"
     },
     {
       "path": "llm/engines/graph/configuration.py",
@@ -2912,7 +2937,7 @@
     {
       "path": "llm/engines/loop/engine.py",
       "status": "reviewed",
-      "sha256": "3e3a41cf831af8ac2414a06c37daed8c76d348b95259525d6654d953014e41c8"
+      "sha256": "5e1e15d350c64c3977317cc20070d08e0889ecf5c69eab5b85a0e0ac7e03985f"
     },
     {
       "path": "llm/engines/loop/records.py",
@@ -2972,7 +2997,7 @@
     {
       "path": "llm/providers/README.md",
       "status": "reviewed",
-      "sha256": "5ecfee6004b337352e8bb7bee6ec503eee36b2321edf59d09e327e1ebe087810"
+      "sha256": "b55843bf93df9171d221e0e7bd189fadf5938e849b2902c08652841ae60ce62c"
     },
     {
       "path": "llm/providers/__init__.py",
@@ -3007,7 +3032,7 @@
     {
       "path": "llm/providers/litellm.py",
       "status": "reviewed",
-      "sha256": "875d2d7822492d32adde65574b96bde3f6a337f5f61c7393fe2fec8b1e8edf01"
+      "sha256": "1fac59ff66d5d4dec27e05678076aa41ebd0dc3b9c448262b61136053a85b502"
     },
     {
       "path": "llm/providers/mcp.py",
@@ -3082,7 +3107,7 @@
     {
       "path": "llm/providers/streaming.py",
       "status": "reviewed",
-      "sha256": "292dd269debf60891455a7fa9478007700458354cb49fd01a104bd643f1ab4e1"
+      "sha256": "ff2ef99b0e5738dec6a2d9dd033630cc37519f2304016a5c268fb9d3427de509"
     },
     {
       "path": "llm/providers/wire_codec.py",
@@ -3122,7 +3147,7 @@
     {
       "path": "llm/services/history/README.md",
       "status": "reviewed",
-      "sha256": "151c2bc838e60309e3931b60600f7449a34423b8222b03eb81e464ccf3000b76"
+      "sha256": "c390ee70691b96430740c87f6badf30b9953103e0b9a3914327a7f3990c1ae28"
     },
     {
       "path": "llm/services/history/__init__.py",
@@ -3137,7 +3162,7 @@
     {
       "path": "llm/services/history/conversation.py",
       "status": "reviewed",
-      "sha256": "873ef582c81ed3a2414d297b46aebc1308ca75a9467f3ebe7872cc8725a368e8"
+      "sha256": "2c053334bf09146f2bbd8584f5cd7b36bb827e52f654c4f587461aa6ebbe8bb8"
     },
     {
       "path": "llm/services/history/conversation_records.py",
@@ -3187,7 +3212,7 @@
     {
       "path": "llm/services/infrastructure/README.md",
       "status": "unreviewed",
-      "sha256": "3d225048311be1f2562fbec36b018499150f7c1c9218127174691a20d36face8"
+      "sha256": "d6320bd483054f6be7c9f9b3375686cce629f97af1220e1d763aaf963d389fd6"
     },
     {
       "path": "llm/services/infrastructure/__init__.py",
@@ -3197,7 +3222,7 @@
     {
       "path": "llm/services/infrastructure/activity.py",
       "status": "reviewed",
-      "sha256": "a3d544b4b93274297ca3b1571272e81f41073fe977a43a0bf93d1af0ebcde817"
+      "sha256": "4234e1eea405ca960f64e8c2e041843d271f4a2267bbfb3895357b1887561198"
     },
     {
       "path": "llm/services/infrastructure/backups.py",
@@ -3227,7 +3252,7 @@
     {
       "path": "llm/services/infrastructure/locking.py",
       "status": "reviewed",
-      "sha256": "2022f28732811afcfcdfb5e33bfe550dbf14aed2cb6a523372fc866b0a193bb9"
+      "sha256": "ef0117caf7c151a02a6954913c94ccb5902a338576b5b4a31aedecbd459542ad"
     },
     {
       "path": "llm/services/infrastructure/logging.py",
@@ -3272,17 +3297,17 @@
     {
       "path": "llm/services/infrastructure/record_journal.py",
       "status": "reviewed",
-      "sha256": "dd16dea408b4394fc7f6423ce8973d4276a450c65ce39a88810ae07ede2f1f4d"
+      "sha256": "bf556a64123b57cd1645cdd9ee10800a1abb38942e3c0988a3ec5fff7b456e4d"
     },
     {
       "path": "llm/services/infrastructure/record_transactions.py",
       "status": "reviewed",
-      "sha256": "d78c103c7da74d4b9ea824559fe49c948f8b44792b6c3e9bbcc0d7062198dbc6"
+      "sha256": "953e4c76cf250b8e6caa14d10b57be2fd00fe5828efdc70f853153849f888089"
     },
     {
       "path": "llm/services/infrastructure/storage.py",
       "status": "reviewed",
-      "sha256": "41948139152bc03ab3c5219733d05a5cbafd9a06140c21feda821a87411c0650"
+      "sha256": "f3b4def8978ae60bbf626559b16739f67d70a6a1ab3702dfa16fc863401a72f2"
     },
     {
       "path": "llm/services/infrastructure/text_stream.py",
@@ -3297,7 +3322,7 @@
     {
       "path": "llm/services/infrastructure/transactions.py",
       "status": "reviewed",
-      "sha256": "d14fb8fcc92856cec7d8c360de430b9771f66b786e40be1e1108107286122d01"
+      "sha256": "c48f1499149efca09dd05bffeea62c3ad66356df4c9555690efc7177f0ea67fa"
     },
     {
       "path": "llm/services/lifecycle/README.md",
@@ -3342,7 +3367,7 @@
     {
       "path": "llm/services/lifecycle/sessions.py",
       "status": "reviewed",
-      "sha256": "04f9f76d7c0f26358fcd6976837d851ecc00037f968c457a59d7bdfa3069cafb"
+      "sha256": "9abc2aca1fe878e8dec778e511e2658997e08b7f17343d22b6ff31d8789ca571"
     },
     {
       "path": "llm/services/lifecycle/steps.py",
@@ -3432,7 +3457,7 @@
     {
       "path": "llm/services/runtime/requests.py",
       "status": "reviewed",
-      "sha256": "40520f452e42ee8ecfe4410dbbf08ce31211dde6f98620f7643a5ed09f00a343"
+      "sha256": "09b143a472eace4d738d215312ec387de2d58287c41cc924a46f6d5b6ec9d15e"
     },
     {
       "path": "llm/services/runtime/run_values.py",
@@ -3442,12 +3467,12 @@
     {
       "path": "llm/services/runtime/runs.py",
       "status": "reviewed",
-      "sha256": "b3a3e79c6b5b2ece055d03c24b79691e187c9228c17c3361c8546393210a3026"
+      "sha256": "e43a4a40eda3c260bab1e34a57f137519714b6fb39bfc64cc9a93f6a6d0a1b09"
     },
     {
       "path": "llm/services/runtime/steering.py",
       "status": "reviewed",
-      "sha256": "5499f73f40d2c655b2f6f71422133b1c119669f1d8947ef92b4ecd07b4fc6157"
+      "sha256": "f74d2643f9aacc7afa3947bf2aebec3c418590a2a10787aa3039d60af7243337"
     },
     {
       "path": "llm/services/runtime/subscription_state.py",
@@ -3497,7 +3522,7 @@
     {
       "path": "llm/services/runtime/usage.py",
       "status": "reviewed",
-      "sha256": "01e1990afc7132b30d3fb33ed4b34c131f0a4dc2d39ad5b1f896e2256dab8205"
+      "sha256": "9bf0e6c73165db33f7a50ba8ecf6815bc54d94696e2c1858e77699e74c7b03fc"
     },
     {
       "path": "llm/services/schema.py",
