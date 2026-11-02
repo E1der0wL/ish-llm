@@ -274,6 +274,14 @@ def render_messages(
             )
             body = markdown_lines(renderable)
         if user:
+            for instruction in message.instructions:
+                body.append([])
+                caption = " • ".join(value for value in (
+                    t(MessageKey.INSTRUCTION_LABEL), t.status(instruction.status) if instruction.status else "",
+                    instruction.time,
+                ) if value)
+                body.extend(markdown_lines(Text(caption, style="bold")))
+                body.extend(markdown_lines(HubMarkdown(instruction.text, theme)))
             user_colors = ThemeStyle.USER_BLOCK_COLORS.format(theme=theme)
             body_width = max(
                 TranscriptLayout.MIN_WIDTH,

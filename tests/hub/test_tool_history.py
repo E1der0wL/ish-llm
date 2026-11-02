@@ -107,6 +107,9 @@ class ToolContinuationTests(unittest.IsolatedAsyncioTestCase):
 
         with tempfile.TemporaryDirectory() as root, patch.object(BuiltinToolRunner, "__call__", observed):
             config = HubConfig(Path(root) / "data", file_root=root, auto_title=False, model="test/model",
+                # This fixture intentionally exercises native synchronous shell receipts.
+                agent_definition={'engine': 'loop', 'tools': ['skill_list', 'test_workspace_create',
+                    'test_workspace_execute', 'shell_execute', 'ask_user']},
                 engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:

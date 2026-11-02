@@ -286,12 +286,13 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(state["run_id"])
                 pipe.send_text("\r")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\x1b[A\x1b[A\r")  # Pass reservation and select live instruction.
-                await until(lambda: any(m.text == "redirect" for m in view.output.transcript.control.messages))
+                pipe.send_text("\r")  # The first/default choice is a live instruction.
+                await until(lambda: any(i.text == "redirect"
+                    for m in view.output.transcript.control.messages for i in m.instructions))
                 await until(lambda: view.composer.text == "")
                 pipe.send_text("queued request\r")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\r")  # Confirm same-Agent follow-up.
+                pipe.send_text("\x1b[B\r")  # Explicitly select same-Agent follow-up.
                 await until(lambda: view._dialog is None and view.composer.text == ""
                             and not controller._submitting and not controller._choosing_submission)
                 with set_app(app):
@@ -300,7 +301,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                             and not controller._submitting and not controller._choosing_submission)
                 pipe.send_text("next request\r")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\r")  # Explicit queued delivery also permits an idle Agent to start.
+                pipe.send_text("\x1b[B\r")  # Explicit queued delivery also permits an idle Agent to start.
                 try:
                     await until(lambda: any(m.role == "assistant" and m.text == "next request"
                                             for m in view.output.transcript.control.messages))
@@ -318,8 +319,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: any(m.role == "assistant" and m.text == "next request"
                                         for m in view.output.transcript.control.messages))
                 self.assertEqual(len(calls), 4)
-                self.assertTrue(any(m.text == "redirect" and m.status == "applied"
-                                    for m in view.output.transcript.control.messages))
+                self.assertTrue(any(i.text == "redirect" and i.status == "applied"
+                                    for m in view.output.transcript.control.messages for i in m.instructions))
                 await until(lambda: "Idle" in view.sessions[view.selected].status)
                 self.assertFalse(controller._submitting)
                 pipe.send_text("keep instruction\x04")

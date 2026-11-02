@@ -587,6 +587,7 @@ MESSAGES = {
     MessageKey.SEND_WHILE_RUNNING: '실행 중 전송 방식',
 
     MessageKey.SEND_STEERING: '실행 중 추가 지시 — 현재 작업에 반영',
+    MessageKey.INSTRUCTION_LABEL: '추가 지시',
     MessageKey.NO_INSTRUCTION_ROUTES: '예약 가능한 노드가 없거나 선택한 경로가 변경되었습니다.',
     MessageKey.WORKFLOW_NODE_EDIT: '노드 추가·편집',
     MessageKey.WORKFLOW_NODE_OPTIONS: '처리기 설정 폼',

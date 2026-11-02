@@ -184,7 +184,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("request_context", next(m for m in history if str(m.role) == "user").metadata)
                 pipe.send_text("second\r")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\r")  # Default: follow-up request.
+                pipe.send_text("\x1b[B\r")  # Explicitly select a follow-up request.
                 await until(lambda: view.composer.text == "")
                 await until(lambda: "예약 1" in view.sessions[view.selected].status)
                 await minimize(pipe, view)

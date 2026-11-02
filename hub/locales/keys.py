@@ -613,6 +613,7 @@ class MessageKey:
     SETTINGS_REASONING_EFFORT = 'settings_reasoning_effort'
     SEND_WHILE_RUNNING = 'send_while_running'
     SEND_STEERING = 'send_steering'
+    INSTRUCTION_LABEL = 'instruction_label'
     NO_INSTRUCTION_ROUTES = 'no_instruction_routes'
     WORKFLOW_NODE_EDIT = 'workflow_node_edit'
     WORKFLOW_NODE_OPTIONS = 'workflow_node_options'

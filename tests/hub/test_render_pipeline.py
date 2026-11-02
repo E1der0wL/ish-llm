@@ -28,6 +28,28 @@ from tests.hub.support import SizedOutput, eventually
 
 
 class CacheTests(unittest.TestCase):
+    def test_attached_instruction_updates_one_bubble_and_keeps_response_cache(self):
+        from hub.model import InstructionDisplay
+        from prompt_toolkit.formatted_text.utils import fragment_list_width
+
+        first = ChatMessage('user', 'Original request', id='u', author='Account')
+        answer = ChatMessage('assistant', 'Unchanged answer', id='a')
+        self.prepare((first, answer))
+        response = self.cache.items['a'].body
+        receipt = InstructionDisplay('i', '**Only read files**', status='pending')
+        for state in ('pending', 'applied', 'unapplied'):
+            current = replace(first, instructions=(replace(receipt, status=state),))
+            frame = self.prepare((current, answer))
+            text = '\n'.join(''.join(s for _, s in row) for row in frame.lines)
+            self.assertEqual(text.count('Account'), 1)
+            self.assertIn('Original request', text)
+            self.assertIn('Only read files', text)
+            self.assertIn(self.language.status(state), text)
+            self.assertIs(self.cache.items['a'].body, response)
+            self.assertEqual(tuple(frame.lines), frozen_rows(render_messages(
+                (current, answer), 80, self.theme, self.language, renderers=self.registry)))
+            self.assertLessEqual(max(map(fragment_list_width, frame.lines)), 80)
+
     def test_render_resources_are_reused_and_bounded_across_widths(self):
         from hub.ui.output.markdown import RenderResources, make_console, _segment_style
         from rich.style import Style

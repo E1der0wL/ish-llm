@@ -74,7 +74,8 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
         messages = tuple(ChatMessage(r.role, {uid('a1'): 'Before', uid('a2'): 'Middle', uid('a3'): 'After'}.get(r.id, r.id),
                                      id=r.id, status='completed') for r in records)
         result = continued_messages(records, messages)
-        self.assertEqual([m.id for m in result], [uid('u1'), uid('a1'), uid('steer')])
+        self.assertEqual([m.id for m in result], [uid('u1'), uid('a1')])
+        self.assertEqual([m.id for m in result[0].instructions], [uid('steer')])
         self.assertEqual(result[1].text, 'Before\n\nMiddle\n\nAfter')
 
     async def test_deny_saves_answer_without_resuming_or_executing(self):

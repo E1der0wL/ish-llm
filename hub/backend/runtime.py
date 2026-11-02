@@ -972,6 +972,8 @@ class HubRuntime:
             run_id, text, targets=targets,
             **({} if request_key is UNSET else {'request_key': request_key})
         )
+        if self.builtin_tools is not None:
+            self.builtin_tools.command_waits.notify(self.project.id, session_id, run_id, targets)
         self.dirty.set()
         return result.id
 

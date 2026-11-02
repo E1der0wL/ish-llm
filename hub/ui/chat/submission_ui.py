@@ -23,7 +23,7 @@ class RunningSubmission:
         self.choices = self._choices([
             (self.STEER, self.view.t(MessageKey.SEND_STEERING)),
             (self.FOLLOW_UP, self.view.t(MessageKey.SEND_FOLLOW_UP)),
-        ], default=self.FOLLOW_UP)
+        ], default=self.STEER)
         self.popup = Dialog(
             title=self.view.t(MessageKey.SEND_WHILE_RUNNING), size=PopupSize.CUSTOM,
             body=self.choices,

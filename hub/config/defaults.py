@@ -76,6 +76,9 @@ class HubDefaults:
     }
     TOOL_RETRIES = 2
     TOOL_RETRY_DELAY = 0
+    # Observation slices, not process deadlines or permission limits.
+    COMMAND_WAIT_SECONDS = 30.0
+    COMMAND_POLL_SECONDS = 0.25
     # Product choices; the backend owns storage, path enforcement and paging.
     TOOL_OUTPUT_SOURCE = "hub_command_outputs"
     TOOL_OUTPUT_PREVIEW_CHARS = 2000

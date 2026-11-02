@@ -40,7 +40,7 @@ class InvocationMode:
 
 
 class HubToolSelector:
-    VERSION = "hub.tool_exposure.v1"
+    VERSION = "hub.tool_exposure.v2"
 
     def __init__(self, tools, mode, *, groups=None, discovery=False, constraints=None, lookup=None):
         self.lookup = None
@@ -93,5 +93,7 @@ class HubToolSelector:
         selected = set(RequestTools.names(self.catalog, mode))
         if mode != RequestMode.CONVERSATION:
             selected.update(self.discovered(request.messages))
+            from ..tools.command_waits import ConversationalCommands
+            selected = ConversationalCommands.select(selected, request.available)
         # Preserve native ordering. No registry reconstruction, handlers, or IO.
         return tuple(name for name in request.available if name in selected)

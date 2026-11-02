@@ -7,7 +7,7 @@ from llm.engines.contracts import EngineHooks, EngineContextBinding
 from .turn_values import HubTurnContext
 from .input_context import HubInputContext
 
-from contextlib import aclosing
+from contextlib import aclosing, nullcontext
 from copy import copy
 from dataclasses import replace
 import asyncio
@@ -243,6 +243,13 @@ class EnvironmentEngine:
     async def execute(self, context):
         bound = await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
         implementation = await drain_on_cancel(asyncio.to_thread(self.routed_engine, bound))
+        from ..tools.builtin import HubBuiltinTools
+        from ..tools.command_waits import ConversationalCommands
+        from .tool_exposure import HubToolSelector
+        command_scope = (self.builtins.command_waits.scope(bound)
+            if isinstance(self.builtins, HubBuiltinTools)
+            and isinstance(getattr(implementation, 'tool_selector', None), HubToolSelector)
+            and ConversationalCommands.available(bound.tools.names()) else nullcontext())
         if self.recovery is not self.ABSENT:
             from .tool_recovery import recovery_events
 
@@ -256,11 +263,12 @@ class EnvironmentEngine:
         else:
             stream = implementation.execute(bound)
         try:
-            async with aclosing(stream) as events:
-                async for event in events:
-                    yield event
-                    if self.retry_monitor is not self.ABSENT:
-                        self.retry_monitor.observe_tool(bound, event)
+            with command_scope:
+                async with aclosing(stream) as events:
+                    async for event in events:
+                        yield event
+                        if self.retry_monitor is not self.ABSENT:
+                            self.retry_monitor.observe_tool(bound, event)
         finally:
             self._bindings.clear()
             self._lookup = self._lookup_tools = None

@@ -26,6 +26,9 @@ class ContinuationDisplay:
 def continued_messages(
     records: Sequence[Message], messages: Sequence[ChatMessage]
 ) -> tuple[ChatMessage, ...]:
+    from .instruction_display import UserInstructions
+
+    messages = UserInstructions(records).display(messages)
     parents = {
         run_id: ResumeRecord.require(m.metadata).source_run_id
         for m in records

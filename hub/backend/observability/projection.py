@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from ..execution.instruction_display import UserInstructions
+
 
 @dataclass(slots=True)
 class MessageProjection:
@@ -43,6 +45,7 @@ class ConversationProjection:
         self.full_refresh = True
         self.focus_id = None
         self.detailed = set()
+        self.instructions = UserInstructions()
 
     def changed(self, run_id=None):
         self.revision += 1
@@ -64,6 +67,7 @@ class ConversationProjection:
         # failed historical read must not make the next refresh skip its rows.
         self.full_refresh = True
         self.input_records, self.input_context = records, context
+        self.instructions = UserInstructions(records)
         self.request_times, self.request_authors = requests, authors
         self.by_run = {}
         self.display_positions = {record.id: index for index, record in enumerate(records)}
@@ -86,7 +90,10 @@ class ConversationProjection:
             return TurnIndex(self.input_records).display([
                 row for record in self.input_records for row in self.parts.get(record.id, ())])
         first = 0 if self.full_refresh else min(
-            (self.display_positions[key] for key in changed), default=len(self.input_records))
+            (self.display_positions[item]
+             for key in changed
+             for item in (key, self.instructions.parents.get(key, key))),
+            default=len(self.input_records))
         if first == len(self.input_records) and not self.full_refresh:
             return self.display_rows
         # Reuse the settled prefix in C-level tuple slicing/concatenation. Only
@@ -98,9 +105,12 @@ class ConversationProjection:
         for record in self.input_records[first:]:
             offsets.append(offset + len(visible))
             part = self.parts.get(record.id, ())
+            children = tuple(self.parts.get(child, ())
+                             for child in self.instructions.children.get(record.id, ()))
             previous = self.displayed.get(record.id)
-            if previous is None or previous[0] is not part:
-                previous = part, continued_messages((record,), part)
+            if previous is None or previous[0] is not part or previous[2] != children:
+                attached = self.instructions.attach(record.id, part, self.parts)
+                previous = part, continued_messages((record,), attached), children
                 self.displayed[record.id] = previous
             visible.extend(previous[1])
         self.display_offsets = offsets

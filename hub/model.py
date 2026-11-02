@@ -60,6 +60,16 @@ class AnswerDraft:
 
 
 @dataclass(frozen=True, slots=True)
+class InstructionDisplay:
+    """An attached steering receipt; never replaces the stored user message."""
+
+    id: str
+    text: str
+    status: str
+    time: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class ChatMessage:
     DRAFT: ClassVar[str] = "draft"
     PREPARING: ClassVar[str] = "preparing"
@@ -80,6 +90,7 @@ class ChatMessage:
     workflow: str = ""
     workflow_states: tuple[tuple[str, str], ...] = ()
     draft: AnswerDraft | None = None
+    instructions: tuple[InstructionDisplay, ...] = ()
 
 
 class ReasoningMessage:

@@ -53,7 +53,7 @@ class RoutedProcessor:
 class RequestScopeSession(CompletionSession):
     LOOKUP = (
         "This request asks for information. Use relevant read tools, including RAG or available "
-        "external search when needed. shell_execute remains available for bounded investigation "
+        "external search when needed. Command tools are available for bounded investigation "
         "such as help or status; it is not a read-only sandbox. Follow normal approval and "
         "execution policies. Do not make unrelated changes or run a command's normal workload "
         "merely to explain it. If a Tool is missing, hub_help(tool_query=...) can search the "
@@ -77,6 +77,9 @@ class RequestScopeSession(CompletionSession):
                 HubInputContext.insert(request, SYSTEM_PROMPT)
             if mode == RequestMode.LOOKUP:
                 HubInputContext.insert(request, self.LOOKUP)
+            from ..tools.command_waits import ConversationalCommands
+            if ConversationalCommands.available(tool.name for tool in request.tools):
+                HubInputContext.insert(request, ConversationalCommands.GUIDANCE)
         if False:
             yield
 

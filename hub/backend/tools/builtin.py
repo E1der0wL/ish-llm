@@ -59,6 +59,8 @@ class HubBuiltinTools(BuiltinToolComponent):
             else HubBuiltinTools.ABSENT
         )
         self.questions = QuestionBroker()
+        from .command_waits import CommandWaits
+        self.command_waits = CommandWaits()
         from .application import HubApplicationTools
         self.application = HubApplicationTools()
         self.toolkits = {}
@@ -157,6 +159,20 @@ class HubBuiltinTools(BuiltinToolComponent):
                 for tool in (toolkit.registry.get(name),)
             )
         )
+        # Extend observation only. Starting, stopping, output storage and the
+        # synchronous shell_execute contract remain owned by the native toolkit.
+        from .command_waits import CommandWaits
+        from llm.services.infrastructure.storage import revision_token
+        original = toolkit.registry.get(ProcessReferenceArguments.STATUS_NAME)
+        async def process_status(args):
+            return await self.command_waits.status(original.handler, args)
+        toolkit.registry = toolkit.registry.derive(tuple(
+            replace(tool, handler=process_status, description=CommandWaits.DESCRIPTION,
+                    parameters=CommandWaits.parameters(tool.parameters),
+                    contract=replace(tool.contract, revision=revision_token({
+                        "native": tool.contract.revision, "hub": "command-observation-v1"})))
+            if tool.name == ProcessReferenceArguments.STATUS_NAME else tool
+            for tool in (toolkit.registry.get(name) for name in toolkit.registry.names())))
         toolkit.registry.register(QuestionTool.create(self.questions.ask))
         from .repo_map import RepoMap
 

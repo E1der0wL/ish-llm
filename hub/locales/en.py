@@ -587,6 +587,7 @@ MESSAGES = {
     MessageKey.SEND_WHILE_RUNNING: 'Send while running',
 
     MessageKey.SEND_STEERING: 'Live instruction — steer the current Run',
+    MessageKey.INSTRUCTION_LABEL: 'Additional instruction',
     MessageKey.NO_INSTRUCTION_ROUTES: 'No reservable nodes, or the selected route has changed.',
     MessageKey.WORKFLOW_NODE_EDIT: 'Add/edit node',
     MessageKey.WORKFLOW_NODE_OPTIONS: 'Handler configuration form',

@@ -290,7 +290,9 @@ class RoutingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         runtime, sid = await self.setup_runtime(provider)
         await self.submit(runtime, sid, '이 명령어가 무엇인지 알려줘')
         names = self.tools(provider.requests[0])
-        self.assertTrue({'rag_search', 'file_read', 'shell_execute', 'ask_user'} <= names, names)
+        self.assertTrue({'rag_search', 'file_read', 'process_start', 'process_status', 'process_output',
+                         'process_cancel', 'ask_user'} <= names, names)
+        self.assertNotIn('shell_execute', names)
         self.assertFalse({'file_create', 'file_delete', 'hub_task_result', 'memory_delete'} & names, names)
 
     async def test_explicit_agent_prompt_selection_and_reasoning_are_preserved(self):

@@ -127,6 +127,9 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
     return replace(
         item,
         text=text,
+        instructions=tuple(replace(instruction, time=(
+            datetime.fromisoformat(instruction.time).astimezone().strftime(PresentationFormat.TIME_FORMAT)
+            if instruction.time else PresentationFormat.EMPTY)) for instruction in item.instructions),
         time=(
             datetime.fromisoformat(item.time)
             .astimezone()

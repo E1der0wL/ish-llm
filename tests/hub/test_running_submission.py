@@ -50,6 +50,7 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
         self.assertIsNotNone(popup.status_bar)
         self.assertEqual(popup._buttons[-1].text, self.view.t(MessageKey.SEARCH_CLOSE))
         self.assertEqual([key for key, _ in popup.body.values], ['steer', 'follow_up'])
+        self.assertEqual(popup.body.current_value, 'steer')
         self.assertEqual(self.view.composer.text, '')
         self.controller._call.assert_not_called()
         self.controller._send.assert_not_called()
@@ -59,6 +60,7 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
 
     async def test_queue_submits_all_recipients_once_only_after_confirmation(self):
         popup = self.open()
+        popup.body.current_value = 'follow_up'
         popup._buttons[0].handler()
         popup._buttons[0].handler()
         self.controller._send.assert_called_once()

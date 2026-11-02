@@ -90,6 +90,7 @@ class BodyKey(NamedTuple):
     index: object
     traced: bool
     draft: bool
+    instructions: tuple
 
 
 class HeaderKey(NamedTuple):
@@ -250,6 +251,7 @@ class MessageRenderCache:
                 index if not message.id else MessageRenderCache.ABSENT,
                 bool(message.trace),
                 message.draft is not None,
+                message.instructions,
             )
             blocks = previous.blocks
             parsing = previous.parsing
