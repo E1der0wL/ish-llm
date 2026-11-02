@@ -57,6 +57,10 @@ class SettingsEditorLayout:
             (AuxiliaryIcon.FILTER.value, lambda: editor.draft_tools.search()),
             (AuxiliaryIcon.JSON.value, lambda: editor.draft_tools.open_json()),
         ], lambda: editor.view.icons, lambda: get_app().layout.focus(editor.buttons[0]))
+        for button in self.auxiliary.buttons.values():
+            ShortcutRegistry.require(button.control).add(
+                [KeyName.TAB, KeyName.SHIFT_TAB], ShortcutLabel.TAB_SHIFT_TAB, ShortcutAction.MOVE,
+                lambda e: self.cycle(e.key_sequence[-1].key == KeyName.SHIFT_TAB))
         for button in editor.buttons:
             ShortcutRegistry.require(button.control).add(
                 [KeyName.CONTROL_S], ShortcutLabel.CONTROL_S, ShortcutAction.AUXILIARY,

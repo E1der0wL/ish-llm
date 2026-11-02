@@ -114,6 +114,7 @@ class HubBindings:
             ShortcutAction.MOVE,
             self.dialog_tab,
             when=lambda: c.dialog,
+            global_=self.GLOBAL,
         )
         r.add(
             [KeyName.CONTROL_S],

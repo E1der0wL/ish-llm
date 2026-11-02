@@ -158,7 +158,8 @@ class Dialog(PTKDialog):
 
     def __init__(self, *args, shortcut_context=DialogContext.DIALOG,
                  size=PopupSize.MEDIUM, content_padding=CONTENT_PADDING,
-                 status_bar=None, status_in_body=False, allow_small_input=False, **kwargs):
+                 status_bar=None, status_in_body=False, allow_small_input=False,
+                 actions_active=None, actions_focus=None, **kwargs):
         self.shortcut_context = shortcut_context
         self.requested_size = PopupSize(size)
         self.allow_small_input = allow_small_input
@@ -179,15 +180,16 @@ class Dialog(PTKDialog):
         body = Box(content,
                    padding=content_padding, padding_bottom=0)
         if buttons:
-            body = HSplit([
-                body,
-                Box(ActionBar(buttons, lambda: max(1, self._width().preferred - 4),
+            actions = Box(ActionBar(buttons, lambda: max(1, self._width().preferred - 4),
                               bind_navigation=shortcut_context != DialogContext.READER,
                               equal_width=True),
                     padding=Dimension(preferred=1, max=1), padding_left=0, padding_right=0,
                     # The status region owns this gap even when actions live in the body.
-                    padding_bottom=(0 if compact else Dimension(preferred=1, max=1))),
-            ])
+                    padding_bottom=(0 if compact else Dimension(preferred=1, max=1)))
+            if actions_active is not None:
+                from .focus_region import FocusRegion
+                actions = FocusRegion(actions, active=actions_active, on_click=actions_focus)
+            body = HSplit([body, actions])
         body = HSplit([body, ConditionalContainer(
             Box(DynamicContainer(lambda: self.status_bar), padding=0,
                 padding_top=(self.CONTENT_PADDING if compact else 0),

@@ -247,7 +247,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(popup.selected, "guide")
                         with set_app(app):
                             popup.delete()
-                        pipe.send_text("\x1b[Z\r")  # Cancel is initially focused; select Confirm.
+                        pipe.send_text("\x1b[D\r")  # Cancel -> Confirm within the same button group.
                         await eventually(lambda: view._dialog is popup and not popup.busy and
                                          all(item["name"] != "guide" for item in popup.entries))
                     pipe.send_text("\x1b")

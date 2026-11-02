@@ -7,13 +7,14 @@ from hub.locales.keys import MessageKey
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import Window
+from prompt_toolkit.layout import Window, Float, FloatContainer
 from prompt_toolkit.layout.containers import to_container
 from prompt_toolkit.layout.controls import UIControl
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.utils import get_cwidth
 
 from ..widget.controls import Button
+from ..widget.actions import ButtonNavigation
 from ..widget.dialog import Dialog, PopupSize
 from ..widget.focus import focus_control
 
@@ -36,6 +37,9 @@ class DialogController:
         self.current = DialogController.ABSENT
         self.previous_focus = DialogController.ABSENT
         self._focus = DialogController.ABSENT
+        self.parents = []
+        self._surface = None
+        self._tab_focus = {}
 
     def __init__(self, view):
         self.view = view
@@ -71,14 +75,43 @@ class DialogController:
     def dispose(self) -> None:
         """Release the retained popup when the owning Hub is shut down."""
         self._cancel_reader()
+        self._dispose_parents()
         self.clear_state()
 
-    def show(self, dialog, focus):
+    def surface(self):
+        """Retained authoring dialogs stay visible beneath their modal children."""
+        if not self.parents:
+            return self.current
+        if self._surface is None:
+            layers = [item[0] for item in self.parents] + [self.current]
+            self._surface = FloatContainer(layers[0], floats=[
+                Float(layer, z_index=index + 1) for index, layer in enumerate(layers[1:])])
+        return self._surface
+
+    def _dispose_parents(self):
+        for dialog, _ in reversed(self.parents):
+            Dialog.dispose_resources(dialog)
+        self.parents.clear()
+
+    def show(self, dialog, focus, *, parent=None):
         app = get_app()
-        self._cancel_reader()
+        if dialog is not self.current:
+            self._tab_focus.clear()
+            retained = next((i for i, item in enumerate(self.parents) if item[0] is dialog), None)
+            if retained is not None:
+                self._cancel_reader()
+                for child, _ in self.parents[retained + 1:]:
+                    Dialog.dispose_resources(child)
+                self.parents = self.parents[:retained]
+            elif parent is not None and parent is self.current:
+                self.parents.append((self.current, app.layout.current_control))
+            else:
+                self._cancel_reader()
+                self._dispose_parents()
         if self.current is DialogController.ABSENT:
             self.previous_focus = app.layout.current_control if self.view.visible else None
         self.current = dialog
+        self._surface = None
         if isinstance(dialog, Dialog) and dialog.status_bar is None:
             dialog.status_bar = self.view.progress.container(lambda: self.view.notice, surface=dialog)
         app.layout.update_parents_relations()
@@ -103,6 +136,7 @@ class DialogController:
         accept_text=ABSENT,
         on_cancel=ABSENT,
         allow_small_input=False,
+        parent=None,
     ):
         def confirm():
             if validate and not validate():
@@ -132,7 +166,7 @@ class DialogController:
             allow_small_input=allow_small_input,
         )
         dialog.on_cancel = on_cancel
-        self.show(dialog, focus or buttons[DialogController.PRIMARY_BUTTON])
+        self.show(dialog, focus or buttons[DialogController.PRIMARY_BUTTON], parent=parent)
 
     def loading(self, title, *, size=PopupSize.MEDIUM):
         self.open(title, Window(), size=size)
@@ -149,6 +183,18 @@ class DialogController:
             return
         on_cancel = Dialog.cancel_handler(self.current)
         self._cancel_reader()
+        if self.parents:
+            self.current, focus = self.parents.pop()
+            self._surface = None
+            app.layout.update_parents_relations()
+            controls = self._controls(self.current)
+            self._focus = focus if focus in controls else (controls[0] if controls else None)
+            if restore_focus and self.view.visible and self._focus is not None:
+                app.layout.focus(self._focus)
+            app.invalidate()
+            if on_cancel and not accepted:
+                on_cancel()
+            return
         self.clear_state()
         if restore_focus and self.view.visible:
             if focus in list(app.layout.find_all_controls()):
@@ -166,28 +212,21 @@ class DialogController:
         self.view.render_worker.cancel(RenderSlot.POPUP)
 
     def cycle(self, reverse=FORWARD):
-        controls = self._controls(self.current)
-        if controls:
+        groups = ButtonNavigation.tab_groups(self._controls(self.current))
+        if groups:
             app = get_app()
             current = app.layout.current_control
-            index = (
-                controls.index(current)
-                if current in controls
-                else DialogController.NO_FOCUS
-            )
-            focus_control(
-                controls[
-                    (
-                        index
-                        + (
-                            DialogController.REVERSE_STEP
-                            if reverse
-                            else DialogController.FORWARD_STEP
-                        )
-                    )
-                    % len(controls)
-                ]
-            )
+            # Drop remembered controls when conditional content disappears.
+            self._tab_focus = {group[0]: self._tab_focus[group[0]] for group in groups
+                               if self._tab_focus.get(group[0]) in group}
+            index = next((i for i, group in enumerate(groups) if current in group),
+                         DialogController.NO_FOCUS)
+            if index != DialogController.NO_FOCUS:
+                self._tab_focus[groups[index][0]] = current
+            step = DialogController.REVERSE_STEP if reverse else DialogController.FORWARD_STEP
+            target = (groups[-1 if reverse else 0] if index == DialogController.NO_FOCUS
+                      else groups[(index + step) % len(groups)])
+            focus_control(self._tab_focus.get(target[0], target[-1 if reverse else 0]))
 
     def help(self):
         from ..widget.output.reader import ReadOnlyDialog

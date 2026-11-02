@@ -23,6 +23,16 @@ from tests.hub.support import SizedOutput, eventually, render_container
 
 
 class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_agent_auxiliary_tab_leaves_the_button_group(self):
+        with set_app(self.app):
+            self.editor.workspace.auxiliary.focus()
+        self.pipe.send_text('\t')
+        await eventually(lambda: self.app.layout.current_control is self.editor.buttons[0].control)
+        self.pipe.send_text('\x1b[Z')
+        await eventually(lambda: self.app.layout.current_control not in
+                         [button.control for button in self.editor.buttons])
+        self.assertFalse(self.editor.workspace.auxiliary.focused)
+
     async def test_agent_and_workflow_chrome_has_no_outer_padding_and_footer_is_last(self):
         with set_app(self.app):
             def paint(popup):
@@ -43,11 +53,14 @@ class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             auxiliary = next(iter(self.editor.workspace.auxiliary.buttons.values()))
             y = screen.visible_windows_to_write_positions[auxiliary.window].ypos
             self.assertTrue(any(screen.data_buffer[y+1][x].char == '┌' for x in range(128)))
-            manager = DefinitionManager(self.view, self.manager.request, name='workflows', edit_text=self.edit)
+            from tests.hub.test_workflow_editor import catalog
+            manager = DefinitionManager(self.view, lambda action, name, version, done: done(catalog()),
+                                        name='workflows', edit_text=self.edit)
             self.view.dialogs.show(manager, manager.path)
             manager.create_item()
             popup = self.view._dialog
             screen = paint(popup)
+            self.assertTrue(''.join(screen.data_buffer[1][x].char for x in range(1, 9)).startswith('이름'))
             self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].xpos, 1)
             self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].ypos, 2)
 

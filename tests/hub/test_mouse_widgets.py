@@ -21,6 +21,35 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
+    async def test_workflow_canvas_uses_host_capture_and_wheel_adapter(self):
+        from hub.widget.forms.definition_manager import DefinitionManager
+        from hub.widget.forms.workflow_editor import WorkflowEditor
+        from hub.backend.project.management_values import EditorRecord
+        from tests.hub.test_workflow_editor import definition, catalog
+        value = definition()
+        value['nodes']['far'] = {'type': 'end', 'metadata': {'hub_graph': {'position': [60, 100]}}}
+        manager = DefinitionManager(self.view, lambda action, arg, version, done: done(catalog()),
+                                    name='workflows', edit_text=None)
+        with set_app(self.app):
+            editor = WorkflowEditor(manager, 'mouse', EditorRecord.create(EditorRecord.render(value), 'v'))
+            self.view.dialogs.show(editor, editor.canvas)
+            editor.load()
+        await self.paint()
+        rect = self.position(editor.canvas.window)
+        x, y = rect.xpos + 4, rect.ypos + 2
+        await self.mouse(0, x, y)
+        await self.mouse(32, x + 6, y + 3)
+        await self.mouse(0, x + 6, y + 3, release=True)
+        self.assertEqual(editor.document.positions()['finish'].x, 8)
+        self.assertEqual(editor.document.positions()['finish'].y, 4)
+        self.assertEqual(len(editor.document.undo_stack), 1)
+        await self.mouse(65, x, y)
+        self.assertGreater(editor.canvas.offset_y, 0)
+        self.assertIs(self.app.layout.current_control, editor.canvas)
+        await self.mouse(0, rect.xpos + rect.width - 2, rect.ypos + rect.height - 2)
+        await self.mouse(0, rect.xpos + rect.width - 2, rect.ypos + rect.height - 2, release=True)
+        self.assertEqual(editor.selected, 'finish')
+
     async def test_checkbox_empty_rows_focus_without_checking_nearest_item(self):
         from prompt_toolkit.layout.dimension import Dimension
         from prompt_toolkit.filters import to_filter

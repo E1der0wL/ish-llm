@@ -114,6 +114,14 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
                     async def manage(action, argument="", version=None):
                         return await runtime.manage_records(pid, component, action, argument, version)
                     value = initial_definition(component)
+                    if component == 'workflows':
+                        from hub.backend.project.workflow_contracts import WorkflowCatalogData, WorkflowInspectionResponse
+                        declaration = WorkflowCatalogData.from_dict(await manage('describe'))
+                        self.assertIn('graph', declaration.engines)
+                        report = WorkflowInspectionResponse.read(await manage('inspect', {
+                            'definition': value, 'engine': 'graph'}))
+                        self.assertTrue(report.valid)
+                        self.assertIn('runtime_authorization', report.unverified)
                     if component == "agents":
                         value["purpose"] = "Review changes"
                     payload = {"name": "draft", "text": json.dumps(value)}
@@ -140,6 +148,10 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             calls, succeed = [], False
             def request(action, argument, version, done):
                 calls.append((action, argument, version))
+                if action == 'describe':
+                    from tests.hub.test_workflow_editor import catalog
+                    done(catalog())
+                    return
                 done([{"name": argument["name"], "version": "v", "description": ""}] if succeed else None)
             manager = DefinitionManager(view, request, name="workflows", edit_text=None)
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -150,14 +162,18 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
                     manager.create_item()
                 editor = view._dialog
                 self.assertIsInstance(editor, DefinitionEditor)
-                self.assertIn("done", editor.preview.text)
+                self.assertIn("done", editor.document.graph()['nodes'])
                 with set_app(app):
                     editor.identifier.text = "flow"
-                    editor.input.text = "{"
-                await eventually(lambda: view.t("workflow_invalid") in editor.preview.text)
+                    editor.advanced_json()
+                    popup = view._dialog
+                    popup.body.text = "{"
+                    popup._buttons[0].handler()
+                self.assertIs(view._dialog, popup)
                 with set_app(app):
-                    editor.input.text = json.dumps(initial_definition("workflows")).replace("done", "finish")
-                await eventually(lambda: "finish" in editor.preview.text)
+                    popup.body.text = json.dumps(initial_definition("workflows")).replace("done", "finish")
+                    popup._buttons[0].handler()
+                self.assertIn("finish", editor.document.graph()['nodes'])
                 with set_app(app):
                     editor.save()
                 self.assertIs(view._dialog, editor)

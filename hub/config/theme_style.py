@@ -79,6 +79,7 @@ class ThemeSelector(StrEnum):
     PTK_DIALOG_BODY_TITLE = "hub dialog.body hub.title"
     POPUP_LIST = "hub.popup-list"
     POPUP_OUTPUT = "hub.popup-output"
+    WORKFLOW_CANVAS = "hub-workflow-canvas"
     POPUP_LIST_ITEM = "hub.popup-list hub.sidebar"
     POPUP_LIST_SELECTED = "hub.popup-list hub.selected"
     POPUP_LIST_DETAIL = "hub.popup-list hub.muted"
@@ -212,6 +213,7 @@ class ThemeStyle:
             ThemeSelector.PTK_DIALOG_BODY_TITLE.value: "fg:{theme.accent1} bold",
             ThemeSelector.POPUP_LIST.value: "bg:{theme.accent5}",
             ThemeSelector.POPUP_OUTPUT.value: "bg:{theme.accent5}",
+            ThemeSelector.WORKFLOW_CANVAS.value: "bg:{theme.accent5}",
             ThemeSelector.POPUP_LIST_ITEM.value: "bg:{theme.accent5}",
             ThemeSelector.POPUP_LIST_SELECTED.value: "bg:{theme.accent5}",
             ThemeSelector.POPUP_LIST_DETAIL.value: "bg:{theme.accent5}",

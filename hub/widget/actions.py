@@ -25,6 +25,18 @@ class ButtonNavigation:
     def bind(cls, control, buttons):
         setattr(control, cls.GROUP_ATTRIBUTE, buttons)
 
+    @classmethod
+    def tab_groups(cls, controls):
+        """Each visible action row is one Tab stop; other controls stay separate."""
+        groups = {}
+        for control in controls:
+            buttons = getattr(control, cls.GROUP_ATTRIBUTE, cls.UNBOUND)
+            key = id(control if buttons is cls.UNBOUND else buttons)
+            group = groups.setdefault(key, [])
+            if control not in group:
+                group.append(control)
+        return list(groups.values())
+
 
 class ActionFrame(Frame):
     """Five-row action frame that grows only when buttons actually wrap."""

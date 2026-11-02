@@ -70622,8 +70622,8 @@
   },
   {
     "path": "hub/widget/actions.py",
-    "sha256": "640246eea4d9b3e05b57fe44f6c0eece685648293027cdc8e9f68b337fde2c20",
-    "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged. Popup footer width review: ActionBar owns opt-in equal allocated widths and responsive wrapping; Dialog and embedded popup footers select this mode. Widget text remains centered only by Button WindowAlign. Tab strips and inline buttons keep their own dimensions. The localized Home section title is shortened without changing the session identity. Validated by actual popup cell coordinates and retained Home/Agent/component navigation tests. Review 2026-10-29: ActionBar owns a four-width layout cache invalidated by button identities, order and effective widths; live captions and actual-width centering remain unchanged. Home and Settings own stable empty placeholders. No backend state, host geometry, key dispatch or popup disposal authority changes. 2026-11-01 source-delta re-review: ActionFrame consumes the shared action-frame theme selector by default and still permits an explicit style. Measured button widths, navigation and wrapped row geometry are unchanged; settings and Agent editors share the same title treatment.",
+    "sha256": "c54541faa582129112fdb1de8f18c8c29c91832f0f30817cba896b8eb44254c4",
+    "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged. Popup footer width review: ActionBar owns opt-in equal allocated widths and responsive wrapping; Dialog and embedded popup footers select this mode. Widget text remains centered only by Button WindowAlign. Tab strips and inline buttons keep their own dimensions. The localized Home section title is shortened without changing the session identity. Validated by actual popup cell coordinates and retained Home/Agent/component navigation tests. Review 2026-10-29: ActionBar owns a four-width layout cache invalidated by button identities, order and effective widths; live captions and actual-width centering remain unchanged. Home and Settings own stable empty placeholders. No backend state, host geometry, key dispatch or popup disposal authority changes. 2026-11-01 source-delta re-review: ActionFrame consumes the shared action-frame theme selector by default and still permits an explicit style. Measured button widths, navigation and wrapped row geometry are unchanged; settings and Agent editors share the same title treatment. 2026-11-02: ButtonNavigation groups visible controls by their existing action-row identity. Tab changes groups; arrow navigation and actual-width centering retain their Owner. No backend or persistence state is read.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -70645,157 +70645,157 @@
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "ace1429bd757e1330f2a9cc947169d12fbbd479e4a3910a7fb996203ad828e2c",
+        "id": "6fdfd867ea1b52dfff677f9f342ce29e411fde44bd18e0a2a61524e51098480e",
         "classification": "declaration",
         "owner": "ActionFrame",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "c3776bf0651794ea492d5e187eea4f6e8f00b264fcecc702381ce57e1331f03f",
+        "id": "d15d0d24a2349277343fa0c66a42f9d4f6d7d771bc3b3fdf099d3fc452a69d5f",
         "classification": "non_contract",
         "owner": "ActionFrame",
         "reason": "Optional hint replaces the existing bottom spacer inside the action frame. Default callers and horizontal button bindings remain unchanged."
       },
       {
-        "id": "83e1616343f203024dcab9751a5aec6a04c6d59b92c7d152292e9c290f460edc",
+        "id": "8af0024a617de13db566ac8658967131e58186c00fbb63ed03a0dbd428526b3a",
         "classification": "non_contract",
         "owner": "ActionFrame",
         "reason": "Optional hint replaces the existing bottom spacer inside the action frame. Default callers and horizontal button bindings remain unchanged."
       },
       {
-        "id": "c4e4f5f9206702fef453106ad7d078dec7d74dfdab0d784d567bc0fbe2c1d41f",
+        "id": "8e06de0902b006dbe21cb0237f0b61ba09bd79b743bda569dd40e2fde4f3d07b",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "8cfe2afd65e069afbe9db83c88f3dcf7045edd12bc9787951d49d49358a722b5",
+        "id": "e45f6b5e7a509b5741bd261b1b43217b19ac082b7305bc2fa50efc253df2f7ad",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "a83a24ac2c0f484e436722eaa7570fa4e1e5f830de659f727c1062c6cdfc96a8",
+        "id": "0f1212ebaf60d1c005cab7b3ea7d89b8f87c492efa28276bd3d6940dbe65158d",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "09e0fcd278b38cd90822cab9bd880bfcc3d454d81893152cad3263a2470efbc3",
+        "id": "ff44ccc571b6ab99eaf4ebb970cbf53f0aa4a41c0db5afe78751195d89b12000",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "a5146d642fa2181bcb6acd41f05a7ac147640cdd8ef37b66385a6b0e33629bb5",
+        "id": "3e6d874cee14f3a6b96a68829e52779ac148f86cc7477920fdcd078f398e8ee8",
         "classification": "non_contract",
         "owner": "bind_button_navigation.move",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "49fa83434afb57b2e5435ad121b05c0002f96e1eb7f740b7c8cc13b764f36428",
+        "id": "e979828c6f84c01b94e210f8c543dc8310993c72e11a7f8f6d8a9feb7ef99c21",
         "classification": "non_contract",
         "owner": "bind_button_navigation",
         "reason": "The intentional no-op key callback returns Python None; no record, decision or fallback is created."
       },
       {
-        "id": "39b79cdb1402ce508db97b762cb27b5c4e437f0b90c5d0ef7b0e9bcf404111a5",
+        "id": "7996d6571c38852455b3fa6eaf7c470359914d8f1ad36d365fe6b76f30e0a2ac",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "4a364451f15b3b0e4ff42c40f250027f33016383a46296349778b519433e6675",
+        "id": "8261242f146a0d7a39b50e8aa84f3e9f1878340ecec5d42a53ff5e67c776d0e8",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "5124cfb99bd3af96eee6e9e440febb7c5269af2dc30541a579b6e991a39b57f2",
+        "id": "cfe756090d3211fbec3a36473941b9af8d8bc60ab255db99127f7950c50c354f",
         "classification": "declaration",
         "owner": "ActionBar",
         "reason": "Button-group attachment is read/written at one PTK control boundary. Row spacing/centering and padding are declared here; all geometry uses the same gap. Keys and visible actions reference input Owners."
       },
       {
-        "id": "6fa49d7b97db6bf21fdaf151e26f162b9246f58a3920bbdb3236fcd208d01c15",
+        "id": "5d4edefaf4dfc131cd7691727f3ac6e04be20ec567ee7ca0c5167c9f0d8d8f98",
         "classification": "declaration",
         "owner": "ActionBar.LAYOUT_CACHE_SIZE",
         "reason": "Bounded UI-only cache of measured and painted widths, owned by ActionBar."
       },
       {
-        "id": "ee05357a2de23d382612cdcc10df94203e8d6ba06cbc253a2a0ec5858693a5f8",
+        "id": "8919c09c5c02bde44ac99ca31fae30be6f135c2192d317e759cd0a9235ef1f18",
         "classification": "non_contract",
         "owner": "ActionBar / ShortcutRegistry",
         "reason": "Responsive action rows optionally preserve their caller-owned bindings. Read-only dialogs retain movement-key scrolling on their close button and hidden receiver; ordinary buttons retain horizontal navigation."
       },
       {
-        "id": "9c3e6d5810152ae27beea6416e9fc87d00a33638832a333602269090e5cab818",
+        "id": "c22ef760ae16b70523b79c3d497a7922f616838f547e34cfdb962cd8a2b282ef",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Runtime geometry option, symmetric text inset and empty-row width; no persisted or backend contract changes."
       },
       {
-        "id": "a96740b931ff5a23276b157f67eec6e78f946aac08a9a6a2f876409499e02920",
+        "id": "13559a4af781141a349a8dbc0f4006c12c12b7cb5b1678690dcaa9a114eac392",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Uninitialized local geometry signature; no persisted or backend state."
       },
       {
-        "id": "8e96d774409baef144ee4538ef2bc97b84e43f8963424da584c18407f9ee9ee9",
+        "id": "488fd6d2b3fa25502f64f4336ef570708b54000117365f54b0e8b696b902c72c",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Runtime geometry option, symmetric text inset and empty-row width; no persisted or backend contract changes."
       },
       {
-        "id": "8d73bb7fbe0391d69fea908d38b6b1b7b6a424a8a9da8d97a15be1425ae0d03d",
+        "id": "e1ca420dc9ed8eec4c4f1b1f80caceaa1008566aed9dc58ed6200497ea3babc0",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Runtime geometry option, symmetric text inset and empty-row width; no persisted or backend contract changes."
       },
       {
-        "id": "76f2a229ec38abac7963a4acc4a467142fc2276e18b7f152a3797ec8f1207e8c",
+        "id": "57655b4d5774f3120333467bd2d2a0815dd315af5142a12f2419958ee4404c7b",
         "classification": "non_contract",
         "owner": "ActionBar.rows",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "1b05a00361c80f2dcf348a5d5145bb9fd3bf7d083a5ea42c8405a54174a484ab",
+        "id": "f617e5af1c2e7ddef0dff3d9c0af7ad18cb7270d3ec5246030e01f91966e36b5",
         "classification": "non_contract",
         "owner": "ActionBar.rows",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "c4529e9785d71d8286fb510ee3eb9609a7617037eca84ed944e8d30d3fc02ddf",
+        "id": "7c576afdc5305e0a3444ebc0a3ce326e5d815f47fcce53d6b92feb32e21529b5",
         "classification": "non_contract",
         "owner": "ActionBar.preferred_width",
         "reason": "Empty-list width/height accumulator or algebraic origin; not a configured quota, state or evidence default."
       },
       {
-        "id": "99d86312f56d6bcebe98b9132c062cb8aff75cea3081b59f35ad471ec120593d",
+        "id": "8214a6d05ef70e1f7c528b1cc3935500b74b4a80b7780f976874338a93f28101",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged."
       },
       {
-        "id": "d8d27be722f8c3672fb335f0ebd16a9334dff175fb25e2d025f7afe9308e6f59",
+        "id": "37bdddc6a0a9695384770dc6df4bc1bdbac8b170f10ecb22982192a1d073fa00",
         "classification": "non_contract",
         "owner": "ActionBar._container",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "9321e29454e27f28c2794b8fbf6556d0a0e004ac2a0cf15fc2c2cfec9fdee955",
+        "id": "f2237e20168e922ee89b73b9b847923e85224503a4fea03ed1d22655d0ae3d2f",
         "classification": "non_contract",
         "owner": "ActionBar",
         "reason": "Centers each row using the actual assigned cell width; navigation, button order and responsive wrapping remain unchanged."
       },
       {
-        "id": "86a7ca331fb12400f7af24aaf27d17ac4db73961c407e12051aa561d16169746",
+        "id": "9c00a95b6e44cedbc78944a52d74e2eb4d40a360c397ce4bb4b847ab806ff33d",
         "classification": "non_contract",
         "owner": "ActionBar._container",
         "reason": "Ordinary sequence index/last position or count of adjacent pairs, not a stored field or execution limit."
       },
       {
-        "id": "cfe60c4b53c82c6397c30100a5beae89eaec8895d94d620f6393489171f1010b",
+        "id": "3e068e7552e6e0ef8f78144ba86a0c95d7ac2c303c1832e988b0ddd57735eb09",
         "classification": "non_contract",
         "owner": "OrderedDict.popitem",
         "reason": "Evict least recently used width using the standard-library API."
@@ -84342,8 +84342,8 @@
   },
   {
     "path": "hub/ui/input/bindings.py",
-    "sha256": "d2918c5b009acc13e1b220255f868c52310e75dc7774fdbd943293819df456d6",
-    "reason": "Delegates modal ESC and Tab to registered editor navigation; ordinary dialogs and fullscreen inspectors keep existing close/cycle semantics. 2026-11-01 source-delta re-review: Ctrl+C copies an actual selection through the common editing path; without a selection it is a local no-op, never dialog/sidebar closure or minimization. Existing ESC/minimize/restart and editing contexts remain independent.",
+    "sha256": "581f694a43347add8c473601ac15e1f50b725d412e129dd567df20b797d4ff0b",
+    "reason": "Delegates modal ESC and Tab to registered editor navigation; ordinary dialogs and fullscreen inspectors keep existing close/cycle semantics. 2026-11-01 source-delta re-review: Ctrl+C copies an actual selection through the common editing path; without a selection it is a local no-op, never dialog/sidebar closure or minimization. Existing ESC/minimize/restart and editing contexts remain independent. 2026-11-02: The existing modal Tab binding is global so a modal read-only receiver can reach the footer group. Local completion and custom editor navigation remain higher-priority consumers; backend dispatch is unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84395,91 +84395,91 @@
         "reason": "Existing explicit binding flags/directions and optional observations; canonical KeyName/ShortcutAction/ShortcutLabel, registry, PathInput capability, DialogContext and TextEditing newline are reused."
       },
       {
-        "id": "3a8f9cbec4ba5d3a753f97c052df1fb07369389c9e75b4bac97204de26933360",
+        "id": "dfb5a35029ee1937d1c0fe594bc5936df78e007fc7c8c699a9bee5758a5d04e7",
         "classification": "non_contract",
         "owner": "HubBindings.__init__",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "15e2805d4edf05d9833446ef8327000b921817b56538de612c80edb10b143627",
+        "id": "cb0bb5eaffedd11a31bfe352a7d6e8e81d19c51a183c8d3a2c5ffedf53fed57e",
         "classification": "non_contract",
         "owner": "HubBindings.__init__",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "390f57415b0f9a2ceeb86395357eb4414e06b2893594c125f766770832bab6d2",
+        "id": "c06e8e93a8ceaee0a39358b140637a654bc5d02903a4ac92037124cf6e6a3764",
         "classification": "non_contract",
         "owner": "HubBindings.__init__",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "c10cc426f3ec17f91ed5da579ffa245e87fa38756b48641b854bb91d60aeb19b",
+        "id": "af2392a6e50d5bccf31e4d62c17c2486a9af87cad90ebff28f6f7a4ca5849b0e",
         "classification": "non_contract",
         "owner": "HubBindings.__init__",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "6248a69a2d92113c9142dff094b70bc16b7bf0dceb1b4175dd90429030ac058b",
+        "id": "b25063d5c8c34445a4faf16c9a771cc24a2c42632f1b3b1574f96f4288d725c2",
         "classification": "non_contract",
         "owner": "HubBindings / Dialog.navigation",
         "reason": "Delegates modal ESC and Tab to registered editor navigation; ordinary dialogs and fullscreen inspectors keep existing close/cycle semantics."
       },
       {
-        "id": "e85b91a9be1e7f8c4477d493301d9e770eef69f53b721af7a319a0a7842e71c4",
+        "id": "274c093011b3ba842b7ca88645e1b518eab657bd405358411bcd8e3b01d820bc",
         "classification": "non_contract",
         "owner": "HubBindings.dialog_tab",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "d0ce489194ca1d677339a3aaf20dd9b76f11d27d66a89570690e37f6d6d2fe27",
+        "id": "eb34dea0e72d11422d2dc46fcc56c4fe20e98205d24b71d58df2667604eb8d61",
         "classification": "non_contract",
         "owner": "HubBindings.dialog_tab",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "52403d5af55e28324a14a648c91c04eb0bb14e61a1620003476c675d1501b21f",
+        "id": "928a5e7309b67ce794990e769b21472fd44a82fc46e7e4611f5397d027c0b579",
         "classification": "non_contract",
         "owner": "HubBindings.dialog_tab",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "dc900b6fa8b6e19825232ed98fec0f69629ea9482e94e074499a8b8ee3dc4a1b",
+        "id": "852c66736d18c5858b1720a5eb41bc1d3e57c40e344f537317566d0f2b166cfe",
         "classification": "non_contract",
         "owner": "HubBindings.dialog_tab",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "36ebe6a874c06e7a1c7a12634f987d00eac9f1440770fc20118e2d8332d87dcb",
+        "id": "94cec75b781a335a0c3937cb167d2c49dfb966427f50a0243115c9613f4009ce",
         "classification": "non_contract",
         "owner": "HubBindings.select",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "472ac5f222f6f34762fdda18fd77b0caf5fe23fa80227c99f3cb2e9968e2c14e",
+        "id": "3bc5a8dd54052ab036cbed6640e44cac644ec7fa4ef8401c711c5d7cc3edd44d",
         "classification": "non_contract",
         "owner": "HubBindings.resize",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "793e9d87c7810c3707232dc8488f210fbca7adfc2b57f8d805738104b8a04e64",
+        "id": "a46324142cfd09bc20c572808299fcc71abd6ab0d0bbfb1dba3342bd4dfb2224",
         "classification": "non_contract",
         "owner": "HubBindings.session_action",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "3a43cb72fa42667d279d099e8d11e37c896eb61c5a0075df571b930f916334ef",
+        "id": "066085e69e27089009c1d2d89d826e00b761834c06acd454d35ba2851f5af43b",
         "classification": "non_contract",
         "owner": "HubBindings.complete",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "c884e147e2d79251198ef4f977ec84f14d3785fc678d93361c3b292333613ac2",
+        "id": "498e5690bf7bb4e3c1026b16207089849406a1c842b6676042242038e30bc516",
         "classification": "non_contract",
         "owner": "HubBindings.scroll",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
       },
       {
-        "id": "d5de66b52c9a3b2c2ba5862e3c60275ff5dac3fd7a320106a9d328f87b9d1e85",
+        "id": "c0c98011c83e3202e78a3ea9b9f661c26a160ec0ecfb33cab2473121cab261c1",
         "classification": "non_contract",
         "owner": "HubBindings.scroll_settings",
         "reason": "Python sequence projection selects the original first/last key or completion after its existing guard; not a domain default or stored-state fallback."
@@ -96589,8 +96589,8 @@
   },
   {
     "path": "hub/widget/forms/manager_values.py",
-    "sha256": "95065a639e0d76a3a7477c867ee52608f8c8aeb6189e8efd71fba8248ca21218",
-    "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged.",
+    "sha256": "feecfb4f4a41ea43d350139d5082c4ed8c726a7d2893a39018c46091a5cfbbd1",
+    "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged. 2026-11-02: Removed the unused split-preview spacing constant. UI authoring now renders its local draft; initial Workflow version and node fields still use backend Owner declarations.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -96876,139 +96876,133 @@
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "39baab63409a5fe33ca64d705832a9b0b5f713e90e481ffa2448e8a021b0fcc4",
+        "id": "18a8760e6d2756ce7e8fd83cbabe7ad84f348dda946e571d6759a1bdf68b5628",
         "classification": "declaration",
         "owner": "DefinitionView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "68b75ab4909ad5818e88d64e9c9c4334f716b2a361ac8f258cff9d9cabe05381",
+        "id": "e92fa590db515bc3c81a7c7fa1d0e0a9fb3d3efd2764ffafee3569e312be9b5c",
         "classification": "declaration",
         "owner": "DefinitionView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "4453d1bcb86e5ed2e44d3c562f4814e1134767412bad712fe1446b6000e6a165",
+        "id": "0f2a86866452a656bd358cef044821cbbe8896a751258977f93ef98cc0b29842",
         "classification": "declaration",
         "owner": "DefinitionView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "e00f715ecfc772b566422ff323cf4d16bc404cd1079e389050091f9bfdb3f3a4",
+        "id": "10e75f3de43e8893ca3f6a6e7a57fa0067859113fdac41f4c95e1ecf5403915f",
         "classification": "declaration",
         "owner": "DefinitionView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "7e8ead0d198ec8c36aab99e7201cfb62639c12086514673f0a6467d22b893965",
+        "id": "d26e3806431a5cc0c0e27410f8d5690873c70ea7e2b29a26341f60840a6b2e1d",
         "classification": "declaration",
         "owner": "DefinitionView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "9149c20de16c8323ddd209e407fa805b7cd0bc81a1ae612a75dbf60f52722d59",
-        "classification": "declaration",
-        "owner": "DefinitionView",
-        "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
-      },
-      {
-        "id": "3ecd314a57c401baa1f5ba50d170845423085dcda94f60b560a51acfd99eaebb",
+        "id": "d05bd848873766dac764e09615c1d865f08e43b0b829a2b3843fadd89aa1a519",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "883c42c85b39613d89d39dc58c9f9a9615c51e24493d54a8450a0030e02bee4a",
+        "id": "06d1d8c291f608636e70fad82dda6422d619c5af72447268d90808c833913937",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "688eac35a49efbe712a06d62a7a9844eeec5d0690479c41b9ffdedcbdbf479fe",
+        "id": "e388e0e26e24b5908c1e760cb15f52cff1e1a9059f319b7fd4a30f83f515b402",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "8d5173b90251c30299c013ab873f87702ed2c527ae886161c27cf538c927024d",
+        "id": "865b88b8c7e59b289e8c6dd0daa11723cd3679eb29e2416e193e0933b86c66f3",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "7d2b58f4247ba0dc0d9026a80411bade0762d4762bc6f07017d5d21fd0e84ff7",
+        "id": "59f5cdc0fef19fb5a4626fa1c9f50b55159e6c8fd8c18ff570bbcba5772c478c",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "4a1269a50efdaf1f31c452f0f6e16a6074432d31a7ebe8e837bd9cabb8cbfd5e",
+        "id": "c277ae0f46899e23df2ecb0ba13b09027a97afc3f47f3c16cc783e67fec34a77",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "31580404f6bbe4cf21dca34c625240fbcbcd6f5a4ad3d499ccdfb9293c6fd37d",
+        "id": "16f542c5a8e178d6381f53ecc8afeb1767fda7e23612a2dc393136cdc19ebf57",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "d908c2f02e463f724a839b8e773e7b854d139d9f6df167cd610cfac0da9ca8e6",
+        "id": "b82ef5dc692aeea6328ec156cc7ac6eb4c3a23045a6a054030a4fae964229de0",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "b322fa1230a3159c9055126cdf3e0eb22615f27ef10fc5b8fcd8ed6655f49ad5",
+        "id": "ee65d48312a17fbe7b5f9c4ff4ab96a48a3f4f05da5e85f42146b483f15127f0",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "aa9143ce2cdd3b59686d5fe46bb9239d1fc4bffad3fdb389a61d5bc4c42ace52",
+        "id": "6c707b9f1db200925e30ba3ba0f6bda24aec0af057060da8cc023605d97dfc04",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "75abfaa005ec8337adb8868ff4ba9367170bacbd46ad649cce0e6979043298a4",
+        "id": "a6f726790bd7339af33d9f898feb223a9282d96b04c6137a69a77046d6531a77",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "4fd94166c3a99069a0796aba42bb9509121bf4c6833f6cb71d2177bb646a4a01",
+        "id": "05e10741cf2c42121cc8886bc52ecd6007d3b889f079b6ebf5db275808772b88",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "c212c7342fe93c6bf1c1637390862d2a95bb81e3fb1964cb406090adaf3df27d",
+        "id": "09c19ed31f7d902fd1d477fbf5d27a2c5a56954792647276cc73cedc32fd03b9",
         "classification": "declaration",
         "owner": "Hub presentation separator",
         "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged."
       },
       {
-        "id": "417f8559a4213a49db6f6205af3daf576ec84c3709c14e4c5595db98ff5bae2e",
+        "id": "a95e8774e3d2b3ae00ea451ccdb3785ef80a0c5c3012507cf8dfb80c2b3da37f",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "bd580eb56b597a28377eb8452dbff0b0795a4dafb39c2d1cc371a4c643ff06ac",
+        "id": "4390efb2d6fe7a3820e3342b9ad4c10bfe5ed3614f85affff84ce193c1093096",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "e09b1af5448ce782cac94e921a53870cbc33fcedf9cd0a83978e9eaa42935ed1",
+        "id": "09e6b82e88b3cdbaf153853d12e27592fd6abae1b33576df5f30ce637ee2f2d9",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."
       },
       {
-        "id": "ea9015c9f465d7b711a8dc399fe0c845aa28d69f1cfeecfcf95931a1af7ff8dd",
+        "id": "8d49bc73941e573f597133f969e4a49749a5130ea927f7f45006880cf4cf479f",
         "classification": "declaration",
         "owner": "RAGManagerView",
         "reason": "Owner-local UI geometry, state choices, callback payload and explicit draft values. Stored fields, management commands, progress, references, key names and translations are consumed through their canonical Owners."

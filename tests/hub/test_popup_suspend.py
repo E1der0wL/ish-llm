@@ -18,6 +18,33 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class PopupSuspendTests(unittest.IsolatedAsyncioTestCase):
+    async def test_nested_popup_retains_parent_draft_resources_and_focus(self):
+        parent_field, child_field = TextArea(text='parent draft'), TextArea(text='child draft')
+        parent_dispose, child_dispose = Mock(), Mock()
+        parent = Dialog(body=parent_field, buttons=[Button('Save'), Button('Cancel')])
+        child = Dialog(body=child_field, buttons=[Button('Confirm'), Button('Cancel')])
+        parent.dispose, child.dispose = parent_dispose, child_dispose
+        with set_app(self.app):
+            self.view.dialogs.show(parent, parent_field)
+            self.view.dialogs.show(child, child_field, parent=parent)
+        await self.paint()
+        await self.minimize()
+        await self.reopen()
+        self.assertIs(self.view._dialog, child)
+        self.assertIs(self.app.layout.current_control, child_field.control)
+        parent_dispose.assert_not_called()
+        child_dispose.assert_not_called()
+        with set_app(self.app):
+            self.view.dialogs.close()
+        self.assertIs(self.view._dialog, parent)
+        self.assertIs(self.app.layout.current_control, parent_field.control)
+        self.assertEqual(parent_field.text, 'parent draft')
+        child_dispose.assert_called_once()
+        parent_dispose.assert_not_called()
+        with set_app(self.app):
+            self.view.dialogs.close()
+        parent_dispose.assert_called_once()
+
     async def asyncSetUp(self):
         self.pipe = self.enterContext(create_pipe_input())
         self.prompt = Prompt(input=self.pipe, output=SizedOutput())

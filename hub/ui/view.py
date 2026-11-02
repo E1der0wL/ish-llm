@@ -443,7 +443,7 @@ class HubView:
             floats=[
                 Float(
                     ConditionalContainer(
-                        DynamicContainer(lambda: self._dialog or empty_dialog),
+                        DynamicContainer(lambda: self.dialogs.surface() or empty_dialog),
                         Condition(
                             lambda: self._dialog is not HubView.ABSENT
                             and self.output.floating_dialog is HubView.ABSENT

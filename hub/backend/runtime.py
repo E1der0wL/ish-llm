@@ -722,13 +722,15 @@ class HubRuntime:
     ):
         from .project.record_management import RecordManagement
         from .project.management_values import ManagementAction
+        from .project.workflow_contracts import WorkflowInspectionRequest
         from llm.components.workflows import WorkflowComponent
         from .progress import OperationProgress
 
         if name == WorkflowComponent.name and action == ManagementAction.DESCRIBE:
             return await self.workflow_catalog(project_id)
         if name == WorkflowComponent.name and action == ManagementAction.INSPECT:
-            return await self.inspect_workflow(project_id, argument['definition'], argument['engine'])
+            request = WorkflowInspectionRequest.from_dict(argument)
+            return await self.inspect_workflow(project_id, request.definition, request.engine)
 
         OperationProgress.report(OperationProgress.management(action))
         project = await self.backend.projects.aload(project_id)
@@ -748,6 +750,7 @@ class HubRuntime:
         """Use only the explicitly selected Engine's public handler declarations."""
         from llm.components.workflows.graph import WorkflowHandlerContract
         from llm.components.workflows import WorkflowComponent
+        from .project.workflow_contracts import WorkflowInspectionResponse
         project = await self.backend.projects.aload(project_id)
         from .execution.environment import underlying_engine
         engine = underlying_engine(self.backend.engines.get(engine_name))
@@ -757,9 +760,10 @@ class HubRuntime:
         data = await project.components.aget(WorkflowComponent.name)
         report = await data.ainspect(definition, handlers=declare(),
                                      declared_tools=self.builtin_tools.toolkit.registry if self.builtin_tools else None)
-        return {'valid': report.valid, **report.to_dict()}
+        return WorkflowInspectionResponse.write(report)
 
     async def workflow_catalog(self, project_id: str):
+        from .project.workflow_contracts import WorkflowCatalogData
         from .execution.environment import underlying_engine
         from llm.components.workflows.graph import WorkflowHandlerContract, workflow_schema, COMMON_NODE_FIELDS
         await self.backend.projects.aload(project_id)
@@ -769,7 +773,7 @@ class HubRuntime:
             if declare is not None:
                 environments[name] = {kind: WorkflowHandlerContract.describe_snapshot(handler)
                                       for kind, handler in declare().items()}
-        return {'schema': workflow_schema(), 'engines': environments, 'common_fields': sorted(COMMON_NODE_FIELDS)}
+        return WorkflowCatalogData(workflow_schema(), environments, sorted(COMMON_NODE_FIELDS)).to_dict()
 
     async def submit(
         self,

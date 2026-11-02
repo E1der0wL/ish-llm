@@ -1,4 +1,4 @@
-"""Prompt/Agent/Workflow CRUD with inline JSON and live graph preview."""
+"""Definition CRUD dispatches to the JSON, Agent or graph authoring editor."""
 
 
 from hub.locales.keys import MessageKey, MessagePattern
@@ -18,14 +18,13 @@ from ...ui.input.json_document import JsonDocument
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import HSplit, VSplit
+from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Frame, Label
+from prompt_toolkit.widgets import Frame
 
 from ..controls import Button, TextArea
 from ..dialog import Dialog, PopupSize
 from ..section import Heading
-from ..workflow_graph import workflow_diagram
 from .record_manager import RecordManager
 
 
@@ -66,6 +65,7 @@ class DefinitionManager(RecordManager):
                 return
             editor = self.definition_editor()
             self.view.dialogs.show(editor, editor.identifier)
+            editor.load()
 
     def open_item(self):
         if not self.selected or self.busy:
@@ -78,7 +78,8 @@ class DefinitionManager(RecordManager):
                     self.agent_editor(name, record)
                     return
                 editor = self.definition_editor(name, record)
-                self.view.dialogs.show(editor, editor.input)
+                self.view.dialogs.show(editor, editor.focus_target)
+                editor.load()
 
         self.call(ManagementAction.READ, name, completed=ready)
 
@@ -96,6 +97,15 @@ class DefinitionManager(RecordManager):
 
 
 class DefinitionEditor(Dialog):
+    actions_active = None
+    actions_focus = None
+    @property
+    def focus_target(self):
+        return self.input
+
+    def load(self):
+        """Specialized editors may request their implementation declarations."""
+
     def __init__(self, manager, name=ManagerView.EMPTY, record=ManagerView.ABSENT):
         self.manager, self.view, self.original_name = manager, manager.view, name
         self.version = EditorRecord(record).version if record else ManagerView.ABSENT
@@ -125,20 +135,7 @@ class DefinitionEditor(Dialog):
             wrap_lines=DefinitionView.WRAP_LINES,
             read_only=Condition(lambda: self.busy),
         )
-        self.preview = TextArea(
-            read_only=DefinitionView.READ_ONLY,
-            scrollbar=DefinitionView.SCROLLBAR,
-            wrap_lines=DefinitionView.WRAP_LINES,
-        )
         content = Frame(self.input, title=DefinitionView.JSON_LABEL)
-        if manager.name == ManagedComponents.WORKFLOWS.name:
-            content = VSplit(
-                [
-                    content,
-                    Frame(self.preview, title=self.view.t(MessageKey.WORKFLOW_PREVIEW)),
-                ],
-                padding=DefinitionView.PREVIEW_PADDING,
-            )
         self.buttons = [
             Button(self.view.t(MessageKey.SETTINGS_SAVE), handler=self.save),
             Button(self.view.t(MessageKey.CANCEL), handler=self.close),
@@ -160,6 +157,7 @@ class DefinitionEditor(Dialog):
                 ),
             ),
             buttons=self.buttons,
+            actions_active=self.actions_active, actions_focus=self.actions_focus,
             status_bar=self.view.progress.container(lambda: self.status, surface=self),
             content_padding=(0 if manager.name == ManagedComponents.WORKFLOWS.name
                              else Dialog.CONTENT_PADDING),
@@ -182,18 +180,10 @@ class DefinitionEditor(Dialog):
         self._preview_timer = ManagerView.ABSENT
         try:
             DefinitionDraft.require_size(self.input.text, self.view.t)
-            value = DefinitionDraft.parse_object(self.input.text, self.view.t)
-            if self.manager.name == ManagedComponents.WORKFLOWS.name:
-                self.preview.text = workflow_diagram(self.input.text)
+            DefinitionDraft.parse_object(self.input.text, self.view.t)
             self.status = self.view.t(MessageKey.DEFINITION_VALIDATION)
         except (ValueError, TypeError) as error:
             self.status = self.view.t(MessageKey.ERROR, error=error)
-            if self.manager.name == ManagedComponents.WORKFLOWS.name:
-                self.preview.text = (
-                    self.view.t(MessageKey.WORKFLOW_INVALID)
-                    + DefinitionView.NEWLINE
-                    + str(error)
-                )
         get_app().invalidate()
 
     def save(self):

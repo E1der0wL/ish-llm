@@ -27,11 +27,13 @@
 
 Tab으로 목록에 이동하고 방향키로 선택합니다. Tool은 Enter로 파일 탐색기를 엽니다.
 Prompt·Agent·Workflow는 **생성 / 편집 / 삭제** 버튼을 제공합니다. 생성 시 고유 이름을
-입력합니다. Prompt·Workflow는 팝업의 JSON 편집창에서 정의를 작성합니다. Workflow는 옆의 노드·연결선 그림이
-타이핑 후 0.1초에 갱신됩니다. 진입 노드는 ▶, 연결선 아래에는 포트·분기 이름도 표시합니다.
-잘못된 JSON이나 누락된 연결 대상은 미리보기에 오류를 표시하며, 저장 시 백엔드가
-전체 스키마와 참조 계약을 검증합니다. 미리보기는 실행하지 않으며, 중첩 Workflow와 loop
-내부는 노드로 표시합니다. 팝업 편집은 최대 1,048,576자, 그림은 200노드·400간선을 지원합니다.
+입력합니다. Prompt는 JSON 편집창에서 작성합니다. Workflow는
+[그래프 편집기](workflow-editor.md)에서 노드·연결과 선택 노드의 설정을 편집하고,
+고급 JSON에서 전체 정의를 수정합니다. 진입 노드는 ▶, 연결선에는 포트·분기 이름을 표시합니다.
+노드 선택·배치 변경 시 그림을 갱신하며 중첩된 반복 본문도 따로 열어 편집합니다.
+실행 없는 검증에서 백엔드의 구조·참조 진단을 확인하고 해당 노드로 이동합니다.
+미완성 초안은 유지하고 저장은 기존 공개 API와 버전 충돌 검사를 사용합니다.
+팝업 편집의 최대 1,048,576자 제한은 유지하며, 캔버스는 보이는 셀만 그립니다.
 
 나머지 레코드는 일반 설정의 에디터에서 JSON을 수정합니다. 스키마와 읽어 온 버전을 검증하고,
 실패한 초안은 팝업을 닫기 전까지 유지합니다. RAG 편집 필드는 title/content/metadata/description이며
@@ -42,8 +44,8 @@ Prompt·Agent·Workflow는 **생성 / 편집 / 삭제** 버튼을 제공합니�
 `—`를 표시합니다. 설정 버튼은 해당 컴포넌트 페이지로 이동하며 필터를 추가하지 않습니다.
 
 공통 레이아웃은 `hub/widget/forms/component_manager.py`의 `ComponentManager`가 소유합니다.
-`ToolManager`·`RecordManager`가 항목 활성화/편집을 확장하고, `DefinitionManager`는 인라인 CRUD와
-Workflow 미리보기를 제공합니다. `RAGManager`는 등록 관찰과
+`ToolManager`·`RecordManager`가 항목 활성화/편집을 확장하고, `DefinitionManager`는 정의 CRUD를
+`DefinitionEditor`·`AgentEditor`·`WorkflowEditor`에 연결합니다. `RAGManager`는 등록 관찰과
 재시도·취소·삭제·이미지 변환 선택을 추가합니다. Hub의 `RecordManagement`는 공개 ComponentData의
 CRUD를, `DocumentManagement`는 RAG 문서 API를, `AgentManagement`는 snapshot/revise를 사용합니다.
 컴포넌트 내부 파일을 직접 수정하거나 지우지 않습니다. 관리 요청은 프로젝트 핸들을 고정하며,

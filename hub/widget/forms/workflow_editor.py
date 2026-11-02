@@ -1,262 +1,449 @@
-"""Workflow draft operations and explicit, non-executing backend inspection."""
+"""Graph-first authoring; public inspection and CAS remain backend-owned."""
 
-from copy import deepcopy
+from llm.components.workflows.contracts import WorkflowDocument
+from llm.components.workflows.contracts import WorkflowEdge
+from llm.components.workflows.contracts import WorkflowNode
+
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit
-from prompt_toolkit.layout.containers import to_container
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.layout import HSplit, VSplit, Window
+from prompt_toolkit.widgets import Frame, Label
+from prompt_toolkit.layout.dimension import Dimension
 
-from hub.locales.keys import MessageKey
+from hub.locales.keys import MessageKey as K
 from hub.backend.project.management_values import ManagementAction
+from hub.backend.project.workflow_contracts import WorkflowInspectionRequest, WorkflowInspectionResponse
+from llm.core.json_data import JsonPointer
 from hub.ui.input.json_document import JsonDocument
+from hub.config.theme_style import ThemeSelector
 from .definition_manager import DefinitionEditor
 from .manager_values import DefinitionDraft
-from .settings import SchemaForm
 from ..actions import ActionBar
-from ..controls import Button, RadioList, TextArea
-
-
-class WorkflowDraft:
-    """UI transformations preserve raw fields; the backend retains validation/CAS."""
-    def __init__(self, value):
-        self.value = deepcopy(value)
-
-    def put_node(self, name, node):
-        if not isinstance(name, str) or not name.strip() or not isinstance(node, dict):
-            raise ValueError('A node needs a nonempty ID and JSON object')
-        self.value['nodes'][name] = deepcopy(node)
-
-    def delete_node(self, name):
-        del self.value['nodes'][name]
-        # Keep edges and entry visible as invalid drafts until explicitly corrected.
-        # Deleting a node must not silently rewrite the user's control flow.
-
-    def add_edge(self, source, target, port):
-        if source not in self.value['nodes'] or target not in self.value['nodes']:
-            raise ValueError('Select existing endpoint nodes')
-        edge = {'source': source, 'target': target}
-        if port:
-            edge['port'] = port
-        if edge in self.value['edges']:
-            raise ValueError('Duplicate edge')
-        self.value['edges'].append(edge)
+from ..controls import Button, ScrollbarMargin, TextArea
+from ..sidebar import SidebarList, SidebarItem
+from ..workflow.draft import WorkflowDraft
+from ..workflow.catalog import WorkflowCatalog
+from ..workflow.canvas import GraphCanvas
+from ..workflow.inspector import WorkflowInspector
+from ..workflow.dialogs import WorkflowDialogs
+from ..workflow.navigation import WorkflowNavigation, WorkflowRegion
+from ..focus_region import FocusRegion
+from ..section import Heading
+from prompt_toolkit.utils import get_cwidth
 
 
 class WorkflowEditor(DefinitionEditor):
+    LIST_WIDTH = 21
+    INSPECTOR_WIDTH = 35
+    LIST_MIN_COLUMNS = 115
+    EMPTY_STATUS = ''
+
     def __init__(self, manager, name='', record=None):
         self._closed = False
         self._inspection = 0
         self._report = None
+        self.catalog = None
+        self.engine = None
+        self._loading_catalog = False
         super().__init__(manager, name, record)
-        actions = [
-            Button(self.view.t(MessageKey.WORKFLOW_NODE_EDIT), handler=self.edit_node),
-            Button(self.view.t(MessageKey.WORKFLOW_NODE_DELETE), handler=self.delete_node),
-            Button(self.view.t(MessageKey.WORKFLOW_EDGE_ADD), handler=self.add_edge),
-            Button(self.view.t(MessageKey.WORKFLOW_EDGE_DELETE), handler=self.delete_edge),
-            Button(self.view.t(MessageKey.WORKFLOW_INSPECT), handler=self.inspect),
-            Button(self.view.t(MessageKey.WORKFLOW_LOCATION), handler=self.locate),
-        ]
-        # Preserve the common title/identifier and final status row. Reuse the
-        # wrapping action bar so narrow terminals retain every edit operation.
-        self.body.children.insert(self.body.children.index(to_container(self.identifier)) + 1,
-                                  ActionBar(actions, lambda: max(1, self._width().preferred - 2)))
+        self.document = WorkflowDraft(DefinitionDraft.parse_object(self.input.text, self.view.t))
+        self.document.graph()
+        self.selected = next(iter(self.document.graph()[WorkflowDocument.NODES]), None)
+        self.saved_text = self.input.text
+        self._synced_revision = self.document.revision
+        self.dialogs = WorkflowDialogs(self)
+        self.canvas = GraphCanvas(self.document, lambda: self.selected, self.select,
+                                  self.move_node, {
+            'a': (lambda: self.navigation.toolbar(), K.WORKFLOW_UPPER_ACTIONS),
+            's': (lambda: self.navigation.toolbar(lower=True), K.WORKFLOW_LOWER_ACTIONS),
+            'c-z': (self.undo, K.WORKFLOW_UNDO),
+            'c-y': (lambda: self.undo(redo=True), K.WORKFLOW_REDO),
+            '?': (self.help, K.WORKFLOW_HELP),
+        })
+        self.inspector = WorkflowInspector(self)
+        self.navigation = WorkflowNavigation(self)
+        keys = KeyBindings()
+        keys.add('up')(lambda e: self.sidebar.move(-1))
+        keys.add('down')(lambda e: self.sidebar.move(1))
+        for key in ('enter', ' ', 'right'):
+            keys.add(key)(lambda e: self.navigation.focus(self.canvas))
+        self.sidebar = SidebarList(self.items, lambda: self.selected, self.select,
+                                   key_bindings=keys, on_activate=lambda: self.navigation.focus(self.canvas))
+        self.sidebar_window = Window(self.sidebar, right_margins=[ScrollbarMargin()])
+        t = self.view.t
+        self.toolbar = ActionBar([
+            Button(t(K.WORKFLOW_ADD), handler=self.add_node),
+            Button(t(K.WORKFLOW_NODE_DELETE), handler=self.delete_node),
+            Button(t(K.WORKFLOW_EDGES), handler=self.dialogs.edges),
+            Button(t(K.WORKFLOW_EDGE_ADD), handler=self.add_edge),
+            Button(t(K.WORKFLOW_ARRANGE), handler=self.arrange),
+            Button(t(K.WORKFLOW_UNDO), handler=self.undo),
+            Button(t(K.WORKFLOW_REDO), handler=lambda: self.undo(redo=True)),
+            Button(t(K.WORKFLOW_JSON), handler=self.advanced_json),
+        ], self.toolbar_width)
+        self.lower_toolbar = ActionBar([
+            Button(t(K.WORKFLOW_GRAPH_OPTIONS), handler=self.dialogs.graph_options),
+            Button(t(K.WORKFLOW_ENGINE), handler=self.choose_engine),
+            Button(t(K.WORKFLOW_INSPECT), handler=self.inspect),
+            Button(t(K.WORKFLOW_LOCATION), handler=self.locate),
+            Button(t(K.WORKFLOW_BACK), handler=self.leave_body),
+            Button(t(K.WORKFLOW_HELP), handler=self.help),
+        ], self.toolbar_width)
+        for button in [*self.toolbar.buttons, *self.lower_toolbar.buttons]:
+            button.width = max(button.width, get_cwidth(button.text) + 2)
+            button.window.width = Dimension.exact(button.width)
+        name = HSplit([Heading(t(K.WORKFLOW_NAME)), self.identifier])
 
-    def draft(self):
-        value = DefinitionDraft.parse_object(self.input.text, self.view.t)
-        if not isinstance(value.get('nodes'), dict) or not isinstance(value.get('edges'), list):
-            raise ValueError('Workflow draft requires nodes and edges')
-        return WorkflowDraft(value)
+        def workspace_region(content):
+            return FocusRegion(content,
+                               active=lambda: self.navigation.region() == WorkflowRegion.WORKSPACE,
+                               on_click=lambda: self.navigation.focus(self.canvas))
 
-    def read_draft(self):
-        try:
-            return self.draft()
-        except (ValueError, TypeError) as error:
-            self.status = str(error)
-            return None
+        self.body = HSplit([
+            FocusRegion(name, active=lambda: self.navigation.region() == WorkflowRegion.NAME,
+                        on_click=lambda: self.navigation.focus(self.identifier)),
+            workspace_region(HSplit([Window(height=1), self.toolbar, Window(height=1)])),
+            VSplit([
+                FocusRegion(Frame(self.sidebar_window, title=t(K.WORKFLOW_NODES),
+                                  width=lambda: Dimension.exact(self.sidebar_width())),
+                            active=lambda: self.navigation.region() == WorkflowRegion.NODES,
+                            on_click=lambda: self.navigation.focus(self.sidebar)),
+                workspace_region(VSplit([
+                    Frame(self.canvas, title=t(K.WORKFLOW_CANVAS)),
+                    Frame(self.inspector.container, title=t(K.WORKFLOW_PROPERTIES),
+                          width=lambda: Dimension.exact(self.INSPECTOR_WIDTH if self.view._columns() >= self.LIST_MIN_COLUMNS else 25)),
+                ], padding=1)),
+            ], padding=1),
+            workspace_region(HSplit([
+                self.lower_toolbar, Window(height=1),
+                Label(lambda: self.breadcrumb(), style=ThemeSelector.MUTED.style),
+            ])),
+        ], key_bindings=self.navigation.registry.bindings)
+        self.inspector.show(self.selected)
+        self.identifier.buffer.on_text_changed += self.update_dirty
 
-    def install(self, draft):
-        self.input.text = JsonDocument.render(draft.value, allow_non_finite=False)
-        self.view.dialogs.show(self, self.input)
-        self.refresh_preview()
+    def sidebar_width(self):
+        return self.LIST_WIDTH if self.view._columns() >= self.LIST_MIN_COLUMNS else 14
 
-    def choose(self, values, accept):
-        if not values:
+    def toolbar_width(self):
+        return max(1, self._width().preferred - 2 - 2 * self._content_padding)
+
+    def actions_active(self):
+        return self.navigation.region() == WorkflowRegion.ACTIONS
+
+    def actions_focus(self):
+        self.navigation.focus(self.buttons[0])
+
+    @property
+    def focus_target(self):
+        return self.canvas
+
+    def refresh_preview(self):
+        self._preview_timer = None
+
+    def schedule_preview(self, _=None):
+        # Graph paint consumes the draft; never parse JSON or query services on paint.
+        pass
+
+    def load(self):
+        if self._loading_catalog or self.catalog is not None:
             return
-        choices = RadioList(values)
-        self.view.open_dialog(self.view.t(MessageKey.CHOOSE_TARGET), choices,
-                              lambda: accept(choices.current_value), choices,
-                              on_cancel=lambda: self.view.dialogs.show(self, self.input))
-
-    def edit_node(self):
-        try:
-            draft = self.draft()
-        except ValueError as error:
-            self.status = str(error)
-            return
-        # Node IDs are entered explicitly; an existing ID edits only that node.
-        identifier = TextArea(multiline=False)
-        body = TextArea(text='{}', multiline=True)
-
-        def load(_):
-            node = draft.value['nodes'].get(identifier.text)
-            if node is not None:
-                body.text = JsonDocument.render(node, allow_non_finite=False)
-        identifier.buffer.on_text_changed += load
-
-        def apply():
-            try:
-                draft.put_node(identifier.text, DefinitionDraft.parse_object(body.text, self.view.t))
-            except (ValueError, KeyError, TypeError) as error:
-                self.view.notice = str(error)
-                return False
-            return True
-
-        def options():
-            try:
-                node = DefinitionDraft.parse_object(body.text, self.view.t)
-                kind = node['type']
-            except (ValueError, KeyError) as error:
-                self.view.notice = str(error)
+        self._loading_catalog = True
+        token = self.view.progress.start(self.view.t(K.COMPONENT_LOADING))
+        def ready(value):
+            self._loading_catalog = False
+            self.view.progress.finish(token)
+            if self._closed:
                 return
-            text, parent = body.text, self.view._dialog
+            if value is None:
+                self.status = self.view.t(K.WORKFLOW_UNVERIFIED)
+            else:
+                self.catalog = WorkflowCatalog(value)
+                self.engine = next(iter(self.catalog.engines), None)
+                self.inspector.show(self.selected)
+            get_app().invalidate()
+        self.manager.request(ManagementAction.DESCRIBE, '', None, self.view.progress.callback(token, ready))
 
-            def restore():
-                self.view.dialogs.show(parent, identifier)
+    def require_catalog(self):
+        if self.catalog is None:
+            self.status = self.view.t(K.COMPONENT_LOADING if self._loading_catalog else K.WORKFLOW_UNVERIFIED)
+            self.load()
+            return False
+        return True
 
-            def catalog(value):
-                if value is None or self._closed or body.text != text or self.view._dialog is not parent:
-                    return
-                available = {name: kinds[kind] for name, kinds in value['engines'].items()
-                             if kinds.get(kind) is not None}
-                if not available:
-                    self.view.notice = self.view.t(MessageKey.WORKFLOW_UNVERIFIED)
-                    return
-                engines = RadioList([(name, name) for name in available])
+    def breadcrumb(self):
+        scope = ' / '.join((self.identifier.text or 'Workflow', *self.document.path))
+        return f'{scope}  •  {self.engine or "—"}  •  x:{self.canvas.offset_x} y:{self.canvas.offset_y}'
 
-                def selected():
-                    common = set(value['common_fields'])
-                    form = SchemaForm(available[engines.current_value],
-                                      {key: item for key, item in node.items() if key not in common}, self.view.t)
-                    updated = {}
+    def items(self):
+        return [SidebarItem(name, self.document.title(name)) for name in self.document.graph()[WorkflowDocument.NODES]]
 
-                    def validate():
-                        try:
-                            values = form.values()
-                            if common.intersection(values):
-                                raise ValueError('Handler options cannot replace Graph fields')
-                            updated.update({key: item for key, item in node.items() if key in common})
-                            updated.update(values)
-                            return True
-                        except ValueError as error:
-                            self.view.notice = str(error)
-                            return False
+    def flush(self):
+        if self.busy or self._closed:
+            return False
+        try:
+            self.inspector.apply()
+        except (ValueError, TypeError, KeyError) as error:
+            self.status = str(error)
+            return False
+        self.changed()
+        return True
 
-                    def accept():
-                        body.text = JsonDocument.render(updated, allow_non_finite=False)
-                        restore()
-                    self.view.open_dialog(self.view.t(MessageKey.WORKFLOW_NODE_OPTIONS), form.container,
-                                          accept, validate=validate, on_cancel=restore)
-                self.view.open_dialog(self.view.t(MessageKey.CHOOSE_TARGET), engines, selected,
-                                      engines, on_cancel=restore)
-            self.manager.request(ManagementAction.DESCRIBE, '', None, catalog)
+    def changed(self, *, rebuild=False):
+        if self._synced_revision != self.document.revision:
+            self.input.text = JsonDocument.render(self.document.value, allow_non_finite=False)
+            self._synced_revision = self.document.revision
+        if self._report is not None and self._report[0] != self.input.text:
+            self._report = None
+            self.canvas.errors = frozenset()
+            self.status = self.EMPTY_STATUS
+        if self.selected not in self.document.graph()[WorkflowDocument.NODES]:
+            self.selected = next(iter(self.document.graph()[WorkflowDocument.NODES]), None)
+            rebuild = True
+        if rebuild:
+            self.inspector.show(self.selected)
+        self.highlight_report()
+        self.update_dirty()
+        get_app().invalidate()
 
-        self.view.open_dialog(self.view.t(MessageKey.WORKFLOW_NODE_EDIT), HSplit([
-            identifier, Button(self.view.t(MessageKey.WORKFLOW_NODE_OPTIONS), handler=options), body]),
-                              lambda: self.install(draft), identifier, validate=apply,
-                              on_cancel=lambda: self.view.dialogs.show(self, self.input))
+    def update_dirty(self, _=None):
+        pending = self.inspector.dirty
+        dirty = (pending or self.input.text != self.saved_text
+                 or self.identifier.text != self.original_name)
+        self.buttons[0].text = ('* ' if dirty else '') + self.view.t(K.SETTINGS_SAVE)
+        self.inspector.apply_button.text = ('* ' if pending else '') + self.view.t(K.WORKFLOW_APPLY)
+        get_app().invalidate()
+
+    def select(self, name):
+        if name not in self.document.graph()[WorkflowDocument.NODES] or not self.flush():
+            return False
+        if name != self.selected:
+            self.selected = name
+            self.inspector.show(name)
+        self.canvas.reveal()
+        get_app().invalidate()
+        return True
+
+    def focus_properties(self):
+        self.inspector.focus()
+
+    def apply_properties(self):
+        if self.flush():
+            self.inspector.show(self.selected)
+            self.inspector.focus()
+
+    def cancel_properties(self):
+        if not self.busy:
+            self.inspector.show(self.selected)
+            self.update_dirty()
+            self.inspector.focus()
+
+    def restore(self):
+        if self.view._dialog is not self:
+            self.view.dialogs.show(self, self.canvas)
+        self.canvas.reveal()
+
+    def add_node(self):
+        self.dialogs.add_node()
 
     def delete_node(self):
-        draft = self.read_draft()
-        if draft is None:
-            return
-        def remove(name):
-            draft.delete_node(name)
-            self.install(draft)
-        self.choose([(name, name) for name in draft.value['nodes']], remove)
+        self.dialogs.delete_node()
 
     def add_edge(self):
-        draft = self.read_draft()
-        if draft is None:
-            return
-        values = [(name, name) for name in draft.value['nodes']]
-        if not values:
-            return
-        source, target, port = RadioList(values), RadioList(values), TextArea(multiline=False)
-        def validate():
+        self.dialogs.edge()
+
+    def advanced_json(self):
+        self.dialogs.json()
+
+    def help(self):
+        body = TextArea(text=self.canvas.help_text(self.view.t), read_only=True, scrollbar=True)
+        self.view.open_dialog(self.view.t(K.WORKFLOW_HELP), body, self.restore, body,
+                              on_cancel=self.restore, parent=self)
+
+    def arrange(self):
+        if self.flush():
             try:
-                draft.add_edge(source.current_value, target.current_value, port.text)
+                self.document.arrange()
             except ValueError as error:
-                self.view.notice = str(error)
-                return False
-            return True
-        self.view.open_dialog(self.view.t(MessageKey.WORKFLOW_EDGE_ADD), HSplit([source, target, port]),
-                              lambda: self.install(draft), source, validate=validate,
-                              on_cancel=lambda: self.view.dialogs.show(self, self.input))
+                self.status = str(error)
+                return
+            self.changed(rebuild=True)
+            self.canvas.reveal()
 
-    def delete_edge(self):
-        draft = self.read_draft()
-        if draft is None:
+    def move_node(self, name, x, y):
+        if self.flush():
+            try:
+                self.document.move(name, x, y)
+            except ValueError as error:
+                self.status = str(error)
+                return
+            self.changed()
+
+    def undo(self, redo=False):
+        if not self.flush():
             return
-        def remove(index):
-            del draft.value['edges'][index]
-            self.install(draft)
-        self.choose([(index, JsonDocument.render(edge, allow_non_finite=False)) for index, edge in enumerate(draft.value['edges'])], remove)
+        if self.document.history(redo):
+            self.changed(rebuild=True)
+            self.canvas.reveal()
 
-    def inspect(self):
-        if self.busy:
+    def set_entry(self):
+        if self.selected is not None and self.flush():
+            self.document.set_entry(self.selected)
+            self.changed()
+
+    def enter_body(self):
+        if self.selected is None or not self.flush() or not self.require_catalog():
+            return
+        node = self.document.graph()[WorkflowDocument.NODES][self.selected]
+        if not isinstance(node, dict) or not self.catalog.field_schema(node.get(WorkflowNode.TYPE), WorkflowNode.BODY):
             return
         try:
-            definition = self.draft().value
+            if WorkflowNode.BODY not in node:
+                self.document.change(lambda graph: graph[WorkflowDocument.NODES][self.selected].__setitem__(
+                    WorkflowNode.BODY, DefinitionDraft.create(WorkflowDocument.COMPONENT)))
+            self.document.enter(self.selected)
         except ValueError as error:
             self.status = str(error)
             return
+        self.selected = None
+        self.changed(rebuild=True)
+        self.restore()
+
+    def leave_body(self):
+        if self.document.path and self.flush():
+            self.selected = self.document.path[-1]
+            self.document.leave()
+            self.changed(rebuild=True)
+            self.restore()
+
+    def choose_engine(self):
+        if not self.flush() or not self.require_catalog():
+            return
+        def choose(name):
+            self.engine = name
+            self.inspector.show(self.selected)
+            self._report = None
+            self.canvas.errors = frozenset()
+        self.dialogs.choose(self.view.t(K.WORKFLOW_ENGINE), [(name, name) for name in self.catalog.engines], choose)
+
+    def inspect(self):
+        if not self.flush() or not self.require_catalog() or self.engine is None:
+            return
         self._inspection += 1
-        generation, text = self._inspection, self.input.text
-
-        def current():
-            return not self._closed and generation == self._inspection and self.input.text == text
-
+        generation, text, engine = self._inspection, self.input.text, self.engine
+        self.busy = True
+        token = self.view.progress.start(self.view.t(K.WORKFLOW_INSPECT))
         def result(report):
-            if report is None or not current() or self.view._dialog is not self:
+            self.busy = False
+            self.view.progress.finish(token)
+            if self._closed or generation != self._inspection or self.input.text != text or self.engine != engine:
                 return
-            self._report = (text, report)
-            lines = [f"{item['details'].get('path', '')}: {item['message']}" for item in report['diagnostics']]
-            lines.extend(f"{item['component']}/{item['id']} @ {item['version']}" for item in report.get('references', []))
-            if report['unverified']:
-                lines.append(self.view.t(MessageKey.WORKFLOW_UNVERIFIED) + ': ' + ', '.join(report['unverified']))
-            self.status = '\n'.join(lines) if lines else self.view.t(MessageKey.DEFINITION_VALIDATION)
+            if report is not None:
+                report = WorkflowInspectionResponse.read(report)
+                self._report = (text, report)
+                self.highlight_report()
+                self.status = self.view.t(K.WORKFLOW_VALIDATION_RESULT, count=len(report.diagnostics))
+                if report.unverified:
+                    self.status += ' • ' + self.view.t(K.WORKFLOW_UNVERIFIED)
             get_app().invalidate()
+        self.manager.request(ManagementAction.INSPECT,
+                             WorkflowInspectionRequest(self.document.value, engine).to_dict(), None,
+                             self.view.progress.callback(token, result))
 
-        def selected(engine):
-            self.view.dialogs.show(self, self.input)
-            if current():
-                self.manager.request(ManagementAction.INSPECT, {'definition': definition, 'engine': engine}, None, result)
+    @staticmethod
+    def pointer_parts(path):
+        return list(JsonPointer.parts(path))
 
-        def catalog(value):
-            if value is None or not current() or self.view._dialog is not self:
-                return
-            if not value['engines']:
-                self.status = self.view.t(MessageKey.NO_TARGETS)
-                return
-            self.choose([(name, name) for name in value['engines']], selected)
-
-        self.manager.request(ManagementAction.DESCRIBE, '', None, catalog)
+    def highlight_report(self):
+        prefix = [part for name in self.document.path for part in (WorkflowDocument.NODES, name, WorkflowNode.BODY)]
+        errors = set()
+        if self._report:
+            for issue in self._report[1].diagnostics:
+                parts = self.pointer_parts(WorkflowInspectionResponse.location(issue))
+                if parts[:len(prefix)] != prefix:
+                    continue
+                tail = parts[len(prefix):]
+                if len(tail) >= 2 and tail[0] == WorkflowDocument.NODES:
+                    errors.add(tail[1])
+                elif len(tail) >= 2 and tail[0] == WorkflowDocument.EDGES:
+                    try:
+                        edge = self.document.graph()[WorkflowDocument.EDGES][int(tail[1])]
+                    except (ValueError, IndexError):
+                        continue
+                    if isinstance(edge, dict):
+                        errors.update(name for name in (edge.get(WorkflowEdge.SOURCE), edge.get(WorkflowEdge.TARGET))
+                                      if isinstance(name, str) and name in self.document.graph()[WorkflowDocument.NODES])
+                elif tail == [WorkflowDocument.ENTRY]:
+                    entry = self.document.graph().get(WorkflowDocument.ENTRY)
+                    if isinstance(entry, str):
+                        errors.add(entry)
+        self.canvas.errors = frozenset(errors)
 
     def locate(self):
-        if self._report is None or self._report[0] != self.input.text:
-            self.status = self.view.t(MessageKey.WORKFLOW_INSPECT)
+        if not self.flush() or self._report is None:
+            self.status = self.view.t(K.WORKFLOW_INSPECT)
             return
         text, report = self._report
+        if not report.diagnostics:
+            lines = [self.status]
+            lines.extend(f"{item.component}/{item.id} @ {item.version}" for item in report.references)
+            if report.unverified:
+                lines.append(self.view.t(K.WORKFLOW_UNVERIFIED) + ': ' + ', '.join(report.unverified))
+            body = TextArea(text='\n'.join(lines), read_only=True, scrollbar=True)
+            self.view.open_dialog(self.view.t(K.WORKFLOW_INSPECT), body,
+                                  self.restore, body, on_cancel=self.restore, parent=self)
+            return
         def selected(index):
-            if self._closed or self.input.text != text:
+            if self.input.text != text:
                 return
-            issue = report['diagnostics'][index]
-            self.view.dialogs.show(self, self.input)
-            self.input.buffer.cursor_position = JsonDocument.locate(text, issue['details']['path'])
-            self.status = issue['details']['path'] + ': ' + issue['message']
-        self.choose([(index, item['details']['path'] + ': ' + item['message'])
-                     for index, item in enumerate(report['diagnostics'])], selected)
+            issue = report.diagnostics[index]
+            path = WorkflowInspectionResponse.location(issue)
+            parts = self.pointer_parts(path)
+            self.document.path = ()
+            self.selected = None
+            while len(parts) >= 2 and parts[0] == WorkflowDocument.NODES and parts[1] in self.document.graph()[WorkflowDocument.NODES]:
+                self.selected = parts[1]
+                parts = parts[2:]
+                if parts and parts[0] == WorkflowNode.BODY:
+                    try:
+                        self.document.enter(self.selected)
+                    except ValueError:
+                        break
+                    parts = parts[1:]
+                else:
+                    break
+            self.inspector.show(self.selected)
+            self.highlight_report()
+            self.status = path + ': ' + issue.message
+            if len(parts) >= 2 and parts[0] == WorkflowDocument.EDGES:
+                try:
+                    index = int(parts[1])
+                    edge = self.document.graph()[WorkflowDocument.EDGES][index]
+                except (ValueError, IndexError):
+                    return
+                if isinstance(edge, dict):
+                    self.dialogs.edge(index)
+            elif parts == [WorkflowDocument.ENTRY]:
+                self.dialogs.graph_options()
+        self.dialogs.choose(self.view.t(K.WORKFLOW_LOCATION),
+                            [(index, WorkflowInspectionResponse.location(item) + ': ' + item.message)
+                             for index, item in enumerate(report.diagnostics)], selected)
+
+    def save(self):
+        if self.flush():
+            super().save()
 
     def close(self):
         if not self.busy:
             self._closed = True
+            self.inspector.finish()
         super().close()
+
+    def dispose(self):
+        self._closed = True
+        super().dispose()
+        if hasattr(self, 'inspector'):
+            self.inspector.finish()
+        if hasattr(self, 'canvas'):
+            self.canvas.drag = self.canvas.drag_position = None
+            self.canvas.pan_anchor = None

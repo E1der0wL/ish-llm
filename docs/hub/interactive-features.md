@@ -6,10 +6,11 @@ Backend API 계약은 [interactive-contracts.md](../llm/interactive-contracts.md
 
 ## Workflow와 실행 중 지시
 
-Workflow 편집기에서 노드/간선을 추가·수정·삭제하고 원본 JSON과 미리보기를 함께 볼 수 있다.
+Workflow 편집기는 [그래프 중심 UI](workflow-editor.md)로 노드/간선을 추가·수정·삭제한다.
+그래프 옆에 선택 노드의 설정 폼을 표시하고 전체 원본은 고급 JSON에서 편집한다.
 handler의 Schema가 있으면 설정 폼을 사용하고, 없으면 JSON을 유지한다. 모르는 필드나 UI metadata를
 자동 삭제하지 않는다. 노드를 지워도 연결과 entry를 몰래 고치지 않으며 잘못된 초안으로 표시한다.
-오류 위치 선택은 structured JSON pointer로 원본 JSON의 해당 값 또는 가장 가까운 존재하는 부모로 이동한다.
+오류 위치 선택은 structured JSON pointer로 해당 노드 또는 중첩 본문으로 이동한다.
 외부 Workflow 오류는 현재 초안의 참조 위치까지 이동하며 외부 정의를 자동 수정하지 않는다.
 
 사용자가 선택한 Graph Engine의 선언으로 실행 없이 검증한다. 참조 revision과 미검증 범위를 표시하고,

@@ -55,6 +55,7 @@ P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 s
 
 [기능 확장 작업 지침](feature-expansion-llm-handoff.md)의 1~4단계 구현을 연결했다.
 현재 사용법·API·제약은 [Workflow·관측·이미지·음성](interactive-features.md)을 따른다.
+Workflow 작성 화면은 [그래프 중심 편집기](workflow-editor.md)에 조작법·소유권·검증 경계를 정리한다.
 실제 음성 모델/장치/서버 및 Kitty 수동 검증은 모의 검사와 구분한다.
 
 1. 기존 API로 가능한 Hub 이미지 표시·터미널 관측·스킬·Graph 지시 예약을 연결한다.
