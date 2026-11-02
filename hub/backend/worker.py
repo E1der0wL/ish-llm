@@ -73,6 +73,7 @@ class BackendWorker:
             HubRuntime.manage_tools.__name__,
             HubRuntime.manage_records.__name__,
             HubRuntime.approval_details.__name__,
+            HubRuntime.manage_approvals.__name__,
             HubRuntime.answer_question.__name__,
             HubRuntime.interrupt.__name__,
         }

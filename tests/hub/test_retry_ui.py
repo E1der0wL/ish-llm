@@ -173,9 +173,9 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
         runtime = HubRuntime(HubConfig(auto_title=False))
         runtime.project = NS(id="p")
-        run = NS(arespond=AsyncMock(),
-                 aget_data=AsyncMock(return_value=NS(agent_id="assistant", engine="loop")))
-        session = NS(run=NS(aload=AsyncMock(return_value=run), resume=AsyncMock(), resume_plan=AsyncMock()))
+        run = NS(id="r", arespond=AsyncMock(),
+                 aget_data=AsyncMock(return_value=NS(id="r", status="paused", agent_id="assistant", engine="loop")))
+        session = NS(id="s", run=NS(aload=AsyncMock(return_value=run), resume=AsyncMock(), resume_plan=AsyncMock()))
         runtime.sessions = {"s": session}
         self.assertTrue(await runtime.answer_question("p", "s", "r", request.to_dict(), "approve", None))
         pending.assert_awaited_once_with(run)
@@ -209,15 +209,15 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         runtime.project = NS(id="p")
         acknowledged = Mock()
         entered, release = asyncio.Event(), asyncio.Event()
-        run = NS(arespond=AsyncMock(),
-                 aget_data=AsyncMock(return_value=NS(agent_id="assistant", engine="loop")))
+        run = NS(id="r", arespond=AsyncMock(),
+                 aget_data=AsyncMock(return_value=NS(id="r", status="paused", agent_id="assistant", engine="loop")))
         async def resume(*args, **kwargs):
             run.arespond.assert_awaited_once()
             pending.assert_awaited_once_with(run)
             acknowledged.assert_called_once_with()
             entered.set()
             await release.wait()
-        runtime.sessions = {"s": NS(run=NS(aload=AsyncMock(return_value=run), resume=resume))}
+        runtime.sessions = {"s": NS(id="s", run=NS(aload=AsyncMock(return_value=run), resume=resume))}
         task = asyncio.create_task(runtime.answer_question("p", "s", "r", request.to_dict(), "approve", None,
                                                           acknowledged=acknowledged))
         try:

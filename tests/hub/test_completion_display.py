@@ -29,6 +29,32 @@ from llm.core.models import now
 
 
 class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
+    def test_agent_lifecycle_is_header_only_and_keeps_actual_response_content(self):
+        from hub.widget.transcript.render_contract import RenderSection
+        for code in ('ko', 'en'):
+            language = Language(code)
+            for status in ('paused', 'interrupted', 'cancelled', 'queued', 'committed', 'streaming'):
+                with self.subTest(language=code, status=status):
+                    source = ChatMessage('assistant', '', id='answer', status=status, author='Coder')
+                    display = present_message(source, language)
+                    self.assertEqual(display.text, '')
+                    header = render_messages((display,), 90, HubTheme(), language, section=RenderSection.HEADER)
+                    body = render_messages((display,), 90, HubTheme(), language, section=RenderSection.BODY)
+                    header_text = ''.join(text for row in header for _, text in row)
+                    self.assertIn(language.status(display.phase or status), header_text)
+                    self.assertFalse(''.join(text for row in body for _, text in row).strip())
+                    actual = replace(source, text='Actual answer, even if it mentions a paused task.')
+                    self.assertEqual(present_message(actual, language).text, actual.text)
+
+    def test_empty_final_answer_and_error_explanations_remain_visible(self):
+        from hub.locales.keys import MessageKey
+        language = Language()
+        empty = present_message(ChatMessage('assistant', '', status='completed'), language)
+        self.assertEqual(empty.text, language(MessageKey.RESPONSE_EMPTY))
+        failed = present_message(ChatMessage('assistant', '', status='failed'), language)
+        self.assertEqual(failed.role, 'system')
+        self.assertIn(language(MessageKey.RESPONSE_FAILED), failed.text)
+
     def test_compaction_uses_observed_status_and_event_only_fallback(self):
         from hub.config.theme_style import ThemeSelector
         from hub.widget.transcript.thought_trace import render_trace_item

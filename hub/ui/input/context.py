@@ -45,6 +45,9 @@ class InputContext:
 
     @property
     def auxiliary(self):
+        if (not self.view.settings_open and self.view.question.item
+                and self.control is self.view.question.manage_button.control):
+            return True
         if not self.view.settings_open and (
             self.view.project_actions.focused or self.view.session_buttons.focused
         ):

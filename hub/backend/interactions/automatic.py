@@ -5,11 +5,9 @@ from collections import deque
 from copy import deepcopy
 
 from llm.core.agents import AgentBinding
-from llm.core.interactions import InteractionActor, InteractionOption
 from llm.core.models import RunStatus
 
 from ..execution.engine_selection import HubEngineIdentity
-from ..execution.stopping import stopped
 
 
 class AutomaticApprovals:
@@ -30,24 +28,8 @@ class AutomaticApprovals:
             # that callback or while a queued foreground request is executing.
             await session.run.wait_idle()
             run = await session.run.aload(source.id)
-            current = await run.aget_data()
-            if current.status != RunStatus.PAUSED or stopped(await session.aget_data(), current):
-                return
-            views = await run.ainteraction_views()
-            if not views or any(
-                not view.can_resume or view.response is None
-                or view.response.actor != InteractionActor.POLICY
-                or not any(option.id == view.response.option_id
-                           and option.effect == InteractionOption.EFFECT_APPROVE
-                           for option in view.request.options)
-                for view in views
-            ):
-                return
-            plan = await session.run.resume_plan(source.id, agent_id=source.agent_id)
-            if not plan.can_resume or plan.retry_nodes:
-                return
-            await session.run.resume(source.id, agent_id=source.agent_id,
-                partial_output=self.runtime.PARTIAL_OUTPUT, expected_revision=plan.revision)
+            async with self.runtime.approval_flow.lock(session.id, source.id):
+                await self.runtime.approval_flow.resume_approved(session, run, policy_only=True)
         except asyncio.CancelledError:
             raise
         except Exception as error:

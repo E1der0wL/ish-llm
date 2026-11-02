@@ -120,9 +120,8 @@ class HubBindings:
             [KeyName.CONTROL_S],
             ShortcutLabel.CONTROL_S,
             ShortcutAction.AUXILIARY,
-            lambda e: (
-                view.settings.auxiliary if view.settings_open else view.auxiliary
-            ).focus(),
+            lambda e: (view.settings.auxiliary.focus() if view.settings_open
+                       else view.question.focus_actions()),
             when=lambda: c.composing or (c.settings and view.settings.actions_focused),
         )
         r.add(
@@ -280,6 +279,13 @@ class HubBindings:
             visible=self.HIDDEN,
         )
         # The composer's own hint row already shows send/completion/newline.
+        r.add(
+            list(view.question.CHOICE_DIGITS),
+            ShortcutLabel.HIDDEN,
+            ShortcutAction.SELECT,
+            lambda e: view.question.choose_number(e.data),
+            when=lambda: c.composing and view.question.immediate_choices,
+        )
         r.add(
             [KeyName.ENTER],
             ShortcutLabel.HIDDEN,

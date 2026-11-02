@@ -8,6 +8,7 @@ from llm.core.agents import AgentDefinition
 from llm.services.configuration_records import ProjectConfigForm
 from ..backend.project.title_contract import TitleEngineIdentity
 from ..backend.execution.engine_selection import HubEngineIdentity
+from .approval_presets import ApprovalPresets
 
 
 class PresetGlobals:
@@ -49,6 +50,7 @@ class PresetProject:
         ):
             raise ValueError(cls.INVALID_SETTINGS)
         config = ProjectConfig.from_dict(value[cls.CONFIG])
+        ApprovalPresets.validate(config)
         components = value[cls.COMPONENTS]
         if any(not isinstance(name, str) or not name for name in components) or len(
             set(components)
@@ -72,6 +74,7 @@ class PresetProject:
         result[cls.CONFIG] = ProjectConfig.without_engine_parameters(
             result[cls.CONFIG], TitleEngineIdentity.NAME
         )
+        result[cls.CONFIG] = ApprovalPresets.portable(ProjectConfig.from_dict(result[cls.CONFIG])).to_dict()
         return cls(result)
 
     @property
@@ -102,6 +105,8 @@ class PresetProject:
 
     def application_values(self, form):
         candidate = self.overlay(form)
+        candidate[self.CONFIG] = ApprovalPresets.apply(
+            ProjectConfig.from_dict(candidate[self.CONFIG]), ProjectConfig.from_dict(form.config)).to_dict()
         targets = ProjectConfig.from_dict(form.config).parameter_targets
         if targets.has_engine(TitleEngineIdentity.NAME):
             config = ProjectConfig.from_dict(candidate[self.CONFIG])

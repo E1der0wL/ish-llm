@@ -166,6 +166,7 @@ class HubView:
         self.on_terminal = HubView.ABSENT
         self.on_interrupt = HubView.ABSENT
         self.on_answer = self.on_review = HubView.ABSENT
+        self.on_manage_approvals = HubView.ABSENT
         self.on_history = self.on_activity = HubView.ABSENT
         self.on_turns = HubView.ABSENT
         self.on_delete = self.on_rename = self.on_component = HubView.ABSENT

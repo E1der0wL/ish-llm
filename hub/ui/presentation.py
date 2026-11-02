@@ -109,7 +109,10 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
     elif (item.role == MessageRole.ASSISTANT and item.status == MessageStatus.COMPLETED
           and not text.strip()):
         text = t(MessageKey.RESPONSE_EMPTY)
-    elif not text and not item.tools and not item.trace:
+    elif (not text and not item.tools and not item.trace
+          and item.role not in (MessageRole.ASSISTANT, ReasoningMessage.ROLE)):
+        # Agent lifecycle belongs to the header. Do not manufacture a second
+        # paused/interrupted/cancelled/waiting label as response content.
         text = (
             t(MessagePattern.status(item.status))
             if item.status

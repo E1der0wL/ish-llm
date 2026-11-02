@@ -331,7 +331,7 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
                 controller.submit('s', view.composer.text)
                 popup = view._dialog
                 self.assertEqual([value for value, label in popup.body.values],
-                                 ['steer', 'reserve', 'follow_up'])
+                                 ['steer', 'follow_up'])
                 self.assertEqual(popup.body.current_value, 'follow_up')
                 popup._buttons[0].handler()
                 self.assertEqual(calls[-1][0], 'submit_input')

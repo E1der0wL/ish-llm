@@ -319,6 +319,7 @@ class LiveController:
         self.view.on_hide = self.hide
         self.view.on_submit = self.submit
         self.view.on_answer = self.answer_question
+        self.view.on_manage_approvals = self.manage_approvals
         self.view.on_review = self.review_approval
         self.view.on_select = self.select
         self.view.on_new = self.new_session
@@ -763,7 +764,29 @@ class LiveController:
 
         self._call(HubRuntime.approval_details.__name__, request, completed=ready)
 
-    def answer_question(self, item, option_id, value):
+    def manage_approvals(self, project_id, action, payload, completed):
+        from ..backend.interactions.approval_management import ApprovalAction
+        def received(result):
+            if result is not None and action in (ApprovalAction.UPDATE, ApprovalAction.REVOKE):
+                self.invalidate_approval_settings(project_id)
+            completed(result)
+        # Preserve the popup's progress receiver while wrapping its completion.
+        if isinstance(completed, ProgressCompletion):
+            received_callback = ProgressCompletion(completed.owner, completed.task, received)
+        else:
+            received_callback = received
+        self._call(HubRuntime.manage_approvals.__name__, project_id, action, payload,
+                   completed=received_callback)
+
+    def invalidate_approval_settings(self, project_id):
+        screen = self.view.settings
+        page = screen.drafts.pages.get(project_id)
+        # An open manager refreshes its settings page when it returns. Never
+        # discard an unsaved draft or silently replace its CAS version.
+        if not self.view.settings_open and page is not None and not page.dirty:
+            screen.drafts.pages.pop(project_id)
+
+    def answer_question(self, item, option_id, value, remember_selection=None):
         question = self.view.question
         if question.busy:
             return
@@ -777,6 +800,8 @@ class LiveController:
 
         def answered(result):
             question.finish_answer(response, bool(result))
+            if remember_selection is not None and response.acknowledged:
+                self.invalidate_approval_settings(SessionIdentity(identity).project_id)
 
         self._call(
             HubRuntime.answer_question.__name__,
@@ -786,6 +811,7 @@ class LiveController:
             QuestionPresentation.observe(item).request.to_record(),
             option_id,
             value,
+            remember_selection,
             completed=answered,
             acknowledged=acknowledged,
         )

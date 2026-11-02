@@ -48,7 +48,7 @@ class AnswerChoices(RadioList):
         return (
             QuestionSource.suggestions(request.source)
             if item.live
-            else request.options_or_empty.labels()
+            else [choice.label for choice in self.question.choices_for_request()]
         )
 
     def __pt_container__(self):

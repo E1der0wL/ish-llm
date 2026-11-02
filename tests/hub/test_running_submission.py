@@ -49,6 +49,7 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
         self.assertEqual(popup.size, PopupSize.CUSTOM)
         self.assertIsNotNone(popup.status_bar)
         self.assertEqual(popup._buttons[-1].text, self.view.t(MessageKey.SEARCH_CLOSE))
+        self.assertEqual([key for key, _ in popup.body.values], ['steer', 'follow_up'])
         self.assertEqual(self.view.composer.text, '')
         self.controller._call.assert_not_called()
         self.controller._send.assert_not_called()
@@ -110,13 +111,13 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
         popup._buttons[-1].handler()
         self.assertEqual(self.view.composer.text, 'Additional request')
 
-    async def test_reservation_explicitly_selects_run_without_queuing(self):
+    async def test_steering_does_not_use_node_reservation(self):
         popup = self.open()
-        popup.body.current_value = 'reserve'
+        popup.body.current_value = 'steer'
         popup._buttons[0].handler()
         self.controller._call.call_args.kwargs['completed']((('r-a', 'a'),))
         self.controller.steer.assert_called_once()
-        self.assertTrue(self.controller.steer.call_args.kwargs['reserve'])
+        self.assertNotIn('reserve', self.controller.steer.call_args.kwargs)
         self.assertEqual(self.controller.steer.call_args.kwargs['expected_run_id'], 'r-a')
         self.controller._send.assert_not_called()
 

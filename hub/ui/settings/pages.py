@@ -83,7 +83,7 @@ class Page:
         self.query = query.strip().casefold()
         self.sync_tabs()
         self._filtered_fields = self._matching_fields()
-        if not self.section_fields():
+        if not self.section_fields() and not (isinstance(self, ProjectPage) and self.approval_management_visible()):
             self.container = SettingsBody(
                 [Label(self.screen.t(MessageKey.SETTINGS_TAB_EMPTY)), *self.advanced_notice()], []
             )
@@ -157,6 +157,8 @@ class Page:
             fields = [field for _, members in self.groups for field in members]
         keys = {getattr(self, self.FIELD_TABS, {}).get(field, SettingsTab.CONFIG.value)
                 for field in fields}
+        if isinstance(self, ProjectPage) and self.section == SettingsSection.GENERAL:
+            keys.add(SettingsTab.CONFIG.value)
         self.screen.tabs.show_tabs(keys, reset=reset)
 
     def section_fields(self):
@@ -213,6 +215,7 @@ class ProjectPage(Page):
 
     def __init__(self, screen, record, *, suggest_defaults=SUGGEST_DEFAULTS):
         self.screen, self.record = screen, record
+        self.approval_button = Button(screen.t(MessageKey.APPROVAL_MANAGER), handler=self.manage_approvals)
         view = ProjectConfiguration.view(record)
         self.identifier = view.project_id
         self.components = list(view.values.components)
@@ -311,6 +314,30 @@ class ProjectPage(Page):
         if SettingsSection.is_component(section):
             return [self.component_forms[SettingsSection.name(section)]]
         return [self.form]
+
+    def approval_management_visible(self):
+        return (self.section == SettingsSection.GENERAL
+                and self.screen.tabs.selected == SettingsTab.CONFIG.value
+                and (not self.query or self.query in self.screen.t(MessageKey.APPROVAL_MANAGER).casefold()))
+
+    def body_widgets(self):
+        return super().body_widgets() + ([self.approval_button] if self.approval_management_visible() else [])
+
+    def grouped_children(self, fields):
+        children = super().grouped_children(fields)
+        if self.approval_management_visible():
+            children.extend([Window(height=1), self.approval_button])
+        return children
+
+    def manage_approvals(self):
+        if self.screen.busy:
+            return
+        if self.dirty:
+            self.screen.status = self.screen.t(MessageKey.APPROVAL_SAVING_SETTINGS)
+            return
+        from ...widget.forms.approval_manager import ApprovalManager
+        ApprovalManager(self.screen.view, self.identifier,
+                        on_return=lambda: self.screen.drafts.reload(self)).open()
 
     @classmethod
     def identifier_for(cls, page):

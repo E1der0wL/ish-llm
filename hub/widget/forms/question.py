@@ -3,20 +3,26 @@
 from hub.locales.keys import MessageKey
 
 import json
-from llm.core.interactions import InteractionOption
+from llm.core.interactions import InteractionOption, InteractionRequest
+from ...backend.interactions.remembered import approval_choices
 from ...model import HubSnapshot, QuestionSource, QuestionPresentation, SessionIdentity
 from ...config.theme_style import ThemeSelector
 from ...backend.interactions.question_values import QuestionTool
 from llm.core.schema import SchemaKeyword, SchemaType
 
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import ConditionalContainer, Window, HSplit
+from prompt_toolkit.layout import ConditionalContainer, Window, HSplit, VSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 from .question_card import QuestionCard
 from ..input_contract import ControlFragment
 from .answer_choices import AnswerChoices
 from ..feedback.answer_feedback import AnswerFeedback, project_answers
+from ..auxiliary import AuxiliaryButton
+from ...asset.icon import AuxiliaryIcon, IconSet
+from ...ui.input.registry import ShortcutRegistry
+from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
+from prompt_toolkit.application.current import get_app
 
 
 class QuestionComposer:
@@ -35,6 +41,7 @@ class QuestionComposer:
     HEIGHT_DIVISOR = 3
     WRAP_LINES = True
     DONT_EXTEND = True
+    CHOICE_DIGITS = tuple('123456789')
 
     def __init__(self, view):
         self.view = view
@@ -42,6 +49,14 @@ class QuestionComposer:
         self.identity = self.NO_IDENTITY
         self.drafts = {}
         self.responses = {}
+        self.approval_options = []
+        self.manage_button = AuxiliaryButton(
+            lambda: IconSet.action(view.icons, AuxiliaryIcon.SETTINGS),
+            handler=lambda: self.open_manager(),
+        )
+        ShortcutRegistry.require(self.manage_button.control).add(
+            [KeyName.ESCAPE], ShortcutLabel.ESCAPE, ShortcutAction.RETURN,
+            lambda e: e.app.layout.focus(view.composer))
         self.details = QuestionCard(self)
         self.choices = AnswerChoices(self)
         self.details.window.height = lambda: Dimension(
@@ -51,12 +66,14 @@ class QuestionComposer:
         self.container = ConditionalContainer(
             HSplit(
                 [
-                    Window(
+                    VSplit([Window(
                         FormattedTextControl(self.heading),
                         wrap_lines=self.WRAP_LINES,
                         dont_extend_height=self.DONT_EXTEND,
                         style=ThemeSelector.QUESTION_HEADING.style,
-                    ),
+                    ), ConditionalContainer(self.manage_button, Condition(
+                        lambda: bool(self.item and self.observation.request.action)
+                    ))], height=1),
                     self.details.window,
                     self.choices,
                     Window(
@@ -135,6 +152,7 @@ class QuestionComposer:
 
             self.view.composer.text = HubView.composer_draft(self.view, self.EMPTY_TEXT)
         self.item, self.identity = self.NO_ITEM, self.NO_IDENTITY
+        self.approval_options = []
         self.details.set_request(self.EMPTY_TEXT)
 
     def sync(self, project_id, session_id, questions):
@@ -190,7 +208,7 @@ class QuestionComposer:
     def hint(self):
         if not self.item or self.busy:
             return self.EMPTY_TEXT
-        key = (
+        key = MessageKey.APPROVAL_NUMBER_HINT if self.immediate_choices else (
             (
                 MessageKey.QUESTION_TEXT_HINT
                 if self.choices.labels()
@@ -199,12 +217,17 @@ class QuestionComposer:
             if self.observation.live
             else MessageKey.QUESTION_CHOICE_HINT
         )
-        return (
+        text = (
             self.INDENT
             + self.view.t(key)
             + self.HINT_SEPARATOR
             + self.view.t(MessageKey.QUESTION_DETAILS_HINT)
         )
+        if any(choice.match is not None for choice in self.choices_for_request()):
+            text += self.HINT_SEPARATOR + self.view.t(MessageKey.APPROVAL_EXACT_HINT)
+        if self.observation.request.action:
+            text += self.HINT_SEPARATOR + self.view.t(MessageKey.APPROVAL_MANAGE_HINT)
+        return text
 
     def detail_lines(self):
         request = self.observation.request
@@ -221,6 +244,41 @@ class QuestionComposer:
         if self.item and self.view.on_review:
             self.view.on_review(self.observation.request.to_record())
 
+    def open_manager(self):
+        from .approval_manager import ApprovalManager
+        if self.item:
+            ApprovalManager(self.view, SessionIdentity(self.identity).project_id,
+                            pending=True).open()
+
+    def focus_actions(self):
+        if self.item and self.observation.request.action:
+            get_app().layout.focus(self.manage_button)
+        else:
+            self.view.auxiliary.focus()
+
+    def choices_for_request(self):
+        if not self.item or self.observation.live:
+            return []
+        # Parse once per request identity, not on every RadioList render.
+        if not self.approval_options:
+            self.approval_options = approval_choices(
+                InteractionRequest.from_dict(self.observation.request.to_record()), self.view.t)
+        return self.approval_options
+
+    @property
+    def immediate_choices(self):
+        if not self.item or self.busy or self.observation.live:
+            return False
+        request = self.observation.request
+        return (request.kind == InteractionRequest.KIND_APPROVAL
+                and request.input_schema is None
+                and 0 < len(self.choices_for_request()) <= len(self.CHOICE_DIGITS))
+
+    def choose_number(self, number):
+        if self.immediate_choices and 1 <= int(number) <= len(self.choices_for_request()):
+            self.view.composer.text = number
+            self.answer()
+
     def answer(self):
         if self.busy or not self.item or not self.view.on_answer:
             return
@@ -228,6 +286,7 @@ class QuestionComposer:
         if not text:
             return
         request = self.observation.request
+        match = None
         if self.observation.live:
             choices = QuestionSource.suggestions(request.source)
             value = (
@@ -243,12 +302,14 @@ class QuestionComposer:
                 not number.isdecimal()
                 or not AnswerChoices.FIRST_NUMBER
                 <= int(number)
-                <= request.options.count
+                <= len(self.choices_for_request())
             ):
                 self.view.notice = self.view.t(MessageKey.QUESTION_CHOICE_HINT)
                 return
-            option = request.options.at(int(number) - AnswerChoices.FIRST_NUMBER)
-            option_id, value = option.id, self.NO_INPUT
+            choice = self.choices_for_request()[int(number) - AnswerChoices.FIRST_NUMBER]
+            option = next(request.options.at(index) for index in range(request.options.count)
+                          if request.options.at(index).id == choice.option_id)
+            option_id, value, match = option.id, self.NO_INPUT, choice.match
             if value_text and option.effect != InteractionOption.EFFECT_DENY:
                 try:
                     schema = request.input_schema or {}
@@ -260,4 +321,8 @@ class QuestionComposer:
                 except ValueError as error:
                     self.view.notice = str(error)
                     return
-        self.view.on_answer(self.item, option_id, value)
+        if match is None:
+            self.view.on_answer(self.item, option_id, value)
+        else:
+            from .approval_selection import ApprovalSelectionDialog
+            ApprovalSelectionDialog(self, match, option_id, value).open()

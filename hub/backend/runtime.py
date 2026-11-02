@@ -252,6 +252,8 @@ class HubRuntime:
         self.background_records = BackgroundRecords(self)
         from .interactions.automatic import AutomaticApprovals
         self.automatic_approvals = AutomaticApprovals(self)
+        from .interactions.approval_flow import ApprovalFlow
+        self.approval_flow = ApprovalFlow(self)
 
     def session_is_open(self, identifier):
         return identifier in self._opened_sessions
@@ -1013,6 +1015,10 @@ class HubRuntime:
 
         return await asyncio.to_thread(review_text, request_data)
 
+    async def manage_approvals(self, project_id, action, payload=None):
+        from .interactions.approval_management import ApprovalManagement
+        return await ApprovalManagement(self).perform(project_id, action, payload)
+
     async def answer_question(
         self,
         project_id,
@@ -1021,16 +1027,20 @@ class HubRuntime:
         request_data,
         option_id,
         value,
+        remember_selection=None,
         *,
         acknowledged=ABSENT
     ):
         from llm.core.interactions import InteractionOption, InteractionRequest
         from .interactions.questions import pending_requests
+        from .interactions.remembered import ToolApprovalConditions
 
         if project_id != self.project.id:
             raise ValueError(HubRuntime.FOREIGN_QUESTION)
         request = InteractionRequest.from_dict(request_data)
         if self.builtin_tools and request.id in self.builtin_tools.questions.pending:
+            if remember_selection is not None:
+                raise ValueError('Live questions cannot create approval rules')
             self.builtin_tools.questions.answer(
                 project_id, session_id, run_id, request, option_id, value
             )
@@ -1039,32 +1049,22 @@ class HubRuntime:
         else:
             session = self.sessions[session_id]
             run = await session.run.aload(run_id)
-            await run.arespond(request.respond(option_id, value=value))
-            # The decision is durable now. Resume admission may perform much
-            # more I/O; its completion must not gate answer acknowledgement.
-            self.snapshot_reader.invalidate(session_id)
-            self.dirty.set()
-            if acknowledged:
-                acknowledged()
-            denied = (
-                next(
-                    option for option in request.options if option.id == option_id
-                ).effect
-                == InteractionOption.EFFECT_DENY
-            )
-            if not await pending_requests(run):
-                if not denied:
-                    agent_id = (await run.aget_data()).agent_id
-                    # The backend validates persisted user decisions, including
-                    # uncertain-effect approval. Never invent retry_nodes here.
-                    await session.run.resume(
-                        run_id,
-                        agent_id=agent_id,
-                        partial_output=HubRuntime.PARTIAL_OUTPUT,
-                    )
-                from .execution.stopping import finish_review
-
-                await finish_review(session, run_id)
+            async with self.approval_flow.lock(session_id, run_id):
+                options = ({'remember': ToolApprovalConditions.remember(request, remember_selection)}
+                           if remember_selection is not None else {})
+                await run.arespond(request.respond(option_id, value=value),
+                                   request_key=ToolApprovalConditions.request_key(request), **options)
+                # Acknowledge durable acceptance before resume admission I/O.
+                self.snapshot_reader.invalidate(session_id)
+                self.dirty.set()
+                if acknowledged:
+                    acknowledged()
+                denied = next(option for option in request.options if option.id == option_id).effect == InteractionOption.EFFECT_DENY
+                if not await pending_requests(run):
+                    if not denied:
+                        await self.approval_flow.resume_approved(session, run)
+                    from .execution.stopping import finish_review
+                    await finish_review(session, run_id)
         self.dirty.set()
         return HubRuntime.SUCCEEDED
 

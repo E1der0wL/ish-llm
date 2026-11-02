@@ -192,11 +192,14 @@ def create_backend(config: "HubConfig"):
         )
         for name, engine in engines.items()
     }
+    from .interactions.remembered import ToolApprovalConditions
+
     return LargeLanguageModel(
         config.workspace,
         components=list(components.values()),
         engines=engines,
         services=BackendServices(
+            approval_evaluators=ToolApprovalConditions.evaluators(),
             context_builder=HubContextBuilder(),
             observability_sink=monitor,
             logger=DomainLogger(LogConfig(log_reads=BackendComposition.LOG_READS), sink=config.log_sink),

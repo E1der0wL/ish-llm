@@ -4,6 +4,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import DynamicContainer, HSplit
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.containers import to_container
+from prompt_toolkit.utils import get_cwidth
 
 from .actions import ActionBar
 from .controls import Button
@@ -22,6 +23,8 @@ class TabPage(HSplit):
     UNKNOWN_TAB = "Unknown tab"
     SELECTED_PREFIX = "• "
     UNSELECTED_PREFIX = ""
+    MIN_BUTTON_WIDTH = 12
+    BUTTON_PADDING = 2
 
     def __init__(
         self,
@@ -52,6 +55,8 @@ class TabPage(HSplit):
                 )
                 + label,
                 handler=lambda key=key: self.enter(key),
+                width=max(self.MIN_BUTTON_WIDTH,
+                          get_cwidth(self.SELECTED_PREFIX + label) + self.BUTTON_PADDING),
             )
             for key, label, _ in self.tabs
         ]
