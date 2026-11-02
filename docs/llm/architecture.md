@@ -115,10 +115,22 @@ Run에 연결된 Tool 실행은 서비스가 전달한 `ToolExecutionScope`를 �
    확정되지 않은 효과는 자동 반복하지 않는다. 동일 business operation key의 영수증도 검사한다.
 5. 설정·인자·Tool contract·환경·선택된 Agent/handler·checkpoint source가 바뀌면 과거 승인/결과를
    조용히 새 정의에 맞추지 않는다. owner의 binding·revision 검사를 적용한다.
+   승인 **발급** 규칙은 실행 제한과 구분한다. `bind_execution_config()`는
+   `policies.approval`만 실행 binding에서 제외하며, 발급 시에는 Run snapshot과 최신
+   규칙을 함께 검사한다. 규칙 철회는 이미 발급된 응답을 취소하지 않는다.
+   Tool 인자·분류·contract·scope와 나머지 실행 정책은 계속 binding에 포함한다.
 6. Run 단위 예산과 Project 기간 예산, 논리 Agent/Tool의 누적 한도·예약·retry 복원은 구분한다.
    Resume라고 모두 초기화하거나 모두 같은 누적 범위로 합치지 않는다.
 7. `resume_plan`은 조회이며 실행 허가의 영구 증명서가 아니다. 실행 때 잠금 안에서 재검증한다.
    `restart`는 dispatch 이전 중단의 영속 증거와 revision이 있을 때만 허용한다.
+
+기억 규칙은 Project 정책에만 저장한다. Session 범위도 Project가 지정한 적용 대상이다.
+위험도 기준 규칙과 explicit_unknown 조건 규칙은 서로 다른 승인 근거다. Application이
+전달한 숫자 재분류는 원래 실행 binding을 보존한 승인 요청의 후속 revision으로 기록한다.
+재분류 후 정책 적용·사용자 응답·재개 순서는 Application이 선택한다. Backend가 자동 연결하지 않는다.
+조건 구현은 Host가 등록하고 Application이 선택·설정한다. evaluator는 효과 없이 판단하며,
+평가 후 규칙 변경·철회·요청 취소와 같은 소유권 transaction에서 승인 발급을 재검증한다.
+사용자 응답과 기억 규칙 생성은 한 transaction으로 확정한다. 별도 승인 원장을 만들지 않는다.
 
 세부 계약: [승인](interactions.md), [재시도](retry.md), [체크포인트 수명](checkpoints.md),
 [Tool 격리와 효과 원장](process-isolation.md), [공통 완료/receipt 경계](shared-contracts.md).

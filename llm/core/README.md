@@ -18,6 +18,7 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 | [component_reference.py](component_reference.py) | 선택 저장소에서 검증한 Component 참조 응답의 Writer/Projection입니다. 저장·권한 검증을 소유하지 않습니다. |
 | [step_tool_metadata.py](step_tool_metadata.py) | Tool Step의 호출·승인·재시도 metadata와 파생 Operation 영수증 Projection입니다. Session 원장과 기존 완전한 Reader를 대체하지 않습니다. |
 | [interactions.py](interactions.py) | InteractionRequest/Response와 선택지·승인·재개 값의 공통 해석 계약입니다. |
+| [approval.py](approval.py) | 기억 규칙의 범위·조건·생성 근거·철회를 닫힌 데이터 계약으로 선언합니다. |
 | [results.py](results.py) | EngineDelta, EngineOutput, ResumeOutput, CompletionResult, ExecutionResult를 정의합니다. |
 | [steering.py](steering.py) | RunInstruction/InstructionStatus, SteeringTarget/SteeringMode, 예약 경로 SteeringRoute와 일반 대기 요청 구분입니다. 새 영속 도메인은 아닙니다. |
 | [views.py](views.py) | SessionRuntimeView, RunView 등 UI 조회용 스냅샷입니다. |

@@ -53,7 +53,7 @@ from llm.components.processing import (
 )
 from llm.core.models import MessageRole, MessageStatus
 from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record, InstructionCheckpoint
-from llm.core.configuration import resolve_engine_config, UNSET
+from llm.core.configuration import resolve_engine_config, bind_execution_config, UNSET
 from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
 from llm.core.contracts import ResourceRef
@@ -131,7 +131,7 @@ class LoopEngine(BaseEngine):
         # Serialize common definitions explicitly so approval binding retains their full identity.
         values = LoopExecutionBinding.portable(
             LoopExecutionBinding.create(
-                context.resolve_config(self.parameter_key),
+                bind_execution_config(context.resolve_config(self.parameter_key)),
                 LoopAgentOptions(self._agent_options).completion,
                 LoopAgentOptions(self._agent_options).prompt,
                 self._agent_options,

@@ -91,6 +91,74 @@ Project/client가 명시한 값이며 불변식으로 승격하지 않는다.
 
 ## Tool 승인·위험 분류
 
+### 명시적 unknown 허용과 숫자 재분류
+
+승인 근거는 위험도 한도와 명시적 unknown 허용을 구분한다. 기존 `max_risk` 규칙은
+계속 동일 척도의 알려진 위험도만 평가한다. `basis="explicit_unknown"` 기억 규칙은
+숫자 한도를 갖지 않고, risk=null인 요청에만 사용자가 명시한 범위·조건을 적용한다.
+기억 규칙 없이 이번만 승인할 수 있으며 Backend가 규칙이나 조건을 자동 생성하지 않는다.
+위험도 척도 자체가 없는 unknown도 명시적 조건으로 허용할 수 있다. 숫자가 알려지면
+unknown 규칙은 적용하지 않는다. 불확실한 효과의 재실행은 어느 규칙으로도 자동 승인하지 않는다.
+
+`run.reclassify(request, risk=..., risk_scheme=...)`는 Application이 채택한 숫자를 받는다.
+사용자 입력, 모델 계산, 자체 규칙 중 산출·채택 방식은 Application이 소유한다.
+Backend는 숫자의 정확한 정수/비음수 타입, 명시적 척도, 요청 identity/revision과
+재개 접수 여부를 검증한다. 일반 모델 출력이나 metadata를 자동 신뢰하지 않는다.
+PAUSED 승인 요청의 재개 접수 전에만 변경할 수 있다. 취소/만료/불확실 재시도 요청은
+대상이 아니며, 이미 승인했더라도 재개 전 재분류는 가능하다.
+
+분류가 바뀌면 원본 요청·응답·체크포인트를 보존하고 새 요청 revision을 저장한다.
+원래 action과 실행 binding은 바꾸지 않는다. Tool의 원래 trusted classification은
+실행 대상 검증 근거이고, 새 요청의 risk/risk_scheme은 Application 제공 승인 평가값이다.
+재개 시 원래 Tool 분류·인자·contract·Host binding 검사는 그대로 수행한다.
+새 요청에는 이전 승인 응답을 재사용하지 않는다. 같은 값이면 기존 요청을 반환하며,
+실패하면 이전 상태를 보존한다. 이 변경은 이후 호출에 적용할 분류 규칙을 만들지 않는다.
+
+재분류는 자동승인·자동재개를 수행하지 않는다. Application은 결과 표시, 사용자 응답,
+`await run.apply_approval()`로 기존 Project 승인 정책 적용 요청, 명시적 resume 중
+후속 절차를 선택한다. 정책 적용은 여전히 Run snapshot의 후보와 최신 철회를 검증하고
+기존 actor=policy 응답을 저장한다. 재분류·취소·승인·재개 접수는 같은 저장 소유권으로
+직렬화하며 변경 전 평가 결과로 변경 후 요청을 승인하지 않는다.
+
+### 기억 규칙과 철회 계약
+
+기억 규칙은 Project `policies.approval.rules`에 저장한다. Session 범위는 같은
+Project 정책의 적용 대상이며 별도 Session 정책 권한이 아니다. Application이
+category/max_risk, Project/Session 범위와 조건을 명시한다. Backend는 허용 범위,
+유효기간, 위험도나 규칙을 추측하지 않는다. 이번만 승인은 규칙을 생성하지 않는다.
+
+기억 규칙의 `remembered` 기록은 서비스가 소유한다. Project/Session identity,
+증가하는 revision, 선택 evaluator와 그 revision/config, 생성 요청 근거, 철회 시점을
+보존한다. 일반 Project 설정 편집으로 이 기록을 위조·삭제·재활성화하지 않는다.
+`run.respond(..., remember=...)`는 사용자 응답과 규칙을 같은 transaction에 저장한다.
+`project.approvals.list/update/revoke`가 조회와 명시적 변경·철회 경계다.
+수정·철회는 revision을 증가시키며 철회한 ID를 다시 활성화하지 않는다.
+
+조건 evaluator는 Host가 제공하는 신뢰된 구현이며 사용 여부와 값은 Project가
+선택한다. 해당 구현이 자신의 config를 검증하고 일치를 판단한다. 공통 계층은
+child-private 옵션을 해석하지 않는다. evaluator는 무효과 판단만 수행하며 bool만
+반환한다. 오류·구현 부재·revision 불일치는 자동 허용으로 취급하지 않는다.
+위험도 기준 규칙의 unknown risk/scheme mismatch 및 uncertain retry 자동 승인 금지는 유지한다.
+
+자동승인은 Run 시작 snapshot의 후보만 평가한다. 평가 중에는 저장 잠금을 잡지
+않는다. 응답을 확정할 때 같은 소유권 transaction에서 현재 Project의 규칙 내용,
+remembered revision/철회, evaluator revision, 요청 상태를 다시 검사한다. 변경·철회가
+먼저 확정되면 이전 판단으로 발급하지 않는다. 최신 설정의 새 허용 규칙을 실행 중
+Run에 끼워 넣지 않으며 snapshot 자체도 수정하지 않는다. 다른 유효 후보가 없으면
+사용자 승인 대기로 남는다. 규칙 판정은 영속 승인 응답을 대신하지 않는다.
+
+철회는 이후 발급만 막는다. 먼저 확정된 개별 응답은 유지하며 Application이 원할
+때 기존 `cancel_interaction()`으로 별도 취소한다. 개별 취소는 재개 접수 전까지만
+가능하고 재개 접수와 같은 소유권 잠금으로 직렬화한다. 취소는 실행 중단/효과
+되돌리기가 아니며 취소된 요청을 규칙으로 다시 승인하지 않는다.
+Session/Project 복제 시 원본 identity에 묶인 기억 규칙을 새 권한으로 이전하지 않는다.
+Host technical deny, 부모 Tool scope, approval binding과 uncertain-effect 보호를 유지한다.
+
+실행 binding의 공통 `bind_execution_config()`는 승인 발급 규칙만 제외한다.
+기억 규칙을 저장하거나 철회했다고 이미 발급된 사용자/정책 승인을 실행 설정 변경으로
+거절하지 않는다. 나머지 실행 정책과 Tool/Agent/Engine identity 검증은 그대로다.
+사용 예시와 API는 [공통 승인](interactions.md#이번만-승인기억철회)을 참고한다.
+
 `ToolContract.approval_required=True`는 실행 전에 승인 **결정**이 필요하다는 불변식이다.
 사람만 승인할 수 있다는 의미는 아니다. Host `ToolRuntime.authorize=None`이어도 독립적으로
 동작한다. 최종 schema/Project 인자 제약 검증 → trusted classification → contract 승인 요구 →
@@ -98,9 +166,11 @@ Project/client가 명시한 값이며 불변식으로 승격하지 않는다.
 Project 정책과 classifier는 승인 대상 자체를 만들지 않는다. classifier는 분류 데이터만 제공한다.
 
 Project `policies.approval`은 enabled, risk_scheme, rules를 가진다. rule의 category는 정확히
-일치하며 max_risk는 0 이상의 정확한 integer다. bool/float/문자열/음수는 거부한다.
-같은 scheme이고 risk ≤ max_risk일 때만 자동 응답을 기록한다. scheme 불일치나 unknown(null),
-불확실한 효과의 재시도는 자동 승인하지 않는다. 응답 저장은 resume를 자동 호출하지 않는다.
+일치한다. 위험도 기준 규칙은 max_risk와 policy risk_scheme이 필요하며 max_risk는 0 이상의
+정확한 integer다. bool/float/문자열/음수는 거부한다. 같은 scheme이고 risk ≤ max_risk일 때만
+위험도 기준 응답을 기록한다. explicit_unknown 규칙은 max_risk 없이 명시적인 기억 조건이
+필요하며 숫자 비교를 하지 않는다. 불확실한 효과의 재시도는 어느 규칙도 자동 승인하지 않는다.
+응답 저장은 resume를 자동 호출하지 않는다.
 
 ```python
 from llm.components.tools import ToolClassification, ToolContract, ToolEffect, ToolIsolation
@@ -136,8 +206,9 @@ authorize의 기술적 거절은 저장된 approve로도 우회할 수 없다. T
 신뢰한 구현의 요구이며 일반 authorize=True가 이를 자동 승인하지 않는다.
 authorize는 기술적 거부/외부 runtime authorization용이며 Project 승인 정책의 필수 ASK 단계가
 아니다. 기존 adapter가 ToolApprovalRequired를 발생시키는 경로는 유지한다.
-동일 scheme의 threshold 이하이면 actor=policy 응답을 저장하고, 초과/unknown/scheme 불일치면
-사용자 응답을 기다린다. 어느 경우에도 명시적 resume 전 Tool 효과는 발생하지 않는다.
+동일 scheme의 threshold 이하이거나 별도의 explicit_unknown 기억 조건과 일치하면
+actor=policy 응답을 저장한다. 적용 가능한 규칙이 없으면 사용자 응답을 기다린다.
+어느 경우에도 명시적 resume 전 Tool 효과는 발생하지 않는다.
 
 ## 저장 Agent 위임
 

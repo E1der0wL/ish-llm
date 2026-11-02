@@ -159,6 +159,7 @@ class ProjectManager:
         backup_steps=UNSPECIFIED,
         config_validator=UNSPECIFIED,
         engines=UNSPECIFIED,
+        approval_evaluators=None,
     ) -> None:
         registry = (
             components
@@ -166,6 +167,7 @@ class ProjectManager:
             else ComponentRegistry(tuple(components) if components is not ProjectManager.UNSPECIFIED else ())
         )
         self.repository = repository
+        self.approval_evaluators = dict(approval_evaluators) if approval_evaluators is not None else {}
         self.sessions = sessions if sessions is not ProjectManager.UNSPECIFIED else SessionManager()
         self.bind_config_validator(config_validator)
         if self.sessions.run_repository is ProjectManager.UNSPECIFIED:
@@ -207,6 +209,8 @@ class ProjectManager:
         self.sessions.agents = self.agents
 
     def _validate_config(self, project) -> None:
+        from .approvals import validate_approvals
+        validate_approvals(project, self.approval_evaluators)
         self.components.validate_config(project)
         if self.config_validator is not ProjectManager.UNSPECIFIED:
             self.config_validator(project.config)
@@ -232,6 +236,8 @@ class ProjectManager:
             components=selected,
             conversation_storage=storage,
         )
+        from .approvals import protect_approvals
+        protect_approvals(ProjectConfig(), project.config)
         self._validate_config(project)
         project.components = ()
         self.repository.create(project)
@@ -380,6 +386,8 @@ class ProjectManager:
         }
         versions = {name: revision_token(value) for name, value in configurations.items()}
         if config is not ProjectManager.UNSPECIFIED:
+            from .approvals import protect_approvals
+            protect_approvals(current.config, ProjectConfig.from_dict(config))
             current.config = ProjectConfig.from_dict(config)
             self._validate_config(current)
             configurations = {}
@@ -400,10 +408,34 @@ class ProjectManager:
         """최신 설정에 정책 변경만 병합한다. 실행 중 Run의 사본은 바꾸지 않는다."""
         current = self.access.require(project)
         check_revision(current.config.to_dict(), expected_version)
+        from .approvals import protect_approvals
+        previous = deepcopy(current.config)
         policies = current.config.configure_policies(changes)
+        protect_approvals(previous, current.config)
         self._validate_config(current)
         self.repository.save(current)
         return policies
+
+    @workspace_locked
+    def list_approvals(self, project):
+        from .approvals import approval_rules
+        return [rule.to_dict() for rule in approval_rules(self.access.require(project).config)
+                if rule.remembered is not None]
+
+    @workspace_locked
+    def remember_approval(self, project, session, run, request, spec):
+        from .approvals import remember_approval
+        return remember_approval(self, project, session, run, request, spec)
+
+    @workspace_locked
+    def update_approval(self, project, identifier, changes, *, expected_revision):
+        from .approvals import update_approval
+        return update_approval(self, project, identifier, changes, expected_revision=expected_revision)
+
+    @workspace_locked
+    def revoke_approval(self, project, identifier, *, expected_revision):
+        from .approvals import revoke_approval
+        return revoke_approval(self, project, identifier, expected_revision=expected_revision)
 
     @workspace_locked
     def save(
@@ -428,6 +460,8 @@ class ProjectManager:
         ):
             raise ValueError(ProjectManager.MANAGED_STATE)
         previous_components = current.components
+        from .approvals import protect_approvals
+        protect_approvals(current.config, project.config)
         if components is not ProjectManager.UNSPECIFIED:
             self.references.validate_selection(current, components)
             current.components = self.components.validate(components)
@@ -570,9 +604,14 @@ class ProjectManager:
         sessions = self.sessions.list(source)
         for session in sessions:
             self.sessions.require_inactive(session)
+        from .approvals import approval_rules
+        clone_config = deepcopy(source.config)
+        if any(rule.remembered is not None for rule in approval_rules(source.config)):
+            clone_config.configure_policies({'approval': {'rules': [rule.to_dict()
+                for rule in approval_rules(source.config) if rule.remembered is None]}})
         clone = self.create(
             title if title is not ProjectManager.UNSPECIFIED else source.title,
-            config=source.config,
+            config=clone_config,
             components=source.components,
             conversation_storage=source.conversation_storage,
         )

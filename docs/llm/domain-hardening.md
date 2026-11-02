@@ -36,7 +36,8 @@ if plan.can_resume:
   연결된다. 직접 retry_nodes를 지정한 명시적 재개도 응답 영수증을 남긴다.
 - 응답 저장은 항상 실행과 분리한다. 자동 승인도 새 Run을 시작하지 않는다.
 
-프로젝트 자동 승인 기본값은 꺼짐이다. 호스트와 프로젝트가 모두 허용한 범위에서만 사용한다.
+Project 자동 승인 정책을 명시하지 않으면 자동 승인하지 않는다. Project가 승인 정책을 소유하며
+Host의 기술적 거절과 Tool 실행 계약은 승인 뒤에도 유효하다.
 
 ```python
 # 백엔드 구성: classify는 최종 인자에서 신뢰한 Application 분류를 반환한다.
@@ -49,7 +50,11 @@ await project.aconfigure_policies({"approval": {
 }})
 ```
 
-카테고리는 정확히 일치해야 한다. unknown 위험도와 불확실 효과 재시도는 자동 승인하지 않는다.
+카테고리는 정확히 일치해야 한다. 위험도 기준 규칙은 unknown을 승인하지 않는다.
+별도의 `basis="explicit_unknown"` 기억 규칙은 명시한 범위·조건이 일치할 때만 적용한다.
+숫자 재분류는 Application이 `areclassify()`로 요청하고 후속 정책 적용·응답·재개도
+각각 명시적으로 요청한다. 자세한 계약은 [상호작용 API](interactions.md)를 따른다.
+불확실 효과 재시도는 어느 정책으로도 자동 승인하지 않는다.
 호스트의 Tool 허용 목록/실행 계약/거절을 덮어쓰지 않는다. 응답에는 actor=policy와 policy_id가
 남는다. 정책 응답 저장 실패는 PAUSED를 유지하고 운영 로그를 남긴다.
 이 정책 스키마는 `backend.describe_project_config()`에도 포함된다.

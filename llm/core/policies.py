@@ -8,6 +8,7 @@ import json
 import math
 from jsonschema import Draft202012Validator
 from .json_data import JsonObject
+from .approval import RememberedApproval
 from .schema import (
     SchemaKeyword,
     SchemaType,
@@ -665,6 +666,8 @@ def narrow_constraints(parent: dict, child: dict) -> dict:
 @dataclass(frozen=True, slots=True)
 class ApprovalRule:
 
+    EXPLICIT_UNKNOWN: ClassVar[str] = 'explicit_unknown'
+
     id: str = policy_field(
         metadata={
             PolicyDeclaration.SCHEMA: {
@@ -681,7 +684,8 @@ class ApprovalRule:
             }
         }
     )
-    max_risk: int = policy_field(
+    max_risk: int | None = policy_field(
+        default=None,
         metadata={
             PolicyDeclaration.SCHEMA: {
                 SchemaKeyword.TYPE: SchemaType.INTEGER,
@@ -689,6 +693,37 @@ class ApprovalRule:
             }
         }
     )
+    remembered: RememberedApproval | None = policy_field(
+        default=None, metadata={PolicyDeclaration.SCHEMA: RememberedApproval.schema()}
+    )
+    basis: str | None = policy_field(
+        default=None, metadata={PolicyDeclaration.SCHEMA: {'const': EXPLICIT_UNKNOWN}}
+    )
+
+    def to_dict(self):
+        value = asdict(self)
+        if self.remembered is None:
+            value.pop('remembered')
+        if self.basis is None:
+            value.pop('basis')
+        if self.max_risk is None:
+            value.pop('max_risk')
+        return value
+
+    def matches(self, request, policy):
+        if request.category != self.category:
+            return False
+        if self.basis == self.EXPLICIT_UNKNOWN:
+            return request.risk is None
+        return (request.risk is not None and request.risk_scheme == policy.risk_scheme
+                and request.risk <= self.max_risk)
+
+    @classmethod
+    def from_dict(cls, value):
+        values = deepcopy(value)
+        if 'remembered' in values:
+            values['remembered'] = RememberedApproval.from_dict(values['remembered'])
+        return cls(**values)
 
     @classmethod
     def selected_threshold(cls, category, max_risk):
@@ -702,7 +737,11 @@ class ApprovalRule:
     @classmethod
     def schema(cls):
         value = _declared_policy_schema(cls)
-        value[SchemaKeyword.REQUIRED] = [item.name for item in fields(cls)]
+        value[SchemaKeyword.REQUIRED] = ['id', 'category']
+        value['oneOf'] = [
+            {'required': ['max_risk'], 'not': {'required': ['basis']}},
+            {'required': ['basis', 'remembered'], 'not': {'required': ['max_risk']}},
+        ]
         return value
 
 
@@ -757,21 +796,26 @@ class ApprovalPolicy(PolicyValue):
             ],
         }
 
+    def to_dict(self):
+        value = PolicyValue.to_dict(self)
+        value[self.__class__.rules.__name__] = [rule.to_dict() for rule in self.rules]
+        return value
+
     @classmethod
     def validated(cls, value):
         """Project schema has already checked shape; preserve semantic error order."""
         rules = [
-            ApprovalRule(**deepcopy(rule)) for rule in value.get(cls.rules.__name__, [])
+            ApprovalRule.from_dict(rule) for rule in value.get(cls.rules.__name__, [])
         ]
         ids = [rule.id for rule in rules]
         if len(ids) != len(set(ids)):
             raise ValueError(cls.DUPLICATE_RULE)
         if (
-            rules
+            any(rule.basis is None for rule in rules)
             and not str(value.get(cls.risk_scheme.__name__, cls.ABSENT_SCHEME)).strip()
         ):
             raise ValueError(cls.REQUIRED_SCHEME)
-        if any(type(rule.max_risk) is not int for rule in rules):
+        if any(rule.basis is None and type(rule.max_risk) is not int for rule in rules):
             raise ValueError(cls.INVALID_RISK)
         values = deepcopy(value)
         values[cls.rules.__name__] = rules

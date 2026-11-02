@@ -31,10 +31,24 @@ Component 자료에서는 `(Project, Component, identifier)`가 대상의 범위
 | Memory/RAG 문서 | 생성 시 고정되는 generation + 변경마다 증가하는 정수 revision | 두 값을 함께 비교하여 같은 ID의 삭제·재생성도 구별 |
 | Memory 파생 요약 | 캐시 generation + 정수 revision | 공개와 삭제 모두 두 값 비교 |
 | ToolContract, ToolRuntime, Engine/handler | 신뢰한 구현체가 선언하는 revision | 코드/실행 계약 변경 시 Host가 갱신; 파일 hash로 대체하지 않음 |
+| 기억 승인 규칙 | Project 정책 안의 정수 revision | 수정·철회마다 증가; 응답의 policy_id는 원본 Run의 불변 정책 snapshot에 연결 |
 | storage/schema version | 저장 형식의 버전 | 이번 작업에서 변경하지 않음 |
 
 같은 명칭의 의미를 통일하되 모든 revision을 동일한 타입이나 중앙 카운터로 바꾸지 않는다.
 소비자는 소유자가 제공한 snapshot/revision 비교 계약을 사용한다.
+
+기억 승인 규칙은 `(Project, rule.id)`로 식별하며 철회한 ID를 재사용하지 않는다.
+`remembered.revision`은 생성 시 1, 수정·철회 시 증가하는 lifecycle 순서다.
+같은 설정으로 되돌려도 이전 revision의 평가를 다시 사용하지 않는다. 응답의 기존
+`policy_id`가 원본 Run 정책 snapshot의 정확한 규칙과 revision을 식별한다.
+Project 전체 설정의 content CAS는 이 정수를 포함한 기존 `revision_token`을 계속 사용한다.
+규칙 mutation API는 현재 `expected_revision`을 요구한다. 철회 뒤 같은 작업을 재요청하려면
+반환받은 최신 revision을 사용한다. 소스 Run snapshot과 이미 발급된 응답은 수정하지 않는다.
+
+승인 요청의 숫자 재분류는 기존 Interaction revision을 증가시킨 새 요청이다. 이전 요청의
+control에 명시적 reclassify 후속 연결을 저장하며 이전 응답은 새 요청의 응답이 아니다.
+실행 action/binding은 불변이다. 같은 평가값은 새 revision을 생성하지 않는다.
+일반 취소/만료 renewal은 평가값을 바꿀 수 없으며 reclassify와 별개로 검증한다.
 
 ## 정수 revision과 생성 세대
 

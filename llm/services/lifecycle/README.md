@@ -9,6 +9,7 @@ Project, Session, Step과 Component 데이터 핸들의 수명을 관리합니�
 | [__init__.py](__init__.py) | 수명 관리 패키지의 역할을 설명합니다. |
 | [access.py](access.py) | Project 소유권·삭제 여부·접근 경계를 검사합니다. |
 | [projects.py](projects.py) | ProjectRepository/ProjectManager: 생성, 설정, Component 선택, 복제·삭제·복원·백업을 조율합니다. |
+| [approvals.py](approvals.py) | Project 정책 안의 기억 규칙 생성·수정·철회를 처리합니다. 별도 승인 저장소나 실행기를 만들지 않습니다. |
 | [sessions.py](sessions.py) | SessionRepository/SessionManager와 런타임 상태 컨테이너 SessionRuntime을 정의합니다. |
 | [steps.py](steps.py) | StepRepository/StepManager가 Step 수명을 관리하고 StepEventRecorder가 EngineEvent를 저장으로 연결합니다. |
 | [lifecycle_records.py](lifecycle_records.py) | 필수 identity 조회, 삭제 복구 응답, 백업 metadata, 턴 삭제 계획/CAS Projection과 수명 로그 선언입니다. 원본 저장소가 아닙니다. |

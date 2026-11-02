@@ -109,6 +109,7 @@ class ProjectHandle(AsyncFacade):
         self.app = app
         self._snapshot = deepcopy(model)
         self.sessions = Sessions(self)
+        self.approvals = ProjectApprovals(self)
         self.components = Components(self)
         self.results = Results(self)
         from llm.services.lifecycle.agents import AgentHandle
@@ -258,6 +259,32 @@ class ProjectHandle(AsyncFacade):
     adelete = async_method(delete)
     arestore = async_method(restore)
     aclone = async_method(clone)
+
+
+class ProjectApprovals(AsyncFacade):
+    """Remembered Project rules. Individual decisions stay on Run interactions."""
+
+    def __init__(self, project):
+        self.project = project
+        self.app = project.app
+
+    def list(self):
+        self.app._check_open()
+        return self.app.project_manager.list_approvals(self.project._snapshot)
+
+    def update(self, identifier, changes, *, expected_revision):
+        self.app._check_open()
+        return self.app.project_manager.update_approval(
+            self.project._snapshot, identifier, changes, expected_revision=expected_revision)
+
+    def revoke(self, identifier, *, expected_revision):
+        self.app._check_open()
+        return self.app.project_manager.revoke_approval(
+            self.project._snapshot, identifier, expected_revision=expected_revision)
+
+    alist = async_method(list)
+    aupdate = async_method(update)
+    arevoke = async_method(revoke)
 
 
 class Sessions(AsyncFacade):
@@ -793,16 +820,18 @@ class RunHandle(AsyncFacade):
         with self.app.project_manager.ownership.scope():
             return self.app.run_repository.interaction_responses(self.session.data, self.data)
 
-    def respond(self, response: InteractionResponse, *, request_key=UNSET) -> InteractionResponse:
+    def respond(self, response: InteractionResponse, *, request_key=UNSET, remember=UNSET) -> InteractionResponse:
         """응답을 원자적으로 저장한다. 실행은 session.run.resume(run.id, agent_id=...)로 명시한다."""
         self.app._check_open()
         from llm.services.runtime.client_inputs import InputReceipt, response_payload
-        with self.app.project_manager.ownership.scope(records=request_key is not UNSET):
+        with self.app.project_manager.ownership.scope(records=request_key is not UNSET or remember is not UNSET):
             session, run = self.session.data, self.data
             if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER.value:
                 raise ValueError(RunHandle.USER_CHOICE_REQUIRED)
             store = self.app.project_manager.sessions.conversations(session)
             payload = response_payload(run.id, response)
+            if remember is not UNSET:
+                payload['remember'] = deepcopy(remember)
             if request_key is not UNSET:
                 previous = InputReceipt.find(store, session, request_key)
                 if previous is not None:
@@ -810,13 +839,27 @@ class RunHandle(AsyncFacade):
                     responses = [item for item in self.app.run_repository.interaction_responses(session, run)
                                  if item.request_id == previous.interaction_id
                                  and item.request_revision == previous.interaction_revision]
-                    if len(responses) != 1 or response_payload(run.id, responses[0]) != payload:
+                    if len(responses) != 1 or response_payload(run.id, responses[0]) != response_payload(run.id, response):
                         raise ValueError('Accepted interaction response is missing or changed')
                     return responses[0]
             if run.status not in Run.RESUMABLE_STATES:
                 raise ValueError(RunHandle.ACTIVE_RESPONSE)
             if any(self.app.run_repository.resume_link(session, run, store)):
                 raise ValueError(RunHandle.ALREADY_RESUMED)
+            if remember is not UNSET:
+                requests = self.app.run_repository.interaction_requests(session, run)
+                request = next((item for item in requests if item.id == response.request_id), None)
+                if request is None:
+                    raise ValueError('Unknown approval request')
+                response.decision(request)
+                option = request.find_approval()
+                if option is None or option.id != response.option_id:
+                    raise ValueError('Only approval responses can remember a rule')
+                existing = self.app.run_repository.interaction_responses(session, run)
+                if any(item.request_id == request.id for item in existing):
+                    raise ValueError('Remembering an answered request requires its original client request key')
+                self.app.project_manager.remember_approval(
+                    self.session.project._snapshot, session, run, request, remember)
             result = self.app.run_repository.respond(session, run, response)
             if request_key is not UNSET:
                 InputReceipt.record(store, session, run.assistant_message_id, request_key, 'interaction', payload,
@@ -840,9 +883,33 @@ class RunHandle(AsyncFacade):
     def renew_interaction(self, request: InteractionRequest, *, expires_at=UNSPECIFIED):
         return self._change_interaction(request, InteractionOperation.RENEW.value, expires_at=expires_at)
 
+    def reclassify(self, request: InteractionRequest, *, risk: int, risk_scheme: str):
+        """Persist an explicit numeric assessment; never approve or resume automatically."""
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope(records=True):
+            session, run = self.session.data, self.data
+            store = self.app.project_manager.sessions.conversations(session)
+            if any(self.app.run_repository.resume_link(session, run, store)):
+                raise ValueError(RunHandle.ADMITTED_INTERACTION)
+            result = self.app.run_repository.reclassify_interaction(
+                session, run, request, risk=risk, risk_scheme=risk_scheme)
+            views = self.app.run_repository.interaction_views(session, run, store)
+        if result != request:
+            self.app._interaction_changed(run, views)
+        return result
+
+    async def apply_approval(self):
+        """Explicitly apply eligible Project rules; execution still requires resume."""
+        self.app._check_open()
+        result = await self.app._manager(self.session._snapshot).apply_approval(self.id)
+        if result:
+            self.app._interaction_changed(await self.aget_data(), await self.ainteraction_views())
+        return result
+
     ainteraction_views = async_method(interaction_views)
     acancel_interaction = async_method(cancel_interaction)
     arenew_interaction = async_method(renew_interaction)
+    areclassify = async_method(reclassify)
     ainteractions = async_method(interactions)
     ainteraction_responses = async_method(interaction_responses)
     arespond = async_method(respond)

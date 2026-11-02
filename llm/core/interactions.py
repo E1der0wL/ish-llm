@@ -16,6 +16,7 @@ from .schema import checked_schema
 class InteractionOperation(StrEnum):
     CANCEL = "cancel"
     RENEW = "renew"
+    RECLASSIFY = "reclassify"
 
 
 class InteractionJSON:
@@ -499,6 +500,17 @@ class InteractionRequest:
             expires_at=expires_at,
             status=InteractionStatus.PENDING,
         )
+
+    def reclassified(self, identifier, *, created_at, risk, risk_scheme):
+        """Application-supplied approval assessment; execution action remains immutable."""
+        if self.kind != self.KIND_APPROVAL or type(risk) is not int:
+            raise ValueError('Reclassification requires an approval request and integer risk')
+        InteractionRisk.validate(risk_scheme, risk)
+        if (self.risk_scheme, self.risk) == (risk_scheme, risk):
+            raise ValueError('Reclassification must change the assessment')
+        return replace(self, id=identifier, revision=self.renewal_revision(self.revision),
+                       created_at=created_at, risk=risk, risk_scheme=risk_scheme,
+                       status=InteractionStatus.PENDING)
 
     def respond(self, option_id: str, *, value: Any = NO_INPUT) -> "InteractionResponse":
         """UI가 본 요청 버전과 실행 대상에 묶인 응답을 만든다. 저장/실행은 하지 않는다."""

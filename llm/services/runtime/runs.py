@@ -693,34 +693,74 @@ class RunRepository:
                 confirm=confirm,
             )
 
-    def apply_interaction_policy(self, session, run, policy):
-        """정책 응답만 저장한다. 실행 재개와 호스트 허용 여부 검사는 별도다."""
+    def approval_candidates(self, session, run, policy):
+        """Detached candidates from the admitted snapshot, never an approval."""
         policy = ApprovalPolicy.from_dict(policy)
         if not policy.enabled:
             return []
         with self._interaction_scope(session, run) as (interactions, _):
             requests = self.interaction_requests(session, run)
             answered = {r.request_id for r in self.interaction_responses(session, run)}
-            saved = []
+            candidates = []
             for request in requests:
                 if (
                     request.id in answered
                     or request.expired is RunRepository.EXPLICIT_TRUE
-                    or request.risk is RunRepository.ABSENT
-                    or request.risk_scheme != policy.risk_scheme
                     or request.category == InteractionRepository.RETRY_CATEGORY
                     or interactions.control(run, request).cancelled is RunRepository.EXPLICIT_TRUE
                 ):
                     continue
                 for rule in policy.rules:
-                    if rule.category == request.category and request.risk <= rule.max_risk:
+                    if rule.matches(request, policy):
+                        memory = rule.remembered
+                        if memory is not None and (
+                            memory.revoked_at is not None
+                            or not memory.scope.matches(session.project_id, session.id)
+                        ):
+                            continue
                         option = request.find_approval()
                         if option is not RunRepository.ABSENT:
-                            response = replace(
-                                request.respond(option.id), actor=InteractionActor.POLICY, policy_id=rule.id
-                            )
-                            saved.append(self.respond(session, run, response))
-                        break
+                            candidates.append((deepcopy(request), deepcopy(rule)))
+        return candidates
+
+    def apply_interaction_policy(self, session, run, policy, *, evaluated, current_policy, evaluators):
+        """Commit only still-valid evaluated candidates under the caller's ownership.
+
+        No evaluator callbacks run here. A latest policy can withdraw candidates,
+        never introduce new authority into an admitted Run snapshot.
+        """
+        from llm.core.json_data import JsonValue
+        current = ApprovalPolicy.from_dict(current_policy)
+        if not current.enabled:
+            return []
+        rules = {rule.id: rule for rule in current.rules}
+        pending = {(request.id, rule.id): request
+                   for request, rule in self.approval_candidates(session, run, policy)}
+        saved, answered = [], set()
+        for original, rule, evaluator in evaluated:
+            request = pending.get((original.id, rule.id))
+            latest = rules.get(rule.id)
+            if (
+                request is None or request.id in answered or latest is None
+                or request.fingerprint != original.fingerprint or request.revision != original.revision
+                or not JsonValue.same(rule.to_dict(), latest.to_dict())
+                or not latest.matches(request, current)
+            ):
+                continue
+            memory = rule.remembered
+            if memory is not None and (
+                memory.revoked_at is not None
+                or evaluators.get(memory.condition.implementation) is not evaluator
+                or evaluator.revision != memory.condition.revision
+            ):
+                continue
+            option = request.find_approval()
+            # policy_id refers to this Run's immutable policy snapshot, which
+            # already contains the exact rule revision and evaluator contract.
+            response = replace(request.respond(option.id), actor=InteractionActor.POLICY,
+                               policy_id=rule.id)
+            saved.append(self.respond(session, run, response))
+            answered.add(request.id)
         return saved
 
     def resume_link(self, session, run, store, *, messages=ABSENT, records=ABSENT):
@@ -904,6 +944,15 @@ class RunRepository:
         if operation == InteractionOperation.RENEW.value:
             return repository.renew(run, current, expires_at=expires_at)
         raise ValueError(RunRepository.UNKNOWN_INTERACTION)
+
+    def reclassify_interaction(self, session, run, request, *, risk, risk_scheme):
+        self.require_resume(run)
+        if run.status != RunStatus.PAUSED:
+            raise ValueError('Reclassification requires a paused Run')
+        current = next((r for r in self.interaction_requests(session, run) if r.id == request.id), None)
+        if current is None or current.fingerprint != request.fingerprint or current.revision != request.revision:
+            raise ValueError(RunRepository.CHANGED_INTERACTION)
+        return InteractionRepository().reclassify(run, current, risk=risk, risk_scheme=risk_scheme)
 
     def checkpoint(self, run: Run, name: str | None = ABSENT) -> dict:
         from llm.core.checkpoints import select_checkpoint
@@ -1173,6 +1222,7 @@ class RunManager:
         subscriptions: Optional[EventSubscriptions] = ABSENT,
         tool_runtime: Optional[ToolRuntime] = ABSENT,
         policy_resolver=ABSENT,
+        approval_evaluators=None,
         provider_calls=ABSENT,
         output_buffer=ABSENT,
         observability=ABSENT,
@@ -1221,6 +1271,7 @@ class RunManager:
             policy_resolver if policy_resolver is not RunManager.ABSENT else ProjectPolicyResolver()
         )
         self.tool_runtime = tool_runtime if tool_runtime is not RunManager.ABSENT else ToolRuntime()
+        self.approval_evaluators = approval_evaluators if approval_evaluators is not None else {}
         self.provider_calls = provider_calls if provider_calls is not RunManager.ABSENT else ProviderCalls()
         self.provider_diagnostics = provider_diagnostics
         self.output_buffer = output_buffer or OutputBuffer()
@@ -1389,6 +1440,44 @@ class RunManager:
             CheckpointConversation.from_checkpoint(checkpoint).input_message_id,
         ).store(run)
         self.repository.save(run)
+
+    async def _apply_approval_policy(self, session, run):
+        from .approval import resolve_evaluator, evaluate_approval
+
+        policy = deepcopy(RunPolicySnapshot.read(run.metadata).get(PolicySection.APPROVAL, {}))
+        candidates = await self._io.run(self.repository.approval_candidates, session, run, policy)
+        evaluated = []
+        for request, rule in candidates:
+            evaluator = None
+            if rule.remembered is not None:
+                condition = rule.remembered.condition
+                evaluator = await asyncio.to_thread(resolve_evaluator, self.approval_evaluators, condition)
+                if not await evaluate_approval(evaluator, request, condition):
+                    continue
+            evaluated.append((request, rule, evaluator))
+
+        if not evaluated:
+            return []
+
+        def commit():
+            project = self.sessions.project_access.load(session.project_id)
+            current_session = self.sessions.load(project, session.id)
+            current_run = self.repository.load(current_session, run.id)
+            store = self.conversations(current_session)
+            if current_run.status != RunStatus.PAUSED or any(
+                self.repository.resume_link(current_session, current_run, store)
+            ):
+                return []
+            self.repository.require_resume(current_run)
+            return self.repository.apply_interaction_policy(
+                current_session, current_run, policy, evaluated=evaluated,
+                current_policy=project.config.policies.get(PolicySection.APPROVAL, {}),
+                evaluators=self.approval_evaluators,
+            )
+
+        # The same ownership transaction serializes revocation, user responses,
+        # cancellation and resume admission with this final issuance check.
+        return await self._io.run_records(commit)
 
     async def _publish_run(self, run: Run) -> None:
         self._notify_requests()
@@ -2855,12 +2944,7 @@ class RunManager:
                 )
                 if outcome.status == RunStatus.PAUSED:
                     try:
-                        await self._io.run(
-                            self.repository.apply_interaction_policy,
-                            runtime.session,
-                            run,
-                            RunPolicySnapshot.read(run.metadata).get(PolicySection.APPROVAL, {}),
-                        )
+                        await self._apply_approval_policy(runtime.session, run)
                     except Exception:
                         log_event(
                             run.paths.logs,
@@ -3022,6 +3106,18 @@ class RunManager:
                 raise ValueError(RunManager.INVALID_STEERING_TARGETS)
             targets = tuple(targets)
         return await self._send_instruction(run_id, content, targets, request_key=request_key)
+
+    async def apply_approval(self, run_id):
+        """Explicit Application request; persist policy responses without resuming."""
+        def read():
+            _, session = self._prepare()
+            run = self.repository.load(session, run_id)
+            self.repository.require_resume(run)
+            if run.status != RunStatus.PAUSED or any(self.repository.resume_link(session, run, self._store(session))):
+                raise ValueError('Approval policy application requires a paused, unsubmitted Run')
+            return session, run
+        session, run = await self._io.run(read)
+        return await self._apply_approval_policy(session, run)
 
     async def reserve_instruction(self, run_id: str, content: str, *, targets, request_key=UNSET) -> RunInstruction:
         """경로별 다음 Agent 실행 한 번에 예약한다. 실행 중 대상에는 소급 적용하지 않는다."""

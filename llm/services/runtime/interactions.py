@@ -206,6 +206,25 @@ class InteractionRepository:
         self._save(run, request, updated)
         return replacement
 
+    def reclassify(self, run, request, *, risk, risk_scheme):
+        from llm.core.models import new_id, now
+        from llm.core.interactions import InteractionRisk
+
+        if request.kind != InteractionRequest.KIND_APPROVAL or request.category == self.RETRY_CATEGORY:
+            raise ValueError('Only pre-effect approval requests can be reclassified')
+        if type(risk) is not int:
+            raise ValueError('Reclassification requires an integer risk')
+        InteractionRisk.validate(risk_scheme, risk)
+        data = self.control(run, request)
+        if data.cancelled or data.has_replacement or request.expired:
+            raise ValueError('Reclassification requires a current, noncancelled, unexpired request')
+        if (risk_scheme, risk) == (request.risk_scheme, request.risk):
+            return deepcopy(request)
+        replacement = request.reclassified(new_id(), created_at=now(), risk=risk, risk_scheme=risk_scheme)
+        self.initialize(run, replacement)
+        self._save(run, request, data.reclassified_record(replacement))
+        return replacement
+
     def responses(self, run: Run, requests: list[InteractionRequest]) -> list[InteractionResponse]:
         values = []
         for request in requests:

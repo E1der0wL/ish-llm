@@ -8,6 +8,7 @@ from .models import ProjectConfig
 from .configuration_targets import SessionConfiguration
 from llm.core.json_data import JsonObject, JsonPointer
 from .configuration_views import ConfigurationView, ConfigurationOverride
+from .policies import PolicySection, RunPolicySnapshot
 
 
 # Explicit None must override inheritance at the existing public boundaries.
@@ -32,6 +33,20 @@ class ConfigurationError:
 class ConfigurationInput:
     UNSPECIFIED = None
     UNBOUNDED_LIMIT = None
+
+
+def bind_execution_config(configuration):
+    """Bind execution limits, excluding rules that only issue new approvals.
+
+    Approval issuance checks the admitted and current policies transactionally.
+    Its rules cannot invalidate an already issued decision; Tool identity,
+    constraints, runtime authorization and all other execution values stay bound.
+    This is a projection only: stored configuration/snapshots are never changed.
+    """
+    value = deepcopy(configuration)
+    if RunPolicySnapshot.KEY in value:
+        value[RunPolicySnapshot.KEY].pop(PolicySection.APPROVAL, None)
+    return value
 
 
 def resolve_config(layers, *, schema=ConfigurationInput.UNSPECIFIED, host=ConfigurationInput.UNSPECIFIED):

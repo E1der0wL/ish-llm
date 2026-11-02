@@ -18,6 +18,7 @@ from llm.services.lifecycle.steps import StepManager, StepRepository
 from llm.services.lifecycle.sessions import SessionManager, SessionRepository
 from llm.services.runtime.policies import ProjectPolicyResolver
 from llm.services.runtime.tools import ToolRuntime
+from llm.services.runtime.approval import ApprovalEvaluator
 from llm.core.paths import BackendPaths
 from .host_observations import ServiceProjection, ServiceIdentity, ToolRuntimeObservation, HostServiceSnapshot
 
@@ -39,6 +40,7 @@ class BackendServices:
     context_builder: Optional[ConversationContextBuilder] = None
     token_counters: dict[str, Callable] = field(default_factory=dict)
     policy_resolver: Optional[ProjectPolicyResolver] = None
+    approval_evaluators: dict[str, ApprovalEvaluator] = field(default_factory=dict)
     event_handlers: EventHandlers = field(default_factory=EventHandlers)
     logger: DomainLogger = field(default_factory=DomainLogger)
     tool_runtime: ToolRuntime = field(default_factory=ToolRuntime, metadata={ServiceProjection.TOOL: 0})
@@ -136,6 +138,7 @@ class BackendServices:
                 backups=self.backups,
                 backup_steps=steps.repository,
                 engines=engines,
+                approval_evaluators=self.approval_evaluators,
             ),
             runs,
             steps,

@@ -6,7 +6,7 @@
 
 `ToolPolicyValues`·`ToolRetryPolicy`·`ApprovalPolicy`·`ApprovalRule`은 검증된 명시 정책의
 메모리 사본이다. 생략을 저장 기본값으로 만들지 않는다. `normalize_policies`는 원래 명시 키만
-반환하고 공개 Schema는 기존 형식과 같다. 원본·저장 정책, Run이 입장할 때 고정한 정책,
+반환한다. 원본·저장 정책, Run이 입장할 때 고정한 정책,
 실행 중 공유 사용량은 서로 다른 책임이다. 이 값 타입은 호출 권한이나 별도 저장 원본이 아니다.
 
 ToolExecutionScope는 타입의 속성으로 한도·선택·인자 제약·재시도를 읽는다. 기존 부모 한도
@@ -20,6 +20,18 @@ ToolExecutionScope는 타입의 속성으로 한도·선택·인자 제약·재�
 승인 규칙의 순서·유일한 ID·risk scheme·정확한 정수 위험도 검증은 ApprovalPolicy가 소유한다.
 서비스는 유효한 규칙을 읽더라도 현재 응답·취소·만료·재시도 분류를 확인하고 기존 응답 저장
 경계를 통과해야 한다. 이 관측이 실행 재개 또는 Host 허용 검사를 대신하지 않는다.
+
+`ApprovalRule.remembered`는 Project 서비스가 관리하는 범위·조건·생성 근거·revision·철회
+기록이다. 값과 범위는 Application이 명시하고, 선택 evaluator가 자신의 조건 config를 검증한다.
+발급 후보는 Run snapshot에서 가져오되 최신 Project 규칙의 변경·철회가 기존 후보를 무효화할
+수 있다. 최신 규칙으로 후보를 넓히거나 snapshot을 수정하지 않는다.
+실행 binding에서는 발급 정책만 분리한다. [기억·철회 API](interactions.md#이번만-승인기억철회)와
+[revision 범위](revisions.md)를 따른다.
+
+위험도 규칙은 `max_risk`, unknown 명시적 허용은 `basis="explicit_unknown"`과
+`remembered`를 요구하는 닫힌 variant다. 두 근거를 혼합하지 않는다. explicit_unknown은
+숫자가 알려진 요청에 적용되지 않고, threshold 규칙의 scheme 비교는 그대로 유지한다.
+재분류는 policy 값을 생성/변경하지 않는다. 후속 정책 적용은 Application의 별도 호출이다.
 
 Hub의 Tool 재시도 표시는 같은 저장 Run 정책의 타입을 사용한다. 필수 `policies` 스냅샷 누락을
 빈 설정으로 복원하지 않는다. 선택 횟수·delay·취소·효과 판단은 기존 Backend 계약을 따른다.

@@ -48,7 +48,7 @@ import inspect
 import importlib
 import json
 from copy import copy, deepcopy
-from llm.core.configuration import resolve_engine_config
+from llm.core.configuration import resolve_engine_config, bind_execution_config
 from llm.core.agents import AgentMode
 from llm.core.parameters import ParameterLayout
 from llm.core.models import ProjectConfig
@@ -892,7 +892,7 @@ class GraphEngine:
     def _execution_config(self, context):
         return {
             key: value
-            for key, value in context.project.config.to_dict().items()
+            for key, value in bind_execution_config(context.project.config.to_dict()).items()
             if self.config_keys is GraphPreparation.ABSENT
             or key in self.config_keys
             or key in GraphEngine.REQUIRED_CONFIG_SECTIONS

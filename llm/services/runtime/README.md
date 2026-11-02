@@ -18,6 +18,7 @@ engine_options와 요청별 request_context는 서로 다른 계약입니다.
 | [checkpoints.py](checkpoints.py) | Engine 체크포인트 저장·조회·명시적 정리와 삭제 표식 검증입니다. 승인 증거는 보존합니다. |
 | [interaction_records.py](interaction_records.py) | 단일 control Record Reader, 조회 projection, retry 요청 Writer와 저장 경로를 소유합니다. |
 | [interactions.py](interactions.py) | 승인·확인 요청과 사용자 응답의 영속 검증·저장입니다. |
+| [approval.py](approval.py) | Host가 등록한 무효과 조건 evaluator를 검증·호출합니다. 값과 범위는 Project가 명시합니다. |
 | [steering.py](steering.py) | 추가 지시의 대상 등록·마감, 메시지·중첩 체크포인트 참조, 대상별 반영 기록을 연결합니다. |
 | [tool_errors.py](tool_errors.py) · [tool_identity.py](tool_identity.py) | 기존 Tool 오류/승인 신호와 논리 호출 identity의 단일 정의입니다. |
 | [tool_retry_records.py](tool_retry_records.py) · [tool_approval_records.py](tool_approval_records.py) | 재시도 상태 Reader/Writer와 승인 action/source projection입니다. 추가 재시도나 실행 허가를 만들지 않습니다. |

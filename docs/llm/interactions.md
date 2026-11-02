@@ -67,6 +67,82 @@ new_run, = await new_request.wait()
 재접속/알림 유실 시 `ainteractions()`와 `ainteraction_responses()`를 다시 조회한다.
 동기 API는 `interactions()`, `interaction_responses()`, `respond()`다.
 
+### 이번만 승인·기억·철회
+
+위험도가 unknown인 요청을 조건으로 기억할 때는 `max_risk` 대신
+`"basis": "explicit_unknown"`을 명시한다. scope/condition은 동일하게 필수이며
+알려진 위험도에는 이 규칙을 확대 적용하지 않는다. 숫자 기반 위험도 규칙과 별개다.
+
+`request = await run.areclassify(request, risk=20, risk_scheme="app-risk-v1")`는
+Application이 명시한 승인 평가값을 저장한다. 숫자의 산출 방식은 Backend가 정하지 않는다.
+같은 값이면 기존 요청을 반환하고 변경 시 이전 기록을 보존한 새 요청을 반환한다.
+원래 Tool 분류와 실행 binding은 변경하지 않으며 새 요청에는 새 응답이 필요하다.
+재분류만으로 정책 승인이나 실행을 시작하지 않는다. 필요하면 Application이
+`await run.apply_approval()`를 호출해 정책 응답 목록을 받거나 `arespond()`로 응답한다.
+어느 경로든 실제 실행은 별도 `resume()` 호출이다.
+
+`arespond(response)`는 이번 요청만 승인한다. 기억하려면 Application이 `remember`를
+명시한다. 아래 숫자·조건은 사용 예시이며 Backend 기본값이 아니다.
+Host는 백엔드 생성 시 evaluator를 등록해야 한다.
+
+```python
+from llm.llm import BackendServices, SchemaApprovalEvaluator
+
+services = BackendServices(approval_evaluators={
+    "request-schema": SchemaApprovalEvaluator(revision="app-condition-1"),
+})
+# LargeLanguageModel(..., services=services)에 전달한다.
+# Project policies.approval.enabled/risk_scheme도 Application이 명시한다.
+
+await paused_run.arespond(request.respond("approve"), request_key="approval-click-42", remember={
+    "id": "write-this-file",
+    "category": request.category,
+    "max_risk": 20,
+    "scope": "session",  # 또는 "project". 세션 ID는 실제 요청에서 결합한다.
+    "condition": {
+        "implementation": "request-schema",
+        "revision": "app-condition-1",
+        "config": {
+            "type": "object", "required": ["action"],
+            "properties": {"action": {
+                "type": "object", "required": ["tool", "arguments"],
+                "properties": {
+                    "tool": {"const": request.action["tool"]},
+                    "arguments": {"const": request.action["arguments"]},
+                },
+            }},
+        },
+    },
+})
+rules = await project.approvals.alist()  # 철회 기록도 포함한다.
+rule = next(item for item in rules if item["id"] == "write-this-file")
+await project.approvals.arevoke(rule["id"], expected_revision=rule["remembered"]["revision"])
+# 이미 저장된 특정 승인을 취소하려면 별도로 호출한다. 재개 접수 뒤에는 거부한다.
+await paused_run.acancel_interaction(request)
+```
+
+`project.approvals.aupdate(id, changes, expected_revision=...)`는 category/max_risk/condition만
+변경하고 새 revision을 반환한다. 범위·생성 근거는 불변이며 철회한 규칙의 재활성화는 없다.
+일반 Project 설정 API로 서비스 소유 `remembered`를 위조·제거·수정할 수 없다.
+Host evaluator가 없어도 철회할 수 있다. 같은 revision의 철회 재요청은 같은 기록을 반환한다.
+
+조건의 공개 입력은 `InteractionRequest`다. `SchemaApprovalEvaluator`는 로컬 JSON Schema로
+이 입력을 검사하며 원격 schema를 가져오지 않는다. 다른 조건은 `ApprovalEvaluator`의
+`describe_config()`, `validate_config()`, `evaluate(request, config)`를 구현한다.
+evaluate는 동기/비동기 bool이며 권한이나 Tool 실행을 수행하지 않는다. 구현 의미가 바뀌면
+명시적 revision을 바꾼다. Application은 모델이 제시한 임의 조건을 검토 없이 저장하지 않는다.
+
+자동 응답의 기존 `policy_id`는 원본 Run의 `metadata.policies.approval.rules`에서 선택한
+규칙을 가리킨다. 이 불변 snapshot에 범위, 정수 revision, evaluator 이름/revision/config가
+이미 있으므로 응답에 증거 사본을 추가하지 않는다. 최신 Project 규칙과 발급 근거를 혼동하지
+않는다. InteractionResponse 저장 형식과 storage/schema version은 그대로이며 자동 migration은 없다.
+
+승인 발급 전 철회가 확정되면 자동승인되지 않는다. 이미 발급된 응답은 규칙 철회와 독립적이다.
+현재 Run에 새 규칙을 소급 적용하지 않는다. 정책 응답도 저장 뒤 별도 `resume()`가 필요하다.
+규칙에 숨은 만료시간은 없으며 기간 제한이 필요한 Application은 명시적으로 철회한다.
+백업 복원은 원래 Project identity와 기록을 검증한다. 새 Project 복제는 기억 규칙을 복사하지
+않고, Session 복제는 원본 Session 대상 규칙을 새 Session 대상으로 바꾸지 않는다.
+
 요청 스냅샷 자체는 응답 후에도 변경하지 않는다. 요청의 `status="pending"`은
 원본 상태이며 현재 응답 여부는 응답 목록으로 확인한다. `pending_only=True`는
 현재 뷰의 can_respond가 참인 요청만 반환한다. 응답 완료·만료·취소·이미 재개된 요청과
@@ -79,7 +155,8 @@ Run 마감 전의 요청은 제외한다. 이미 재개된 원본 Run에는 응�
 `ToolRuntime(authorize=None, classify=classify)`여도 ToolExecutor가 요청을 저장한다.
 Run이 PAUSED로 확정된 뒤 Project의 approval rule은 policy 응답 또는 사용자 대기를
 결정하며, policy 응답도 명시적 resume 전에는 효과를 실행하지 않는다.
-unknown risk와 risk_scheme 불일치는 자동 승인하지 않는다.
+위험도 기준 규칙은 unknown risk와 risk_scheme 불일치를 자동 승인하지 않는다.
+unknown의 별도 명시적 허용은 위의 explicit_unknown 기억 조건 계약을 따른다.
 
 아래 authorize는 사용자 정의 표시/외부 runtime authorization을 위한 선택적 adapter 예다.
 Project 승인 정책을 동작시키기 위한 필수 선행 단계가 아니다.
@@ -132,6 +209,19 @@ Graph 확인 노드에 `resume_schema`를 정의한 경우만
 
 ## 저장과 검증
 
+### 기억한 허용과 개별 취소
+
+기억 규칙의 소유권과 발급/철회 순서는 [Project 승인 계약](project-authority.md#기억-규칙과-철회-계약)을
+따른다. 사용자 `respond`에 명시한 기억 조건은 응답과 함께 원자적으로 저장된다.
+기억을 지정하지 않은 호출은 현재 요청에만 적용된다. 클라이언트 request key의
+중복 검증에는 기억 조건도 포함하므로 같은 key로 더 넓은 범위를 요청할 수 없다.
+
+policy 응답은 규칙 ID뿐 아니라 사용한 규칙/evaluator revision 근거를 보존한다.
+규칙 평가 이후 저장 직전에 철회·변경과 요청 취소/만료/재개 여부를 다시 확인한다.
+새 판단은 과거 사용자 응답을 덮어쓰지 않는다. 이미 발급한 응답의 취소에는 기존
+`cancel_interaction/acancel_interaction`을 사용한다. 원본 응답은 취소 증거와 함께
+보존하며, 재개 접수 이후 취소는 기존대로 거부한다. 별도 승인 원장은 만들지 않는다.
+
 요청은 `Run/state/checkpoints/<엔진>/records/<키 해시>.json`의 waiting 레코드에
 `interaction`으로 포함된다. 요청 공개와 함께 `Run/state/interactions/<request_id>.json`에
 명시적인 미응답 제어 기록을 저장한다. 이후 응답·취소·갱신은 같은 필수 기록을 원자적으로
@@ -151,7 +241,8 @@ Graph 확인 노드에 `resume_schema`를 정의한 경우만
   새 실행 시도에는 그 시도의 재승인이 필요하며 과거 효과의 승인을 덮어쓰지 않는다.
 - 기존 엔진의 설정/Tool 계약/호스트 정책 revision 검증을 그대로 적용한다.
 - 추천 선택과 risk/priority만으로 자동 승인하지 않는다. 선택적 Project approval 정책도
-  같은 risk_scheme의 Project 규칙만 적용하며 미설정이면 자동 승인하지 않는다. Host 기술적 거절은 우회하지 못한다.
+  같은 risk_scheme의 위험도 기준 규칙 또는 명시한 unknown 기억 조건만 적용한다.
+  정책 미설정이면 자동 승인하지 않는다. Host 기술적 거절은 우회하지 못한다.
 
 Workflow `pause_before`를 입력 변경 없이 직접 `resume()`하는 기존 명시적 확인 방식도
 유지하며 이 경우에도 확인 영수증을 남긴다.
@@ -168,7 +259,8 @@ Workflow `pause_before`를 입력 변경 없이 직접 `resume()`하는 기존 �
 - Engine CHECKPOINT/PAUSED 알림의 interaction은 이미 저장된 요청이다. 하지만
   Engine PAUSED 직후에는 Run 마감이 진행 중일 수 있다. 응답 버튼은 Run의 PAUSED
   알림 또는 `ainteraction_views().can_respond`를 확인한 뒤 활성화한다.
-- `arespond`/`acancel_interaction`/`arenew_interaction`의 INTERACTION_CHANGED는
+- `arespond`/`acancel_interaction`/`arenew_interaction`/`areclassify`와 명시적
+  `apply_approval`의 INTERACTION_CHANGED는
   트랜잭션 확정 후 예약한다. rollback된 변경은 알리지 않는다. metadata의
   `interactions`는 변경 당시의 InteractionView 사본이며 최신 상태 보장은 재조회로 한다.
 - 응답 저장과 실행 재개는 별개다. `answered`는 아직 실행되지 않은 승인이다.
@@ -251,6 +343,11 @@ Record와 projection은 InteractionControlValue의 존재 판정·중첩 Reader�
 고정 필드 이름은 Record dataclass 선언에서 얻는다. Record의 frozen/slots 구조와
 read_scope의 캐시 수명·사본 격리·쓰기 후 무효화를 보존한다. 갱신은 새 요청을 먼저 초기화하고
 원본의 replacement 연결을 저장하며 기존 workspace 트랜잭션과 중단 복구를 따른다.
+
+replacement는 두 명시적 동작을 지원한다. 갱신은 기존 요청 스냅샷이며 실행 대상과
+평가를 바꾸지 않는다. 재분류는 `operation="reclassify"`와 `request`만 가진 닫힌
+envelope다. InteractionReplacement가 이 구분을 읽고 InteractionRecord가 원본과
+비교하여 숫자 평가 외의 action/binding 변경을 거부한다. 새 저장소나 자동 변환은 없다.
 
 RetryInteraction은 이미 시작된 불확실 Step에 대한 요청의 source/action·attempt identity를
 생성한다. 이전 attempt의 승인을 새 attempt에 덮어쓰지 않는다. InteractionStorage와

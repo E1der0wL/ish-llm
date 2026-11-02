@@ -84,7 +84,9 @@ ToolContract.approval_required=True다. 등록된 검사 명령도 파일 생성
 
 Host ASK callback 없이도 승인 요청을 저장하고 Run을 PAUSED로 끝낸다. trusted classifier의
 scheme/category/risk가 Project policies.approval의 rule과 맞으면 actor=policy 응답을 저장한다.
-초과·unknown·scheme 불일치는 사용자 대기다. 자동 응답도 명시적 resume 전에는 실행하지 않는다.
+위험도 기준 규칙의 한도 초과·unknown·scheme 불일치는 사용자 대기다.
+unknown을 명시적으로 기억한 경우에는 별도의 범위·조건 일치로 승인할 수 있으며 위험도는 unknown으로 유지한다.
+자동 응답도 명시적 resume 전에는 실행하지 않는다.
 Host 기술적 거부는 승인 뒤에도 유효하다. [승인 계약](project-authority.md#tool-승인위험-분류)을 참고한다.
 ToolContract와 작업 root/shell/checks는 기존 durable binding에 함께 포함한다.
 process_cancel의 모델 호출에는 승인 결정이 필요하지만 Run 취소·Toolkit.close의 자원 회수는

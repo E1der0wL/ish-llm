@@ -98,6 +98,7 @@ from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunEvent, RunManager, RunErrorCode, RunRequestError
 from llm.services.runtime.policies import RunPolicy, ProjectPolicyResolver, TokenCounters
 from llm.services.runtime.tools import ToolRuntime, ToolCall, ToolExecutionError, ToolApprovalRequired
+from llm.services.runtime.approval import ApprovalEvaluator, SchemaApprovalEvaluator
 from llm.policies.retry import RetryDecision, RetryFailure, RetryPolicy
 from llm.services.runtime.processes import ProcessToolRunner
 from llm.policies import CompletionPolicy
@@ -993,6 +994,7 @@ class LargeLanguageModel:
                 subscriptions=self.events,
                 tool_runtime=self.services.tool_runtime,
                 policy_resolver=self.policy_resolver,
+                approval_evaluators=self.project_manager.approval_evaluators,
                 provider_calls=self.provider_calls,
                 output_buffer=self.services.output_buffer,
                 provider_diagnostics=self.services.provider_diagnostics,

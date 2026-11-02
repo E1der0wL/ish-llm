@@ -11,6 +11,7 @@ from llm.core.interactions import (
     InteractionResponse,
     InteractionStatus,
     InteractionBinding,
+    InteractionOperation,
     approval_request,
     same_interaction_value,
 )
@@ -77,7 +78,11 @@ class InteractionControlValue:
 
     @property
     def parsed_replacement(self):
-        return InteractionRequest.from_dict(self.replacement)
+        return InteractionReplacement.request(self.replacement)
+
+    @property
+    def replacement_operation(self):
+        return InteractionReplacement.operation(self.replacement)
 
     def for_run(self, identifier):
         return {**self.to_dict(), InteractionRecord.run_id.__name__: identifier}
@@ -90,6 +95,11 @@ class InteractionControlValue:
     def renewed_record(self, replacement):
         value = self.to_dict()
         value[InteractionRecord.replacement.__name__] = replacement.to_dict()
+        return value
+
+    def reclassified_record(self, replacement):
+        value = self.to_dict()
+        value[InteractionRecord.replacement.__name__] = InteractionReplacement.reclassified(replacement)
         return value
 
     def responded_record(self, response):
@@ -105,6 +115,36 @@ class InteractionControlValue:
         ):
             raise ValueError(InteractionRecord.CHANGED_RESPONSE_SELECTION)
         return response
+
+
+class InteractionReplacement:
+    """Two explicit successor variants: unchanged-action renewal or numeric reassessment.
+
+    Renewal retains its current request shape. Reclassification has an explicit
+    closed operation envelope; it cannot be inferred from changed request fields.
+    """
+
+    OPERATION = 'operation'
+    REQUEST = 'request'
+
+    @classmethod
+    def operation(cls, value):
+        if not isinstance(value, dict):
+            raise ValueError('Interaction replacement must be an object')
+        if cls.OPERATION not in value:
+            return InteractionOperation.RENEW
+        if set(value) != {cls.OPERATION, cls.REQUEST} or value[cls.OPERATION] != InteractionOperation.RECLASSIFY:
+            raise ValueError('Invalid interaction replacement operation')
+        return InteractionOperation.RECLASSIFY
+
+    @classmethod
+    def request(cls, value):
+        operation = cls.operation(value)
+        return InteractionRequest.from_dict(value[cls.REQUEST] if operation == InteractionOperation.RECLASSIFY else value)
+
+    @classmethod
+    def reclassified(cls, request):
+        return {cls.OPERATION: InteractionOperation.RECLASSIFY.value, cls.REQUEST: request.to_dict()}
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,6 +243,15 @@ class InteractionRecord(InteractionControlValue):
             request.decision_for(response.option_id, value=response.value)
         if self.has_replacement:
             replacement = self.parsed_replacement
+            if self.replacement_operation == InteractionOperation.RECLASSIFY:
+                expected = request.reclassified(replacement.id, created_at=replacement.created_at,
+                                                risk=replacement.risk, risk_scheme=replacement.risk_scheme)
+                if self.cancelled or (request.expires_at is not InteractionRequest.NO_EXPIRY
+                                      and datetime.fromisoformat(request.expires_at) <= datetime.fromisoformat(replacement.created_at)):
+                    raise ValueError(self.MISSING_RENEWAL_EVIDENCE)
+                if not same_interaction_value(replacement.to_dict(), expected.to_dict()):
+                    raise ValueError(self.CHANGED_RENEWAL)
+                return
             expected = request.renewal(
                 replacement.id, created_at=replacement.created_at, expires_at=replacement.expires_at
             )
