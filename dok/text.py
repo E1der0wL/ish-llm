@@ -45,3 +45,19 @@ def fit(text: str, cells: int, marker="…") -> str:
             break
         result += cluster
     return result + (marker if width(marker) <= cells else "")
+
+
+def fit_labels(labels: list[str], cells: int, separator: str, fixed: tuple[int, ...] = ()) -> list[str]:
+    """Preserve fixed labels and share remaining width among shrinkable labels."""
+    if width(separator.join(labels)) <= cells:
+        return labels
+    result = list(labels)
+    remaining = cells - width(separator) * max(0, len(labels) - 1)
+    remaining -= sum(width(labels[index]) for index in fixed)
+    pending = sorted((index for index in range(len(labels)) if index not in fixed),
+                     key=lambda index: width(labels[index]))
+    for position, index in enumerate(pending):
+        allotted = max(0, min(width(labels[index]), remaining // (len(pending) - position)))
+        result[index] = fit(labels[index], allotted)
+        remaining -= width(result[index])
+    return result

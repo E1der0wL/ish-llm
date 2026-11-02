@@ -2,10 +2,11 @@
 
 from .config import ConfigStore, DockConfig, Width, WidthMode
 from .audio import AudioConfig, AudioSnapshot, AudioStatus
+from .appearance import ProgressConfig, TitleConfig, TransportButton, TransportConfig, VisualizerConfig
 from .keys import KeySequence
-from .player import PlaybackSnapshot, PlaybackStatus
+from .player import PlaybackAction, PlaybackSnapshot, PlaybackStatus
 from .records import SettingsError
-from .shortcuts import Shortcut
+from .shortcuts import Separator, Shortcut, ShortcutLayout
 
 
 def install(prompt, *, config_path=None):
@@ -22,4 +23,6 @@ __all__ = [
     "install", "uninstall", "ConfigStore", "DockConfig", "Width", "WidthMode",
     "KeySequence", "Shortcut", "SettingsError", "PlaybackSnapshot", "PlaybackStatus",
     "AudioConfig", "AudioSnapshot", "AudioStatus",
+    "VisualizerConfig", "Separator",
+    "TitleConfig", "ProgressConfig", "TransportConfig", "TransportButton", "PlaybackAction", "ShortcutLayout",
 ]

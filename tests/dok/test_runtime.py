@@ -16,7 +16,7 @@ from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.validation import ValidationError, Validator
 from prompt_toolkit.widgets import Label
 
-from dok import DockConfig, SettingsError, Shortcut, Width, install, uninstall
+from dok import DockConfig, Separator, SettingsError, Shortcut, Width, install, uninstall
 from .support import HostPrompt, Output, render, screen_lines, wait_running
 
 
@@ -213,6 +213,24 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         async with asyncio.timeout(3):
             while len(called) != 3:
                 await asyncio.sleep(0)
+
+    async def test_replacing_shortcut_with_separator_removes_execution_and_key_override(self):
+        called = []
+        self.prompt.set_key("c-g", handler=lambda event: called.append("host"), eager=True)
+        self.dock.configure(DockConfig(shortcuts=(Shortcut(1, "git", key=("c-g",)),)))
+        await self.start("draft")
+        self.dock.show()
+        await render(self.prompt.app)
+        self.dock.configure(DockConfig(shortcuts=(Separator(1),)))
+        await render(self.prompt.app)
+        self.assertFalse(self.dock.execute(1))
+        self.pipe.send_bytes(b"\x07")
+        async with asyncio.timeout(3):
+            while not called:
+                await asyncio.sleep(0)
+        self.assertEqual(called, ["host"])
+        self.assertEqual(self.prompt.default_buffer.text, "draft")
+        self.assertFalse(self.task.done())
 
     async def test_ctrl_sequence_shadows_eager_host_prefix_without_deleting_it(self):
         called = []

@@ -13,6 +13,20 @@ class PlaybackStatus(StrEnum):
     PLAYING = "playing"
 
 
+class PlaybackAction(StrEnum):
+    PREVIOUS = "previous"
+    PLAY_PAUSE = "play_pause"
+    NEXT = "next"
+    PLAY = "play"
+    PAUSE = "pause"
+    STOP = "stop"
+
+    @property
+    def symbol(self) -> str:
+        return {self.PREVIOUS: "⏮", self.PLAY_PAUSE: "⏯", self.NEXT: "⏭",
+                self.PLAY: "▶", self.PAUSE: "⏸", self.STOP: "⏹"}[self]
+
+
 @dataclass(frozen=True, slots=True)
 class PlaybackSnapshot:
     DISCONNECTED_TITLE: ClassVar[str] = "플레이어 연결 안 됨"

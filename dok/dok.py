@@ -12,10 +12,11 @@ PLUGIN_META = {
 from pathlib import Path
 
 from .audio import AudioConfig, AudioSnapshot, AudioStatus
+from .appearance import ProgressConfig, TitleConfig, TransportButton, TransportConfig, VisualizerConfig
 from .config import ConfigStore, DockConfig, Width, WidthMode
 from .controller import DockController
-from .player import PlaybackSnapshot, PlaybackStatus
-from .shortcuts import Shortcut
+from .player import PlaybackAction, PlaybackSnapshot, PlaybackStatus
+from .shortcuts import Separator, Shortcut, ShortcutLayout
 
 
 def install(prompt, *, config_path: str | Path | None = None) -> DockController:

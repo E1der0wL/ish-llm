@@ -8,10 +8,11 @@ from enum import IntEnum
 from prompt_toolkit.mouse_events import MouseButton, MouseEventType
 
 from .audio import AudioSnapshot, AudioStatus
+from .appearance import DockPalette
 from .config import DockConfig
 from .player import PlaybackSnapshot
 from .shortcuts import Shortcut
-from .text import fit, width
+from .text import display_text, fit, fit_labels, width
 
 
 class DockRow(IntEnum):
@@ -36,10 +37,14 @@ class DockGeometry:
 class DockStyle:
     # Use the terminal background, including its configured transparency.
     BASE = "bg:default"
-    BACKGROUND = f"{BASE} #d1d5db"
-    ACCENT = f"{BASE} #67e8f9"
-    DIM = f"{BASE} #6b7280"
-    ERROR = f"{BASE} #fbbf24"
+    BACKGROUND = f"{BASE} {DockPalette.TEXT}"
+    ACCENT = f"{BASE} {DockPalette.ACCENT}"
+    DIM = f"{BASE} {DockPalette.MUTED}"
+    ERROR = f"{BASE} {DockPalette.ERROR}"
+
+    @classmethod
+    def foreground(cls, color: str) -> str:
+        return f"{cls.BASE} {color}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,8 +57,6 @@ class DockLine:
 
 class DockView:
     LEVEL_GLYPHS = "▁▂▃▄▅▆▇█"
-    TRANSPORT = "⏮   ⏯   ⏭"
-    BAR_MAX = 48
     TIME_SEPARATOR = " "
 
     def __init__(self, execute):
@@ -77,43 +80,63 @@ class DockView:
         minutes, seconds = divmod(int(seconds), 60)
         return f"{minutes:02}:{seconds:02}"
 
-    def _progress(self, snapshot, body_width):
+    def _progress(self, config, snapshot, body_width):
         left, right = self._time(snapshot.position), self._time(snapshot.duration)
-        length = max(1, min(self.BAR_MAX, body_width - width(left + right) - 2 * len(self.TIME_SEPARATOR)))
+        length = config.progress.display_length(body_width - width(left + right) - 2 * width(self.TIME_SEPARATOR))
         filled = int(snapshot.progress * length)
         return self.TIME_SEPARATOR.join((left, "━" * filled + "─" * (length - filled), right))
 
     def _shortcuts(self, config, body_width):
-        slots = [config.shortcut(slot) for slot in Shortcut.slots()]
+        slots = [config.entry(slot) for slot in Shortcut.slots()]
+        separator = config.shortcut_layout.separator(body_width)
         compact = [Shortcut.compact_label(slot) for slot in Shortcut.slots()]
         for detailed in (True, False):
-            labels = [item.display(detailed=detailed) if item else label for item, label in zip(slots, compact)]
-            if width(Shortcut.SEPARATOR.join(labels)) <= body_width:
+            labels = [display_text(item.display(detailed=detailed)) if item else label
+                      for item, label in zip(slots, compact)]
+            if width(separator.join(labels)) <= body_width:
                 break
         else:
-            labels = compact
+            labels = fit_labels(labels, body_width, separator,
+                                fixed=tuple(index for index, item in enumerate(slots) if item is None))
         result = []
         for index, (item, label) in enumerate(zip(slots, labels)):
             if index:
-                result.append((DockStyle.BACKGROUND, Shortcut.SEPARATOR, self._swallow))
+                result.append((DockStyle.BACKGROUND, separator, self._swallow))
             enabled = item is not None and item.enabled
-            result.append((DockStyle.ACCENT if enabled else DockStyle.DIM, label,
+            result.append((DockStyle.foreground(item.display_color) if item else DockStyle.DIM, label,
                            self._shortcut_handler(item) if enabled else self._swallow))
         return result
 
+    def _transport(self, config, body_width):
+        buttons = config.transport.buttons
+        separator = config.transport.SEPARATOR
+        labels = fit_labels([button.display() for button in buttons], body_width, separator)
+        result = []
+        for index, (button, label) in enumerate(zip(buttons, labels)):
+            if index:
+                result.append((DockStyle.BACKGROUND, separator, self._swallow))
+            result.append((DockStyle.foreground(button.color), label, self._swallow))
+        return result
+
+    def _visualizer(self, config, audio, body_width):
+        if audio.status == AudioStatus.UNAVAILABLE and audio.message:
+            return [(DockStyle.ERROR, fit(audio.message, body_width), self._swallow)]
+        levels = config.visualizer.display_levels(audio.levels, body_width)
+        text = "".join(self.LEVEL_GLYPHS[round(value * (len(self.LEVEL_GLYPHS) - 1))] for value in levels)
+        return [(DockStyle.foreground(color), char, self._swallow)
+                for char, color in zip(text, config.visualizer.palette(len(text)))]
+
     def render(self, config: DockConfig, snapshot: PlaybackSnapshot, audio: AudioSnapshot, diagnostic: str,
                total_width: int, body_width: int):
-        visualizer = "".join(self.LEVEL_GLYPHS[round(value * (len(self.LEVEL_GLYPHS) - 1))] for value in audio.levels)
-        if audio.status == AudioStatus.UNAVAILABLE and audio.message:
-            visualizer = audio.message
-        title = snapshot.caption if snapshot.has_metadata else audio.application_caption or snapshot.caption
+        title = snapshot.caption if snapshot.has_metadata else config.title.application_caption(audio.applications) or snapshot.caption
         rows = {
-            DockRow.VISUALIZER: [(DockStyle.ACCENT, fit(visualizer, body_width), self._swallow)],
-            DockRow.PROGRESS: [(DockStyle.DIM, fit(self._progress(snapshot, body_width), body_width), self._swallow)],
-            DockRow.TITLE: [(DockStyle.ERROR if diagnostic else DockStyle.BACKGROUND,
+            DockRow.VISUALIZER: self._visualizer(config, audio, body_width),
+            DockRow.PROGRESS: [(DockStyle.foreground(config.progress.color),
+                               fit(self._progress(config, snapshot, body_width), body_width), self._swallow)],
+            DockRow.TITLE: [(DockStyle.ERROR if diagnostic else DockStyle.foreground(config.title.color),
                             fit(diagnostic or title, body_width), self._swallow)],
             # Playback controls intentionally remain disabled until a player adapter exists.
-            DockRow.TRANSPORT: [(DockStyle.DIM, self.TRANSPORT, self._swallow)],
+            DockRow.TRANSPORT: self._transport(config, body_width),
             DockRow.SHORTCUTS: self._shortcuts(config, body_width),
         }
         lines = []

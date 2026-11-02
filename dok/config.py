@@ -12,9 +12,10 @@ import tempfile
 from typing import ClassVar
 
 from .audio import AudioConfig
+from .appearance import ProgressConfig, TitleConfig, TransportConfig, VisualizerConfig
 from .keys import KeyRule, KeySequence
 from .records import Choice, Nested, Number, Record, Sequence, SettingsError, setting
-from .shortcuts import Shortcut
+from .shortcuts import Separator, Shortcut, ShortcutLayout, SlotEntryRule
 
 
 class WidthMode(StrEnum):
@@ -59,8 +60,13 @@ class Width(Record):
 class DockConfig(Record):
     toggle_key: KeySequence = setting(KeyRule(), default=("f8",))
     width: Width = setting(Nested(Width), factory=Width)
-    shortcuts: tuple[Shortcut, ...] = setting(Sequence(Nested(Shortcut), maximum=Shortcut.COUNT), default=())
+    shortcuts: tuple[Shortcut | Separator, ...] = setting(Sequence(SlotEntryRule(), maximum=Shortcut.COUNT), default=())
     audio: AudioConfig = setting(Nested(AudioConfig), factory=AudioConfig)
+    visualizer: VisualizerConfig = setting(Nested(VisualizerConfig), factory=VisualizerConfig)
+    title: TitleConfig = setting(Nested(TitleConfig), factory=TitleConfig)
+    progress: ProgressConfig = setting(Nested(ProgressConfig), factory=ProgressConfig)
+    transport: TransportConfig = setting(Nested(TransportConfig), factory=TransportConfig)
+    shortcut_layout: ShortcutLayout = setting(Nested(ShortcutLayout), factory=ShortcutLayout)
 
     def _check(self) -> None:
         slots, keys = set(), [self.toggle_key]
@@ -73,9 +79,13 @@ class DockConfig(Record):
                     raise SettingsError(f"Overlapping dok keys: {shortcut.key.to_list()}")
                 keys.append(shortcut.key)
 
-    def shortcut(self, slot: int) -> Shortcut | None:
+    def entry(self, slot: int) -> Shortcut | Separator | None:
         Shortcut.validate_slot(slot)
         return next((item for item in self.shortcuts if item.slot == slot), None)
+
+    def shortcut(self, slot: int) -> Shortcut | None:
+        item = self.entry(slot)
+        return item if isinstance(item, Shortcut) else None
 
     @classmethod
     def schema(cls) -> dict:

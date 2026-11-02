@@ -78,3 +78,27 @@ WSL에 `pulseaudio-utils` 클라이언트 도구와 필수 라이브러리를 �
 dok 자동 테스트 **54개가 통과**했다. 실제 Float의 반복 렌더링에서도 문자열 캐시가 누적되지 않는지 확인했으며, 분석을 지연시키고 100개의 새 블록을 전달했을 때 다음 분석은 최신 블록만 처리하고 닫기·EOF에서 읽기 작업을 회수하는지 검증했다. [테스트 로그](../../tests/dok/reports/dok-pst9t0v5/dok.txt), [소스 해시](../../tests/dok/reports/dok-pst9t0v5/snapshot.json).
 
 실제 WSLg 임시 null sink의 1,500Hz 신호·프로그램 이름·종료 정리도 재검증했다. 스피커로 테스트 신호를 보내지 않았다. [실제 오디오 검증](../../tests/dok/reports/dok-audio-live-_kgelfme/result.json). llm/hub 전체 회귀는 실행하지 않았다.
+
+## 바로가기 표시와 사용자 색상
+
+빈 슬롯만 `[숫자]`로 표시하고 등록된 슬롯은 이모지·이름 또는 명령어를 표시한다. 좁은 화면에서도 등록된 항목을 번호로 바꾸지 않고 말줄임하며, 빈 슬롯과 클릭 대상은 유지한다. 바로가기별 `color`, 비주얼라이저의 `visualizer.colors` 단색·가로 그라데이션을 추가했다. 색 검증·정규화·스키마·RGB 보간은 `dok/appearance.py`가 소유한다.
+
+dok 테스트 **60개가 통과**했다. 잘못된 색에 대한 schema/runtime 거부 일치, 설정 저장·조회, 다중 그라데이션의 끝점과 중간 색, 실제 화면 색·투명 배경, 좁은 화면의 클릭 좌표, 그라데이션 반복 렌더링의 폭 캐시 한도를 검증했다. [실행 로그](../../tests/dok/reports/dok-ekxtagl0/dok.txt), [소스 해시](../../tests/dok/reports/dok-ekxtagl0/snapshot.json).
+
+ish 본체 수정이나 llm/hub 전체 회귀는 수행하지 않았다. 실제 RGB 색의 표시 정밀도와 컬러 이모지의 고유 색은 호스트·터미널·폰트 설정을 따른다.
+
+## 비주얼라이저 길이와 구분선 슬롯
+
+`visualizer.length`의 기본값·양의 정수 검증·화면 폭 제한·대역 축소/확대를 `VisualizerConfig`에 추가했다. 길이가 1인 경우, 축소 시 피크 보존, 확대 시 보간, 매우 큰 설정의 화면 폭 제한, 리사이즈 뒤 복원과 그라데이션 끝점을 확인했다.
+
+같은 슬롯 목록에 `Separator`를 등록할 수 있다. `SlotEntryRule`이 `kind: separator` 판별과 schema를 소유하며, 설정 조회는 `entry()`와 실행 가능한 `shortcut()`으로 구분한다. 저장·조회 왕복, 중복 슬롯 거부, 명령·키·잘못된 문자 거부, 구분선의 색상과 클릭 비실행, 기존 바로가기를 구분선으로 바꾼 뒤 호스트 키 복원을 검증했다.
+
+dok 테스트 **67개가 통과**했다. [실행 로그](../../tests/dok/reports/dok-w3es3ihi/dok.txt), [소스 해시](../../tests/dok/reports/dok-w3es3ihi/snapshot.json). ish 본체 변경과 llm/hub 전체 회귀는 수행하지 않았다.
+
+## 타이틀·재생바·음악 버튼·항목 간격 설정
+
+`TitleConfig`가 타이틀 전경색과 프로그램 이름 앞 접두 문구를 소유한다. 기존 `AudioSnapshot.application_caption`도 기본 `TitleConfig`의 조합 규칙을 사용한다. `ProgressConfig`는 시간 표시를 제외한 막대 길이와 행 전경색을 소유한다. `PlaybackAction`의 기본 기호를 `TransportButton`이 사용하고 `TransportConfig`가 버튼 순서·중복 검증과 schema를 제공한다. `ShortcutLayout`의 padding은 명령 조합 공백과 분리했다.
+
+dok 테스트 **77개가 통과**했다. 새 설정의 저장·조회, 기존 설정의 기본값, schema/runtime 거부 일치, 접두 문구 제거, 실제 타이틀·진행바 셀 색, 버튼 순서·사용자 문자·숨김·비실행 클릭, 긴 버튼 말줄임, 0칸 간격 및 큰 길이·간격의 화면 폭 제한을 검증했다. [실행 로그](../../tests/dok/reports/dok-s_t2h1qi/dok.txt), [소스 해시](../../tests/dok/reports/dok-s_t2h1qi/snapshot.json).
+
+이번 변경은 표시 설정이다. 음악 버튼의 플레이어 연결은 추가하지 않았으며 ish 본체 변경과 llm/hub 전체 회귀도 수행하지 않았다.

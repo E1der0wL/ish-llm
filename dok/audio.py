@@ -9,6 +9,7 @@ from enum import StrEnum
 import json
 
 from .records import Boolean, Choice, Number, Record, Sequence, Text, setting
+from .appearance import TitleConfig
 from .spectrum import SpectrumAnalyzer
 
 
@@ -47,7 +48,7 @@ class AudioSnapshot(Record):
 
     @property
     def application_caption(self) -> str:
-        return "재생 중: " + " · ".join(self.applications) if self.applications else ""
+        return TitleConfig().application_caption(self.applications)
 
 
 @dataclass(frozen=True, slots=True)
