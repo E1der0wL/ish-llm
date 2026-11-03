@@ -8,6 +8,7 @@ from llm.core.models import ResourceKind, StepKind
 from llm.core.checkpoints import CheckpointOperation
 from llm.core.steering_channel import SteeringChannel
 from llm.core.steering import SteeringTarget
+from llm.engines.steering import InvocationRedirected
 from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringReason
 from llm.core.checkpoint_records import CheckpointWrite
 
@@ -134,6 +135,7 @@ class BaseEngine:
     HOST_AGENT_INVALID = "Host action must implement these Agent settings: "
     HOST_FIELD_SEPARATOR = ", "
     steering_mode = SteeringMode.UNSUPPORTED
+    redirectable = False
 
     def for_agent(self, definition):
         """Bind a host action without silently accepting unimplemented settings."""
@@ -166,7 +168,7 @@ class BaseEngine:
 
     @classmethod
     async def open_instructions(cls, context: EngineContext, *, checkpoint_event: Optional[EngineEvent] = ABSENT,
-                                boundary: Optional[str] = ABSENT) -> AsyncIterator[EngineEvent]:
+                                boundary: Optional[str] = ABSENT, redirectable: bool = False) -> AsyncIterator[EngineEvent]:
         """Open and optionally select the first boundary under one storage ACK.
 
         The caller supplies a prepared checkpoint and stable boundary before any
@@ -186,10 +188,12 @@ class BaseEngine:
             if checkpoint_event is not cls.ABSENT:
                 yield checkpoint_event
             return
+        inbox.redirectable = redirectable
         async with aclosing(cls.instruction_event(context, SteeringOperation.OPEN, target=SteeringTarget(
                 id=inbox.target_id, run_id=context.run.id, engine=inbox.engine,
                 mode=inbox.mode, scope=inbox.scope, node_id=inbox.node_id,
-                node_path=inbox.node_path, accepting=inbox.mode == SteeringMode.CONSUME).registration(), **selection)) as events:
+                node_path=inbox.node_path, accepting=inbox.mode == SteeringMode.CONSUME,
+                redirectable=redirectable).registration(), **selection)) as events:
             async for event in events:
                 yield replace(event, checkpoint=checkpoint_event) if checkpoint_event is not cls.ABSENT else event
 
@@ -677,6 +681,12 @@ class BaseEngine:
         except (asyncio.CancelledError, GeneratorExit):
             # Never yield while being cancelled/closed. RunManager finalizes the
             # persisted active Step, including cancellation before run() starts.
+            raise
+        except InvocationRedirected:
+            if not started_step:
+                yield start
+            yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
+                              metadata={'reason': 'execution_redirected'})
             raise
         except Exception as error:
             # 소유한 기한만 분류한다. action이 직접 던진 TimeoutError를 wrapper timeout으로 오인하지 않는다.

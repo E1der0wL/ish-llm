@@ -121,6 +121,8 @@ from llm.services.runtime.steering import (
     close_targets,
     reservation_receipts,
     resume_instructions,
+    unselected_instruction,
+    withdraw_instruction,
 )
 from llm.engines.registry import EngineRegistry
 from llm.components.tools import ToolRegistry
@@ -1345,7 +1347,8 @@ class RunManager:
             EventChannel.ENGINE.value, run, event, on_error=lambda: self._observer_failed(run)
         )
 
-    def _accept_instruction(self, run_id, content, targets, reserved=DIRECT_INSTRUCTION):
+    def _accept_instruction(self, run_id, content, targets, reserved=DIRECT_INSTRUCTION, redirect=False,
+                            *, receipts=None):
         _, session = self._prepare()
         run = self.repository.load(session, run_id)
         channel = SteeringChannel.read(run)
@@ -1382,17 +1385,24 @@ class RunManager:
                     RunErrorCode.STEERING_UNAVAILABLE, RunManager.MISSING_TARGET.format(identifier=identifier)
                 )
             selected.append(InstructionReceipt.active(target))
+            if redirect and (not target.redirectable or control.steering is None
+                             or identifier not in control.steering.channels):
+                raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE,
+                                      'Selected execution does not support redirection')
         store = self._store(session)
         message = store.create(
             MessageRole.USER,
             content,
             MessageStatus.QUEUED,
             run_id=run.id,
-            metadata=InstructionMessageRecord.create(run.id, channel.input_message_id, selected).metadata(),
+            metadata=InstructionMessageRecord.create(run.id, channel.input_message_id,
+                                                       selected if receipts is None else receipts,
+                                                       redirect=redirect).metadata(),
         )
         return run, RunInstruction.from_message(message)
 
-    async def _send_instruction(self, run_id, content, targets, *, reserved=DIRECT_INSTRUCTION, request_key=UNSET):
+    async def _send_instruction(self, run_id, content, targets, *, reserved=DIRECT_INSTRUCTION,
+                                request_key=UNSET, redirect=False):
         if not isinstance(content, str) or not content.strip():
             raise ValueError(RunManager.EMPTY_INSTRUCTION)
 
@@ -1400,30 +1410,92 @@ class RunManager:
             async with self._control_lock():
                 if self._closed:
                     raise RuntimeError(RunManager.SHUT_DOWN)
-                if request_key is UNSET:
-                    run, value = await self._io.run(self._accept_instruction, run_id, content, targets, reserved)
-                    return run, value, True
-
                 def persist():
                     _, session = self._prepare()
                     store = self._store(session)
-                    kind = 'reservation' if reserved else 'instruction'
+                    kind = 'reservation' if reserved else 'redirect' if redirect else 'instruction'
                     payload = {'run_id': run_id, 'content': content, 'targets':
                                [v.to_dict() for v in targets] if reserved else
                                list(targets) if targets is not RunManager.ABSENT else None}
-                    previous = InputReceipt.find(store, session, request_key)
+                    previous = InputReceipt.find(store, session, request_key) if request_key is not UNSET else None
                     if previous is not None:
                         previous.require(kind, payload)
                         return self.repository.load(session, run_id), RunInstruction.from_message(store.get(previous.message_id)), False
-                    run, value = self._accept_instruction(run_id, content, targets, reserved)
-                    InputReceipt.record(store, session, value.id, request_key, kind, payload, run_id=run_id)
+                    run, value = self._accept_instruction(run_id, content, targets, reserved, redirect)
+                    if request_key is not UNSET:
+                        InputReceipt.record(store, session, value.id, request_key, kind, payload, run_id=run_id)
                     return run, value, True
-                return await self._io.run_records(persist)
+                run, value, accepted = await self._io.run_records(persist)
+                if accepted and redirect:
+                    control = self._active.executions.get(run.id) if self._active is not None else None
+                    if control is not None and control.steering is not None:
+                        for target in value.targets:
+                            inbox = control.steering.channels.get(target['id'])
+                            if inbox is not None and not inbox.closed:
+                                inbox.control.request(value.id)
+                return run, value, accepted
 
         run, value, accepted = await drain_on_cancel(accept())
         if accepted:
             await self._publish_instructions(run, [value])
         return value
+
+    async def _change_instruction(self, run_id, identifier, *, content=None, request_key=UNSET):
+        if content is not None and (not isinstance(content, str) or not content.strip()):
+            raise ValueError(self.EMPTY_INSTRUCTION)
+
+        async def change():
+            async with self._control_lock():
+                def persist():
+                    _, session = self._prepare()
+                    run = self.repository.load(session, run_id)
+                    store = self._store(session)
+                    payload = {'run_id': run_id, 'instruction_id': identifier, 'content': content}
+                    if request_key is not UNSET:
+                        previous = InputReceipt.find(store, session, request_key)
+                        if previous is not None:
+                            previous.require('replacement', payload)
+                            return run, [RunInstruction.from_message(store.get(previous.message_id))], False
+                    if run.status != RunStatus.RUNNING or self._active is None:
+                        raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, self.NO_LIVE_INSTRUCTIONS)
+                    execution = self._active.executions.get(run_id)
+                    if execution is None or execution.interrupt_requested:
+                        raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, self.FOREIGN_RUNTIME)
+                    message, original = unselected_instruction(self.repository, run, store, identifier)
+                    # Delivery to a live cancellation boundary is already an
+                    # action, even if new model input has not yet been selected.
+                    if original.redirect:
+                        raise ValueError('Redirection has already been dispatched; send a new correction')
+                    replacement = None
+                    if content is not None:
+                        reserved = all(t.reserved for t in original.targets)
+                        targets = ([t.reservation for t in original.targets] if reserved else
+                                   [t.id for t in original.targets])
+                        # Preserve the original one-shot binding, including a
+                        # reservation already bound before its first selection.
+                        _, replacement = self._accept_instruction(run_id, content, targets, reserved,
+                                                                  receipts=original.targets)
+                        if request_key is not UNSET:
+                            InputReceipt.record(store, session, replacement.id, request_key,
+                                                'replacement', payload, run_id=run_id)
+                    changed = withdraw_instruction(store, message, original,
+                        reason='superseded' if replacement is not None else 'withdrawn')
+                    return run, [changed, *([replacement] if replacement is not None else [])], True
+                return await self._io.run_records(persist)
+
+        run, values, changed = await drain_on_cancel(change())
+        if changed:
+            await self._publish_instructions(run, values)
+        return values[-1]
+
+    async def _save_steering(self, save, run, store, event, usage, channel, directive):
+        # Serialize durable selection with acceptance/withdrawal and its wake-up
+        # mirror. Cancellation never crosses into the storage consumer Task.
+        async with self._control_lock():
+            messages, changed = await save(self._steering_boundary, run, store, event, usage)
+            if directive.selects:
+                channel.control.selected(m.id for m in messages)
+            return messages, changed
 
     def _steering_boundary(self, run, store, event, tool_usage):
         # Prepared checkpoint + channel transition form one explicit ACK. No
@@ -2522,6 +2594,7 @@ class RunManager:
                     ),
                 )
             context = await self._io.run(self._context, runtime, run, policies, engine=engine)
+            runtime.executions[run.id].steering = context.steering
             bind_records = self._io.prepare_records if EngineHooks.prepares_execution(engine) else self._io.run_records
             await bind_records(
                 self._bind_execution, run, engine,
@@ -2583,6 +2656,7 @@ class RunManager:
                             target.scope != channel.scope
                             or target.mode != channel.mode
                             or target.engine != channel.engine
+                            or target.redirectable != channel.redirectable
                         ):
                             raise ValueError(RunManager.TARGET_MISMATCH)
                     usage = (
@@ -2594,7 +2668,7 @@ class RunManager:
                     # effects. The next execution/approval boundary persists the
                     # entire dependency prefix before it can authorize work.
                     save = self._io.prepare_records if directive.operation == SteeringOperation.OPEN else self._io.run_records
-                    messages, changed = await save(self._steering_boundary, run, store, event, usage)
+                    messages, changed = await self._save_steering(save, run, store, event, usage, channel, directive)
                     if event.has_checkpoint:
                         notifications.append(event.checkpoint)
                     if directive.operation in (SteeringOperation.ROUTES, SteeringOperation.BIND):
@@ -3106,6 +3180,22 @@ class RunManager:
                 raise ValueError(RunManager.INVALID_STEERING_TARGETS)
             targets = tuple(targets)
         return await self._send_instruction(run_id, content, targets, request_key=request_key)
+
+    async def redirect(self, run_id: str, content: str, *, targets=ABSENT, request_key=UNSET) -> RunInstruction:
+        """Durably request cancellation of selected current invocations, not the Run."""
+        if targets is not self.ABSENT:
+            if not isinstance(targets, (list, tuple)) or any(not isinstance(v, str) or not v for v in targets):
+                raise ValueError(self.INVALID_STEERING_TARGETS)
+            targets = tuple(targets)
+        return await self._send_instruction(run_id, content, targets, request_key=request_key, redirect=True)
+
+    async def withdraw_instruction(self, run_id, identifier):
+        return await self._change_instruction(run_id, identifier)
+
+    async def replace_instruction(self, run_id, identifier, content, *, request_key=UNSET):
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError(self.EMPTY_INSTRUCTION)
+        return await self._change_instruction(run_id, identifier, content=content, request_key=request_key)
 
     async def apply_approval(self, run_id):
         """Explicit Application request; persist policy responses without resuming."""

@@ -11,6 +11,7 @@ from llm.core.steering import SteeringMode
 from llm.core.steering_channel import SteeringChannel
 from llm.components.tools import ToolRegistry
 from .events import EngineEvent
+from .steering import InvocationControl
 
 
 @dataclass(slots=True)
@@ -31,6 +32,8 @@ class SteeringInbox:
     acknowledged: Optional[str] = None
     opened: bool = False
     closed: bool = False
+    redirectable: bool = False
+    control: InvocationControl = field(default_factory=InvocationControl, repr=False)
 
     def child(self, *, target_id: str, scope: str, engine: str, mode: SteeringMode,
               node_id: str, node_path: Optional[str]) -> "SteeringInbox":

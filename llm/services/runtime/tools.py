@@ -1,6 +1,7 @@
 """Engine 간에 공유하는 Tool 호출기. 실행 인자·결과·실패를 Step 이벤트로 보고한다."""
 
-from llm.core.tool_contracts import ToolContract
+from llm.core.tool_contracts import ToolContract, ToolEffect
+from llm.engines.steering import InvocationRedirected
 from llm.core.tool_selection_records import ToolBindingRecord, ToolInvocationSelection
 from llm.core.tool_usage_records import ToolUsageError, ToolUsageRecord, ToolUsageCheckpoint
 from llm.core.tool_event_result import ToolEventResult
@@ -48,7 +49,7 @@ from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.policies import ExecutionLimitError
 from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
 from llm.services.runtime.operations import operation_token
-from .tool_errors import ToolExecutionError, ToolApprovalRequired, ToolInvocationError
+from .tool_errors import ToolExecutionError, ToolApprovalRequired, ToolInvocationError, ToolRedirected
 from .tool_context import ToolCallContext
 from .tool_identity import ToolInvocationIdentity
 from .tool_retry_records import ToolRetryCheckpoint, ToolRetryState
@@ -653,7 +654,16 @@ class ToolExecutor:
             metadata=ToolStepMetadata.started(metadata, arguments, ToolExecutionPhase.AUTHORIZING, call),
         )
         authorized = ToolExecutor.UNAUTHORIZED
+        inbox = getattr(context, EngineContext.steering.__name__, None)
+        control = inbox.control if inbox is not None and inbox.redirectable else None
         try:
+            if control is not None:
+                try:
+                    control.check()
+                except InvocationRedirected as error:
+                    effect = (ToolExecutionError.UNCERTAIN_EFFECT if retry_state.uncertain
+                              else ToolExecutionError.NO_EFFECT)
+                    raise ToolRedirected(error.instructions, effect=effect) from error
             deadline = RetryPolicy.end(seconds)
             retry = RetryPolicy(
                 (
@@ -769,12 +779,35 @@ class ToolExecutor:
                         else:
                             async with timeout(remaining):
                                 with ToolCallContext.scope(call):
-                                    if scope.runtime.runner is ToolExecutor.ABSENT:
-                                        value = await tool.handler(deepcopy(arguments))
-                                    else:
-                                        value = await scope.runtime.runner(tool, deepcopy(call))
+                                    entered = False
+
+                                    async def invoke():
+                                        nonlocal entered
+                                        entered = True
+                                        if scope.runtime.runner is ToolExecutor.ABSENT:
+                                            return await tool.handler(deepcopy(arguments))
+                                        return await scope.runtime.runner(tool, deepcopy(call))
+
+                                    try:
+                                        value = await invoke() if control is None else await control.call(invoke)
+                                    except InvocationRedirected as error:
+                                        effect = (ToolExecutionError.NO_EFFECT if not uncertain_attempt and
+                                                  (not entered or tool.contract.effect == ToolEffect.READ_ONLY) else
+                                                  ToolExecutionError.UNCERTAIN_EFFECT)
+                                        if effect == ToolExecutionError.NO_EFFECT and call.operation_key is not None:
+                                            await scope.operations.not_applied(call, str(error))
+                                        raise ToolRedirected(error.instructions, effect=effect) from error
                         break
+                    except ToolRedirected:
+                        # Direction changes never enter retry/argument-repair policy.
+                        raise
                     except Exception as error:
+                        if control is not None and control.pending:
+                            effect = (error.effect if not uncertain_attempt and isinstance(error, ToolExecutionError)
+                                      else ToolExecutionError.UNCERTAIN_EFFECT)
+                            if effect == ToolExecutionError.NO_EFFECT and call.operation_key is not None:
+                                await scope.operations.not_applied(call, str(error))
+                            raise ToolRedirected(control.pending, effect=effect) from error
                         uncertain_attempt = uncertain_attempt or not (
                             isinstance(error, ToolExecutionError)
                             and error.effect == ToolExecutionError.NO_EFFECT
@@ -932,6 +965,11 @@ class ToolExecutor:
             scope.record_completion()
         except (asyncio.CancelledError, GeneratorExit):
             raise
+        except ToolRedirected as error:
+            yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
+                              metadata={'reason': 'execution_redirected',
+                                        'diagnostic': error.diagnostic.to_dict()})
+            raise
         except ToolApprovalRequired as request:
             if authorized:
                 error = ToolExecutionError(
@@ -1058,6 +1096,9 @@ class ToolExecutor:
                 status = ObservationStatus.PAUSED.value
         except ToolApprovalRequired:
             status = ObservationStatus.APPROVAL_REQUIRED.value
+            raise
+        except ToolRedirected as error:
+            status, code = ObservationStatus.CANCELLED.value, error.code
             raise
         except (asyncio.CancelledError, GeneratorExit):
             if not ToolEventResult(result).paused:

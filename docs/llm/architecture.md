@@ -1,5 +1,9 @@
 # 현행 LLM 아키텍처
 
+명시적 추가 지시/방향 전환은 [steering 계약](steering.md)을 따른다. RunManager가 접수와
+선택을 저장하고 Engine이 적용 경계를 소유한다. 현재 invocation 취소는 저장 Task나 Run 전체
+취소와 구분하며 ToolExecutor의 승인·효과·재시도 책임을 옮기지 않는다.
+
 현재 main의 구현과 보존할 계약을 설명합니다. 리팩터링은 main에 병합되었으며
 단계별 근거는 [전수 점검](contract-closure.md), 최신 변경과 검증 범위는 [인계](handoff.md)에 있습니다.
 과거 누적 안내는 [보관 목록](documentation-history.md)에서 분리해 읽을 수 있습니다.

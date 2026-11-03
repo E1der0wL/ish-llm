@@ -118,21 +118,27 @@ class LoopToolRecord(LoopCheckpointRecord):
         return {cls.STATUS: status, cls.ERROR: error}
 
     @classmethod
-    def deferred(cls, *, name, arguments, boundary, instructions):
+    def deferred(cls, *, name, arguments, boundary, instructions, cancelled=False):
         from llm.core.checkpoints import CheckpointStatus
         if not instructions:
             raise ValueError('Deferred Tools require selected instructions')
-        return {cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.NAME: name,
+        return {**({'cancelled': True} if cancelled else {}),
+                cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.NAME: name,
                 cls.ARGUMENTS: arguments, cls.DEFERRED_BOUNDARY: boundary,
                 cls.DEFERRED_BY: list(instructions)}
 
     def deferred_content(self, *, name, arguments, boundary, instructions):
-        expected = self.deferred(name=name, arguments=arguments, boundary=boundary, instructions=instructions)
+        cancelled = self._value.get('cancelled', False)
+        if type(cancelled) is not bool:
+            raise ValueError('Invalid cancelled Tool receipt')
+        expected = self.deferred(name=name, arguments=arguments, boundary=boundary, instructions=instructions,
+                                 cancelled=cancelled)
         # The checkpoint owner adds scope/usage envelopes. Compare only the Loop
         # deferral payload; common metadata remains validated by its own owner.
         if any(key not in self._value or self._value[key] != value for key, value in expected.items()):
             raise ValueError('Deferred Tool identity or instruction selection changed')
-        return json.dumps({'status': self.NOT_EXECUTED, 'reason': 'superseded_by_instruction',
+        return json.dumps({'status': 'cancelled_no_effect' if cancelled else self.NOT_EXECUTED,
+                           'reason': 'superseded_by_instruction',
                            'instruction_ids': list(instructions)}, ensure_ascii=False)
 
     @property

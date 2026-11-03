@@ -1,5 +1,42 @@
 # 실행 중 추가 지시
 
+## 명시적 방향 전환과 미반영 지시 철회
+
+`steer()`는 현재 호출을 취소하지 않는다. Loop는 첫 Tool을 포함한 미시작 호출
+직전에 pending 지시를 확인한다. `redirect()`는 동일한 영속 접수 경계를 사용하고,
+선택한 소비자가 `redirectable`을 선언한 경우에만 현재 모델/leaf Tool 호출에 취소를 요청한다.
+Graph 컨테이너·다른 병렬 Agent·별도로 시작한 background process를 자동 종료하지 않는다.
+`agent_run`으로 위임한 자식 실행 역시 부모를 취소한다고 함께 중단하지 않는다. 자식의
+수신 채널을 명시적으로 선택한다.
+호출자는 대상과 방식을 명시하며 Backend는 새로운 timeout, retry, 우선순위 기본값을 만들지 않는다.
+
+취소는 Run이나 저장 ACK Task가 아닌 현재 invocation에만 전달한다. cleanup 뒤 모델은 같은
+Run의 다음 iteration에서 원본 요청과 이미 반영된 지침을 유지하여 재판단한다. 실제 시도와
+사용량은 지워지지 않으며 iteration limit도 초기화하지 않는다. 중단된 모델 Step의 부분 출력은
+보존하지만 완성 응답/Tool 실행 근거로 사용하지 않는다. 취소를 무시한 늦은 모델 결과는 폐기한다.
+
+Tool의 실제 반환 결과는 취소 경쟁에서도 보존한다. 취소로 종료된 read-only Tool은 trusted
+ToolContract의 무효과 선언을 근거로 다음 판단을 허용한다. 외부/unknown 효과 Tool은 실행 여부를
+추측하지 않고 uncertain 실패와 STARTED checkpoint를 유지한다. 자동 재시도하지 않으며 기존
+명시적 재개·retry_nodes·operation receipt 계약을 적용한다. 완료된 Tool을 다시 실행하지 않는다.
+프로세스/SDK/remote service의 실제 종료 능력은 해당 구현이 소유한다. 취소 요청은 서버 추론 중단
+확인이 아니고, 외부 효과 rollback도 아니다. 새로운 Tool 인자는 기존 검증·분류·승인을 다시 거친다.
+
+`withdraw_instruction(run_id, instruction_id)`와 `replace_instruction(run_id, instruction_id,
+content, request_key=...)`는 아직 어떤 대상에서도 checkpoint에 선택되지 않은 pending 지시만
+처리한다. 원본은 삭제하지 않고 unapplied와 withdrawn/superseded 사유를 남긴다. 대체는 원본과
+같은 대상/예약을 사용하며 새 메시지를 만든다. 이미 dispatch된 `redirect`는 취소 동작을 되돌릴 수
+없으므로 철회·대체 대신 새 정정 지시를 보낸다. 선택 또는 반영과 경합하면 저장
+직렬화 순서로 한쪽만 성공한다. 이미 선택된 지시에는 새 정정 지시를 보낸다. 선택은 재개 문맥의
+근거이므로 단순히 applied 표시가 아직 없다는 이유로 철회하지 않는다.
+예약이 이미 특정 실행에 결합됐지만 아직 선택되지 않았다면, 대체 지시도 그 결합을 그대로
+유지한다. 다음 반복/다른 실행으로 예약을 새로 배정하지 않는다.
+
+취소의 접수·선택·반영은 기존 Message/Checkpoint가 source of truth다. runtime control은 잠든
+invocation을 깨우는 수단일 뿐 별도 승인/지시 원장이 아니다. `applied`는 계속 입력 준비 저장
+확인이며 Provider 수신 또는 모델 이행을 의미하지 않는다. Engine/Runner가 협조하지 않는 호출의
+강제 종료나 고정 응답시간은 보장하지 않는다. Application이 표시·버튼·실제 대기 제한을 결정한다.
+
 Loop의 Tool 호출 사이 미시작 호출 생략과 선택적 호출자 `request_key` 접수 계약은
 [상호작용 계약](interactive-contracts.md#loop의-tool-호출-사이-추가-지시)을 따른다.
 완료된 Tool과 started/waiting 효과를 되감지 않고 미시작 호출만 닫아 다음 모델 입력에서 재판단한다.
@@ -15,6 +52,21 @@ Project → Session → Run → Step 소유 관계는 바꾸지 않는다.
 
 ```python
 instruction = await session.run.steer(run_id, "결과에 근거도 포함해줘.")
+```
+
+빠른 방향 전환은 별도의 명시적 API다. 같은 요청 키의 재접수는 지시와 취소를 중복 생성하지 않는다.
+
+```python
+instruction = await session.run.redirect(run_id, "현재 분석을 멈추고 오류 원인부터 확인해줘.",
+                                         request_key="ui-direction-1")
+```
+
+일반/예약 지시는 선택되기 전 철회하거나 대체할 수 있다. 이미 반영된 입력을 삭제하는 API가 아니다.
+
+```python
+replacement = await session.run.replace_instruction(run_id, pending_instruction_id,
+                                                    "수정한 지시", request_key="ui-replace-1")
+withdrawn = await session.run.withdraw_instruction(run_id, replacement.id)
 ```
 
 Graph에서는 실행 대상 목록을 표시하고 사용자가 선택한 ID를 전달한다.
@@ -151,6 +203,18 @@ helper는 async iterator다. `async with aclosing(...)` / `async for ...: yield 
 최종 확인과 접수는 같은 저장 직렬화 경계에서 판정한다. 열린 소비자를 남기고 정상 종료하는
 Engine은 실패 처리한다. 엔진별 입력 변환과 실행 제한은 공통 계층에서 결정하지 않는다.
 
+방향 전환은 별도 지원 선언이다. 소비 Engine이 `redirectable = True`를 선언하고
+`open_instructions(context, redirectable=True)`로 연다. `context.steering.control.stream()`
+또는 `call()`로 취소 가능한 invocation만 감싼다. 저장 ACK나 Run 전체, 자식 컨테이너를
+감싸지 않는다. `InvocationRedirected`를 받으면 자신의 interrupted checkpoint를 기록하고
+다음 입력 선택으로 이동한다. Tool 호출은 기존 ToolExecutor가 leaf invocation 제어를 소유한다.
+`ToolRedirected`의 무효과/불확실 효과를 구분하며 uncertain을 새 시도로 숨기지 않는다.
+선언하지 않은 Engine의 Tool 호출에 취소용 task 경계를 추가하지 않는다.
+취소용 child task에서 설정한 ContextVar 값은 호출자의 오류/재시도 callback에 보존한다.
+특정 Host 변수 이름을 해석하지 않으며 ContextVar token은 생성한 Context 안에서만 사용한다.
+Agent factory가 반환한 실제 Engine의 지원 선언을 검증하며, 예약 경로의 기존 Engine 모드와
+checkpoint identity 계약은 그대로 유지한다.
+
 RunManager가 메시지·대상·선택·반영 기록을 저장한다. Engine은 영속 파일에 쓰지 않는다.
 취소/GeneratorExit 중에는 새 이벤트를 yield하지 않는다. Run 종료/복구가 미반영 지시와
 수신 대상을 닫는다. 새 timeout이나 재시도 기본값은 없다.
@@ -183,8 +247,9 @@ Graph는 `FORWARD`다. AgentNode가 호출별 채널을 만들고 체크포인�
 Graph Agent와 중첩 Workflow에서도 같은 경로를 쓴다. 미지원 합성 Engine에는 입력 채널을
 주입하지 않으므로 내부 Loop에 자동 전달되지 않는다.
 
-Loop는 `steering:<iteration>` 키와 기존 반영 시점을 유지한다. 현재 completion과
-Tool 묶음을 마친 뒤 다음 completion에 반영한다. Graph는 LangGraph 스케줄링과
+Loop는 `steering:<iteration>` 키를 유지한다. 일반 지시는 첫 Tool을 포함한 미시작 호출 경계와
+completion 종료 경계에서 확인한다. 명시적 방향 전환은 현재 invocation에 취소를 요청한 뒤
+다음 completion 입력에 반영한다. Graph는 LangGraph 스케줄링과
 Workflow 상태 binding을 유지하며 Workflow 정의 자체를 변경하지 않는다.
 
 선택 체크포인트는 `kind=instruction`, `status=input`으로 구분하고 메시지 ID와 대상 scope만 저장한다.

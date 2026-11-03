@@ -47,8 +47,9 @@ ResourceRef이며 version은 해당 저장 Owner의 snapshot revision 또는 Hos
 
 ## Loop의 Tool 호출 사이 추가 지시
 
-한 모델 응답이 A/B/C 호출을 만들었더라도, A가 끝난 뒤 새 지시가 있으면 미시작 B/C를
-ToolExecutor에 보내지 않고 다음 모델 요청에서 재판단하게 할 수 있다. A를 취소하거나 재실행하지 않는다.
+한 모델 응답이 A/B/C 호출을 만들었더라도, A 시작 전 새 지시가 있으면 A/B/C를,
+A 종료 뒤 도착했다면 미시작 B/C를 ToolExecutor에 보내지 않고 다음 모델 요청에서
+재판단하게 할 수 있다. 일반 `steer()`는 이미 시작한 A를 취소하거나 재실행하지 않는다.
 
 미시작 호출은 각 원래 call ID에 대응하는 `not_executed` Tool 결과로 닫는다.
 이는 실행된 Tool Step이나 실패 효과 영수증이 아니다. Loop checkpoint의 NOT_APPLIED 기록에는
@@ -58,7 +59,8 @@ ToolExecutor에 보내지 않고 다음 모델 요청에서 재판단하게 할 
 빈 pending 확인은 새 빈 선택 checkpoint나 지시 소비를 만들지 않는다.
 
 Graph의 즉시 전달·미시작 노드 예약은 기존 공개 target/route 계약을 그대로 사용한다.
-Tool 도중 적용, Provider 응답 도중 내용 교체, 미사용 예약의 새 Run 자동 이전은 추가하지 않았다.
+명시적 `redirect()`의 invocation 취소와 다음 입력 반영은 [steering 계약](steering.md)을 따른다.
+진행 중 Provider 응답 내용 자체를 수정하거나 미사용 예약을 새 Run으로 자동 이전하지 않는다.
 
 ## 호출자 접수 키
 

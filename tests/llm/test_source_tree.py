@@ -23,12 +23,14 @@ class SourceTreeTests(unittest.TestCase):
     def test_snapshot_includes_shared_inputs_and_git_without_changing_source(self):
         with tempfile.TemporaryDirectory() as directory:
             root, target = Path(directory) / 'source', Path(directory) / 'snapshot'
-            names = ('llm/value.py', 'hub/value.py', 'tests/source_tree.py',
+            names = ('llm/value.py', 'hub/value.py', 'dok/value.py', 'tests/source_tree.py',
                      'tests/llm/dependencies-linux.lock', 'ish.platform/pyproject.toml',
                      'ish.platform/src/host.py', 'docs/document-map.md',
-                     'docs/hub/README.md', 'tests/hub/fixture.json', 'tests/README.md',
+                     'docs/hub/README.md', 'docs/dok/config.example.jsonc',
+                     'tests/hub/fixture.json', 'tests/dok/test_fixture.py', 'tests/README.md',
                      '.github/workflows/tests.yml', 'tests/llm/ci/bwrap.apparmor')
-            excluded = ('tests/hub/reports/old.py', 'tests/llm/manual/local.py',
+            excluded = ('tests/hub/reports/old.py', 'tests/dok/reports/old.py',
+                        'tests/dok/manual/local.py', 'tests/llm/manual/local.py',
                         'llm/__pycache__/stale.py', 'private.key')
             for name in (*names, *excluded):
                 path = root / name

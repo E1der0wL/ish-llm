@@ -5,6 +5,14 @@
 
 ## 소유권과 수명
 
+실행 중 입력은 `session.run.steer(run_id, content, targets=..., request_key=...)`로
+접수한다. `redirect(...)`는 같은 대상 계약으로 현재 invocation 취소를 명시적으로 요청한다.
+`RunHandle.ainstruction_targets()`의 `redirectable` 선언을 확인하며 Graph 대상은 실행 ID를
+직접 선택한다. `withdraw_instruction(run_id, instruction_id)`와
+`replace_instruction(run_id, instruction_id, content, request_key=...)`는 아직 선택되지 않은
+일반/예약 지시에 사용한다. 이미 dispatch된 방향 전환에는 새 정정 지시를 보낸다.
+상태·효과·재개 제한은 [추가 지시 계약](steering.md)이 소유한다. 이 API는 승인이나 권한을 만들지 않는다.
+
 `LargeLanguageModel`은 공개 핸들과 서비스를 조립한다. Project → Session → Run → Step의
 영속 소유권, Project Component의 별도 자료 소유권을 유지한다. 한 backend를 같은 이벤트 루프에서
 사용하고 종료 때 비동기 context manager 또는 `aclose()`로 정리한다. 공유 workspace의 동시 소유는

@@ -500,6 +500,20 @@ class Runs(AsyncFacade):
             run_id, content, targets=targets, request_key=request_key
         )
 
+    async def redirect(self, run_id: str, content: str, *, targets=UNSPECIFIED, request_key=UNSET):
+        """Interrupt selected current invocations and reconsider within the same Run."""
+        return await self.app._manager(self.session._snapshot).redirect(
+            run_id, content, targets=targets, request_key=request_key)
+
+    async def withdraw_instruction(self, run_id: str, instruction_id: str):
+        """Withdraw an unselected instruction, preserving its historical receipt."""
+        return await self.app._manager(self.session._snapshot).withdraw_instruction(run_id, instruction_id)
+
+    async def replace_instruction(self, run_id: str, instruction_id: str, content: str, *, request_key=UNSET):
+        """Replace an unselected instruction at the same targets in one storage transaction."""
+        return await self.app._manager(self.session._snapshot).replace_instruction(
+            run_id, instruction_id, content, request_key=request_key)
+
     async def resume_plan(self, run_id: str, *, agent_id: str) -> ResumePlan:
         return await self.app._manager(self.session._snapshot).resume_plan(run_id, agent_id=agent_id)
 

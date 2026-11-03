@@ -122,6 +122,15 @@ class SteeringValueTests(unittest.TestCase):
         self.assertEqual(SteeringNotification(targets=(target,)).to_dict(), {"targets": [target.to_dict()]})
         self.assertEqual(SteeringNotification().to_dict(), {})
 
+    def test_redirection_is_an_explicit_consumer_capability(self):
+        target = SteeringTarget('root', 'run', 'loop', SteeringMode.CONSUME,
+                                accepting=True, redirectable=True)
+        self.assertTrue(target.registration()['redirectable'])
+        self.assertEqual(SteeringTarget.from_dict(target.to_dict()), target)
+        for mode in (SteeringMode.FORWARD, SteeringMode.UNSUPPORTED):
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                SteeringTarget('root', 'run', 'custom', mode, redirectable=True)
+
 
 if __name__ == "__main__":
     unittest.main()

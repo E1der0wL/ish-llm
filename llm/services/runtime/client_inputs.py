@@ -29,7 +29,7 @@ class InputReceipt(JsonValue):
     def __post_init__(self):
         super(InputReceipt, self).__post_init__()
         self.validate_key(self.key)
-        if self.kind not in {'request', 'instruction', 'reservation', 'interaction'}:
+        if self.kind not in {'request', 'instruction', 'reservation', 'interaction', 'redirect', 'replacement'}:
             raise ValueError('Unknown client input receipt kind')
         if any(not isinstance(value, str) or not value for value in (
             self.project_id, self.session_id, self.message_id, self.fingerprint

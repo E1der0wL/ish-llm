@@ -50,6 +50,14 @@ class ToolExecutionError(CodedError, RuntimeError):
         )
 
 
+class ToolRedirected(ToolExecutionError):
+    """Explicit invocation cancellation, not a retryable Tool failure."""
+
+    def __init__(self, instructions, *, effect):
+        super().__init__('Tool interrupted by an explicit direction change', effect=effect)
+        self.instructions = tuple(instructions)
+
+
 class ToolApprovalRequired(RuntimeError):
     """authorize가 발생시키면 공통 요청을 체크포인트에 저장하고 Run을 일시정지한다."""
 

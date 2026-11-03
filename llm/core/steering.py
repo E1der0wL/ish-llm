@@ -160,9 +160,13 @@ class SteeringTarget(JsonValue):
     accepting: bool = CLOSED
     reason: Optional[str] = None
 
+    redirectable: bool = False
+
     def __post_init__(self):
         JsonValue.__post_init__(self)
         if (any(not _text(v) for v in (self.id, self.run_id, self.engine))
+                or type(self.redirectable) is not bool
+                or self.redirectable and self.mode != SteeringMode.CONSUME
                 or any(v is not None and not _text(v) for v in (self.scope, self.node_id, self.node_path, self.reason))
                 or self.accepting and (self.mode != SteeringMode.CONSUME or self.reason is not None)):
             raise InstructionDataError(self.INVALID_STATE)
@@ -171,6 +175,13 @@ class SteeringTarget(JsonValue):
         """Engine opening request preserves the existing omitted reason field."""
         value = self.to_dict()
         del value[type(self).reason.__name__]
+        return value
+
+    def to_dict(self):
+        value = JsonValue.to_dict(self)
+        # Capability is opt-in; an undeclared capability adds no stored field.
+        if not self.redirectable:
+            del value[type(self).redirectable.__name__]
         return value
 
     @classmethod
@@ -204,6 +215,7 @@ class RunInstruction(JsonValue):
     applications: list[dict] = field(default_factory=list)
     reason: Optional[str] = None
     targets: list[dict] = field(default_factory=list)
+    redirect: bool = False
 
     @staticmethod
     def validate_message(message: Message) -> None:
@@ -216,4 +228,4 @@ class RunInstruction(JsonValue):
         from .instruction_records import InstructionMessageRecord
         value = InstructionMessageRecord.from_message(message)
         return cls(message.id, value.run_id, message.content, value.status, message.created_at,
-                   value.application_records, value.reason, [target.to_dict() for target in value.targets])
+                   value.application_records, value.reason, [target.to_dict() for target in value.targets], value.redirect)

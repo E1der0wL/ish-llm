@@ -509,14 +509,20 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_resume_reuses_completed_tool_and_includes_instruction_once(self):
         effects = []
+        entered, release = asyncio.Event(), asyncio.Event()
         async def act(arguments):
             effects.append(1)
+            entered.set()
+            await release.wait()
         component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         model = Model([chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                       [ConnectionError("offline")], [chunk("done", finish="stop")])
         _, session, request, run = await self.setup_backend(model, components=[component])
-        await session.run.steer(run.id, "correction")
         model.release.set()
+        self.addCleanup(release.set)
+        await asyncio.wait_for(entered.wait(), 10)
+        await session.run.steer(run.id, "correction")
+        release.set()
         self.assertEqual(((await request.wait(timeout=10))[0]).data.status, "failed")
         resumed = (await (await session.run.resume(run.id, agent_id="worker")).wait(timeout=10))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)

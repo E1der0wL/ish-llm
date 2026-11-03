@@ -233,6 +233,7 @@ class InstructionMessageRecord:
         STATUS = "status"
         APPLICATIONS = "applications"
         REASON = "reason"
+        REDIRECT = "redirect"
 
     REQUIRED_TEXT = (Field.RUN_ID, Field.INPUT_MESSAGE_ID)
 
@@ -244,6 +245,7 @@ class InstructionMessageRecord:
         if not isinstance(raw, list) or not raw:
             raise InstructionDataError(self.INVALID_TARGETS)
         self._value = deepcopy(value)
+        self.redirect
         ids, identities, scopes = set(), set(), set()
         for target in self.targets:
             target.validate_run(self.run_id)
@@ -276,10 +278,18 @@ class InstructionMessageRecord:
         return value
 
     @classmethod
-    def create(cls, run_id, input_message_id, targets):
-        return cls({cls.Field.RUN_ID: run_id, cls.Field.INPUT_MESSAGE_ID: input_message_id,
+    def create(cls, run_id, input_message_id, targets, *, redirect=False):
+        return cls({**({cls.Field.REDIRECT: True} if redirect else {}),
+                    cls.Field.RUN_ID: run_id, cls.Field.INPUT_MESSAGE_ID: input_message_id,
                     cls.Field.STATUS: InstructionStatus.PENDING,
                     cls.Field.TARGETS: [target.to_dict() for target in targets]})
+
+    @property
+    def redirect(self):
+        value = self._value.get(self.Field.REDIRECT, False)
+        if type(value) is not bool:
+            raise InstructionDataError('instruction redirect must be boolean')
+        return value
 
     @property
     def run_id(self):

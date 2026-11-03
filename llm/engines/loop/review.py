@@ -38,6 +38,21 @@ class LoopIterationRecord:
         return f"{cls.KEY_PREFIX}{iteration}"
 
     @classmethod
+    def interrupted(cls, *, tools, tool_mode):
+        return {cls.STATUS: CheckpointStatus.NOT_APPLIED, 'redirected': True,
+                cls.TOOLS: list(tools), cls.TOOL_MODE: tool_mode.value if tool_mode is not None else None}
+
+    @classmethod
+    def is_interrupted(cls, value):
+        if 'redirected' not in value:
+            return False
+        if (value['redirected'] is not True or value.get(cls.STATUS) != CheckpointStatus.NOT_APPLIED
+                or cls.RESPONSE in value or cls.REVIEW_OBSERVATION in value):
+            raise ValueError('Invalid interrupted Loop iteration')
+        cls.exposure(value)
+        return True
+
+    @classmethod
     def create(cls, response, status, *, tools, tool_mode):
         return {cls.STATUS: status, cls.RESPONSE: response.to_dict(),
                 cls.TOOLS: list(tools), cls.TOOL_MODE: tool_mode.value if tool_mode is not None else None}
@@ -198,6 +213,8 @@ class LoopReview:
             if key.startswith(LoopIterationRecord.KEY_PREFIX):
                 if not re.fullmatch(LoopIterationRecord.KEY_PATTERN, key):
                     raise ValueError(LoopReview.INVALID_ITERATION_KEY)
+                if LoopIterationRecord.is_interrupted(record):
+                    continue
                 from llm.core.model_protocol import ModelResponse
 
                 response = ModelResponse.from_dict(record[LoopIterationRecord.RESPONSE])

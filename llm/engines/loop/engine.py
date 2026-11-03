@@ -60,8 +60,10 @@ from llm.core.contracts import ResourceRef
 from llm.core.checkpoints import CheckpointStatus
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionScope, ToolExecutionError, ToolApprovalRequired
+from llm.services.runtime.tool_errors import ToolRedirected
 from llm.services.runtime.usage import current_usage
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
+from llm.engines.steering import InvocationRedirected
 from llm.policies import CompletionPolicy, ExecutionLimitError
 from llm.components.review import CompletionReview, CompletionReviewObservation, ReviewAction, ReviewPolicy
 from llm.components.processing import review_identities
@@ -91,6 +93,7 @@ class LoopEngine(BaseEngine):
     PAUSE_TOOL_KEY = LoopToolRecord.PAUSE_TOOL_KEY
     CHECKPOINT_FORMAT = LoopCheckpointHeader.FORMAT_VALUE
     steering_mode = SteeringMode.CONSUME
+    redirectable = True
     DISPLAY_NAME = "Loop"
     WRONG_CHECKPOINT = "Checkpoint does not belong to LoopEngine"
     CHANGED_BINDING = "Loop configuration or Tool definitions changed; start a new request"
@@ -174,6 +177,8 @@ class LoopEngine(BaseEngine):
         uncertain = set()
         for key, value in CheckpointRecords.from_checkpoint(checkpoint).records.items():
             if key.startswith(LoopIterationRecord.KEY_PREFIX):
+                if LoopIterationRecord.is_interrupted(value):
+                    continue
                 response = ModelResponse.from_dict(LoopIterationRecord.response(value))
                 names, _ = LoopIterationRecord.exposure(value)
                 ToolExposure.require_calls(names, response.message.calls)
@@ -513,7 +518,7 @@ class LoopEngine(BaseEngine):
             else BaseEngine.ABSENT
         )
         async with aclosing(self.open_instructions(context, checkpoint_event=initial_checkpoint,
-                                                  boundary=first_boundary)) as events:
+                                                  boundary=first_boundary, redirectable=True)) as events:
             async for event in events:
                 yield event
         initial_records = {}
@@ -604,6 +609,8 @@ class LoopEngine(BaseEngine):
                     for m in selected
                 )
             saved = records.get(LoopIterationRecord.key(iteration), {})
+            if LoopIterationRecord.is_interrupted(saved):
+                continue
             response = (
                 ModelResponse.from_dict(LoopIterationRecord.response(saved)) if saved else BaseEngine.ABSENT
             )
@@ -730,8 +737,7 @@ class LoopEngine(BaseEngine):
                         async for event in events:
                             yield event
                 captured = []
-                async with aclosing(
-                    self.stream_completion(
+                completion = self.stream_completion(
                         prepared_request,
                         response=captured,
                         provider=self.provider,
@@ -743,7 +749,9 @@ class LoopEngine(BaseEngine):
                         max_argument_chars=self.max_argument_chars,
                         max_output_chars=self.max_output_chars,
                     )
-                ) as deltas:
+                if inbox is not BaseEngine.ABSENT:
+                    completion = inbox.control.stream(completion)
+                async with aclosing(completion) as deltas:
                     async for text in deltas:
                         yield text
                 response = captured[0]
@@ -764,28 +772,38 @@ class LoopEngine(BaseEngine):
                 ]
 
             if not saved:
-                async with aclosing(
-                    self.step(
-                        (
-                            replace(context, output_visibility=OutputVisibility.INTERNAL)
-                            if review is not BaseEngine.ABSENT
-                            else context
-                        ),
-                        complete,
-                        name=LoopEngine.COMPLETION_STEP_NAME,
-                        prepare=True,
-                        kind=StepKind.LLM,
-                        timeout_seconds=self.request_timeout,
-                        metadata=LoopStepMetadata.completion(
-                            iteration=iteration,
-                            checkpoint_name=LoopEngine.checkpoint_name,
-                            checkpoint_scope=context.checkpoint_scope,
-                        ),
-                        error_message=LoopEngine.COMPLETION_STEP_ERROR,
-                    )
-                ) as events:
-                    async for event in events:
-                        yield event
+                redirected = False
+                try:
+                    async with aclosing(
+                        self.step(
+                            (
+                                replace(context, output_visibility=OutputVisibility.INTERNAL)
+                                if review is not BaseEngine.ABSENT
+                                else context
+                            ),
+                            complete,
+                            name=LoopEngine.COMPLETION_STEP_NAME,
+                            prepare=True,
+                            kind=StepKind.LLM,
+                            timeout_seconds=self.request_timeout,
+                            metadata=LoopStepMetadata.completion(
+                                iteration=iteration,
+                                checkpoint_name=LoopEngine.checkpoint_name,
+                                checkpoint_scope=context.checkpoint_scope,
+                            ),
+                            error_message=LoopEngine.COMPLETION_STEP_ERROR,
+                        )
+                    ) as events:
+                        async for event in events:
+                            yield event
+                except InvocationRedirected:
+                    redirected = True
+                if redirected:
+                    interrupted = LoopIterationRecord.interrupted(tools=names, tool_mode=mode)
+                    if durable:
+                        yield self._record(LoopIterationRecord.key(iteration), interrupted)
+                    records[LoopIterationRecord.key(iteration)] = interrupted
+                    continue
                 # after_completion 검증 실패를 성공한 회차로 저장하지 않는다.
             else:
                 calls = response.message.calls
@@ -897,14 +915,14 @@ class LoopEngine(BaseEngine):
                 yield self.output_event(context, EngineOutput(text=response.message.text))
                 return
             messages.append(CompletionMessage(response.message))
-            for call_index, (call, (tool, arguments)) in enumerate(zip(calls, prepared)):
+            for call, (tool, arguments) in zip(calls, prepared):
                 seen_call_ids.add(call.id)
                 key = LoopToolRecord.key(iteration, call.id)
                 stored = records.get(key, {})
                 # Only a not-yet-started invocation may be displaced by a new
                 # instruction. Completed/uncertain/approval records retain their
                 # existing effect and resume rules.
-                if (inbox is not BaseEngine.ABSENT and not inbox.closed and call_index > 0
+                if (inbox is not BaseEngine.ABSENT and not inbox.closed
                     and LoopCheckpointRecord(stored).optional_status not in
                         (CheckpointStatus.COMPLETED, CheckpointStatus.STARTED, CheckpointStatus.WAITING)):
                     boundary = LoopInstructionBoundary.key(iteration + LoopIterationRecord.ITERATION_INCREMENT)
@@ -1017,6 +1035,29 @@ class LoopEngine(BaseEngine):
                                 yield event
                                 if event.type == EngineEventType.PAUSED:
                                     return
+                    except ToolRedirected as error:
+                        if error.effect != ToolExecutionError.NO_EFFECT:
+                            raise
+                        boundary = LoopInstructionBoundary.key(iteration + LoopIterationRecord.ITERATION_INCREMENT)
+                        if boundary not in records:
+                            async with aclosing(self.select_instructions(
+                                context, checkpoint=self.checkpoint_name, boundary=boundary,
+                                only_pending=True,
+                            )) as events:
+                                async for event in events:
+                                    yield event
+                            records[boundary] = InstructionCheckpoint.create(
+                                inbox.scope, (m.id for m in inbox.messages)).to_dict()
+                        following = InstructionCheckpoint.read(records[boundary]).message_ids
+                        stored = LoopToolRecord.deferred(name=tool.name, arguments=arguments,
+                            boundary=boundary, instructions=following, cancelled=True)
+                        yield self._record(key, stored)
+                        records[key] = stored
+                        content = LoopToolRecord(stored).deferred_content(name=tool.name, arguments=arguments,
+                            boundary=boundary, instructions=following)
+                        messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
+                            result=ToolResult(call.id, content, tool.name))))
+                        continue
                     except ToolApprovalRequired as error:
                         if not durable:
                             raise

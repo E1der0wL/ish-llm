@@ -258,7 +258,8 @@ class AgentExecution:
                 event = replace(event, metadata=AgentStepMetadata.graph_child(event.metadata, step_id))
             await node.emit(event)
         try:
-            async with aclosing(BaseEngine.open_instructions(context)) as events:
+            async with aclosing(BaseEngine.open_instructions(context,
+                    redirectable=EngineHooks.can_redirect(engine))) as events:
                 async for event in events:
                     await forward(event)
             output = await node.invoke_graph(engine, context, inputs, forward)
@@ -371,7 +372,8 @@ class AgentExecution:
                         # 승인 이후 효과 이전에도 예산을 기록한다. 불확실한 작업의 명시적 재시도가
                         # Agent 한도를 초기화하지 않도록 소유 컨테이너 체크포인트를 갱신한다.
                         await node.record_usage(scope.checkpoint())
-                async with aclosing(BaseEngine.open_instructions(context)) as events:
+                async with aclosing(BaseEngine.open_instructions(context,
+                        redirectable=EngineHooks.can_redirect(engine))) as events:
                     async for event in events:
                         await forward(event)
                 # 미지원 합성 엔진 내부의 Loop가 부모 채널을 자동 소비해서는 안 된다.

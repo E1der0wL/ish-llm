@@ -50,6 +50,17 @@ class DocumentationCheckTests(unittest.TestCase):
     def test_empty_repository_cannot_pass(self):
         self.assertTrue(check(self.root)["errors"])
 
+    def test_local_artifact_links_are_reported_without_hiding_missing_product_files(self):
+        self.write('docs/a.md', '[report](../tests/dok/reports/run/result.json)\n'
+                   '[manual](../tests/llm/manual/check.py)\n'
+                   '[source](../tests/dok/test_missing.py)\n'
+                   '[product](../llm/reports/missing.py)\n'
+                   '[outside](../../tests/dok/reports/result.json)\n')
+        result = check(self.root)
+        self.assertEqual(result['local_artifact_links'], 2)
+        self.assertEqual(len(result['errors']), 3)
+        self.assertEqual([item['line'] for item in result['errors']], [3, 4, 5])
+
     def test_repository_documents(self):
         result = check(Path(__file__).resolve().parents[2])
         self.assertEqual(result["errors"], [])

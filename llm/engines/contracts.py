@@ -18,6 +18,7 @@ class EngineHooks:
     REQUIRED_CAPABILITIES = "required_capabilities"
     ADDITIONAL_CAPABILITIES = "additional_capabilities"
     STEERING_MODE = "steering_mode"
+    REDIRECTABLE = "redirectable"
     AGENT_MODE = "agent_mode"
     CHECKPOINT_NAME = "checkpoint_name"
     VALIDATE_RESUME = "validate_resume"
@@ -56,6 +57,13 @@ class EngineHooks:
     @classmethod
     def checkpoint_name(cls, engine):
         return getattr(engine, cls.CHECKPOINT_NAME, cls.ABSENT)
+
+    @classmethod
+    def can_redirect(cls, engine):
+        value = getattr(engine, cls.REDIRECTABLE, False)
+        if type(value) is not bool or value and steering_mode(engine) != SteeringMode.CONSUME:
+            raise ValueError('Only a consuming Engine may declare redirectable=True')
+        return value
 
     @classmethod
     def resume_validator(cls, engine):
@@ -144,6 +152,10 @@ class EngineBindingContract:
             raise ValueError(self.changed_mode)
         if steering_mode(bound) != steering_mode(engine):
             raise ValueError(self.changed_steering)
+        # Invocation cancellation is a capability of the selected consumer.
+        # A factory may return a more capable bound implementation without
+        # widening Tool authority; validate its declaration, not factory equality.
+        EngineHooks.can_redirect(bound)
         if EngineHooks.checkpoint_name(bound) != EngineHooks.checkpoint_name(engine):
             raise ValueError(self.changed_checkpoint)
         return bound

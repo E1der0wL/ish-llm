@@ -101,6 +101,24 @@ def instruction_records(checkpoint):
             yield key, payload
 
 
+def unselected_instruction(repository, run, store, identifier):
+    """Selection is durable context ownership, even before APPLY is published."""
+    from llm.core.checkpoint_records import CheckpointDeclarations
+    message = store.get(identifier)
+    value = InstructionMessageRecord.from_message(message)
+    if value.run_id != run.id or any(t.status != InstructionStatus.PENDING for t in value.targets):
+        raise ValueError('Only an entirely pending instruction from this Run can be changed')
+    for name in CheckpointDeclarations.reference_names(run.metadata):
+        for _, selected in instruction_records(repository.checkpoint(run, name)):
+            if identifier in selected.message_ids:
+                raise ValueError('Instruction has already been selected; send a new correction')
+    return message, value
+
+
+def withdraw_instruction(store, message, value, *, reason):
+    return _save_instruction(store, message, value.with_targets(t.finish(reason) for t in value.targets))
+
+
 def checkpoint_messages(store: Conversation, checkpoint: dict) -> dict[str, Message]:
     """체크포인트에는 본문 대신 ID만 저장한다. 원본 소실은 추측하지 않고 거부한다."""
     result = {}

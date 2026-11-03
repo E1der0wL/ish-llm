@@ -105,11 +105,17 @@ def create_engine(names, revision):
 
 ## 실행 중 추가 지시
 
+일반 `steer()`는 첫 Tool을 포함한 미시작 호출 직전에 확인합니다. `redirect()`는 명시적으로
+현재 모델/leaf Tool 호출에 취소를 요청하고 같은 Run에서 다음 판단을 시도합니다. 완료된
+Tool 결과는 보존하고 외부 효과가 불확실하면 자동으로 계속하지 않습니다. 취소된 모델 회차는
+checkpoint에 남겨 재개 시 재실행하지 않으며 반복 예산도 초기화하지 않습니다.
+구체적인 적용·철회·대체·Graph 대상 범위는 [Steering](../../../docs/llm/steering.md)을 따릅니다.
+
 `await session.run.steer(run_id, text)`는 실행 중인 단독 Loop에 지시를 접수하고 `RunInstruction`을 반환합니다. `submit`과 달리 새 Run이나 일반 요청 대기열을 만들지 않습니다. RunStatus를 추가하지 않으며 기존 `RUNNING` 상태를 유지합니다. 종료 중/종료한 Run과 다른 런타임이 소유한 Run은 거절합니다. Graph 안의 Loop는 `targets=[실행 대상 ID]`로 지정합니다. 재개 Run은 원본 체크포인트 검증이 끝난 뒤에만 접수합니다. 실행별 수신 상태는 `run.ainstruction_targets()`에서 확인합니다. [공통 전달 계약](../../../docs/llm/steering.md)을 참고하세요.
 
 ```text
 steer → ConversationStore에 pending 저장
-      → 현재 completion / Tool 묶음 완료
+      → 현재 호출 완료, 첫 Tool을 포함한 미시작 호출 앞에서 다시 확인
       → 다음 반복 입력 선택을 checkpoint에 저장
       → processor·토큰 예산 검증
       → 적용 기록 저장 → 다음 completion
@@ -117,8 +123,8 @@ steer → ConversationStore에 pending 저장
 
 - 여러 지시는 저장 순서대로 user 메시지에 추가합니다. 현재 Tool 호출/결과 쌍 사이에는 넣지 않습니다.
 - Tool 없는 응답이 나왔어도 접수된 지시가 있으면 다음 반복으로 이어갑니다. 지시가 없으면 접수를 마감한 뒤 최종 출력을 확정합니다. 마감과 접수는 같은 저장 직렬화 경계를 사용합니다.
-- `max_iterations`, Run 시간 제한, 사용량·Tool 제한을 늘리거나 초기화하지 않습니다. 반복 여유가 없으면 현재 응답으로 완료하고 남은 지시에 `unapplied / iteration_limit`을 기록합니다. 실패·중단·승인 대기에서도 아직 사용하지 않은 지시는 사유와 함께 남습니다.
-- 새 지시는 기존 system prompt, 설정, Tool 권한이나 승인 결정을 바꾸지 않습니다. 이미 실행한 부작용을 되돌리지 않으며 긴 Tool 도중에는 기다려야 합니다.
+- `max_iterations`, Run 시간 제한, 사용량·Tool 제한을 늘리거나 초기화하지 않습니다. 일반 지시는 반복 여유가 없으면 현재 응답으로 완료하고 남은 지시에 `unapplied / iteration_limit`을 기록합니다. 방향 전환으로 현재 모델 호출이 취소되고 반복 예산이 소진됐으면 성공 응답을 만들지 않고 제한 오류로 끝납니다. 실패·중단·승인 대기에서도 아직 사용하지 않은 지시는 사유와 함께 남습니다.
+- 새 지시는 기존 system prompt, 설정, Tool 권한이나 승인 결정을 바꾸지 않습니다. 이미 실행한 부작용을 되돌리지 않으며 일반 `steer()`는 진행 중인 Tool을 기다립니다. 명시적 `redirect()`의 취소·효과 처리 계약은 위 설명을 따릅니다.
 
 ### 저장과 UI 상태
 

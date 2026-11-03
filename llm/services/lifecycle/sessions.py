@@ -77,6 +77,7 @@ class RunRuntime:
     finished: asyncio.Event = field(default_factory=asyncio.Event)
     interrupt_requested: bool = False
     entered: bool = False
+    steering: object = None
 
     def interrupt(self):
         """Deliver cancellation once; cleanup owns any still-running work."""

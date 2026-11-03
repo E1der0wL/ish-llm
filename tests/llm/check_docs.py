@@ -79,7 +79,7 @@ def check(root):
                    if "__pycache__" not in path.parts)
     parsed = {path: sections(path.read_text(encoding="utf-8")) for path in paths}
     errors = []
-    snippets = relative = fragments = 0
+    snippets = relative = fragments = local_artifacts = 0
     for path in paths:
         prose, blocks, fences = parsed[path]
         def error(line, message):
@@ -110,6 +110,13 @@ def check(root):
                             else path.parent / unquote(parts.path)).resolve() if parts.path else path)
             if not destination.is_relative_to(root):
                 error(line, f"link outside repository: {target}")
+            elif (len(destination.relative_to(root).parts) >= 4
+                  and destination.relative_to(root).parts[0] == 'tests'
+                  and destination.relative_to(root).parts[2] in ('reports', 'manual')):
+                # Local validation artifacts are intentionally absent from Git,
+                # source snapshots and deployment. Count them separately; do
+                # not claim their availability was verified in a clean checkout.
+                local_artifacts += 1
             elif not destination.exists():
                 error(line, f"missing file: {target}")
             elif parts.fragment and destination.suffix == ".md":
@@ -121,7 +128,8 @@ def check(root):
     if not paths:
         errors.append({"file": ".", "line": 0, "message": "no documents discovered"})
     return {"documents": len(paths), "python_fences": snippets,
-            "relative_links": relative, "anchors_checked": fragments, "errors": errors}
+            "relative_links": relative, "anchors_checked": fragments,
+            "local_artifact_links": local_artifacts, "errors": errors}
 
 
 def main():

@@ -6,9 +6,9 @@ from pathlib import Path
 import subprocess
 
 
-TEXT_SUFFIXES = {'.py', '.md', '.json', '.toml', '.lock', '.txt', '.sh', '.yaml', '.yml', '.apparmor'}
+TEXT_SUFFIXES = {'.py', '.md', '.json', '.jsonc', '.toml', '.lock', '.txt', '.sh', '.yaml', '.yml', '.apparmor'}
 TEXT_NAMES = {'.gitignore', '.python-version'}
-DIRECTORIES = ('llm', 'hub', 'tests/llm', 'tests/hub', 'examples/llm', 'examples/hub',
+DIRECTORIES = ('llm', 'hub', 'dok', 'tests/llm', 'tests/hub', 'tests/dok', 'examples/llm', 'examples/hub',
                'docs', 'ish.platform/src', '.github/workflows')
 ROOT_FILES = ('pyproject.toml', '.python-version', '.gitignore', 'README.md', 'AGENTS.md',
               'tests/__init__.py', 'tests/README.md', 'tests/source_tree.py', 'examples/__init__.py',
@@ -41,7 +41,7 @@ def snapshot_files(root: Path) -> list[Path]:
 
 
 def copy_snapshot(root: Path, target: Path) -> dict:
-    """Copy both plugins and shared evidence even when only one suite is selected."""
+    """Copy plugin sources and shared evidence even when only one suite is selected."""
     files = {}
     for path in snapshot_files(root):
         if path.is_symlink():

@@ -173,7 +173,8 @@ class SteeringChannel:
 
     def register(self, identifier, target):
         targets = self.targets
-        reserved_root = (identifier == self.ROOT and targets.get(identifier) == target
+        reserved_root = (identifier == self.ROOT and identifier in targets
+                        and replace(targets[identifier], redirectable=target.redirectable) == target
                          and not self._value[self.Field.ROOT_OPENED])
         if (target.id != identifier or target.run_id != self._run_id or identifier in targets and not reserved_root
                 or not self.accepting or target.reason is not None
