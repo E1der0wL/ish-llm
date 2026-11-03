@@ -39,9 +39,9 @@ class MemoryRuntimeChoiceTests(unittest.TestCase):
                 MemoryProcessor(None, priority=value)
 
     def test_none_model_selects_default_and_explicit_integer_priority_is_preserved(self):
-        def default(**kwargs):
+        async def default(**kwargs):
             raise AssertionError('configuration must not invoke the model')
-        with patch('llm.providers.litellm.completion', default):
+        with patch('llm.providers.litellm.acompletion', default):
             processor = MemoryProcessor(None, completion_adapter=None, priority=-1)
         self.assertIs(processor.completion_adapter.completion_fn, default)
         self.assertIsNone(processor.token_counter)
@@ -60,14 +60,14 @@ class MemoryRuntimeConsumerTests(unittest.IsolatedAsyncioTestCase):
             with intended.open('a') as stream:
                 stream.write('auxiliary\n')
             yield from self.aux(**request)
-        def default(**request):
+        async def default(**request):
             with unexpected.open('a') as stream:
                 stream.write('unexpected default\n')
-            yield from self.aux(**request)
+            return self.aux(**request)
         self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=FalseyCallable(injected))
         await self.configure(extract=True)
         configuration = await self.memory.aget_config()
-        with patch('llm.providers.litellm.completion', default):
+        with patch('llm.providers.litellm.acompletion', default):
             run, main = await self.run_loop()
         self.assertEqual(run.data.status, 'completed', run.data.error)
         self.assertEqual({'injected': intended.read_text() if intended.exists() else '',

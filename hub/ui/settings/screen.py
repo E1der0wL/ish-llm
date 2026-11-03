@@ -426,7 +426,7 @@ class SettingsScreen:
             save(width)
 
     def error(self, error):
-        from ..error_presentation import operation_notice
+        from ..error_presentation import operation_feedback
         from ...errors.adapters import from_exception
 
         info = from_exception(
@@ -435,10 +435,7 @@ class SettingsScreen:
             validation=isinstance(error, (ValueError, TypeError)),
         )
         self.view.operation_diagnostics.record_view(self.view, info)
-        self.status = self.t(
-            MessageKey.ERROR,
-            error=operation_notice(error if isinstance(error, str) else info, self.t),
-        )
+        self.status = operation_feedback(error if isinstance(error, str) else info, self.t).inline()
         get_app().invalidate()
 
     def call(self, operation, *args, completed=NO_COMPLETION, blocking=True):

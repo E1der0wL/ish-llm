@@ -790,6 +790,11 @@ class ToolExecutor:
 
                                     try:
                                         value = await invoke() if control is None else await control.call(invoke)
+                                        # A handler may finish an indivisible effect while draining
+                                        # cancellation. That does not withdraw a Run interrupt or
+                                        # an explicit Tool deadline. Redirect cancels only the leaf.
+                                        if asyncio.current_task().cancelling():
+                                            raise asyncio.CancelledError
                                     except InvocationRedirected as error:
                                         effect = (ToolExecutionError.NO_EFFECT if not uncertain_attempt and
                                                   (not entered or tool.contract.effect == ToolEffect.READ_ONLY) else

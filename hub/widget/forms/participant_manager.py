@@ -16,6 +16,8 @@ from ..controls import Button, CheckboxList, ScrollbarMargin, TextArea
 from ..dialog import Dialog, PopupSize
 from ..section import Heading
 from ..sidebar import SidebarItem, SidebarList
+from ..list_presentation import ListPresentation
+from ..notices import Notice, NoticeText
 
 
 class ParticipantManager(Dialog):
@@ -50,7 +52,7 @@ class ParticipantManager(Dialog):
         self.content = HSplit([
             Heading(view.t(MessageKey.PARTICIPANTS_AGENTS)),
             DynamicContainer(lambda: self.agents if view.agents else
-                             Label(view.t(MessageKey.PARTICIPANTS_NO_AVAILABLE))),
+                             Notice(view.t(MessageKey.PARTICIPANTS_NO_AVAILABLE))),
             Window(height=1),
             Heading(view.t(MessageKey.PARTICIPANTS_GROUPS)),
             self.group_window,
@@ -103,11 +105,10 @@ class ParticipantManager(Dialog):
                 # Sidebar details already end with one empty row. Empty groups
                 # need the same separation, not a second spacer after details.
                 margin = int(bool(self.group_items) and not self.group_items[-1].detail)
-                self.group_items.append(SidebarItem(
-                    identifier, self.GROUP_LABEL.format(title=title, count=len(members)),
-                    self.DETAIL_SEPARATOR.join(view.agent_titles.get(member, member) for member in members),
-                    margin_top=margin,
-                ))
+                self.group_items.append(ListPresentation(
+                    self.GROUP_LABEL.format(title=title, count=len(members)),
+                    tuple(view.agent_titles.get(member, member) for member in members),
+                ).sidebar(identifier, margin_top=margin))
             if self.selected_group not in {item.key for item in self.group_items}:
                 self.selected_group = self.UNGROUPED
         return self.content
@@ -135,8 +136,8 @@ class ParticipantManager(Dialog):
         def done(result):
             self.view.progress.finish(token)
             self.busy = False
-            self.status = self.view.t(MessageKey.MANAGER_SAVED if result is not None
-                                      else MessageKey.TOOLS_FAILED)
+            self.status = (self.view.t(MessageKey.MANAGER_SAVED) if result is not None
+                           else NoticeText.error(self.view.t(MessageKey.TOOLS_FAILED), self.view.t).inline())
             self.refresh()
             get_app().invalidate()
 

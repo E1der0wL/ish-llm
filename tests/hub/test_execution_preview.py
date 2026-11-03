@@ -76,4 +76,6 @@ class ExecutionPreviewTests(TestCase):
         self.assertNotIn('\x1b', '\n'.join(rows))
 
     def test_pending_instruction_caption_uses_single_status(self):
-        self.assertEqual(instruction_caption(InstructionDisplay('i', 'hello', 'pending'), Language('ko')), '반영 대기')
+        language = Language('ko')
+        self.assertEqual(instruction_caption(InstructionDisplay('i', 'hello', 'pending'), language),
+                         language.icons.for_status('pending') + ' 반영 대기')

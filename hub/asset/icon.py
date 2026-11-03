@@ -70,6 +70,18 @@ class IconContract:
 
 
 class IconGlyphs:
+    # Display phases share canonical glyphs; these are not execution-state aliases.
+    STATUS_SOURCES = MappingProxyType({
+        "thinking": "reasoning", "summarizing": "compaction",
+        "draft_streaming": "streaming", "draft_reviewing": "reasoning",
+        "retrying": "preparing", "interrupting": "interrupted",
+        "resuming": "running", "resume_preparing": "preparing",
+        "waiting_input": "pending", "answer_sending": "waiting",
+        "approved": "completed", "denied": "cancelled", "answered": "completed",
+        "analyzing": "reasoning", "compacting": "compaction",
+        "repairing": "preparing", "rejected": "failed",
+        "active": "preparing", "waiting": "pending",
+    })
     SELECTED = "▶"
     SHORTCUT_CHEVRON = ""
     AGENT_UNICODE = "♙"
@@ -217,6 +229,12 @@ class IconSet:
 
     def action(self, name):
         return self.auxiliary[name]
+
+    def for_status(self, status: str) -> str:
+        source = IconGlyphs.STATUS_SOURCES.get(status, status)
+        if source in ("reasoning", "compaction", "waiting"):
+            return getattr(self, source)
+        return self.statuses.get(source, self.alerts[NotificationKind.INFO.value])
 
     def for_output(self, kind):
         # Late import keeps glyph assets independent of theme construction.

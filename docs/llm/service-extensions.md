@@ -44,6 +44,12 @@ completion policy도 추가 지시가 포함된 입력을 다룰 때 이 메서�
 관리한다. custom Engine은 필요한 정책 객체를 직접 구성한다. [소유권과 설정 예](project-policies.md)
 
 저장소 교체는 기존 모델/경로/동기 저장/ownership 계약을 따르는 구현을 대상으로 한다.
+Run 저장소에는 `bind_conversations(factory)`로 Session이 선택한 대화 저장소를 연결한다.
+기본 RunRepository를 상속하면 이 연결과 참조 검사를 재사용한다. 독립 구현도 이 계약을
+제공해야 하며, 미연결 조회에서 파일 저장소나 빈 이력을 대신 만들면 안 된다.
+`read_backup(session, conversation=...)`을 재정의한다면 archive owner가 명시한 대화 저장소를
+사용해야 한다. 인자를 생략한 live 검증은 연결된 factory를 사용한다. portable backup은
+파일 저장소만 허용하며, 백업 검증 때문에 shared live factory를 변경하지 않는다.
 이 기능 자체가 데이터베이스 어댑터나 분산 실행을 제공하는 것은 아니다.
 
 ## Engine의 capability 선언

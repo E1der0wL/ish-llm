@@ -10,6 +10,7 @@ from llm.core.tool_contracts import ToolContract
 from llm.components.tools.registry import Tool, ToolRegistry
 from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
+from .file_execution import execute_file
 from .file_values import (FileReadArguments, FileCreateArguments, FilePatchArguments,
     FileMoveArguments, FileDeleteArguments, FileRestoreArguments)
 from .processes import ProcessTools
@@ -170,7 +171,7 @@ class BuiltinTools:
             from .path_access import current_path_access
             access = current_path_access()
             selected = files if access is None else files.with_access(access)
-            return await drain_on_cancel(asyncio.to_thread(getattr(selected.for_arguments(args), operation), args))
+            return await execute_file(getattr(selected.for_arguments(args), operation), args)
         return invoke
 
     def binding_revision(self, contract, *, read_access=None, write_access=None, cwd_access=None):

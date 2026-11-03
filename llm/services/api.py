@@ -837,7 +837,7 @@ class RunHandle(AsyncFacade):
     def respond(self, response: InteractionResponse, *, request_key=UNSET, remember=UNSET) -> InteractionResponse:
         """응답을 원자적으로 저장한다. 실행은 session.run.resume(run.id, agent_id=...)로 명시한다."""
         self.app._check_open()
-        from llm.services.runtime.client_inputs import InputReceipt, response_payload
+        from llm.services.runtime.client_inputs import InputKind, InputReceipt, response_payload
         with self.app.project_manager.ownership.scope(records=request_key is not UNSET or remember is not UNSET):
             session, run = self.session.data, self.data
             if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER.value:
@@ -849,7 +849,7 @@ class RunHandle(AsyncFacade):
             if request_key is not UNSET:
                 previous = InputReceipt.find(store, session, request_key)
                 if previous is not None:
-                    previous.require('interaction', payload)
+                    previous.require(InputKind.INTERACTION, payload)
                     responses = [item for item in self.app.run_repository.interaction_responses(session, run)
                                  if item.request_id == previous.interaction_id
                                  and item.request_revision == previous.interaction_revision]
@@ -876,7 +876,7 @@ class RunHandle(AsyncFacade):
                     self.session.project._snapshot, session, run, request, remember)
             result = self.app.run_repository.respond(session, run, response)
             if request_key is not UNSET:
-                InputReceipt.record(store, session, run.assistant_message_id, request_key, 'interaction', payload,
+                InputReceipt.record(store, session, run.assistant_message_id, request_key, InputKind.INTERACTION, payload,
                                     run_id=run.id, interaction_id=result.request_id,
                                     interaction_revision=result.request_revision)
             views = self.app.run_repository.interaction_views(session, run, store)

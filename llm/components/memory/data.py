@@ -294,9 +294,7 @@ class MemoryData(ComponentData):
     def list_tool_summaries(self, session_id):
         """List saved result transformations, without loading the source text."""
         from .compaction import Compactions
-        project, component = self._current()
-        return [Compactions(self, session_id, self.ABSENT, tool_id=identifier).view()
-                for identifier in Compactions.tool_summary_ids(project, component, session_id)]
+        return Compactions.list_tool_summaries(self, session_id)
 
     @workspace_locked
     def read_source(self, session_id, identifier, *, expected_revision, offset, limit):

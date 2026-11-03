@@ -37,7 +37,8 @@ from prompt_toolkit.widgets import Label
 
 from ..controls import Button
 from ..dialog import Dialog
-from ..sidebar import SidebarItem
+from ..captions import Caption
+from ..list_presentation import ListPresentation
 from .record_manager import RecordManager
 from ...ui.error_presentation import operation_notice
 from ...errors.contracts import ErrorInfo
@@ -93,8 +94,9 @@ class RAGManager(RecordManager):
         if RAGEntry(item).optional_job_id in self.cancel_pending and RAGEntry(
             item
         ).status in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value):
-            return self.view.t(MessageKey.RAG_PHASE_CANCELLING)
-        return self.view.t(MessagePattern.rag_phase(RAGEntry(item).phase))
+            return self.view.t.status('interrupting', key=MessageKey.RAG_PHASE_CANCELLING)
+        return self.view.t.status(RAGEntry(item).status,
+                                    key=MessagePattern.rag_phase(RAGEntry(item).phase))
 
     def _counts(self, item):
         stats = RAGEntry(item).ingestion
@@ -185,11 +187,10 @@ class RAGManager(RecordManager):
         }
         rows = [
             (
-                SidebarItem(
-                    row.key,
-                    row.title + RAGManagerView.SEPARATOR + self._phase(jobs[row.key]),
-                    self._counts(jobs[row.key]),
-                )
+                ListPresentation(
+                    Caption(row.title, self._phase(jobs[row.key])).render(),
+                    description=self._counts(jobs[row.key]),
+                ).sidebar(row.key)
                 if row.key in jobs
                 else row
             )

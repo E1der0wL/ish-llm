@@ -1,7 +1,9 @@
 """Single-line summaries measured in terminal cells rather than characters."""
 
 from prompt_toolkit.utils import get_cwidth
+from unicodedata import category
 from ..backend.history_values import HistoryRow
+from .captions import Caption
 
 
 class SummaryText:
@@ -11,8 +13,7 @@ class SummaryText:
     ELLIPSIS_CELLS = get_cwidth(ELLIPSIS)
     MIN_WIDTH = 0
     FIRST_NUMBER = 1
-    TURN_CHARACTERS = 60
-    TURN = "{number}. {text} • {status}"
+    PRIVATE_USE = "Co"
 
     @classmethod
     def collapsed(cls, text):
@@ -21,16 +22,23 @@ class SummaryText:
 
 def turn_label(row, index, t):
     value = HistoryRow(row)
-    return SummaryText.TURN.format(
-        number=index + SummaryText.FIRST_NUMBER,
-        text=SummaryText.collapsed(value.text)[: SummaryText.TURN_CHARACTERS],
-        status=t.status(value.status),
-    )
+    return Caption(
+        f"{index + SummaryText.FIRST_NUMBER}. " + SummaryText.collapsed(value.text),
+        t.status(value.status),
+    ).render()
 
 
 def clipped_summary(text, width):
     text = SummaryText.collapsed(text)
-    text = SummaryText.EMPTY.join(char for char in text if char.isprintable())
+    return clipped_line(text, width)
+
+
+def clipped_line(text, width):
+    """Clip a display row without removing its indentation."""
+    # NerdFont uses private-use code points, which str.isprintable rejects.
+    # Preserve those glyphs while still excluding terminal control bytes.
+    text = SummaryText.EMPTY.join(char for char in text
+                                 if char.isprintable() or category(char) == SummaryText.PRIVATE_USE)
     width = max(SummaryText.MIN_WIDTH, width)
     if get_cwidth(text) <= width:
         return text

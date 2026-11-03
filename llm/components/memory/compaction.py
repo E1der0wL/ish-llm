@@ -144,11 +144,21 @@ class Compactions:
         return refs
 
     @classmethod
-    def tool_summary_ids(cls, project, component, session_id):
+    def list_tool_summaries(cls, data, session_id):
+        """Reuse one validated inventory within the caller's workspace operation."""
         validate_name(session_id)
+        project, component = data._current()
         prefix = cls.TOOLS + cls.KEY_SEPARATOR + session_id + cls.KEY_SEPARATOR
-        return [key.removeprefix(prefix).removesuffix(cls.SUFFIX)
-                for key in sorted(cls.inventory(project, component).records) if key.startswith(prefix)]
+        inventory = cls.inventory(project, component)
+        views = []
+        for key, state in sorted(inventory.records.items()):
+            if key.startswith(prefix):
+                identifier = key.removeprefix(prefix).removesuffix(cls.SUFFIX)
+                owner = cls(data, session_id, cls.NO_SCOPE, tool_id=identifier)
+                # Recovery writes retain fresh validation. Nothing is cached
+                # across workspace operations or used to authorize an effect.
+                views.append(owner._view(owner._recover(state)))
+        return views
 
     @classmethod
     def initialize(cls, project, component):
@@ -250,7 +260,9 @@ class Compactions:
 
     def recover(self):
         """Read once and mark orphaned work inactive; never replay it automatically."""
-        state = self.read()
+        return self._recover(self.read())
+
+    def _recover(self, state):
         request = CompactionState(state).optional_request
         if request.optional_status == self.RUNNING:
             try:

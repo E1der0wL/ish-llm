@@ -92,6 +92,8 @@ class ToolResultSlice:
 
 
 class SessionReader(Protocol):
+    def get_conversation(self, session: Session): ...
+
     def _owner(
         self, session: Session, *, allow_deleted: bool = ResultQueryContract.EXCLUDE_DELETED
     ) -> Project: ...
@@ -137,7 +139,7 @@ class RunResultQuery:
             # Runtime import keeps the query protocol independent of orchestration.
             from llm.services.runtime.runs import RunRepository
 
-            runs = RunRepository()
+            runs = RunRepository(conversations=sessions.get_conversation)
         self.sessions = sessions
         self.runs = runs
 

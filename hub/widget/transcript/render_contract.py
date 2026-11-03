@@ -28,19 +28,6 @@ class TranscriptLayout:
         return max(cls.MIN_WIDTH, width - cls.HORIZONTAL_MARGIN)
 
 
-class ToolCaption:
-    MAX_NAME = 64
-    FORMAT = "{icon} {name} • {status}"
-
-    @classmethod
-    def render(cls, name, status, language):
-        return cls.FORMAT.format(
-            icon=language.icons.tool,
-            name=TranscriptLayout.SPACE.join(name.split())[: cls.MAX_NAME],
-            status=language.status(status),
-        )
-
-
 class TranscriptPresentation:
     ORIGIN = 0
     MIN_INSET_WIDTH = 3
@@ -48,6 +35,4 @@ class TranscriptPresentation:
     NO_INSET = 0
     USER_WIDTH_RATIO = 0.78
     SIDES = 2
-    LABEL_SEPARATOR = " • "
-    SYSTEM_TIME_SEPARATOR = " • "
     OVERFLOW = "fold"

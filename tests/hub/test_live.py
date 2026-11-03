@@ -226,7 +226,8 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 controller.view.composer.text = "keep this"
                 controller.view.recipient_id = "missing"
                 controller.submit(controller.view.sessions[controller.view.selected].id, "keep this")
-                await until(lambda: controller.view.notice.startswith("오류:"))
+                error_prefix = controller.view.t.icons.alerts["error"] + " 오류:"
+                await until(lambda: controller.view.notice.startswith(error_prefix))
                 self.assertEqual(controller.view.composer.text, "keep this")
                 self.assertFalse(controller._submitting)
             finally:

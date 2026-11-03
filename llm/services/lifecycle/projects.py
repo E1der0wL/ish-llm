@@ -173,7 +173,7 @@ class ProjectManager:
         if self.sessions.run_repository is ProjectManager.UNSPECIFIED:
             from llm.services.runtime.runs import RunRepository
 
-            self.sessions.run_repository = RunRepository()
+            self.sessions.run_repository = RunRepository(conversations=self.sessions.get_conversation)
         self.access = ProjectAccess(repository)
         self.results = RunResultQuery(self.sessions, self.sessions.run_repository)
         self.ownership = repository.ownership
@@ -249,6 +249,8 @@ class ProjectManager:
         return project
 
     def _validate_archive(self, root):
+        from llm.services.history.conversation import conversation_store
+
         project = self.repository.read_backup(root)
         if project.conversation_storage != ConversationStorage.FILE:
             raise ValueError(ProjectManager.UNPORTABLE_STORAGE)
@@ -261,7 +263,9 @@ class ProjectManager:
                 raise ValueError(ProjectManager.MISSING_BACKUP_AGENT)
             if self.config_validator is not ProjectManager.UNSPECIFIED:
                 self.config_validator(project.config, session_config=session.config)
-            for run in self.sessions.run_repository.read_backup(session):
+            # Portable archives explicitly contain file conversations, independent
+            # of the live backend's factory and Project paths.
+            for run in self.sessions.run_repository.read_backup(session, conversation=conversation_store(session)):
                 self.backup_steps.read_backup(run)
         self.sessions.transfers.validate_project(project, archive=ProjectManager.ARCHIVE_VERIFICATION)
         return project

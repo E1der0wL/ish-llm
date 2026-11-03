@@ -48,6 +48,8 @@ class FilePathArguments(FileLimits):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class FileReadArguments(FilePathArguments):
+    MISSING_CHAR_LIMIT = "Character pages require max_chars"
+    MIXED_CHAR_RANGE = "Character pages require max_chars and cannot be combined with line ranges"
     NAME = 'file_read'
     DESCRIPTION = 'Read UTF-8 source or logs within the configured read roots. Use line ranges, tail_lines, or offset/max_chars (mutually exclusive). expected_sha256 checks the whole-file hash; character pages return next_offset.'
 
@@ -147,6 +149,16 @@ class FileEntryKind(StrEnum):
 class FileObservation:
     def to_dict(self):
         return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class FileTextPage(FileObservation):
+    path: str
+    text: str
+    sha256: str
+    offset: int
+    next_offset: int | None
+    truncated: bool
 
 
 @dataclass(frozen=True, slots=True)

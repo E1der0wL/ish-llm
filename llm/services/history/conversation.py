@@ -349,6 +349,11 @@ class ConversationStore(Conversation):
         return ConversationFileStamp.capture(stat)
 
     def _refresh(self) -> None:
+        # File storage owns path integrity, including cache hits. Consumers of
+        # the common Conversation contract must not assume a file representation.
+        from llm.services.infrastructure.storage import reject_links
+
+        reject_links(self.path)
         try:
             stat = record_stat(self.path)
         except FileNotFoundError:

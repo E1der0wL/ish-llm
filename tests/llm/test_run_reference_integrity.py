@@ -2,6 +2,8 @@
 
 import shutil
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -13,6 +15,87 @@ from tests.llm import test_usage_deletion as usage
 class RunReferenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
     create = usage.UsageDeletionTests.create
     run_once = usage.UsageDeletionTests.run_once
+
+    async def test_memory_and_custom_store_references_block_missing_tree_and_quota_reset(self):
+        from llm.llm import LargeLanguageModel, LoopEngine
+        from llm.services.composition import BackendServices
+        from llm.services.history.conversation import MemoryConversations
+        from llm.providers.litellm import LiteLLMCompletionAdapter
+        from tests.llm.test_loop import ScriptedCompletion, chunk
+
+        for custom in (False, True):
+            with self.subTest(custom=custom), TemporaryDirectory() as root:
+                model = ScriptedCompletion(*([[chunk('answer', finish='stop')]] * 2))
+                services = BackendServices(conversations=MemoryConversations() if custom else 'memory')
+                async with LargeLanguageModel(root, components=[], services=services,
+                        engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as app:
+                    project = await app.projects.acreate(components=[], config={
+                        'policies': {'usage': {'project_max_calls': 1}}})
+                    await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test'}}, identifier='loop')
+                    session = await project.sessions.acreate(agent_ids=['loop'])
+                    run = await self.run_once(session)
+                    self.assertEqual(run.data.status, 'completed', run.data.error)
+                    await session.run.shutdown()
+                    self.assertEqual(len(await session.aconversation()), 2)
+                    self.assertFalse(session.paths.conversation.exists())
+                    # A stray unselected file must neither become evidence nor be imported.
+                    session.paths.conversation.write_text('not the selected conversation')
+                    self.assertEqual((await project.amodel_usage())['call_count'], 1)
+                    self.assertTrue(run.data.paths.root.resolve().is_relative_to(Path(root).resolve()))
+                    shutil.rmtree(run.data.paths.root)
+                    with self.assertRaisesRegex(ValueError, 'referenced Run'):
+                        await project.amodel_usage()
+                    with self.assertRaisesRegex(ValueError, 'referenced Run'):
+                        await session.run.alist()
+                    other = await project.sessions.acreate(agent_ids=['loop'])
+                    try:
+                        await self.run_once(other)
+                    except ValueError:
+                        pass
+                    self.assertEqual(len(model.requests), 1)
+                    self.assertEqual(len(await session.aconversation()), 2)
+                    self.assertEqual(session.paths.conversation.read_text(), 'not the selected conversation')
+
+    def test_unbound_repository_does_not_guess_conversation_storage(self):
+        from llm.services.runtime.runs import RunRepository
+        with self.assertRaisesRegex(RuntimeError, 'selected Conversation'):
+            list(RunRepository().record_paths(SimpleNamespace()))
+
+    async def test_archive_uses_explicit_store_without_rebinding_live_factory(self):
+        import asyncio
+        app, project, session, _ = await self.create({})
+        run = await self.run_once(session)
+        self.assertEqual(run.data.status, 'completed', run.data.error)
+        await session.run.shutdown()
+        with TemporaryDirectory() as directory:
+            archive = await project.abackup(Path(directory) / 'archive')
+            repository = app.project_manager.sessions.run_repository
+            selected = repository.conversations
+            with patch.object(repository, 'conversations', side_effect=AssertionError('live factory used for archive')):
+                checked = await asyncio.to_thread(app.project_manager._validate_archive, archive / 'project')
+                self.assertEqual(checked.paths.root, archive / 'project')
+            self.assertIs(repository.conversations, selected)
+            self.assertEqual([item.id for item in repository.list(session.data)], [run.id])
+
+    async def test_selected_file_store_rejects_link_even_when_cached_inode_is_unchanged(self):
+        _, project, session, _ = await self.create({})
+        run = await self.run_once(session)
+        self.assertEqual(run.data.status, 'completed', run.data.error)
+        await session.run.shutdown()
+        self.assertEqual((await project.amodel_usage())['call_count'], 1)
+        path = session.paths.conversation
+        detached = path.with_name('detached.jsonl')
+        path.rename(detached)
+        path.symlink_to(detached)
+        try:
+            with self.assertRaises(ValueError):
+                await project.amodel_usage()
+            with self.assertRaises(ValueError):
+                await session.aconversation()
+        finally:
+            path.unlink()
+            detached.rename(path)
+        self.assertEqual((await project.amodel_usage())['call_count'], 1)
 
     async def missing_run(self):
         app, project, session, model = await self.create({'project_max_calls': 1})

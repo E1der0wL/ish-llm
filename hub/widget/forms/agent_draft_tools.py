@@ -17,6 +17,7 @@ from ...locales.keys import MessageKey
 from ...ui.input.json_document import JsonDocument
 from ..controls import Button, TextArea
 from ..dialog import Dialog
+from ..notices import NoticeText
 from .manager_values import DefinitionDraft
 
 
@@ -60,7 +61,7 @@ class AgentDraftTools:
             AgentProfile.rename(value, editor.display_name.text or editor.identifier.text)
             text = self.recovery_text or JsonDocument.render(value, allow_non_finite=False)
         except (ValueError, TypeError) as error:
-            editor.status = editor.view.t(MessageKey.ERROR, error=error)
+            editor.status = NoticeText.error(str(error), editor.view.t).inline()
             return
         editor.busy = True
         get_app().create_background_task(self.edit_json(text))
@@ -96,7 +97,7 @@ class AgentDraftTools:
             editor.status = editor.view.t(MessageKey.SETTINGS_JSON_UPDATED)
             self.recovery_text = None
         except Exception as error:
-            editor.status = editor.view.t(MessageKey.ERROR, error=error)
+            editor.status = NoticeText.error(str(error), editor.view.t).inline()
         finally:
             editor.busy = False
             editor.view.progress.finish(token)

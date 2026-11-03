@@ -17,6 +17,7 @@ from ..buttons import SaveButton
 from ...ui.input.json_document import JsonDocument
 from ..dialog import Dialog, PopupSize
 from ..dropdown import DropdownBox
+from ..notices import NoticeText
 from .settings import SchemaForm, MISSING
 from .visibility import EssentialSettings
 from .manager_values import DefinitionDraft
@@ -91,7 +92,7 @@ class AgentEditor(Dialog):
             if self.view._dialog is not self:
                 return
             if description is None:
-                self.status = self.view.t(MessageKey.TOOLS_FAILED)
+                self.status = NoticeText.error(self.view.t(MessageKey.TOOLS_FAILED), self.view.t).inline()
                 return
             self.install_form(AgentDescription.from_dict(description), self.drafts[self.engine_name])
 
@@ -154,7 +155,7 @@ class AgentEditor(Dialog):
         try:
             field.input.text = await self.manager.edit_text(field.input.text, self.view.general, suffix='.json')
         except Exception as error:
-            self.status = self.view.t(MessageKey.ERROR, error=error)
+            self.status = NoticeText.error(str(error), self.view.t).inline()
         finally:
             self.busy = False
             field.finish()
@@ -169,7 +170,7 @@ class AgentEditor(Dialog):
                 self.drafts[self.engine_name] = self.form.values()
         except (ValueError, TypeError) as error:
             self.engine.value = self.engine_name
-            self.status = self.view.t(MessageKey.ERROR, error=error)
+            self.status = NoticeText.error(str(error), self.view.t).inline()
             return
         self.engine_name = name
         self.engine.value = name
@@ -188,7 +189,7 @@ class AgentEditor(Dialog):
             text = EditorRecord.render(values)
             DefinitionDraft.require_size(text, self.view.t)
         except (ValueError, TypeError, ValidationError) as error:
-            self.status = self.view.t(MessageKey.ERROR, error=error)
+            self.status = NoticeText.error(str(error), self.view.t).inline()
             return
         self.busy = True
         token = self.view.progress.start(self.view.t(MessageKey.COMPONENT_LOADING))

@@ -133,7 +133,8 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
                                        kind='memory', name=MemorySession.ACTIVE_STEP))
         phases.observe(run, EngineEvent(EngineEventType.COMPLETION, completion=CompletionResult()))
         self.assertEqual(phases.activity(run), ResponseActivity.SUMMARIZING)
-        self.assertEqual(Language('ko').status(ResponseActivity.SUMMARIZING), '요약 중')
+        language = Language('ko')
+        self.assertEqual(language.status(ResponseActivity.SUMMARIZING), language.icons.compaction + ' 요약 중')
         label = retry_text(RetrySummary(1, 4, kind=RetrySummary.RECOVERY,
                                        phase=RetrySummary.COMPACTING), Language('ko'))
         self.assertIn('컨텍스트 압축', label)

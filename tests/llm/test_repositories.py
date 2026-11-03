@@ -25,7 +25,7 @@ class RepositoryTests(unittest.TestCase):
         self.projects = ProjectManager(ProjectRepository(self.root), self.sessions)
         self.project = self.projects.create("Project")
         self.session = self.sessions.create(self.project, "Session")
-        self.runs = RunRepository()
+        self.runs = RunRepository(conversations=self.sessions.get_conversation)
         run_id = new_id()
         self.run = Run(run_id, self.session.id, new_id(), new_id(), "fake",
                        self.runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'}).to_dict()})

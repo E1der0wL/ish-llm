@@ -20,6 +20,7 @@ import subprocess
 from prompt_toolkit.application.current import get_app
 
 from .component_manager import ComponentManager
+from ..notices import NoticeText
 from ...components import component_spec, ManagerKind
 
 
@@ -70,7 +71,7 @@ class RecordManager(ComponentManager):
                 text, self.view.general, suffix=component_spec(self.name).editor_suffix
             )
         except (OSError, ValueError, subprocess.CalledProcessError) as error:
-            self.status = self.view.t(MessageKey.ERROR, error=error)
+            self.status = NoticeText.error(str(error), self.view.t).inline()
             return
         finally:
             self.busy = ManagerView.IDLE

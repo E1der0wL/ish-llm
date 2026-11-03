@@ -1,6 +1,7 @@
-"""LiteLLM의 동기 스트림을 유한 버퍼의 비동기 스트림으로 연결한다. 공급자 호출은 도메인 수명 주기나 저장을 소유하지 않는다.
+"""LiteLLM async streaming and bounded bridges for explicitly injected sync calls.
 
-Adapt synchronous LiteLLM streaming without blocking the application's loop."""
+Provider transport owns its request/stream, never domain lifecycle or persistence.
+"""
 from llm.providers.diagnostic_values import CompletionReception
 
 from llm.providers.diagnostic_values import ProviderDiagnosticText
@@ -22,6 +23,7 @@ import time
 import json
 from dataclasses import replace
 from contextvars import copy_context
+from contextlib import aclosing
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
 from .streaming import CompletionError
@@ -47,6 +49,28 @@ def completion(**kwargs: Any) -> Iterator[Any]:
 
     sdk = litellm_sdk()
     return sdk.completion(**sdk_transport_request(kwargs, sdk))
+
+
+async def acompletion(**kwargs: Any):
+    from .runtime import litellm_sdk
+
+    sdk = await asyncio.to_thread(litellm_sdk)
+    return await sdk.acompletion(**sdk_transport_request(kwargs, sdk))
+
+
+def _uses_sdk(function):
+    return function is completion or function is acompletion
+
+
+def _stream_error(error, function, diagnostic):
+    from .requests import error_code
+
+    code = stable_error_code(error) or error_code(error)
+    # Unclassified errors in injected functions retain their Engine error boundary.
+    if code == ProviderErrorCode.FAILED.value and not _uses_sdk(function):
+        code = StreamBridge.UNSPECIFIED
+    return StreamError(ProviderDiagnosticText.describe(code) if code else str(error),
+                       code=code, diagnostic=diagnostic)
 
 
 def _counter_request(request):
@@ -126,7 +150,7 @@ class LiteLLMCompletionAdapter:
     INVALID_REQUEST = "Completion adapter requires ModelRequest"
 
     def __init__(self, *, completion_fn=UNSPECIFIED, completion_decoder=UNSPECIFIED):
-        self.completion_fn = completion if completion_fn is self.UNSPECIFIED else completion_fn
+        self.completion_fn = acompletion if completion_fn is self.UNSPECIFIED else completion_fn
         self.completion_decoder = (
             LiteLLMCompletionDecoder if completion_decoder is self.UNSPECIFIED else completion_decoder
         )
@@ -146,7 +170,7 @@ class LiteLLMCompletionAdapter:
         Applications choose when to pay the import cost. An injected transport
         owns its initialization and must not load an unused LiteLLM dependency.
         """
-        if self.completion_fn is completion:
+        if _uses_sdk(self.completion_fn):
             from .runtime import prepare_completion
 
             prepare_completion()
@@ -181,7 +205,7 @@ class LiteLLMCompletionAdapter:
     def effective_attempts(self, request, maximum):
         from .retry import effective_attempts
 
-        return effective_attempts(request.parameters, maximum, sdk_defaults=self.completion_fn is completion)
+        return effective_attempts(request.parameters, maximum, sdk_defaults=_uses_sdk(self.completion_fn))
 
     def classify_error(self, error):
         from .requests import error_code
@@ -229,14 +253,117 @@ class LiteLLMCompletionAdapter:
         )
 
 
+async def _stream_async(request, *, buffer_size, calls):
+    from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
+    from llm.services.infrastructure.storage import drain_on_cancel
+    from .runtime import diagnostic_context, request_details, diagnostic_failure
+    from .requests import error_code
+
+    calls = calls if calls is not StreamBridge.UNSPECIFIED else current_calls()
+    if calls is not StreamBridge.UNSPECIFIED:
+        await calls.acquire()
+    queue = asyncio.Queue(maxsize=buffer_size)
+    stopped = False
+    closing = False
+
+    async def produce():
+        nonlocal closing
+        # Creation, iteration and closing share one Task: SDK context tokens and
+        # HTTP streams must not migrate to a separate cleanup Task.
+        with diagnostic_context(**request_details(request)) as details:
+            StreamBridge.observe_attempt(details)
+            started = time.monotonic()
+            stream = failure = failure_diagnostic = StreamBridge.UNSPECIFIED
+            stage, chunks = StreamBridge.REQUEST, StreamBridge.INITIAL_CHUNKS
+
+            def report(error, stage, **extra):
+                return diagnostic_failure(error, operation=SDKOperation.COMPLETION, stage=stage,
+                    **CompletionReception.stream_details(chunks),
+                    tool_count=ProviderSDKObservation.tool_count(request),
+                    elapsed_seconds=time.monotonic() - started, **extra)
+
+            record(ObservationKind.PROVIDERS.value, ObservationStatus.CALLS.value,
+                   name=SDKOperation.COMPLETION)
+            try:
+                stream = await acompletion(**request)
+                stage = StreamBridge.OPEN
+                iterator = aiter(stream)
+                stage = StreamBridge.READ
+                async for chunk in iterator:
+                    chunks += StreamBridge.CHUNK_INCREMENT
+                    await queue.put((StreamBridge.CHUNK, chunk))
+            except BaseException as error:
+                failure = error
+                if not isinstance(error, (asyncio.CancelledError, GeneratorExit)):
+                    failure_diagnostic = report(error, stage)
+            finally:
+                closing = True
+                if stream is not StreamBridge.UNSPECIFIED:
+                    try:
+                        close = StreamBridge.closing_method(stream, asynchronous=True)
+                        if close is not StreamBridge.UNSPECIFIED:
+                            result = close()
+                            if inspect.isawaitable(result):
+                                await result
+                    except BaseException as error:
+                        if not isinstance(error, (asyncio.CancelledError, GeneratorExit)):
+                            diagnostic = report(error, StreamBridge.CLOSE,
+                                                secondary=failure is not StreamBridge.UNSPECIFIED)
+                            if failure is StreamBridge.UNSPECIFIED:
+                                failure_diagnostic = diagnostic
+                        if failure is StreamBridge.UNSPECIFIED:
+                            failure = error
+                cancelled = stopped or isinstance(failure, (asyncio.CancelledError, GeneratorExit))
+                record(ObservationKind.PROVIDERS.value,
+                    (ObservationStatus.CANCELLED.value if cancelled else
+                     ObservationStatus.FAILED.value if failure is not StreamBridge.UNSPECIFIED else
+                     ObservationStatus.COMPLETED.value),
+                    code=error_code(failure) if failure is not StreamBridge.UNSPECIFIED else None,
+                    name=SDKOperation.COMPLETION, duration_seconds=time.monotonic() - started)
+                closing = False
+            if not stopped:
+                value = failure
+                if failure is not None and not isinstance(failure, (asyncio.CancelledError, GeneratorExit)):
+                    value = _stream_error(failure, acompletion, failure_diagnostic)
+                    value.__cause__ = failure
+                await queue.put((StreamBridge.ERROR if failure is not None else StreamBridge.END, value))
+
+    producer = None
+    try:
+        producer = asyncio.create_task(produce())
+        while True:
+            kind, value = await queue.get()
+            if kind == StreamBridge.END:
+                return
+            if kind == StreamBridge.ERROR:
+                raise value
+            yield value
+    finally:
+        stopped = True
+        try:
+            if producer is not None:
+                # One cancellation interrupts I/O. Repeated caller cancellation
+                # cannot interrupt the producer's same-Task stream cleanup.
+                if not producer.done() and not closing:
+                    producer.cancel()
+                try:
+                    await drain_on_cancel(producer)
+                except asyncio.CancelledError:
+                    if not producer.cancelled():
+                        raise
+        finally:
+            if calls is not StreamBridge.UNSPECIFIED:
+                calls.release()
+
+
 async def stream_completion(
     request: dict[str, Any],
     *,
-    completion_fn: Callable[..., Iterator[Any]] = completion,
+    completion_fn: Callable = acompletion,
     buffer_size: int = StreamBridge.BUFFER_SIZE,
     calls=StreamBridge.UNSPECIFIED,
 ) -> AsyncIterator[Any]:
-    """One bounded bridge per request, with stream ownership in one thread.
+    """Native async transport, or one bounded worker for an injected sync call.
 
     Cancellation stops delivery immediately. A blocked synchronous call cannot
     be forcibly cancelled: the daemon worker closes its stream when the call
@@ -244,6 +371,11 @@ async def stream_completion(
     """
     if type(buffer_size) is not int or buffer_size < StreamBridge.MINIMUM_BUFFER_SIZE:
         raise ValueError(StreamBridge.INVALID_BUFFER)
+    if completion_fn is acompletion:
+        async with aclosing(_stream_async(request, buffer_size=buffer_size, calls=calls)) as stream:
+            async for chunk in stream:
+                yield chunk
+        return
     # SDK timeout은 그대로 전달한다. bridge는 별도 실행 deadline을 만들지 않는다.
     calls = calls if calls is not StreamBridge.UNSPECIFIED else current_calls()
     if calls is not StreamBridge.UNSPECIFIED:
@@ -392,17 +524,7 @@ async def stream_completion(
             if kind == StreamBridge.ERROR:
                 if isinstance(value, (asyncio.CancelledError, GeneratorExit)):
                     raise value
-                from .requests import error_code
-
-                code = stable_error_code(value) or error_code(value)
-                # 확장 함수의 미분류 내부 오류는 engine_failed로 남긴다. 알려진 transport 오류만 분류한다.
-                if code == ProviderErrorCode.FAILED.value and completion_fn is not completion:
-                    code = StreamBridge.UNSPECIFIED
-                raise StreamError(
-                    ProviderDiagnosticText.describe(code) if code else str(value),
-                    code=code,
-                    diagnostic=failure_diagnostic,
-                ) from value
+                raise _stream_error(value, completion_fn, failure_diagnostic) from value
             yield value
     finally:
         stopped.set()

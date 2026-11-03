@@ -9,9 +9,9 @@ from ...ui.message_changes import unchanged_prefix
 from .render_contract import (
     RenderSection,
     TranscriptLayout,
-    ToolCaption,
     TranscriptPresentation,
 )
+from .header import OutputHeader
 
 from hub.ui.output.worker import RenderSlot
 
@@ -117,43 +117,8 @@ def render_messages(
             if user
             else inner
         )
-        label = (
-            (message.author or account_name)
-            if user
-            else t(
-                MessageKey.ASSISTANT
-                if message.role == MessageRole.ASSISTANT
-                else (
-                    MessageKey.SYSTEM
-                    if message.role == MessageRole.SYSTEM
-                    else (
-                        MessageKey.REASONING
-                        if message.role == ReasoningMessage.ROLE
-                        else MessageKey.INFO
-                    )
-                )
-            )
-        )
-        if not user and message.author and message.role in (MessageRole.ASSISTANT, ReasoningMessage.ROLE):
-            label = (message.author if message.role == MessageRole.ASSISTANT
-                     else message.author + TranscriptPresentation.LABEL_SEPARATOR + t(MessageKey.REASONING))
-        if message.role not in (MessageRole.SYSTEM, ReasoningMessage.ROLE) and (
-            message.activity or message.phase or message.status
-        ):
-            label += TranscriptPresentation.LABEL_SEPARATOR + (
-                message.activity or t.status(message.phase or message.status)
-            )
-        if message.role == MessageRole.ASSISTANT:
-            label += TranscriptPresentation.LABEL_SEPARATOR + t.elapsed(
-                message.elapsed_seconds
-            )
-        elif message.time and message.role != ReasoningMessage.ROLE:
-            label += (
-                TranscriptPresentation.SYSTEM_TIME_SEPARATOR
-                if message.role == MessageRole.SYSTEM
-                else TranscriptPresentation.LABEL_SEPARATOR
-            ) + message.time
-        label = Text(label, overflow=TranscriptPresentation.OVERFLOW)
+        label = Text(OutputHeader.message(message, t, account_name).render(),
+                     overflow=TranscriptPresentation.OVERFLOW)
         header_lines = (
             []
             if message.role == ChatMessage.DRAFT or section == RenderSection.BODY
@@ -278,11 +243,8 @@ def render_messages(
             for instruction in message.instructions:
                 body.append([])
                 from .instruction_caption import instruction_caption, target_captions
-                caption = " • ".join(value for value in (
-                    t(MessageKey.INSTRUCTION_LABEL),
-                    instruction_caption(instruction, t),
-                    instruction.time,
-                ) if value)
+                caption = OutputHeader(t(MessageKey.INSTRUCTION_LABEL),
+                    instruction_caption(instruction, t), (instruction.time,)).render()
                 body.extend(markdown_lines(Text(caption, style="bold")))
                 body.extend(markdown_lines(HubMarkdown(instruction.text, theme)))
                 for detail in target_captions(instruction, t):

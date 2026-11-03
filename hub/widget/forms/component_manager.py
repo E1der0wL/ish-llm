@@ -13,8 +13,6 @@ from hub.backend.project.management_values import (
 from hub.components import ManagedComponents
 
 
-from datetime import datetime
-
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
@@ -24,7 +22,9 @@ from ..controls import Button, ScrollbarMargin
 from .path_input import PathInput
 from ..input_field import InputField
 from ..dialog import Dialog, PopupSize
-from ..sidebar import SidebarItem, SidebarList
+from ..sidebar import SidebarList
+from ..list_presentation import ListPresentation
+from ..notices import NoticeText
 from ..section import Heading
 from ...config.theme_style import ThemeSelector
 from ..actions import ActionBar
@@ -175,38 +175,20 @@ class ComponentManager(Dialog):
     def items(self):
         rows = []
         for item in self.entries:
-            title = ManagementEntry(item).label
-            if ManagementEntry(item).has_enabled:
+            entry = ManagementEntry(item)
+            title = entry.label
+            if entry.has_enabled:
                 title = (
                     ManagerView.ENABLED_MARK
-                    if ManagementEntry(item).enabled
+                    if entry.enabled
                     else ManagerView.DISABLED_MARK
                 ) + title
-            modified = ManagementEntry(item).modified
-            try:
-                stamp = (
-                    datetime.fromisoformat(modified)
-                    .astimezone()
-                    .strftime(ManagerView.DATE_FORMAT)
-                    if modified
-                    else ManagerView.UNKNOWN
-                )
-            except (ValueError, TypeError):
-                stamp = ManagerView.UNKNOWN
-            if ManagementEntry(item).builtin:
-                stamp = self.view.t(MessageKey.TOOLS_BUILTIN)
-            description = ManagementEntry(item).description or ManagerView.UNKNOWN
-            rows.append(
-                SidebarItem(
-                    ManagementEntry(item).name,
-                    title,
-                    stamp
-                    + ManagerView.SEPARATOR
-                    + description.splitlines()[ManagerView.FIRST],
-                )
-            )
+            stamp = (self.view.t(MessageKey.TOOLS_BUILTIN) if entry.builtin
+                     else ListPresentation.timestamp(entry.modified))
+            rows.append(ListPresentation(title, (stamp,), entry.description or '').sidebar(entry.name))
         return rows or [
-            SidebarItem(ManagerView.EMPTY, self.view.t(MessageKey.MANAGER_EMPTY))
+            NoticeText(self.view.t(MessageKey.MANAGER_EMPTY),
+                       hint=self.view.t(MessagePattern.component_import_hint(self.name))).sidebar()
         ]
 
     def select(self, name):
@@ -256,7 +238,7 @@ class ComponentManager(Dialog):
             self.status = (
                 ManagerView.EMPTY
                 if result is not ManagerView.ABSENT
-                else self.view.t(MessageKey.TOOLS_FAILED)
+                else NoticeText.error(self.view.t(MessageKey.TOOLS_FAILED), self.view.t).inline()
             )
             if result is not ManagerView.ABSENT:
                 if completed:

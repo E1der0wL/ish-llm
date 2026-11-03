@@ -105,7 +105,8 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
         with patch("hub.widget.forms.rag_manager.get_app", return_value=app), \
                 patch("hub.widget.forms.rag_manager.asyncio.get_running_loop", return_value=scheduler):
             popup.cancel_job()
-            self.assertEqual(popup._phase(job), popup.view.t("rag_phase_cancelling"))
+            self.assertEqual(popup._phase(job), popup.view.t.icons.for_status("interrupting")
+                             + " " + popup.view.t("rag_phase_cancelling"))
             scheduler.call_later.call_args.args[1]()
             self.assertEqual(popup.view.notice, popup.view.t("cancel_wait"))
             popup.cancel_job()

@@ -6,6 +6,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.data_structures import Point
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.layout import UIContent
 from prompt_toolkit.mouse_events import MouseEventType, MouseButton
 from prompt_toolkit.utils import get_cwidth
 
@@ -14,6 +15,7 @@ from .section import section
 from .input_contract import MouseResult
 from .mouse_contract import MouseBinding
 from .auxiliary import AuxiliaryBar
+from .summary import clipped_line
 from ..asset.icon import AuxiliaryIcon
 from ..ui.input.keys import KeyName
 from ..config.theme_style import ThemeSelector
@@ -64,6 +66,7 @@ class SidebarItem:
     title: str
     detail: str = ""
     margin_top: int = 0
+    selectable: bool = True
 
 
 class SidebarList(FormattedTextControl):
@@ -103,14 +106,14 @@ class SidebarList(FormattedTextControl):
 
     def move(self, direction):
         """Arrow movement stays inside this category, including its boundaries."""
-        keys = [item.key for item in self.items()]
+        keys = [item.key for item in self.items() if item.selectable]
         if keys:
             index = keys.index(self.selected()) if self.selected() in keys else 0
             self.on_select(keys[max(0, min(len(keys) - 1, index + direction))])
 
     def activate(self):
         """Entering a category selects its remembered item or its first row."""
-        keys = [item.key for item in self.items()]
+        keys = [item.key for item in self.items() if item.selectable]
         get_app().layout.focus(self)
         if keys:
             self.on_select(self.selected() if self.selected() in keys else keys[0])
@@ -119,7 +122,7 @@ class SidebarList(FormattedTextControl):
         line = 0
         for item in self.items():
             line += item.margin_top
-            if item.key == self.selected():
+            if item.selectable and item.key == self.selected():
                 return Point(x=self.CURSOR_COLUMN, y=line)
             line += self.DETAIL_HEIGHT if item.detail else self.ROW_HEIGHT
         return Point(x=self.CURSOR_COLUMN, y=0)
@@ -127,6 +130,28 @@ class SidebarList(FormattedTextControl):
     def begin_click(self, focused):
         """Capture focus before the host mouse router focuses the pressed Window."""
         self._click_focused = focused
+
+    def create_content(self, width, height):
+        source = super().create_content(width, height)
+        rows = {}
+
+        def line(index):
+            if index not in rows:
+                row, remaining = [], max(0, width)
+                for fragment in source.get_line(index):
+                    text = clipped_line(fragment[1], remaining)
+                    row.append((fragment[0], text, *fragment[2:]))
+                    remaining -= get_cwidth(text)
+                    if remaining <= 0:
+                        break
+                rows[index] = row
+            return rows[index]
+
+        # Titles and secondary metadata each own one row. Their visible width
+        # must not create wrapped rows that disagree with the mouse hit map.
+        return UIContent(get_line=line, line_count=source.line_count,
+                         cursor_position=source.cursor_position,
+                         menu_position=source.menu_position, show_cursor=source.show_cursor)
 
     def mouse_handler(self, event):
         # Handle the entire row, including whitespace beyond its title.
@@ -142,12 +167,8 @@ class SidebarList(FormattedTextControl):
             for item in self.items():
                 row += item.margin_top
                 height = self.DETAIL_HEIGHT if item.detail else self.ROW_HEIGHT
-                if (
-                    row
-                    <= event.position.y
-                    < row
-                    + (self.DETAIL_CLICK_HEIGHT if item.detail else self.ROW_HEIGHT)
-                ):
+                clickable_height = self.DETAIL_CLICK_HEIGHT if item.detail else self.ROW_HEIGHT
+                if item.selectable and row <= event.position.y < row + clickable_height:
                     repeated = item.key == self.selected()
                     self.on_select(item.key)
                     if was_focused and repeated and self.on_activate:
@@ -165,7 +186,7 @@ class SidebarList(FormattedTextControl):
                 fragments.append(
                     (ThemeSelector.SIDEBAR.style, self.NEWLINE * item.margin_top)
                 )
-            selected = item.key == self.selected()
+            selected = item.selectable and item.key == self.selected()
             fragments.append(
                 (
                     (

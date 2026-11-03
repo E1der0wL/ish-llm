@@ -6,9 +6,11 @@ from .keys import MessageKey, MessagePattern
 from ..asset.icon import VALUES, NERD
 import re
 from string import Formatter
+from types import MappingProxyType
 
 
 class TranslationPack:
+    NO_ICONS = MappingProxyType(dict.fromkeys(VALUES, ""))
     CODE_PATTERN = r"[a-z][a-z0-9_-]{1,15}"
     NESTED_FORMAT = "{"
     CONVERSIONS = (None, "s", "r", "a")
@@ -58,14 +60,26 @@ class Language:
     def icons(self):
         return self.icon_source() if callable(self.icon_source) else self.icon_source
 
-    def __call__(self, key: str, **values) -> str:
+    def _format(self, key, icons, values):
         try:
-            return self.messages.get(key, en.MESSAGES.get(key, key)).format(**{**self.icons.values, **values})
+            return self.messages.get(key, en.MESSAGES.get(key, key)).format(**{**icons, **values})
         except (KeyError, ValueError, TypeError, IndexError):
-            return en.MESSAGES.get(key, key).format(**{**self.icons.values, **values})
+            return en.MESSAGES.get(key, key).format(**{**icons, **values})
 
-    def status(self, value) -> str:
-        return self(MessagePattern.status(str(value))) if MessagePattern.status(str(value)) in self.messages else str(value)
+    def __call__(self, key: str, **values) -> str:
+        return self._format(key, self.icons.values, values)
+
+    def without_icons(self, key: str, **values) -> str:
+        """Translate a label whose glyph is owned by its surrounding widget."""
+        return self._format(key, TranslationPack.NO_ICONS, values).strip()
+
+    def status(self, value, *, key: str | None = None, **values) -> str:
+        if not value:
+            return ""
+        message_key = key or MessagePattern.status(str(value))
+        label = (self.without_icons(message_key, **values)
+                 if message_key in self.messages else str(value))
+        return self.icons.for_status(str(value)) + " " + label
 
     def elapsed(self, seconds: float | None) -> str:
         if seconds is None:

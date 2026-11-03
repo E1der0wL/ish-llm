@@ -9,7 +9,8 @@ from prompt_toolkit.layout.dimension import Dimension
 from ..controls import RadioList, TextArea
 from ..dialog import PopupGeometry, PopupSize
 from ..section import Heading
-from ..summary import clipped_summary, turn_label
+from ..summary import turn_label
+from ..list_presentation import ListPresentation
 
 
 class SessionNameForm:
@@ -53,8 +54,7 @@ class SessionCloneForm(SessionNameForm):
     def options(self):
         return [
             (self.LATEST_BOUNDARY, self.t(MessageKey.CLONE_LATEST)),
-            *[(HistoryRow(row).id, lambda row=row, i=i: clipped_summary(
-                turn_label(row, i, self.t),
+            *[(HistoryRow(row).id, lambda row=row, i=i: ListPresentation(turn_label(row, i, self.t)).line(
                 PopupGeometry.dimensions(PopupSize.MEDIUM)[0].preferred
                 - self.LABEL_MARGIN,
             )) for i, row in enumerate(self.rows)],

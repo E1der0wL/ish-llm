@@ -1,7 +1,7 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
 from llm.services.infrastructure.storage import record_exists, record_children, record_directory
-from .client_inputs import InputReceipt
+from .client_inputs import InputKind, InputReceipt
 
 from llm.services.runtime.subscription_state import EventChannel
 from .run_values import (
@@ -229,13 +229,16 @@ class RunRepository:
     UNKNOWN_INTERACTION = "Unknown interaction operation"
     CHECKPOINT_OWNER = "Checkpoint Run ownership mismatch"
     INVALID_QUERY = "Result selection requires Query or None"
+    UNBOUND_CONVERSATIONS = "Run reference checks require the selected Conversation factory"
 
     def __init__(
         self,
         *,
         output_index_stride: int = OutputJournal.DEFAULT_INDEX_STRIDE,
         catalog_size: int = FileCatalog.DEFAULT_MAX_ENTRIES,
+        conversations: Optional[Callable[[Session], Conversation]] = ABSENT,
     ):
+        self.conversations = conversations
         self._interaction_reads = ContextVar(
             RunInteractionReadScope.NAME, default=RunInteractionReadScope.ABSENT
         )
@@ -243,6 +246,12 @@ class RunRepository:
         self.catalog = FileCatalog(catalog_size)
         self.result_catalog = FileCatalog(catalog_size, projection=Run.index_record)
         self.usage_catalog = FileCatalog(catalog_size, projection=self._usage_record)
+
+    def bind_conversations(self, conversations):
+        """The Session owner supplies the same store used by runtime and queries."""
+        if not callable(conversations):
+            raise TypeError(self.UNBOUND_CONVERSATIONS)
+        self.conversations = conversations
 
     def _usage_record(self, data):
         run = Run.from_record(data, RunRepository.ABSENT)
@@ -413,10 +422,14 @@ class RunRepository:
             entries.extend(deepcopy(values))
         return entries
 
-    def record_paths(self, session):
+    def record_paths(self, session, *, conversation=ABSENT):
         """Discover owned Run directories, including records missing from damaged trees."""
         from llm.services.infrastructure.storage import reject_links
-        from llm.services.history.conversation import ConversationStore
+
+        if conversation is self.ABSENT:
+            if not callable(self.conversations):
+                raise RuntimeError(self.UNBOUND_CONVERSATIONS)
+            conversation = self.conversations(session)
 
         paths = {}
         for directory in record_children(session.paths.runs) if record_exists(session.paths.runs) else ():
@@ -424,15 +437,14 @@ class RunRepository:
             if record_directory(directory) and not directory.name.startswith(RunRepository.HIDDEN_PREFIX):
                 paths[directory.name] = self.paths(session, directory.name).record
         required = set(session.active_run_ids)
-        # File conversations retain independent witnesses even if an entire Run tree is lost.
-        # Memory conversations need not have this file; a missing optional file is not created.
-        reject_links(session.paths.conversation)
-        if record_exists(session.paths.conversation):
-            required.update(
-                run_id
-                for message in ConversationStore(session.paths.conversation).list()
-                for run_id in RequestAdmission.run_ids(message)
-            )
+        # Surviving references are evidence regardless of storage representation.
+        # The selected owner validates its storage; never open a second file store
+        # for memory/custom conversations or restore their lost history.
+        required.update(
+            run_id
+            for message in conversation.list()
+            for run_id in RequestAdmission.run_ids(message)
+        )
         if not required <= paths.keys():
             raise ValueError(RunRepository.MISSING_RUN)
         # Directory restoration can change enumeration order without changing
@@ -458,10 +470,10 @@ class RunRepository:
             self.paths(session, identifier)
         return recover_deletions(session.paths.runs, allowed=set(run_ids))
 
-    def read_backup(self, session):
+    def read_backup(self, session, *, conversation=ABSENT):
         """자신이 소유하는 Run/출력/체크포인트만 읽어서 검증한다."""
         runs = []
-        for path in self.record_paths(session):
+        for path in self.record_paths(session, conversation=conversation):
             data = read_domain_record(path)
             identity = RunRecordIdentity(data)
             if child(session.paths.runs, identity.id) != path.parent or identity.session_id != session.id:
@@ -1238,8 +1250,9 @@ class RunManager:
         self.agents = RunAgentResolver(engines, sessions.agents.repository)
         self.repository = repository if repository is not RunManager.ABSENT else sessions.run_repository
         if self.repository is RunManager.ABSENT:
-            self.repository = RunRepository()
+            self.repository = RunRepository(conversations=sessions.get_conversation)
             sessions.run_repository = self.repository
+        self.repository.bind_conversations(sessions.get_conversation)
         self.steps = steps if steps is not RunManager.ABSENT else StepManager()
         self.recorder = StepEventRecorder(self.steps)
         self.results = RunResultQuery(sessions, self.repository)
@@ -1413,7 +1426,7 @@ class RunManager:
                 def persist():
                     _, session = self._prepare()
                     store = self._store(session)
-                    kind = 'reservation' if reserved else 'redirect' if redirect else 'instruction'
+                    kind = InputKind.RESERVATION if reserved else InputKind.REDIRECT if redirect else InputKind.INSTRUCTION
                     payload = {'run_id': run_id, 'content': content, 'targets':
                                [v.to_dict() for v in targets] if reserved else
                                list(targets) if targets is not RunManager.ABSENT else None}
@@ -1454,7 +1467,7 @@ class RunManager:
                     if request_key is not UNSET:
                         previous = InputReceipt.find(store, session, request_key)
                         if previous is not None:
-                            previous.require('replacement', payload)
+                            previous.require(InputKind.REPLACEMENT, payload)
                             return run, [RunInstruction.from_message(store.get(previous.message_id))], False
                     if run.status != RunStatus.RUNNING or self._active is None:
                         raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, self.NO_LIVE_INSTRUCTIONS)
@@ -1477,7 +1490,7 @@ class RunManager:
                                                                   receipts=original.targets)
                         if request_key is not UNSET:
                             InputReceipt.record(store, session, replacement.id, request_key,
-                                                'replacement', payload, run_id=run_id)
+                                                InputKind.REPLACEMENT, payload, run_id=run_id)
                     changed = withdraw_instruction(store, message, original,
                         reason='superseded' if replacement is not None else 'withdrawn')
                     return run, [changed, *([replacement] if replacement is not None else [])], True
@@ -1742,7 +1755,7 @@ class RunManager:
                     store = self._store(session)
                     previous = InputReceipt.find(store, session, request_key)
                     if previous is not None:
-                        previous.require('request', payload)
+                        previous.require(InputKind.REQUEST, payload)
                         return store.get(previous.message_id)
                     return None
                 previous = await self._io.run(repeated)
@@ -1760,7 +1773,7 @@ class RunManager:
                 message = self._admit(runtime, content, bindings, request_context)
                 if request_key is not UNSET:
                     InputReceipt.record(self._store(runtime.session), runtime.session, message.id,
-                                        request_key, 'request', payload)
+                                        request_key, InputKind.REQUEST, payload)
                 log_event(
                     runtime.session.paths.logs,
                     RuntimeLogEvent.QUEUED,

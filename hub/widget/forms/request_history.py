@@ -3,7 +3,7 @@ from hub.ui.input.registry import ShortcutRegistry
 
 
 from ...backend.history_values import HistoryRow
-from ...config.theme_style import ThemeSelector, ThemeStyle
+from ...config.theme_style import ThemeSelector
 from ...ui.input.keys import KeyName, ShortcutAction
 
 from hub.locales.keys import MessageKey, MessagePattern
@@ -15,6 +15,9 @@ from prompt_toolkit.widgets import Label
 from ..controls import Button, CheckboxList, TextArea
 from ..dialog import Dialog, PopupSize, PopupGeometry
 from ..summary import clipped_summary, turn_label
+from ..captions import Caption
+from ..section import Heading
+from ..list_presentation import ListPresentation
 
 
 class RequestHistoryDialog(Dialog):
@@ -34,11 +37,7 @@ class RequestHistoryDialog(Dialog):
     READ_ONLY = True
     RESPONSE_FOCUSABLE = False
     LINE = "\n"
-    HEADING_STYLE = ThemeStyle.MODIFIER_SEPARATOR.join(
-        (ThemeSelector.ACCENT.style, ThemeStyle.BOLD)
-    )
     SHORTCUT_CONTEXT = "history"
-    DETAILS = "{time} • {engine} • {elapsed} • {error}"
 
     def __init__(self, view, rows, *, delete, edit, retry, close):
         self.view, self.rows = view, {HistoryRow(row).id: row for row in rows}
@@ -87,9 +86,8 @@ class RequestHistoryDialog(Dialog):
             [
                 (
                     HistoryRow(row).id,
-                    lambda row=row, i=i: clipped_summary(
-                        turn_label(row, i, view.t), width() - self.SUMMARY_MARGIN
-                    ),
+                    lambda row=row, i=i: ListPresentation(turn_label(row, i, view.t)).line(
+                        width() - self.SUMMARY_MARGIN),
                 )
                 for i, row in enumerate(rows)
             ],
@@ -116,10 +114,7 @@ class RequestHistoryDialog(Dialog):
             )
         body = HSplit(
             [
-                Label(
-                    self.LINE + view.t(MessageKey.HISTORY_REQUESTS),
-                    style=self.HEADING_STYLE,
-                ),
+                Heading(self.LINE + view.t(MessageKey.HISTORY_REQUESTS)),
                 Label(
                     lambda: clipped_summary(
                         view.t(MessageKey.HISTORY_HINT), width() - self.LABEL_MARGIN
@@ -127,15 +122,9 @@ class RequestHistoryDialog(Dialog):
                     style=ThemeSelector.MUTED.style,
                 ),
                 self.choices,
-                Label(
-                    self.LINE + view.t(MessageKey.HISTORY_USER_MESSAGE),
-                    style=self.HEADING_STYLE,
-                ),
+                Heading(self.LINE + view.t(MessageKey.HISTORY_USER_MESSAGE)),
                 self.editor,
-                Label(
-                    self.LINE + view.t(MessageKey.HISTORY_RESPONSE),
-                    style=self.HEADING_STYLE,
-                ),
+                Heading(self.LINE + view.t(MessageKey.HISTORY_RESPONSE)),
                 Label(
                     lambda: clipped_summary(
                         self.details(), width() - self.LABEL_MARGIN
@@ -183,9 +172,4 @@ class RequestHistoryDialog(Dialog):
 
     def details(self):
         row = HistoryRow(self.rows[self.current])
-        return self.DETAILS.format(
-            time=row.time,
-            engine=row.engine,
-            elapsed=self.view.t.elapsed(row.elapsed),
-            error=row.error,
-        )
+        return Caption(details=(row.time, row.engine, self.view.t.elapsed(row.elapsed), row.error)).render()

@@ -20,6 +20,7 @@ from ..errors.contracts import ErrorInfo
 from llm.core.model_protocol import StopReason
 from llm.core.tool_codes import ToolErrorCode
 from llm.engines.loop.review import LoopReview
+from ..widget.notices import NoticeText
 
 
 _GUIDANCE = {
@@ -170,6 +171,11 @@ def operation_notice(error, t):
     return t(MessageKey.OPERATION_FAILED)
 
 
+def operation_feedback(error, t):
+    """One visual error caption; the diagnostic guidance above owns the meaning."""
+    return NoticeText.error(operation_notice(error, t), t)
+
+
 _CODE_GUIDANCE = {
     LoopReview.CONTINUATION_CODE: MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT,
     LoopReview.ATTEMPTS_CODE: MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT,
@@ -190,7 +196,7 @@ def failure_text(error: ErrorInfo, t) -> str:
         key = ErrorPresentation.INCOMPLETE_GUIDANCE.get(error.termination, key)
     elif error.code in _CODE_GUIDANCE:
         key = _CODE_GUIDANCE[error.code]
-    text = t(key)
+    details = []
     evidence = [error.code] if error.code else []
     if error.http_status is not ErrorInfo.NO_HTTP_STATUS:
         evidence.append(ErrorPresentation.HTTP_STATUS.format(status=error.http_status))
@@ -201,19 +207,18 @@ def failure_text(error: ErrorInfo, t) -> str:
             ErrorPresentation.FINISH_REASON.format(reason=error.raw_finish_reason)
         )
     if evidence:
-        text += ErrorPresentation.PARAGRAPH + t(
+        details.append(t(
             MessageKey.FAILURE_EVIDENCE,
             evidence=ErrorPresentation.EVIDENCE_SEPARATOR.join(evidence),
-        )
+        ))
     for title, value in (
         (MessageKey.FAILURE_SERVER_DETAIL, error.detail),
         (MessageKey.FAILURE_MODEL_ANALYSIS, error.explanation),
     ):
         if value:
             # Evidence/model text stays literal Markdown code, never executable XML.
-            text += (
-                ErrorPresentation.PARAGRAPH
-                + t(title)
+            details.append(
+                t(title)
                 + ErrorPresentation.NEWLINE
                 + ErrorPresentation.NEWLINE.join(
                     ErrorPresentation.LITERAL_INDENT + line
@@ -221,7 +226,8 @@ def failure_text(error: ErrorInfo, t) -> str:
                 )
             )
     if error.recovery in _OUTCOMES:
-        text += ErrorPresentation.PARAGRAPH + t(
+        details.append(t(
             MessagePattern.recovery_result(error.recovery)
-        )
-    return text + ErrorPresentation.NEWLINE + t(MessageKey.FAILURE_DETAILS)
+        ))
+    return NoticeText(t(key), ErrorPresentation.PARAGRAPH.join(details),
+                      t(MessageKey.FAILURE_DETAILS)).paragraphs()

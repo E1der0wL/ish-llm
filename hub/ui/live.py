@@ -34,6 +34,7 @@ from .presentation import present, present_message, MessagePresentationCache
 from .snapshot_inbox import SnapshotInbox
 from .requests import UIRequests
 from .error_presentation import operation_notice
+from ..widget.notices import NoticeText
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore, ViewStateWriter
 from ..config.preferences import PreferencesStore
@@ -386,7 +387,7 @@ class LiveController:
         message = operation_notice(
             error if isinstance(error, str) else info, self.view.t
         )
-        self.view.notice = self.view.t(MessageKey.ERROR, error=message)
+        self.view.notice = NoticeText.error(message, self.view.t).inline()
         self.view.toasts.alert(
             self.view.sessions[self.view.selected].title,
             message,

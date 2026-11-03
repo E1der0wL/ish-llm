@@ -41,6 +41,7 @@ from ...widget.forms.visibility import EssentialSettings
 from ...widget.forms.settings_viewport import SettingsBody
 from ...config.theme import HubTheme
 from ...widget.controls import Button, TextArea
+from ...widget.notices import Notice
 
 
 class SettingsTab(StrEnum):
@@ -85,14 +86,14 @@ class Page:
         self._filtered_fields = self._matching_fields()
         if not self.section_fields() and not (isinstance(self, ProjectPage) and self.approval_management_visible()):
             self.container = SettingsBody(
-                [Label(self.screen.t(MessageKey.SETTINGS_TAB_EMPTY)), *self.advanced_notice()], []
+                [Notice(self.screen.t(MessageKey.SETTINGS_TAB_EMPTY)), *self.advanced_notice()], []
             )
             return
         self.container = (
             SettingsBody(
                 [*(self.intro if isinstance(self, ProjectPage) else []),
                  *(self.grouped_children(self.fields())
-                   or [Label(self.screen.t(MessageKey.SETTINGS_SEARCH_EMPTY))]), *self.advanced_notice()],
+                   or [Notice(self.screen.t(MessageKey.SETTINGS_SEARCH_EMPTY))]), *self.advanced_notice()],
                 self.fields(),
             )
             if self.query or isinstance(self, ProjectPage)

@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+import threading
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -31,6 +32,102 @@ from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
 class BuiltinTests(unittest.IsolatedAsyncioTestCase):
+    async def test_character_page_reads_once_without_line_index_and_validates_whole_file(self):
+        import hashlib
+        from llm.components.tools.builtin.file_execution import FileReader
+        content = ('한글🙂\r\n' * 30000) + 'end'
+        raw = content.encode('utf-8')
+        path = self.work / 'page.txt'
+        path.write_bytes(raw)
+        observed = []
+        original = FileReader.read
+
+        def read(reader, size):
+            block = original(reader, size)
+            observed.append(len(block))
+            return block
+
+        with patch('llm.components.tools.builtin.files.TextIndex', side_effect=AssertionError('unused line index')):
+            for offset in (0, 65535, len(content) - 2, len(content) + 10):
+                with self.subTest(offset=offset), patch.object(FileReader, 'read', read):
+                    observed.clear()
+                    page = await self.invoke('file_read', path=path.name, offset=offset, max_chars=5)
+                    text = content[offset:offset + 5]
+                    more = offset + len(text) < len(content)
+                    self.assertEqual(page, {'path': path.name, 'text': text,
+                        'sha256': hashlib.sha256(raw).hexdigest(), 'offset': offset,
+                        'next_offset': offset + len(text) if more else None,
+                        'truncated': offset > 0 or more})
+                    self.assertEqual(sum(observed), len(raw))
+        with self.assertRaisesRegex(ValueError, 'changed'):
+            await self.invoke('file_read', path=path.name, offset=0, max_chars=5, expected_sha256='0' * 64)
+        with self.assertRaisesRegex(ValueError, 'byte limit'):
+            await self.invoke('file_read', path=path.name, offset=0, max_chars=5, max_file_bytes=len(raw) - 1)
+        path.write_bytes(raw + b'\xff')
+        with self.assertRaises(UnicodeDecodeError):
+            await self.invoke('file_read', path=path.name, offset=0, max_chars=5)
+
+    def test_output_configuration_preserves_wire_schema_and_binding_revision(self):
+        from llm.components.tools.builtin.process_values import OutputConfig
+        from llm.components.tools.builtin.component import BuiltinParameter
+        from llm.services.infrastructure.storage import revision_token
+        values = {'enabled': ['shell_execute'], 'output': {'component': 'data', 'identifier': 'logs'},
+                  'output_preview_chars': 0}
+        output = OutputConfig.read(values)
+        self.assertEqual(output.output.component, 'data')
+        self.assertEqual(output.output_preview_chars, 0)
+        self.assertEqual(output.bind_revision('trusted'), revision_token({
+            'contract': 'trusted', 'output': values['output'], 'output_preview_chars': 0}))
+        self.assertEqual(OutputConfig.without(values), {'enabled': ['shell_execute']})
+        self.assertEqual(BuiltinParameter.OUTPUT, 'output')
+        self.assertEqual(BuiltinParameter.OUTPUT_PREVIEW_CHARS, 'output_preview_chars')
+        values['output']['component'] = 'changed'
+        self.assertEqual(output.output.component, 'data')
+        self.assertIsNone(OutputConfig.read({}))
+        with self.assertRaisesRegex(ValueError, 'explicit output'):
+            OutputConfig.read({'output_preview_chars': 0})
+
+    async def test_cancel_during_initial_snapshot_reaps_child_before_return(self):
+        for foreground in (True, False):
+            with self.subTest(foreground=foreground):
+                entered, release = asyncio.Event(), threading.Event()
+                loop = asyncio.get_running_loop()
+                original = self.tools.processes.snapshot
+
+                def blocked(identifier):
+                    loop.call_soon_threadsafe(entered.set)
+                    if not release.wait(10):
+                        raise TimeoutError('test snapshot barrier')
+                    return original(identifier)
+
+                method = self.tools.processes.execute if foreground else self.tools.processes.start
+                with patch.object(self.tools.processes, 'snapshot', side_effect=blocked):
+                    task = asyncio.create_task(method({'argv': [sys.executable, '-c',
+                        'import time; time.sleep(60)']}))
+                    try:
+                        await asyncio.wait_for(entered.wait(), 5)
+                        item = next(reversed(self.tools.processes.sessions.values()))
+                        task.cancel()
+                        with self.assertRaises(asyncio.CancelledError):
+                            await asyncio.wait_for(task, 5)
+                        self.assertIsNotNone(item.process.returncode)
+                        self.assertTrue(item.task.done())
+                        self.assertEqual(item.status, 'cancelled')
+                    finally:
+                        release.set()
+                        if not task.done():
+                            task.cancel()
+                        await asyncio.gather(task, return_exceptions=True)
+
+    async def test_failed_initial_snapshot_reaps_child(self):
+        with patch.object(self.tools.processes, 'snapshot', side_effect=OSError('snapshot failed')):
+            with self.assertRaisesRegex(OSError, 'snapshot failed'):
+                await self.tools.processes.execute({'argv': [sys.executable, '-c',
+                    'import time; time.sleep(60)']})
+        item, = self.tools.processes.sessions.values()
+        self.assertIsNotNone(item.process.returncode)
+        self.assertTrue(item.task.done())
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

@@ -6,7 +6,8 @@ from ...model import TraceItem
 from ...locales.keys import MessageKey
 from ...config.theme_style import ThemeSelector
 from ...ui.output.markdown import HubMarkdown, make_console
-from .render_contract import TranscriptLayout, TranscriptPresentation, ToolCaption
+from .render_contract import TranscriptLayout
+from .header import OutputHeader
 
 
 class ExecutionPreview:
@@ -46,7 +47,8 @@ class ExecutionPreview:
         if MessageKey.CARD_ANSWER in details:
             answer = plain(details[MessageKey.CARD_ANSWER])
             if item.status == cls.ANSWER_SENDING:
-                answer = language.status(item.status) + TranscriptPresentation.LABEL_SEPARATOR + answer
+                answer = OutputHeader(status=language.status(item.status),
+                                      details=(answer,)).render()
             rows.append(cls.fit(answer, width))
         if details.get(MessageKey.CARD_ERROR):
             rows.append(cls.fit(details[MessageKey.CARD_ERROR], width))
@@ -54,9 +56,8 @@ class ExecutionPreview:
 
     @classmethod
     def tool(cls, item, details, width, console, language):
-        header = ToolCaption.render(item.text, item.status, language)
-        if details.get(MessageKey.CARD_INPUT):
-            header += TranscriptPresentation.LABEL_SEPARATOR + details[MessageKey.CARD_INPUT]
+        header = OutputHeader.tool(item.text, item.status, language,
+                                   details.get(MessageKey.CARD_INPUT, '')).render()
         result = details.get(MessageKey.CARD_ERROR) or details.get(MessageKey.TOOL_RESULT)
         rows = [cls.fit(header, width)]
         if result:

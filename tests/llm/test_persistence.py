@@ -122,7 +122,7 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(cloned_session.project_id, cloned_project.id)
         self.assertEqual(cloned_session.active_run_ids, [])
         self.assertEqual(cloned_session.status, SessionStatus.IDLE)
-        self.assertEqual(RunRepository().list(cloned_session), [])
+        self.assertEqual(RunRepository(conversations=self.sessions.get_conversation).list(cloned_session), [])
         self.assertEqual([message.content for message in messages], ["done", "answer", "queued"])
         self.assertNotEqual(messages[0].id, user.id)
         self.assertTrue(all(message.run_id is None for message in messages))
@@ -146,7 +146,7 @@ class PersistenceTests(unittest.TestCase):
             self.projects.delete(self.project)
 
     def test_step_events_and_recovery(self) -> None:
-        runs = RunRepository()
+        runs = RunRepository(conversations=self.sessions.get_conversation)
         run_id = new_id()
         run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id), agent_id="fixture", metadata={"agent_binding": AgentBinding.create(self.session.project_id, "fixture", {"engine": 'fake'}).to_dict()})
         runs.create(run)

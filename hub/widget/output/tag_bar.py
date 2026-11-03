@@ -177,9 +177,8 @@ class TagBar:
                     margin_top=entry.margin_top,
                 )
             )
-        return items or [
-            SidebarItem(TagBar.UNSELECTED, self.view.t(MessageKey.TAGS_EMPTY))
-        ]
+        from ..notices import NoticeText
+        return items or [NoticeText(self.view.t(MessageKey.TAGS_EMPTY)).sidebar(TagBar.UNSELECTED)]
 
     def open(self):
         self.view.composer.buffer.cancel_completion()

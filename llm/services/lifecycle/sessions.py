@@ -311,6 +311,8 @@ class SessionManager:
             else ConversationContextBuilder()
         )
         self.run_repository = runs
+        if runs is not self.UNSPECIFIED:
+            runs.bind_conversations(self.get_conversation)
         self.step_repository = SessionManager.UNSPECIFIED
         self.components = SessionManager.UNSPECIFIED
         self.agents = SessionManager.UNSPECIFIED
@@ -432,6 +434,10 @@ class SessionManager:
         """실행 없이 설정을 검사하는 백엔드 공통 검증기를 연결한다."""
         ConfigurationValidator.require(validator)
         self.config_validator = validator
+
+    def get_conversation(self, session: Session) -> Conversation:
+        """Return the selected store; do not infer storage from files on disk."""
+        return self.conversations(session)
 
     @property
     def results(self):

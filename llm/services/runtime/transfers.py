@@ -151,7 +151,8 @@ class TransferRecords:
         involved.update(sid for sid, rows in messages.items() if any(TransferReceipt.present(m.metadata) for m in rows.values()))
         runs = {}
         for sid in involved:
-            records = (self.sessions.run_repository.read_backup(owners[sid]) if archive else self.sessions.run_repository.list(owners[sid]))
+            records = (self.sessions.run_repository.read_backup(owners[sid], conversation=stores[sid])
+                       if archive else self.sessions.run_repository.list(owners[sid]))
             RequestAdmission.history(list(messages[sid].values()), records, project_id=project.id, session_id=sid, persistent=self.PORTABLE_HISTORY)
             runs[sid] = {run.id: run for run in records}
         for value in values.values():

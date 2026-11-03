@@ -5,12 +5,12 @@ from math import ceil
 from time import monotonic
 from hub.locales.keys import MessageKey, MessagePattern
 from ...model import RetrySummary
+from ..captions import Caption
 
 
 class RetryLabel:
     NO_RETRY = None
     EMPTY = ""
-    PROGRESS_SEPARATOR = " • "
     MINIMUM_REMAINING = 0
 
 
@@ -29,12 +29,12 @@ def retry_text(retry, t):
     if retry is RetryLabel.NO_RETRY:
         return RetryLabel.EMPTY
     if retry.kind == RetrySummary.RECOVERY:
-        return t(
-            MessagePattern.recovery(retry.phase),
+        return t.status(
+            retry.phase, key=MessagePattern.recovery(retry.phase),
             attempt=retry.attempt,
             maximum=retry.maximum,
             progress=(
-                (RetryLabel.PROGRESS_SEPARATOR + retry.name)
+                (Caption.SEPARATOR + retry.name)
                 if retry.name
                 else RetryLabel.EMPTY
             ),
@@ -48,13 +48,13 @@ def retry_text(retry, t):
         target, retry.attempt, retry.maximum, RetrySummary.next_attempt(retry)
     ).to_record()
     if retry.phase == RetrySummary.REPAIRING:
-        return t(MessageKey.RETRY_REPAIRING, **values)
+        return t.status(retry.phase, key=MessageKey.RETRY_REPAIRING, **values)
     if retry.retry_at is not RetrySummary.NO_RETRY_AT:
-        return t(
-            MessageKey.RETRY_WAIT,
+        return t.status(
+            RetrySummary.WAITING, key=MessageKey.RETRY_WAIT,
             **values,
             seconds=max(
                 RetryLabel.MINIMUM_REMAINING, ceil(retry.retry_at - monotonic())
             )
         )
-    return t(MessageKey.RETRY_ACTIVE, **values)
+    return t.status(RetrySummary.RETRYING, key=MessageKey.RETRY_ACTIVE, **values)

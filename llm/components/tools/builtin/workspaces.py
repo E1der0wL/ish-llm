@@ -14,6 +14,7 @@ from typing import Mapping, Sequence
 from llm._platform import require_linux
 from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 from llm.services.infrastructure.storage import drain_on_cancel
+from .file_execution import execute_file
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import current_tool_call
 from llm.core.tool_contracts import ToolIsolation
@@ -94,7 +95,7 @@ class TestWorkspaces:
         """빈 공간 또는 명시한 파일의 독립 사본을 만든다. 취소 시 승인된 생성의 회수를 기다린다."""
         call = self._project()
         request = WorkspaceCreateArguments.read(args)
-        return (await drain_on_cancel(asyncio.to_thread(self.repository.create, call, request.source_paths))).to_dict()
+        return (await execute_file(self.repository.create, call, request.source_paths)).to_dict()
 
     async def list(self, args: dict) -> dict:
         """재시작 후에도 해당 Project의 공간을 조회한다. 명령을 재생하지 않는다."""
@@ -104,14 +105,13 @@ class TestWorkspaces:
         """사용 중이지 않은 공간을 명시적으로 삭제한다. 원본에는 접근하지 않는다."""
         project_id = self._project().project_id
         request = WorkspaceReference.read(args)
-        return (await drain_on_cancel(asyncio.to_thread(self.repository.delete, project_id, request.workspace_id))).to_dict()
+        return (await execute_file(self.repository.delete, project_id, request.workspace_id)).to_dict()
 
     async def file_call(self, operation: str, args: dict) -> dict:
         """기존 파일 Tool 계약을 선택 공간에 적용한다. 실행 중인 공간에는 접근하지 않는다."""
         project_id = self._project().project_id
         request = WorkspaceReference.read(args)
-        return await drain_on_cancel(asyncio.to_thread(self.repository.files, project_id,
-            request.workspace_id, operation, args))
+        return await execute_file(self.repository.files, project_id, request.workspace_id, operation, args)
 
     async def __call__(self, args: dict) -> dict:
         """ToolExecutor가 승인한 argv만 실행한다. 완료/취소 후에도 파일 공간은 유지한다."""

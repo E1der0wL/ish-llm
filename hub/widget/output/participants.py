@@ -8,6 +8,7 @@ from prompt_toolkit.filters import to_filter
 
 from .tag_bar import TagBar
 from ..sidebar import SidebarItem
+from ..notices import NoticeText
 from ..controls import Button, RadioList
 from ..dialog import PopupSize
 from ..forms.participant_manager import ParticipantManager
@@ -73,7 +74,7 @@ class ParticipantBar(TagBar):
                 rows.append(item(identifier, self.view.agent_titles.get(identifier, identifier), "  "))
         rows.extend(item(identifier, self.view.agent_titles.get(identifier, identifier))
                     for identifier in self.view.participant_ids if identifier not in grouped)
-        return rows or [SidebarItem(self.UNSELECTED, self.view.t(MessageKey.PARTICIPANTS_EMPTY))]
+        return rows or [NoticeText(self.view.t(MessageKey.PARTICIPANTS_EMPTY)).sidebar(self.UNSELECTED)]
 
     def select(self, identifier: str) -> None:
         self.selected = identifier

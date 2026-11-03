@@ -6,11 +6,21 @@ File/memory durability is exactly that of the selected conversation store.
 """
 
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import ClassVar
 
 from llm.core.contracts import JsonValue
 from llm.core.json_data import JsonObject
 from llm.services.infrastructure.storage import revision_token
+
+
+class InputKind(StrEnum):
+    REQUEST = 'request'
+    INSTRUCTION = 'instruction'
+    RESERVATION = 'reservation'
+    INTERACTION = 'interaction'
+    REDIRECT = 'redirect'
+    REPLACEMENT = 'replacement'
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,18 +39,18 @@ class InputReceipt(JsonValue):
     def __post_init__(self):
         super(InputReceipt, self).__post_init__()
         self.validate_key(self.key)
-        if self.kind not in {'request', 'instruction', 'reservation', 'interaction', 'redirect', 'replacement'}:
+        if self.kind not in InputKind:
             raise ValueError('Unknown client input receipt kind')
         if any(not isinstance(value, str) or not value for value in (
             self.project_id, self.session_id, self.message_id, self.fingerprint
         )):
             raise ValueError('Client input receipt requires its persisted identity')
-        if self.kind == 'request':
+        if self.kind == InputKind.REQUEST:
             if self.run_id is not None:
                 raise ValueError('Request acceptance does not select a Run')
         elif not isinstance(self.run_id, str) or not self.run_id:
             raise ValueError('Client input receipt requires its Run')
-        if self.kind == 'interaction':
+        if self.kind == InputKind.INTERACTION:
             if not self.interaction_id or type(self.interaction_revision) is not int or self.interaction_revision < 1:
                 raise ValueError('Interaction acceptance requires the exact request revision')
         elif self.interaction_id is not None or self.interaction_revision is not None:

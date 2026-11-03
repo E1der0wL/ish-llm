@@ -13,6 +13,8 @@ from uuid import uuid4
 from llm.services.infrastructure.storage import atomic_json, sync_directory
 from llm.core.configuration import UNSET
 from .files import FileTools
+from .file_execution import FileReader, check_cancelled, begin_commit
+from llm.services.infrastructure.text_stream import BUFFER_BYTES
 from .file_values import FilePathArguments
 from .workspace_records import (WorkspaceIdentity, WorkspaceEvidence, WorkspaceRecord, WorkspaceOrigin,
     MissingWorkspaceRecord, WorkspaceInventory, WorkspaceDeleted)
@@ -107,6 +109,7 @@ class WorkspaceRepository:
 
     def _copy(self, parent_fd, name, target):
         """정규 파일과 디렉터리만 복사한다. 링크·FIFO·device는 열지 않는다."""
+        check_cancelled()
         before = os.stat(name, dir_fd=parent_fd, follow_symlinks=self.FOLLOW_LINKS)
         if not (stat.S_ISREG(before.st_mode) or stat.S_ISDIR(before.st_mode)):
             raise ValueError(self.INVALID_COPY_KIND)
@@ -124,7 +127,9 @@ class WorkspaceRepository:
                 sync_directory(target)
             else:
                 with os.fdopen(os.dup(fd), self.READ_MODE) as source, target.open(self.WRITE_MODE) as output:
-                    shutil.copyfileobj(source, output)
+                    reader = FileReader(source)
+                    while block := reader.read(BUFFER_BYTES):
+                        output.write(block)
                     output.flush()
                     os.fchmod(output.fileno(), self.OWNER_MODE | (opened.st_mode & self.EXECUTABLE_BITS))
                     os.fsync(output.fileno())
@@ -139,6 +144,7 @@ class WorkspaceRepository:
         if not isinstance(paths, list) or any(not isinstance(path, str) for path in paths):
             raise ValueError(self.INVALID_SELECTION)
         for value in paths:
+            check_cancelled()
             source = self.source.path(value)
             if source == self.root or self.root in source.parents or source in self.root.parents:
                 raise ValueError(self.STORAGE_SELECTION)
@@ -172,7 +178,9 @@ class WorkspaceRepository:
                         os.close(fd)
                 # 파일과 중간 디렉터리가 durable해진 뒤에만 실행 가능한 공간으로 게시한다.
                 for current, _, _ in os.walk(files, topdown=self.TOP_DOWN):
+                    check_cancelled()
                     sync_directory(Path(current))
+                begin_commit()
                 record = record.published()
                 atomic_json(directory / self.RECORD_FILE, record.to_dict())
                 sync_directory(directory.parent)
@@ -205,6 +213,9 @@ class WorkspaceRepository:
             # Linux의 fd 기반 rmtree는 산출물 symlink를 따라가지 않는다.
             if not shutil.rmtree.avoids_symlink_attacks:
                 raise RuntimeError(self.UNSAFE_DELETE)
+            # Recursive deletion is already an externally visible mutation;
+            # do not stop halfway and report a successful deletion.
+            begin_commit()
             shutil.rmtree(directory)
             sync_directory(directory.parent)
         return WorkspaceDeleted(identifier)

@@ -13,6 +13,9 @@ from ..tab_page import TabPage
 from ..content_inset import ContentInset
 from ..actions import ActionFrame, ActionBar
 from ..dialog import Dialog
+from ..notices import Notice
+from ..captions import Caption
+from .field_layout import FieldLayout
 from .settings_viewport import SettingsBody, SettingsPane
 from ...locales.keys import MessageKey
 from ...ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
@@ -94,7 +97,7 @@ class SettingsEditorLayout:
 
     def status_text(self):
         label = self.editor.view.t(MessageKey.SETTINGS_SEARCH_ACTIVE, query=self.query) if self.query else ""
-        return " • ".join(part for part in (label, self.editor.status) if part)
+        return Caption(details=(label, self.editor.status)).render()
 
     def matches(self, field):
         return self.matches_text(field.label, field.schema.get(SchemaKeyword.DESCRIPTION, ""),
@@ -179,11 +182,10 @@ class SettingsEditorLayout:
         fields = self.fields()
         children = [field.container for field in fields]
         if self.engine_visible():
-            from ..section import Heading
-            children += [Heading(editor.view.t(MessageKey.AGENT_ENGINE)),
-                         Label(editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
-                               style=ThemeSelector.MUTED.style), editor.engine]
-        children = children or [Label(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))]
+            children.append(FieldLayout(editor.view.t(MessageKey.AGENT_ENGINE), editor.engine,
+                description='- ' + editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
+                type_label=editor.view.t(MessageKey.SETTINGS_TYPE, type='string')))
+        children = children or [Notice(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))]
         if editor.form and len(editor.form.visible_fields) < len(editor.form.fields):
             children.append(Label(editor.view.t(MessageKey.SETTINGS_ESSENTIAL_NOTICE), style=ThemeSelector.MUTED.style))
         self.body = SettingsBody(children, fields)

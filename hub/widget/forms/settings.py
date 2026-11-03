@@ -18,12 +18,13 @@ from copy import deepcopy
 import json
 
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import HSplit, Window
+from prompt_toolkit.layout import HSplit
 from prompt_toolkit.application.current import get_app
 from ...ui.input.registry import ShortcutRegistry
-from prompt_toolkit.widgets import Label
 from ..controls import TextArea
 from ..mouse_contract import MouseBinding
+from ..notices import Notice
+from .field_layout import FieldLayout
 
 
 MISSING = object()
@@ -46,7 +47,6 @@ class FieldDisplay:
     JSON_STRING_PREFIX = '"'
     PATH_ERROR = "{path}: {error}"
     MAX_EDITOR_LINES = 3
-    GAP_HEIGHT = 1
     MULTILINE = True
     WRAP_LINES = True
     FOCUS_ON_CLICK = True
@@ -224,32 +224,12 @@ class SettingField:
             description += FieldDisplay.DESCRIPTION_SEPARATOR + json.dumps(
                 constraints, ensure_ascii=FieldDisplay.JSON_ASCII
             )
-        self._container = HSplit(
-            [
-                Label(
-                    lambda: (
-                        t.icons.edit + FieldDisplay.SPACE
-                        if self.editing
-                        else FieldDisplay.EMPTY
-                    )
-                    + self.label,
-                    style=ThemeSelector.TITLE.style,
-                ),
-                Label(
-                    FieldDisplay.DESCRIPTION_PREFIX + description,
-                    style=ThemeSelector.MUTED.style,
-                ),
-                Label(
-                    t(MessageKey.SETTINGS_TYPE, type=type_hint(self.schema)),
-                    style=ThemeSelector.MUTED.style,
-                ),
-                self.input,
-                *[
-                    Label(note, style=ThemeSelector.MUTED.style)
-                    for note in self.observations
-                ],
-                Window(height=FieldDisplay.GAP_HEIGHT),
-            ]
+        self._container = FieldLayout(
+            lambda: (t.icons.edit + FieldDisplay.SPACE if self.editing else FieldDisplay.EMPTY) + self.label,
+            self.input,
+            description=FieldDisplay.DESCRIPTION_PREFIX + description,
+            type_label=t(MessageKey.SETTINGS_TYPE, type=type_hint(self.schema)),
+            notes=self.observations,
         )
 
     @property
@@ -420,7 +400,7 @@ class SchemaForm:
     def container(self):
         if self._container is None:
             self._container = HSplit(self.children
-                                     or [Label(self.t(MessageKey.SETTINGS_NO_FIELDS))])
+                                     or [Notice(self.t(MessageKey.SETTINGS_NO_FIELDS))])
         return self._container
 
     def _schema_locks(self, schema, path):

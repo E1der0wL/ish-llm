@@ -33,6 +33,21 @@ engine_options와 요청별 request_context는 서로 다른 계약입니다.
 
 ## 요청과 종료
 
+Run 누락 검사는 SessionManager가 선택한 Conversation factory에서 메시지 참조를 읽습니다.
+파일·메모리·사용자 저장소 모두 같은 경로를 사용하고, 선택하지 않은 conversation 파일을
+별도로 열지 않습니다. 참조가 남은 Run 트리가 사라지면 조회·사용량 계산을 실패시켜
+사용량이 0으로 초기화되거나 효과가 재실행되지 않게 합니다. 메모리 저장소의 재시작 후
+유실 계약은 그대로입니다. 단독 RunRepository의 목록·사용량 조회도 factory를 명시적으로
+주입하거나 `bind_conversations()`로 연결해야 하며 미연결 상태는 즉시 실패합니다.
+파일 전용 portable backup의 검증에서는 archive owner가 `read_backup(..., conversation=...)`에
+백업 안의 저장소를 명시합니다. 살아 있는 Project의 경로·factory로 백업을 열지 않으며,
+공유 runtime factory를 일시적으로 교체하지도 않습니다.
+파일 Conversation은 캐시 적중 전에도 자신의 경로와 부모 경로의 심볼릭 링크를 거부합니다.
+이 검사는 파일 저장소가 소유하며 메모리·custom 저장소에 파일 경로를 강요하지 않습니다.
+
+입력 영수증 종류는 `client_inputs.InputKind`가 선언합니다. 접수·조회·중복 확인은
+동일한 선언을 사용하며 저장 문자열과 request key의 기존 의미를 유지합니다.
+
 요청은 먼저 ConversationStore에 QUEUED로 저장합니다. `_begin`에서 COMMITTED와 Run 시작을 처리한 뒤 Engine을 소비하고 `_finish`에서 종료합니다. Step·Assistant·Run·Session 기록과 트랜잭션 경계를 거친 **저장 후** Run 수명 알림을 보냅니다.
 
 Run 시작 시 저장한 정책이 해당 Run의 정책 원본입니다. `EventContext.update_metadata()`는 정책·완료 영수증·재개/Checkpoint·추가 지시·Agent binding/요청 문맥·실행 증거 등 서비스 관리 필드를 덮어쓰지 못하게 합니다. 실제 보호 집합은 EventContext의 선언과 각 필드 Owner를 따릅니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.

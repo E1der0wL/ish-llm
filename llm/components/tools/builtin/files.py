@@ -8,15 +8,16 @@ import threading
 from copy import copy
 from uuid import uuid4
 from .path_access import PathAccess
-from .file_text import TextIndex
+from .file_text import TextIndex, TextRange
+from .file_execution import FileReader, check_cancelled, begin_commit, file_lock
 from contextlib import closing, contextmanager, ExitStack
-from llm.services.infrastructure.text_stream import read_text_range
+from llm.services.infrastructure.text_stream import BUFFER_BYTES
 from llm.core.configuration import UNSET
 from llm.services.runtime.tool_errors import ToolExecutionError
 from llm.core.schema import SchemaKeyword, validate_declared_fields
 from .file_values import (FileLimits, FileReadArguments, FileListArguments, FileSearchArguments,
     FileCreateArguments, FilePatchArguments, FileMoveArguments, FileDeleteArguments, FileRestoreArguments,
-    FileEntryKind, FileReadResult, FileEntry, FileListResult, FileSearchMatch, FileSearchResult,
+    FileEntryKind, FileReadResult, FileTextPage, FileEntry, FileListResult, FileSearchMatch, FileSearchResult,
     FileCreated, FilePatched, FileDeleted, FileRestored, FileMoved, FileTrashIdentifier)
 
 
@@ -36,7 +37,6 @@ class FileTools:
     TEXT_ENCODING = "utf-8"
     NUL = "\x00"
     BINARY_MODE = "rb"
-    READ_ALL = -1
     FIRST_LINE = 1
     END_OF_LINES = None
     UNIQUE_MATCH = 1
@@ -121,7 +121,11 @@ class FileTools:
 
     @staticmethod
     def digest(value: bytes) -> str:
-        return hashlib.sha256(value).hexdigest()
+        digest, view = hashlib.sha256(), memoryview(value)
+        for offset in range(0, len(view), BUFFER_BYTES):
+            check_cancelled()
+            digest.update(view[offset:offset + BUFFER_BYTES])
+        return digest.hexdigest()
 
     def read_bytes(self, path: Path, *, parent_fd=None) -> bytes:
         # 샌드박스 산출물에도 사용한다. FIFO/device 또는 링크를 열어 block하지 않는다.
@@ -132,7 +136,15 @@ class FileTools:
                 raise IsADirectoryError(str(path))
             if not stat.S_ISREG(mode):
                 raise ValueError(self.REGULAR_FILE)
-            value = stream.read(self.READ_ALL if self.max_bytes is None else self.max_bytes + 1)
+            blocks, size = [], 0
+            reader = FileReader(stream)
+            while True:
+                remaining = BUFFER_BYTES if self.max_bytes is None else min(BUFFER_BYTES, self.max_bytes + 1 - size)
+                if not remaining or not (block := reader.read(remaining)):
+                    break
+                blocks.append(block)
+                size += len(block)
+            value = b''.join(blocks)
         if self.max_bytes is not None and len(value) > self.max_bytes:
             raise ValueError(self.TOO_LARGE)
         return value
@@ -143,6 +155,7 @@ class FileTools:
 
     @contextmanager
     def mutation_path(self, value, *, create=False, internal=False):
+        check_cancelled()
         path = self.path(value, internal=True) if internal else self.write_access.resolve(self.root, value, missing=create)
         # Creating ancestors must not produce directories outside the grant.
         boundary = self.root if internal else min(
@@ -160,11 +173,15 @@ class FileTools:
         try:
             fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=parent)
             with os.fdopen(fd, "wb") as stream:
-                stream.write(content)
+                view = memoryview(content)
+                for offset in range(0, len(view), BUFFER_BYTES):
+                    check_cancelled()
+                    stream.write(view[offset:offset + BUFFER_BYTES])
                 if mode is not None:
                     os.fchmod(stream.fileno(), stat.S_IMODE(mode))
                 stream.flush()
                 os.fsync(stream.fileno())
+            begin_commit()
             if replace:
                 os.replace(temporary, name, src_dir_fd=parent, dst_dir_fd=parent)
             else:
@@ -179,28 +196,26 @@ class FileTools:
 
     def file_read(self, args):
         args = FileReadArguments.read(args)
-        with self.lock:
+        with file_lock(self.lock):
             try:
                 with self.read_access.open(self.root, args.path) as stream:
                     before = os.fstat(stream.fileno())
-                    with closing(TextIndex(stream, max_bytes=self.max_bytes)) as index:
-                        if args.expected_sha256 is not UNSET and args.expected_sha256 != index.sha256:
+                    character_page = args.offset is not UNSET or args.max_chars is not UNSET
+                    if character_page:
+                        if args.max_chars is UNSET:
+                            raise ValueError(FileReadArguments.MISSING_CHAR_LIMIT)
+                        if any(value is not UNSET for value in (args.start_line, args.max_lines, args.tail_lines)):
+                            raise ValueError(FileReadArguments.MIXED_CHAR_RANGE)
+                        offset = 0 if args.offset is UNSET else args.offset
+                        page = TextRange.read(stream, offset=offset, limit=args.max_chars, max_bytes=self.max_bytes)
+                        if args.expected_sha256 is not UNSET and args.expected_sha256 != page.sha256:
                             raise ValueError(self.CHANGED_FILE)
-                        character_page = args.offset is not UNSET or args.max_chars is not UNSET
-                        if character_page:
-                            if args.max_chars is UNSET:
-                                raise ValueError("Character pages require max_chars")
-                            if any(value is not UNSET for value in (args.start_line, args.max_lines, args.tail_lines)):
-                                raise ValueError("Character pages require max_chars and cannot be combined with line ranges")
-                            offset = 0 if args.offset is UNSET else args.offset
-                            stream.seek(0)
-                            text = read_text_range(stream, offset=offset, limit=args.max_chars + 1)
-                            more = len(text) > args.max_chars
-                            text = text[:args.max_chars]
-                            result = {"path": args.path, "text": text, "sha256": index.sha256,
-                                "offset": offset, "next_offset": offset + len(text) if more else None,
-                                "truncated": offset > 0 or more}
-                        else:
+                        result = FileTextPage(args.path, page.text, page.sha256, offset,
+                            offset + len(page.text) if page.has_more else None, offset > 0 or page.has_more).to_dict()
+                    else:
+                        with closing(TextIndex(stream, max_bytes=self.max_bytes)) as index:
+                            if args.expected_sha256 is not UNSET and args.expected_sha256 != index.sha256:
+                                raise ValueError(self.CHANGED_FILE)
                             start = self.FIRST_LINE if args.start_line is UNSET else args.start_line
                             count = index.count if args.max_lines is UNSET else args.max_lines
                             if args.tail_lines is not UNSET:
@@ -238,6 +253,7 @@ class FileTools:
             raise ValueError(self.DIRECTORY_REQUIRED)
         pending, seen = [root], set()
         while pending:
+            check_cancelled()
             directory = pending.pop()
             with self.read_access.open(self.root, str(directory), directory=True) as fd:
                 identity = (os.fstat(fd).st_dev, os.fstat(fd).st_ino)
@@ -246,6 +262,7 @@ class FileTools:
                 seen.add(identity)
                 names = sorted(os.listdir(fd))
             for name in names:
+                check_cancelled()
                 path = directory / name
                 if path.is_relative_to(self.root) and path.name.startswith(self.RESERVED_PREFIX):
                     continue
@@ -261,7 +278,7 @@ class FileTools:
 
     def file_list(self, args):
         args = FileListArguments.read(args)
-        with self.lock:
+        with file_lock(self.lock):
             limit = args.limit
             values = []
             for path in self.entries(args):
@@ -275,7 +292,7 @@ class FileTools:
 
     def file_search(self, args):
         args = FileSearchArguments.read(args)
-        with self.lock:
+        with file_lock(self.lock):
             query, values, skipped = args.query, [], 0
             insensitive = not args.case_sensitive
             needle = query.casefold() if insensitive else query
@@ -319,14 +336,14 @@ class FileTools:
 
     def file_create(self, args):
         args = FileCreateArguments.read(args)
-        with self.lock, self.mutation_path(args.path, create=True) as (parent, name):
+        with file_lock(self.lock), self.mutation_path(args.path, create=True) as (parent, name):
             value = args.content.encode(self.TEXT_ENCODING)
             self.write(parent, name, value)
             return FileCreated(args.path, self.digest(value), len(value)).to_dict()
 
     def file_patch(self, args):
         args = FilePatchArguments.read(args)
-        with self.lock, ExitStack() as scope:
+        with file_lock(self.lock), ExitStack() as scope:
             # Only failures proved to precede write() may claim no effects.
             # A stale CAS token requires a fresh read/invocation, never a blind
             # retry that changes the expected version or target path.
@@ -349,11 +366,12 @@ class FileTools:
     def file_delete(self, args):
         """삭제는 휴지통 이동으로 처리한다. 디렉토리 재귀 삭제는 제공하지 않는다."""
         args = FileDeleteArguments.read(args)
-        with self.lock, self.mutation_path(args.path) as (parent, name):
+        with file_lock(self.lock), self.mutation_path(args.path) as (parent, name):
             original = self.read_bytes(name, parent_fd=parent)
             self.check_version(original, args.expected_sha256)
             identifier = uuid4().hex
             with self.mutation_path(self.trash_name(identifier), create=True, internal=True) as (trash, content):
+                begin_commit()
                 os.rename(name, content, src_dir_fd=parent, dst_dir_fd=trash)
                 os.fsync(parent); os.fsync(trash)
             return FileDeleted(args.path, identifier, self.digest(original)).to_dict()
@@ -369,6 +387,7 @@ class FileTools:
         target, following = destination
         if not stat.S_ISREG(os.stat(name, dir_fd=parent, follow_symlinks=False).st_mode):
             raise ValueError(self.REGULAR_FILE)
+        begin_commit()
         self._rename_exclusive(parent, name, target, following)
         os.fsync(parent); os.fsync(target)
 
@@ -393,7 +412,7 @@ class FileTools:
 
     def file_restore(self, args):
         args = FileRestoreArguments.read(args)
-        with self.lock:
+        with file_lock(self.lock):
             identifier = args.trash_id
             FileTrashIdentifier.validate(identifier)
             with self.mutation_path(self.trash_name(identifier), internal=True) as source, \
@@ -403,7 +422,7 @@ class FileTools:
 
     def file_move(self, args):
         args = FileMoveArguments.read(args)
-        with self.lock, self.mutation_path(args.path) as source:
+        with file_lock(self.lock), self.mutation_path(args.path) as source:
             original = self.read_bytes(source[1], parent_fd=source[0])
             self.check_version(original, args.expected_sha256)
             with self.mutation_path(args.destination, create=True) as destination:

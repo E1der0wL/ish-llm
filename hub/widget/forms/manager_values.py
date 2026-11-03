@@ -11,6 +11,7 @@ from llm.core.model_protocol import ModelRole
 from hub.backend.execution.engine_selection import HubEngineIdentity
 from hub.components import ManagedComponents
 from hub.locales.keys import MessageKey
+from ..captions import Caption
 
 
 class ManagerView:
@@ -35,11 +36,10 @@ class ManagerView:
     FIRST = 0
     NEXT = 1
     PREVIOUS = -1
-    DATE_FORMAT = "%Y-%m-%d %H:%M"
     UNKNOWN = "—"
     ENABLED_MARK = "[x] "
     DISABLED_MARK = "[ ] "
-    SEPARATOR = " • "
+    SEPARATOR = Caption.SEPARATOR
     NO_SETTINGS = "This domain has no Component configuration"
     HANDLED = True
     NOT_CONFIRMED = False

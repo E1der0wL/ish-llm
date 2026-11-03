@@ -316,6 +316,44 @@ class OutputReference(OutputDestination):
 
 
 @dataclass(frozen=True, slots=True)
+class OutputConfig:
+    """Explicit builtin output selection; absence never creates a destination."""
+
+    REQUIRED_PAIR = "Stored output requires explicit output and output_preview_chars"
+
+    output: OutputDestination = field(metadata=OutputDestination.schema())
+    output_preview_chars: int = field(metadata={"type": "integer", "minimum": 0})
+
+    @classmethod
+    def properties(cls):
+        return {item.name: deepcopy(dict(item.metadata)) for item in fields(cls)}
+
+    @classmethod
+    def read(cls, options):
+        selected = {item.name: options[item.name] for item in fields(cls) if item.name in options}
+        if not selected:
+            return None
+        if len(selected) != len(fields(cls)):
+            raise ValueError(cls.REQUIRED_PAIR)
+        return cls(OutputDestination(**deepcopy(selected[cls.output.__name__])),
+                   selected[cls.output_preview_chars.__name__])
+
+    @classmethod
+    def without(cls, options):
+        names = {item.name for item in fields(cls)}
+        return {key: value for key, value in options.items() if key not in names}
+
+    def bind_revision(self, contract):
+        from llm.services.infrastructure.storage import revision_token
+        return revision_token(asdict(BoundOutputContract(self.output, self.output_preview_chars, contract)))
+
+
+@dataclass(frozen=True, slots=True)
+class BoundOutputContract(OutputConfig):
+    contract: str
+
+
+@dataclass(frozen=True, slots=True)
 class StoredOutput(ProcessSnapshot):
     """Retained output wire contract; read() validates publication, not live drafts."""
 

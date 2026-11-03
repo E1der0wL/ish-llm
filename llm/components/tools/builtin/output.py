@@ -12,7 +12,7 @@ from llm.services.infrastructure.text_stream import text_blocks
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.file_manifest import FileManifest
 from llm.services.lifecycle.components import ComponentData
-from .process_values import ProcessOutput, ProcessSnapshot, StoredOutput, OutputReference
+from .process_values import ProcessOutput, ProcessSnapshot, StoredOutput, OutputReference, OutputDestination
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,10 +33,10 @@ class BuiltinOutputData(ComponentData):
     @workspace_locked
     def _process_binding(self):
         project, component = self._current()
-        options = component._options(project)
-        if 'output' not in options:
+        output = component.get_output(project)
+        if output is None:
             raise ValueError('Process observation requires an explicitly configured output destination')
-        return component.get_observers(project), ProcessOutputStore(self, options['output'], options['output_preview_chars'])
+        return component.get_observers(project), ProcessOutputStore(self, output.output.to_dict(), output.output_preview_chars)
 
     async def alist_processes(self):
         """List Project-owned live observations and retained output after restart."""
@@ -58,8 +58,8 @@ class BuiltinOutputData(ComponentData):
 
         from jsonschema import Draft202012Validator
 
-        arguments = {'process_id': identifier, 'stdout_offset': stdout_offset,
-                     'stderr_offset': stderr_offset, 'max_chars': max_chars}
+        arguments = ProcessOutputArguments(process_id=identifier, stdout_offset=stdout_offset,
+            stderr_offset=stderr_offset, max_chars=max_chars).to_dict()
         Draft202012Validator(ProcessOutputArguments.schema()).validate(arguments)
         observers, store = await self._async_call(self._process_binding)
         with output_scope(store):
@@ -90,13 +90,13 @@ class BuiltinOutputData(ComponentData):
 
     @workspace_locked
     def _publish_output(self, identifier, sources, record, *, destination):
-        files = self.related(destination["component"])
-        snapshot = EditableSnapshot.read(files.snapshot(destination["identifier"]))
+        files = self.related(destination.component)
+        snapshot = EditableSnapshot.read(files.snapshot(destination.identifier))
         paths = {f"process-output/{identifier}/{name}.txt": source for name, source in sources.items()}
         if any(path in FileManifest(snapshot.data).entries for path in paths):
             raise ValueError("Process output already exists; cannot replay publication")
-        snapshot = EditableSnapshot.read(files.import_files(destination["identifier"], paths, expected_revision=snapshot.version))
-        references = {name: OutputReference(**destination, path=path,
+        snapshot = EditableSnapshot.read(files.import_files(destination.identifier, paths, expected_revision=snapshot.version))
+        references = {name: OutputReference(destination.component, destination.identifier, path=path,
             revision=revision_token(FileManifest(snapshot.data).require(path))).to_dict()
             for name, path in zip(sources, paths)}
         record = StoredOutput(**record).with_sources(references).to_dict()
@@ -125,9 +125,9 @@ class BuiltinOutputData(ComponentData):
 
 class ProcessOutputStore:
     def __init__(self, data, destination, preview_chars):
-        self.data, self.destination, self.preview_chars = data, deepcopy(destination), preview_chars
+        self.data, self.destination, self.preview_chars = data, OutputDestination(**deepcopy(destination)), preview_chars
         self.owner = (str(data.ownership.path), data.project.id, data.name,
-                      destination["component"], destination["identifier"])
+                      self.destination.component, self.destination.identifier)
 
     async def publish(self, identifier, item):
         import asyncio

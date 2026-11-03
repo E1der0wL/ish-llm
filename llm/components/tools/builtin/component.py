@@ -9,17 +9,17 @@ from llm.components.tools import Tool, ToolRegistry
 from llm.components.tools.selection import ToolSelection
 from .path_access import PathAccess, path_scope
 from .output import BuiltinOutputData, ProcessOutputStore
-from .process_values import OutputDestination, StoredOutput
+from .process_values import OutputConfig, StoredOutput
 from .capture import output_scope
-from llm.services.infrastructure.storage import revision_token
+from llm.core.resource_references import StoredResourceReference
 
 
 class BuiltinParameter(StrEnum):
-    OUTPUT = "output"
+    OUTPUT = OutputConfig.output.__name__
     READ_ACCESS = "read_access"
     WRITE_ACCESS = "write_access"
     CWD_ACCESS = "cwd_access"
-    OUTPUT_PREVIEW_CHARS = "output_preview_chars"
+    OUTPUT_PREVIEW_CHARS = OutputConfig.output_preview_chars.__name__
 
 
 class BuiltinToolComponent(Component):
@@ -39,8 +39,7 @@ class BuiltinToolComponent(Component):
         schema = ToolSelection.schema(choices=self.toolkit.registry.names())
         for name in self.access_fields:
             schema["properties"][name] = PathAccess.schema()
-        schema["properties"]["output"] = OutputDestination.schema()
-        schema["properties"]["output_preview_chars"] = {"type": "integer", "minimum": 0}
+        schema["properties"].update(OutputConfig.properties())
         return self.parameter_layout.schema(schema)
 
     def get_observers(self, project):
@@ -53,19 +52,21 @@ class BuiltinToolComponent(Component):
         for name in self.access_fields:
             if name in options:
                 PathAccess.read(options[name])
-        if ("output" in options) != ("output_preview_chars" in options):
-            raise ValueError("Stored output requires explicit output and output_preview_chars")
+        OutputConfig.read(options)
+
+    def get_output(self, project):
+        return OutputConfig.read(self._options(project))
 
     def references(self, project):
         refs = []
-        output = self._options(project).get("output")
+        output = self.get_output(project)
         if output is not None:
-            refs.append({**output, "source": f"{self.name}/config.output"})
+            refs.append(StoredResourceReference.from_target(output.output, f"{self.name}/config.output").to_dict())
         if not self._has_storage(project):
             return refs
         for identifier, record in self.list(project).items():
             for reference in StoredOutput(**record).output_sources.values():
-                refs.append({**reference, "source": f"{self.name}/{identifier}"})
+                refs.append(StoredResourceReference.from_value(reference, f"{self.name}/{identifier}").to_dict())
         return refs
 
     def validate_record(self, identifier, value):
@@ -73,21 +74,19 @@ class BuiltinToolComponent(Component):
         StoredOutput.read(value, identifier=identifier)
 
     def resolve_runtime(self, project, capability, *, data_factory):
-        options = self._options(project)
-        if capability != ToolRegistry.CAPABILITY or "output" not in options:
+        output = self.get_output(project)
+        if capability != ToolRegistry.CAPABILITY or output is None:
             return self.resolve(project, capability)
-        store = None
-        if capability == ToolRegistry.CAPABILITY and "output" in options:
-            destination = options["output"]
-            files = data_factory(destination["component"])
-            files.snapshot(destination["identifier"])
-            if not callable(getattr(files, "import_files", None)) or not callable(getattr(files, "read_text", None)):
-                raise ValueError("Output destination requires file import and text range APIs")
-            store = ProcessOutputStore(data_factory(self.name), destination, options["output_preview_chars"])
+        destination = output.output
+        files = data_factory(destination.component)
+        files.snapshot(destination.identifier)
+        if not callable(getattr(files, "import_files", None)) or not callable(getattr(files, "read_text", None)):
+            raise ValueError("Output destination requires file import and text range APIs")
+        store = ProcessOutputStore(data_factory(self.name), destination.to_dict(), output.output_preview_chars)
         return self._resolve(project, capability, store)
 
     def resolve(self, project, capability):
-        if capability == ToolRegistry.CAPABILITY and "output" in self._options(project):
+        if capability == ToolRegistry.CAPABILITY and self.get_output(project) is not None:
             raise ValueError("Stored output requires lifecycle-bound Component handles")
         return self._resolve(project, capability, None)
 
@@ -98,16 +97,15 @@ class BuiltinToolComponent(Component):
             raise RuntimeError(self.toolkit.CLOSED)
         options = self._options(project)
         access = {name: options.pop(name) for name in self.access_fields if name in options}
-        output = options.pop("output", None)
-        preview = options.pop("output_preview_chars", None)
-        selected = self.toolkit.registry.select(tuple(ToolSelection.read(options, scope=self.name).names))
+        output = OutputConfig.read(options)
+        selected = self.toolkit.registry.select(tuple(ToolSelection.read(OutputConfig.without(options), scope=self.name).names))
         def bound_contract(tool):
             contract = tool.contract
             # Tool 고유 불변식과 호스트 작업 환경을 모두 기존 revision에 묶는다.
             # 명시 contract가 있어도 작업 루트/명령 변경으로 옛 승인을 재사용할 수 없다.
             revision = self.toolkit.binding_revision(contract, **access)
             if output is not None:
-                revision = revision_token({"contract": revision, "output": output, "output_preview_chars": preview})
+                revision = output.bind_revision(revision)
             return replace(contract, revision=revision)
         def handler(tool):
             selected = tool.handler

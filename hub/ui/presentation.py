@@ -114,7 +114,7 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
         # Agent lifecycle belongs to the header. Do not manufacture a second
         # paused/interrupted/cancelled/waiting label as response content.
         text = (
-            t(MessagePattern.status(item.status))
+            t.status(item.status)
             if item.status
             in (
                 MessageStatus.INTERRUPTED,

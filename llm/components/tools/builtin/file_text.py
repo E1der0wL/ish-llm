@@ -4,8 +4,48 @@ import hashlib
 import re
 import struct
 import tempfile
+from dataclasses import dataclass
 
 from llm.services.infrastructure.text_stream import text_blocks, read_text_range, BUFFER_BYTES
+from .file_execution import FileReader, check_cancelled
+
+
+class FileDigest:
+    EXCEEDED = "File exceeds Tool byte limit"
+
+    def __init__(self, stream, maximum):
+        self.stream, self.maximum = stream, maximum
+        self.digest, self.size = hashlib.sha256(), 0
+
+    def read(self, size):
+        block = self.stream.read(size)
+        self.digest.update(block)
+        self.size += len(block)
+        if self.maximum is not None and self.size > self.maximum:
+            raise ValueError(self.EXCEEDED)
+        return block
+
+
+@dataclass(frozen=True, slots=True)
+class TextRange:
+    text: str
+    sha256: str
+    has_more: bool
+
+    @classmethod
+    def read(cls, stream, *, offset, limit, max_bytes):
+        reader = FileDigest(FileReader(stream), max_bytes)
+        position, remaining, parts = 0, limit + 1, []
+        # Validate/hash the whole source, retaining only the requested characters
+        # and one lookahead. No line index or persistent validation cache exists.
+        for block in text_blocks(reader):
+            if remaining and position + len(block) > offset:
+                page = block[max(0, offset - position):][:remaining]
+                parts.append(page)
+                remaining -= len(page)
+            position += len(block)
+        text = ''.join(parts)
+        return cls(text[:limit], reader.digest.hexdigest(), len(text) > limit)
 
 
 class TextIndex:
@@ -13,16 +53,14 @@ class TextIndex:
     BREAK = re.compile(r"\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]")
 
     def __init__(self, stream, *, max_bytes, reject_nul=False):
+        stream = FileReader(stream)
         self.stream, self.rows = stream, tempfile.TemporaryFile()
         self.count = 0
         try:
-            digest, size = hashlib.sha256(), 0
-            while block := stream.read(BUFFER_BYTES):
-                digest.update(block)
-                size += len(block)
-                if max_bytes is not None and size > max_bytes:
-                    raise ValueError("File exceeds Tool byte limit")
-            self.sha256 = digest.hexdigest()
+            reader = FileDigest(stream, max_bytes)
+            while reader.read(BUFFER_BYTES):
+                pass
+            self.sha256 = reader.digest.hexdigest()
             stream.seek(0)
             start, position, pending = 0, 0, ""
             for block in text_blocks(stream):
@@ -52,6 +90,7 @@ class TextIndex:
         self.rows.close()
 
     def bounds(self, line):
+        check_cancelled()
         self.rows.seek((line - 1) * self.ROW.size)
         return self.ROW.unpack(self.rows.read(self.ROW.size))
 

@@ -19,6 +19,7 @@ retained 출력으로 구분합니다. [관찰 계약](../../../../docs/llm/inte
 | [file_values.py](file_values.py) | 파일 Tool의 공통·작업별 입력 Schema, 조회·변경 결과와 휴지통 ID 계약을 선언합니다. |
 | [path_access.py](path_access.py) | 작업 디렉터리와 독립된 읽기·쓰기·cwd 권한과 안전한 파일 열기를 검증합니다. |
 | [file_text.py](file_text.py) | 전체 원문을 메모리에 올리지 않는 파일 해시·줄 위치·범위 조회를 제공합니다. |
+| [file_execution.py](file_execution.py) | 파일 준비 중 협력 취소와 게시 이후 fsync·결과 확정의 분리입니다. 승인·retry 정책은 소유하지 않습니다. |
 | [output.py](output.py) | 명시한 Data 목적지에 명령 출력·참조를 함께 저장하고 재시작 후 범위 조회합니다. |
 | [capture.py](capture.py) | 호출별 출력 저장 연결을 다른 동시 실행과 분리합니다. |
 | [processes.py](processes.py) | 명령 실행·pipe 입력·출력 cursor와 프로세스 종료를 관리합니다. |
@@ -62,6 +63,9 @@ file_search는 literal 검색, include/exclude glob, context_lines, offset/limit
 file_read는 tail_lines 또는 줄 범위를 받으므로 기존 앱 로그도 새 저장소 없이 조회할 수 있습니다.
 file_search 페이지는 현재 파일을 다시 읽으며 파일 변경 시 처음부터 검색해야 합니다.
 file_read의 expected_sha256으로 동일 파일 버전 여부를 확인할 수 있습니다.
+문자 범위(`offset`·`max_chars`) 조회는 전체 파일의 SHA-256·UTF-8·명시적 크기 제한을
+한 번의 순회에서 검사하고 요청한 페이지와 다음 문자만 보관합니다. 줄 위치 임시 인덱스는
+줄 범위·검색 경로에서만 만듭니다. 다음 조회는 파일을 다시 검증하며 취소·변경 감지를 유지합니다.
 
 file_move와 file_restore는 Linux `renameat2(RENAME_NOREPLACE)`로 이동합니다.
 경로 검사를 통과한 뒤 다른 프로세스가 목적지 파일이나 심볼릭 링크를 만들어도 덮어쓰지 않습니다.
@@ -69,16 +73,31 @@ file_move와 file_restore는 Linux `renameat2(RENAME_NOREPLACE)`로 이동합니
 덮어쓰는 rename 또는 복사 후 삭제로 우회하지 않습니다. 이동 뒤 디렉터리 동기화에 실패하면
 이미 이동했을 수 있으므로 no-effect 오류로 바꾸거나 자동 재실행하지 않습니다.
 
+읽기·검색·해시·임시 쓰기·테스트 공간 복사는 블록/항목 사이에서 취소를 확인합니다.
+잠금 대기도 취소를 확인하며, 새 timeout·크기 제한을 적용하지 않습니다. 파일 게시·이동·삭제 또는
+완성된 테스트 공간 게시를 시작했다면 fsync와 결과 생성을 마친 뒤 반환합니다. 방향 전환은 이
+완료 결과를 보존하지만 일반 Run 중단과 명시적 Tool timeout을 철회하지는 않습니다.
+단일 OS I/O, 큰 문자열 변환, 게시 뒤 정리를 강제 종료하지 않으므로 모든 작업의 즉시 종료를
+보장하지 않습니다. 취소된 준비의 임시 파일/미완성 테스트 공간은 회수하며, 이미 생성된 부모
+디렉터리 등의 효과까지 없었다고 추정하지 않습니다. 변경 Tool의 결과 없는 취소는 기존처럼
+uncertain으로 처리하고 자동 반복하지 않습니다. 경로 권한·CAS·원자적 no-overwrite는 유지합니다.
+
 process_start에 stdin=true를 주면 process_write로 정확한 문자열 또는 EOF(close=true)를 보냅니다.
 이것은 pipe이며 PTY·기존 ish 터미널 연결은 아닙니다. process_output은 stdout_offset,
 stderr_offset, max_chars를 받고 next_stdout_offset/next_stderr_offset을 반환합니다.
 offset은 Unicode 문자 단위이며 분할 도착한 UTF-8 문자는 완성 후 공개합니다.
 max_output_bytes에 의해 버린 출력은 truncated로 표시하고 복원된 것처럼 반환하지 않습니다.
 영속 출력을 선택하지 않은 프로세스 ID와 출력은 Toolkit 수명에 한정됩니다.
+시작 결과가 호출자에게 전달되기 전까지 자식 프로세스는 `start()`가 소유합니다.
+이 구간에 취소 또는 첫 상태 조회 실패가 발생하면 프로세스·monitor·pipe 정리를 마친 후
+실패를 전달합니다. 결과를 전달한 `process_start`는 기존처럼 명시적으로 조회·취소합니다.
+이미 발생한 효과를 없던 것으로 취급하거나 명령을 자동 재실행하지 않습니다.
 `config.output`과 `policy.output_preview_chars`를 함께 지정하면 출력 원문을 Data에 저장하고
 재시작 후에도 `process_output`으로 조회합니다. 재시작 후 자동 재실행하지 않습니다.
 상태는 `process_values.py`의 `ProcessStatus`가 소유하며 생성·감시·취소·출력·입력 경계가
 같은 선언을 사용합니다. snapshot은 기존 문자열 상태를 반환합니다.
+출력 목적지와 preview의 Schema·해석·실행 binding은 같은 파일의 `OutputConfig`를 사용합니다.
+공개 config/policy 경로, 저장 출력 참조와 승인 binding의 JSON 형식은 유지합니다.
 
 shell_execute/process_start/test_workspace_execute는 선택적 문자열 딕셔너리 `env`를 받습니다.
 생략하면 기존 실행 환경을 유지하고, 지정하면 전체 대체하며 `{}`는 빈 환경입니다.

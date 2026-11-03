@@ -31,6 +31,15 @@ SDK를 미리 불러온다. 애플리케이션이 호출 시점을 결정하며 
 선택적인 사전 import 실패는 준비 단계만 건너뛰며, 실제 요청이 그 경로를 사용하면 SDK의
 정상 오류 경로로 전달된다. 취소·프로세스 종료 예외는 이 선택적 처리에서 잡지 않는다.
 
+기본 Completion은 `acompletion(..., stream=True)`와 비동기 스트림을 사용한다. 요청·읽기·닫기는
+한 Task가 소유하며 취소 시 I/O를 중단하고 스트림 정리를 마친 뒤 호출 슬롯을 반환한다.
+반복 취소가 정리를 중단하지 않는다. SDK timeout/retry 값은 기존 전달 계약 그대로이며 별도
+실행 기한을 만들지 않는다. 주입한 동기 `completion_fn`은 유한 버퍼의 스레드 경로를 유지한다.
+동기 함수가 block하면 반환 전 강제 종료할 수 없으며, 원격 서버의 작업 종료도 보장하지 않는다.
+직접 `client`를 주입할 때는 선택한 SDK 호출 방식에 맞는 client를 사용해야 한다. 기본 경로는
+비동기 client를 사용하며, 동기 호출이 필요한 Host는 기존 `completion_fn` 주입 경로를 선택한다.
+SDK 내부의 동기 작업까지 강제 종료하는 기능은 아니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -128,7 +137,7 @@ LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적
 원본 요청·저장 설정에는 retry 키를 자동 삽입하지 않는다. 실제 SDK 전송 사본은
 `sdk_transport_request()`가 소유하며 생략된 SDK retry를 0으로 보장한다. 명시한 값은
 null/0/양수를 구별해 그대로 전달한다. SDK 전역 초기화만으로는 OpenAI completion의
-내부 기본 2회를 막지 못하므로 동기 스트림과 비스트리밍 실제 SDK 호출 모두 이 경계를 지난다.
+내부 기본 2회를 막지 못하므로 async/sync 스트림과 비스트리밍 실제 SDK 호출 모두 이 경계를 지난다.
 명시한 주입 client가 있으면 객체 identity와 그 client의 max_retries를 보존한다. LiteLLM이
 전송 인자를 client에 다시 쓰므로 생략된 max_retries에는 client의 기존 값을 사용하며,
 해당 속성이 없으면 null을 전달해 임의의 client 정책을 만들지 않는다.
@@ -179,8 +188,8 @@ Loop는 `parameters.engines[이름].policy.provider`, Memory 보조 모델은
 전체 `wall_timeout`을 넘으면 `provider_timeout`으로 종료한다. 서버 요구보다 일찍 재시도하거나
 사용자 기한을 늘리지 않는다. SDK 내부 재시도는 이 옵션으로 다시 조율하지 않는다.
 스트림 bridge는 자체 deadline을 만들지 않는다. SDK `timeout`, Loop `request_timeout`,
-provider `wall_timeout`은 독립이다. 동기 SDK worker는
-강제로 죽일 수 없다. 소비자는 취소되지만 실제 호출이 종료될 때까지 슬롯은 반환하지 않는다.
+provider `wall_timeout`은 독립이다. 기본 async 경로는 요청 취소와 스트림 정리가 끝나면 슬롯을
+반환한다. 주입한 동기 SDK worker는 강제로 죽일 수 없으며 실제 호출 종료까지 슬롯을 유지한다.
 사용자 주입 함수가 취소를 무시하거나 자체 내부 재시도를 구현하는 경우까지 강제로 제어하지는 않는다.
 
 ## 로그와 진단

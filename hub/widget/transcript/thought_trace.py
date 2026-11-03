@@ -1,7 +1,8 @@
 """One independently cached thought or Tool row in an execution timeline."""
 
 from ...model import TraceItem
-from .render_contract import TranscriptLayout, TranscriptPresentation, ToolCaption
+from .render_contract import TranscriptLayout
+from .header import OutputHeader
 from ...config.theme_style import ThemeSelector
 from ...locales.keys import MessageKey
 
@@ -18,9 +19,8 @@ def render_trace_item(item, width, theme, language, *, resources=None):
     console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
     segment_style = resources.style if resources is not None else _segment_style
     if item.kind == TraceItem.SUMMARY:
-        label = language(MessageKey.CONTEXT_SUMMARIZING)
-        if item.status:
-            label += TranscriptPresentation.LABEL_SEPARATOR + language.status(item.status)
+        label = OutputHeader(language(MessageKey.CONTEXT_SUMMARIZING),
+                             language.status(item.status)).render()
         rows = console.render_lines(
             Text(label), console.options, pad=TranscriptLayout.PAD
         )

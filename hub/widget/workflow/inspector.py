@@ -15,6 +15,7 @@ from ...locales.keys import MessageKey as K
 from ...config.theme_style import ThemeSelector
 from ..controls import Button, TextArea, ScrollablePane
 from ..section import Heading
+from ..notices import Notice, NoticeText
 from ..forms.settings import SchemaForm, SettingField, MISSING
 from ..actions import ActionBar
 from ...ui.input.registry import ShortcutRegistry
@@ -80,10 +81,10 @@ class WorkflowInspector:
         e, t = self.editor, self.editor.view.t
         node = e.document.graph()[WorkflowDocument.NODES].get(name)
         if node is None:
-            self.body = Label(t(K.WORKFLOW_SELECT_NODE))
+            self.body = Notice(t(K.WORKFLOW_SELECT_NODE))
             return
         if not isinstance(node, dict) or e.catalog is None:
-            self.body = HSplit([Label(t(K.WORKFLOW_UNVERIFIED)),
+            self.body = HSplit([Notice(t(K.WORKFLOW_UNVERIFIED)),
                                 Button(t(K.WORKFLOW_JSON), handler=e.advanced_json)])
             return
         schema = e.catalog.node_schema(node.get(WorkflowNode.TYPE), e.engine)
@@ -146,7 +147,7 @@ class WorkflowInspector:
         try:
             field.text = await e.manager.edit_text(field.text, e.view.general, suffix='.json')
         except Exception as error:
-            e.status = e.view.t(K.ERROR, error=error)
+            e.status = NoticeText.error(str(error), e.view.t).inline()
         finally:
             e.busy = False
             field.finish()

@@ -29,10 +29,10 @@ class StreamBridge:
     INVALID_BUFFER = "buffer_size must be a positive integer"
 
     @classmethod
-    def closing_method(cls, stream):
-        return getattr(stream, cls.CLOSE_METHOD, cls.UNSPECIFIED) or getattr(
-            stream, cls.ASYNC_CLOSE_METHOD, cls.UNSPECIFIED
-        )
+    def closing_method(cls, stream, *, asynchronous=False):
+        first, second = (cls.ASYNC_CLOSE_METHOD, cls.CLOSE_METHOD) if asynchronous else (
+            cls.CLOSE_METHOD, cls.ASYNC_CLOSE_METHOD)
+        return getattr(stream, first, cls.UNSPECIFIED) or getattr(stream, second, cls.UNSPECIFIED)
 
     @classmethod
     def observe_attempt(cls, details):

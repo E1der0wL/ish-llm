@@ -12,6 +12,7 @@ from ...backend.history_deletion import (
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
+from ...widget.notices import Notice
 from ...widget.output.reader import ReadOnlyDialog
 import json
 from llm.core.contracts import Diagnostic, DiagnosticSeverity
@@ -214,7 +215,7 @@ class HistoryUI:
             button = Button(t(MessageKey.HISTORY_CLOSE), handler=view.close_dialog)
             popup = Dialog(
                 title=t(MessageKey.HISTORY_TITLE),
-                body=Label(t(MessageKey.HISTORY_EMPTY)),
+                body=Notice(t(MessageKey.HISTORY_EMPTY)),
                 buttons=[button],
                 size=RequestHistoryDialog.SIZE,
             )

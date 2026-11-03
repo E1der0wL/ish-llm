@@ -113,7 +113,7 @@ class ProviderCapacityTests(unittest.IsolatedAsyncioTestCase):
         calls = ProviderCalls()
         with patch("llm.providers.litellm.threading.Thread.start", side_effect=RuntimeError("start")):
             with self.assertRaisesRegex(RuntimeError, "start"):
-                async for _ in stream_completion({}, calls=calls):
+                async for _ in stream_completion({}, completion_fn=lambda **_: iter(()), calls=calls):
                     pass
         self.assertEqual(calls.stats["active"], 0)
 

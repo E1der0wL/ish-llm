@@ -136,10 +136,35 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{}', name='source_read')], finish="tool_calls")], answer()))
         self.assertEqual(run.data.status, "completed", run.data.error)
         reads.clear()
-        with patch.object(Compactions, "read", read):
+        with patch.object(Compactions, "inventory", wraps=Compactions.inventory) as inventory:
             rows = await self.memory.alist_tool_summaries(self.session.id)
         self.assertEqual(len(rows), 1)
-        self.assertEqual(len(reads), 1)
+        self.assertEqual(inventory.call_count, 1)
+
+    async def test_summary_list_reuses_inventory_but_revalidates_next_query(self):
+        from llm.components.memory.compaction import Compactions
+        await self.tool_config(mode='reference')
+        model = ScriptedCompletion([chunk(calls=[call('{}', name='source_read', index=i,
+            call_id=f'item_{i}') for i in range(4)], finish='tool_calls')], answer())
+        run, _ = await self.run_loop(model=model)
+        self.assertEqual(run.data.status, 'completed', run.data.error)
+        with patch.object(Compactions, 'inventory', wraps=Compactions.inventory) as inventory:
+            rows = await self.memory.alist_tool_summaries(self.session.id)
+            self.assertEqual(len(rows), 4)
+            self.assertEqual(inventory.call_count, 1)
+            rows[0]['request']['status'] = 'caller modification'
+            again = await self.memory.alist_tool_summaries(self.session.id)
+            self.assertEqual(inventory.call_count, 2)
+            self.assertNotEqual(again[0]['request']['status'], 'caller modification')
+        path = next((self.project.paths.root / 'memory' / 'tool_summaries' / self.session.id).glob('*.json'))
+        original = path.read_bytes()
+        try:
+            path.write_text('{}')
+            with self.assertRaises((ValueError, KeyError)):
+                await self.memory.alist_tool_summaries(self.session.id)
+        finally:
+            path.write_bytes(original)
+        self.assertEqual(self.source.calls, 4)
 
     async def test_fragments_resume_same_request_after_reopen_without_repeating_source(self):
         await self.history()

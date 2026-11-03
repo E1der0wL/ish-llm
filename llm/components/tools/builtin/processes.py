@@ -233,7 +233,14 @@ class ProcessTools:
                             item.status = ProcessStatus.FAILED
                             raise
             item.task = asyncio.create_task(monitor())
-            return await asyncio.to_thread(self.snapshot, identifier)
+            try:
+                return await asyncio.to_thread(self.snapshot, identifier)
+            except BaseException:
+                # Until the initial result is delivered, start owns the child.
+                # Cancellation/failed observation cannot hand an unclaimed live
+                # command to execute (or to a detached process_start caller).
+                await drain_on_cancel(self._stop(item))
+                raise
 
     async def execute(self, args):
         identifier = ProcessSnapshot.identifier(await self.start(args))
