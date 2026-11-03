@@ -73,9 +73,11 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
         popup = self.open()
         popup.body.current_value = 'steer'
         popup._buttons[0].handler()
+        self.assertTrue(self.view.progress.active)
         self.assertEqual(self.controller._call.call_args.args, ('running_recipients', 's', ('a', 'b')))
         ready = self.controller._call.call_args.kwargs['completed']
         ready((('r-a', 'a'), ('r-b', 'b')))
+        self.assertFalse(self.view.progress.active)
         self.controller.steer.assert_not_called()
         self.assertEqual(popup.body.values, [('r-a', 'Coder'), ('r-b', 'Reviewer')])
         popup.body.current_value = 'r-b'

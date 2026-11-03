@@ -46,8 +46,11 @@ class ObservationContracts(unittest.IsolatedAsyncioTestCase):
 
     async def test_history_larger_than_old_cache_does_not_repeat_io(self):
         graph = WorkflowGraph(entry='done').node('done', 'end').to_dict()
-        graph_steps = [NS(kind='graph', metadata={'workflow_id': 'flow', 'definition': graph})]
-        for engine, expected_steps in (('loop', 0), ('graph-alias', 1025)):
+        graph_steps = [NS(kind='graph', name='flow', status='completed',
+                          metadata={'workflow_id': 'flow', 'definition': graph})]
+        # Detailed history now restores persisted Tool/question cards for both
+        # engines. Every displayed Run is read once, never once per redraw.
+        for engine in ('loop', 'graph-alias'):
             with self.subTest(engine=engine):
                 runs = {f'r{i}': NS(id=f'r{i}', engine=engine, status='completed',
                     started_at=None, ended_at=None, metadata={'completions': []}) for i in range(1025)}
@@ -60,15 +63,26 @@ class ObservationContracts(unittest.IsolatedAsyncioTestCase):
                 first = await reader.messages(session, records, graph_engines=('graph-alias',))
                 loads = session.run.aload.await_count
                 scans = sum(h.steps.alist.await_count for h in handles.values())
-                self.assertEqual(scans, expected_steps)
+                self.assertEqual(scans, len(records))
+                self.assertEqual(sum(h.aget_data.await_count for h in handles.values()), len(records))
                 self.assertEqual(await reader.messages(session, records, graph_engines=('graph-alias',)), first)
                 self.assertEqual(session.run.aload.await_count, loads)
                 self.assertEqual(sum(h.steps.alist.await_count for h in handles.values()), scans)
+                self.assertEqual(sum(h.aget_data.await_count for h in handles.values()), len(records))
                 await reader.messages(session, records[-1:], graph_engines=('graph-alias',))
                 self.assertEqual(set(reader.run_engines), {'r1024'})
                 self.assertEqual(set(reader.workflows), {'r1024'})
                 await reader.messages(session, [])
                 self.assertFalse(reader.cache or reader.workflows or reader.authors)
+                self.assertFalse(reader.question_history or reader.checkpoint_presence)
+                # Actual UI callers supply a viewport. Hidden history must not
+                # load Steps just because persisted question cards are supported.
+                visible = SnapshotReader()
+                reads = sum(h.aget_data.await_count for h in handles.values())
+                await visible.messages(session, records, detail_ids={records[-1].id},
+                                       graph_engines=('graph-alias',))
+                self.assertEqual(sum(h.aget_data.await_count for h in handles.values()), reads + 1)
+                self.assertEqual(sum(h.steps.alist.await_count for h in handles.values()), scans + 1)
 
     def test_graph_projection_requires_original_evidence_and_keeps_source_immutable(self):
         graph = WorkflowGraph(entry='work').node('work', 'action').node('done', 'end').connect('work', 'done').to_dict()

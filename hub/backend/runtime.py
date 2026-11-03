@@ -248,6 +248,8 @@ class HubRuntime:
         from .project.naming import SessionNamer
 
         self.namer = SessionNamer(self)
+        from .execution.instruction_routing import InstructionRouting
+        self.instruction_routing = InstructionRouting(self)
         from .project.postprocessing import BackgroundRecords
         self.background_records = BackgroundRecords(self)
         from .interactions.automatic import AutomaticApprovals
@@ -263,7 +265,8 @@ class HubRuntime:
 
     async def _engine_event(self, run, event) -> None:
         from .project.postprocessing_values import Postprocessing
-        if run.engine == Postprocessing.ENGINE:
+        from .execution.instruction_routing import InstructionEngine
+        if run.engine in (Postprocessing.ENGINE, InstructionEngine.IDENTITY):
             return
         from llm.engines.events import EngineEvent, EngineEventType
         if EngineEvent.observed_type(event) == EngineEventType.CHECKPOINT:
@@ -286,7 +289,8 @@ class HubRuntime:
 
     async def _run_event(self, event) -> None:
         from .project.postprocessing_values import Postprocessing
-        if event.run.engine == Postprocessing.ENGINE:
+        from .execution.instruction_routing import InstructionEngine
+        if event.run.engine in (Postprocessing.ENGINE, InstructionEngine.IDENTITY):
             return
         if (event.run.status == RunStatus.RUNNING and self.request_started is not None
                 and event.run.session_id in self.sessions):
@@ -968,10 +972,8 @@ class HubRuntime:
     async def steer(
         self, session_id: str, run_id: str, text: str, targets: list[str], request_key=UNSET
     ) -> str:
-        result = await self.sessions[session_id].run.steer(
-            run_id, text, targets=targets,
-            **({} if request_key is UNSET else {'request_key': request_key})
-        )
+        result = await self.instruction_routing.send(
+            self.sessions[session_id], run_id, text, targets, request_key)
         if self.builtin_tools is not None:
             self.builtin_tools.command_waits.notify(self.project.id, session_id, run_id, targets)
         self.dirty.set()

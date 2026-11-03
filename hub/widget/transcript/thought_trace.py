@@ -11,16 +11,16 @@ from ...ui.output.markdown import HubMarkdown, make_console, _segment_style, _tr
 
 
 def render_trace_item(item, width, theme, language, *, resources=None):
+    if item.kind in (TraceItem.TOOL, TraceItem.QUESTION):
+        from .execution_preview import render_execution_preview
+        return render_execution_preview(item, width, theme, language, resources=resources)
     inner = TranscriptLayout.inner_width(width)
     console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
     segment_style = resources.style if resources is not None else _segment_style
-    if item.kind in (TraceItem.TOOL, TraceItem.SUMMARY):
-        if item.kind == TraceItem.SUMMARY:
-            label = language(MessageKey.CONTEXT_SUMMARIZING)
-            if item.status:
-                label += TranscriptPresentation.LABEL_SEPARATOR + language.status(item.status)
-        else:
-            label = ToolCaption.render(item.text, item.status, language)
+    if item.kind == TraceItem.SUMMARY:
+        label = language(MessageKey.CONTEXT_SUMMARIZING)
+        if item.status:
+            label += TranscriptPresentation.LABEL_SEPARATOR + language.status(item.status)
         rows = console.render_lines(
             Text(label), console.options, pad=TranscriptLayout.PAD
         )

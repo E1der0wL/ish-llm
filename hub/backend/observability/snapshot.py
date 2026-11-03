@@ -38,6 +38,7 @@ from ...model import (
 from ..execution.trace import merge_trace, tool_trace
 from ..execution.followup import split_followup
 from ..execution.steps import display_steps
+from ..execution.instruction_display import UserInstructions
 from ..execution.engine_selection import agent_model, selected_engines
 from ..interactions.questions import pending_requests, waiting_status
 from ..execution.stopping import display_run, StopIntent
@@ -100,6 +101,8 @@ class SnapshotReader:
         self.agent_definitions = {}
         self.submissions = {}
         self.tool_history = {}
+        self.question_history = {}
+        self.checkpoint_presence = {}
         self.trace_history = {}
         self.ended_times = {}
         self.workflows = {}
@@ -124,6 +127,8 @@ class SnapshotReader:
         self.run_handles.clear()
         self.selected_conversation = None
         self.tool_history.clear()
+        self.question_history.clear()
+        self.checkpoint_presence.clear()
         self.trace_history.clear()
         self.ended_times.clear()
         self.workflows.clear()
@@ -139,7 +144,7 @@ class SnapshotReader:
         for projection in self.projections.values():
             identifiers.update(item.run_id for item in (projection.input_records or ()) if item.run_id)
         self.cache = {key: value for key, value in self.cache.items() if key[0] in identifiers}
-        for cache in (self.tool_history, self.trace_history, self.ended_times,
+        for cache in (self.tool_history, self.question_history, self.checkpoint_presence, self.trace_history, self.ended_times,
                       self.workflows, self.authors, self.run_engines, self.step_observations):
             for identifier in cache.keys() - identifiers:
                 del cache[identifier]
@@ -197,6 +202,7 @@ class SnapshotReader:
                                                    index + self.DETAIL_NEIGHBORS + 1]}
 
     def observe_run(self, run):
+        self.question_history.pop(run.id, None)
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
@@ -243,6 +249,7 @@ class SnapshotReader:
             # above; admission and instruction targeting still query live APIs.
             self.reads.discard(ReadKind.CONVERSATION, run.session_id)
         if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED):
+            self.question_history.pop(run.id, None)
             self.invalidate(run.session_id)
             self._remember_run(run)
 
@@ -259,7 +266,7 @@ class SnapshotReader:
         previous = self.reads.entries.get(key)
         self.reads.remember(key, RunDisplay.capture(run, previous.value if previous else None))
 
-    async def read_run(self, session, session_id, run_id, *, handle=None):
+    async def run_handle(self, session, run_id, *, handle=None):
         current = handle if handle is not None else self.run_handles.get(run_id)
         if current is None:
             current = await session.run.aload(run_id)
@@ -267,6 +274,10 @@ class SnapshotReader:
         self.run_handles.move_to_end(run_id)
         while len(self.run_handles) > self.CACHE_LIMIT:
             self.run_handles.popitem(last=False)
+        return current
+
+    async def read_run(self, session, session_id, run_id, *, handle=None):
+        current = await self.run_handle(session, run_id, handle=handle)
         previous = self.reads.entries.get((ReadKind.RUN, session_id, run_id))
         async def load():
             return RunDisplay.capture(await current.aget_data(), previous.value if previous else None)
@@ -310,18 +321,22 @@ class SnapshotReader:
     async def run_display(
         self, session, run_id: str, *, run=ABSENT, requested_at=ABSENT, steps=()
     ) -> tuple[str, float | None]:
+        if run is not None:
+            self.checkpoint_presence[run_id] = RunDisplay.checkpoints_present(run)
         key = (run_id, requested_at)
         cached = self.cache.get(key)
         if cached is not self.ABSENT:
             return cached
         try:
             if run is self.ABSENT:
-                run = await (await session.run.aload(run_id)).aget_data()
+                run = await (await self.run_handle(session, run_id)).aget_data()
         except FileNotFoundError:
+            self.checkpoint_presence[run_id] = False
             return (
                 self.EMPTY_TEXT,
                 self.ABSENT,
             )  # Retention can remove old execution history.
+        self.checkpoint_presence[run_id] = RunDisplay.checkpoints_present(run)
         hidden_steps = self.thinking.hidden_steps(run_id, steps)
         completions = [item for item in CompletionRecords.results(run.metadata)
                        if item.step_id not in hidden_steps]
@@ -426,7 +441,7 @@ class SnapshotReader:
             key = (role, message.content, message.created_at, str(message.status),
                    message.run_id, author, requests.get(message.run_id),
                    authors.get(message.run_id),
-                   str(RunInstruction.from_message(message).status) if is_instruction(message) else None,
+                   UserInstructions.signature(message) if is_instruction(message) else None,
                    detailed)
             cached = self.projection.settled.get(message.id) if settled else None
             if cached is not None and cached.key == key:
@@ -462,21 +477,24 @@ class SnapshotReader:
                         and not split_followup(message.content).content.strip()):
                     reasoning = displayed_reasoning
                 tools = ()
-                if active:
+                # Keep results from the already-loaded final Step observation.
+                # Otherwise a fast Tool/Run completion drops command details
+                # before the user can read them. No extra history read is needed.
+                if detailed:
                     if current_run is not self.ABSENT:
                         tools = tuple(
                             step
                             for step in display_steps(steps_for_run)
                             if step.kind == StepKind.TOOL
                         )
-                        if str(current_run.status) == RunStatus.PAUSED:
+                        if not active or str(current_run.status) == RunStatus.PAUSED:
                             self.tool_history[message.run_id] = tools
                     elif message.run_id in self.tool_history:
                         tools = self.tool_history[message.run_id]
                     elif session is not self.ABSENT:
                         try:
                             steps = await (
-                                await session.run.aload(message.run_id)
+                                await self.run_handle(session, message.run_id)
                             ).steps.alist()
                             steps_for_run = steps
                             tools = tuple(
@@ -484,7 +502,7 @@ class SnapshotReader:
                                 for step in display_steps(steps)
                                 if step.kind == StepKind.TOOL
                             )
-                            if str(message.status) == MessageStatus.PAUSED:
+                            if not active or str(message.status) == MessageStatus.PAUSED:
                                 self.tool_history[message.run_id] = tools
                         except FileNotFoundError:
                             pass
@@ -500,7 +518,7 @@ class SnapshotReader:
                         and self.run_engines.get(message.run_id) in graph_engines
                         and session is not None):
                     try:
-                        history_steps = steps_for_run or await (await session.run.aload(message.run_id)).steps.alist()
+                        history_steps = steps_for_run or await (await self.run_handle(session, message.run_id)).steps.alist()
                         observation = WorkflowObservation.read(history_steps)
                     except FileNotFoundError:
                         pass
@@ -516,12 +534,23 @@ class SnapshotReader:
                         step for step in steps_for_run if self.thinking.summary_step(step)
                     )
                 ) if active else ()
-                if reasoning or tools or workflow or summarizing or summaries:
+                questions = self.question_history.get(message.run_id, ())
+                if (session is not None and message.status not in self.LIVE_MESSAGE_STATES
+                        and message.run_id not in self.question_history):
+                    from ..execution.question_trace import QuestionTrace
+                    # run_display already read this record for its timeline.
+                    # Retain only this observation flag, not another Run payload.
+                    if self.checkpoint_presence.get(message.run_id, False):
+                        handle = await self.run_handle(session, message.run_id)
+                        questions = QuestionTrace.project(await handle.ainteraction_views())
+                    self.question_history[message.run_id] = questions
+                if reasoning or tools or workflow or summarizing or summaries or questions:
                     trace = merge_trace(
                         self.thinking.trace(
                             message.run_id, self.trace_history.get(message.run_id, ())
                         ),
                         tool_trace(tools),
+                        questions,
                         summaries,
                     )
                     visible.append(

@@ -20,6 +20,7 @@ class RunningSubmission:
         self.session_id, self.text = session_id, text
         self.recipients, self.options, self.draft = recipients, options, draft
         self.busy = self.selecting_run = False
+        self.progress_task = None
         self.choices = self._choices([
             (self.STEER, self.view.t(MessageKey.SEND_STEERING)),
             (self.FOLLOW_UP, self.view.t(MessageKey.SEND_FOLLOW_UP)),
@@ -30,7 +31,16 @@ class RunningSubmission:
             buttons=[Button(self.view.t(MessageKey.CONFIRM), handler=self.accept),
                      Button(self.view.t(MessageKey.SEARCH_CLOSE), handler=self.view.close_dialog)],
         )
-        self.popup.on_cancel = lambda: self.draft.restore(self.view)
+        self.popup.on_cancel = self.cancel
+
+    def cancel(self):
+        self._finish_progress()
+        self.draft.restore(self.view)
+
+    def _finish_progress(self):
+        if self.progress_task is not None:
+            self.view.progress.finish(self.progress_task)
+            self.progress_task = None
 
     def _choices(self, values, **kwargs):
         choices = RadioList(values, select_on_focus=True, **kwargs)
@@ -61,10 +71,12 @@ class RunningSubmission:
                                   recipients=self.recipients)
         else:
             self.busy = True
+            self.progress_task = self.view.progress.start(self.view.t(MessageKey.INSTRUCTION_PREPARING))
             self.controller._call(HubRuntime.running_recipients.__name__, self.session_id,
                                   self.recipients, completed=self._runs_ready)
 
     def _runs_ready(self, runs):
+        self._finish_progress()
         self.busy = False
         if self.view._dialog is not self.popup or not self.draft.is_current(self.view):
             return

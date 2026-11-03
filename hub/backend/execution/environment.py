@@ -76,7 +76,8 @@ class EnvironmentEngine:
         *,
         recovery=ABSENT,
         retry_monitor=ABSENT,
-        provider_recovery=ABSENT
+        provider_recovery=ABSENT,
+        language=ABSENT,
     ):
         self.implementation = implementation
         self.builtins = builtins
@@ -84,6 +85,7 @@ class EnvironmentEngine:
         self.recovery = recovery
         self.retry_monitor = retry_monitor
         self.provider_recovery = provider_recovery
+        self.language = language
         self._bindings = BindingCache()
         self._lookup = self._lookup_tools = None
         self.routing = RequestRouting()
@@ -165,6 +167,7 @@ class EnvironmentEngine:
             recovery=self.recovery,
             retry_monitor=self.retry_monitor,
             provider_recovery=self.provider_recovery,
+            language=self.language,
         )
         worker.routing = RequestRouting(self.routing.definition, profile, self.routing.layers)
         return worker
@@ -224,6 +227,10 @@ class EnvironmentEngine:
             if self.routing.enabled(context, self.implementation):
                 processors = self.routing.processors(processors, mode,
                     restore_prompt=self.routing.brief(context, self.implementation))
+            if self.language:
+                from .language import LanguageProcessor
+                if not any(item.name == LanguageProcessor.name for item in processors):
+                    processors = (*processors, LanguageProcessor(self.language))
             capabilities[COMPLETION_PROCESSORS] = processors
         return replace(context, tools=tools, capabilities=capabilities)
 

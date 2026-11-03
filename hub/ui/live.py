@@ -102,6 +102,7 @@ class LiveHubView(HubView):
         self.interrupting.observe(snapshot)
         self.toasts.reconcile_waiting(snapshot.project_id, snapshot.sessions)
         self.preparing.observe(snapshot)
+        self.instructions.observe(snapshot)
         key = (snapshot.project_id, snapshot.selected_id)
         known = {message.id for message in snapshot.messages}
         pending = SubmittedMessages.unobserved(self, key, known)
@@ -704,12 +705,15 @@ class LiveController:
                 view.output.set_follow_tail(HubView.FOLLOW_TAIL)
         self.app.invalidate()
 
-    def _send(self, operation, session_id, text, *args, draft=ABSENT, recipients=ABSENT):
+    def _send(self, operation, session_id, text, *args, draft=ABSENT, recipients=ABSENT,
+              instruction_token=ABSENT):
         if (
             not text.strip()
             or session_id in self._submitting
             or not self.view.connected
         ):
+            if instruction_token is not self.ABSENT:
+                self.view.instructions.finish(instruction_token)
             if draft:
                 draft.restore(self.view)
             return
@@ -725,6 +729,11 @@ class LiveController:
 
         def accepted(request_id):
             self._submitting.discard(session_id)
+            if instruction_token is not self.ABSENT:
+                if request_id is self.ABSENT:
+                    self.view.instructions.finish(instruction_token)
+                else:
+                    self.view.instructions.accepted(instruction_token, request_id)
             if request_id is LiveController.ABSENT:
                 self.view.preparing.finish((project_id, session_id))
                 draft.restore(self.view)
@@ -790,7 +799,7 @@ class LiveController:
         question = self.view.question
         if question.busy:
             return
-        response = question.begin_answer(option_id)
+        response = question.begin_answer(option_id, value)
         identity = response.identity
         self.app.invalidate()
 
@@ -919,14 +928,20 @@ class LiveController:
             return
 
         operation = HubRuntime.reserve_instruction.__name__ if reserve else HubRuntime.steer.__name__
+        token = self.view.instructions.start(
+            (self.view.project_id, session_id), text, expected_run_id)
+
+        def discard():
+            self.view.instructions.finish(token)
+            if draft:
+                draft.restore(self.view)
 
         def ready(value):
             if value is LiveController.ABSENT:
-                if draft:
-                    draft.restore(self.view)
+                discard()
                 return
             if draft and not draft.is_current(self.view):
-                draft.restore(self.view)
+                discard()
                 return
             run_id, targets = value
             if (
@@ -934,8 +949,7 @@ class LiveController:
                 and run_id != expected_run_id
             ):
                 self._error(self.view.t(MessageKey.INSTRUCTION_RUN_CHANGED))
-                if draft:
-                    draft.restore(self.view)
+                discard()
                 return
             if len(targets) == LiveController.SINGLE_TARGET:
                 self._send(
@@ -946,6 +960,7 @@ class LiveController:
                     text,
                     [InstructionTargetChoice.first_id(targets)],
                     draft=draft,
+                    instruction_token=token,
                 )
             else:
                 from ..widget.controls import CheckboxList
@@ -960,14 +975,14 @@ class LiveController:
 
                 def send_selected():
                     self._send(operation, session_id, text, run_id, text,
-                               list(choices.current_values), draft=draft)
+                               list(choices.current_values), draft=draft, instruction_token=token)
                 self.view.open_dialog(
                     self.view.t(MessageKey.CHOOSE_TARGET),
                     choices,
                     send_selected,
                     choices,
                     validate=validate_selection,
-                    on_cancel=lambda: draft and draft.restore(self.view),
+                    on_cancel=discard,
                 )
 
         self._call(

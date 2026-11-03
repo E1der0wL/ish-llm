@@ -2,6 +2,18 @@
 
 
 class MessageKey:
+    CARD_INPUT = 'card_input'
+    CARD_ANSWER = 'card_answer'
+    CARD_DESCRIPTION = 'card_description'
+    CARD_ERROR = 'card_error'
+    INSTRUCTION_REASON = 'instruction_reason'
+    INSTRUCTION_ENDED = 'instruction_ended'
+    INSTRUCTION_NOT_REACHED = 'instruction_not_reached'
+    INSTRUCTION_WITHDRAWN = 'instruction_withdrawn'
+    INSTRUCTION_SUPERSEDED = 'instruction_superseded'
+    INSTRUCTION_PREPARING = 'instruction_preparing'
+    INSTRUCTION_PENDING = 'instruction_pending'
+    TOOL_RESULT = 'tool_result'
     APPROVAL_MANAGER = 'approval_manager'
     APPROVAL_MANAGE_HINT = 'approval_manage_hint'
     APPROVAL_ONCE = 'approval_once'

@@ -99,8 +99,8 @@ class QuestionComposer:
             for identity, response in self.responses.items()
         )
 
-    def begin_answer(self, option_id):
-        response = AnswerFeedback.capture(self, option_id)
+    def begin_answer(self, option_id, value=None):
+        response = AnswerFeedback.capture(self, option_id, value)
         self.responses[self.identity] = response
         self.leave()
         self.view.preparing.paint()

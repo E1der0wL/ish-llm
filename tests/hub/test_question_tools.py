@@ -175,6 +175,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(snapshot.status, "waiting_input")
                 thinking = next(message for message in snapshot.messages if message.role == "reasoning")
                 self.assertTrue(any(step.name == "ask_user" and step.status == "running" for step in thinking.tools))
+                from hub.model import TraceItem
+                from hub.locales.keys import MessageKey
+                cards = [card for card in thinking.trace if card.kind == TraceItem.QUESTION]
+                self.assertEqual(len(cards), 1)
+                self.assertEqual(dict(cards[0].details)[MessageKey.QUESTION_HEADING], 'Which format?')
                 runtime.snapshot_reader.clear()
                 restored = await runtime.snapshot()
                 self.assertEqual(next(m.tools for m in restored.messages if m.role == "reasoning"), thinking.tools)
@@ -196,6 +201,13 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(await runtime.sessions[session_id].run.alist()), 1)
                 self.assertIn("Markdown", str(provider.requests[-1]["messages"]))
                 self.assertEqual((await runtime.snapshot()).messages[-1].text, "Done with your choice")
+                for _ in range(2):
+                    runtime.snapshot_reader.clear()
+                    restored = await runtime.snapshot()
+                    cards = [card for message in restored.messages for card in message.trace
+                             if card.kind == TraceItem.QUESTION]
+                    self.assertEqual(cards, [])
+                    self.assertFalse(any(message.role == 'reasoning' for message in restored.messages))
                 self.assertFalse(runtime.builtin_tools.questions.pending)
             finally:
                 await runtime.close()

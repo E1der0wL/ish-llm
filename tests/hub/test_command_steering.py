@@ -166,6 +166,7 @@ class CommandSteeringIntegrationTests(unittest.IsolatedAsyncioTestCase):
             engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
         self.addAsyncCleanup(runtime.close)
         await runtime.start()
+        runtime.instruction_routing.assess = AsyncMock(return_value='steer')
         sid = await runtime.new_session()
         entered, answered = asyncio.Event(), asyncio.Event()
         original = runtime.builtin_tools.command_waits.status
@@ -196,6 +197,10 @@ class CommandSteeringIntegrationTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn('I received your instruction.', visible)
             self.assertTrue(any(i.id == instruction and i.status == 'applied'
                                 for m in live.messages for i in m.instructions))
+            from hub.locales.keys import MessageKey
+            details = [pair for message in live.messages for item in message.trace for pair in item.details]
+            self.assertTrue(any(key == MessageKey.CARD_INPUT and 'release' in value
+                                for key, value in details), details)
             self.assertEqual((work / 'count').read_text(), 'once\n')
             self.assertFalse((work / 'release').exists())
             (work / 'release').touch()
@@ -213,6 +218,11 @@ class CommandSteeringIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(request_bubble.instructions[0].id, instruction)
         self.assertEqual(request_bubble.instructions[0].status, 'applied')
         self.assertFalse(any(m.id == instruction for m in observed.messages))
+        # Completed responses retain the existing collapsed thought presentation;
+        # the same final Step projection still carries bounded command results.
+        details = [pair for step in observed.run.steps for pair in step.details]
+        self.assertTrue(any(key == MessageKey.TOOL_RESULT and 'finished' in value
+                            for key, value in details), details)
         self.assertEqual(len(await runtime.sessions[sid].run.alist()), 2)  # Approval resume, not steering.
         self.assertFalse(runtime.builtin_tools.command_waits.runs)
         for request in requests:

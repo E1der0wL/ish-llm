@@ -261,6 +261,9 @@ class HubView:
         from ..widget.feedback.preparing import PreparingResponse
 
         self.preparing = PreparingResponse(self)
+        from ..widget.feedback.instructions import PreparingInstructions
+
+        self.instructions = PreparingInstructions(self)
         from ..widget.feedback.interrupt_feedback import InterruptFeedback
 
         self.interrupting = InterruptFeedback(self)

@@ -73,7 +73,7 @@ class QuestionBroker:
             category=QuestionTool.CATEGORY,
             description=values.description,
             input_schema=QuestionTool.input_schema(),
-            source=QuestionTool.source(values),
+            source=QuestionTool.source(values, call.step_id),
         )
         future = asyncio.get_running_loop().create_future()
         self.pending[request.id] = WaitingQuestion(

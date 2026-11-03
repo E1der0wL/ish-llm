@@ -176,7 +176,8 @@ class ViewportLoadingTests(unittest.IsolatedAsyncioTestCase):
         async def load(identifier):
             record = NS(id=identifier, status='completed', engine='loop', started_at=None,
                         ended_at=None, metadata={'completions': []})
-            return NS(aget_data=AsyncMock(return_value=record))
+            return NS(aget_data=AsyncMock(return_value=record),
+                      steps=NS(alist=AsyncMock(return_value=[])))
         session = NS(run=NS(aload=AsyncMock(side_effect=load)))
         last = {record.id for record in records[-3:]}
         result = await reader.messages(session, records, detail_ids=last)

@@ -5,6 +5,18 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.CARD_INPUT: "입력",
+    MessageKey.CARD_ANSWER: "답변",
+    MessageKey.CARD_DESCRIPTION: "설명",
+    MessageKey.CARD_ERROR: "오류",
+    MessageKey.INSTRUCTION_REASON: "미반영 이유",
+    MessageKey.INSTRUCTION_ENDED: "실행 종료",
+    MessageKey.INSTRUCTION_NOT_REACHED: "대상에 도달하지 않음",
+    MessageKey.INSTRUCTION_WITHDRAWN: "취소됨",
+    MessageKey.INSTRUCTION_SUPERSEDED: "새 지시로 대체됨",
+    MessageKey.INSTRUCTION_PREPARING: '추가 지시 • 준비 중',
+    MessageKey.INSTRUCTION_PENDING: '반영 대기',
+    MessageKey.TOOL_RESULT: '결과',
     MessageKey.APPROVAL_MANAGER: '승인 규칙 관리',
     MessageKey.APPROVAL_MANAGE_HINT: 'Ctrl+S 승인 관리 버튼 • Enter 열기',
     MessageKey.APPROVAL_ONCE: '이번만 허용',

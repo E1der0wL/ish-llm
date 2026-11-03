@@ -44,7 +44,9 @@ class CacheTests(unittest.TestCase):
             self.assertEqual(text.count('Account'), 1)
             self.assertIn('Original request', text)
             self.assertIn('Only read files', text)
-            self.assertIn(self.language.status(state), text)
+            from hub.locales.keys import MessageKey
+            self.assertIn(self.language(MessageKey.INSTRUCTION_PENDING) if state == 'pending'
+                          else self.language.status(state), text)
             self.assertIs(self.cache.items['a'].body, response)
             self.assertEqual(tuple(frame.lines), frozen_rows(render_messages(
                 (current, answer), 80, self.theme, self.language, renderers=self.registry)))

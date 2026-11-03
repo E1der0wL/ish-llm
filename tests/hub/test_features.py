@@ -8,6 +8,7 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import CompleteEvent
@@ -53,6 +54,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
+                runtime.instruction_routing.assess = AsyncMock(return_value='steer')
                 if not runtime.sessions:
                     await runtime.new_session()
                 identifier = runtime.selected_id
@@ -247,6 +249,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await task
 
     async def test_live_enter_steering_follow_up_and_agent_command_use_backend(self):
+        self.enterContext(patch('hub.backend.execution.instruction_routing.InstructionRouting.assess',
+                                new=AsyncMock(return_value='steer')))
         gate = threading.Event()
         calls = []
         def provider(**kwargs):
@@ -289,6 +293,11 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\r")  # The first/default choice is a live instruction.
                 await until(lambda: any(i.text == "redirect"
                     for m in view.output.transcript.control.messages for i in m.instructions))
+                # Preparing feedback is now visible before backend admission.
+                # The following request tests independent durable submissions.
+                await until(lambda: any(i.text == "redirect" and i.status != 'preparing'
+                    for m in view.output.transcript.control.messages for i in m.instructions)
+                    and not controller._submitting)
                 await until(lambda: view.composer.text == "")
                 pipe.send_text("queued request\r")
                 await until(lambda: view._dialog is not None)

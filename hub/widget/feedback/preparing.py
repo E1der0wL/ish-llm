@@ -156,6 +156,7 @@ class PreparingResponse:
         )
 
     def project(self, key, messages):
+        messages = self.view.instructions.project(key, messages)
         messages = self.view.question.project(key, messages)
         clocks = dict(self.clocks.get(key, {}))
         activity = self._activity(key)

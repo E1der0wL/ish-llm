@@ -5,6 +5,18 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.CARD_INPUT: "Input",
+    MessageKey.CARD_ANSWER: "Answer",
+    MessageKey.CARD_DESCRIPTION: "Description",
+    MessageKey.CARD_ERROR: "Error",
+    MessageKey.INSTRUCTION_REASON: "Reason not applied",
+    MessageKey.INSTRUCTION_ENDED: "Execution ended",
+    MessageKey.INSTRUCTION_NOT_REACHED: "Target not reached",
+    MessageKey.INSTRUCTION_WITHDRAWN: "Withdrawn",
+    MessageKey.INSTRUCTION_SUPERSEDED: "Superseded by another instruction",
+    MessageKey.INSTRUCTION_PREPARING: 'Additional instruction • Preparing',
+    MessageKey.INSTRUCTION_PENDING: 'Awaiting application',
+    MessageKey.TOOL_RESULT: 'Result',
     MessageKey.APPROVAL_MANAGER: 'Approval rules',
     MessageKey.APPROVAL_MANAGE_HINT: 'Ctrl+S approval management button • Enter open',
     MessageKey.APPROVAL_ONCE: 'Allow once',

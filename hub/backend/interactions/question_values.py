@@ -88,8 +88,8 @@ class QuestionTool:
         return deepcopy(cls.INPUT_SCHEMA)
 
     @classmethod
-    def source(cls, arguments):
-        return QuestionSource.create(arguments.suggestions)
+    def source(cls, arguments, step_id=""):
+        return QuestionSource.create(arguments.suggestions, step_id)
 
 
 @dataclass(frozen=True, slots=True)

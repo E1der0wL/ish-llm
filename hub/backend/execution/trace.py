@@ -1,8 +1,10 @@
 """Chronological display of provider-exposed thoughts and observed Tool calls."""
 
 from dataclasses import replace
+from llm.core.models import StepStatus
 
-from ...model import TraceItem
+from ...model import TraceItem, SessionSummary
+from ..interactions.question_values import QuestionTool
 
 
 def merge_trace(*groups):
@@ -19,4 +21,7 @@ def merge_trace(*groups):
 
 
 def tool_trace(steps):
-    return tuple(TraceItem(step.id, TraceItem.TOOL, step.name, step.status, step.started_at) for step in steps)
+    return tuple(TraceItem(step.id, TraceItem.QUESTION if step.name == QuestionTool.NAME else TraceItem.TOOL,
+                          step.name, (SessionSummary.WAITING_INPUT if step.name == QuestionTool.NAME and step.status == StepStatus.RUNNING
+                                      else step.status), step.started_at,
+                          details=step.details) for step in steps)

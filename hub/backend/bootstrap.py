@@ -104,6 +104,8 @@ def create_backend(config: "HubConfig"):
     ):
         raise ValueError(BackendComposition.INVALID_ENGINE)
     engines = {name: factory() for name, factory in factories.items()}
+    from .execution.instruction_routing import InstructionEngine
+    engines[InstructionEngine.IDENTITY] = InstructionEngine(completion_adapter=HubCompletionAdapter())
     engines.setdefault(
         GRAPH_ENGINE_NAME,
         GraphEngine(
@@ -186,6 +188,7 @@ def create_backend(config: "HubConfig"):
                 recovery=selector,
                 retry_monitor=monitor,
                 provider_recovery=recovery,
+                language=language,
             )
             if not name.startswith(HubEngineIdentity.INTERNAL_PREFIX)
             else engine

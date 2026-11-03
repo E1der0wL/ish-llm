@@ -23,6 +23,7 @@ from hub.locales.keys import MessageKey
 from hub.ui.output.model import OutputBlock
 
 from llm.core.models import MessageStatus, MessageRole
+from llm.core.steering import InstructionStatus
 from ...model import ChatMessage
 from ...asset.icon import for_style
 from bisect import bisect_right
@@ -276,12 +277,16 @@ def render_messages(
         if user:
             for instruction in message.instructions:
                 body.append([])
+                from .instruction_caption import instruction_caption, target_captions
                 caption = " • ".join(value for value in (
-                    t(MessageKey.INSTRUCTION_LABEL), t.status(instruction.status) if instruction.status else "",
+                    t(MessageKey.INSTRUCTION_LABEL),
+                    instruction_caption(instruction, t),
                     instruction.time,
                 ) if value)
                 body.extend(markdown_lines(Text(caption, style="bold")))
                 body.extend(markdown_lines(HubMarkdown(instruction.text, theme)))
+                for detail in target_captions(instruction, t):
+                    body.extend(markdown_lines(Text(detail)))
             user_colors = ThemeStyle.USER_BLOCK_COLORS.format(theme=theme)
             body_width = max(
                 TranscriptLayout.MIN_WIDTH,
@@ -341,27 +346,15 @@ def render_messages(
 
 
 def render_tool_history(steps, width, theme, language, *, resources=None):
-    """Only names and states; arguments and Tool payloads never enter Markdown."""
+    """Share bounded literal Tool details with the chronological thought trace."""
+    from ...backend.execution.trace import tool_trace
+    from .thought_trace import render_trace_item
+
     if not steps:
         return []
-    inner = TranscriptLayout.inner_width(width)
-    console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
-    text = [ToolCaption.render(step.name, step.status, language) for step in steps]
-    rows = console.render_lines(
-        Text(TranscriptLayout.NEWLINE.join(text)),
-        console.options,
-        pad=TranscriptLayout.PAD,
-    )
-    return [
-        [
-            (
-                ThemeSelector.MUTED.style,
-                TranscriptLayout.INDENT
-                + TranscriptLayout.EMPTY.join(segment.text for segment in row),
-            )
-        ]
-        for row in rows
-    ] + [list(TranscriptLayout.BLANK_LINE)]
+    return [list(row) for item in tool_trace(steps) for row in render_trace_item(
+        item,
+        width, theme, language, resources=resources)]
 
 
 class TranscriptFrameKey(NamedTuple):
@@ -849,6 +842,14 @@ class ConversationControl(SelectableControl):
         self._resolve_position()
         self._index_search()
         urgent, extra = self._urgent_headers()
+        line_count = len(self._lines) + len(extra)
+        if self.follow_tail:
+            # Old body + urgent headers form a complete visible frame too.
+            # Use its extent and the current viewport height for both cursor
+            # and scroll, even while new Markdown is still being prepared.
+            # Otherwise PTK independently clamps our stale scroll for one paint.
+            self.cursor_line = max(0, line_count - 1)
+            self.top_line = max(0, line_count - self._height)
 
         def get_line(row):
             if row >= len(self._lines):
@@ -857,7 +858,7 @@ class ConversationControl(SelectableControl):
 
         content = UIContent(
             get_line=get_line,
-            line_count=len(self._lines) + len(extra),
+            line_count=line_count,
             cursor_position=Point(x=self.left_column, y=self.cursor_line),
             show_cursor=ConversationControl.SHOW_CURSOR,
         )

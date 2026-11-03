@@ -26,14 +26,15 @@ class QuestionSource(StrEnum):
     """Hub live-question presentation fields, shared by Tool input and widgets."""
 
     SUGGESTIONS = "choices"
+    STEP_ID = "step_id"
 
     @classmethod
     def suggestions(cls, source):
         return source.get(cls.SUGGESTIONS.value, [])
 
     @classmethod
-    def create(cls, suggestions):
-        return {cls.SUGGESTIONS.value: suggestions}
+    def create(cls, suggestions, step_id=""):
+        return {cls.SUGGESTIONS.value: suggestions, cls.STEP_ID.value: step_id}
 
 
 class RAGAction(StrEnum):
@@ -67,6 +68,15 @@ class InstructionDisplay:
     text: str
     status: str
     time: str = ""
+    targets: tuple["InstructionTargetDisplay", ...] = ()
+    reason: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class InstructionTargetDisplay:
+    name: str
+    status: str
+    reason: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,6 +129,7 @@ class TraceItem:
     THOUGHT_PREFIX: ClassVar[str] = "thought:"
     NO_TIME: ClassVar[str] = ""
     TOOL: ClassVar[str] = "tool"
+    QUESTION: ClassVar[str] = "question"
     REASONING: ClassVar[str] = "reasoning"
     WORKFLOW: ClassVar[str] = "workflow"
     SUMMARY: ClassVar[str] = "summary"
@@ -129,6 +140,7 @@ class TraceItem:
     status: str = ""
     started_at: str = NO_TIME
     workflow_states: tuple[tuple[str, str], ...] = ()
+    details: tuple[tuple[str, str], ...] = ()
 
     @classmethod
     def thought(cls, identifier, text, *, started_at=NO_TIME):
@@ -205,6 +217,7 @@ class StepSummary:
     id: str = ""
     started_at: str = ""
     source_id: str = ""
+    details: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

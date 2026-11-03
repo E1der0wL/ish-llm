@@ -11,6 +11,7 @@ from llm.engines.loop.records import LoopStepMetadata
 from llm.services.runtime.tools import ToolExecutionPhase
 from ..tools.retry_values import ToolRepairPhase
 from ...model import StepSummary
+from .tool_details import ToolDetails
 
 
 class StepDisplay:
@@ -68,6 +69,8 @@ def display_steps(steps) -> tuple[StepSummary, ...]:
                 getattr(step, Step.started_at.__name__, StepDisplay.ABSENT)
                 or StepDisplay.NO_TIME,
                 getattr(step, Step.id.__name__, StepDisplay.NO_ID),
+                ToolDetails.project(metadata, name=step.name,
+                    error=getattr(step, Step.error.__name__, None), compact=True) if kind == StepKind.TOOL else (),
             )
         )
     return tuple(result)

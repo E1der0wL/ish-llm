@@ -55,11 +55,12 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_live_elapsed_and_terminal_duration_exclude_queue_time(self):
         runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
-        run = SimpleNamespace(id="run", engine="test", status="running", started_at="2026-10-04T00:01:00+00:00",
+        run = SimpleNamespace(id="run", session_id="session", engine="test", status="running",
+                              error=None, started_at="2026-10-04T00:01:00+00:00",
                               ended_at=None, metadata={"completions": [asdict(CompletionResult(
                                   reasoning_content="Reason", started_at="2026-10-04T00:01:00+00:00"))]})
         read = AsyncMock(return_value=run)
-        session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(
+        session = SimpleNamespace(id=run.session_id, run=SimpleNamespace(aload=AsyncMock(
             return_value=SimpleNamespace(aget_data=read, steps=SimpleNamespace(alist=AsyncMock(return_value=[]))))))
         request = admitted_user("2026-10-04T00:00:00+00:00", content="Question")
         response = Message(id="assistant", role="assistant", content="Answer", status="streaming",
