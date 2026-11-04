@@ -412,7 +412,7 @@ class RenderingTests(unittest.TestCase):
     def test_title_shows_output_applications_until_player_metadata_is_available(self):
         self.owner.audio = AudioSnapshot(applications=('Firefox', 'VLC'))
         screen, _ = self.draw()
-        self.assertIn('재생 중: Firefox · VLC', self.row(screen, 4))
+        self.assertIn('Now playing: Firefox · VLC', self.row(screen, 4))
         self.owner.playback = PlaybackSnapshot(title='현재 곡', artist='가수')
         screen, _ = self.draw()
         self.assertIn('가수 — 현재 곡', self.row(screen, 4))

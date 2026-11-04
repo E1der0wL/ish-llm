@@ -10,7 +10,7 @@ from pyfiglet import Figlet, FigletFont
 
 from ...core.colors import DockPalette, HexColor
 from ...core.elements import ElementConfig, Spacing
-from ...core.records import Boolean, Nested, Record, Rule, SettingsError, Text, setting
+from ...core.records import Boolean, Nested, Nullable, Record, Rule, SettingsError, Text, setting
 from ...core.styles import TextStyle, BoldStyle
 from ...rendering.presentation import TextRow
 
@@ -21,12 +21,12 @@ class TimezoneRule(Rule):
 
     def decode(self, value):
         Text(single_line=True).decode(value)
-        if value and value not in self._zones:
+        if value not in self._zones:
             raise SettingsError("Unknown IANA timezone")
         return value
 
     def schema(self):
-        return {"type": "string", "enum": ["", *sorted(self._zones)]}
+        return {"type": "string", "enum": sorted(self._zones)}
 
 
 class ClockFormat(Rule):
@@ -57,14 +57,14 @@ class ClockFormat(Rule):
 
 @dataclass(frozen=True, slots=True)
 class ClockConfig(Record):
-    timezone: str = setting(
-        TimezoneRule(),
-        default="Asia/Seoul",
-        description="Shared IANA timezone for date, time, weekday art and weather timestamps. Empty uses local time."
+    timezone: str | None = setting(
+        Nullable(TimezoneRule()),
+        default=None,
+        description="Shared IANA timezone for date, time, weekday art and weather timestamps. null uses the system local timezone."
     )
 
     def now(self):
-        return datetime.now(ZoneInfo(self.timezone)) if self.timezone else datetime.now().astimezone()
+        return datetime.now(ZoneInfo(self.timezone)) if self.timezone is not None else datetime.now().astimezone()
 
     def next_tick(self, now, date, time):
         seconds = any(element.needs_clock and "%S" in element.format.replace("%%", "") for element in (date, time))

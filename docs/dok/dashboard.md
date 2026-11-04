@@ -4,7 +4,7 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
 
 ## 설정 예시
 
-다음 예시의 `dock`, `clock`, `widgets`를 현재 형식의 설정에 반영한다. 기본 위치는 미설정(`null`), 시간대는 `Asia/Seoul`이다. 예보를 조회하려면 `location`에 자신의 `latitude`, `longitude`, 선택적인 `label`을 지정한다. `location: null`이면 설정 시간대의 오늘부터 요일, `icons.unknown` 아이콘, `--° --°` 온도를 표시하며 네트워크 요청을 하지 않는다. 시간대를 `""`로 지정하면 시스템 현지 시간대를 사용한다.
+다음 예시의 `dock`, `clock`, `widgets`를 현재 형식의 설정에 반영한다. 기본 위치는 미설정(`null`), `clock.timezone` 기본값은 `null`로 시스템 시간대를 따른다. WSL에서는 dok가 실행되는 Linux 환경의 시간대를 사용한다. `"Asia/Seoul"` 같은 IANA 이름을 지정하면 해당 시간대를 사용한다. 예보를 조회하려면 `location`에 자신의 `latitude`, `longitude`, 선택적인 `label`을 지정한다. `location: null`이면 현재 시계 날짜부터 요일, `icons.unknown` 아이콘, `--° --°` 온도를 표시하며 네트워크 요청을 하지 않는다.
 
 ```json
 {
@@ -88,7 +88,7 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
     }
   },
   "clock": {
-    "timezone": "Asia/Seoul"
+    "timezone": null
   }
 }
 ```
@@ -121,7 +121,7 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
 }
 ```
 
-`widgets.weekday_art.enabled: false`는 요일 그룹을 숨긴다. 기본은 `true`이며 요일 아트를 유지한다. `widgets.date.format` 또는 `widgets.time.format`을 빈 문자열로 두면 해당 행을 숨긴다. 형식은 `%Y %y %m %d %A %a %B %b %H %I %M %S %p %z %Z %%`를 지원한다. 개행·제어 문자나 그 외 지시자는 거부한다. `%B`와 `%b`는 로케일에 관계없이 대문자 영문 월 전체 이름·약어를 표시하며, `%%B`는 그대로 `%B`를 표시한다. `widgets.date.style.bold`는 날짜 굵기이며 기본 `true`다. 시간에는 날짜 굵기를 적용하지 않는다. 날짜·시간은 지정 IANA 시간대 또는 `""`인 경우 시스템 현지 시간대를 사용한다. 영문 요일 아트는 시스템 로케일과 무관하고, 날짜 형식의 요일 이름은 Python 로케일을 따른다. 기본은 분 경계, `%S`를 사용할 때만 초 경계마다 시계 갱신을 요청한다.
+`widgets.weekday_art.enabled: false`는 요일 그룹을 숨긴다. 기본은 `true`이며 요일 아트를 유지한다. `widgets.date.format` 또는 `widgets.time.format`을 빈 문자열로 두면 해당 행을 숨긴다. 형식은 `%Y %y %m %d %A %a %B %b %H %I %M %S %p %z %Z %%`를 지원한다. 개행·제어 문자나 그 외 지시자는 거부한다. `%B`와 `%b`는 로케일에 관계없이 대문자 영문 월 전체 이름·약어를 표시하며, `%%B`는 그대로 `%B`를 표시한다. `widgets.date.style.bold`는 날짜 굵기이며 기본 `true`다. 시간에는 날짜 굵기를 적용하지 않는다. 날짜·시간은 지정 IANA 시간대 또는 `null`인 경우 시스템 현지 시간대를 사용한다. 영문 요일 아트는 시스템 로케일과 무관하고, 날짜 형식의 요일 이름은 Python 로케일을 따른다. 기본은 분 경계, `%S`를 사용할 때만 초 경계마다 시계 갱신을 요청한다.
 
 ## 날씨 조회와 캐시
 

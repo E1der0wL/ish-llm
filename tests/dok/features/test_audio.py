@@ -74,7 +74,7 @@ class SpectrumTests(unittest.TestCase):
         outputs = (OutputMonitor(1, "first.monitor"), OutputMonitor(2, "second.monitor"))
         actual = PulseBackend.decode_applications(json.dumps(data).encode(), outputs, ("first.monitor",))
         self.assertEqual(actual, ("Firefox", "pacat", "VLC"))
-        self.assertEqual(AudioSnapshot(applications=actual).application_caption, "재생 중: Firefox · pacat · VLC")
+        self.assertEqual(AudioSnapshot(applications=actual).application_caption, "Now playing: Firefox · pacat · VLC")
 
 
 class FakeBackend:

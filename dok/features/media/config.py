@@ -15,12 +15,12 @@ from .models import PlaybackAction
 class TitleTexts(Record):
     prefix: str = setting(
         Text(single_line=True),
-        default="재생 중: ",
+        default="Now playing: ",
         description="Text before application names. An empty string shows names only. Trailing spaces are preserved."
     )
     audio_error: str = setting(
         Text(single_line=True),
-        default="사운드 연결 실패",
+        default="Audio connection failed",
         description="Title text when the audio connection fails. An empty string uses the normal title instead."
     )
 

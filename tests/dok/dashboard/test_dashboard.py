@@ -1,10 +1,12 @@
 """Maximum-mode owners, actual FIGlet art, weather decoding and async lifetime."""
 from dok import DockConfig, WidgetsConfig, ClockConfig, DateConfig, TimeConfig
 import asyncio
+import os
 from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 import tempfile
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -60,12 +62,13 @@ class DashboardOwnerTests(unittest.TestCase):
         self.assertIsNone(defaults.widgets.weather.location)
         self.assertFalse(defaults.widgets.weather.can_fetch)
         self.assertEqual(defaults.widgets.weekday_art.font, 'future')
-        self.assertEqual(defaults.clock.timezone, 'Asia/Seoul')
+        self.assertIsNone(defaults.clock.timezone)
         jsonschema.validate(config.to_dict(), DockConfig.schema())
         schema = DockConfig.schema()
         for data in (
             {'widgets': {'weekday_art': {'font': 'not-a-font'}}},
             {'clock': {'timezone': 'bad/zone'}},
+            {'clock': {'timezone': ''}},
             {'widgets': {'time': {'format': '%n'}}},
             {'widgets': {'date': {'format': '%'}}},
             {'widgets': {'weather': {'location': {'latitude': 91, 'longitude': 0}}}},
@@ -86,6 +89,25 @@ class DashboardOwnerTests(unittest.TestCase):
                     jsonschema.validate(data, schema)
         with self.assertRaises(SettingsError):
             DockConfig(dock={'keys': {'maximize': ('f8',)}})
+
+    def test_null_timezone_roundtrips_and_uses_system_local_time(self):
+        config = DockConfig.from_dict({'clock': {'timezone': None}})
+        jsonschema.validate(config.to_dict(), DockConfig.schema())
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConfigStore(Path(directory) / 'config.jsonc')
+            store.save(config)
+            self.assertIn('"timezone": null', store.path.read_text(encoding='utf-8'))
+            self.assertIsNone(store.load().clock.timezone)
+        try:
+            for system_zone, offset_hours in (('UTC', 0), ('Asia/Seoul', 9)):
+                with self.subTest(system_zone=system_zone), patch.dict(os.environ, {'TZ': system_zone}):
+                    time.tzset()
+                    local = config.clock.now()
+                    self.assertEqual(local.utcoffset().total_seconds(), offset_hours * 3600)
+                    self.assertLess(abs((local - datetime.now(timezone.utc)).total_seconds()), 2)
+                    self.assertEqual(ClockConfig(timezone='Asia/Seoul').now().utcoffset().total_seconds(), 9 * 3600)
+        finally:
+            time.tzset()
 
     def test_calendar_formats_timezone_and_tick_boundaries(self):
         clock = ClockConfig(timezone='Asia/Seoul')

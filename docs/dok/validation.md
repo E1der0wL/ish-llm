@@ -240,3 +240,9 @@ ish 본체, 배포된 플러그인과 개인 설정은 수정하지 않았고 ll
 토글 기본값은 Ctrl+W이며 첫 펼침은 최대화를 요청한다. 공간에 따라 기본 크기로 줄어들고 공간이 복원되면 최대화로 돌아온다. 크기 전환용 키 바인딩과 `dock.keys.maximize`, 사용하지 않는 `widgets.weather.texts.location_missing`은 제거했다. 기존 공개 Python 모드 제어 API는 유지한다. 개인 설정은 자동 변환하거나 덮어쓰지 않았다.
 
 Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **119개 통과**(17.064초). 날짜 경계, 기본·사용자 Unknown 아이콘, 기존 예보 제거, 최저 온도 색, 좁은 화면, 아이콘 설정 저장·schema·렌더링, Ctrl+W 입력 보존, 자동 크기 복원, F9 호스트 바인딩 복원과 실제 Linux PTY를 검증했다. [실행 로그](../../tests/dok/reports/dok-i4qca5bg/dok.txt), [소스 해시](../../tests/dok/reports/dok-i4qca5bg/snapshot.json). 현재 문서의 설정 예시 9개를 Owner와 schema로 검증하고 전체 기본 JSONC를 Owner에서 재생성했다. ish 본체는 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.
+
+## 시스템 시간대와 영어 타이틀 기본값 (2026-11-04)
+
+`ClockConfig.timezone` 기본값을 `null`로 변경했다. `Nullable(TimezoneRule())` 선언을 검증·schema·JSONC 저장이 공유하며 `null`이면 시스템 현지 시간대, IANA 이름이면 해당 시간대를 사용한다. 이전 빈 문자열 표기는 허용하지 않는다. WSL에서는 Linux 프로세스의 시스템 시간대를 따른다. `TitleTexts`의 기본 접두 문구는 `Now playing: `, 오디오 연결 실패 문구는 `Audio connection failed`다. 기존 사용자 설정은 덮어쓰지 않는다.
+
+Linux Python 3.12.14 스냅샷에서 dok 테스트 **120개 통과**(22.229초). UTC·Asia/Seoul 시스템 환경의 시간대 반영, 명시 시간대 우선 적용, null 저장·로드와 schema, 영어 타이틀 렌더링을 검증했다. [실행 로그](../../tests/dok/reports/dok-nj136b25/dok.txt), [소스 해시](../../tests/dok/reports/dok-nj136b25/snapshot.json). 설정 예시 9개를 검증하고 전체 기본 JSONC를 Owner에서 재생성했다. ish 본체는 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.

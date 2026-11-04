@@ -7,7 +7,7 @@
 | `dock.keys` | `toggle` 키 시퀀스, 기본 Ctrl+W. 펼침 크기는 공간에 따라 자동 조절 |
 | `dock.width` | `mode: fixed/ratio`, `value` |
 | `audio` | Linux 출력 캡처 활성화와 모니터 소스 |
-| `clock.timezone` | 날짜·시간·요일과 날씨 갱신 시각의 공통 시간대 |
+| `clock.timezone` | 날짜·시간·요일과 날씨 갱신 시각의 공통 시간대. 기본 `null`은 시스템 시간대 |
 | `widgets` | 화면 순서대로 기능별 내용·스타일·간격 |
 
 `widgets`에는 `weather`, `weekday_art`, `date`, `time`, `visualizer`, `progress`, `title`, `media_controls`, `shortcuts`가 있다. 정보 영역의 네 위젯은 최대화에서 표시한다. 순서를 바꾸는 옵션은 추가하지 않았다.
@@ -33,7 +33,7 @@
     "keys": {"toggle": ["c-w"]},
     "width": {"mode": "ratio", "value": 0.6}
   },
-  "clock": {"timezone": "Asia/Seoul"},
+  "clock": {"timezone": null},
   "widgets": {
     "date": {"format": "%d %B, %Y.", "style": {"bold": true}},
     "time": {"format": "-%H:%M-", "spacing": {"after_rows": 2}},

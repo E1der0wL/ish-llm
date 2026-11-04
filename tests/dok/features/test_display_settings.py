@@ -27,8 +27,8 @@ class DisplaySettingsTests(unittest.TestCase):
             store.save(config)
             self.assertEqual(store.load(), config)
         defaults = DockConfig.from_dict({})
-        self.assertEqual(defaults.widgets.title.application_caption(('Player',)), '재생 중: Player')
-        self.assertEqual(defaults.widgets.title.audio_error_caption('backend error'), '사운드 연결 실패')
+        self.assertEqual(defaults.widgets.title.application_caption(('Player',)), 'Now playing: Player')
+        self.assertEqual(defaults.widgets.title.audio_error_caption('backend error'), 'Audio connection failed')
         self.assertEqual(defaults.widgets.progress.width_columns, 48)
         self.assertEqual(
             [button.display() for button in defaults.widgets.media_controls.buttons],

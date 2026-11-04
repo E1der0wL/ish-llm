@@ -126,8 +126,8 @@ Float는 설치 시 한 번 등록하고 핸들을 보관한다. 토글할 때 �
 | `widgets.shortcuts.items[].style.color` | `#RRGGBB` 전경색 | 활성 바로가기의 아이콘·텍스트 색 |
 | `widgets.visualizer.style.colors` | 하나 이상의 `#RRGGBB` 색 | 하나는 단색, 여러 개는 왼쪽→오른쪽 RGB 그라데이션 |
 | `widgets.visualizer.width_columns` | 1 이상 정수, 기본 38 | 화면 너비 내 표시 길이와 전체 주파수 범위의 배치 |
-| `widgets.title.style.color`, `widgets.title.texts.prefix` | 전경색과 기본 `재생 중: ` 접두 문구 | 프로그램 이름 앞 문구를 바꾸거나 빈 문자열로 제거 |
-| `widgets.title.texts.audio_error` | 한 줄 문자열, 기본 `사운드 연결 실패` | 연결 실패 안내. 빈 문자열은 오류 안내 대신 일반 타이틀 표시 |
+| `widgets.title.style.color`, `widgets.title.texts.prefix` | 전경색과 기본 `Now playing: ` 접두 문구 | 프로그램 이름 앞 문구를 바꾸거나 빈 문자열로 제거 |
+| `widgets.title.texts.audio_error` | 한 줄 문자열, 기본 `Audio connection failed` | 연결 실패 안내. 빈 문자열은 오류 안내 대신 일반 타이틀 표시 |
 | `widgets.progress.style.color`, `widgets.progress.width_columns` | 전경색과 1 이상 정수 길이, 기본 48 | 시간 표시 공간을 제외한 막대 길이 제한 |
 | `widgets.media_controls.buttons` | 선택한 버튼의 순서 있는 목록 | 생략한 버튼 숨김, 빈 목록은 줄을 그리지 않음 |
 | `widgets.media_controls.buttons[].action/text/style.color` | 액션 종류·표시 문자·전경색 | 액션별 기본 기호를 제공하며 중복 액션은 거부 |
