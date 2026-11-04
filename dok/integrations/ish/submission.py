@@ -3,7 +3,7 @@
 from prompt_toolkit.buffer import ValidationState
 from prompt_toolkit.document import Document
 
-from .shortcuts import Shortcut
+from ...features.shortcuts.config import Shortcut
 
 
 class ShortcutSubmission:

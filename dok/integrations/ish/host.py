@@ -1,9 +1,9 @@
 """All access to ish runtime resources and its UI loop lives here."""
 
-import asyncio
 from concurrent.futures import Future
-import termios
 from typing import Callable, TypeVar
+import asyncio
+import termios
 
 
 Result = TypeVar("Result")

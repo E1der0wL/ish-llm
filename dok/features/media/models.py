@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 from enum import StrEnum
-import math
 from typing import ClassVar
+import math
 
 
 class PlaybackStatus(StrEnum):
@@ -23,7 +23,7 @@ class PlaybackAction(StrEnum):
 
     @property
     def symbol(self) -> str:
-        return {self.PREVIOUS: "⏮", self.PLAY_PAUSE: "⏯", self.NEXT: "⏭",
+        return {self.PREVIOUS: "\U000f04ae", self.PLAY_PAUSE: "\U000f040e", self.NEXT: "\U000f04ad",
                 self.PLAY: "▶", self.PAUSE: "⏸", self.STOP: "⏹"}[self]
 
 

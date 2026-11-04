@@ -1,0 +1,1 @@
+"""integrations/ish package."""

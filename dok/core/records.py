@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import MISSING, dataclass, field, fields
 from enum import StrEnum
-import math
 from typing import Any, Self
+import math
 import unicodedata
 
 
@@ -24,6 +24,10 @@ class Rule:
 
     def schema(self) -> dict:
         raise NotImplementedError
+
+    def documented(self, value):
+        """Return a JSON-compatible value or nested public Record for documentation."""
+        return self.encode(value)
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,6 +95,23 @@ class Boolean(Rule):
 
 
 @dataclass(frozen=True, slots=True)
+class Nullable(Rule):
+    item: Rule
+
+    def decode(self, value):
+        return None if value is None else self.item.decode(value)
+
+    def encode(self, value):
+        return None if value is None else self.item.encode(value)
+
+    def schema(self):
+        return {"anyOf": [self.item.schema(), {"type": "null"}]}
+
+    def documented(self, value):
+        return None if value is None else self.item.documented(value)
+
+
+@dataclass(frozen=True, slots=True)
 class Choice(Rule):
     enum: type[StrEnum]
 
@@ -123,6 +144,9 @@ class Sequence(Rule):
     def encode(self, value):
         return [self.item.encode(item) for item in value]
 
+    def documented(self, value):
+        return [self.item.documented(item) for item in value]
+
     def schema(self):
         result = {"type": "array", "items": self.item.schema(), "minItems": self.minimum}
         if self.maximum is not None:
@@ -145,13 +169,24 @@ class Nested(Rule):
     def schema(self):
         return self.owner.schema()
 
+    def documented(self, value):
+        return value
+
 
 _RULE = "dok.rule"
+_DESCRIPTION = "dok.description"
 
 
-def setting(rule: Rule, *, default=MISSING, factory=MISSING):
+def setting(rule: Rule, *, default=MISSING, factory=MISSING, description=""):
     """Declare one field once for construction, JSON I/O and schema generation."""
-    return field(default=default, default_factory=factory, metadata={_RULE: rule})
+    return field(default=default, default_factory=factory, metadata={_RULE: rule, _DESCRIPTION: description})
+
+
+@dataclass(frozen=True, slots=True)
+class DocumentedField:
+    name: str
+    value: Any
+    description: str
 
 
 class Record:
@@ -185,11 +220,26 @@ class Record:
         return {item.name: item.metadata[_RULE].encode(getattr(self, item.name)) for item in fields(self)}
 
     @classmethod
+    def description(cls, name: str) -> str:
+        # A subclass changing only a default inherits the original owner's explanation.
+        for owner in cls.__mro__:
+            item = vars(owner).get("__dataclass_fields__", {}).get(name)
+            if item is not None and (description := item.metadata.get(_DESCRIPTION)):
+                return description
+        return ""
+
+    def documented_fields(self) -> tuple[DocumentedField, ...]:
+        return tuple(DocumentedField(item.name, item.metadata[_RULE].documented(getattr(self, item.name)),
+                                     self.description(item.name)) for item in fields(self))
+
+    @classmethod
     def schema(cls) -> dict[str, Any]:
         properties, required = {}, []
         for item in fields(cls):
             rule = item.metadata[_RULE]
             spec = rule.schema()
+            if description := cls.description(item.name):
+                spec["description"] = description
             if item.default is not MISSING:
                 spec["default"] = rule.encode(rule.decode(item.default))
             elif item.default_factory is not MISSING:

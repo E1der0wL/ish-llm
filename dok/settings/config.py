@@ -1,0 +1,107 @@
+"""Compose the single supported settings structure from feature owners."""
+from __future__ import annotations
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import ClassVar
+import math
+from ..core.records import Choice, Nested, Number, Record, setting
+from ..dashboard.config import WidgetsConfig
+from ..features.audio.config import AudioConfig
+from ..features.clock.config import ClockConfig
+from ..features.shortcuts.config import Shortcut
+from ..integrations.ish.keys import KeyRule, KeySequence
+
+class WidthMode(StrEnum):
+    FIXED = "fixed"
+    RATIO = "ratio"
+
+
+@dataclass(frozen=True, slots=True)
+class Width(Record):
+    DEFAULT_CELLS: ClassVar[int] = 80
+    mode: WidthMode = setting(
+        Choice(WidthMode),
+        default=WidthMode.FIXED,
+        description="Width mode: fixed uses terminal cells; ratio uses a fraction of the ish PTY width."
+    )
+    value: int | float = setting(
+        Number(),
+        default=DEFAULT_CELLS,
+        description="Cell count for fixed, or a fraction greater than 0 and at most 1 for ratio. Clamped to the available width."
+    )
+
+    @classmethod
+    def value_rule(cls, mode: WidthMode) -> Number:
+        if WidthMode(mode) == WidthMode.FIXED:
+            return Number(minimum=Shortcut.minimum_width(), integer=True)
+        return Number(minimum=0, maximum=1, exclusive_minimum=True)
+
+    def _check(self) -> None:
+        self.value_rule(self.mode).decode(self.value)
+
+    def resolve(self, pty_columns: int, available: int) -> int:
+        requested = self.value if self.mode == WidthMode.FIXED else math.floor(pty_columns * self.value)
+        return max(0, min(int(requested), available))
+
+    @classmethod
+    def schema(cls) -> dict:
+        result = super(Width, cls).schema()
+        names = cls.names()
+        result["allOf"] = [
+            {"if": {"properties": {names.mode: {"const": mode}},
+                    "required": [names.mode] if mode == WidthMode.RATIO else []},
+             "then": {"properties": {names.value: cls.value_rule(mode).schema()},
+                      "required": [names.value] if mode == WidthMode.RATIO else []}}
+            for mode in WidthMode
+        ]
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class DockKeys(Record):
+    toggle: KeySequence = setting(
+        KeyRule(),
+        default=("c-w",),
+        description='Toggle dock visibility. Opens maximized by default and fits the available space. Examples: ["c-w"], ["f8"].'
+    )
+
+@dataclass(frozen=True, slots=True)
+class DockSettings(Record):
+    keys: DockKeys = setting(Nested(DockKeys), factory=DockKeys, description="Dock mode key sequences.")
+    width: Width = setting(
+        Nested(Width),
+        factory=Width,
+        description="Overall dock width; widget rows are centered within it."
+    )
+
+@dataclass(frozen=True, slots=True)
+class DockConfig(Record):
+    dock: DockSettings = setting(
+        Nested(DockSettings),
+        factory=DockSettings,
+        description="Dock width and mode keys."
+    )
+    audio: AudioConfig = setting(
+        Nested(AudioConfig),
+        factory=AudioConfig,
+        description="Linux output audio capture. Native Windows audio is not included."
+    )
+    clock: ClockConfig = setting(
+        Nested(ClockConfig),
+        factory=ClockConfig,
+        description="Shared clock settings."
+    )
+    widgets: WidgetsConfig = setting(
+        Nested(WidgetsConfig),
+        factory=WidgetsConfig,
+        description="Widget content, appearance and spacing."
+    )
+
+    def _check(self):
+        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle,))
+
+    @classmethod
+    def schema(cls):
+        result = super(DockConfig, cls).schema()
+        result["description"] = "The owner also validates unique slots and non-overlapping normalized key sequences."
+        return result

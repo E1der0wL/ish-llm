@@ -6,7 +6,11 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.screen import WritePosition
 
-from .view import DockGeometry, DockRow, DockStyle
+from ..core.state import DockMode
+from ..dashboard.layout import DockGeometry
+from ..dashboard.view import DashboardView
+from ..dashboard.widgets import DockRow
+from .presentation import DockStyle
 
 
 class DockControl(FormattedTextControl):
@@ -33,6 +37,8 @@ class DockOverlay(Container):
         self._controller = controller
         self._view = view
         self._available = (0, 0)
+        self._dashboard = DashboardView()
+        self.display_mode = DockMode.HIDDEN
         self._fragments = {row: () for row in DockRow}
         self._windows = {
             row: DockRowWindow(
@@ -57,20 +63,41 @@ class DockOverlay(Container):
     @property
     def has_room(self) -> bool:
         height, width = self._available
-        body_width = self._controller.config.width.resolve(self._controller.pty_columns(), width)
-        return DockGeometry.fits(height, body_width)
+        mode, _, _ = self._layout(height, width)
+        return mode != DockMode.HIDDEN
+
+    def _layout(self, height, width):
+        owner = self._controller
+        body_width = owner.config.dock.width.resolve(owner.pty_columns(), width)
+        extra = (self._dashboard.rows(owner.config, owner.weather, body_width)
+                 if owner.requested_mode == DockMode.MAXIMIZED else ())
+        mode = DockGeometry.resolve(owner.requested_mode, height, body_width, len(extra), owner.config)
+        return mode, extra if mode == DockMode.MAXIMIZED else (), body_width
 
     def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
         owner = self._controller
         self._available = (write_position.height, write_position.width)
-        if not owner.visible or not self.has_room:
+        self.display_mode = DockMode.HIDDEN
+        if not owner.visible:
             return
-        body_width = owner.config.width.resolve(owner.pty_columns(), write_position.width)
+        self.display_mode, extra, body_width = self._layout(*self._available)
+        if self.display_mode == DockMode.HIDDEN:
+            return
         lines = self._view.render(owner.config, owner.playback, owner.audio, owner.diagnostic,
-                                  write_position.width, body_width)
-        top = write_position.ypos + write_position.height - DockGeometry.HEIGHT
+                                  write_position.width, body_width, extra, self.display_mode)
+        top = write_position.ypos + write_position.height - DockGeometry.height(self.display_mode, len(extra), owner.config)
         for line in lines:
             if line.width:
+                if line.row not in self._windows:
+                    row = line.row
+                    self._windows[row] = DockRowWindow(
+                        DockControl(
+                            lambda row=row: list(self._fragments[row]),
+                            focusable=False,
+                            show_cursor=False
+                        ),
+                        height=1, wrap_lines=False, style=DockStyle.BACKGROUND,
+                    )
                 self._fragments[line.row] = line.fragments
                 position = WritePosition(write_position.xpos + line.left, top + line.row, line.width, 1)
                 self._windows[line.row].write_to_screen(

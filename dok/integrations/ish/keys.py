@@ -10,7 +10,7 @@ from prompt_toolkit.key_binding import KeyBindings, DynamicKeyBindings, merge_ke
 from prompt_toolkit.key_binding.key_bindings import KeyBindingsBase
 from prompt_toolkit.keys import Keys
 
-from .records import Rule, SettingsError
+from ...core.records import Rule, SettingsError
 
 
 @dataclass(frozen=True, slots=True)

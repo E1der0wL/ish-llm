@@ -1,12 +1,21 @@
 """Public dok settings, lifecycle and optional presentation contracts."""
 
-from .config import ConfigStore, DockConfig, Width, WidthMode
-from .audio import AudioConfig, AudioSnapshot, AudioStatus
-from .appearance import ProgressConfig, TitleConfig, TransportButton, TransportConfig, VisualizerConfig
-from .keys import KeySequence
-from .player import PlaybackAction, PlaybackSnapshot, PlaybackStatus
-from .records import SettingsError
-from .shortcuts import Separator, Shortcut, ShortcutLayout
+from .core.elements import ElementConfig, Spacing
+from .core.styles import TextStyle, BoldStyle
+from .core.records import SettingsError
+from .core.state import DockMode
+from .dashboard.config import WidgetsConfig
+from .features.audio.config import AudioConfig, VisualizerConfig
+from .features.audio.models import AudioSnapshot, AudioStatus
+from .features.clock.config import ClockConfig, DateConfig, TimeConfig, WeekdayConfig
+from .features.media.config import ProgressConfig, TitleConfig, TransportButton, TransportConfig
+from .features.media.models import PlaybackAction, PlaybackSnapshot, PlaybackStatus
+from .features.shortcuts.config import Separator, Shortcut, ShortcutsConfig
+from .features.weather.config import WeatherConfig, WeatherLocation, WeatherIcons
+from .features.weather.models import TemperatureUnit, WeatherSnapshot
+from .integrations.ish.keys import KeySequence
+from .settings.config import DockConfig, DockSettings, DockKeys, Width, WidthMode
+from .settings.store import ConfigStore
 
 
 def install(prompt, *, config_path=None):
@@ -24,5 +33,7 @@ __all__ = [
     "KeySequence", "Shortcut", "SettingsError", "PlaybackSnapshot", "PlaybackStatus",
     "AudioConfig", "AudioSnapshot", "AudioStatus",
     "VisualizerConfig", "Separator",
-    "TitleConfig", "ProgressConfig", "TransportConfig", "TransportButton", "PlaybackAction", "ShortcutLayout",
+    "TitleConfig", "ProgressConfig", "TransportConfig", "TransportButton", "PlaybackAction", "ShortcutsConfig",
+    "DockMode", "WidgetsConfig", "ClockConfig", "DateConfig", "TimeConfig", "WeekdayConfig", "WeatherConfig", "WeatherLocation",
+    "WeatherIcons", "TemperatureUnit", "WeatherSnapshot", "ElementConfig", "Spacing", "TextStyle", "BoldStyle", "DockSettings", "DockKeys",
 ]

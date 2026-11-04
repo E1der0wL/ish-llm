@@ -10,9 +10,16 @@ class SubmissionPhase(StrEnum):
     SUBMITTED = "submitted"
 
 
+class DockMode(StrEnum):
+    HIDDEN = "hidden"
+    BASIC = "basic"
+    MAXIMIZED = "maximized"
+
+
 @dataclass(slots=True)
 class DockState:
-    requested_visible: bool = False
+    mode: DockMode = DockMode.HIDDEN
+    _last_mode: DockMode = DockMode.MAXIMIZED
     closed: bool = False
     diagnostic: str = ""
     phase: SubmissionPhase = SubmissionPhase.READY
@@ -26,9 +33,22 @@ class DockState:
     def toggle(self) -> None:
         self.show(not self.requested_visible)
 
-    def show(self, visible: bool = True) -> None:
+    @property
+    def requested_visible(self):
+        return self.mode != DockMode.HIDDEN
+
+    def set_mode(self, mode):
+        mode = DockMode(mode)
         if not self.closed:
-            self.requested_visible = bool(visible)
+            self.mode = mode
+            if mode != DockMode.HIDDEN:
+                self._last_mode = mode
+
+    def toggle_size(self):
+        self.set_mode(DockMode.BASIC if self.mode == DockMode.MAXIMIZED else DockMode.MAXIMIZED)
+
+    def show(self, visible: bool = True) -> None:
+        self.set_mode(self._last_mode if visible else DockMode.HIDDEN)
 
     def can_render(self, *, running: bool, done: bool) -> bool:
         return self.requested_visible and not self.closed and running and not done
@@ -48,5 +68,5 @@ class DockState:
         self.diagnostic = str(message)
 
     def close(self) -> None:
+        self.set_mode(DockMode.HIDDEN)
         self.closed = True
-        self.requested_visible = False

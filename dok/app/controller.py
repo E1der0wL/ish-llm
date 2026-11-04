@@ -4,15 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .audio import AudioRuntime, AudioSnapshot
-from .config import ConfigStore, DockConfig
-from .host import HostAccess
-from .keys import KeyRegistration, OwnedBindings
-from .overlay import DockOverlay
-from .player import PlaybackSnapshot
-from .state import DockState
-from .submission import ShortcutSubmission
-from .view import DockView
+from ..core.state import DockMode, DockState
+from ..dashboard.view import DockView
+from ..features.audio.models import AudioSnapshot
+from ..features.audio.runtime import AudioRuntime
+from ..features.media.models import PlaybackSnapshot
+from ..integrations.ish.host import HostAccess
+from ..integrations.ish.keys import KeyRegistration, OwnedBindings
+from ..integrations.ish.submission import ShortcutSubmission
+from ..rendering.overlay import DockOverlay
+from ..settings.config import DockConfig
+from ..settings.store import ConfigStore
+from .lifecycle import DashboardRuntime
 
 
 class DockController:
@@ -26,6 +29,7 @@ class DockController:
         self._config = DockConfig()
         self._playback = PlaybackSnapshot()
         self._audio = AudioRuntime(prompt.app.invalidate)
+        self._dashboard = DashboardRuntime(prompt.app.invalidate)
         self._bindings = OwnedBindings(prompt)
         self._submission = ShortcutSubmission(prompt, self._state)
         self._view = DockView(self.execute)
@@ -33,8 +37,8 @@ class DockController:
         self._float_handle = None
 
     def _entries(self, config: DockConfig):
-        entries = [KeyRegistration(config.toggle_key, lambda event: self.toggle(), self._toggle_enabled)]
-        for shortcut in config.shortcuts:
+        entries = [KeyRegistration(config.dock.keys.toggle, lambda event: self.toggle(), self._toggle_enabled)]
+        for shortcut in config.widgets.shortcuts.items:
             if shortcut.enabled and shortcut.key is not None:
                 def execute(event, slot=shortcut.slot):
                     self.execute(slot)
@@ -46,7 +50,7 @@ class DockController:
         return not self._state.closed and app.is_running and not app.is_done and self._host.editing_shell()
 
     def _shortcuts_enabled(self) -> bool:
-        return (self.visible and self._overlay.has_room
+        return (self._config.widgets.shortcuts.enabled and self.visible and self._overlay.has_room
                 and getattr(self._prompt.app.layout.current_control, "buffer", None) is self._prompt.default_buffer)
 
     def _before_render(self, app):
@@ -54,7 +58,18 @@ class DockController:
         self._state.enter_prompt(app.future)
 
     def _after_render(self, app):
-        self._audio.sync(active=self.visible and self._overlay.has_room, config=self._config.audio, app=app)
+        self._audio.sync(active=self.visible and self.display_mode != DockMode.HIDDEN
+                         and (self._config.widgets.visualizer.enabled or self._config.widgets.title.enabled),
+                         config=self._config.audio, app=app)
+        self._dashboard.sync(active=self.visible and self.display_mode == DockMode.MAXIMIZED,
+                             config=self._config, app=app)
+
+    def _change_mode(self, change):
+        was_visible = self._state.requested_visible
+        change()
+        if self._state.requested_visible and not was_visible:
+            self._audio.begin_activation()
+        self._prompt.app.invalidate()
 
     def _attach(self):
         if self._state.closed:
@@ -96,6 +111,7 @@ class DockController:
             return
         self._state.close()
         self._audio.close()
+        self._dashboard.close()
         self._bindings.clear()
         self._prompt.app.before_render -= self._before_render
         self._prompt.app.after_render -= self._after_render
@@ -127,6 +143,18 @@ class DockController:
         return self._state.requested_visible
 
     @property
+    def requested_mode(self) -> DockMode:
+        return self._state.mode
+
+    @property
+    def display_mode(self) -> DockMode:
+        return self._overlay.display_mode if self.visible else DockMode.HIDDEN
+
+    @property
+    def weather(self):
+        return self._dashboard.snapshot_for(self._config)
+
+    @property
     def visible(self) -> bool:
         app = self._prompt.app
         return self._state.can_render(running=app.is_running, done=app.is_done) and self._host.editing_shell()
@@ -153,21 +181,22 @@ class DockController:
         self._host.dispatch(lambda: self._store.save(self._config))
 
     def toggle(self) -> None:
-        def change():
-            self._state.toggle()
-            self._prompt.app.invalidate()
-        self._host.dispatch(change)
+        self._host.dispatch(lambda: self._change_mode(self._state.toggle))
+
+    def toggle_size(self) -> None:
+        self._host.dispatch(lambda: self._change_mode(self._state.toggle_size))
+
+    def set_mode(self, mode: DockMode | str) -> None:
+        mode = DockMode(mode)
+        self._host.dispatch(lambda: self._change_mode(lambda: self._state.set_mode(mode)))
 
     def show(self, visible: bool = True) -> None:
-        def change():
-            self._state.show(visible)
-            self._prompt.app.invalidate()
-        self._host.dispatch(change)
+        self._host.dispatch(lambda: self._change_mode(lambda: self._state.show(visible)))
 
     def execute(self, slot: int) -> bool:
         def submit():
-            shortcut = self._config.shortcut(slot)
-            return shortcut is not None and self._submission.execute(shortcut)
+            shortcut = self._config.widgets.shortcuts.shortcut(slot)
+            return self._config.widgets.shortcuts.enabled and shortcut is not None and self._submission.execute(shortcut)
         return self._host.dispatch(submit)
 
     def set_playback(self, snapshot: PlaybackSnapshot) -> None:

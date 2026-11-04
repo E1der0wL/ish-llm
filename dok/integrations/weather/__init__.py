@@ -1,0 +1,1 @@
+"""integrations/weather package."""

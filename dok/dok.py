@@ -6,17 +6,25 @@ PLUGIN_META = {
     "description": "Floating shell dock with configurable command-prefix shortcuts.",
     "author": "",
     "requirements": [],
-    "dependencies": [],
+    "dependencies": ["pyfiglet", "httpx"],
 }
 
 from pathlib import Path
 
-from .audio import AudioConfig, AudioSnapshot, AudioStatus
-from .appearance import ProgressConfig, TitleConfig, TransportButton, TransportConfig, VisualizerConfig
-from .config import ConfigStore, DockConfig, Width, WidthMode
-from .controller import DockController
-from .player import PlaybackAction, PlaybackSnapshot, PlaybackStatus
-from .shortcuts import Separator, Shortcut, ShortcutLayout
+from .app.controller import DockController
+from .core.elements import ElementConfig
+from .core.state import DockMode
+from .dashboard.config import WidgetsConfig
+from .features.audio.config import AudioConfig, VisualizerConfig
+from .features.audio.models import AudioSnapshot, AudioStatus
+from .features.clock.config import ClockConfig, DateConfig, TimeConfig, WeekdayConfig
+from .features.media.config import ProgressConfig, TitleConfig, TransportButton, TransportConfig
+from .features.media.models import PlaybackAction, PlaybackSnapshot, PlaybackStatus
+from .features.shortcuts.config import Separator, Shortcut, ShortcutsConfig
+from .features.weather.config import WeatherConfig, WeatherLocation, WeatherIcons
+from .features.weather.models import TemperatureUnit, WeatherSnapshot
+from .settings.config import DockConfig, DockSettings, DockKeys, Width, WidthMode
+from .settings.store import ConfigStore
 
 
 def install(prompt, *, config_path: str | Path | None = None) -> DockController:
@@ -35,7 +43,8 @@ def install(prompt, *, config_path: str | Path | None = None) -> DockController:
     setattr(prompt, DockController.INSTALLATION_ATTRIBUTE, controller)
     if controller.reload() and not store.path.exists():
         try:
-            controller.save()
+            if not store.create(controller.config):
+                controller.reload()
         except OSError as exc:
             logger = getattr(prompt, "logger", None)
             if logger is not None:
