@@ -7,6 +7,7 @@ from llm.services.infrastructure.storage import revision_token, async_method
 from llm.services.runtime.tools import ToolExecutionError
 from .catalogs import MCPCatalogRepository
 from .records import MCPCatalog, MCPConnection, MCPConfiguration, MCPToolBinding, MCPToolSnapshot, MCPRuntime
+from contextlib import asynccontextmanager
 
 
 class RemoteTool:
@@ -15,16 +16,20 @@ class RemoteTool:
     DEFINITION_CHANGED = "MCP definition changed; prepare and submit again"
     CONTRACT_CHANGED = "MCP Tool contract changed; prepare and submit again"
 
-    def __init__(self, data, server, snapshot, descriptor):
+    def __init__(self, data, server, snapshot, descriptor, *, access=None):
         self.data, self.server = data, server
         self.snapshot = MCPCatalog.from_dict(snapshot.to_dict())
         self.descriptor = MCPToolSnapshot.from_dict(descriptor.to_dict())
+        self.access = access
         self.execution_binding = MCPToolBinding.create(server, snapshot, revision_token(descriptor.to_dict())).to_dict()
 
     async def __call__(self, arguments):
         connection = await self.data._async_call(self.data._connection, self.server)
         if not self.snapshot.matches(connection.version, connection.revision):
             raise ToolExecutionError(self.DEFINITION_CHANGED, effect=ToolExecutionError.NO_EFFECT)
+        if self.access is not None:
+            tool = await self.access._get_tool(self.descriptor)
+            return await tool.handler(arguments)
         async with connection.connector(connection.definition) as tools:
             tool = tools.get(self.descriptor.name)
             if MCPToolSnapshot.from_tool(tool) != self.descriptor:
@@ -88,6 +93,38 @@ class MCPData(ComponentData):
                 raise TypeError(self.INVALID_DISCOVERY)
             descriptors = [MCPToolSnapshot.from_tool(tools.get(name)) for name in tools.names()]
         return await self._async_call(self._publish_catalog, identifier, connection.version, connection.revision, descriptors)
+
+    @asynccontextmanager
+    async def connect(self, identifier):
+        """Explicit reusable connection for trusted Application calls, not Tool approval."""
+        from .access import MCPAccess
+        connection = await self._async_call(self._connection, identifier)
+        async with connection.connector(connection.definition) as client:
+            if not isinstance(client, ToolRegistry):
+                raise TypeError(self.INVALID_DISCOVERY)
+            access = MCPAccess(self, identifier, connection, client)
+            try:
+                await access._check()
+                yield access
+            finally:
+                access.close()
+
+    async def aget_status(self, identifier):
+        """Explicit live probe; unlike list_tools this opens a connection."""
+        async with self.connect(identifier) as access:
+            return await access.aget_status()
+
+    async def alist_resources(self, identifier, **kwargs):
+        async with self.connect(identifier) as access:
+            return await access.alist_resources(**kwargs)
+
+    async def alist_templates(self, identifier, **kwargs):
+        async with self.connect(identifier) as access:
+            return await access.alist_templates(**kwargs)
+
+    async def aread_resource(self, identifier, uri):
+        async with self.connect(identifier) as access:
+            return await access.aread_resource(uri)
 
     @workspace_locked
     def list_tools(self, identifier):

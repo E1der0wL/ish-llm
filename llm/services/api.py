@@ -719,6 +719,16 @@ class RunHandle(AsyncFacade):
             self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
             return result
 
+    def _question_delivery_key(self, request_id):
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope():
+            session, run = self.session.data, self.data
+            store = self.app.project_manager.sessions.conversations(session)
+            if any(store.get(identifier).conversation_deleted for identifier in
+                   (run.input_message_id, run.assistant_message_id)):
+                raise ValueError('Question source conversation was deleted')
+            return self.app.run_repository.question_delivery(run, request_id)
+
     @property
     def data(self) -> Run:
         self.session.app._check_open()
@@ -828,6 +838,60 @@ class RunHandle(AsyncFacade):
                     if v.can_respond
                 ]
             return self.app.run_repository.interaction_requests(session, run)
+
+    def questions(self):
+        """Nonblocking question/answer views, independent of the source Run's terminal status."""
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope():
+            return self.app.run_repository.question_views(self.data)
+
+    def answer_question(self, response: InteractionResponse):
+        """Persist an input answer only. It never resumes or submits execution."""
+        self.app._check_open()
+        if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER:
+            raise ValueError(self.USER_CHOICE_REQUIRED)
+        with self.app.project_manager.ownership.scope(records=True):
+            run = self.data
+            result = self.app.run_repository.answer_question(run, response)
+            views = self.app.run_repository.question_views(run)
+        self.app._interaction_changed(run, views)
+        return result
+
+    def cancel_question(self, request: InteractionRequest):
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope(records=True):
+            run = self.data
+            self.app.run_repository.cancel_question(run, request)
+            views = self.app.run_repository.question_views(run)
+        self.app._interaction_changed(run, views)
+
+    async def deliver_answer(self, request_id, content: str, *, mode, recipients=UNSET,
+                             run_id=UNSET, targets=UNSET):
+        """Application chooses input text, routing and timing; one intake receipt per answer.
+
+        Acceptance does not imply consumption. Inspect the ordinary request or
+        steering handle for application. An ended target never falls back to submit.
+        """
+        if mode not in ('submit', 'steer'):
+            raise ValueError('Answer delivery requires explicit submit or steer mode')
+        if mode == 'submit' and (recipients is UNSET or run_id is not UNSET or targets is not UNSET):
+            raise ValueError('Submit answer requires recipients only')
+        if mode == 'steer' and (run_id is UNSET or recipients is not UNSET):
+            raise ValueError('Steer answer requires a target Run, not recipients')
+        key = await self._async_call(self._question_delivery_key, request_id)
+        if mode == 'submit':
+            return await self.session.run.submit(content, recipients=recipients, request_key=key)
+        return await self.session.run.steer(run_id, content, targets=None if targets is UNSET else targets,
+                                           request_key=key)
+
+    async def get_delivery(self, request_id):
+        """Return the existing intake receipt; source question status is not delivery status."""
+        key = await self._async_call(self._question_delivery_key, request_id)
+        return await self.session.run.get_receipt(key)
+
+    aquestions = async_method(questions)
+    aanswer_question = async_method(answer_question)
+    acancel_question = async_method(cancel_question)
 
     def interaction_responses(self) -> list[InteractionResponse]:
         self.app._check_open()

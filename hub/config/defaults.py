@@ -32,6 +32,7 @@ from llm.components.refinement.records import ProposalOperation, RefinementPolic
 from llm.components.review import ReviewPolicy
 from llm.core.agents import AgentDefinition
 from llm.engines.graph.configuration import GraphAgentOptions
+from llm.engines.loop.configuration import ToolFeedbackPolicy
 
 
 CONVERSATION_STORAGE = ConversationStorage.FILE.value
@@ -41,6 +42,11 @@ class HubDefaults:
     """Application choices for new Projects; selected Backend Owners validate them."""
 
     UNSPECIFIED_AGENT = None
+    TOOL_FEEDBACK = {
+        ToolFeedbackPolicy.FAILURE: True,
+        ToolFeedbackPolicy.DECLINED: True,
+        ToolFeedbackPolicy.REMAINING: ToolFeedbackPolicy.DEFER,
+    }
     OUTPUT_BATCH_SIZE = 32
     OUTPUT_BATCH_DELAY = 0.1
     OUTPUT_BUFFER = OutputBuffer(batch_size=OUTPUT_BATCH_SIZE, max_delay=OUTPUT_BATCH_DELAY)

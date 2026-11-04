@@ -28,7 +28,6 @@ from llm.components.tools.builtin.file_values import FileReadArguments
 from .validation import FileReadSchema
 from ...config.defaults import HubDefaults
 
-from ..interactions.questions import QuestionBroker
 from ..interactions.question_values import QuestionTool
 
 
@@ -58,7 +57,6 @@ class HubBuiltinTools(BuiltinToolComponent):
             if test_root is not HubBuiltinTools.ABSENT
             else HubBuiltinTools.ABSENT
         )
-        self.questions = QuestionBroker()
         from .command_waits import CommandWaits
         self.command_waits = CommandWaits()
         from .application import HubApplicationTools
@@ -173,7 +171,8 @@ class HubBuiltinTools(BuiltinToolComponent):
                         "native": tool.contract.revision, "hub": "command-observation-v1"})))
             if tool.name == ProcessReferenceArguments.STATUS_NAME else tool
             for tool in (toolkit.registry.get(name) for name in toolkit.registry.names())))
-        toolkit.registry.register(QuestionTool.create(self.questions.ask))
+        for question_tool in QuestionTool.tools():
+            toolkit.registry.register(question_tool)
         from .repo_map import RepoMap
 
         toolkit.registry.register(RepoMap(toolkit).tool())
@@ -270,8 +269,17 @@ class HubBuiltinTools(BuiltinToolComponent):
         component = BuiltinToolComponent(toolkit, name=self.name)
         data = self._project_data.get(project.id)
         if data is None:
-            return component.resolve(project, capability)
-        return component.resolve_runtime(project, capability, data_factory=data.related)
+            registry = component.resolve(project, capability)
+        else:
+            registry = component.resolve_runtime(project, capability, data_factory=data.related)
+        # Questions use the native resumable event handler, not file/process
+        # output or path scopes. Preserve that handler through builtin binding;
+        # an ordinary async wrapper would bypass its durable question protocol.
+        questions = {tool.name for tool in QuestionTool.tools()}
+        return registry.derive(tuple(
+            replace(registry.get(name), handler=toolkit.registry.get_handler(name))
+            if name in questions else registry.get(name)
+            for name in registry.names()))
 
     def resolve(self, project, capability):
         if capability == COMPLETION_PROCESSORS:
@@ -306,7 +314,7 @@ class HubBuiltinTools(BuiltinToolComponent):
             else:
                 registry = ResolvedToolkit.registry(cached)
             # Isolate mutable schemas/registrations while preserving runtime
-            # handler identity (question broker, process registry, file root).
+            # handler identity (durable question handlers, process registry, file root).
             return registry.copy()
 
     def resolve_runtime(self, project, capability, *, data_factory):
@@ -328,7 +336,6 @@ class HubBuiltinTools(BuiltinToolComponent):
         return registry
 
     async def close(self):
-        self.questions.close()
         self.application.runtime = None
         self._resolved.clear()
         self._project_data.clear()

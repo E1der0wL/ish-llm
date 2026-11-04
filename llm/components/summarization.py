@@ -10,6 +10,7 @@ from contextlib import aclosing
 from copy import deepcopy
 from dataclasses import dataclass, replace
 from typing import Any, ClassVar
+from llm.core.model_protocol import ResponseValidationError
 
 
 NO_PROGRESS = None
@@ -35,7 +36,7 @@ class SummaryAnswer:
     def read(cls, answer, max_chars):
         text = answer.get(cls.FIELD)
         if not isinstance(text, str) or not text.strip() or len(text) > max_chars:
-            raise ValueError(cls.INVALID)
+            raise ResponseValidationError(cls.INVALID)
         return text
 
 

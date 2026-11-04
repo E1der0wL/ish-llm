@@ -252,7 +252,8 @@ class HubBindings:
             [KeyName.SHIFT_TAB],
             ShortcutLabel.HIDDEN,
             ShortcutAction.NONE,
-            lambda e: self.NO_ACTION,
+            lambda e: view.question.inbox.focus_next(True)
+            if view.question.item and not view.question.is_approval else self.NO_ACTION,
             when=lambda: c.composing,
         )
         r.add(
@@ -270,6 +271,13 @@ class HubBindings:
                 self.PREVIOUS if e.key_sequence[-1].key == KeyName.UP else self.NEXT
             ),
             when=lambda: c.composing and view.input_history.available,
+        )
+        r.add(
+            [KeyName.UP, KeyName.DOWN],
+            ShortcutLabel.HIDDEN,
+            ShortcutAction.SELECT,
+            lambda e: view.question.move_choice(-1 if e.key_sequence[-1].key == KeyName.UP else 1),
+            when=lambda: c.composing and view.question.can_move_choice,
         )
         r.scroll(self.scroll, when=lambda: c.chat)
         r.scroll(self.scroll_settings, when=lambda: c.settings and not c.sidebar)
@@ -300,13 +308,6 @@ class HubBindings:
             ShortcutAction.NEWLINE,
             self.newline,
             when=lambda: c.composing,
-        )
-        r.add(
-            [KeyName.CONTROL_O],
-            ShortcutLabel.CONTROL_O,
-            ShortcutAction.APPROVAL_DETAILS,
-            lambda e: view.question.review(),
-            when=lambda: c.composing and bool(view.question.item),
         )
         r.add(
             [KeyName.CONTROL_C],
@@ -426,6 +427,8 @@ class HubBindings:
 
     def complete(self, event):
         if self.view.question.item:
+            if not self.view.question.is_approval:
+                self.view.question.inbox.focus_next()
             return
         buffer = self.view.composer.buffer
         if buffer.complete_state:
@@ -444,7 +447,10 @@ class HubBindings:
             buffer.cursor_right(count=event.arg)
 
     def scroll(self, event):
-        self.view.output.scroll(event.key_sequence[-1].key)
+        if self.context.composing and self.view.question.is_approval:
+            self.view.question.details.scroll(event.key_sequence[-1].key)
+        else:
+            self.view.output.scroll(event.key_sequence[-1].key)
         event.app.invalidate()
 
     def scroll_settings(self, event):

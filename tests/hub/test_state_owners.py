@@ -51,14 +51,17 @@ class NotificationBufferTests(unittest.TestCase):
         self.assertEqual([item.sequence for item in before], list(range(69, 133)))
         self.assertTrue(all(item.project_id == "new-project" for item in before))
 
-    def test_live_question_snapshot_and_repeat_callbacks_share_identity(self):
-        request = {"id": "q", "kind": "question"}
-        pending = {"q": NS(project_id="p", session_id="s", request=NS(to_dict=lambda: request))}
-        self.buffer.observe_questions(pending)
-        self.buffer.observe_session("p", "s", "Session", None, ({"request": request},))
-        self.buffer.observe_questions({})
-        self.buffer.observe_questions(pending)
-        self.assertEqual([(item.title, item.status) for item in self.buffer.items()], [("s", "waiting_input")])
+    def test_durable_question_snapshot_and_repeat_events_share_identity(self):
+        from hub.backend.interactions.question_values import QuestionTool
+        from hub.model import QuestionPresentation
+        request = QuestionTool.request({'question': 'Optional detail?'})
+        self.buffer.register_session('p', self.run.session_id, 'Session')
+        self.buffer.observe_question(self.run, request)
+        self.buffer.observe_session('p', self.run.session_id, 'Session', self.run,
+            (QuestionPresentation.nonblocking_request(self.run.id, request),))
+        self.buffer.observe_session('p', self.run.session_id, 'Session', self.run)
+        self.buffer.observe_question(self.run, request)
+        self.assertEqual([(item.title, item.status) for item in self.buffer.items()], [('Session', 'waiting_input')])
 
     def test_forget_session_stops_late_events_without_erasing_published_items(self):
         self.buffer.register_session("p", "s", "Session")

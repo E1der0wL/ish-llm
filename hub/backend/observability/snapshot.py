@@ -102,6 +102,7 @@ class SnapshotReader:
         self.submissions = {}
         self.tool_history = {}
         self.question_history = {}
+        self.question_sources = {}
         self.checkpoint_presence = {}
         self.trace_history = {}
         self.ended_times = {}
@@ -128,6 +129,7 @@ class SnapshotReader:
         self.selected_conversation = None
         self.tool_history.clear()
         self.question_history.clear()
+        self.question_sources.clear()
         self.checkpoint_presence.clear()
         self.trace_history.clear()
         self.ended_times.clear()
@@ -203,6 +205,7 @@ class SnapshotReader:
 
     def observe_run(self, run):
         self.question_history.pop(run.id, None)
+        self.reads.discard('questions', run.id)
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
@@ -229,6 +232,8 @@ class SnapshotReader:
         if self._stale_run(run):
             return
         kind = EngineEvent.observed_type(event)
+        if kind == EngineEventType.QUESTION_POSTED:
+            self.question_sources.setdefault(run.session_id, set()).add(run.id)
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
@@ -237,7 +242,9 @@ class SnapshotReader:
         # reconciles through the ordinary public Run read.
         if kind != EngineEventType.TEXT_DELTA or EngineEvent.observed_completion(event) is not None:
             self._remember_run(run)
-        if kind in EngineEvent.PHASES or kind == EngineEventType.OUTPUT:
+        if kind in EngineEvent.PHASES or kind in (EngineEventType.OUTPUT, EngineEventType.STEP_HANDLED):
+            # Handling preserves FAILED and adds durable evidence; it is not a
+            # successful Step phase. Re-read the public record after the ACK.
             self.reads.discard(ReadKind.STEPS, run.id)
             self.step_observations.pop(run.id, None)
         value = EngineEvent.observed_delta(event) or EngineEvent.observed_output(event)
@@ -248,8 +255,9 @@ class SnapshotReader:
             # execution/queue/approval state. The committed Run is remembered
             # above; admission and instruction targeting still query live APIs.
             self.reads.discard(ReadKind.CONVERSATION, run.session_id)
-        if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED):
+        if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED, EngineEventType.QUESTION_POSTED):
             self.question_history.pop(run.id, None)
+            self.reads.discard('questions', run.id)
             self.invalidate(run.session_id)
             self._remember_run(run)
 
@@ -314,7 +322,9 @@ class SnapshotReader:
             paused[question_handle.id] = question_handle
         pending = []
         for paused_handle in paused.values():
-            pending.extend(QuestionPresentation.stored_request(paused_handle.id, request)
+            _, source = await self.read_run(session, identifier, paused_handle.id, handle=paused_handle)
+            pending.extend(QuestionPresentation.stored_request(paused_handle.id, request,
+                           run_status=str(source.status))
                            for request in await pending_requests(paused_handle))
         return SessionObservation(identifier, record, runtime, run, handle, tuple(pending))
 
@@ -529,20 +539,21 @@ class SnapshotReader:
                     authors[message.run_id] = self.authors[message.run_id]
                 summarizing = active and self.thinking.activity(current_run, steps_for_run) == ResponseActivity.SUMMARIZING
                 summaries = tuple(
-                    TraceItem(step.id, TraceItem.SUMMARY, self.EMPTY_TEXT, step.status, step.started_at)
+                    TraceItem(step.id, TraceItem.SUMMARY, self.EMPTY_TEXT, step.status, step.started_at,
+                              handled_failure=step.handled_failure)
                     for step in display_steps(
                         step for step in steps_for_run if self.thinking.summary_step(step)
                     )
                 ) if active else ()
                 questions = self.question_history.get(message.run_id, ())
-                if (session is not None and message.status not in self.LIVE_MESSAGE_STATES
-                        and message.run_id not in self.question_history):
+                if (session is not None and message.run_id not in self.question_history):
                     from ..execution.question_trace import QuestionTrace
                     # run_display already read this record for its timeline.
                     # Retain only this observation flag, not another Run payload.
                     if self.checkpoint_presence.get(message.run_id, False):
                         handle = await self.run_handle(session, message.run_id)
-                        questions = QuestionTrace.project(await handle.ainteraction_views())
+                        questions = QuestionTrace.project((*await handle.ainteraction_views(),
+                                                           *await handle.aquestions()))
                     self.question_history[message.run_id] = questions
                 if reasoning or tools or workflow or summarizing or summaries or questions:
                     trace = merge_trace(
@@ -757,6 +768,27 @@ class SnapshotReader:
             if selected.run:
                 run = selected.run
                 questions = selected.questions
+                from llm.core.questions import QuestionPublication
+                from ..interactions.questions import QuestionAnswers
+                sources = self.question_sources.setdefault(selected_id, set())
+                sources.update(run_id for run_id, record in run_records.items()
+                               if record.status in (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED)
+                               and QuestionPublication.identifiers(record.metadata))
+                for run_id in tuple(sources):
+                    try:
+                        # Reuse the cached native status, not the UI's stop label.
+                        handle, source = await self.read_run(session, selected_id, run_id)
+                        native = await self.reads.read(('questions', run_id),
+                            lambda handle=handle: QuestionAnswers.observe(handle))
+                    except FileNotFoundError:
+                        sources.discard(run_id)  # Backend retention removed the source.
+                        continue
+                    native = tuple({**item, 'run_status': str(source.status)} for item in native)
+                    questions += native
+                    if not native or all(QuestionPresentation.observe(item).source_finished
+                            or QuestionPresentation.observe(item).delivery
+                            or QuestionPresentation.observe(item).status in ('cancelled', 'expired') for item in native):
+                        sources.discard(run_id)
                 elapsed = self.elapsed(run)
                 summary = RunSummary(
                     run.id,

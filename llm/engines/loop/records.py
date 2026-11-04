@@ -3,7 +3,7 @@
 import json
 from llm.core.checkpoint_records import CheckpointStep, CheckpointPause
 from llm.core.checkpoints import CheckpointLifecycle
-from llm.core.interactions import InteractionRequest
+from llm.core.interactions import InteractionRequest, same_interaction_value
 from llm.core.step_tool_metadata import ToolStepMetadata
 from llm.core.step_event_metadata import StepEventMetadata
 
@@ -146,7 +146,36 @@ class LoopToolRecord(LoopCheckpointRecord):
         from llm.core.checkpoints import CheckpointStatus
         # The existing no-effect failure record owns ERROR; deferral is a separate
         # no-execution record. Missing evidence must not turn into a fresh effect.
-        return self.optional_status == CheckpointStatus.NOT_APPLIED and self.ERROR not in self._value
+        return (self.optional_status == CheckpointStatus.NOT_APPLIED and self.ERROR not in self._value
+                and self.RESULT not in self._value)
+
+    @property
+    def has_feedback(self):
+        from llm.core.checkpoints import CheckpointStatus
+        return self.optional_status == CheckpointStatus.NOT_APPLIED and self.RESULT in self._value
+
+    @classmethod
+    def feedback(cls, *, name, arguments, result, run_id):
+        from llm.core.checkpoints import CheckpointStatus
+        from llm.core.tool_event_result import ToolEventResult
+        outcome = ToolEventResult(result).outcome
+        if outcome is None:
+            raise ValueError("Tool feedback requires a non-success outcome")
+        return {cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.NAME: name, cls.ARGUMENTS: arguments,
+                cls.RESULT: result, cls.STEP_ID: outcome.step_id, cls.RUN_ID: run_id}
+
+    def feedback_result(self, name, arguments):
+        from llm.core.tool_event_result import ToolEventResult
+        from copy import deepcopy
+        if self._value[self.NAME] != name or not same_interaction_value(self._value[self.ARGUMENTS], arguments):
+            raise ValueError("Tool feedback invocation changed")
+        result = deepcopy(self._value[self.RESULT])
+        outcome = ToolEventResult(result).outcome
+        expected = {}
+        ToolEventResult(expected).reject(outcome)
+        if result != expected or outcome.step_id != self.step_id:
+            raise ValueError("Tool feedback result changed")
+        return result
 
     @classmethod
     def completed(cls, status, result, step_id, run_id):

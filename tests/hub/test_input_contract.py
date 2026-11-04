@@ -186,9 +186,10 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                                     if scope == "expanded search":
                                         view._dialog.start_query()
                             elif scope == "question":
+                                from hub.backend.interactions.question_values import QuestionTool
                                 view.question.sync("project", view.sessions[view.selected].id, ({
-                                    "run_id": "run", "live": True, "request": {
-                                        "id": "question", "revision": 1, "title": "Choose", "source": {"choices": ["Yes", "No"]}}},))
+                                    "run_id": "run", "request": QuestionTool.request({
+                                        "question": "Choose", "choices": ["Yes", "No"]}).to_dict()},))
                                 view.composer.text = "1"
                         if scope == "completion":
                             await eventually(lambda: view.composer.buffer.complete_state is not None)

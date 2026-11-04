@@ -11,6 +11,8 @@ MCP 연결 정의와 발견한 Tool 목록을 Project 데이터로 관리합니�
 | [records.py](records.py) | 정의·선택 Schema, 발견 기록·실행 binding·런타임 연결의 타입과 Reader/Writer입니다. |
 | [catalogs.py](catalogs.py) | 발견 기록의 경로와 원자적 파일 저장을 소유합니다. |
 | [data.py](data.py) | 명시적 발견, 정의·connector 최신성 검사와 선택한 원격 Tool의 실행 연결입니다. |
+| [access.py](access.py) | 애플리케이션이 연 연결 범위에서 상태·리소스·선택 Tool을 재사용합니다. |
+| [client.py](client.py) | 선택적 connector 기능의 공개 계약입니다. SDK 세부 옵션은 해석하지 않습니다. |
 
 ## 정의 저장 예
 
@@ -36,8 +38,9 @@ SSE 정의는 다른 명시적 connector를 연결할 때 사용할 수 있습�
 자동 재호출하지 않습니다. 인증은 저장된 env/headers 또는 실행 시 `credentials(definition)`
 callback으로 공급할 수 있습니다. callback 결과는 인증 필드로 제한하며 저장하지 않습니다.
 `timeout_seconds`는 명시했을 때 초기화·발견, SDK 요청, HTTP I/O에 적용합니다.
-None이면 이 connector는 추가 deadline을 설정하지 않습니다. SDK 기본 HTTP timeout을
-숨겨 주입하지 않으며, 인증 headers는 연결에서만 사용합니다.
+미설정이면 SDK timeout 인자를 생략하며 SDK의 native default를 따릅니다. 명시적 None은
+지원되는 timeout을 해제합니다. backend가 SDK 기본값을 복제하지 않으며 인증 headers는
+연결에서만 사용합니다.
 stdio는 SDK의 환경 상속 동작을 사용하며
 OS sandbox가 아닙니다. 서버 command를 실행하는 `aprepare`는 신뢰한 애플리케이션 API입니다.
 TUI 호스트는 `MCPConnector(errlog=...)`에 파일 등의 stderr 대상을 명시할 수 있습니다.
@@ -78,8 +81,45 @@ connector, tools 및 각 Tool의 contract/classification 필드는 필수이며,
 MCP 2 전환의 구현 revision은 `MCPComponent.REVISION`이 소유합니다. 이전 revision의 발견
 catalog·승인 binding은 stale로 거부하며 자동 변환하지 않습니다. Agent의 `resources.mcp`
 경로도 유지됩니다. 어댑터 의미가 바뀌면 revision을 변경하여
-과거 승인·재개 binding을 거부하세요. 오류 코드는 `mcp_connection_failed`, `mcp_tool_failed`이며
-원격 effect가 불명확한 실패는 자동 재실행하지 않습니다. OAuth 로그인 UI,
-resources/prompts/sampling/elicitation, 연결 pool과 자동 재연결은 이번 범위가 아닙니다.
+과거 승인·재개 binding을 거부하세요. 오류 코드는 `mcp_connection_failed`, `mcp_tool_failed`,
+`mcp_authentication_required`, `mcp_access_denied`, `mcp_timeout`으로 구분합니다.
+원격 effect가 불명확한 실패는 자동 재실행하지 않습니다.
+
+## 명시적 연결과 리소스
+
+```python
+async with mcp.connect("company-docs") as connection:
+    status = await connection.aget_status()
+    resources = await connection.alist_resources()
+    templates = await connection.alist_templates()
+    document = await connection.aread_resource("company://manual")  # 실제 서버 URI
+    # 다음 페이지가 있으면 반환 nextCursor를 cursor=...로 명시합니다.
+```
+
+같은 범위에서 여러 작업이 연결을 공유합니다. 일회성 `mcp.aget_status(id)`,
+`alist_resources(id)`, `alist_templates(id)`, `aread_resource(id, uri)`도 지원합니다.
+리소스는 원격 JSON 결과 그대로 반환하며 모델에 자동 주입하지 않습니다. 서버 지침도
+상태의 관찰값일 뿐입니다. 지원하지 않는 connector 기능은 명확하게 실패합니다.
+
+`connection.aprepare()`로 catalog를 갱신하고 `connection.aget_tools({alias: remote_name})`로
+그 연결에 묶인 ToolRegistry를 선택할 수 있습니다. 애플리케이션이 이미 연결을 연 경우의
+선택적 API이며, 모델 실행은 여전히 ToolExecutor의 승인·인자·receipt 검사를 거쳐야 합니다.
+일반 Project Tool 경로는 승인 이후 연결하는 기존 동작을 유지합니다. 범위 종료 뒤 handler는
+사용할 수 없고 진행 중 요청은 취소됩니다. 자동 pool/TTL/재연결/Tool 재실행은 없습니다.
+
+## 인증과 서버 질문
+
+`MCPConnector(oauth=MCPOAuth(...), elicitation=async_handler)`를 명시할 수 있습니다.
+`MCPOAuth`는 `llm.providers.mcp_auth`에서 가져옵니다. OAuth client metadata와 SDK
+TokenStorage, 명시적 server_url, 로그인 URL 전달 함수, callback 응답 함수는 애플리케이션이 주입합니다.
+서버별 credential namespace를 분리해야 합니다. llm이 브라우저나 토큰 저장소를 선택하지 않습니다.
+
+elicitation handler는 공통 InteractionRequest를 받고 InteractionResponse를 반환합니다.
+응답은 `request.respond("reply", value={"action": "accept", "content": {...}})` 또는
+action `decline`/`cancel`입니다. 폼은 원격 schema와 요청 지문으로 검증하며 URL은 자동으로
+열지 않습니다. 이 질문은 살아 있는 MCP 요청에 묶여 있으므로 연결 종료 후 재개하지 않습니다.
+sampling, prompts, 전용 UI renderer는 제공하지 않습니다.
+
+자세한 소유권과 취소 계약은 [MCP 실행 계약](../../../docs/llm/mcp-runtime.md)을 참고하세요.
 
 [상위 안내](../README.md)

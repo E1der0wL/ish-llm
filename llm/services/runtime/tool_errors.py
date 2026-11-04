@@ -5,6 +5,13 @@ from llm.core.contracts import Diagnostic
 from llm.core.interactions import InteractionOption, InteractionRequest, approval_request
 from llm.core.tool_codes import ToolErrorCode
 from llm.errors import CodedError
+from llm.core.models import RunErrorCode
+
+
+class ToolDeclined(CodedError, PermissionError):
+    """An explicit invocation decision denied execution; not a Host technical denial."""
+
+    code = RunErrorCode.TOOL_DENIED
 
 
 class ToolExecutionError(CodedError, RuntimeError):

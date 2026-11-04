@@ -17,6 +17,7 @@ from ..asset import icon
 from ..ui.input.registry import ShortcutRegistry
 from prompt_toolkit.key_binding import merge_key_bindings
 from prompt_toolkit.application.current import get_app
+from prompt_toolkit.filters import to_filter
 from .mouse import ScrollbarGeometry, hover_style
 from .input_contract import EditableControl
 from .focus import focus_control
@@ -246,11 +247,12 @@ class Button(PTKButton):
             ("class:button.arrow", self.right_symbol, activate),
         ]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, focusable=True, **kwargs):
         self._pressed_until = 0.0
         kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)
         kwargs.setdefault(self.RIGHT_SYMBOL, self.NO_SYMBOL)
         super().__init__(*args, **kwargs)
+        self.control.focusable = to_filter(focusable)
         self.control.show_cursor = self.SHOW_CURSOR
         ControlRole.register(self.control, ControlRole.BUTTON)
         hover_style(self.window)
@@ -274,6 +276,8 @@ class Button(PTKButton):
     def hover_focus_allowed(self):
         from .focus_region import FocusRegion
 
+        if not self.control.is_focusable():
+            return False
         layout = get_app().layout
         parent = layout.get_parent(self.window)
         while parent is not None:

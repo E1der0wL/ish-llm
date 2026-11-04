@@ -60,6 +60,7 @@ class BackendWorker:
             HubRuntime.instruction_targets.__name__,
             HubRuntime.instruction_routes.__name__,
             HubRuntime.answer_question.__name__,
+            HubRuntime.question_action.__name__,
             HubRuntime.cancel_request.__name__,
             HubRuntime.select.__name__,
             HubRuntime.focus_history.__name__,
@@ -76,6 +77,7 @@ class BackendWorker:
             HubRuntime.manage_records.__name__,
             HubRuntime.approval_details.__name__,
             HubRuntime.manage_approvals.__name__,
+            HubRuntime.question_action.__name__,
             HubRuntime.answer_question.__name__,
             HubRuntime.interrupt.__name__,
         }

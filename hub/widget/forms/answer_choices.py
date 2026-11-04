@@ -44,10 +44,12 @@ class AnswerChoices(RadioList):
         if not self.question.item:
             return []
         item = QuestionPresentation.observe(self.question.item)
+        if item.response:
+            return []
         request = item.request
         return (
             QuestionSource.suggestions(request.source)
-            if item.live
+            if item.text_answer
             else [choice.label for choice in self.question.choices_for_request()]
         )
 

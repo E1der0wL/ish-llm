@@ -60,7 +60,7 @@ class AnswerFeedback:
             tool_id = next((step.id for m in messages
                 if m.id == ReasoningMessage.identifier(assistant_id)
                 for step in m.tools if step.source_id == source), source)
-        if not observation.live and not observation.request.action:
+        if not observation.request.action:
             from ...backend.execution.question_trace import QuestionTrace
             tool_id = QuestionTrace.identifier(observation.request.id)
         denied = observation.request.denies(option_id)

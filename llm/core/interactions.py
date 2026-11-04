@@ -77,6 +77,7 @@ class InteractionBinding:
         INPUT_KEY = "input_key"
         SELECTION = "selection"
         TARGET = "target"
+        RESUME_ON_DENIAL = "resume_on_denial"
 
     _value: dict
 
@@ -84,13 +85,19 @@ class InteractionBinding:
         if not isinstance(value, dict):
             raise TypeError(self.INVALID)
         JsonObject.validate(value)
+        if self.Field.RESUME_ON_DENIAL in value and type(value[self.Field.RESUME_ON_DENIAL]) is not bool:
+            raise ValueError('resume_on_denial must be boolean')
         object.__setattr__(self, self.VALUE_ATTRIBUTE, deepcopy(value))
 
     @classmethod
-    def for_checkpoint(cls, checkpoint, key, *, input_key, selection):
+    def for_checkpoint(cls, checkpoint, key, *, input_key, selection, resume_on_denial=False):
         value = {cls.Field.CHECKPOINT: checkpoint, cls.Field.KEY: key, cls.Field.INPUT_KEY: input_key}
         if selection:
             value[cls.Field.SELECTION] = cls.SELECTED
+        if type(resume_on_denial) is not bool:
+            raise ValueError('resume_on_denial must be boolean')
+        if resume_on_denial:
+            value[cls.Field.RESUME_ON_DENIAL] = True
         return cls(value)
 
     @classmethod
@@ -120,6 +127,11 @@ class InteractionBinding:
     @property
     def target(self):
         return self._value.get(self.Field.TARGET)
+
+    @property
+    def resume_on_denial(self):
+        """Consumer accepts denial as input; this never changes the denial decision."""
+        return self._value.get(self.Field.RESUME_ON_DENIAL) is True
 
     def to_dict(self):
         return deepcopy(self._value)
@@ -391,6 +403,7 @@ class InteractionRequest:
         decision_key: Optional[str] = InteractionBinding.NO_KEY,
         input_key: Optional[str] = InteractionBinding.NO_KEY,
         selection: bool = InteractionBinding.NOT_SELECTED,
+        resume_on_denial: bool = False,
     ) -> "InteractionRequest":
         """Engine의 재개 형식은 선택지 값으로 표현한다. UI는 이 값을 해석할 필요가 없다."""
         options = tuple(
@@ -401,7 +414,7 @@ class InteractionRequest:
             self,
             options=options,
             binding=InteractionBinding.for_checkpoint(
-                checkpoint, key, input_key=input_key, selection=selection
+                checkpoint, key, input_key=input_key, selection=selection, resume_on_denial=resume_on_denial
             ).to_dict(),
         )
 

@@ -26,7 +26,13 @@ class QuestionCardTests(unittest.TestCase):
         self.addCleanup(self.view.close)
 
     def show(self, request, *, live=True):
-        request = {"id": "q", "revision": 1, **request}
+        from hub.backend.interactions.question_values import QuestionTool
+        from llm.core.interactions import InteractionOption
+        defaults = QuestionTool.request({'question': request['title']}).to_dict()
+        if request.get('action'):
+            defaults.update(kind='approval', input_schema=None)
+        request = {**defaults, "id": "q", "revision": 1, **request}
+        request['options'] = [InteractionOption(**option).to_dict() for option in request['options']]
         self.view.question.sync("p", "s", ({"run_id": "r", "live": live, "request": request},))
         return self.view.question
 
@@ -91,8 +97,10 @@ class QuestionCardTests(unittest.TestCase):
         from hub.asset.icon import UNICODE
         question = self.show({"title": "Long question", "source": {}})
         self.assertEqual(question.heading(), "  질문")
-        self.assertEqual(question.hint().splitlines()[-1], " Ctrl+O 전체 내용 보기")
+        self.assertNotIn("Ctrl+O", question.hint())
+        self.assertIn("Enter", question.hint())
         question.item["request"]["action"] = {"tool": "shell_execute", "arguments": {}}
+        question.item["request"]["kind"] = 'approval'
         self.assertEqual(question.heading(), "  승인 요청")
         self.view.t.icon_source = UNICODE
         self.assertEqual(question.heading(), " ? 승인 요청")
@@ -122,7 +130,9 @@ class QuestionCardTests(unittest.TestCase):
         self.assertFalse(any("selected" in style for style, text in question.options()))
         self.assertIsNone(question.choices.current_value)
 
-    def test_approval_has_colored_risk_and_code_target_without_payload_dump(self):
+    def test_approval_details_are_muted_and_risk_is_separate_above_choices(self):
+        from hub.backend.interactions.approval import review_text
+        self.view.on_approval_details = lambda request, done: done(review_text(request))
         question = self.show({"title": "Tool 실행 승인", "risk_scheme": "hub-risk-v1", "risk": 70,
             "action": {"tool": "file_create", "arguments": {"path": "src/example.py", "content": "PRIVATE_BODY" * 1000}},
             "options": [{"id": "approve", "label": "승인"}, {"id": "deny", "label": "거절"}]}, live=False)
@@ -130,10 +140,14 @@ class QuestionCardTests(unittest.TestCase):
         rows = build()
         text = "\n".join("".join(value for _, value in row) for row in rows)
         self.assertIn("src/example.py", text)
-        self.assertIn("high (70)", text)
-        self.assertNotIn("PRIVATE_BODY", text)
-        self.assertTrue(any("bg:" in style for row in rows for style, value in row if "example.py" in value))
-        self.assertTrue(any(self.view.theme.notice.lower() in style.lower() for row in rows for style, value in row if "high" in value))
+        self.assertNotIn("high (70)", text)
+        self.assertIn("PRIVATE_BODY", text)
+        self.assertTrue(any(self.view.theme.muted.lower() in style.lower()
+                            for row in rows for style, value in row if "example.py" in value))
+        risk = question.risk_fragments()
+        self.assertIn('high (70)', ''.join(value for _, value in risk))
+        self.assertTrue(all(self.view.theme.accent3 in style for style, _ in risk))
+        self.assertFalse(question.details.is_focusable())
 
     def test_new_question_never_keeps_previous_card_while_render_is_pending(self):
         question = self.show({"title": "Previous request", "source": {}})

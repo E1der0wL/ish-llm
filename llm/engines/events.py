@@ -20,11 +20,13 @@ class EngineEventType(StrEnum):
     STEP_UPDATED = "step_updated"
     STEP_COMPLETED = "step_completed"
     STEP_FAILED = "step_failed"
+    STEP_HANDLED = "step_handled"
     STEP_INTERRUPTED = "step_interrupted"
     STEP_CANCELLED = "step_cancelled"
     CHECKPOINT = "checkpoint"
     PAUSED = "paused"
     INTERACTION_CHANGED = "interaction_changed"
+    QUESTION_POSTED = "question_posted"
     STEERING = "steering"
     STEERING_CHANGED = "steering_changed"
     EXECUTION_BOUNDARY = "execution_boundary"
@@ -131,13 +133,26 @@ class EngineEvent:
         )):
             raise ValueError('Execution boundary cannot carry observations or record mutations')
         if self.has_checkpoint and (self.type not in (
-                    EngineEventType.STEP_STARTED, EngineEventType.STEP_COMPLETED, EngineEventType.STEERING)
+                    EngineEventType.STEP_STARTED, EngineEventType.STEP_COMPLETED, EngineEventType.STEP_HANDLED,
+                    EngineEventType.STEERING, EngineEventType.QUESTION_POSTED)
                 or not isinstance(self.checkpoint, EngineEvent)
                 or self.checkpoint.type != EngineEventType.CHECKPOINT
                 or (self.type == EngineEventType.STEP_COMPLETED
                     and not CheckpointWrite(self.checkpoint.metadata).is_record)
                 or self.checkpoint.has_checkpoint):
             raise ValueError(self.INVALID_CHECKPOINT)
+        if self.type == EngineEventType.STEP_HANDLED and (
+            not self.has_checkpoint or not CheckpointWrite(self.checkpoint.metadata).is_record
+            or self.step_id is None or self.metadata or self.error is not None
+            or self.diagnostic is not None or self.output is not None or self.delta is not None
+            or self.completion is not None or self.interaction is not None or self.progress is not None
+        ):
+            raise ValueError("Failed Step handling requires only its Step and checkpoint evidence")
+        if self.type == EngineEventType.QUESTION_POSTED:
+            from llm.core.questions import validate_question
+            validate_question(self.interaction)
+            if self.step_id is None or self.interaction.binding:
+                raise ValueError('Nonblocking question requires its Step and no resume binding')
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.
         if self.diagnostic is not self.NO_DIAGNOSTIC and not isinstance(self.diagnostic, Diagnostic):
             raise TypeError(self.INVALID_DIAGNOSTIC)

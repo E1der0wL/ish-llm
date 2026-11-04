@@ -14,7 +14,7 @@ from .summary_records import (SummaryRecord, SummaryMetadata, SummaryCursor, Sum
 from llm.core.models import RunErrorCode
 from llm.core.results import OutputVisibility
 
-from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole, copy_model
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole, copy_model, ResponseValidationError
 
 import asyncio
 from copy import deepcopy
@@ -112,7 +112,6 @@ class MemoryProcessor:
 class MemorySession(CompletionSession):
     """한 Loop/Agent 호출에만 존재한다. Session 요약은 최상위 대화에서만 재사용한다."""
 
-    PROCESSING_FAILED = "memory_processing_failed"
     PARTIAL_REFERENCE = MemorySummaryInput.PARTIAL_REFERENCE  # A bounded model reference, not a stored Message state.
 
     ABSENT = None
@@ -194,7 +193,10 @@ class MemorySession(CompletionSession):
         async with aclosing(self._model(INSTRUCTION, payload, answer)) as events:
             async for event in events:
                 yield event
-        state = WorkState.from_answer(answer)
+        try:
+            state = WorkState.from_answer(answer)
+        except (ValueError, TypeError) as error:
+            raise ResponseValidationError(str(error)) from error
         SummaryAnswer.store(result, json.dumps(state, ensure_ascii=self.ENSURE_ASCII))
 
     def _summary_metadata(self, text, *, sources):
@@ -302,6 +304,7 @@ class MemorySession(CompletionSession):
         context = replace(self.context, output_visibility=OutputVisibility.INTERNAL)
         source = MemorySource.processing(context)
         result = {}
+        failed_step = None
 
         async def action(_context):
             async for event in operation(result, source):
@@ -315,18 +318,15 @@ class MemorySession(CompletionSession):
                 async for event in events:
                     if event.type == EngineEventType.STEP_STARTED:
                         MemorySource(source).bind_step(event.step_id)
-                    if event.type == EngineEventType.STEP_FAILED and self.options.failure_mode == MemoryProcessor.CONTINUE:
-                        # 선택적 부가 기능의 실패를 숨기지 않고 완료된 fallback Step으로 기록한다.
-                        # FAILED Step을 남긴 Run은 성공할 수 없다는 기존 서비스 불변식을 유지한다.
-                        yield BaseEngine.step_completed_event(context, event.step_id,
-                            EngineOutput(data=MemoryStepObservation.failure_output(event.error), visibility=OutputVisibility.INTERNAL),
-                            metadata=MemoryStepObservation.failure_metadata(self.PROCESSING_FAILED))
-                    else:
-                        yield event
-        except Exception:
+                    if event.type == EngineEventType.STEP_FAILED:
+                        failed_step = event.step_id
+                    yield event
+        except ResponseValidationError:
             if self.options.failure_mode != MemoryProcessor.CONTINUE:
                 raise
-            # fallback 기록은 남는다. 취소/GeneratorExit는 잡지 않고 소유 Run으로 전달한다.
+            # Only a pure response-validation failure is eligible. The original
+            # failed Step stays authoritative; a failed ACK must propagate too.
+            yield context.handle_failure(failed_step)
 
     async def _model(self, instruction, payload, result):
         adapter = self.processor.completion_adapter
@@ -342,9 +342,14 @@ class MemorySession(CompletionSession):
                 if isinstance(event, EngineEvent):
                     yield event  # 요약 텍스트를 사용자 답변으로 스트리밍하지 않는다.
         if response[self.FIRST].message.calls:
-            raise ValueError(self.UNEXPECTED_TOOLS)
-        value = json.loads(response[self.FIRST].message.text)
-        Component.serialize(value)
+            raise ResponseValidationError(self.UNEXPECTED_TOOLS)
+        try:
+            value = json.loads(response[self.FIRST].message.text)
+            Component.serialize(value)
+            if not isinstance(value, dict):
+                raise ValueError("Memory model response must be an object")
+        except (ValueError, TypeError) as error:
+            raise ResponseValidationError(str(error)) from error
         result.update(value)
 
     def _history(self):

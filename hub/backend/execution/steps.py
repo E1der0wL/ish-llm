@@ -6,6 +6,7 @@ import json
 from llm.core.models import Step, StepKind, StepStatus
 from llm.core.step_event_metadata import StepEventMetadata
 from llm.core.step_tool_metadata import ToolStepMetadata
+from llm.core.step_failures import FailureHandling
 from llm.engines.graph.node_records import GraphStepMetadata
 from llm.engines.loop.records import LoopStepMetadata
 from llm.services.runtime.tools import ToolExecutionPhase
@@ -71,6 +72,7 @@ def display_steps(steps) -> tuple[StepSummary, ...]:
                 getattr(step, Step.id.__name__, StepDisplay.NO_ID),
                 ToolDetails.project(metadata, name=step.name,
                     error=getattr(step, Step.error.__name__, None), compact=True) if kind == StepKind.TOOL else (),
+                handled_failure=FailureHandling.read(metadata) is not None,
             )
         )
     return tuple(result)

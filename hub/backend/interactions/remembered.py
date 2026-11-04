@@ -134,10 +134,8 @@ def approval_choices(request, t):
     for option in request.options:
         result.append(ApprovalChoice(option.id,
             t(MessageKey.APPROVAL_ONCE) if option.effect == InteractionOption.EFFECT_APPROVE
+            else t(MessageKey.APPROVAL_DECLINE) if option.effect == InteractionOption.EFFECT_DENY
             else option.label))
         if option.effect == InteractionOption.EFFECT_APPROVE and ToolApprovalConditions.available(request):
-            result.append(ApprovalChoice(option.id, t(MessageKey.APPROVAL_EXACT), ApprovalMatch.EXACT))
-            action = {key: request.action[key] for key in ToolApprovalConditions.ACTION_FIELDS}
-            if CommandRangeApproval.available(action):
-                result.append(ApprovalChoice(option.id, t(MessageKey.APPROVAL_RANGE), ApprovalMatch.COMMAND_RANGE))
+            result.append(ApprovalChoice(option.id, t(MessageKey.APPROVAL_REMEMBER), ApprovalMatch.EXACT))
     return result

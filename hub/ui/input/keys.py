@@ -116,7 +116,6 @@ class ShortcutAction:
     CATEGORIES = "categories"
     CONFIRM = "confirm"
     SEND = "send"
-    APPROVAL_DETAILS = "approval_details"
 
 
 class ShortcutLabel:

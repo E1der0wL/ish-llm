@@ -278,8 +278,10 @@ class HubRuntime:
             # its receipt alone must not trigger a full conversation read.
             return
         self.snapshot_reader.observe_engine(run, event)
+        if EngineEvent.observed_type(event) == EngineEventType.QUESTION_POSTED:
+            self.notifications.observe_question(run, event.interaction)
         if EngineEvent.observed_type(event) in (
-            EngineEventType.INTERACTION_CHANGED, EngineEventType.PAUSED,
+            EngineEventType.INTERACTION_CHANGED, EngineEventType.PAUSED, EngineEventType.QUESTION_POSTED,
         ):
             self.urgent_observation = True
         self.snapshot_reader.thinking.observe(run, event)
@@ -326,16 +328,6 @@ class HubRuntime:
                 HubRuntime.NO_SELECTION
             )  # Corrupt UI state must not prevent opening the backend.
 
-    def _questions_changed(self):
-        pending = self.builtin_tools.questions.pending
-        if self.plugins is not None:
-            self.plugins.questions_changed()
-            pending = {key: item for key, item in pending.items()
-                       if item.session_id not in self.plugins.streams}
-        self.notifications.observe_questions(pending)
-        self.urgent_observation = True
-        self.dirty.set()
-
     async def start(self) -> None:
         from .project.bootstrap import select_or_create
         from .progress import OperationProgress
@@ -355,12 +347,10 @@ class HubRuntime:
             if isinstance(component, HubBuiltinTools):
                 self.builtin_tools = component
                 component.application.runtime = self
-                component.questions.changed = self._questions_changed
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_STORAGE)
         await self.backend.__aenter__()
         from .plugins.requests import PluginRequests
-        self.plugins = PluginRequests(self.backend,
-            questions=self.builtin_tools.questions if self.builtin_tools is not None else None)
+        self.plugins = PluginRequests(self.backend)
         from .execution.retries import RetryMonitor
 
         monitor = BackendServices.observed_sink(self.backend.services)
@@ -407,7 +397,8 @@ class HubRuntime:
         """Explicit integration commands run independently of Home selection."""
         allowed = {"register", "open_session", "submit", "reconnect", "poll", "cancel",
                    "interrupt", "steer", "respond", "cancel_interaction", "resume_plan",
-                   "resume", "receipt", "answer_live"}
+                   "resume", "receipt", "questions", "answer_question", "cancel_question",
+                   "deliver_answer", "get_delivery", "question_targets"}
         if operation not in allowed:
             raise ValueError("Unknown plugin operation")
         return await getattr(self.plugins, operation)(plugin_id, *args)
@@ -775,6 +766,11 @@ class HubRuntime:
                 action, argument, expected_version, progress=progress
             )
         try:
+            from llm.components.mcp import MCPComponent
+            if name == MCPComponent.name:
+                from llm.providers.runtime import logging_scope
+                with logging_scope(self.config.workspace, project_id=project_id):
+                    return await manager.execute(action, argument, expected_version)
             return await manager.execute(action, argument, expected_version)
         finally:
             self.snapshot_reader.invalidate_project()
@@ -1059,8 +1055,9 @@ class HubRuntime:
         option_id,
         value,
         remember_selection=None,
+        continue_execution=True,
         *,
-        acknowledged=ABSENT
+        acknowledged=ABSENT,
     ):
         from llm.core.interactions import InteractionOption, InteractionRequest
         from .interactions.questions import pending_requests
@@ -1069,35 +1066,87 @@ class HubRuntime:
         if project_id != self.project.id:
             raise ValueError(HubRuntime.FOREIGN_QUESTION)
         request = InteractionRequest.from_dict(request_data)
-        if self.builtin_tools and request.id in self.builtin_tools.questions.pending:
-            if remember_selection is not None:
-                raise ValueError('Live questions cannot create approval rules')
-            self.builtin_tools.questions.answer(
-                project_id, session_id, run_id, request, option_id, value
-            )
+        session = self.sessions[session_id]
+        run = await session.run.aload(run_id)
+        async with self.approval_flow.lock(session_id, run_id):
+            options = ({'remember': ToolApprovalConditions.remember(request, remember_selection)}
+                       if remember_selection is not None else {})
+            await run.arespond(request.respond(option_id, value=value),
+                               request_key=ToolApprovalConditions.request_key(request), **options)
+            self.snapshot_reader.invalidate(session_id)
+            self.dirty.set()
             if acknowledged:
                 acknowledged()
-        else:
-            session = self.sessions[session_id]
-            run = await session.run.aload(run_id)
-            async with self.approval_flow.lock(session_id, run_id):
-                options = ({'remember': ToolApprovalConditions.remember(request, remember_selection)}
-                           if remember_selection is not None else {})
-                await run.arespond(request.respond(option_id, value=value),
-                                   request_key=ToolApprovalConditions.request_key(request), **options)
-                # Acknowledge durable acceptance before resume admission I/O.
-                self.snapshot_reader.invalidate(session_id)
-                self.dirty.set()
-                if acknowledged:
-                    acknowledged()
+            continued = False
+            if continue_execution and not await pending_requests(run):
                 denied = next(option for option in request.options if option.id == option_id).effect == InteractionOption.EFFECT_DENY
-                if not await pending_requests(run):
-                    if not denied:
-                        await self.approval_flow.resume_approved(session, run)
-                    from .execution.stopping import finish_review
-                    await finish_review(session, run_id)
+                continued = await self.approval_flow.resume_approved(session, run, preview=denied,
+                                                                   allow_denial=denied)
+                from .execution.stopping import finish_review
+                await finish_review(session, run_id)
+            elif not continue_execution:
+                # Use the existing stop owner; saving a denial is not permission
+                # to continue the Run or start another request.
+                from .execution.stopping import stop_paused
+                await stop_paused(session, run_id=run_id)
         self.dirty.set()
-        return HubRuntime.SUCCEEDED
+        return {'saved': True, 'continued': continued, 'continue_requested': continue_execution}
+
+    async def question_action(self, project_id, session_id, operation, payload=None):
+        """Home question UI uses the same public contracts as external clients."""
+        from .interactions.questions import QuestionAnswers
+        from llm.core.interactions import InteractionRequest
+        from llm.core.questions import QuestionPublication
+        if project_id != self.project.id:
+            raise ValueError(self.FOREIGN_QUESTION)
+        session = self.sessions[session_id]
+        payload = payload or {}
+        if operation == 'targets':
+            from llm.core.steering import SteeringMode
+            handle = await session.run.aload(payload['run_id'])
+            record = await handle.aget_data()
+            targets = [{'run_id': handle.id, 'target_id': target.id,
+                        'label': target.node_path or target.node_id or target.engine}
+                       for target in await handle.ainstruction_targets()
+                       if target.accepting and target.mode == SteeringMode.CONSUME]
+            return {'status': record.status.value, 'targets': targets}
+        if operation == 'list':
+            from llm.services.query import Query
+            status = await session.run.astatus()
+            handles = {handle.id: handle for handle in await session.run.alist(
+                query=Query(status=RunStatus.PAUSED))}
+            source_ids = dict.fromkeys([*(active.run_id for active in status.active_runs),
+                                       *payload.get('run_ids', ())])
+            for run_id in source_ids:
+                if run_id not in handles:
+                    try:
+                        handles[run_id] = await session.run.aload(run_id)
+                    except FileNotFoundError:
+                        continue  # Retention removed a previously displayed source.
+            questions = []
+            for handle in handles.values():
+                record = await handle.aget_data()
+                if QuestionPublication.identifiers(record.metadata):
+                    questions.extend({**item, 'run_status': str(record.status)}
+                                     for item in await QuestionAnswers.observe(handle))
+            return questions
+        run = await session.run.aload(payload['run_id'])
+        try:
+            if operation == 'save':
+                response = await QuestionAnswers.save(run, InteractionRequest.from_dict(payload['request']),
+                                                      payload['option_id'], payload['value'])
+                return response.to_dict()
+            if operation == 'deliver':
+                if payload['target_run_id'] != run.id:
+                    raise ValueError('The answer must target the question\'s original Run')
+                receipt = await QuestionAnswers.deliver(run, payload['request_id'], mode='steer',
+                    run_id=payload['target_run_id'], targets=payload['targets'])
+                return receipt.to_dict()
+            raise ValueError('Unknown question operation')
+        finally:
+            self.snapshot_reader.invalidate(session_id)
+            self.snapshot_reader.reads.discard('questions', run.id)
+            self.dirty.set()
 
     def _reconcile_snapshot(self, project_id, observations):
         for item in observations:
@@ -1151,12 +1200,6 @@ class HubRuntime:
         )
         self.namer.observe_configuration(snapshot.project_id, self.snapshot_reader.agent_definitions)
         self._reconcile_snapshot(snapshot.project_id, observations)
-        questions = (
-            self.builtin_tools.questions.views(self.project.id, self.selected_id)
-            if self.builtin_tools
-            else ()
-        )
-        questions = questions + snapshot.questions
         from .execution.retries import RetryMonitor
 
         monitor = BackendServices.observed_sink(self.backend.services)
@@ -1164,31 +1207,9 @@ class HubRuntime:
             snapshot = replace(
                 snapshot, run=replace(snapshot.run, retry=monitor.view(snapshot.run.id))
             )
-        from .interactions.questions import waiting_status
-
-        waiting = (
-            {
-                item.session_id
-                for item in self.builtin_tools.questions.pending.values()
-                if item.project_id == snapshot.project_id
-            }
-            if self.builtin_tools
-            else set()
-        )
-        sessions = tuple(
-            (
-                replace(item, status=SessionSummary.WAITING_INPUT)
-                if item.id in waiting
-                else item
-            )
-            for item in snapshot.sessions
-        )
         return replace(
             snapshot,
             notifications=self.notifications.items(),
-            questions=questions,
-            sessions=sessions,
-            status=waiting_status(questions) if questions else snapshot.status,
         )
 
     async def close(self) -> None:
@@ -1198,8 +1219,6 @@ class HubRuntime:
             await self.snapshot_reader.background.close()
         await self.automatic_approvals.close()
         await self.background_records.close()
-        if self.builtin_tools:
-            self.builtin_tools.questions.close()
         await self.namer.close()
         for subscription in self._subscriptions:
             await subscription.aclose()

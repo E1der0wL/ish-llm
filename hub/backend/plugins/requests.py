@@ -12,15 +12,10 @@ from .stream import PluginStream
 class PluginRequests:
     """One shared-backend integration lifetime, never a second execution manager."""
 
-    def __init__(self, backend, *, questions=None):
+    def __init__(self, backend):
         self.projects = PluginProjects(backend)
         self.generation = uuid4().hex
         self.streams = {}
-        self.questions = questions
-
-    def questions_changed(self):
-        for stream in self.streams.values():
-            stream.signal()
 
     def close_observers(self):
         for stream in self.streams.values():
@@ -80,19 +75,39 @@ class PluginRequests:
         request = await self._request(plugin_id, reference)
         result = await self.streams[request.session.id].read(request, cursors, revision,
                                                             include_internal=include_internal)
-        runs = {row["id"] for row in result["runs"]}
-        result["live_questions"] = [
-            {"run_id": item.run_id, "request": item.request.to_dict()}
-            for item in (self.questions.pending.values() if self.questions else ())
-            if item.session_id == request.session.id and item.run_id in runs]
         return result
 
-    async def answer_live(self, plugin_id, reference, run_id, question, option_id, value):
+    async def questions(self, plugin_id, reference, run_id):
         run = await self._run(plugin_id, reference, run_id)
-        if self.questions is None:
-            raise ValueError("Live questions are not enabled")
-        self.questions.answer(run.session.project.id, run.session.id, run.id,
-                              InteractionRequest.from_dict(question), option_id, value)
+        return [view.to_dict() for view in await run.aquestions()]
+
+    async def answer_question(self, plugin_id, reference, run_id, response):
+        run = await self._run(plugin_id, reference, run_id)
+        return (await run.aanswer_question(InteractionResponse.from_dict(response))).to_dict()
+
+    async def cancel_question(self, plugin_id, reference, run_id, request):
+        run = await self._run(plugin_id, reference, run_id)
+        await run.acancel_question(InteractionRequest.from_dict(request))
+
+    async def deliver_answer(self, plugin_id, reference, run_id, request_id, options):
+        from ..interactions.questions import QuestionAnswers
+        run = await self._run(plugin_id, reference, run_id)
+        # A plugin may only steer a Run in its owned request; submitting still
+        # goes through that same plugin-owned Session and native recipient checks.
+        if options.get('mode') == 'steer':
+            await self._run(plugin_id, reference, options['target_run_id'])
+            options = {**options, 'run_id': options['target_run_id']}
+            del options['target_run_id']
+        return (await QuestionAnswers.deliver(run, request_id, **options)).to_dict()
+
+    async def get_delivery(self, plugin_id, reference, run_id, request_id):
+        run = await self._run(plugin_id, reference, run_id)
+        receipt = await run.get_delivery(request_id)
+        return receipt.to_dict() if receipt else None
+
+    async def question_targets(self, plugin_id, reference, run_id):
+        run = await self._run(plugin_id, reference, run_id)
+        return [target.to_dict() for target in await run.ainstruction_targets()]
 
     async def _run(self, plugin_id, reference, run_id):
         request = await self._request(plugin_id, reference)

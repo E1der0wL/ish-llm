@@ -35,6 +35,7 @@ class ComponentCommands:
         from ...widget.forms.rag_manager import RAGManager
         from ...widget.forms.definition_manager import DefinitionManager
         from ...widget.forms.agent_manager import AgentManager
+        from ...widget.forms.mcp_manager import MCPManager
         from ...backend.project.management_values import AgentLocation
 
         def request(operation, argument, version, done, *, progress=self.NO_PROGRESS, target_project=None):
@@ -63,6 +64,7 @@ class ComponentCommands:
             )
 
         record_manager = (
+            MCPManager if spec.manager == ManagerKind.MCP else
             AgentManager if spec.manager == ManagerKind.AGENT else RAGManager
             if spec.manager == ManagerKind.DOCUMENT
             else DefinitionManager if spec.definition_editor else RecordManager

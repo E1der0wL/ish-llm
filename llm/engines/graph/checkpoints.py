@@ -50,7 +50,8 @@ class EngineCheckpointScope:
         return getattr(context, cls.CONTEXT_CHECKPOINT_ATTRIBUTE, GRAPH_CHECKPOINT_NAME)
 
     def _bind(self, request, local):
-        return request.bind(self.parent_name, self.key(local), selection=InteractionBinding.SELECTED)
+        return request.bind(self.parent_name, self.key(local), selection=InteractionBinding.SELECTED,
+                            resume_on_denial=request.checkpoint_binding.resume_on_denial)
 
     def key(self, local):
         return json.dumps([self.owner, self.KEY_KIND, self.name, local], ensure_ascii=self.KEY_ENSURE_ASCII, separators=self.KEY_SEPARATORS)

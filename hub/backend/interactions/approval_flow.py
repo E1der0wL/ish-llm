@@ -40,11 +40,13 @@ class ApprovalFlow:
             return False
         return True
 
-    async def resume_approved(self, session, run, *, policy_only=False, preview=False):
+    async def resume_approved(self, session, run, *, policy_only=False, preview=False,
+                              allow_denial=False):
         """Caller holds lock; manual callers have just persisted a user decision.
 
-        Resume validates that durable decision itself. Only policy continuation
-        needs a separate preview to exclude uncertain effects and stopped work.
+        Resume validates durable decisions itself. Policy continuation and
+        decline-and-continue additionally preview the native plan, excluding
+        uncertain effects. An ordinary explicit approval retains its existing path.
         """
         if await self.submitted(session.id, run.id):
             return False
@@ -58,7 +60,8 @@ class ApprovalFlow:
             if not views or any(
                 not view.can_resume or view.response is None
                 or (policy_only and view.response.actor != InteractionActor.POLICY)
-                or (view.request.kind == view.request.KIND_APPROVAL and not any(
+                or (view.request.kind == view.request.KIND_APPROVAL
+                    and (policy_only or not allow_denial) and not any(
                     option.id == view.response.option_id
                     and option.effect == InteractionOption.EFFECT_APPROVE
                     for option in view.request.options))
@@ -66,7 +69,7 @@ class ApprovalFlow:
             ):
                 return False
             plan = await session.run.resume_plan(current.id, agent_id=current.agent_id)
-            if not plan.can_resume or (policy_only and plan.retry_nodes):
+            if not plan.can_resume or plan.retry_nodes:
                 return False
             options['expected_revision'] = plan.revision
         request = await session.run.resume(current.id, agent_id=current.agent_id,

@@ -122,6 +122,18 @@ async def create_project(
     engines = ProjectConfiguration.engine_parameter_schemas(
         backend.describe_project_config()
     )
+    from llm.engines.loop import LoopEngine
+    for name in backend.engines.names():
+        if (not HubEngineIdentity.internal(name)
+                and isinstance(underlying_engine(backend.engines.get(name)), LoopEngine)
+                and ProjectConfiguration.engine_supports(
+                    engines, name, ImplementationParameters.POLICY, LoopParameters.TOOL_FEEDBACK)):
+            parameters = project_config.parameter_targets.engine(name)
+            values = parameters.policy
+            # A creation preset only. Existing Projects and explicit policies
+            # are not rewritten when opened or upgraded.
+            values.setdefault(LoopParameters.TOOL_FEEDBACK, deepcopy(HubDefaults.TOOL_FEEDBACK))
+            project_config.set_engine_parameters(name, parameters.with_policy(values).to_dict())
     for name in (HubEngineIdentity.LOOP, TitleEngineIdentity.NAME):
         if ProjectConfiguration.engine_supports(
             engines, name, ImplementationParameters.POLICY, LoopParameters.PROVIDER

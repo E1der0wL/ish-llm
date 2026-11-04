@@ -6,6 +6,7 @@ import json
 from llm.components.prompts.records import PromptDefinition
 from .records import MemoryRecord
 from .configuration import MemoryProcessingConfig
+from llm.core.model_protocol import ResponseValidationError
 
 
 class MemoryExtractionPrompt:
@@ -52,12 +53,12 @@ class MemoryCandidateFields(NamedTuple):
         refs = value.get(MemoryRecord.Field.REPLACES, [])
         if (not MemoryRecord.nonempty_text(kind) or not isinstance(tags, list)
                 or any(not MemoryRecord.nonempty_text(tag) for tag in tags) or not isinstance(refs, list)):
-            raise ValueError(cls.INVALID_FIELDS)
+            raise ResponseValidationError(cls.INVALID_FIELDS)
         return cls(kind, tags, refs)
 
     def validate_references(self, visible):
         if any(MemoryRecord.invalid_reference(ref, visible) for ref in self.references):
-            raise ValueError(self.INVALID_REFERENCES)
+            raise ResponseValidationError(self.INVALID_REFERENCES)
 
 
 class MemoryCandidate:
@@ -70,7 +71,7 @@ class MemoryCandidate:
     @classmethod
     def read(cls, value):
         if not isinstance(value, dict) or not MemoryRecord.nonempty_text(value.get(MemoryRecord.Field.CONTENT)):
-            raise ValueError(cls.INVALID_CONTENT)
+            raise ResponseValidationError(cls.INVALID_CONTENT)
         return cls(value)
 
     @property
@@ -79,7 +80,7 @@ class MemoryCandidate:
 
     def check_size(self, maximum):
         if len(self.content) > maximum:
-            raise ValueError(self.OVERSIZED)
+            raise ResponseValidationError(self.OVERSIZED)
 
     def fields(self):
         return MemoryCandidateFields.read(self._value)
@@ -103,12 +104,12 @@ class MemoryCandidates:
     def read(cls, answer):
         values = answer.get(cls.FIELD)
         if not isinstance(values, list):
-            raise ValueError(cls.INVALID)
+            raise ResponseValidationError(cls.INVALID)
         return cls(values)
 
     def check_count(self, maximum):
         if len(self.values) > maximum:
-            raise ValueError(self.INVALID)
+            raise ResponseValidationError(self.INVALID)
 
 
 class MemoryExtractionProvenance:

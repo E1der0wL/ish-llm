@@ -89,10 +89,16 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
             goals.update("work", {"objective": "Changed concurrently"}, expected_version=snapshot["version"])
             yield from self.model(**request)
         self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=mutate)
+        original = await self.session.aconversation()
         run, model = await self.run_loop()
-        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(run.data.status, RunStatus.FAILED)
+        self.assertIn("Goal changed", run.data.error)
         self.assertIsNone(await self.memory.asummary(self.session.id))
-        self.assertEqual(model.requests[0]["messages"][0]["content"], "first requirement")
+        self.assertEqual(model.requests, [])
+        self.assertEqual((await self.session.aconversation())[:len(original)], original)
+        failed = [s for s in await run.steps.alist() if str(s.status) == 'failed']
+        self.assertTrue(failed)
+        self.assertTrue(all('handled_failure' not in s.metadata for s in failed))
 
     async def test_invalid_work_state_retains_raw_context(self):
         await self.prepare_work()

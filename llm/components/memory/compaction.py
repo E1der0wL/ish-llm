@@ -454,8 +454,7 @@ async def prepare_compaction(session, request):
             if claim:
                 before = deepcopy(request.messages)
                 config = session.config
-                from .processing import MemoryProcessor
-                session.config = MemoryProcessingConfig.for_compaction(options, MemoryProcessor.CONTINUE)
+                session.config = MemoryProcessingConfig.for_compaction(options)
                 outcome = CompactionOutcome()
                 async def compact(result, source):
                     ids = {CompactionSource(item).identifier for item in sources}
@@ -505,6 +504,11 @@ async def prepare_compaction(session, request):
                             CompactionExecution.INCOMPLETE, run_id=context.run.id)
                 except CompactionStopped:
                     request.messages = before
+                except Exception as error:
+                    request.messages = before
+                    await data._async_call(data._finish_compaction, context.session.id, scope, pending.identifier,
+                        Compactions.FAILED, CompactionExecution.NO_APPLIED, str(error), run_id=context.run.id)
+                    raise
                 except BaseException:
                     request.messages = before
                     await data._async_call(data._finish_compaction, context.session.id, scope, pending.identifier, Compactions.INTERRUPTED, CompactionExecution.NO_APPLIED, CompactionExecution.INTERRUPTED, run_id=context.run.id)

@@ -15,6 +15,12 @@ ToolExecutor, receipt 소유 관계는 유지하며 별도 승인 엔진을 만�
 `plugin.get("llm").InteractionRequest`와 같이 접근할 수 있다.
 새 실행 도메인을 추가하지 않으며 요청과 응답은 기존 Run에 귀속된다.
 
+이 문서의 `interactions/respond/resume`은 실행을 기다리는 요청의 계약이다.
+명시적인 비차단 질문은 [Tool 피드백·질문 API](tool-feedback.md)의
+`questions/answer_question/deliver_answer`를 사용한다. 같은 InteractionRequest/Response와
+응답 저장 owner를 재사용하지만 승인이나 체크포인트 재개 요청으로 변환하지 않는다.
+Run이 끝나도 미응답 질문은 자동 취소하지 않으며, 답변 저장이 실행을 시작하지 않는다.
+
 ## 영속 무결성 보강 계약
 
 [영속 데이터 수명주기](data-lifecycle.md)는 Resume뿐 아니라 모든 요청·응답·갱신·취소에 적용한다.

@@ -162,6 +162,52 @@ class WorkingContextTests(unittest.IsolatedAsyncioTestCase):
 
 
 class WorkingContextIntegrationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_unclassified_summary_failure_is_not_silently_ignored(self):
+        from llm.components.memory import MemoryComponent
+        from llm.components.data import DataComponent
+        from llm.providers.litellm import LiteLLMCompletionAdapter
+        from llm.engines.loop import LoopEngine
+        from llm.core.step_failures import FailureHandling
+        from hub.backend.runtime import HubConfig, HubRuntime
+        from tests.llm.test_large_data import SourceTools, answer
+        from tests.llm.test_loop import ScriptedCompletion, call, chunk
+
+        source = SourceTools()
+        source.content = 'evidence ' * 750
+        attempted = []
+        def summary(**request):
+            attempted.append(request)
+            raise PermissionError('Summary operation denied')
+        model = ScriptedCompletion(*[
+            [chunk(calls=[call('{}', name='source_read', call_id=f'c{i}')], finish='tool_calls')]
+            for i in range(8)], answer('Must not reach this answer.'))
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model='test/main', auto_title=False,
+                postprocess=False, prepare_provider=False,
+                project_config={'parameters': {'engines': {'loop': {'policy': {'final_review': None}}}}},
+                engine_factories={'loop': lambda: LoopEngine(
+                    completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
+                component_factories=(lambda: MemoryComponent(completion_adapter=
+                    LiteLLMCompletionAdapter(completion_fn=summary)), DataComponent, lambda: source)))
+            self.addAsyncCleanup(runtime.close)
+            await runtime.start()
+            service = runtime.settings_service
+            record = await service.load_project(runtime.project.id)
+            values = deepcopy(record['values'])
+            memory = values['config']['parameters']['components']['memory']
+            memory['config']['processing']['completion'] = {'model': 'test/summary'}
+            memory['policy']['processing'].update(provider={'max_attempts': 1}, max_summary_calls=1)
+            await service.save_project(runtime.project.id, values, record['config_version'])
+            sid = await runtime.new_session()
+            run, = await (await runtime.sessions[sid].run.submit(
+                'Analyze the command results', recipients=['assistant'])).wait(timeout=45)
+            self.assertEqual(run.data.status, 'failed')
+            self.assertTrue(attempted)
+            self.assertLess(source.calls, 8)
+            failed = [step for step in await run.steps.alist() if step.status == 'failed']
+            self.assertTrue(failed)
+            self.assertTrue(all(FailureHandling.read(step.metadata) is None for step in failed))
+
     async def test_summary_failure_still_bounds_accumulated_results_without_reexecution(self):
         from llm.components.memory import MemoryComponent
         from llm.components.data import DataComponent
@@ -176,7 +222,8 @@ class WorkingContextIntegrationTests(unittest.IsolatedAsyncioTestCase):
         summary_inputs, main_inputs = [], []
         def summary(**request):
             summary_inputs.append(request)
-            raise ValueError('Summary provider failed')
+            # Only response validation is eligible for Memory's continue policy.
+            yield from answer('This is not a JSON summary')
         scripted = ScriptedCompletion(*[
             [chunk(calls=[call('{}', name='source_read', call_id=f'c{i}')], finish='tool_calls')]
             for i in range(8)], answer('Analysis complete.'))
@@ -211,3 +258,7 @@ class WorkingContextIntegrationTests(unittest.IsolatedAsyncioTestCase):
             steps = await run.steps.alist()
             self.assertTrue(any(s.name == WorkingContext.STEP for s in steps))
             self.assertFalse(any(s.metadata.get('hub_recovery') for s in steps))
+            from llm.core.step_failures import FailureHandling
+            failed = [step for step in steps if step.status == 'failed']
+            self.assertTrue(failed)
+            self.assertTrue(any(FailureHandling.read(step.metadata) is not None for step in failed))

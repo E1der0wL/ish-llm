@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from llm.core.agents import AgentBinding
 from llm.core.continuations import ResumeRecord
 from llm.core.results import CompletionRecords
+from llm.core.questions import QuestionPublication
 from llm.core.checkpoint_records import CheckpointDeclarations, CheckpointDeletion
 
 
@@ -36,7 +37,7 @@ class RunDisplay:
         old = previous.metadata if previous is not None else {}
         metadata = {key: old[key] if key in old and old[key] == run.metadata[key]
                     else deepcopy(run.metadata[key]) for key in (
-            CompletionRecords.KEY, AgentBinding.METADATA_FIELD, ResumeRecord.KEY)
+            CompletionRecords.KEY, AgentBinding.METADATA_FIELD, ResumeRecord.KEY, QuestionPublication.METADATA)
             if key in run.metadata}
         result = cls(run.id, run.session_id, run.engine, run.status, run.started_at,
                      run.ended_at, run.error, metadata,

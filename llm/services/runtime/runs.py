@@ -672,6 +672,32 @@ class RunRepository:
         with self._interaction_scope(session, run) as (interactions, resolve):
             return self._interaction_requests(run, interactions, resolve)
 
+    def question_views(self, run):
+        return InteractionRepository().question_views(run)
+
+    def answer_question(self, run, response):
+        interactions = InteractionRepository()
+        publication = interactions.question(run, response.request_id)
+        return interactions.respond(run, [publication.parsed_request], response)
+
+    def cancel_question(self, run, request):
+        interactions = InteractionRepository()
+        publication = interactions.question(run, request.id)
+        if publication.parsed_request != request:
+            raise ValueError('Question revision changed')
+        if interactions.control(run, request).has_response:
+            raise ValueError('Answered questions are immutable; delivery remains explicit')
+        interactions.cancel(run, request)
+
+    def question_delivery(self, run, request_id):
+        interactions = InteractionRepository()
+        publication = interactions.question(run, request_id)
+        control = interactions.control(run, publication.parsed_request)
+        if control.cancelled or not control.has_response:
+            raise ValueError('Question must be answered before explicit delivery')
+        control.response_for(publication.parsed_request)
+        return publication.delivery_key
+
     def interaction_responses(self, session: Session, run: Run) -> list[InteractionResponse]:
         with self._interaction_scope(session, run) as (interactions, _):
             requests = self.interaction_requests(session, run)
@@ -1994,12 +2020,12 @@ class RunManager:
                     v.status
                     in (
                         InteractionView.PENDING,
-                        InteractionView.DENIED,
                         InteractionView.EXPIRED,
                         InteractionView.CANCELLED,
                         InteractionView.SUBMITTED,
                         InteractionView.UNAVAILABLE,
                     )
+                    or v.status == InteractionView.DENIED and not v.request.checkpoint_binding.resume_on_denial
                     for v in views
                 ):
                     blockers.append(
@@ -2743,10 +2769,12 @@ class RunManager:
                     EngineEventType.COMPLETION,
                     EngineEventType.CHECKPOINT,
                     EngineEventType.PAUSED,
+                    EngineEventType.QUESTION_POSTED,
                     EngineEventType.STEP_STARTED,
                     EngineEventType.STEP_UPDATED,
                     EngineEventType.STEP_COMPLETED,
                     EngineEventType.STEP_FAILED,
+                    EngineEventType.STEP_HANDLED,
                     EngineEventType.STEP_INTERRUPTED,
                     EngineEventType.STEP_CANCELLED,
                 ):
@@ -2800,11 +2828,25 @@ class RunManager:
                 raise ValueError(RunManager.INSTRUCTION_NOT_OPENED)
             if any(t.accepting for t in SteeringChannel.require(run).targets.values()):
                 raise ValueError(RunManager.INSTRUCTION_NOT_CLOSED)
-        if any(
-            step.status in (StepStatus.PENDING, StepStatus.RUNNING, StepStatus.FAILED)
-            for step in await self._io.run(self.steps.list, run)
-        ):
+        if await self._io.run(self._unfinished_steps, run):
             raise RuntimeError(RunManager.UNFINISHED_STEPS)
+
+    def _unfinished_steps(self, run):
+        from llm.core.step_failures import FailureHandling
+        from llm.services.infrastructure.storage import revision_token
+
+        for step in self.steps.list(run):
+            if step.status in (StepStatus.PENDING, StepStatus.RUNNING):
+                return True
+            if step.status == StepStatus.FAILED:
+                receipt = FailureHandling.read(step.metadata)
+                if receipt is None:
+                    return True
+                saved = self.repository.checkpoint(run, receipt.checkpoint)
+                record = CheckpointRecords.from_checkpoint(saved).records[receipt.key]
+                if revision_token(record) != receipt.revision:
+                    raise ValueError("Failed Step handling checkpoint changed")
+        return False
 
     def _record_engine_event(
         self, project: Project, run: Run, store: Conversation, event: EngineEvent
@@ -2817,6 +2859,16 @@ class RunManager:
         elif event.type == EngineEventType.PAUSED:
             # 일시정지를 알리기 전에 체크포인트가 실제로 존재해야 한다.
             self.repository.checkpoint(run, CheckpointPause.read(event.metadata).checkpoint)
+        elif event.type == EngineEventType.QUESTION_POSTED:
+            from llm.services.infrastructure.transactions import watch
+            step = self.steps.load(run, event.step_id)
+            if step.status != StepStatus.RUNNING:
+                raise ValueError('Question publication requires an active originating Step')
+            watch(run)
+            InteractionRepository().post_question(run, step.id, event.interaction)
+            self.repository.save(run)
+            if event.has_checkpoint:
+                self.repository.record_checkpoint(run, event.checkpoint)
         else:
             if event.output is not RunManager.ABSENT:
                 self.repository.record_output(run, event.output)

@@ -75,7 +75,8 @@ next_actions, unresolved, references를 기록한다. `metadata.summary_format_v
 `policy.processing.summary_after_tokens`는 해당 Loop의 CompletionPolicy.counter로 전체 요청
 (messages/tools/모델 옵션)을 세어 압축 여부를 판단한다. 계산기가 없으면 명시된
 summary_after_chars를 사용하고, 둘 다 사용할 수 없으면 설정 오류다. 문자/토큰 비율을 추측하지 않는다.
-failure_mode="continue"는 요약 실패를 degraded Step으로 남기고 원문을 유지한다.
+failure_mode="continue"는 순수 응답 검증 실패의 FAILED Step을 보존하고, 처리 checkpoint를
+저장한 뒤 원문을 유지하며 계속한다. 저장·제한·취소 오류는 이 선택으로 삼키지 않는다.
 실패한 응답은 정상 요약 캐시에 저장하지 않는다. checkpoint/Tool receipt는 수정하지 않는다.
 
 **기억 검색:** 현재 입력으로 프로젝트 공통 기억과 현재 Session의 기억을 검색한다. candidate와
@@ -131,13 +132,15 @@ active_keep_iterations로 조절한다. [장시간 작업 API](long-running.md)�
 
 처리 과정과 보조 Completion 사용량은 소유 Run의 내부 Memory Step에 기록한다. 보조 텍스트는
 사용자 답변으로 출력하지 않는다. 요약 Step에는 생성한 요약과 원문 범위도 남긴다.
-기본 `failure_mode="raise"`는 처리 실패를 Run 실패로 전달한다. `"continue"`를 명시하면 해당
-처리의 오류를 `degraded=True`인 fallback Step에 기록하고 기본 작업을 계속한다. 이때 Step은
-완료 상태이지만 오류와 기능 저하가 명시된다. 취소는 항상 전파하며 계속 진행하지 않는다.
+`failure_mode`가 없으면 실패를 처리하지 않고 Run으로 전파한다. `"continue"`를 명시하면
+`ResponseValidationError`로 구분된 순수 모델 응답 검증 실패만 처리한다. 원래 Step은 FAILED와
+diagnostic을 유지하고, Engine이 제공한 checkpoint에 처리 근거가 저장된 뒤에만 계속한다.
+사용량/실행 제한, 설정 오류, 저장·CAS 오류, 취소, 알 수 없는 예외는 항상 전파한다.
+명시적 압축 요청도 같은 설정을 사용하며 continue를 자동 적용하지 않는다.
 보조 모델 요청도 같은 백엔드의 ProviderCalls 한도와 Run의 실행 기한 안에서 실행한다.
 
 Graph의 Loop Agent에는 동일한 검색·Tool 압축이 적용된다. 다른 노드의 입력을 Session 전체 대화와
-섞지 않도록 중첩 Engine의 요약·자동 추출은 기본적으로 꺼져 있다. Pipeline처럼 대화 문맥을
+섞지 않도록 중첩 Engine의 요약·자동 추출은 기본적으로 꺼져 있다. 대화 문맥을
 그대로 유지하는 중첩 구성에서는 `nested_processing=True`로 활성화할 수 있다. 이 경우에도
 원문 해시가 일치하는 요약만 사용한다. 순수 Graph ToolNode는 모델 입력을 만들지 않으므로
 completion 처리기를 실행하지 않으며 기존 Memory Tools를 사용할 수 있다.

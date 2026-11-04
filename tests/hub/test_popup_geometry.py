@@ -19,6 +19,26 @@ from tests.hub.support import SizedOutput
 
 
 class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_bounded_body_does_not_shrink_fixed_popup_right_border(self):
+        from prompt_toolkit.widgets import TextArea
+        app, view, _ = create_preview(input=DummyInput(), output=SizedOutput(132, 40))
+        try:
+            with set_app(app):
+                field = TextArea(text='Short content', width=24)
+                close = Button('Close')
+                popup = Dialog(body=field, buttons=[close], size=PopupSize.MEDIUM)
+                view.dialogs.show(popup, field)
+                width, height = popup._width().preferred, popup._height().preferred
+                screen = self.paint(popup, width, height)
+                # The fixed-width child may stay narrow, but frame and footer
+                # must share one allocated right edge throughout the body.
+                self.assertEqual(screen.data_buffer[0][width - 1].char, '┐')
+                self.assertEqual(screen.data_buffer[height - 1][width - 1].char, '┘')
+                for row in range(1, height - 1):
+                    self.assertEqual(screen.data_buffer[row][width - 1].char, '│', row)
+        finally:
+            view.close()
+
     async def test_action_layout_reuses_windows_and_updates_dynamic_geometry(self):
         from prompt_toolkit.layout.layout import walk
         from hub.widget.actions import ActionBar

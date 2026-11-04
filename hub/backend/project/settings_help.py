@@ -6,7 +6,7 @@ from llm.core.configuration_targets import ParameterTargets
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.core.policies import ContextPolicy, RunPolicy, UsagePolicy, ToolRetryPolicy, PolicySection
 from llm.services.configuration_records import ProjectConfigForm
-from llm.engines.loop.configuration import LoopParameters
+from llm.engines.loop.configuration import LoopParameters, ToolFeedbackPolicy
 from llm.engines.graph.configuration import GraphParameters, GraphAgentOptions
 from llm.policies.completion import CompletionPolicy
 from llm.providers.request_values import LiteLLMParameters
@@ -47,6 +47,14 @@ class SettingsHelp:
     ENGINE = (PROJECT, ProjectConfigForm.config.__name__, ProjectConfig.PARAMETERS, ParameterTargets.ENGINES, ANY_NAME)
     AGENT_ENGINE = (AGENT, AgentDefinition.Field.ENGINE_OPTIONS)
     RULES = (
+        *(((*prefix, ImplementationParameters.POLICY, LoopParameters.TOOL_FEEDBACK),
+           MessageKey.OPTION_HELP_TOOL_FEEDBACK) for prefix in (ENGINE, AGENT_ENGINE)),
+        *(((*prefix, ImplementationParameters.POLICY, LoopParameters.TOOL_FEEDBACK, field), key)
+          for prefix in (ENGINE, AGENT_ENGINE)
+          for field, key in (
+              (ToolFeedbackPolicy.FAILURE, MessageKey.OPTION_HELP_TOOL_FEEDBACK_FAILURE),
+              (ToolFeedbackPolicy.DECLINED, MessageKey.OPTION_HELP_TOOL_FEEDBACK_DECLINED),
+              (ToolFeedbackPolicy.REMAINING, MessageKey.OPTION_HELP_TOOL_FEEDBACK_REMAINING))),
         *_under((AGENT, AgentDefinition.Field.COMPLETION,), (
             (LiteLLMParameters.MODEL, MessageKey.OPTION_HELP_MODEL),
             (LiteLLMParameters.API_KEY, MessageKey.OPTION_HELP_API_KEY),

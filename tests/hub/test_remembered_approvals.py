@@ -91,8 +91,8 @@ class ApprovalConditionTests(unittest.TestCase):
     def test_choices_preserve_questions_denials_and_uncertain_effect_approvals(self):
         request = approval_request('Review', action=action(), category='tool.execute')
         choices = approval_choices(request, str)
-        self.assertEqual([c.match for c in choices], [None, ApprovalMatch.EXACT, ApprovalMatch.COMMAND_RANGE, None])
-        self.assertEqual([c.option_id for c in choices], ['approve', 'approve', 'approve', 'deny'])
+        self.assertEqual([c.match for c in choices], [None, ApprovalMatch.EXACT, None])
+        self.assertEqual([c.option_id for c in choices], ['approve', 'approve', 'deny'])
         for changed in (replace(request, kind='confirmation'),
                         replace(request, category=InteractionRepository.RETRY_CATEGORY)):
             self.assertEqual(len(approval_choices(changed, str)), 2)

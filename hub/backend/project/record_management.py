@@ -62,6 +62,10 @@ class RecordManagement:
             from .memory_management import MemoryManagement
 
             return MemoryManagement(data, name, root, project)
+        if spec.manager == ManagerKind.MCP:
+            from .mcp_management import MCPManagement
+
+            return MCPManagement(data, name, root, project)
         manager = (
             SkillManagement
             if spec.import_kind == ImportKind.SKILL

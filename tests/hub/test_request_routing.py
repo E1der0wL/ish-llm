@@ -274,7 +274,7 @@ class RoutingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(provider.requests), 3)
         first, greeting, last = provider.requests
         self.assertIn('file_create', self.tools(first))
-        self.assertEqual(self.tools(greeting), {'ask_user'})
+        self.assertEqual(self.tools(greeting), {'ask_user', 'ask_user_async'})
         self.assertLess(len(json.dumps(greeting['messages'])), 2000)
         self.assertIn(CONVERSATION_PROMPT, [m.get('content') for m in greeting['messages']])
         self.assertNotIn('First', str(greeting['messages']))
@@ -316,7 +316,7 @@ class RoutingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         runtime, sid = await self.setup_runtime(provider)
         await self.submit(runtime, sid, 'hello')
         self.assertEqual(len(provider.requests), 2)
-        self.assertTrue(all(self.tools(request) == {'ask_user'} for request in provider.requests))
+        self.assertTrue(all(self.tools(request) == {'ask_user', 'ask_user_async'} for request in provider.requests))
 
     async def test_selected_resource_instructions_survive_brief_default_prompt(self):
         provider = ScriptedCompletion([chunk('Hello!', finish='stop')])
@@ -336,22 +336,20 @@ class RoutingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         # An Agent with no selected Tools must not gain even the base question Tool.
         self.assertFalse(self.tools(provider.requests[0]))
 
-    async def test_question_is_usable_in_brief_conversation_without_starting_another_run(self):
+    async def test_blocking_question_in_brief_conversation_resumes_without_repeating_prompt(self):
         provider = ScriptedCompletion(
             [chunk(calls=[call(json.dumps({'question': 'How should I address you?'}), name='ask_user')], finish='tool_calls')],
             [chunk('Hello, Sam!', finish='stop')])
         runtime, sid = await self.setup_runtime(provider)
         await runtime.submit(sid, 'hello')
-        async with asyncio.timeout(60):
-            while not runtime.builtin_tools.questions.pending:
-                await asyncio.sleep(0.05)
+        await asyncio.wait_for(runtime.sessions[sid].run.wait_idle(), 60)
         item, = (await runtime.snapshot()).questions
         await runtime.answer_question(runtime.project.id, sid, item['run_id'], item['request'], 'reply', 'Sam')
         await asyncio.wait_for(runtime.sessions[sid].run.wait_idle(), 60)
         self.assertEqual((await runtime.snapshot()).messages[-1].text, 'Hello, Sam!')
-        self.assertEqual(len(await runtime.sessions[sid].run.alist()), 1)
+        self.assertEqual(len(await runtime.sessions[sid].run.alist()), 2)
         self.assertIn('Sam', str(provider.requests[-1]['messages']))
-        self.assertTrue(all(self.tools(request) == {'ask_user'} for request in provider.requests))
+        self.assertTrue(all(self.tools(request) == {'ask_user', 'ask_user_async'} for request in provider.requests))
 
     async def test_lookup_shell_still_requires_approval_and_resumes_after_restart(self):
         directory = tempfile.TemporaryDirectory()
@@ -401,7 +399,7 @@ class RoutingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         provider.release.set()
         await asyncio.wait_for(runtime.sessions[sid].run.wait_idle(), 60)
         self.assertEqual(str((await handle.aget_data()).status), 'completed')
-        self.assertEqual(self.tools(provider.requests[0]), {'ask_user'})
+        self.assertEqual(self.tools(provider.requests[0]), {'ask_user', 'ask_user_async'})
         self.assertIn('file_create', self.tools(provider.requests[1]))
         self.assertNotIn(WORK_GUIDANCE, str(provider.requests[0]['messages']))
         self.assertIn(SYSTEM_PROMPT, [m.get('content') for m in provider.requests[1]['messages']])

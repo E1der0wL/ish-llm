@@ -74,15 +74,15 @@ def display_run(record, run):
     )
 
 
-async def stop_paused(session):
+async def stop_paused(session, *, run_id=None):
     def stop():
         # Public facade calls share the ownership lock so admission cannot race
         # the check, interaction cancellation and Session metadata update.
         with session.app.project_manager.ownership.scope():
             state = session.run.status(queued_limit=StopIntent.QUEUE_PREVIEW)
-            if state.active_runs or state.queued_count:
+            if run_id is None and (state.active_runs or state.queued_count):
                 return StopIntent.UNCHANGED
-            handles = session.run.list(
+            handles = [session.run.load(run_id)] if run_id is not None else session.run.list(
                 query=Query(
                     descending=StopIntent.DESCENDING, limit=StopIntent.LATEST_COUNT
                 )

@@ -18,9 +18,12 @@ class SettingsBody(HSplit):
     UNMEASURED = None
     NO_CONTROL_ROW = None
     MAX_MEASURE_HEIGHT = 10000
+    MINIMUM_WIDTH = 1
 
     def __init__(self, children, fields):
-        super().__init__(children)
+        # A fixed-width action inside a page must not cap every field's width.
+        # The surrounding settings pane owns the available horizontal space.
+        super().__init__(children, width=Dimension(min=self.MINIMUM_WIDTH, weight=1))
         self.fields = fields
         self.viewport = self.NO_VIEWPORT
         self._measure_key = self.UNMEASURED

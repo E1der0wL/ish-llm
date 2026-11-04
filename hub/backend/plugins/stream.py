@@ -53,7 +53,8 @@ class PluginStream:
                                    "value": event.to_dict()})
             records.append({"id": run.id, "agent_id": run.agent_id, "engine": run.engine,
                 "status": run.status.value, "error": run.error, "error_code": run.error_code,
-                "interactions": [item.to_dict() for item in await handle.ainteraction_views()]})
+                "interactions": [item.to_dict() for item in await handle.ainteraction_views()],
+                "questions": [item.to_dict() for item in await handle.aquestions()]})
         # The committed USER message remains committed after execution. The
         # public request query validates the complete recipient Run group.
         terminal = ((bool(records) and all(row["status"] not in Run.ACTIVE_STATES for row in records))

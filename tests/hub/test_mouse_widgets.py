@@ -714,9 +714,10 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(self.view.mouse.drag)
 
     async def test_answer_choices_remain_nonfocusable_and_number_selection_unchanged(self):
+        from hub.backend.interactions.question_values import QuestionTool
         view = self.view
-        view.question.sync("p", "s", ({"run_id": "r", "live": True, "request": {
-            "id": "q", "revision": 1, "title": "Choose", "source": {"choices": ["Yes", "No"]}}},))
+        view.question.sync("p", "s", ({"run_id": "r", "request": QuestionTool.request({
+            "question": "Choose", "choices": ["Yes", "No"]}).to_dict()},))
         view.composer.text = "2"
         await self.paint()
         await self.mouse(35, *self.at(view.question.choices.window))

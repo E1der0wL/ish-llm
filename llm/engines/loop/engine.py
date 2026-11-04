@@ -21,7 +21,7 @@ from llm.core.models import ResourceKind, StepKind
 from llm.core.continuations import ResumeRecord
 
 from llm.core.results import OutputVisibility
-from llm.core.tool_event_result import ToolEventResult
+from llm.core.tool_event_result import ToolEventResult, ToolOutcome, ToolOutcomeStatus
 from llm.core.step_tool_metadata import ToolStepMetadata
 
 from llm.core.model_protocol import (
@@ -56,7 +56,7 @@ from llm.core.steering import is_instruction, SteeringMode, validate_instruction
 from llm.core.configuration import resolve_engine_config, bind_execution_config, UNSET
 from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
-from llm.core.contracts import ResourceRef
+from llm.core.contracts import ResourceRef, Diagnostic
 from llm.core.checkpoints import CheckpointStatus
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionScope, ToolExecutionError, ToolApprovalRequired
@@ -80,7 +80,8 @@ from .records import (
     LoopPriorOutput,
     LoopInstructionBoundary,
 )
-from .configuration import LoopRegistration, LoopParameters, LoopPolicy, LoopAgentOptions
+from .configuration import LoopRegistration, LoopParameters, LoopPolicy, LoopAgentOptions, ToolFeedbackPolicy
+from llm.services.runtime.tool_errors import ToolDeclined
 from llm.core.agents import AgentDefinition
 
 
@@ -227,6 +228,10 @@ class LoopEngine(BaseEngine):
             metadata=CheckpointWrite.record_event(LoopEngine.checkpoint_name, key, deepcopy(value)).to_dict(),
         )
 
+    def _failure_checkpoint(self, step_id):
+        from llm.core.step_failures import FailureHandling
+        return self._record(*FailureHandling.record(step_id))
+
     def __init__(
         self,
         *,
@@ -266,6 +271,7 @@ class LoopEngine(BaseEngine):
         self.input_policy = deepcopy(LoopParameters(values).input_policy)
         self.provider = deepcopy(LoopParameters(values).provider)
         self.final_review = ReviewPolicy.read(LoopParameters(values).final_review)
+        self.tool_feedback = ToolFeedbackPolicy(LoopParameters(values).tool_feedback)
         super().__init__(
             LoopEngine.DISPLAY_NAME, completion_adapter=self.completion_adapter, buffer_size=buffer_size
         )
@@ -312,6 +318,7 @@ class LoopEngine(BaseEngine):
         provider = LoopPolicy(policy).provider
         resolve_provider_options({} if provider is BaseEngine.ABSENT else provider)
         ReviewPolicy.read(LoopPolicy(policy).final_review)
+        ToolFeedbackPolicy(policy.get(LoopParameters.TOOL_FEEDBACK))
         return view.with_runtime(()).to_dict()
 
     @staticmethod
@@ -527,11 +534,8 @@ class LoopEngine(BaseEngine):
                 context.steering.scope, (m.id for m in context.steering.messages)
             ).to_dict()
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
-        processor_context = (
-            replace(context, output_visibility=OutputVisibility.INTERNAL)
-            if review is not BaseEngine.ABSENT
-            else context
-        )
+        processor_context = replace(context, failure_checkpoint=self._failure_checkpoint,
+            output_visibility=OutputVisibility.INTERNAL if review is not BaseEngine.ABSENT else context.output_visibility)
         async with CompletionPipeline(
             context.capabilities.get(COMPLETION_PROCESSORS, ()),
             processor_context,
@@ -915,10 +919,33 @@ class LoopEngine(BaseEngine):
                 yield self.output_event(context, EngineOutput(text=response.message.text))
                 return
             messages.append(CompletionMessage(response.message))
+            defer_after = None
             for call, (tool, arguments) in zip(calls, prepared):
                 seen_call_ids.add(call.id)
                 key = LoopToolRecord.key(iteration, call.id)
                 stored = records.get(key, {})
+                if LoopToolRecord(stored).has_feedback:
+                    result = LoopToolRecord(stored).feedback_result(tool.name, arguments)
+                    outcome = ToolEventResult(result).outcome
+                    if outcome.status != ToolOutcomeStatus.NOT_EXECUTED:
+                        if not self.tool_feedback.allows(outcome.status):
+                            raise ValueError("Stored Tool feedback is not permitted by the current policy")
+                        if self.tool_feedback.defer_remaining:
+                            defer_after = call.id
+                    messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
+                        result=ToolResult(call.id, ToolEventResult(result).content, tool.name))))
+                    continue
+                if defer_after is not None and not stored:
+                    result = {}
+                    ToolEventResult(result).reject(ToolOutcome(ToolOutcomeStatus.NOT_EXECUTED,
+                        Diagnostic("tool_not_executed", "Application policy deferred remaining calls after Tool feedback",
+                                   details={"after_call_id": defer_after}), None))
+                    stored = LoopToolRecord.feedback(name=tool.name, arguments=arguments, result=result, run_id=context.run.id)
+                    yield self._record(key, stored)
+                    records[key] = stored
+                    messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
+                        result=ToolResult(call.id, ToolEventResult(result).content, tool.name))))
+                    continue
                 # Only a not-yet-started invocation may be displaced by a new
                 # instruction. Completed/uncertain/approval records retain their
                 # existing effect and resume rules.
@@ -1068,7 +1095,8 @@ class LoopEngine(BaseEngine):
                                 name=tool.name,
                                 arguments=arguments,
                                 prompt=str(error),
-                                interaction=error.request.bind(LoopEngine.checkpoint_name, key).to_dict(),
+                                interaction=error.request.bind(LoopEngine.checkpoint_name, key,
+                                    resume_on_denial=self.tool_feedback.allows(ToolOutcomeStatus.DECLINED)).to_dict(),
                             ),
                         )
                         yield EngineEvent(
@@ -1076,15 +1104,32 @@ class LoopEngine(BaseEngine):
                             metadata=LoopToolRecord.paused(LoopEngine.checkpoint_name, key),
                         )
                         return
-                    except ToolExecutionError as error:
-                        if durable and error.effect == ToolExecutionError.NO_EFFECT:
+                    except (ToolExecutionError, ToolDeclined) as error:
+                        outcome = ToolEventResult(result).outcome
+                        if durable and outcome is not None and self.tool_feedback.allows(outcome.status):
+                            stored = LoopToolRecord.feedback(name=tool.name, arguments=arguments,
+                                                            result=result, run_id=context.run.id)
+                            receipt = self._record(key, stored)
+                            if outcome.status == ToolOutcomeStatus.FAILED:
+                                yield EngineEvent(EngineEventType.STEP_HANDLED, step_id=outcome.step_id,
+                                                  checkpoint=receipt)
+                            else:
+                                yield receipt
+                            records[key] = stored
+                            result_ref = ResourceRef(ResourceKind.STEP, outcome.step_id,
+                                                     run_id=context.run.id, step_id=outcome.step_id)
+                            if self.tool_feedback.defer_remaining:
+                                defer_after = call.id
+                        elif durable and isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT:
                             yield self._record(
                                 key,
                                 LoopToolRecord.not_applied(
                                     status=CheckpointStatus.NOT_APPLIED, error=str(error)
                                 ),
                             )
-                        raise
+                            raise
+                        else:
+                            raise
                 else:
                     # 재사용도 새 Run에서 관찰·원본 조회할 수 있게 기록한다. 핸들러는 호출하지 않는다.
                     async def reuse(_context):

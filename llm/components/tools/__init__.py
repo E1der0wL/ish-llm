@@ -8,6 +8,10 @@ from .component import ToolComponent, ToolPaths
 from .data import ToolData
 from .decorator import tool
 from .exposure import ToolExposure, ToolSelector
+from .questions import QuestionHandler
+from llm.core.questions import QuestionMode
+from llm.core.tool_event_result import ToolOutcome, ToolOutcomeStatus
 
 __all__ = ["Tool", "ToolContract", "ToolClassification", "ToolRegistry", "ToolEffect", "ToolIsolation",
-           "ToolComponent", "ToolPaths", "ToolData", "tool", "ToolExposure", "ToolSelector"]
+           "ToolComponent", "ToolPaths", "ToolData", "tool", "ToolExposure", "ToolSelector",
+           "QuestionHandler", "QuestionMode", "ToolOutcome", "ToolOutcomeStatus"]

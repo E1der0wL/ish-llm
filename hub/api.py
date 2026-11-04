@@ -90,9 +90,26 @@ class PluginRequest:
     async def cancel_interaction(self, run_id, interaction: dict):
         return await self._call("cancel_interaction", run_id, interaction)
 
-    async def answer_live(self, run_id, question: dict, option_id, value):
-        """Answer a Hub live question; its active Tool continues without resume."""
-        return await self._call("answer_live", run_id, question, option_id, value)
+    async def questions(self, run_id):
+        """Read durable nonblocking questions even after the source Run ended."""
+        return await self._call("questions", run_id)
+
+    async def answer_question(self, run_id, response: dict):
+        """Save a user answer only; no model call, resume or submission."""
+        return await self._call("answer_question", run_id, response)
+
+    async def cancel_question(self, run_id, request: dict):
+        return await self._call("cancel_question", run_id, request)
+
+    async def deliver_answer(self, run_id, request_id, *, mode, **options):
+        """Explicit delivery with native per-question idempotency; not application proof."""
+        return await self._call("deliver_answer", run_id, request_id, {'mode': mode, **options})
+
+    async def get_delivery(self, run_id, request_id):
+        return await self._call("get_delivery", run_id, request_id)
+
+    async def question_targets(self, run_id):
+        return await self._call("question_targets", run_id)
 
     async def resume_plan(self, run_id):
         return await self._call("resume_plan", run_id)

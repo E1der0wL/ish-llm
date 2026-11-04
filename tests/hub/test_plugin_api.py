@@ -167,7 +167,7 @@ class PluginAPITests(unittest.IsolatedAsyncioTestCase):
 
 
 class PluginApprovalTests(unittest.IsolatedAsyncioTestCase):
-    async def test_live_question_stays_out_of_home_and_continues_same_run(self):
+    async def test_blocking_question_stays_out_of_home_and_requires_explicit_resume(self):
         from llm.engines.loop import LoopEngine
         from llm.providers.litellm import LiteLLMCompletionAdapter
         from tests.llm.test_loop import ScriptedCompletion, chunk, call
@@ -186,20 +186,25 @@ class PluginApprovalTests(unittest.IsolatedAsyncioTestCase):
                     'builtin_tools': {'config': {'enabled': ['ask_user']}}}}}))
             lane = await api.open_session('questions', 'main', ['helper'])
             reference = await api.submit('questions', lane['session_id'], 'Create a report', ['helper'], None, 'question')
-            async with asyncio.timeout(15):
-                while not runtime.builtin_tools.questions.pending:
-                    await asyncio.sleep(.01)
-            batch = await api.poll('questions', reference, {}, -1, False)
-            question, = batch['live_questions']
-            self.assertFalse(batch['terminal'])
-            self.assertFalse(runtime.notifications.items())
-            await api.answer_live('questions', reference, question['run_id'], question['request'], 'reply', 'Markdown')
             session = await api.projects.session('questions', lane['session_id'])
             await session.run.wait_idle()
-            final = await api.poll('questions', reference, {}, -1, False)
-            self.assertEqual(final['live_questions'], [])
+            batch = await api.poll('questions', reference, {}, -1, False)
+            from llm.core.interactions import InteractionRequest
+            run, = batch['runs']
+            self.assertEqual(run['status'], 'paused')
+            question = InteractionRequest.from_dict(run['interactions'][0]['request'])
+            self.assertFalse(runtime.notifications.items())
+            await api.respond('questions', reference, run['id'], question.respond('reply', value='Markdown').to_dict(), 'answer')
+            self.assertEqual(len(provider.requests), 1)
+            plan = await api.resume_plan('questions', reference, run['id'])
+            self.assertTrue(plan['can_resume'], plan)
+            resumed = await api.resume('questions', reference, run['id'], {'expected_revision': plan['revision']})
+            await session.run.wait_idle()
+            final = await api.poll('questions', resumed, {}, -1, False)
             self.assertEqual(len(final['runs']), 1)
             self.assertEqual(final['runs'][0]['status'], 'completed', final)
+            self.assertEqual(len(await session.run.alist()), 2)
+            self.assertIn('Markdown', str(provider.requests[-1]['messages']))
 
     async def test_durable_approval_requires_explicit_response_then_resume(self):
         from pathlib import Path

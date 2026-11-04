@@ -6,6 +6,11 @@ Hub는 현재 동작하는 ish 인터페이스
 
 ## 책임과 계약
 
+[Tool 실패 피드백과 영속 질문](tool-feedback-questions.md)은 Loop 생성 프리셋,
+거절 후 명시적 재개, 차단/비차단 질문과 답변 저장·전달 분리의 계약을 설명한다.
+[MCP 연결·Memory 실패 처리](mcp-memory-integration.md)는 명시적 서버 발견·Agent 도구 선택과
+native 실패 처리 근거의 표시 경계를 설명한다.
+
 [다른 플러그인의 Agent 연동](plugin-api.md)은 공유 Hub worker를 통한 등록·내부 세션·
 엔진 공통 출력 전달과 명시적 승인/재개 경계를 설명한다. 설정은 기존 `/agent` 관리 창을 사용한다.
 

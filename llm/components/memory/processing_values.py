@@ -116,22 +116,10 @@ class ActiveMemorySummary:
 
 class MemoryStepObservation:
     COMPONENT = "component"
-    DEGRADED = "degraded"
-    ERROR = "error"
-    ERROR_CODE = "error_code"
-    FALLBACK = True
 
     @classmethod
     def metadata(cls, component, parent_step_id):
         return {cls.COMPONENT: component, AgentStepMetadata.PARENT_STEP_ID: parent_step_id}
-
-    @classmethod
-    def failure_output(cls, error):
-        return {cls.DEGRADED: cls.FALLBACK, cls.ERROR: error}
-
-    @classmethod
-    def failure_metadata(cls, code):
-        return {cls.DEGRADED: cls.FALLBACK, cls.ERROR_CODE: code}
 
 
 class MemoryToolPreview:

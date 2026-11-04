@@ -90,6 +90,16 @@ class EngineContext:
     steering: Optional[SteeringInbox] = NO_STEERING
     # Service-owned, Run-local capability lookup; not persisted and never expands Tool authority.
     capability_resolver: Optional[Callable] = NO_RESOLVER
+    # Engine-owned checkpoint writer; processors cannot choose a foreign namespace.
+    failure_checkpoint: Optional[Callable[[str], EngineEvent]] = None
+
+    def handle_failure(self, step_id: str) -> EngineEvent:
+        """Acknowledge a failed Step using the selected Engine's durable boundary."""
+        from .events import EngineEventType
+        if self.failure_checkpoint is None:
+            raise ValueError("Engine does not provide durable failed Step handling")
+        return EngineEvent(EngineEventType.STEP_HANDLED, step_id=step_id,
+                           checkpoint=self.failure_checkpoint(step_id))
 
     def read_tool_binding(self, value):
         """Nested snapshots contain Engine payload; service usage stays on the outer envelope."""

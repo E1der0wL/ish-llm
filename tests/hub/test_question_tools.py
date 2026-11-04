@@ -157,7 +157,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await asyncio.to_thread(controller.close)
 
-    async def test_question_waits_and_answer_continues_same_run(self):
+    async def test_blocking_question_is_durable_and_explicitly_resumes_checkpoint(self):
         provider = ScriptedCompletion(
             [chunk(calls=[call('{"question":"Which format?","choices":["Markdown","Text"]}', name="ask_user")], finish="tool_calls")],
             [chunk("Done with your choice", finish="stop")])
@@ -168,13 +168,13 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 session_id = await runtime.new_session()
                 await runtime.submit(session_id, "Write a document")
-                await backend_ready(lambda: bool(runtime.builtin_tools.questions.pending), 'question ready')
+                await runtime.sessions[session_id].run.wait_idle()
                 snapshot = await runtime.snapshot()
                 item = snapshot.questions[0]
-                self.assertEqual(snapshot.run.status, "running")
+                self.assertEqual(snapshot.run.status, "paused")
                 self.assertEqual(snapshot.status, "waiting_input")
                 thinking = next(message for message in snapshot.messages if message.role == "reasoning")
-                self.assertTrue(any(step.name == "ask_user" and step.status == "running" for step in thinking.tools))
+                self.assertTrue(any(step.name == "ask_user" for step in thinking.tools))
                 from hub.model import TraceItem
                 from hub.locales.keys import MessageKey
                 cards = [card for card in thinking.trace if card.kind == TraceItem.QUESTION]
@@ -194,11 +194,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(sum(n.status == "waiting_input" for n in other.notifications), 1)
                 await runtime.select(session_id)
                 self.assertEqual(len(provider.requests), 1)
-                with self.assertRaises(ValueError):
+                with self.assertRaises((ValueError, KeyError)):
                     await runtime.answer_question(runtime.project.id, "wrong-session", item["run_id"], item["request"], "reply", "Text")
                 await runtime.answer_question(runtime.project.id, session_id, item["run_id"], item["request"], "reply", "Markdown")
                 await runtime.sessions[session_id].run.wait_idle()
-                self.assertEqual(len(await runtime.sessions[session_id].run.alist()), 1)
+                self.assertEqual(len(await runtime.sessions[session_id].run.alist()), 2)
                 self.assertIn("Markdown", str(provider.requests[-1]["messages"]))
                 self.assertEqual((await runtime.snapshot()).messages[-1].text, "Done with your choice")
                 for _ in range(2):
@@ -208,7 +208,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                              if card.kind == TraceItem.QUESTION]
                     self.assertEqual(cards, [])
                     self.assertFalse(any(message.role == 'reasoning' for message in restored.messages))
-                self.assertFalse(runtime.builtin_tools.questions.pending)
+                self.assertFalse((await runtime.snapshot()).questions)
             finally:
                 await runtime.close()
 
@@ -255,7 +255,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     view.close()
                     view.progress.close()
-                self.assertIn('"content": "approved"', await runtime.approval_details(item["request"]))
+                self.assertIn('content: approved', await runtime.approval_details(item["request"]))
                 await runtime.answer_question(runtime.project.id, sid, item["run_id"], item["request"], "approve", None)
                 await runtime.sessions[sid].run.wait_idle()
                 self.assertEqual((Path(root) / "answer.txt").read_text(), "approved")
@@ -270,7 +270,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 await reopened.close()
 
-    async def test_question_interrupt_clears_waiter(self):
+    async def test_question_interrupt_stops_paused_run_without_replay(self):
         provider = ScriptedCompletion([chunk(calls=[call('{"question":"Wait?"}', name="ask_user")], finish="tool_calls")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
@@ -279,10 +279,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 sid = await runtime.new_session()
                 await runtime.submit(sid, "Ask")
-                await backend_ready(lambda: bool(runtime.builtin_tools.questions.pending), 'question ready before interrupt')
+                await runtime.sessions[sid].run.wait_idle()
+                self.assertTrue((await runtime.snapshot()).questions)
                 await runtime.interrupt(sid)
                 await runtime.sessions[sid].run.wait_idle()
-                self.assertFalse(runtime.builtin_tools.questions.pending)
+                self.assertFalse((await runtime.snapshot()).questions)
                 self.assertEqual((await runtime.snapshot()).run.status, "interrupted")
             finally:
                 await runtime.close()

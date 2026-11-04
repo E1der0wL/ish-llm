@@ -8,7 +8,7 @@ from llm.core.results import EngineOutput
 from llm.core.step_tool_metadata import ToolStepMetadata
 
 from ...locales.keys import MessageKey
-from ..interactions.question_values import QuestionArguments, QuestionReply, QuestionTool
+from ..interactions.question_values import QuestionArguments, QuestionTool
 
 
 class ValuePreview:
@@ -126,12 +126,12 @@ class ToolDetails:
         output = metadata.get(ExecutionObservations.Field.OUTPUT)
         data = output.get(EngineOutput.data.__name__) if output else None
         result = []
-        if name == QuestionTool.NAME:
+        if name in (QuestionTool.NAME, QuestionTool.NONBLOCKING_NAME):
             result.append((MessageKey.QUESTION_HEADING, ValuePreview.render(arguments.get(QuestionArguments.QUESTION, ''))))
             if arguments.get(QuestionArguments.DESCRIPTION):
                 result.append((MessageKey.CARD_DESCRIPTION, ValuePreview.render(arguments[QuestionArguments.DESCRIPTION])))
-            if isinstance(data, dict) and QuestionReply.answer.__name__ in data:
-                result.append((MessageKey.CARD_ANSWER, ValuePreview.render(data[QuestionReply.answer.__name__])))
+            if isinstance(data, dict) and 'value' in data:
+                result.append((MessageKey.CARD_ANSWER, ValuePreview.render(data['value'])))
         else:
             if arguments:
                 result.append((MessageKey.CARD_INPUT, TextPreview.render(arguments, TextPreview.INPUT_KEYS)

@@ -12,10 +12,31 @@ from prompt_toolkit.widgets import Frame
 from hub.locales import Language
 from hub.widget.forms.settings import SchemaForm
 from hub.widget.forms.settings_viewport import SettingsBody, SettingsPane
+from hub.widget.controls import Button
 from tests.hub.support import SizedOutput
 
 
 class SettingsViewportTests(unittest.IsolatedAsyncioTestCase):
+    async def test_fixed_width_page_action_does_not_shrink_setting_fields(self):
+        form = SchemaForm({"type": "object", "properties": {
+            "title": {"type": "string", "description": "Project name"}
+        }}, {"title": "Hub"}, Language())
+        fields = list(form.fields.values())
+        body = SettingsBody([*form.children, Button("Approvals", width=12)], fields)
+        pane = SettingsPane(DynamicContainer(lambda: body))
+        output = SizedOutput(columns=100, rows=24)
+        app = Application(layout=Layout(Frame(pane), focused_element=fields[0].input),
+                          input=DummyInput(), output=output, full_screen=True)
+        with set_app(app):
+            for columns in (100, 64, 132):
+                output.columns = columns
+                app.render_counter += 1
+                app.renderer.render(app, app.layout)
+                # Frame sides, scrollbar, and the shared one-cell scrollbar gap.
+                self.assertEqual(fields[0].input.window.render_info.window_width, columns - 4)
+                self.assertIs(app.layout.current_control, fields[0].input.control)
+                self.assertEqual(fields[0].value(), "Hub")
+
     async def test_visible_rows_focus_jump_edit_and_resize(self):
         form = SchemaForm({"type": "object", "properties": {
             f"field_{index}": {"type": "string", "description": "Long description " * 6}

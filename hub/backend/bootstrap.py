@@ -66,6 +66,7 @@ def create_backend(config: "HubConfig"):
     from llm.components.prompts import PromptComponent
     from .tools.skills import HubSkillComponent
     from llm.components.mcp import MCPComponent
+    from .execution.mcp import HubMCPConnector
     from llm.components.vision import VisionComponent
     from .project.naming import TitleEngine, TITLE_ENGINE
     from .tools.builtin import HubBuiltinTools
@@ -138,7 +139,7 @@ def create_backend(config: "HubConfig"):
         for component in (
             ToolComponent(),
             HubSkillComponent(),
-            MCPComponent(),
+            MCPComponent(connector=HubMCPConnector()),
             HubRAGComponent(),
             VisionComponent(),
             HubWorkflowComponent(

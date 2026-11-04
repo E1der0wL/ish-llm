@@ -67,6 +67,9 @@ from llm.core.plans import (
 from llm.components.processing import CompletionRecovery, CompletionRepair
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult, ResumeOutput
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
+from llm.core.questions import QuestionMode, QuestionView
+from llm.components.tools.questions import QuestionHandler
+from llm.core.tool_event_result import ToolOutcome, ToolOutcomeStatus
 from llm.providers.calls import ProviderCalls, ProviderLimits
 from llm.providers.runtime import ProviderDiagnostics
 from llm.services.runtime.output import OutputBuffer

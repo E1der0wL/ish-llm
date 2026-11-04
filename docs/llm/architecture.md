@@ -4,6 +4,17 @@
 선택을 저장하고 Engine이 적용 경계를 소유한다. 현재 invocation 취소는 저장 Task나 Run 전체
 취소와 구분하며 ToolExecutor의 승인·효과·재시도 책임을 옮기지 않는다.
 
+선택적 [Tool 결과 처리와 질문](tool-feedback.md)은 실패 기록을 성공으로 바꾸지 않는다.
+Engine이 명시한 실패 처리 체크포인트를 서비스가 같은 저장 경계에서 확인한다.
+Application은 오류 피드백·남은 호출 처리·질문 대기 방식·답변 전달 시점을 선택한다.
+llm은 임의로 재시도·계속 실행·다음 요청 제출을 선택하지 않는다. 비차단 질문은
+기존 Run/Step에 연결된 Interaction 자료이며 새로운 실행 소유 계층이 아니다.
+
+[MCP 실행 계약](mcp-runtime.md)은 명시적 연결 범위, 리소스 조회, 주입된 OAuth와 서버 질문을
+제공한다. Hub가 연결 수명·인증 UX·자료 사용·질문 응답을 선택하며 서버 metadata는 권한이 아니다.
+Memory의 선택적 실패 처리는 같은 공통 처리 checkpoint를 사용하고 FAILED Step을 유지한다.
+순수 응답 검증 외의 저장·제한·취소 실패는 계속 실행 정책으로 삼키지 않는다.
+
 현재 main의 구현과 보존할 계약을 설명합니다. 리팩터링은 main에 병합되었으며
 단계별 근거는 [전수 점검](contract-closure.md), 최신 변경과 검증 범위는 [인계](handoff.md)에 있습니다.
 과거 누적 안내는 [보관 목록](documentation-history.md)에서 분리해 읽을 수 있습니다.

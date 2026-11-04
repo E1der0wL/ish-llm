@@ -43,9 +43,15 @@ Hub neither guesses an ID nor reads backend files directly.
 
 ## Summary failures and cancellation
 
-Hub's existing Memory default `failure_mode: continue` permits a failed summary
-to reach this reference fallback. The configured Memory call limits and provider
-retry policy remain authoritative. Explicit `failure_mode: raise` is respected.
+Hub's explicit Memory default `failure_mode: continue` permits only auxiliary
+model response validation failures to reach this reference fallback. Storage/CAS,
+configuration, usage/deadline, cancellation and unclassified failures propagate.
+The failed Step and diagnostic remain authoritative; the backend records its
+failure-handling checkpoint before continuing. Hub observes `STEP_HANDLED`, reads
+the saved proof and adds “failure handled; continuing” to the summary trace without
+changing the Step to completed or declaring the Run failed from a Step alone.
+The configured Memory call limits and independent provider retry policy remain
+authoritative. Explicit `failure_mode: raise` is respected.
 The fallback itself calls no model and adds no retry. Missing references/read
 capability cause a local budget failure instead of an invented source.
 Cancellation and token-counter failures propagate without becoming summaries.

@@ -13,11 +13,12 @@ from hub.errors.operations import OperationCode
 
 from llm.core.checkpoints import CheckpointErrorCode, CheckpointRejectionDetails
 from llm.providers.streaming import CompletionErrorCode
+from llm.providers.mcp import MCPConnectionError, MCPToolError
 from llm.core.models import RunErrorCode
 from llm.core.models import StepErrorCode
 from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorInfo
-from llm.core.model_protocol import StopReason
+from llm.core.model_protocol import ResponseValidationError, StopReason
 from llm.core.tool_codes import ToolErrorCode
 from llm.engines.loop.review import LoopReview
 from ..widget.notices import NoticeText
@@ -125,7 +126,17 @@ def error_text(error: ErrorInfo | Exception | str) -> str:
     )
 
 
+_MCP_GUIDANCE = {
+    MCPConnectionError.code: MessageKey.FAILURE_MCP_CONNECTION,
+    MCPConnectionError.AUTHENTICATION: MessageKey.FAILURE_MCP_AUTHENTICATION,
+    MCPConnectionError.ACCESS_DENIED: MessageKey.FAILURE_MCP_ACCESS,
+    MCPConnectionError.TIMEOUT: MessageKey.FAILURE_MCP_TIMEOUT,
+    MCPToolError.code: MessageKey.FAILURE_MCP_TOOL,
+}
+
 _OPERATION_GUIDANCE = {
+    **_MCP_GUIDANCE,
+    ResponseValidationError.code: MessageKey.FAILURE_MODEL_RESPONSE,
     OperationCode.BUSY: MessageKey.OPERATION_BUSY,
     OperationCode.CHANGED: MessageKey.OPERATION_CHANGED,
     OperationCode.NOT_RESUMABLE: MessageKey.OPERATION_NOT_RESUMABLE,
@@ -177,6 +188,8 @@ def operation_feedback(error, t):
 
 
 _CODE_GUIDANCE = {
+    **_MCP_GUIDANCE,
+    ResponseValidationError.code: MessageKey.FAILURE_MODEL_RESPONSE,
     LoopReview.CONTINUATION_CODE: MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT,
     LoopReview.ATTEMPTS_CODE: MessageKey.FAILURE_COMPLETION_REVIEW_LIMIT,
     CompletionErrorCode.INVALID_RESPONSE: MessageKey.FAILURE_COMPLETION_INVALID,

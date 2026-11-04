@@ -32,7 +32,8 @@ class EssentialSettings:
     GENERATION = CONNECTION | paths("reasoning_effort", "max_tokens", "max_completion_tokens")
     ENGINE_FIELDS = {
         "loop": paths("policy.max_iterations", "policy.provider.max_attempts",
-                      "policy.completion.max_tokens", "policy.completion.reserve_tokens"),
+                      "policy.completion.max_tokens", "policy.completion.reserve_tokens",
+                      "policy.tool_feedback"),
         "graph": paths("workflow", "policy.max_steps"),
     }
     PROJECT_FIELDS = paths(

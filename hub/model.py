@@ -2,7 +2,7 @@
 
 from llm.providers.diagnostic_values import ProviderAttempt
 
-from llm.core.models import SessionStatus, MessageStatus
+from llm.core.models import SessionStatus, MessageStatus, RunStatus
 from llm.core.interactions import InteractionRequest, InteractionRequestObservation
 from dataclasses import dataclass
 from enum import StrEnum
@@ -23,7 +23,7 @@ class ResponseActivity:
 
 
 class QuestionSource(StrEnum):
-    """Hub live-question presentation fields, shared by Tool input and widgets."""
+    """Hub question presentation fields, shared by Tool input and widgets."""
 
     SUGGESTIONS = "choices"
     STEP_ID = "step_id"
@@ -141,6 +141,7 @@ class TraceItem:
     started_at: str = NO_TIME
     workflow_states: tuple[tuple[str, str], ...] = ()
     details: tuple[tuple[str, str], ...] = ()
+    handled_failure: bool = False
 
     @classmethod
     def thought(cls, identifier, text, *, started_at=NO_TIME):
@@ -218,6 +219,7 @@ class StepSummary:
     started_at: str = ""
     source_id: str = ""
     details: tuple[tuple[str, str], ...] = ()
+    handled_failure: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,19 +350,24 @@ class SessionIdentity:
 
 @dataclass(frozen=True, slots=True)
 class QuestionPresentation:
-    LIVE: ClassVar[bool] = True
-    STORED: ClassVar[bool] = False
-
     run_id: str
-    live: bool
     request: InteractionRequest
+    nonblocking: bool = False
+    response: dict | None = None
+    delivery: dict | None = None
+    status: str = 'pending'
+    run_status: str | None = None
 
     def to_record(self):
         cls = type(self)
         return {
             cls.run_id.__name__: self.run_id,
-            cls.live.__name__: self.live,
             cls.request.__name__: self.request.to_dict(),
+            cls.nonblocking.__name__: self.nonblocking,
+            cls.response.__name__: self.response,
+            cls.delivery.__name__: self.delivery,
+            cls.status.__name__: self.status,
+            cls.run_status.__name__: self.run_status,
         }
 
     @classmethod
@@ -368,12 +375,15 @@ class QuestionPresentation:
         return {cls.request.__name__: request.to_dict()}
 
     @classmethod
-    def live_request(cls, run_id, request):
-        return cls(run_id, cls.LIVE, request).to_record()
+    def nonblocking_request(cls, run_id, request, *, response=None, delivery=None,
+                            status='pending', run_status=None):
+        return cls(run_id, request, True,
+                   response.to_dict() if response is not None else None,
+                   delivery, status, run_status).to_record()
 
     @classmethod
-    def stored_request(cls, run_id, request):
-        return cls(run_id, cls.STORED, request).to_record()
+    def stored_request(cls, run_id, request, *, run_status=None):
+        return cls(run_id, request, run_status=run_status).to_record()
 
     @classmethod
     def observe(cls, value):
@@ -399,8 +409,32 @@ class QuestionObservation:
         return self._value[QuestionPresentation.run_id.__name__]
 
     @property
-    def live(self):
-        return self._value[QuestionPresentation.live.__name__]
+    def nonblocking(self):
+        return self._value.get(QuestionPresentation.nonblocking.__name__, False)
+
+    @property
+    def response(self):
+        return self._value.get(QuestionPresentation.response.__name__)
+
+    @property
+    def delivery(self):
+        return self._value.get(QuestionPresentation.delivery.__name__)
+
+    @property
+    def status(self):
+        return self._value.get(QuestionPresentation.status.__name__, 'pending')
+
+    @property
+    def source_finished(self):
+        # Missing targets/observations are not evidence that a Run has ended.
+        # PAUSED still permits the original blocking answer/resume workflow.
+        return self._value.get(QuestionPresentation.run_status.__name__) in (
+            RunStatus.COMPLETED, RunStatus.INTERRUPTED, RunStatus.CANCELLED, RunStatus.FAILED)
+
+    @property
+    def text_answer(self):
+        return (self.request.kind == InteractionRequest.KIND_INPUT and self.request.options.count == 1
+                and (self.request.input_schema or {}).get('type') == 'string')
 
     @property
     def request(self):

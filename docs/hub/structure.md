@@ -95,7 +95,7 @@ sidebar/header/shortcut 위젯은 여러 category의 기반이므로 widget 루�
 | `NotificationBuffer` | session 표시 identity, 관찰 Run 상태, 질문 identity, 64개 알림·128개 dedup 키·단조 sequence; Runtime 수명 | 번역·토스트 디자인·Run 상태 변경 |
 | `ToolManagement` | 한 UI 명령의 Project/ToolData/ToolPaths와 root/builtin, 버전 검사 | 영속 Tool 권한·실행·승인 authority |
 | `SnapshotReader` | 읽기 캐시·thinking/trace projection; backend loop, 프로젝트 전환 시 clear | 명령 실행·제목 생성 예약 |
-| `QuestionBroker` | 기다리는 질문/Future; backend 종료 시 취소 | 영속 승인 결정·checkpoint 계약 |
+| `QuestionAnswers` | 공개 질문 조회·답변 저장·명시적 전달 연결 | 영속 질문 원본·승인 결정·checkpoint 계약 |
 | `SessionNamer` | 제목 생성 작업·오류; backend 종료 시 정리 | 일반 대화 Run 실행 |
 | `LiveController` | UI intent → BackendWorker → UI 반영, 현재 loop/app, 화면 상태 복원 | snapshot mailbox 내부 lock/slot |
 | `SnapshotInbox` | lock·최신 pending snapshot·한 번의 delivery 예약; Controller 수명 | event loop/thread 생성·callback 실행·Controller 참조 |

@@ -9,6 +9,18 @@ from dataclasses import dataclass, field, fields, replace
 from enum import StrEnum
 import math
 from typing import ClassVar
+from llm.errors import CodedError
+
+
+class ResponseValidationError(CodedError, ValueError):
+    """A received model value failed pure response validation, before publication.
+
+    This classification does not authorize retry or continuation. Consumers may
+    handle it only under an explicit policy; storage, usage and transport errors
+    must never be converted at a broad execution boundary.
+    """
+
+    code = "model_response_invalid"
 
 
 class ModelJson:

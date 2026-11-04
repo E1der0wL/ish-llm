@@ -21,7 +21,8 @@ def merge_trace(*groups):
 
 
 def tool_trace(steps):
-    return tuple(TraceItem(step.id, TraceItem.QUESTION if step.name == QuestionTool.NAME else TraceItem.TOOL,
-                          step.name, (SessionSummary.WAITING_INPUT if step.name == QuestionTool.NAME and step.status == StepStatus.RUNNING
-                                      else step.status), step.started_at,
-                          details=step.details) for step in steps)
+    # Durable question views carry the reply even after the Tool returned.
+    # Do not duplicate them with a second Tool-derived question bubble.
+    return tuple(TraceItem(step.id, TraceItem.TOOL, step.name, step.status, step.started_at,
+                          details=step.details) for step in steps
+                 if step.name not in (QuestionTool.NAME, QuestionTool.NONBLOCKING_NAME))

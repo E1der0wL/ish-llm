@@ -11,6 +11,7 @@ class ManagerKind(StrEnum):
     DOCUMENT = "document"
     AGENT = "agent"
     MEMORY = "memory"
+    MCP = "mcp"
 
 
 class ImportKind(StrEnum):
@@ -79,9 +80,9 @@ class ManagedComponents:
     MCP = ComponentSpec(
         "mcp",
         "mcp",
-        ManagerKind.RECORD,
+        ManagerKind.MCP,
         ImportKind.JSON,
-        ("llm.services.lifecycle.components", "ComponentData"),
+        ("llm.components.mcp.data", "MCPData"),
     )
     RAG = ComponentSpec(
         "rag",

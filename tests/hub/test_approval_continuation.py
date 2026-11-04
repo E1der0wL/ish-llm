@@ -91,7 +91,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.sessions[sid].run.wait_idle()
                 question = (await runtime.snapshot()).questions[0]
                 self.assertTrue(await runtime.answer_question(runtime.project.id, sid, question['run_id'],
-                    question['request'], 'deny', None))
+                    question['request'], 'deny', None, continue_execution=False))
                 self.assertEqual(len(provider.requests), 1)
                 self.assertFalse(Path(root, 'denied.txt').exists())
                 self.assertFalse((await runtime.snapshot()).questions)
@@ -135,13 +135,12 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(Path(root, 'answer.txt').exists())
                 self.assertEqual(len(provider.requests), 1)
                 pipe.send_bytes(b'\x0f')
-                await until(lambda: view._dialog is not None)
-                self.assertEqual(view._dialog.shortcut_context, 'reader')
+                await asyncio.sleep(.05)
+                self.assertIsNone(view._dialog)
                 self.assertFalse(Path(root, 'answer.txt').exists())
-                pipe.send_bytes(b'\x1b')
-                await until(lambda: view._dialog is None)
                 self.assertIs(app.layout.current_control, view.composer.control)
-                pipe.send_text('1\r\r')
+                self.assertLessEqual(view.question.details.window.render_info.window_height, 4)
+                pipe.send_text('1')
                 await until(lambda: view._last_snapshot.run.status == 'completed')
                 messages = view._last_snapshot.messages
                 self.assertIsNone(view.question.item)
@@ -211,7 +210,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 # Duplicate Enter cannot consume or submit the next draft.
                 view.bindings.submit(NS())
                 self.assertEqual(len(calls), 1)
-                calls[0][1].set_result(True)
+                calls[0][1].set_result({'saved': True, 'continue_requested': True, 'continued': True})
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, 'new draft while resume is slow')
                 view.apply_snapshot(waiting)

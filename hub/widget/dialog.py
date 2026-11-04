@@ -75,6 +75,10 @@ class PopupInput:
 class PopupBody(DynamicContainer):
     """Allocate all body space without letting a short widget shrink the border."""
 
+    def preferred_width(self, max_available_width):
+        natural = super().preferred_width(max_available_width)
+        return Dimension(min=natural.min, preferred=natural.preferred)
+
     def preferred_height(self, width, max_available_height):
         natural = super().preferred_height(width, max_available_height)
         return Dimension(min=natural.min, preferred=natural.preferred)

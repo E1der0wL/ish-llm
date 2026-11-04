@@ -392,9 +392,8 @@ class ToolExecutionScope:
             if self.parent is not ToolExecutionScope.ABSENT:
                 await self.parent.authorize(call, decision=decision, invocation=invocation)
             if decision is ToolApprovalRequired.DENIED:
-                raise ExecutionLimitError(
-                    RunErrorCode.TOOL_DENIED, ToolExecutionScope.DENIED.format(name=call.name)
-                )
+                from .tool_errors import ToolDeclined
+                raise ToolDeclined(ToolExecutionScope.DENIED.format(name=call.name))
             if self.parent is ToolExecutionScope.ABSENT:
                 # 기술적인 거부는 저장된 승인으로도 우회할 수 없다. ASK만 기존 결정을 소비한다.
                 if self.runtime.authorize is not ToolExecutionScope.ABSENT:
@@ -654,6 +653,7 @@ class ToolExecutor:
             metadata=ToolStepMetadata.started(metadata, arguments, ToolExecutionPhase.AUTHORIZING, call),
         )
         authorized = ToolExecutor.UNAUTHORIZED
+        feedback_error = None
         inbox = getattr(context, EngineContext.steering.__name__, None)
         control = inbox.control if inbox is not None and inbox.redirectable else None
         try:
@@ -844,6 +844,12 @@ class ToolExecutor:
                                     ToolExecutor.FAILED_NO_EFFECT_RECEIPT
                                 ) from persistence_error
                         retry_state.failed(error, uncertain_attempt, arguments)
+                        # Only a handler's confirmed no-effect failure may become
+                        # model feedback. Authorization, persistence and runtime
+                        # failures outside this boundary remain fatal.
+                        feedback_error = (error if isinstance(error, ToolExecutionError)
+                                          and error.effect == ToolExecutionError.NO_EFFECT
+                                          and not uncertain_attempt else None)
                         if scope.max_retries is not ToolExecutor.ABSENT:
                             event = self._retry_event(retry_state, metadata, request_key)
                             if event is not ToolExecutor.ABSENT:
@@ -877,6 +883,8 @@ class ToolExecutor:
                                 scope.runtime.decide_retry,
                             )
                         if selected is ToolExecutor.ABSENT:
+                            if isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT and uncertain_attempt:
+                                raise ToolExecutionError(str(error), effect=ToolExecutionError.UNCERTAIN_EFFECT) from error
                             raise
                         from llm.components.tools.constraints import constrained_arguments
 
@@ -998,6 +1006,19 @@ class ToolExecutor:
         except Exception as error:
             if isinstance(error, asyncio.TimeoutError):
                 error = ExecutionLimitError(RunErrorCode.TOOL_TIMEOUT, ToolExecutor.TIMED_OUT)
+            from .tool_errors import ToolDeclined
+            from llm.core.tool_event_result import ToolOutcome, ToolOutcomeStatus
+            if isinstance(error, ToolDeclined) and not authorized:
+                ToolEventResult(result).reject(ToolOutcome(
+                    ToolOutcomeStatus.DECLINED,
+                    Diagnostic(error.code, str(error), details={ToolExecutionError.EFFECT: ToolExecutionError.NO_EFFECT}),
+                    step_id,
+                ))
+                yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
+                                  diagnostic=ToolEventResult(result).outcome.diagnostic)
+                raise
+            if error is feedback_error:
+                ToolEventResult(result).reject(ToolOutcome(ToolOutcomeStatus.FAILED, error.diagnostic, step_id))
             yield BaseEngine.step_failed_event(
                 step_id,
                 error,

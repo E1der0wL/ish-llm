@@ -43,13 +43,6 @@ class ApprovalReview:
     PARAGRAPH_SEPARATOR = "\n\n"
     JSON_ASCII = False
     JSON_INDENT = 2
-    BACKTICK = "`"
-    FENCE_MINIMUM = 3
-    BACKTICK_RUN = r"`+"
-    NO_BACKTICKS = 0
-    FENCE_EXTRA = 1
-    JSON_LANGUAGE = "json"
-    LINE_SEPARATOR = "\n"
     ABSENT_RISK = None
     RISK_SEPARATOR = FIELD_SEPARATOR + " "
     SCORE_OPEN = " ("
@@ -68,7 +61,7 @@ class ApprovalReview:
         )
 
 
-def review_lines(request, t):
+def review_lines(request, t, *, include_risk=True):
     """Bounded, plain action details shared by the composer and Markdown review."""
     action = InteractionRequestObservation(request).required_action
     lines = [
@@ -91,15 +84,16 @@ def review_lines(request, t):
                 else ApprovalReview.EMPTY_TEXT
             )
         )
-    lines.append(
-        t(
-            MessageKey.APPROVAL_RISK,
-            value=risk_label(
-                InteractionRequestObservation(request).risk_scheme,
-                InteractionRequestObservation(request).risk,
-            ),
+    if include_risk:
+        lines.append(
+            t(
+                MessageKey.APPROVAL_RISK,
+                value=risk_label(
+                    InteractionRequestObservation(request).risk_scheme,
+                    InteractionRequestObservation(request).risk,
+                ),
+            )
         )
-    )
     from ..tools.advice import FIELD, MODEL_RISK_SCHEME, model_assessment
 
     assessment = model_assessment(request)
@@ -159,35 +153,27 @@ def review_lines(request, t):
 
 
 def review_text(request):
-    """Prepare the complete review payload before it reaches the UI thread."""
+    """Prepare complete, borderless approval details away from the UI thread."""
     import json
-    import re
 
-    if not InteractionRequestObservation(request).action:
-        return (
-            InteractionRequestObservation(request).title
-            + ApprovalReview.PARAGRAPH_SEPARATOR
-            + InteractionRequestObservation(request).description_or_empty
-        )
-    action = json.dumps(
-        InteractionRequestObservation(request).required_action,
-        ensure_ascii=ApprovalReview.JSON_ASCII,
-        indent=ApprovalReview.JSON_INDENT,
-    )
-    fence = ApprovalReview.BACKTICK * max(
-        ApprovalReview.FENCE_MINIMUM,
-        max(
-            (len(part) for part in re.findall(ApprovalReview.BACKTICK_RUN, action)),
-            default=ApprovalReview.NO_BACKTICKS,
-        )
-        + ApprovalReview.FENCE_EXTRA,
-    )
-    return (
-        InteractionRequestObservation(request).title
-        + ApprovalReview.PARAGRAPH_SEPARATOR
-        + InteractionRequestObservation(request).description_or_empty
-        + f"{ApprovalReview.PARAGRAPH_SEPARATOR}{fence}{ApprovalReview.JSON_LANGUAGE}{ApprovalReview.LINE_SEPARATOR}{action}{ApprovalReview.LINE_SEPARATOR}{fence}"
-    )
+    observed = InteractionRequestObservation(request)
+    parts = [observed.description_or_empty] if observed.description else []
+    from ..tools.advice import model_assessment, RiskAssessment
+    assessment = model_assessment(request)
+    if assessment:
+        parts.append(RiskAssessment.reason(assessment))
+    for name, value in (observed.action or {}).items():
+        if name == 'tool':  # The tool has its own heading outside the scroll area.
+            continue
+        if name == 'arguments' and isinstance(value, dict):
+            fields = value.items()
+        else:
+            fields = ((name, value),)
+        for field, detail in fields:
+            text = detail if isinstance(detail, str) else json.dumps(
+                detail, ensure_ascii=ApprovalReview.JSON_ASCII, indent=ApprovalReview.JSON_INDENT)
+            parts.append(f"{field}:\n{text}" if '\n' in text else f"{field}: {text}")
+    return ApprovalReview.PARAGRAPH_SEPARATOR.join(parts)
 
 
 def risk_label(scheme, risk):

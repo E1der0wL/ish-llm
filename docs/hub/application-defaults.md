@@ -146,8 +146,13 @@ dependency and creates `hub_tool_sources` through public ComponentData APIs.
 Memory owns source references, chunk cursors and summary persistence. A custom
 Tool-data destination is preserved and remains the user's responsibility. An
 explicit `compress_tools` preview mode is not combined with summary mode.
-The original result is preserved if summary processing fails or exhausts its
-budget. With summary mode and the `memory_tool_result` Tool selected, Hub replaces
+The original result is preserved when summary processing fails. Memory's explicit
+`failure_mode: continue` permits only pure model-response validation failures and
+retains FAILED Steps plus durable handling evidence. Storage/CAS, configuration,
+usage/execution limits, cancellation and unknown failures still propagate; Hub
+does not catch them to run reference fallback. Explicit compaction no longer
+implicitly selects continue. If backend processing returns normally, summary
+mode with the `memory_tool_result` Tool selected lets Hub replace
 an oversized remaining model-visible Tool body with its backend-issued Run/Step
 reference. The model can read bounded ranges instead of resending the full output
 or repeating the command. This is explicitly an incomplete summary; it does not

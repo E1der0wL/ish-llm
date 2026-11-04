@@ -1,6 +1,35 @@
 """The mutable ToolExecutor result channel shared with trusted event handlers."""
 
 from copy import deepcopy
+from dataclasses import dataclass
+from enum import StrEnum
+import json
+
+from llm.core.contracts import Diagnostic, JsonValue
+
+
+class ToolOutcomeStatus(StrEnum):
+    FAILED = "failed"
+    DECLINED = "declined"
+    NOT_EXECUTED = "not_executed"
+
+
+@dataclass(frozen=True, slots=True)
+class ToolOutcome(JsonValue):
+    """A terminal non-success result, not permission to retry or widen authority."""
+
+    status: str
+    diagnostic: Diagnostic
+    step_id: str | None
+
+    def __post_init__(self):
+        super(ToolOutcome, self).__post_init__()
+        if self.status not in ToolOutcomeStatus or not isinstance(self.diagnostic, Diagnostic):
+            raise ValueError("Invalid Tool outcome")
+        if self.step_id is not None and (not isinstance(self.step_id, str) or not self.step_id):
+            raise ValueError("Invalid Tool outcome Step")
+        if self.status != ToolOutcomeStatus.NOT_EXECUTED and self.step_id is None:
+            raise ValueError("Executed or declined outcomes require their Step")
 
 
 class ToolEventResult:
@@ -8,6 +37,7 @@ class ToolEventResult:
     CONTENT = "content"
     PAUSED = "paused"
     RETRY = "retry"
+    OUTCOME = "outcome"
     IS_PAUSED = True
 
     def __init__(self, target):
@@ -38,3 +68,13 @@ class ToolEventResult:
 
     def record_retry(self, retry):
         self._target[self.RETRY] = deepcopy(retry)
+
+    @property
+    def outcome(self):
+        value = self._target.get(self.OUTCOME)
+        return None if value is None else ToolOutcome.from_dict(value)
+
+    def reject(self, outcome: ToolOutcome):
+        value = outcome.to_dict()
+        self.complete(value, json.dumps(value, ensure_ascii=False, allow_nan=False))
+        self._target[self.OUTCOME] = value

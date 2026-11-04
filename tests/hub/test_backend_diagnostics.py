@@ -55,7 +55,9 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
                 engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 component_factories=(lambda: ExampleTools(handler),),
-                project_config={"policies": {"tool_retry": {"max_retries": 0}}}))
+                project_config={"policies": {"tool_retry": {"max_retries": 0}},
+                    "parameters": {"engines": {"loop": {"policy": {"tool_feedback": {
+                        "failure": False, "declined": False, "remaining_calls": "defer"}}}}}}))
             await runtime.start()
             try:
                 session = await runtime.project.sessions.acreate("diagnostic", agent_ids=sorted(await runtime.project.agents.alist()))

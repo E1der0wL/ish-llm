@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 import asyncio
 import json
 import tempfile
+import threading
 
 from llm.core.models import Message, RunStatus
 from llm.core.results import EngineOutput
@@ -68,18 +69,20 @@ class CardTests(TestCase):
             self.assertNotIn('\x1b', text)
 
     def test_question_same_card_pending_local_answer_and_stored_completion(self):
-        metadata = {'arguments': {'question': 'Which format?', 'description': 'Needed for export'}}
-        step = NS(name='ask_user', id='s', kind='tool', status='running', metadata=metadata)
-        pending, = tool_trace(display_steps([step]))
+        from hub.backend.interactions.question_values import QuestionTool
+        from hub.backend.execution.question_trace import QuestionTrace
+        request = QuestionTool.request({'question': 'Which format?', 'description': 'Needed for export'})
+        observation = NS(request=request, response=None, status='pending', can_respond=True)
+        pending, = QuestionTrace.project([observation])
         self.assertEqual((pending.kind, pending.status), (TraceItem.QUESTION, 'waiting_input'))
         before = ReasoningMessage.create('a', '', trace=(pending,))
-        feedback = AnswerFeedback((), None, 's', 'a', False, False, answer='Markdown')
+        feedback = AnswerFeedback((), None, pending.id, 'a', False, False, answer='Markdown')
         local, = project_answers([feedback], (before,))
         self.assertEqual(local.trace[0].status, 'answer_sending')
         self.assertIn((MessageKey.CARD_ANSWER, 'Markdown'), local.trace[0].details)
-        ExecutionObservations.store_output(metadata, EngineOutput(data={'answer': 'Markdown'}))
-        step.status = 'completed'
-        done, = tool_trace(display_steps([step]))
+        observation.response = request.respond('reply', value='Markdown')
+        observation.status, observation.can_respond = 'answered', False
+        done, = QuestionTrace.project([observation])
         self.assertEqual(done.id, pending.id)
         stored = replace(before, trace=(done,))
         self.assertIs(project_answers([feedback], (stored,))[0], stored)
@@ -114,11 +117,18 @@ class RoutingTests(IsolatedAsyncioTestCase):
         from llm.engines.loop import LoopEngine
         from tests.llm.test_loop import call
         from tests.hub.support import backend_ready
-        model = ScriptedCompletion([chunk(calls=[call('{"question":"Which target?"}', name='ask_user')],
-                                           finish='tool_calls')])
+        model = ScriptedCompletion([chunk(calls=[call('{"question":"Which target?"}', name='ask_user_async')],
+                                           finish='tool_calls')], [chunk('Done', finish='stop')])
+        entered, release = threading.Event(), threading.Event()
+        def provider(**kwargs):
+            if len(model.requests) == 1:
+                entered.set()
+                if not release.wait(30):
+                    raise TimeoutError('Graph question test gate')
+            return model(**kwargs)
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model='test/graph-child', auto_title=False,
-                engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}))
+                engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 graph = WorkflowGraph(entry='worker').node('worker', 'agent', agent='assistant').node('end', 'end').connect('worker', 'end')
@@ -127,12 +137,13 @@ class RoutingTests(IsolatedAsyncioTestCase):
                 sid = await runtime.new_session()
                 await runtime.invite_agent(runtime.project.id, sid, 'graph-room')
                 await runtime.submit(sid, 'Work, ask first', 'graph-room')
-                await backend_ready(lambda: bool(runtime.builtin_tools.questions.pending), 'Graph question')
+                self.assertTrue(await asyncio.to_thread(entered.wait, 15))
                 handle, = await runtime.sessions[sid].run.alist()
                 targets = [target for target in await handle.ainstruction_targets() if target.accepting]
                 definition = InstructionRouting.model_definition(await handle.aget_data(), await handle.steps.alist(), targets)
                 self.assertEqual(definition['completion']['model'], 'test/graph-child')
             finally:
+                release.set()
                 await runtime.close()
 
     async def test_language_guidance_is_transient_and_no_translation_call(self):

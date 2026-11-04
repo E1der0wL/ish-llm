@@ -154,15 +154,23 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_builtin_question_is_urgent_even_without_a_paused_run(self):
         from hub.backend.runtime import HubRuntime
+        from hub.backend.interactions.question_values import QuestionTool
+        from llm.engines.events import EngineEvent, EngineEventType
         runtime = HubRuntime.__new__(HubRuntime)
         runtime.plugins = None
-        runtime.builtin_tools = NS(questions=NS(pending={}))
+        runtime.backend = NS(engines=NS(get=Mock(return_value=None)))
+        runtime.snapshot_reader = Mock()
         runtime.notifications = Mock()
         runtime.dirty = asyncio.Event()
         runtime.urgent_observation = False
-        runtime._questions_changed()
+        run = NS(engine='loop')
+        request = QuestionTool.request({'question': 'Optional detail?'})
+        event = EngineEvent(EngineEventType.QUESTION_POSTED, step_id='c' * 32, interaction=request)
+        await runtime._engine_event(run, event)
         self.assertTrue(runtime.urgent_observation)
         self.assertTrue(runtime.dirty.is_set())
+        runtime.notifications.observe_question.assert_called_once_with(run, request)
+        runtime.snapshot_reader.observe_engine.assert_called_once_with(run, event)
 
     async def test_lifecycle_event_discards_old_frame_without_restarting_its_read(self):
         worker = BackendWorker.__new__(BackendWorker)

@@ -48,6 +48,7 @@ class LoopParameters:
     INPUT_POLICY = "input_policy"
     PROVIDER = "provider"
     FINAL_REVIEW = "final_review"
+    TOOL_FEEDBACK = "tool_feedback"
     INPUT_POLICY_PATH = "policy.completion"
     TIMEOUT_SUFFIX = "timeout"
     POSITIVE_MINIMUM = 0
@@ -62,6 +63,7 @@ class LoopParameters:
             MAX_OUTPUT_CHARS,
             PROVIDER,
             FINAL_REVIEW,
+            TOOL_FEEDBACK,
         ),
         paths={INPUT_POLICY: INPUT_POLICY_PATH},
     )
@@ -99,6 +101,10 @@ class LoopParameters:
     def final_review(self):
         return self._value.get(self.FINAL_REVIEW)
 
+    @property
+    def tool_feedback(self):
+        return self._value.get(self.TOOL_FEEDBACK)
+
     @classmethod
     def default_provider(cls, policy, value):
         policy.setdefault(cls.PROVIDER, value)
@@ -131,6 +137,7 @@ class LoopParameters:
             SchemaKeyword.TYPE: [SchemaType.OBJECT, SchemaType.NULL],
         }
         properties[cls.FINAL_REVIEW] = ReviewPolicy.schema()
+        properties[cls.TOOL_FEEDBACK] = ToolFeedbackPolicy.schema()
         for key in engine._option_names:
             if key != cls.BUFFER_SIZE:
                 properties[key][SchemaExtension.NARROWING] = SchemaNarrowing.MAXIMUM
@@ -156,6 +163,42 @@ class LoopPolicy:
     @property
     def final_review(self):
         return self._value.get(LoopParameters.FINAL_REVIEW)
+
+
+class ToolFeedbackPolicy:
+    """Loop strategy choices; absence does not install a continuation or retry policy."""
+
+    FAILURE = "failure"
+    DECLINED = "declined"
+    REMAINING = "remaining_calls"
+    DEFER = "defer"
+    CONTINUE = "continue"
+
+    @classmethod
+    def schema(cls):
+        return object_schema({cls.FAILURE: field(SchemaType.BOOLEAN), cls.DECLINED: field(SchemaType.BOOLEAN),
+                              cls.REMAINING: field(SchemaType.STRING, enum=[cls.DEFER, cls.CONTINUE])},
+                             allOf=[{"if": {"anyOf": [
+                                 {"required": [key], "properties": {key: {"const": True}}}
+                                 for key in (cls.FAILURE, cls.DECLINED)]},
+                                 "then": {"required": [cls.REMAINING]}}])
+
+    def __init__(self, value):
+        from jsonschema import Draft202012Validator
+        if value is not None:
+            Draft202012Validator(self.schema()).validate(value)
+        self._value = value
+
+    def allows(self, status):
+        from llm.core.tool_event_result import ToolOutcomeStatus
+        if status not in (ToolOutcomeStatus.FAILED, ToolOutcomeStatus.DECLINED):
+            return False
+        key = self.FAILURE if status == ToolOutcomeStatus.FAILED else self.DECLINED
+        return self._value is not None and self._value.get(key) is True
+
+    @property
+    def defer_remaining(self):
+        return self._value is not None and self._value.get(self.REMAINING) == self.DEFER
 
 
 class LoopAgentOptions:

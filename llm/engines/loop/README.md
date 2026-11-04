@@ -60,6 +60,15 @@ provider 설정과 서로 복사하지 않습니다. [Agent 모델 계약](../..
 
 ## 호출별 Tool 노출
 
+Tool 실패 후 모델의 판단을 이어가려면 `policy.tool_feedback`를 명시합니다.
+`failure=true`는 모든 시도에 효과가 없다고 확인된 Tool 실패,
+`declined=true`는 명시적 승인 거절 결과를 전달합니다. 활성화한 경우
+`remaining_calls`도 `defer` 또는 `continue`로 지정해야 합니다.
+미설정이면 기존 오류 전파를 유지하며 timeout·Host 기술적 거부·저장 오류·불확실한 효과는
+삼키지 않습니다. 실패 Step과 원본 진단을 보존하고 처리 영수증만 추가합니다.
+거절은 저장 후 명시적으로 재개해야 전달되며 Tool 실행 권한으로 바뀌지 않습니다.
+[설정·질문 API 예제](../../../docs/llm/tool-feedback.md).
+
 Agent/Run의 허용 목록과 **이번 모델 호출에 보여줄 목록**은 구분합니다. Application은
 `LoopEngine(tool_selector=...)`로 `ToolSelector`를 연결할 수 있습니다. 등록 Tool은 기존처럼
 먼저 로딩하며, 선택된 정의만 구성해서 provider에 전달합니다. 호출마다 새 Registry를 만들지 않습니다.

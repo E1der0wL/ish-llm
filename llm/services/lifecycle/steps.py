@@ -246,6 +246,22 @@ class StepEventRecorder:
         self.manager = manager
 
     def record(self, run: Run, event: EngineEvent) -> None:
+        from llm.core.step_failures import FailureHandling
+        from llm.services.infrastructure.storage import revision_token
+
+        if FailureHandling.METADATA in event.metadata:
+            raise ValueError("Failure handling requires its dedicated Engine event")
+        if event.type == EngineEventType.STEP_HANDLED:
+            step = self.manager.load(run, event.step_id)
+            if step.status != StepStatus.FAILED:
+                raise ValueError("Only a failed Step can be handled")
+            receipt = FailureHandling.receipt(event.checkpoint, revision_token)
+            prior = FailureHandling.read(step.metadata)
+            if prior is not None and prior != receipt:
+                raise ValueError("Failed Step already handled with different evidence")
+            step.metadata[FailureHandling.METADATA] = receipt.to_dict()
+            self.manager.save(step)
+            return
         from dataclasses import replace
         from llm.core.contracts import ResourceRef
 

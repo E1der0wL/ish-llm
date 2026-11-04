@@ -40,8 +40,14 @@ class ExampleTools(Component):
 
 class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
     async def runtime(self, root, provider, **kwargs):
+        # Isolate argument-repair policy from the separate model feedback path,
+        # whose Hub creation preset is covered in test_tool_feedback.
+        config = deepcopy(kwargs.pop('project_config', {}))
+        config.setdefault('parameters', {}).setdefault('engines', {}).setdefault('loop', {}).setdefault(
+            'policy', {})['tool_feedback'] = {'failure': False, 'declined': False, 'remaining_calls': 'defer'}
         runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-            engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}, **kwargs))
+            engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
+            project_config=config, **kwargs))
         await runtime.start()
         self.addAsyncCleanup(runtime.close)
         return runtime

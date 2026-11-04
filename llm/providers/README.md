@@ -67,6 +67,9 @@ SDK 내부의 동기 작업까지 강제 종료하는 기능은 아니다.
 | [observations.py](observations.py) | 어댑터가 제공한 ModelCall의 사용량 해석을 기존 실행 문맥과 연결합니다. |
 | [embeddings.py](embeddings.py) | 단일 입력 응답의 벡터 개수·차원·유한성·zero-vector 무결성 검사입니다. |
 | [mcp.py](mcp.py) | 선택적 MCP SDK의 stdio/Streamable HTTP 연결·발견·호출·취소입니다. Tool 실행 정책은 소유하지 않습니다. |
+| [mcp_session.py](mcp_session.py) | 명시적 연결 수명, 리소스 API와 진행 중 호출·질문의 취소입니다. |
+| [mcp_auth.py](mcp_auth.py) | 주입된 토큰 저장소·로그인 callback과 SDK OAuth를 연결합니다. |
+| [mcp_interactions.py](mcp_interactions.py) | 서버 질문을 공통 Interaction 요청/응답에 연결하며 폼·지문을 검증합니다. |
 
 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
 

@@ -24,6 +24,11 @@ approval_required와 Project 승인 정책을 사용하고, 승인 응답을 저
 효과는 uncertain입니다. stdio/HTTP 수명과 SDK 오류는 providers/mcp.py가 소유하며,
 공통 ToolExecutor가 Step·승인·retry·operation receipt를 계속 소유합니다.
 
+명시적 `async with mcp.connect(server_id)` 범위에서는 상태, resources/templates 조회·읽기와
+선택한 Tool 연결을 재사용할 수 있습니다. OAuth와 서버 질문은 Host가 handler를 주입했을
+때만 활성화됩니다. 자동 로그인 UI, 자료의 모델 주입, 재연결·재실행 정책은 없습니다.
+공개 API와 취소 제약은 [MCP 실행 계약](mcp-runtime.md)을 참고하세요.
+
 ## RAG 목록과 진행
 
 ```python

@@ -1,0 +1,274 @@
+"""Explicit MCP features do not choose application policy or authority."""
+
+import asyncio
+from contextlib import asynccontextmanager
+from pathlib import Path
+import sys
+import json
+import tempfile
+from types import SimpleNamespace
+import unittest
+from unittest.mock import AsyncMock, patch
+
+from llm.components.mcp import MCPComponent
+from llm.components.tools import ToolRegistry
+from llm.core.configuration import UNSET
+from llm.core.interactions import InteractionResponse
+from llm.llm import LargeLanguageModel
+from llm.providers.mcp import MCPConnector, MCPConnectionError
+from llm.providers.mcp_auth import MCPOAuth
+from llm.providers.mcp_interactions import MCPElicitation
+from llm.providers.mcp_session import MCPSession, MCPElicitationSession
+
+
+def reply(request, value):
+    return InteractionResponse(request.id, request.revision, "reply", request.fingerprint, value=value)
+
+
+class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
+    async def test_real_sdk_resources_and_live_elicitation_share_connection(self):
+        requests = []
+        async def answer(request):
+            requests.append(request)
+            return reply(request, {"action": "accept", "content": {"name": "Ada"}})
+        with open("/dev/null", "w") as errlog:
+            connector = MCPConnector(elicitation=answer, errlog=errlog)
+            definition = {"transport": "stdio", "command": sys.executable,
+                "args": [str(Path(__file__).parent / "support/mcp_capability_server.py")]}
+            async with connector(definition) as client:
+                connection_id = client.get_status()["connection_id"]
+                self.assertEqual(client.get_status()["instructions"], "Untrusted server instructions")
+                resources = await client.list_resources()
+                self.assertEqual(resources["resources"][0]["uri"], "fixture://document")
+                templates = await client.list_templates()
+                self.assertEqual(templates["resourceTemplates"][0]["uriTemplate"], "fixture://item/{name}")
+                contents = await client.read_resource("fixture://document")
+                self.assertEqual(contents["contents"][0]["text"], "Resource body")
+                self.assertTrue(client.get("ask").contract.approval_required)
+                # Transport test only; Application/Engine uses ToolExecutor.
+                result = await client.get("ask").handler({})
+                self.assertEqual(json.loads(result["content"][0]["text"]), {"action": "accept", "name": "Ada"})
+                self.assertEqual(len(requests), 1)
+                self.assertEqual(requests[0].source["connection_id"], connection_id)
+            with self.assertRaisesRegex(ValueError, "closed"):
+                await client.get("ask").handler({})
+
+    async def test_timeout_missing_null_and_explicit_are_distinct_sdk_kwargs(self):
+        import httpx2
+        received = []
+
+        @asynccontextmanager
+        async def http_client(**kwargs):
+            received.append(("http", kwargs))
+            yield object()
+
+        @asynccontextmanager
+        async def transport(url, **kwargs):
+            yield (object(), object())
+
+        @asynccontextmanager
+        async def session(*streams, **kwargs):
+            received.append(("session", kwargs))
+            yield SimpleNamespace(initialize=AsyncMock(return_value=SimpleNamespace(
+                model_dump=lambda **kw: {"capabilities": {}})))
+
+        with patch("mcp.shared._httpx_utils.create_mcp_http_client", http_client), \
+             patch("mcp.client.streamable_http.streamable_http_client", transport), \
+             patch("mcp.ClientSession", session):
+            for value in (UNSET, None, 7):
+                received.clear()
+                connector = MCPConnector(**({} if value is UNSET else {"timeout_seconds": value}))
+                async with connector({"transport": "streamable_http", "url": "http://localhost/mcp"}) as client:
+                    self.assertEqual(client.names(), ())
+                options, sdk = received[0][1], received[1][1]
+                if value is UNSET:
+                    self.assertNotIn("timeout", options)
+                    self.assertNotIn("read_timeout_seconds", sdk)
+                else:
+                    self.assertEqual(options["timeout"], httpx2.Timeout(value))
+                    self.assertEqual(sdk["read_timeout_seconds"], value)
+                self.assertNotIn("elicitation_callback", sdk)
+
+    async def test_live_session_resources_native_paging_and_cancellation(self):
+        initialized = SimpleNamespace(model_dump=lambda **kw: {
+            "protocolVersion": "test", "capabilities": {"resources": {}},
+            "serverInfo": {"name": "fixture", "version": "1"}, "instructions": "untrusted"})
+        result = SimpleNamespace(model_dump=lambda **kw: {"resources": [], "nextCursor": "next"})
+        sdk = SimpleNamespace(list_resources=AsyncMock(return_value=result),
+            list_resource_templates=AsyncMock(return_value=result), read_resource=AsyncMock(return_value=result))
+        client = MCPSession(MCPConnector(), sdk, initialized, connection_id="test")
+        self.assertEqual(client.get_status()["instructions"], "untrusted")
+        await client.list_resources()
+        sdk.list_resources.assert_awaited_once_with()
+        await client.list_resources(cursor="next")
+        self.assertEqual(sdk.list_resources.call_args.kwargs["params"].cursor, "next")
+        await client.list_templates()
+        await client.read_resource("data://document")
+        sdk.read_resource.assert_awaited_once_with("data://document")
+        entered = asyncio.Event()
+        async def blocked(uri):
+            entered.set()
+            await asyncio.Event().wait()
+        sdk.read_resource.side_effect = blocked
+        pending = asyncio.create_task(client.read_resource("data://slow"))
+        await asyncio.wait_for(entered.wait(), 5)
+        await client.close()
+        with self.assertRaises(asyncio.CancelledError):
+            await pending
+        self.assertEqual(client.get_status()["state"], "closed")
+        with self.assertRaisesRegex(ValueError, "closed"):
+            await client.read_resource("data://document")
+
+    async def test_component_scope_reuses_connection_and_rejects_changed_definition(self):
+        connections = []
+        class Client(ToolRegistry):
+            def get_status(self):
+                return {"state": "connected", "instructions": "not injected"}
+            async def list_resources(self, *, cursor=UNSET):
+                return {"resources": [{"uri": "data://one"}]}
+            async def read_resource(self, uri):
+                return {"contents": [{"uri": uri, "text": "data"}]}
+        @asynccontextmanager
+        async def connector(definition):
+            connections.append("open")
+            try:
+                yield Client()
+            finally:
+                connections.append("close")
+        with tempfile.TemporaryDirectory() as root:
+            app = LargeLanguageModel(Path(root), components=[MCPComponent(connector=connector)])
+            try:
+                project = await app.projects.acreate(components=["mcp"])
+                data = project.components.mcp
+                await data.acreate({"transport": "stdio", "command": "fixture"}, identifier="server")
+                async with data.connect("server") as access:
+                    self.assertEqual((await access.aget_status())["state"], "connected")
+                    self.assertEqual((await access.alist_resources())["resources"][0]["uri"], "data://one")
+                    self.assertEqual((await access.aread_resource("data://one"))["contents"][0]["text"], "data")
+                    await access.aprepare()
+                    self.assertEqual((await access.aget_tools({})).names(), ())
+                    self.assertEqual(connections, ["open"])
+                    await data.aupdate("server", {"command": "changed"})
+                    with self.assertRaisesRegex(ValueError, "changed"):
+                        await access.aread_resource("data://one")
+                self.assertEqual(connections, ["open", "close"])
+                with self.assertRaisesRegex(ValueError, "closed"):
+                    await access.aget_status()
+            finally:
+                await app.shutdown()
+
+    async def test_plain_tool_connector_remains_valid_but_optional_operations_fail(self):
+        from llm.components.mcp.client import MCPClientOperation
+        registry = ToolRegistry()
+        with self.assertRaisesRegex(ValueError, "support"):
+            MCPClientOperation.require(registry, MCPClientOperation.RESOURCES)
+
+    async def test_elicitation_form_decline_cancel_validation_and_binding(self):
+        from mcp.types import ElicitRequestFormParams
+        params = ElicitRequestFormParams.model_validate({"mode": "form", "message": "Choose",
+            "requestedSchema": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}})
+        request = MCPElicitation.request(params, connection_id="c", request_id=3)
+        self.assertEqual(MCPElicitation.response(request, reply(request, {"action": "accept", "content": {"name": "yes"}})),
+                         {"action": "accept", "content": {"name": "yes"}})
+        for action in ("decline", "cancel"):
+            self.assertEqual(MCPElicitation.response(request, reply(request, {"action": action})), {"action": action})
+        for value in ({"action": "accept", "content": {}}, {"action": "accept", "content": {"name": 3}},
+                      {"action": "decline", "content": {"name": "x"}}, {"action": "approve"}):
+            with self.assertRaises(ValueError):
+                MCPElicitation.response(request, reply(request, value))
+        other = MCPElicitation.request(params, connection_id="new", request_id=3)
+        with self.assertRaisesRegex(ValueError, "changed"):
+            MCPElicitation.response(other, reply(request, {"action": "cancel"}))
+
+    async def test_elicitation_scope_close_cancels_waiter_and_rejects_late_reply(self):
+        from mcp.types import ElicitRequestFormParams
+        params = ElicitRequestFormParams.model_validate({"message": "Question", "requestedSchema": {"type": "object", "properties": {}}})
+        entered = asyncio.Event()
+        async def handler(request):
+            entered.set()
+            await asyncio.Event().wait()
+        client = MCPElicitationSession(handler)
+        task = asyncio.create_task(client(SimpleNamespace(request_id=1), params))
+        await asyncio.wait_for(entered.wait(), 5)
+        await client.close()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertFalse(client.pending)
+        with self.assertRaisesRegex(ValueError, "closed"):
+            await client(SimpleNamespace(request_id=1), params)
+
+    async def test_oauth_uses_injected_storage_and_sdk_native_options(self):
+        storage = SimpleNamespace(**{name: AsyncMock(return_value=None) for name in MCPOAuth.STORAGE_METHODS})
+        redirect, callback = AsyncMock(), AsyncMock()
+        oauth = MCPOAuth(server_url="https://server.example/mcp", client_metadata={"redirect_uris": ["http://localhost/callback"]},
+            storage=storage, redirect_handler=redirect, callback_handler=callback)
+        with patch("mcp.client.auth.OAuthClientProvider") as provider:
+            oauth.create_auth("https://server.example/mcp")
+        values = provider.call_args.kwargs
+        self.assertIs(values["storage"], storage)
+        self.assertIs(values["redirect_handler"], redirect)
+        self.assertIs(values["callback_handler"], callback)
+        self.assertNotIn("client_metadata_url", values)
+        redirect.assert_not_called()
+        callback.assert_not_called()
+        for name in MCPOAuth.STORAGE_METHODS:
+            getattr(storage, name).assert_not_called()
+        with self.assertRaisesRegex(ValueError, "another server"):
+            oauth.create_auth("https://other.example/mcp")
+
+    async def test_real_sdk_oauth_uses_host_stored_token_without_login_or_backend_storage(self):
+        import httpx2
+        from mcp.shared.auth import OAuthToken
+        storage = SimpleNamespace(**{name: AsyncMock(return_value=None) for name in MCPOAuth.STORAGE_METHODS})
+        storage.get_tokens.return_value = OAuthToken(access_token="fixture-token", token_type="Bearer")
+        redirect, callback = AsyncMock(), AsyncMock()
+        oauth = MCPOAuth(server_url="https://server.example/mcp",
+            client_metadata={"redirect_uris": ["http://localhost/callback"]}, storage=storage,
+            redirect_handler=redirect, callback_handler=callback)
+        received = []
+        def endpoint(request):
+            received.append(request.headers.get("authorization"))
+            return httpx2.Response(200, json={})
+        async with httpx2.AsyncClient(auth=oauth.create_auth("https://server.example/mcp"),
+                transport=httpx2.MockTransport(endpoint)) as client:
+            await client.get("https://server.example/mcp")
+        self.assertEqual(received, ["Bearer fixture-token"])
+        redirect.assert_not_called()
+        callback.assert_not_called()
+        storage.set_tokens.assert_not_called()
+
+    async def test_url_elicitation_is_data_only_and_cannot_reuse_another_request(self):
+        from mcp.types import ElicitRequestURLParams
+        params = ElicitRequestURLParams.model_validate({"mode": "url", "message": "Sign in",
+            "url": "https://example.test/login", "elicitationId": "remote"})
+        request = MCPElicitation.request(params, connection_id="a", request_id=1)
+        self.assertEqual(request.action["url"], "https://example.test/login")
+        self.assertEqual(MCPElicitation.response(request, reply(request, {"action": "cancel"})), {"action": "cancel"})
+
+    async def test_close_rejects_answer_even_if_handler_suppresses_cancellation(self):
+        from mcp.types import ElicitRequestFormParams
+        params = ElicitRequestFormParams.model_validate({"message": "Question", "requestedSchema": {"type": "object", "properties": {}}})
+        entered = asyncio.Event()
+        async def handler(request):
+            entered.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                return reply(request, {"action": "accept", "content": {}})
+        client = MCPElicitationSession(handler)
+        task = asyncio.create_task(client(SimpleNamespace(request_id=1), params))
+        await asyncio.wait_for(entered.wait(), 5)
+        await client.close()
+        with self.assertRaisesRegex(ValueError, "no longer active"):
+            await task
+
+    async def test_connection_diagnostic_keeps_status_without_credentials(self):
+        for status, code in ((401, "mcp_authentication_required"), (403, "mcp_access_denied"), (500, "mcp_connection_failed")):
+            error = RuntimeError("Authorization: secret")
+            error.status_code = status
+            result = MCPConnectionError("initialize", error)
+            self.assertEqual(result.code, code)
+            self.assertEqual(result.diagnostic.details["http_status"], status)
+            self.assertNotIn("secret", str(result.diagnostic))
+            wrapped = MCPConnectionError("initialize", ExceptionGroup("SDK", [error]))
+            self.assertEqual(wrapped.code, code)

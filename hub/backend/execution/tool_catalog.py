@@ -74,7 +74,7 @@ class ToolCatalog:
     DERIVED_TAGS = frozenset((*EFFECT_TAGS.values(), ToolTag.APPROVAL))
     GENERIC_OWNERS = frozenset((ToolTag.BUILTIN, ToolTag.TOOL, ToolTag.MCP))
     GROUPS = MappingProxyType({
-        ToolTag.QUESTION: (QuestionTool.NAME,),
+        ToolTag.QUESTION: (QuestionTool.NAME, QuestionTool.NONBLOCKING_NAME),
         ToolTag.SHELL: (ShellArguments.NAME,),
         ToolTag.RAG: (*tuple(RAGToolName), RAGAuthoring.NAME),
         ToolTag.FILE: (*tuple(declaration.NAME for declaration in FileTools.ARGUMENTS), RepoMapArguments.NAME),

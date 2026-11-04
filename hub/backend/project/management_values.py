@@ -22,6 +22,11 @@ class ManagementAction(StrEnum):
     TOGGLE = "toggle"
 
 
+class MCPOperation(StrEnum):
+    DISCOVER = "mcp_discover"
+    SELECT = "mcp_select"
+
+
 class ManagementOperation:
     EMPTY_ARGUMENT = ""
     ABSENT = None

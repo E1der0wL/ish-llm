@@ -1,8 +1,9 @@
 """The ask_user Tool definition, invocation arguments and answer boundary."""
 
 from copy import deepcopy
-from dataclasses import dataclass
-from llm.core.interactions import InteractionRequest
+from llm.core.interactions import InteractionOption, InteractionRequest
+from llm.core.questions import QuestionMode
+from llm.components.tools import QuestionHandler
 from llm.core.schema import SchemaKeyword, SchemaType, SchemaBoolean
 from llm.core.tool_contracts import ToolContract, ToolEffect, ToolIsolation
 from ...model import QuestionSource
@@ -52,11 +53,16 @@ class QuestionArguments:
 class QuestionTool:
     NAME = "ask_user"
     DESCRIPTION = (
-        "Ask the user a necessary question and wait for their answer, then continue the SAME task. "
-        "Use this instead of ending a response with a question when work needs user input. "
+        "Ask a necessary question that blocks further work. Execution pauses durably; "
+        "the application saves the user's answer and explicitly resumes from the checkpoint. "
         "Choices are optional suggestions; free-text answers are always accepted."
     )
-    REVISION = "1"
+    NONBLOCKING_NAME = "ask_user_async"
+    NONBLOCKING_DESCRIPTION = (
+        "Post a durable question without pausing. Continue only work independent of the answer. "
+        "The user chooses when and where to deliver their answer; never assume a suggested answer."
+    )
+    REVISION = "2"
     REPLY_ID = "reply"
     REPLY_LABEL = "Reply"
     CATEGORY = "hub.question"
@@ -65,14 +71,14 @@ class QuestionTool:
     OPERATION_KEY_REQUIRED = False
 
     @classmethod
-    def create(cls, handler):
+    def create(cls, *, mode=QuestionMode.BLOCKING):
         from llm.components.tools import Tool
 
         return Tool(
-            cls.NAME,
-            cls.DESCRIPTION,
+            cls.NAME if mode == QuestionMode.BLOCKING else cls.NONBLOCKING_NAME,
+            cls.DESCRIPTION if mode == QuestionMode.BLOCKING else cls.NONBLOCKING_DESCRIPTION,
             QuestionArguments.schema(),
-            handler,
+            QuestionHandler(cls.request, mode=mode, revision=cls.REVISION),
             contract=ToolContract(
                 revision=cls.REVISION,
                 effect=ToolEffect.READ_ONLY,
@@ -84,17 +90,24 @@ class QuestionTool:
         )
 
     @classmethod
+    def tools(cls):
+        return tuple(cls.create(mode=mode) for mode in QuestionMode)
+
+    @classmethod
+    def request(cls, values):
+        arguments = QuestionArguments(values)
+        return InteractionRequest(
+            arguments.question,
+            (InteractionOption(cls.REPLY_ID, cls.REPLY_LABEL),),
+            kind=InteractionRequest.KIND_INPUT, category=cls.CATEGORY,
+            description=arguments.description, input_schema=cls.input_schema(),
+            source=cls.source(arguments),
+        )
+
+    @classmethod
     def input_schema(cls):
         return deepcopy(cls.INPUT_SCHEMA)
 
     @classmethod
     def source(cls, arguments, step_id=""):
         return QuestionSource.create(arguments.suggestions, step_id)
-
-
-@dataclass(frozen=True, slots=True)
-class QuestionReply:
-    answer: object
-
-    def to_record(self):
-        return {type(self).answer.__name__: self.answer}

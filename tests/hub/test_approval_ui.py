@@ -66,10 +66,13 @@ class ApprovalUITests(IsolatedAsyncioTestCase):
     async def test_number_key_for_range_opens_review_without_granting_permission(self):
         self.question()
         await self.keyboard()
-        self.pipe.send_text('3')
+        self.pipe.send_text('2')
         await eventually(lambda: isinstance(self.view._dialog, ApprovalSelectionDialog))
         self.view.on_answer.assert_not_called()
-        self.assertEqual(self.view._dialog.match, ApprovalMatch.COMMAND_RANGE)
+        self.assertEqual(self.view._dialog.match, ApprovalMatch.EXACT)
+        self.pipe.send_text('\x1b[B')
+        await eventually(lambda: self.view._dialog.match == ApprovalMatch.COMMAND_RANGE)
+        self.view.on_answer.assert_not_called()
 
     async def test_extra_approval_input_and_questions_keep_enter_submission(self):
         request = replace(approval_request('Review', action=action()), input_schema={'type': 'string'})
@@ -118,11 +121,13 @@ class ApprovalUITests(IsolatedAsyncioTestCase):
 
     async def test_range_cancel_and_stale_question_never_send_approval(self):
         self.question()
-        popup = self.choose(3)
+        popup = self.choose(2)
+        popup.matching.current_value = ApprovalMatch.COMMAND_RANGE
         self.assertEqual(popup.prefixes.text, 'git status\nhead')
         popup._buttons[1].handler()
         self.view.on_answer.assert_not_called()
-        popup = self.choose(3)
+        popup = self.choose(2)
+        popup.matching.current_value = ApprovalMatch.COMMAND_RANGE
         self.question(command='git log')
         popup.confirm()
         self.view.on_answer.assert_not_called()
@@ -130,7 +135,8 @@ class ApprovalUITests(IsolatedAsyncioTestCase):
 
     async def test_range_rejects_nonmatching_prefix_without_closing_then_applies_valid_prefix(self):
         self.question()
-        popup = self.choose(3)
+        popup = self.choose(2)
+        popup.matching.current_value = ApprovalMatch.COMMAND_RANGE
         popup.prefixes.text = 'git log\nhead'
         popup.confirm()
         self.assertIs(self.view._dialog, popup)
@@ -147,7 +153,7 @@ class ApprovalUITests(IsolatedAsyncioTestCase):
         self.assertIsNone(self.view._dialog)
         self.assertEqual(self.view.on_answer.call_args.args[1], 'approve')
         self.assertEqual(len(self.view.on_answer.call_args.args), 3)
-        self.choose(4)
+        self.choose(3)
         self.assertEqual(self.view.on_answer.call_args.args[1], 'deny')
 
     async def test_manager_has_no_refresh_button_and_keeps_parent_open(self):

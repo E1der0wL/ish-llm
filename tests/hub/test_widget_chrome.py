@@ -103,7 +103,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn(view.t("input_hint"), hint)
                 self.assertEqual(content.data_buffer[rect.ypos + rect.height][rect.xpos - 1].char, "│")
                 self.assertEqual(content.data_buffer[rect.ypos + rect.height + 1][rect.xpos - 1].char, "└")
-                self.assertFalse(view.question.container.filter())
+                self.assertEqual(view.question.container.preferred_height(132, 40).preferred, 0)
                 pipe.send_text("\x1b")
                 await eventually(lambda: app.layout.current_control == view._session_control)
                 self.assertTrue({"c", "d", "e", "r", "Ctrl+←→", "Tab/Shift+Tab", "Space/Enter/→"} <= keys().keys())

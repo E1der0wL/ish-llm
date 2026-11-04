@@ -2,7 +2,6 @@
 
 from llm.core.models import RunStatus
 from collections import deque
-from collections.abc import Mapping
 from typing import Any
 
 from ...model import SessionNotification, QuestionPresentation
@@ -22,7 +21,6 @@ class NotificationBuffer:
     def __init__(self) -> None:
         self._sessions: dict[str, tuple[str, str]] = {}
         self._runs: dict[str, tuple[str, str] | None] = {}
-        self._live_questions: set[str] = set()
         self._items: deque[SessionNotification] = deque(maxlen=self.MAX_ITEMS)
         self._keys: deque[tuple[str, str]] = deque(maxlen=self.MAX_KEYS)
         self._sequence = self.FIRST_SEQUENCE
@@ -80,19 +78,12 @@ class NotificationBuffer:
             waiting_status((item,)),
         )
 
-    def observe_questions(self, pending: Mapping[str, Any]) -> None:
-        for identifier, item in pending.items():
-            if identifier not in self._live_questions:
-                _, title = self._sessions.get(
-                    item.session_id, (item.project_id, item.session_id)
-                )
-                self.record_question(
-                    item.project_id,
-                    item.session_id,
-                    title,
-                    QuestionPresentation.request_only(item.request),
-                )
-        self._live_questions = set(pending)
+    def observe_question(self, run, request):
+        identity = self._sessions.get(run.session_id)
+        if identity is not None:
+            project_id, title = identity
+            self.record_question(project_id, run.session_id, title,
+                                 QuestionPresentation.nonblocking_request(run.id, request))
 
     def observe_session(
         self,

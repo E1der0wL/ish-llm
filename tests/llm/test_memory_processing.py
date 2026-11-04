@@ -134,7 +134,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=lambda **kwargs: iter(answer('{"summary":"too long"}')))
         view = await self.memory.aget_context(self.session.id)
         await self.memory.arequest_compaction(self.session.id,
-            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 1, "prompt": "summarize", "completion": {"model": "test"}},
+            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 1, "prompt": "summarize", "completion": {"model": "test"}, "failure_mode": "continue"},
             expected_revision=view["revision"])
         run, model = await self.run_loop()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
@@ -556,16 +556,117 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         payload = json.loads(self.aux.requests[-1]["messages"][1]["content"])
         self.assertEqual(payload["existing"][0]["generation"], old["generation"])
 
-    async def test_aux_failure_continue_keeps_answer_and_records_fallback_step(self):
+    async def test_aux_failure_continue_keeps_answer_and_failed_step(self):
         await self.configure(extract=True, failure_mode="continue")
         self.aux.candidates = [{"content": ""}]
         run, _ = await self.run_loop()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await run.aresponse()).content, "done")
         step = next(s for s in await run.steps.alist() if s.name == "Memory extract")
-        self.assertEqual(str(step.status), "completed")
-        self.assertTrue(step.metadata["degraded"])
+        self.assertEqual(str(step.status), "failed")
+        self.assertEqual(step.diagnostic.code, "model_response_invalid")
+        self.assertIn("handled_failure", step.metadata)
         self.assertEqual(await self.memory.alist(session_id=self.session.id), {})
+
+    async def test_continue_never_swallows_limits_storage_or_unknown_errors(self):
+        from unittest.mock import patch
+        from llm.components.memory.processing import MemorySession
+        from llm.policies import ExecutionLimitError
+        for error in (ExecutionLimitError('usage_limit', 'limit'), OSError('disk full'), RuntimeError('bug')):
+            with self.subTest(error=type(error).__name__):
+                await self.configure(extract=True, failure_mode='continue')
+                async def broken(*args):
+                    raise error
+                    yield
+                with patch.object(MemorySession, '_extract', broken):
+                    run, _ = await self.run_loop()
+                self.assertEqual(run.data.status, RunStatus.FAILED)
+                step = next(s for s in await run.steps.alist() if s.name == 'Memory extract')
+                self.assertEqual(str(step.status), 'failed')
+                self.assertNotIn('handled_failure', step.metadata)
+
+    async def test_compaction_failure_without_continue_fails_and_preserves_sources(self):
+        await self.configure()
+        await self.build_history()
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=lambda **kwargs: iter(answer('{"summary":"too long"}')))
+        view = await self.memory.aget_context(self.session.id)
+        await self.memory.arequest_compaction(self.session.id, {
+            'method': 'summary', 'keep_turns': 0, 'model_input_chars': 10000,
+            'max_summary_calls': 10, 'summary_chars': 1, 'prompt': 'summarize', 'completion': {'model': 'test'}},
+            expected_revision=view['revision'])
+        run, model = await self.run_loop()
+        self.assertEqual(run.data.status, RunStatus.FAILED)
+        self.assertEqual(model.requests, [])
+        self.assertEqual((await self.memory.aget_context(self.session.id))['request']['status'], 'failed')
+
+    async def test_handling_storage_failure_blocks_main_call(self):
+        from unittest.mock import patch
+        await self.configure()
+        await self.build_history()
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=lambda **kwargs: iter(answer('{"summary":"too long"}')))
+        view = await self.memory.aget_context(self.session.id)
+        await self.memory.arequest_compaction(self.session.id, {
+            'method': 'summary', 'keep_turns': 0, 'model_input_chars': 10000,
+            'max_summary_calls': 10, 'summary_chars': 1, 'prompt': 'summarize',
+            'completion': {'model': 'test'}, 'failure_mode': 'continue'}, expected_revision=view['revision'])
+        original = self.app.step_manager.save
+        def save(step):
+            if 'handled_failure' in step.metadata:
+                raise OSError('disk full')
+            return original(step)
+        with patch.object(self.app.step_manager, 'save', side_effect=save):
+            run, model = await self.run_loop()
+        self.assertEqual(run.data.status, RunStatus.FAILED)
+        self.assertEqual(model.requests, [])
+        steps = [s for s in await run.steps.alist() if str(s.status) == 'failed']
+        self.assertTrue(steps)
+        self.assertTrue(all('handled_failure' not in s.metadata for s in steps))
+
+    async def test_handled_memory_failure_survives_explicit_resume_without_repeating_summary(self):
+        await self.configure()
+        await self.build_history()
+        auxiliary = []
+        def invalid_summary(**request):
+            auxiliary.append(request)
+            yield from answer('{"summary":"too long"}')
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=invalid_summary)
+        view = await self.memory.aget_context(self.session.id)
+        await self.memory.arequest_compaction(self.session.id, {
+            'method': 'summary', 'keep_turns': 0, 'model_input_chars': 10000,
+            'max_summary_calls': 10, 'summary_chars': 1, 'prompt': 'summarize',
+            'completion': {'model': 'test'}, 'failure_mode': 'continue'}, expected_revision=view['revision'])
+        model = ScriptedCompletion([ConnectionError('after handled Memory failure')], answer('resumed'))
+        failed, _ = await self.run_loop(model=model)
+        self.assertEqual(failed.data.status, RunStatus.FAILED)
+        done, = await (await self.session.run.resume(failed.id, agent_id='loop' + str(self.serial - 1))).wait(timeout=20)
+        self.assertEqual(done.data.status, RunStatus.COMPLETED, done.data.error)
+        self.assertEqual(len(auxiliary), 1)
+        self.assertEqual(len(model.requests), 2)
+        step = next(s for s in await failed.steps.alist() if 'handled_failure' in s.metadata)
+        self.assertEqual(str(step.status), 'failed')
+
+    async def test_graph_agent_failed_memory_step_has_nested_handling_checkpoint(self):
+        self.app.project_manager.components.register(WorkflowComponent())
+        await self.project.components.aselect(['memory', 'prompts', 'workflows'])
+        await self.configure(extract=True, nested_processing=True, failure_mode='continue')
+        self.aux.candidates = [{'content': '', 'references': []}]
+        model = ScriptedCompletion(answer())
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
+        self.app.engines.register('loop', worker)
+        await self.project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/model'}}, identifier='reader')
+        graph = (WorkflowGraph(entry='read', inputs={'request': '/prompt'})
+            .node('read', 'agent', agent='reader', inputs={'request': '/request'})
+            .node('end', 'end').connect('read', 'end'))
+        await self.project.components.workflows.acreate(graph.to_dict(), identifier='g')
+        self.app.engines.register('graph', GraphEngine(handlers={'agent': AgentNode(engines={'loop': worker})}))
+        await self.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'g'}}, identifier='graph')
+        await self.session.asave(agent_ids=['graph'])
+        run, = await (await self.session.run.submit('work', recipients=['graph'])).wait(timeout=20)
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        step = next(s for s in await run.steps.alist() if s.name == 'Memory extract')
+        self.assertEqual(str(step.status), 'failed')
+        self.assertIn('handled_failure', step.metadata)
+        self.assertNotEqual(step.metadata['handled_failure']['checkpoint'], 'loop')
 
     async def test_scope_and_configuration_checked_after_model_preparation(self):
         snapshot = await self.memory._async_call(self.memory._processing_snapshot, self.session.id)

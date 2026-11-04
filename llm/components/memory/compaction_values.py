@@ -37,6 +37,7 @@ class CompactionOptions:
         COMPLETION = MemoryProcessingConfig.Field.COMPLETION
         PROVIDER = MemoryProcessingConfig.Field.PROVIDER
         TIMEOUT_SECONDS = MemoryProcessingConfig.Field.TIMEOUT_SECONDS
+        FAILURE_MODE = MemoryProcessingConfig.Field.FAILURE_MODE
 
     REQUIRED = (Field.METHOD, Field.KEEP_TURNS, Field.SUMMARY_CHARS, Field.MODEL_INPUT_CHARS,
                 Field.MAX_SUMMARY_CALLS, Field.PROMPT, Field.COMPLETION)
@@ -59,6 +60,7 @@ class CompactionOptions:
             cls.Field.PROMPT: field(SchemaType.STRING, minLength=cls.MINIMUM_PROMPT_LENGTH),
             cls.Field.COMPLETION: adapter.describe_config(), cls.Field.PROVIDER: provider_schema(),
             cls.Field.TIMEOUT_SECONDS: field(SchemaType.NUMBER, exclusiveMinimum=cls.MINIMUM_TIMEOUT_EXCLUSIVE),
+            cls.Field.FAILURE_MODE: field(SchemaType.STRING, enum=list(MemoryProcessingConfig.FAILURE_MODES)),
         }, required=list(cls.REQUIRED))
 
     @classmethod

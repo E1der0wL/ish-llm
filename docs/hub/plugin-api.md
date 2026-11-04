@@ -71,7 +71,7 @@ request = await agents.submit(
 async for batch in request.events():
     for item in batch["outputs"]:
         render_output(item)  # Caller owns rendering, not Hub's Home widgets.
-    render_status(batch["runs"], batch["live_questions"])
+    render_status(batch["runs"])  # Each Run has interactions and durable questions.
 ```
 
 Admission returns only after the backend durably accepts QUEUED. Caller-supplied
@@ -113,10 +113,17 @@ committed after all Runs complete.
   automatically, and failed plans never fall back to restart.
 - `request.cancel_interaction(run_id, request_dict)` cancels an individual
   interaction, not a remembered permission rule or the whole request.
-- Hub's existing `ask_user` Tool is a live question, exposed separately through
-  `live_questions`. `request.answer_live(run_id, request_dict, option_id, value)`
-  continues the waiting Tool. It does not require a new Run/resume. Unlike durable
-  interactions, these live waits do not survive backend shutdown.
+- `ask_user` is a durable blocking question: use the interaction response/explicit
+  resume sequence above. `ask_user_async` posts a nonblocking question. Read these
+  from each Run's `questions` field or `request.questions(run_id)` after completion.
+  `request.answer_question(run_id, response_dict)` saves only. Explicitly use
+  `request.deliver_answer(source_run_id, question_id, mode="steer",
+  target_run_id=..., targets=[...])` or `mode="submit", recipients=[...]` afterwards.
+  `request.question_targets(run_id)` returns native targets; never infer Graph nodes.
+  `request.get_delivery(run_id, question_id)` confirms intake, not application.
+  `request.cancel_question(run_id, question_dict)` cancels unanswered questions.
+  Native revision/idempotency and Session ownership checks remain authoritative.
+  The old `answer_live`/`live_questions` Future-specific interface is removed.
 
 Hidden sessions do not bypass approval. The calling plugin must present pending
 questions/approvals and supply explicit user actions, or leave them pending.

@@ -33,7 +33,8 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(str((await run.aresult()).status), "completed")
                 self.assertEqual(provider.requests[0]["model"], "test/host")
                 self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'policy': {'provider': provider_defaults()}}})
+                                 {"loop": {'policy': {'provider': provider_defaults(),
+                                     'tool_feedback': HubDefaults.TOOL_FEEDBACK}}})
             finally:
                 await runtime.close()
 
@@ -55,7 +56,9 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.sessions[session.id].run.wait_idle()
                 self.assertEqual(provider.requests[0]["model"], "test/session")
                 self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
+                                 {"writer": {'policy': {'tool_feedback': HubDefaults.TOOL_FEEDBACK}},
+                                  "loop": {'policy': {'provider': provider_defaults(),
+                                     'tool_feedback': HubDefaults.TOOL_FEEDBACK, 'final_review': HubDefaults.FINAL_REVIEW}}})
             finally:
                 await runtime.close()
 
@@ -90,7 +93,8 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(await app.projects.alist(), [])
                 project = await select_or_create(app, config)
                 self.assertEqual((await project.aget_data()).config.parameters["engines"],
-                                 {"loop": {'policy': {'provider': provider_defaults(), 'final_review': HubDefaults.FINAL_REVIEW}}})
+                                 {"loop": {'policy': {'provider': provider_defaults(),
+                                     'tool_feedback': HubDefaults.TOOL_FEEDBACK, 'final_review': HubDefaults.FINAL_REVIEW}}})
                 self.assertEqual(await project.sessions.alist(), [])
 
     async def test_cancelled_lock_wait_does_not_create_and_future_start_works(self):

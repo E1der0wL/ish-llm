@@ -136,12 +136,16 @@ class ToolContinuationTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(history(snapshot), tools)
                     item = snapshot.questions[0]
                     await runtime.answer_question(runtime.project.id, sid, item["run_id"], item["request"], "approve", None)
-                await until(lambda: bool(runtime.builtin_tools.questions.pending))
+                await runtime.sessions[sid].run.wait_idle()
                 snapshot = await runtime.snapshot()
                 tools = history(snapshot)
                 self.assertEqual([s.name for s in tools], [*expected, "ask_user"])
-                self.assertEqual([s.status for s in tools], ["completed"] * 5 + ["running"])
-                self.assertEqual(Counter(executed), Counter([*expected, "ask_user"]))
+                # The native question checkpoint pauses its container Step;
+                # the separate question observation supplies "waiting_input".
+                self.assertEqual([s.status for s in tools], ["completed"] * 5 + ["cancelled"])
+                self.assertEqual(snapshot.status, "waiting_input")
+                # Questions use their resumable event handler, not BuiltinToolRunner.
+                self.assertEqual(Counter(executed), Counter(expected))
                 self.assertEqual(Path(root, "effects.txt").read_text(), "host\nhost\n")
                 sandbox = config.workspace / ".hub/test-workspaces" / runtime.project.id / workspace_id / "files/receipt.txt"
                 self.assertEqual(sandbox.read_text(), "sandbox\n")

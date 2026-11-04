@@ -1,114 +1,62 @@
-"""Hub-owned live questions; the Tool invocation stays active until answered."""
+"""Public question observations and explicit answer delivery; llm owns durability."""
 
-import asyncio
-from dataclasses import dataclass
+import json
 
-from llm.core.interactions import InteractionOption, InteractionRequest
-from llm.services.runtime.tools import current_tool_call
+from llm.core.interactions import InteractionRequest, InteractionStatus
 from ...model import QuestionPresentation, SessionSummary
-from .question_values import QuestionArguments, QuestionTool, QuestionReply
 
 
 async def pending_requests(handle):
-    """Read unanswered input through public APIs under one ownership scope.
+    return tuple(view.request for view in await handle.ainteraction_views()
+                 if view.status == InteractionStatus.PENDING and view.response is None)
 
-    A durable response no longer needs an input form, even while its resume
-    request is queued. Unanswered requests still use the backend's lifecycle,
-    expiry and cancellation checks; this observation never authorizes execution.
-    """
-    def read():
-        with handle.app.project_manager.ownership.scope():
-            requests = handle.interactions()
-            if not requests:
-                return ()
-            answered = {response.request_id for response in handle.interaction_responses()}
-            if all(request.id in answered for request in requests):
-                return ()
-            return tuple(handle.interactions(pending_only=True))
 
-    return await asyncio.to_thread(read)
+def blocking_questions(questions):
+    return tuple(item for item in questions if not QuestionPresentation.observe(item).nonblocking)
 
 
 def waiting_status(questions):
-    return (
-        SessionSummary.WAITING_APPROVAL
-        if any(
-            QuestionPresentation.observe(item).request.kind
-            == InteractionRequest.KIND_APPROVAL
-            for item in questions
-        )
-        else SessionSummary.WAITING_INPUT
-    )
+    return (SessionSummary.WAITING_APPROVAL if any(
+        QuestionPresentation.observe(item).request.kind == InteractionRequest.KIND_APPROVAL
+        for item in questions) else SessionSummary.WAITING_INPUT)
 
 
-@dataclass(slots=True)
-class WaitingQuestion:
-    project_id: str
-    session_id: str
-    run_id: str
-    request: InteractionRequest
-    result: asyncio.Future
+class QuestionAnswers:
+    """No queues, Future-based answers, approval decisions or retry engine here."""
 
+    @staticmethod
+    async def observe(run):
+        result = []
+        for view in await run.aquestions():
+            delivery = await run.get_delivery(view.request.id) if view.response else None
+            result.append(QuestionPresentation.nonblocking_request(
+                run.id, view.request, response=view.response,
+                delivery=delivery.to_dict() if delivery is not None else None, status=view.status))
+        return tuple(result)
 
-class QuestionBroker:
-    NO_CALL = None
-    NO_PENDING = None
-    ACTIVE_RUN_REQUIRED = "ask_user requires an active Run"
-    NOT_WAITING = "Question is no longer waiting"
-    ALREADY_ANSWERED = "Question already answered"
+    @staticmethod
+    async def save(run, request, option_id, value):
+        return await run.aanswer_question(request.respond(option_id, value=value))
 
-    def __init__(self):
-        self.pending = {}
-        self.changed = lambda: None
-
-    async def ask(self, arguments):
-        call = current_tool_call()
-        if call is self.NO_CALL or not call.session_id:
-            raise RuntimeError(self.ACTIVE_RUN_REQUIRED)
-        values = QuestionArguments(arguments)
-        request = InteractionRequest(
-            values.question,
-            (InteractionOption(QuestionTool.REPLY_ID, QuestionTool.REPLY_LABEL),),
-            kind=InteractionRequest.KIND_INPUT,
-            category=QuestionTool.CATEGORY,
-            description=values.description,
-            input_schema=QuestionTool.input_schema(),
-            source=QuestionTool.source(values, call.step_id),
-        )
-        future = asyncio.get_running_loop().create_future()
-        self.pending[request.id] = WaitingQuestion(
-            call.project_id, call.session_id, call.run_id, request, future
-        )
-        self.changed()
-        try:
-            return QuestionReply(await future).to_record()
-        finally:
-            self.pending.pop(request.id, self.NO_PENDING)
-            self.changed()
-
-    def views(self, project_id, session_id):
-        return tuple(
-            QuestionPresentation.live_request(item.run_id, item.request)
-            for item in self.pending.values()
-            if (item.project_id, item.session_id) == (project_id, session_id)
-        )
-
-    def answer(self, project_id, session_id, run_id, request, option_id, value):
-        item = self.pending.get(request.id)
-        if item is self.NO_PENDING or (
-            item.project_id,
-            item.session_id,
-            item.run_id,
-        ) != (project_id, session_id, run_id):
-            raise ValueError(self.NOT_WAITING)
-        if item.result.done():
-            raise ValueError(self.ALREADY_ANSWERED)
-        response = request.respond(option_id, value=value)
-        answer = response.decision(item.request)
-        item.result.set_result(answer)
-        self.pending.pop(request.id, self.NO_PENDING)
-        self.changed()
-
-    def close(self):
-        for item in tuple(self.pending.values()):
-            item.result.cancel()
+    @staticmethod
+    async def deliver(run, request_id, *, mode, run_id=None, targets=None, recipients=None):
+        views = await run.aquestions()
+        view = next(item for item in views if item.request.id == request_id)
+        if view.response is None:
+            raise ValueError('Save the answer before delivering it')
+        # Stable application text binds repeated clicks to the same native receipt.
+        answer = view.response.decision(view.request)
+        text = '\n'.join((view.request.title, view.request.description or '',
+                          answer if isinstance(answer, str) else json.dumps(answer, ensure_ascii=False)))
+        if mode == 'steer':
+            await run.deliver_answer(request_id, text, mode=mode, run_id=run_id, targets=targets)
+        elif mode == 'submit':
+            await run.deliver_answer(request_id, text, mode=mode, recipients=recipients)
+        else:
+            raise ValueError('Choose an explicit answer delivery mode')
+        # The two routes return different handle types. The shared persisted
+        # receipt is their public observation contract, never a fabricated ack.
+        receipt = await run.get_delivery(request_id)
+        if receipt is None:
+            raise ValueError('Answer delivery receipt is unavailable; reload the question')
+        return receipt

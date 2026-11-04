@@ -20,7 +20,8 @@ def render_trace_item(item, width, theme, language, *, resources=None):
     segment_style = resources.style if resources is not None else _segment_style
     if item.kind == TraceItem.SUMMARY:
         label = OutputHeader(language(MessageKey.CONTEXT_SUMMARIZING),
-                             language.status(item.status)).render()
+                             language.status(item.status),
+                             (language(MessageKey.CONTEXT_FAILURE_HANDLED),) if item.handled_failure else ()).render()
         rows = console.render_lines(
             Text(label), console.options, pad=TranscriptLayout.PAD
         )

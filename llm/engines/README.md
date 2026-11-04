@@ -216,6 +216,12 @@ MemoryConflictError, ProviderCapacityError, ExecutionLimitError, RunRequestError
 ToolExecutionError가 이 계약을 사용합니다. 알려지지 않은 실패는 `engine_failed`입니다.
 RunRequestError는 요청 거절용이므로 공급자 오류를 이 클래스로 변환하지 않습니다.
 
+Engine이 실패를 자신의 결과로 처리하려면 `STEP_HANDLED(step_id=..., checkpoint=...)`로
+처리 증거를 전달합니다. 대상 Step은 FAILED를 유지하고 서비스가 체크포인트 record의
+identity/revision을 저장합니다. 미처리 실패·미완료 Step은 여전히 Run 완료를 막습니다.
+이 이벤트는 재시도·효과 없음·승인을 선언하지 않습니다. 해당 판단은 기존 subsystem이
+소유합니다. Loop의 opt-in 적용과 비차단 질문 API는 [결과 처리 계약](../../docs/llm/tool-feedback.md)을 따릅니다.
+
 ```python
 from llm.errors import CodedError
 

@@ -2,16 +2,15 @@
 from hub.ui.output.worker import RenderSlot
 
 
-from hub.locales.keys import MessageKey
-
 from copy import copy
 from prompt_toolkit.filters import Always
 
-from rich.console import Group
 from rich.text import Text
 
 from ..output.text_viewport import TextViewport
-from ...backend.interactions.approval import review_lines, risk_label, ApprovalReview
+from ..controls import ScrollbarMargin
+from prompt_toolkit.layout.margins import ConditionalMargin
+from prompt_toolkit.filters import Condition
 from ...model import QuestionPresentation
 from llm.core.interactions import InteractionRequestObservation
 from ...ui.output.markdown import HubMarkdown, make_console, _segment_style
@@ -31,7 +30,6 @@ class QuestionCard(TextViewport):
     MINIMUM_WIDTH = 1
     HORIZONTAL_INSET = 2
     MINIMUM_HEIGHT = 1
-    CODE_STYLE = "{foreground} on {background}"
     EMPHASIS_STYLE = "bold {color}"
     TEXT_OVERFLOW = "fold"
     PAD_RENDER = False
@@ -41,10 +39,13 @@ class QuestionCard(TextViewport):
         super().__init__(
             self.EMPTY_TEXT, tail=self.FOLLOW_TAIL, render_slot=self.RENDER_SLOT
         )
-        self.window.right_margins = []
+        self.window.right_margins = [ConditionalMargin(
+            ScrollbarMargin(display_arrows=True),
+            Condition(lambda: bool(question.item and question.observation.request.action)),
+        )]
         self.window.dont_extend_height = Always()
 
-    def set_request(self, text):
+    def set_request(self, text, *, reset_scroll=True):
         """Never show a previous approval while the next card is rendering."""
         if self._resize_timer:
             self._resize_timer.cancel()
@@ -53,21 +54,25 @@ class QuestionCard(TextViewport):
             self.render_worker.cancel(self.render_slot)
         self.text = text
         self._requested_key = self._render_key = self.NO_RENDER
-        self.top_line = self.left_column = 0
+        if reset_scroll:
+            self.top_line = self.left_column = 0
         # Immediate bounded fallback belongs to the new request. Rich wrapping
         # and Markdown parsing still happen on the shared render worker.
+        request = self.question.observation.request if self.question.item else None
+        styled = [(text[:self.MAX_CHARACTERS],
+                   self.question.view.theme.muted if request and request.action else self.EMPTY_STYLE)]
+        rows = [(line, style) for content, style in styled
+                for line in content.splitlines()][:self.MAX_LINES]
         self._apply_rows(
             self._prepare_rows(
                 tuple(
                     (
                         (
-                            self.EMPTY_STYLE,
+                            style,
                             self.INDENT + line[: self.MAX_LINE_CHARACTERS],
                         ),
                     )
-                    for line in text[: self.MAX_CHARACTERS].splitlines()[
-                        : self.MAX_LINES
-                    ]
+                    for line, style in rows
                 )
                 or (((self.EMPTY_STYLE, self.EMPTY_TEXT),),)
             )
@@ -83,38 +88,14 @@ class QuestionCard(TextViewport):
             else InteractionRequestObservation({})
         )
         identity = self.question.identity
+        text = self.text
 
         def build():
             console = make_console(
                 max(self.MINIMUM_WIDTH, width - self.HORIZONTAL_INSET), theme
             )
             if request.action:
-                lines = review_lines(request.to_record(), language)
-                risk = language(
-                    MessageKey.APPROVAL_RISK,
-                    value=risk_label(request.risk_scheme, request.risk),
-                )
-                parts = []
-                for line in lines:
-                    target = ApprovalReview.target_line(line)
-                    style = (
-                        self.CODE_STYLE.format(
-                            foreground=theme.code_foreground,
-                            background=theme.code_background,
-                        )
-                        if target
-                        else (
-                            self.EMPHASIS_STYLE.format(color=theme.notice)
-                            if line == risk
-                            else (
-                                self.EMPHASIS_STYLE.format(color=theme.accent)
-                                if line == lines[0]
-                                else theme.muted
-                            )
-                        )
-                    )
-                    parts.append(Text(line, style=style, overflow=self.TEXT_OVERFLOW))
-                body = Group(*parts)
+                body = Text(text, style=theme.muted, overflow=self.TEXT_OVERFLOW)
             else:
                 body = HubMarkdown(
                     request.title_or_empty
@@ -138,7 +119,7 @@ class QuestionCard(TextViewport):
                 for row in rows
             ) or (((self.EMPTY_STYLE, self.EMPTY_TEXT),),)
 
-        return (width, theme, identity, language.code, id(language.messages)), build
+        return (width, theme, identity, id(text), language.code, id(language.messages)), build
 
     def preferred_height(
         self, width, max_available_height, wrap_lines, get_line_prefix

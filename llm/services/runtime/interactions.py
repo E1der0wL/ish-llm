@@ -16,6 +16,7 @@ from llm.core.checkpoint_records import CheckpointInteractions, CheckpointStep
 from llm.core.models import RunStatus, Run
 from llm.services.infrastructure.storage import atomic_json, child, read_json, tree_snapshot
 from .interaction_records import InteractionRecord, InteractionControl, InteractionStorage, RetryInteraction
+from llm.core.questions import QuestionPublication, QuestionView
 
 
 class InteractionRepository:
@@ -79,6 +80,58 @@ class InteractionRepository:
         atomic_json(path, value.to_dict())
         if self._envelopes is not self.NO_READ_SCOPE:
             self._envelopes.pop(path, self.NO_CACHED_CONTROL)
+
+    def _question_path(self, run, request_id):
+        root = self._root(run) / 'questions'
+        if root.is_symlink():
+            raise ValueError(self.LINKED_PATH)
+        path = child(root, request_id).with_suffix('.json')
+        if path.is_symlink():
+            raise ValueError(self.LINKED_PATH)
+        return path
+
+    def question(self, run, request_id):
+        if request_id not in QuestionPublication.identifiers(run.metadata):
+            raise ValueError('Question is absent from the Run publication manifest')
+        value = QuestionPublication.from_dict(read_json(self._question_path(run, request_id)))
+        if value.run_id != run.id or value.parsed_request.id != request_id:
+            raise ValueError(self.BACKUP_OWNERSHIP)
+        self.control(run, value.parsed_request)
+        return value
+
+    def questions(self, run):
+        root = self._root(run) / 'questions'
+        if root.is_symlink():
+            raise ValueError(self.LINKED_PATH)
+        identifiers = QuestionPublication.identifiers(run.metadata)
+        paths = {path.stem for path in root.glob('*.json')}
+        if paths != set(identifiers):
+            raise ValueError('Question publication files differ from the Run manifest')
+        return [self.question(run, identifier) for identifier in identifiers]
+
+    def post_question(self, run, step_id, request):
+        value = QuestionPublication(run.id, step_id, request.to_dict())
+        path = self._question_path(run, request.id)
+        if path.exists():
+            if self.question(run, request.id) != value:
+                raise ValueError('Question publication identity changed')
+            return
+        self.initialize(run, request)
+        atomic_json(path, value.to_dict())
+        run.metadata[QuestionPublication.METADATA] = [*QuestionPublication.identifiers(run.metadata), request.id]
+
+    def question_views(self, run):
+        views = []
+        for publication in self.questions(run):
+            request = publication.parsed_request
+            control = self.control(run, request)
+            response = control.response_for(request) if control.has_response else None
+            status = (InteractionView.CANCELLED if control.cancelled else
+                      InteractionView.ANSWERED if response is not None else
+                      InteractionView.EXPIRED if request.expired else InteractionView.PENDING)
+            views.append(QuestionView(request, response, status, status == InteractionView.PENDING, False,
+                                      source_run_id=publication.run_id, source_step_id=publication.step_id))
+        return views
 
     def initialize(self, run, request):
         """Only request publication creates pending state; reads never create it."""
@@ -361,7 +414,8 @@ class InteractionRepository:
                     response,
                     status,
                     status == InteractionView.PENDING,
-                    status == InteractionView.ANSWERED,
+                    status == InteractionView.ANSWERED or
+                    status == InteractionView.DENIED and request.checkpoint_binding.resume_on_denial,
                     reason,
                     resumed_run.id if resumed_run else self.NO_RESUME,
                     (
@@ -393,3 +447,4 @@ class InteractionRepository:
                 if request.id not in records:
                     raise ValueError(self.MISSING_RENEWAL)
                 records[request.id].validate_request(request)
+        self.questions(run)

@@ -20,7 +20,6 @@ from ..config.preference_records import PreferenceSnapshot
 from ..config.sections import PreferenceSection
 from ..config.notifications import NotificationKind
 from .input.keys import KeyName, ShortcutAction, ShortcutLabel
-from llm.core.interactions import InteractionRequestObservation
 from ..model import (
     HubSnapshot,
     SubmissionResult,
@@ -244,7 +243,6 @@ class LiveController:
     DIAGNOSTIC_BATCH = 64
     DIAGNOSTIC_CACHE = 256
     SAVE_DEBOUNCE = 0.25
-    MARKDOWN_APPROVAL = True
     SINGLE_TARGET = 1
     UNTITLED = ""
     CANCEL_NOTICE_DELAY = 5
@@ -321,8 +319,9 @@ class LiveController:
         self.view.on_hide = self.hide
         self.view.on_submit = self.submit
         self.view.on_answer = self.answer_question
+        self.view.on_question_action = self.question_action
         self.view.on_manage_approvals = self.manage_approvals
-        self.view.on_review = self.review_approval
+        self.view.on_approval_details = self.approval_details
         self.view.on_select = self.select
         self.view.on_new = self.new_session
         self.view.on_delete = self.delete_session
@@ -754,34 +753,8 @@ class LiveController:
             args = (*args, draft.request_key)
         self._call(operation, session_id, *args, completed=accepted)
 
-    def review_approval(self, request):
-        view = self.view
-        identity = view.question.identity
-
-        def ready(text):
-            if (
-                text is LiveController.ABSENT
-                or identity != view.question.identity
-                or view._dialog is not LiveController.ABSENT
-                or not view.visible
-            ):
-                return
-            from ..widget.output.reader import ReadOnlyDialog
-
-            popup = ReadOnlyDialog(
-                InteractionRequestObservation(request).title,
-                text,
-                view._rows,
-                view._columns,
-                view.dialogs.close,
-                view.t,
-                markdown=LiveController.MARKDOWN_APPROVAL,
-                theme=lambda: view.theme,
-                render_worker=view.render_worker,
-            )
-            view.dialogs.show(popup, popup.receiver)
-
-        self._call(HubRuntime.approval_details.__name__, request, completed=ready)
+    def approval_details(self, request, completed):
+        self._call(HubRuntime.approval_details.__name__, request, completed=completed)
 
     def manage_approvals(self, project_id, action, payload, completed):
         from ..backend.interactions.approval_management import ApprovalAction
@@ -805,7 +778,11 @@ class LiveController:
         if not self.view.settings_open and page is not None and not page.dirty:
             screen.drafts.pages.pop(project_id)
 
-    def answer_question(self, item, option_id, value, remember_selection=None):
+    def question_action(self, project_id, session_id, operation, payload, completed):
+        self._call(HubRuntime.question_action.__name__, project_id, session_id,
+                   operation, payload, completed=completed)
+
+    def answer_question(self, item, option_id, value, remember_selection=None, *, continue_execution=True):
         question = self.view.question
         if question.busy:
             return
@@ -819,6 +796,8 @@ class LiveController:
 
         def answered(result):
             question.finish_answer(response, bool(result))
+            if result and result.get('continue_requested') and not result.get('continued'):
+                self.view.notice = self.view.t(MessageKey.ANSWER_SAVED_PAUSED)
             if remember_selection is not None and response.acknowledged:
                 self.invalidate_approval_settings(SessionIdentity(identity).project_id)
 
@@ -831,6 +810,7 @@ class LiveController:
             option_id,
             value,
             remember_selection,
+            continue_execution,
             completed=answered,
             acknowledged=acknowledged,
         )
