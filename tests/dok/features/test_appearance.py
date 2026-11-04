@@ -57,9 +57,25 @@ class AppearanceTests(unittest.TestCase):
         self.assertEqual(config.widgets.shortcuts.shortcut(1).style.color, '#aabbcc')
         self.assertEqual(
             DockConfig().widgets.visualizer.style.colors,
-            (DockPalette.ACCENT, '#c084fc', '#fb7185')
+            (DockPalette.ACCENT,)
         )
         self.assertEqual(Shortcut(1, 'git').style.color, DockPalette.ACCENT)
+
+    def test_omitted_colors_stay_solid_while_new_file_uses_gradient(self):
+        for data in ({}, {'widgets': {'visualizer': {}}},
+                     {'widgets': {'visualizer': {'style': {}}}}):
+            with self.subTest(data=data):
+                style = DockConfig.from_dict(data).widgets.visualizer.style
+                self.assertEqual(style.palette(5), (DockPalette.ACCENT,) * 5)
+                self.assertEqual(style.schema()['properties']['colors']['default'], list(style.colors))
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConfigStore(Path(directory) / 'config.jsonc')
+            initial = store.load_or_create()
+            style = initial.widgets.visualizer.style
+            self.assertEqual(style.colors, (DockPalette.ACCENT, '#c084fc', '#fb7185'))
+            self.assertEqual(style.palette(3), style.colors)
+            self.assertEqual(store.load(), initial)
+            self.assertEqual(DockConfig().widgets.visualizer.style.colors, (DockPalette.ACCENT,))
 
     def test_length_validation_and_default_are_shared_with_schema(self):
         config = VisualizerConfig()

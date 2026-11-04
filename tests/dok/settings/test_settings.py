@@ -28,6 +28,7 @@ class SettingsTests(unittest.TestCase):
         schema = DockConfig.schema()
         jsonschema.Draft202012Validator.check_schema(schema)
         jsonschema.validate(DockConfig().to_dict(), schema)
+        jsonschema.validate(DockConfig.initial().to_dict(), schema)
         self.assertEqual(
             schema['properties']['dock']['properties']['keys']['properties']['toggle']['default'],
             DockConfig().dock.keys.toggle.to_list()
@@ -38,7 +39,8 @@ class SettingsTests(unittest.TestCase):
             DockConfig().to_dict()['widgets']['shortcuts']['items']
         )
         self.assertEqual(DockConfig.from_dict({}), DockConfig())
-        self.assertEqual(len(DockConfig().widgets.shortcuts.items), Shortcut.COUNT)
+        self.assertEqual(DockConfig().widgets.shortcuts.items, ())
+        self.assertEqual(len(DockConfig.initial().widgets.shortcuts.items), Shortcut.COUNT)
         self.assertEqual(
             DockConfig.from_dict({'widgets': {'shortcuts': {'items': []}}}).widgets.shortcuts.items,
             ()

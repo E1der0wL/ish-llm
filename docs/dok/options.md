@@ -54,7 +54,7 @@
 }
 ```
 
-`items`를 지정하면 기본 목록 전체를 대체한다. `items: []`는 빈 숫자 슬롯만 표시한다. 생략한 슬롯도 빈 숫자로 표시한다. 모든 항목에는 `type`을 명시한다. 바로가기는 `shortcut`, 구분선은 `separator`다. `icon`은 이모지·Nerd Font 문자를 모두 받을 수 있다. 버튼과 구분선의 표시 문자열은 `text`를 사용한다.
+`items`의 기본값은 빈 배열이다. 생략하거나 `items: []`로 지정하면 빈 숫자 슬롯만 표시한다. 파일이 없어서 새로 생성할 때만 초기 예시 10개가 파일에 명시된다. 기존 파일에는 예시를 자동 추가하지 않는다. 모든 항목에는 `type`을 명시한다. 바로가기는 `shortcut`, 구분선은 `separator`다. `icon`은 이모지·Nerd Font 문자를 모두 받을 수 있다. 버튼과 구분선의 표시 문자열은 `text`를 사용한다.
 
 위치 기본값은 `widgets.weather.location: null`이다. 이때 설정된 시간대의 오늘부터 요일을 유지하고, 온도는 `--° --°`, 아이콘은 `icons.unknown`(기본 `?`)으로 표시한다. 최저 온도의 `--°`에도 `style.low_temperature_color`가 적용된다. 날씨 단위는 `temperature_unit`, 아이콘 가로 이동은 `icon_offset_columns`, 연결 실패 문구는 `texts.unavailable`로 지정한다. 사용하지 않는 `texts.location_missing` 설정은 제거했다.
 

@@ -41,14 +41,7 @@ def install(prompt, *, config_path: str | Path | None = None) -> DockController:
     controller = DockController(prompt, store)
     controller.attach()
     setattr(prompt, DockController.INSTALLATION_ATTRIBUTE, controller)
-    if controller.reload() and not store.path.exists():
-        try:
-            if not store.create(controller.config):
-                controller.reload()
-        except OSError as exc:
-            logger = getattr(prompt, "logger", None)
-            if logger is not None:
-                logger.warning("dok default settings could not be saved: %s", exc)
+    controller.reload()
     return controller
 
 

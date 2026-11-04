@@ -273,7 +273,7 @@
         // Horizontal cells between entries. Reduced when space is limited.
         "item_gap_columns": 2
       },
-      // Shortcut and separator entries. [] leaves all numbered slots empty.
+      // Shortcut and separator entries. Omitted or [] leaves all numbered slots empty.
       "items": [
         {
           // Shortcut slot number. Must be unique across all entries.

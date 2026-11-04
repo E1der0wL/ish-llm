@@ -256,3 +256,11 @@ Linux Python 3.12.14 스냅샷에서 dok 테스트 **120개 통과**(22.229초).
 Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **129개 통과**(16.717초). 기존 120개에 작업 생성 거부 정리, 호스트 취소 후 명시적 재시작, 최종 종료, 느린 정리 중 빠른 설정 변경·토글, 조회 중 표시 설정 변경, 시계·날씨 독립 재시작, 오디오 캡처 정리 검증을 추가했다. [실행 로그](../../tests/dok/reports/dok-asnbzpba/dok.txt), [소스 해시](../../tests/dok/reports/dok-asnbzpba/snapshot.json).
 
 리팩터링 전 커밋 `1805d525979589f0793539c07fc2d8b8f99a3113`의 dok를 별도 디렉터리와 프로세스에서 실행하여 **60가지 화면 조건**의 문자열·스타일·좌표·폭·공간별 표시 모드가 동일함을 확인했다. 공개 루트 내보내기·생성자 및 컨트롤러 메서드 시그니처, 전체 기본값·schema·생성 JSONC도 동일하다. [비교 결과](../../tests/dok/reports/foundation-20261104/comparison.json). ish 본체와 hub/llm은 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다. 개인 설정을 변경하거나 배포·커밋하지 않았다.
+
+## 누락 설정 생성과 초기 예시 분리 (2026-11-04)
+
+런타임의 생략된 설정은 빈 숫자 바로가기 슬롯과 청록 단색 비주얼라이저다. `ShortcutsConfig.initial()`과 `VisualizerStyle.initial()`이 새 파일에 넣는 예시를 소유하고 `DockConfig.initial()`이 조합한다. 초기 JSONC에는 요청된 9개 명령과 구분선, 청록·보라·분홍 그라데이션을 명시한다. schema의 누락 필드 기본값에는 초기 예시를 넣지 않는다.
+
+설치·재설치·재로드는 `ConfigStore.load_or_create()`를 공유하여 `config.jsonc`가 없으면 원자적으로 생성하고 실제 파일을 읽어 적용한다. 동시에 다른 파일이 생성되면 그 내용을 사용하며, 기존 빈 설정·부분 설정·잘못된 파일을 덮어쓰지 않는다. 생성 실패 시 실행 중 설정을 보존한다. 읽기 전용 `load()`의 기존 계약은 유지한다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **135개 통과**(16.574초). 파일 삭제 후 재설치·재로드, 동시 생성, 쓰기 실패와 재시도, 빈 슬롯 렌더링, 기본 단색과 초기 그라데이션의 schema·저장·로드를 검증했다. [실행 로그](../../tests/dok/reports/dok-95gkkp5a/dok.txt), [소스 해시](../../tests/dok/reports/dok-95gkkp5a/snapshot.json). 초기 JSONC와 현재 문서 예시 9개도 Owner 및 schema로 검증했다. ish 본체와 개인 설정은 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.

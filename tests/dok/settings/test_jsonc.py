@@ -15,6 +15,93 @@ from tests.dok.support import HostPrompt
 
 class JsoncTests(unittest.TestCase):
 
+    def test_missing_file_creation_uses_examples_without_changing_empty_defaults(self):
+        from dok import Separator, Shortcut
+        from dok.features.audio.models import AudioSnapshot
+        from dok.features.media.models import PlaybackSnapshot
+        from dok.features.shortcuts.view import ShortcutView
+        from dok.rendering.presentation import RenderContext
+
+        defaults = DockConfig()
+        self.assertEqual(defaults.widgets.shortcuts.items, ())
+        rendered = ShortcutView(defaults).render(RenderContext(PlaybackSnapshot(), AudioSnapshot(), '', 80))
+        self.assertEqual(''.join(part[1] for part in rendered).split(),
+                         [Shortcut.compact_label(slot) for slot in Shortcut.slots()])
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConfigStore.for_home(directory)
+            self.assertEqual(store.load(), defaults)
+            self.assertFalse(store.path.exists())
+            created = store.load_or_create()
+            self.assertEqual(created, DockConfig.initial())
+            items = created.widgets.shortcuts.items
+            self.assertEqual([item.slot for item in items], list(Shortcut.slots()))
+            self.assertEqual([item.command for item in items if isinstance(item, Shortcut)], [
+                'fzf', 'yazi', 'htop', 'vim', 'lazygit', 'firefox &',
+                f'vim ~/ish/dok/{ConfigFiles.FILENAME}', 'vim ~/ish/.ishrc.py', 'ish_reload',
+            ])
+            self.assertIsInstance(created.widgets.shortcuts.entry(7), Separator)
+            self.assertEqual(store.path.read_text(encoding='utf-8'), Jsonc.dumps(created))
+
+    def test_existing_empty_or_partial_config_never_acquires_example_shortcuts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConfigStore(Path(directory) / ConfigFiles.FILENAME)
+            for text in ('// empty\n{}', '{"widgets":{"shortcuts":{"items":[]}}}',
+                         '{"dock":{"width":{"value":90}}}'):
+                with self.subTest(text=text):
+                    store.path.write_text(text, encoding='utf-8')
+                    loaded = store.load_or_create()
+                    self.assertEqual(loaded.widgets.shortcuts.items, ())
+                    self.assertEqual(store.path.read_text(encoding='utf-8'), text)
+
+    def test_concurrent_creator_wins_without_overwrite_or_stale_template(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConfigStore(Path(directory) / ConfigFiles.FILENAME)
+            create = store.create
+            winner = '// concurrently created\n{"dock":{"width":{"value":90}}}'
+
+            def competing_creator(config):
+                store.path.write_text(winner, encoding='utf-8')
+                return create(config)
+
+            with patch.object(store, 'create', side_effect=competing_creator):
+                loaded = store.load_or_create()
+            self.assertEqual(loaded.dock.width.value, 90)
+            self.assertEqual(loaded.widgets.shortcuts.items, ())
+            self.assertEqual(store.path.read_text(encoding='utf-8'), winner)
+
+    def test_reinstall_and_reload_recreate_a_deleted_file_on_the_same_controller(self):
+        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
+            path = Path(directory) / ConfigFiles.FILENAME
+            prompt = HostPrompt(pipe)
+            dock = install(prompt, config_path=path)
+            self.addCleanup(uninstall, prompt)
+            for reload in (lambda: install(prompt, config_path=path), dock.reload):
+                dock.configure(DockConfig(dock={'width': {'value': 90}}))
+                path.unlink()
+                reload()
+                self.assertEqual(dock.config, DockConfig.initial())
+                self.assertEqual(ConfigStore(path).load(), dock.config)
+                self.assertIs(install(prompt, config_path=path), dock)
+                self.assertEqual(len(prompt.floats), 1)
+
+    def test_creation_failure_preserves_active_config_and_can_retry(self):
+        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
+            path = Path(directory) / ConfigFiles.FILENAME
+            prompt = HostPrompt(pipe)
+            with patch.object(ConfigStore, 'create', side_effect=OSError('read-only directory')):
+                dock = install(prompt, config_path=path)
+                self.addCleanup(uninstall, prompt)
+                self.assertEqual(dock.config, DockConfig())
+                self.assertIn('read-only directory', dock.diagnostic)
+                configured = DockConfig(dock={'width': {'value': 90}})
+                dock.configure(configured)
+                self.assertFalse(dock.reload())
+                self.assertEqual(dock.config, configured)
+                self.assertFalse(path.exists())
+            self.assertTrue(dock.reload())
+            self.assertEqual(dock.config, DockConfig.initial())
+            self.assertTrue(path.exists())
+
     def test_comments_preserve_commands_urls_escapes_and_line_endings(self):
         values = [
             'https://example.com/a//b',
@@ -53,7 +140,7 @@ class JsoncTests(unittest.TestCase):
         self.assertEqual(caught.exception.colno, 12)
 
     def test_every_generated_field_has_owner_documentation_and_roundtrips(self):
-        config = DockConfig()
+        config = DockConfig.initial()
         config = replace(
             config,
             widgets=replace(
@@ -155,3 +242,4 @@ class JsoncTests(unittest.TestCase):
                 dock.config_path.write_text('{/* broken', encoding='utf-8')
                 self.assertFalse(dock.reload())
                 self.assertEqual(dock.config, old)
+                self.assertEqual(dock.config_path.read_text(encoding='utf-8'), '{/* broken')

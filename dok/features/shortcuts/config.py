@@ -173,8 +173,14 @@ class ShortcutsConfig(ElementConfig):
     )
     items: tuple[Shortcut | Separator, ...] = setting(
         Sequence(SlotEntryRule(), maximum=Shortcut.COUNT),
-        description="Shortcut and separator entries. [] leaves all numbered slots empty.",
-        default=(
+        description="Shortcut and separator entries. Omitted or [] leaves all numbered slots empty.",
+        default=(),
+    )
+
+    @classmethod
+    def initial(cls) -> "ShortcutsConfig":
+        """Editable examples for a newly created file, never implicit defaults."""
+        return cls(items=(
             Shortcut(1, "fzf", icon="\uf002", label="Find", style=AccentStyle(color="#e67e80"), key=("c-1",)),
             Shortcut(
                 2,
@@ -227,8 +233,7 @@ class ShortcutsConfig(ElementConfig):
                 style=AccentStyle(color="#c084fc"),
                 key=("c-9",)
             ),
-        ),
-    )
+        ))
 
     def _check(self):
         slots = [item.slot for item in self.items]

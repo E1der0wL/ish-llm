@@ -31,16 +31,28 @@ class ConfigStore:
             result[key] = value
         return result
 
-    def load(self) -> DockConfig:
-        try:
-            text = self.path.read_text(encoding=self.ENCODING)
-        except FileNotFoundError:
-            return DockConfig()
+    def _read(self) -> DockConfig:
+        text = self.path.read_text(encoding=self.ENCODING)
         try:
             data = Jsonc.loads(text, object_pairs_hook=self._object)
         except json.JSONDecodeError as exc:
             raise SettingsError(f"Invalid config {self.path}: {exc}") from exc
         return DockConfig.from_dict(data)
+
+    def load(self) -> DockConfig:
+        try:
+            return self._read()
+        except FileNotFoundError:
+            return DockConfig()
+
+    def load_or_create(self) -> DockConfig:
+        """Read an existing file or atomically create and read the initial config."""
+        try:
+            return self._read()
+        except FileNotFoundError:
+            self.create(DockConfig.initial())
+            # A concurrent creator may have won; always use the actual file.
+            return self._read()
 
     def save(self, config: DockConfig) -> None:
         self._write(config, overwrite=True)

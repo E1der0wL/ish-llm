@@ -31,8 +31,13 @@ class AudioConfig(Record):
 
 @dataclass(frozen=True, slots=True)
 class VisualizerStyle(Record):
-    colors: tuple[str, ...] = setting(Sequence(HexColor(), minimum=1), default=(DockPalette.ACCENT, "#c084fc", "#fb7185"),
+    colors: tuple[str, ...] = setting(Sequence(HexColor(), minimum=1), default=(DockPalette.ACCENT,),
         description="Colors in #RRGGBB format. One color gives a solid fill; multiple colors form a left-to-right gradient.")
+
+    @classmethod
+    def initial(cls) -> VisualizerStyle:
+        """Gradient example for newly created files; omitted colors stay solid."""
+        return cls(colors=(DockPalette.ACCENT, "#c084fc", "#fb7185"))
 
     def palette(self, cells: int) -> tuple[str, ...]:
         """Evenly spaced RGB stops across the displayed row, independent of level."""

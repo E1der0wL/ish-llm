@@ -6,9 +6,9 @@ from typing import ClassVar
 import math
 from ..core.records import Choice, Nested, Number, Record, setting
 from ..dashboard.config import WidgetsConfig
-from ..features.audio.config import AudioConfig
+from ..features.audio.config import AudioConfig, VisualizerConfig, VisualizerStyle
 from ..features.clock.config import ClockConfig
-from ..features.shortcuts.config import Shortcut
+from ..features.shortcuts.config import Shortcut, ShortcutsConfig
 from ..integrations.ish.keys import KeyRule, KeySequence
 
 class WidthMode(StrEnum):
@@ -99,6 +99,14 @@ class DockConfig(Record):
 
     def _check(self):
         self.widgets.shortcuts.validate_keys((self.dock.keys.toggle,))
+
+    @classmethod
+    def initial(cls) -> DockConfig:
+        """Initial file examples, distinct from ordinary missing-field defaults."""
+        return cls(widgets=WidgetsConfig(
+            shortcuts=ShortcutsConfig.initial(),
+            visualizer=VisualizerConfig(style=VisualizerStyle.initial()),
+        ))
 
     @classmethod
     def schema(cls):

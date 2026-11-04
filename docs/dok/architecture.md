@@ -19,7 +19,7 @@ dok/
 ├── settings/
 │   ├── config.py               # 루트 설정 조합, 모드 키와 너비
 │   ├── files.py                # 파일명과 기본 경로
-│   ├── store.py                # 조회, 원자적 저장, 최초 생성
+│   ├── store.py                # 조회, 원자적 저장, 누락 파일 생성
 │   └── jsonc.py                # JSONC 해석과 Owner 설명 주석 생성
 ├── dashboard/
 │   ├── config.py               # 전체 위젯 설정 조합

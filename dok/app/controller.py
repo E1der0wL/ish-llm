@@ -95,7 +95,7 @@ class DockController:
 
     def _reload(self, store: ConfigStore) -> bool:
         try:
-            self._configure(store.load())
+            self._configure(store.load_or_create())
         except (ValueError, OSError) as exc:
             self._state.report(exc)
             logger = getattr(self._prompt, "logger", None)
