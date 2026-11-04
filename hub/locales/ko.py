@@ -5,6 +5,12 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.AGENT_REVIEW: "완료 검증",
+    MessageKey.AGENT_REVIEW_HELP: "켜면 검증한 답변만 공개합니다. 끄면 엔진의 공개 응답을 바로 전달합니다. 프로젝트에서 강제한 검증은 끌 수 없습니다. 세부 예산은 JSON에서 편집합니다.",
+    MessageKey.AGENT_REVIEW_INHERIT: "프로젝트 설정 따름",
+    MessageKey.AGENT_REVIEW_ON: "켜기",
+    MessageKey.AGENT_REVIEW_OFF: "끄기",
+    MessageKey.PLUGIN_AGENT_LABEL: "플러그인 · {plugin} • {name}",
     MessageKey.CARD_INPUT: "입력",
     MessageKey.CARD_ANSWER: "답변",
     MessageKey.CARD_DESCRIPTION: "설명",

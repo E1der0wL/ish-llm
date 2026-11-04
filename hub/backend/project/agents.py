@@ -8,6 +8,7 @@ from llm.core.agents import AgentDefinition
 from llm.core.agent_views import AgentSnapshot
 from llm.components.rag import RAGComponent
 from ...config.defaults import HubDefaults
+from .management_values import ResourceTimestamps
 
 
 DEFAULT_AGENT = "assistant"
@@ -27,7 +28,7 @@ async def apply_agents(project, definitions):
         try:
             current = AgentSnapshot.read(await project.agents.asnapshot(identifier))
         except FileNotFoundError:
-            await project.agents.acreate(definition, identifier=identifier)
+            await project.agents.acreate(ResourceTimestamps.created(definition), identifier=identifier)
         else:
             if current.definition != definition:
                 await project.agents.arevise(identifier, definition,
@@ -72,17 +73,15 @@ async def initialize(
             definition[AgentDefinition.Field.TOOLS].append(MemoryToolDefinition.Name.TOOL_RESULT)
         from ...asset.guides import SYSTEM_PROMPT
         definition[AgentDefinition.Field.SYSTEM_PROMPT] = SYSTEM_PROMPT
-        from .management_values import ResourceTimestamps
-        definition = ResourceTimestamps.created(definition)
     else:
         definition = deepcopy(definition)
     if completion:
         definition[AgentDefinition.Field.COMPLETION] = {
             **completion, **definition.get(AgentDefinition.Field.COMPLETION, {})}
-    await project.agents.acreate(definition, identifier=identifier)
+    await project.agents.acreate(ResourceTimestamps.created(definition), identifier=identifier)
     from .naming import TITLE_ENGINE
 
     if TITLE_ENGINE in backend.engines.names():
         await project.agents.acreate(
-            AgentDefinition.selected(TITLE_ENGINE), identifier=TITLE_AGENT
+            ResourceTimestamps.created(AgentDefinition.selected(TITLE_ENGINE)), identifier=TITLE_AGENT
         )

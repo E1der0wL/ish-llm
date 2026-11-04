@@ -133,10 +133,10 @@ class RecordManagement:
         return await self.data.asnapshot(identifier)
 
     async def create(self, identifier, values):
-        await self.data.acreate(values, identifier=identifier)
+        await self.data.acreate(ResourceTimestamps.created(values), identifier=identifier)
 
     async def save(self, identifier, values, version):
-        await self.data.asave(identifier, values, expected_version=version)
+        await self.data.asave(identifier, ResourceTimestamps.modified(values), expected_version=version)
 
     async def delete(self, identifier, version):
         await self.data.adelete(identifier, expected_version=version)
@@ -186,8 +186,12 @@ class RecordManagement:
 class SkillManagement(RecordManagement):
     """Native directory import and Markdown editing through the Skill owner."""
 
+    async def create(self, identifier, values):
+        await self.data.acreate(ResourceTimestamps.skill(values), identifier=identifier)
+
     async def list(self):
         from llm.components.skills import SkillRecord
+        from llm.core.skills import SkillDocument
 
         entries = []
         for identifier in await self.data.alist():
@@ -198,7 +202,7 @@ class SkillManagement(RecordManagement):
                     identifier,
                     document.name,
                     document.description,
-                    ManagementEntry.EMPTY,
+                    ResourceTimestamps.latest(document.frontmatter.get(SkillDocument.METADATA, {})),
                     snapshot.version,
                 )
             )
@@ -220,18 +224,22 @@ class SkillManagement(RecordManagement):
     ):
         if action == ManagementAction.IMPORT:
             from llm.core.skills import SkillDocument
+            from .skill_registration import import_skill
 
             source = self.source_path(argument)
             if source.name == SkillDocument.FILENAME and source.is_file():
                 source = source.parent
-            await self.data.aimport_directory(source)
+            await import_skill(self.data, source)
             return await self.list()
         if action == ManagementAction.SAVE:
             if expected_version is ManagementOperation.ABSENT:
                 raise ValueError(ManagementOperation.RELOAD_SAVE)
+            from llm.components.skills import SkillRecord
+            stamped = ResourceTimestamps.skill(
+                SkillRecord.markdown_change(EditorRecord(argument).text), modified=True)
             await self.data.awrite_markdown(
                 EditorRecord(argument).name,
-                EditorRecord(argument).text,
+                SkillRecord.document(stamped).text,
                 expected_revision=expected_version,
             )
             return await self.list()
@@ -239,9 +247,6 @@ class SkillManagement(RecordManagement):
 
 
 class AgentManagement(RecordManagement):
-    async def create(self, identifier, values):
-        await self.data.acreate(ResourceTimestamps.created(values), identifier=identifier)
-
     async def execute(self, action, argument=ManagementOperation.EMPTY_ARGUMENT,
                       expected_version=ManagementOperation.ABSENT):
         if action == ManagementAction.DESCRIBE:

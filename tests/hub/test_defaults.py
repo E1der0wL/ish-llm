@@ -47,7 +47,9 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 runtime = HubRuntime(HubConfig(root, auto_title=False, agent_definition=definition))
                 try:
                     await runtime.start()
-                    self.assertEqual(await runtime.project.agents.aload('assistant'), definition)
+                    saved = await runtime.project.agents.aload('assistant')
+                    self.assertEqual(saved['metadata']['created_at'], saved['metadata']['updated_at'])
+                    self.assertEqual({k: v for k, v in saved.items() if k != 'metadata'}, definition)
                 finally:
                     await runtime.close()
 
@@ -68,7 +70,9 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                     document = SkillDocument.parse(guide["markdown"])
                     self.assertEqual(document.name, identifier)
                     self.assertEqual(document.frontmatter["description"], description)
-                    self.assertEqual(guide["markdown"].replace('\r\n', '\n'), instructions)
+                    self.assertEqual(document.body.replace('\r\n', '\n'), SkillDocument.parse(instructions).body)
+                    self.assertEqual(document.frontmatter['metadata']['created_at'],
+                                     document.frontmatter['metadata']['updated_at'])
                     self.assertEqual(document.frontmatter["metadata"]["hub-template-version"], str(TEMPLATE_VERSION))
                 record = await runtime.project.agents.asnapshot("assistant")
                 definition = record["definition"]

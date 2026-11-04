@@ -112,6 +112,17 @@ class SettingsEditorLayout:
                                       self.editor.view.t(MessageKey.AGENT_ENGINE),
                                       self.editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE)))
 
+    def review_visible(self):
+        return (self.selected == self.GENERAL and self.tabs.selected == self.CONFIG
+                and self.editor.review is not None and self.editor.review.available
+                and self.matches_text("final_review", self.editor.view.t(MessageKey.AGENT_REVIEW)))
+
+    def bind_choice(self, choice):
+        registry = ShortcutRegistry.require(choice.control)
+        registry.add([KeyName.UP, KeyName.DOWN], ShortcutLabel.VERTICAL, ShortcutAction.SELECT, self.move)
+        registry.add([KeyName.LEFT], ShortcutLabel.LEFT, ShortcutAction.SIDEBAR,
+                     lambda e: self.focus_sidebar())
+
     def main_width(self):
         from ..dialog import PopupGeometry, PopupSize
         return max(1, PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
@@ -146,6 +157,8 @@ class SettingsEditorLayout:
         result = [field.input for field in self.fields()]
         if self.engine_visible():
             result.append(self.editor.engine.button)
+        if self.review_visible():
+            result.append(self.editor.review.choice.button)
         return result
 
     def finish_edit(self):
@@ -185,6 +198,9 @@ class SettingsEditorLayout:
             children.append(FieldLayout(editor.view.t(MessageKey.AGENT_ENGINE), editor.engine,
                 description='- ' + editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
                 type_label=editor.view.t(MessageKey.SETTINGS_TYPE, type='string')))
+        if self.review_visible():
+            children.append(FieldLayout(editor.view.t(MessageKey.AGENT_REVIEW), editor.review.choice,
+                description='- ' + editor.view.t(MessageKey.AGENT_REVIEW_HELP)))
         children = children or [Notice(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))]
         if editor.form and len(editor.form.visible_fields) < len(editor.form.fields):
             children.append(Label(editor.view.t(MessageKey.SETTINGS_ESSENTIAL_NOTICE), style=ThemeSelector.MUTED.style))
@@ -229,6 +245,8 @@ class SettingsEditorLayout:
             self.auxiliary.leave()
         elif self.editor.engine.expanded:
             self.editor.engine.close()
+        elif self.editor.review and self.editor.review.choice.expanded:
+            self.editor.review.choice.close()
         elif get_app().layout.has_focus(self.sidebar):
             self.editor.close()
         elif self.tabs.content_focused:
@@ -237,7 +255,7 @@ class SettingsEditorLayout:
             self.focus_sidebar()
 
     def cycle(self, reverse=False):
-        if self.editor.engine.expanded:
+        if self.editor.engine.expanded or (self.editor.review and self.editor.review.choice.expanded):
             return
         if get_app().layout.has_focus(self.sidebar):
             return

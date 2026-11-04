@@ -56,6 +56,10 @@ class MemoryManagement(RecordManagement):
             self._version(record),
         )
 
+    async def create(self, identifier, values):
+        # Memory owns durable lifecycle dates outside editable metadata.
+        await self.data.acreate(values, identifier=identifier)
+
     async def save(self, identifier, values, version):
         await self.data.asave(
             identifier,

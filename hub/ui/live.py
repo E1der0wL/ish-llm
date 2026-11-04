@@ -636,6 +636,13 @@ class LiveController:
         self.refresh_shell_root()
         self.view.toasts.app = app
         self.loop = asyncio.get_running_loop()
+        self.ensure_worker()
+        self.worker.set_visible(True)
+
+    def ensure_worker(self):
+        """Start shared backend lazily, including calls while Hub stays hidden."""
+        if self.closed:
+            raise RuntimeError("Hub installation is closed")
         if self.worker is LiveController.ABSENT:
             self._startup_task = self.view.progress.start(self.view.t(MessageKey.PROGRESS_BACKEND_PREPARE))
             self.worker = self.worker_factory(
@@ -648,17 +655,19 @@ class LiveController:
             self._set_output_interval(self.view.theme.output_refresh_interval)
             if self._sidebar_width_pending is not LiveController.ABSENT:
                 self._save_sidebar_width(self._sidebar_width_pending)
-        self.worker.set_visible(True)
+            self.worker.set_visible(self.view.visible)
+        return self.worker
 
     def hide(self):
         self.speech.hide()
         if self.worker:
             self.worker.set_visible(False)
 
-    def bind_app(self, app):
+    def bind_app(self, app, *, refresh_environment=True):
         """Rebind callbacks when ish starts its next prompt event loop."""
         loop = asyncio.get_running_loop()
-        self.refresh_shell_root()
+        if refresh_environment:
+            self.refresh_shell_root()
         if self.loop is not loop and not self.closed:
             self.app, self.loop = app, loop
             self._snapshot_inbox.rebind()

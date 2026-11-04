@@ -67,6 +67,8 @@ class BackendWorker:
     )
     INDEPENDENT_OPERATIONS = frozenset(
         {
+            HubRuntime.plugin_call.__name__,
+            HubRuntime.manage_agents.__name__,
             HubRuntime.project_activity.__name__,
             HubRuntime.diagnose_failures.__name__,
             HubRuntime.execution_catalog.__name__,
@@ -80,6 +82,7 @@ class BackendWorker:
     )
     OBSERVATION_OPERATIONS = frozenset(
         {
+            HubRuntime.plugin_call.__name__,
             HubRuntime.prepare_environment.__name__,
             HubRuntime.submission_state.__name__,
             HubRuntime.instruction_targets.__name__,
@@ -503,12 +506,17 @@ class BackendWorker:
         if not self._closed and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(queue)
 
+    def _stop_worker(self):
+        if self.runtime is not None and self.runtime.plugins is not None:
+            self.runtime.plugins.close_observers()
+        self._stop.set()
+
     def close(self) -> None:
         if self._closed:
             return
         self._closed = BackendWorker.CLOSED
         if not self.loop.is_closed():
-            self.loop.call_soon_threadsafe(self._stop.set)
+            self.loop.call_soon_threadsafe(self._stop_worker)
         self._thread.join()
         if self._shutdown_error:
             raise RuntimeError(BackendWorker.SHUTDOWN_FAILED) from self._shutdown_error

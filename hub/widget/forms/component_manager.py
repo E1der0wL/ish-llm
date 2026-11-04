@@ -176,7 +176,7 @@ class ComponentManager(Dialog):
         rows = []
         for item in self.entries:
             entry = ManagementEntry(item)
-            title = entry.label
+            title = self.entry_title(item)
             if entry.has_enabled:
                 title = (
                     ManagerView.ENABLED_MARK
@@ -190,6 +190,9 @@ class ComponentManager(Dialog):
             NoticeText(self.view.t(MessageKey.MANAGER_EMPTY),
                        hint=self.view.t(MessagePattern.component_import_hint(self.name))).sidebar()
         ]
+
+    def entry_title(self, item):
+        return ManagementEntry(item).label
 
     def select(self, name):
         self.selected = name
@@ -331,7 +334,7 @@ class ComponentManager(Dialog):
                         if self.name == ManagedComponents.TOOLS.name
                         else MessageKey.MANAGER_DELETE_CONFIRM
                     ),
-                    name=ManagementEntry(item).name,
+                    name=self.entry_title(item),
                 )
             ),
             buttons=buttons,

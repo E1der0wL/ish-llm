@@ -56,7 +56,7 @@ class AgentDraftTools:
             return
         editor.workspace.finish_edit()
         try:
-            value = editor.form.values()
+            value = editor.definition()
             value[AgentDefinition.Field.ENGINE] = editor.engine_name
             AgentProfile.rename(value, editor.display_name.text or editor.identifier.text)
             text = self.recovery_text or JsonDocument.render(value, allow_non_finite=False)
@@ -89,7 +89,7 @@ class AgentDraftTools:
             Draft202012Validator(description.schema).validate(value)
             if name not in description.engines or HubEngineIdentity.internal(name):
                 raise ValueError(editor.view.t(MessageKey.SETTINGS_ENGINE_REQUIRED))
-            editor.drafts[editor.engine_name] = editor.form.values()
+            editor.drafts[editor.engine_name] = editor.definition()
             editor.drafts[name] = deepcopy(value)
             editor.engine_name = editor.engine.value = name
             editor.display_name.text = AgentProfile.title(editor.identifier.text, value)

@@ -25,6 +25,7 @@ from .settings_contracts import (
 from ...errors.adapters import from_exception
 from ...errors.contracts import ErrorOrigin
 from ..progress import OperationProgress
+from ..plugins.definitions import PluginIdentity
 
 
 class SettingsService:
@@ -134,6 +135,8 @@ class SettingsService:
         rows = []
         for project in await self.runtime.backend.projects.alist():
             data = await project.aget_data()
+            if PluginIdentity.owner(data):
+                continue
             rows.append(ProjectSummary.from_data(data).to_dict())
         return rows
 
@@ -237,6 +240,7 @@ class SettingsService:
                 item
                 for item in await self.runtime.backend.projects.alist()
                 if item.id != identifier
+                and not PluginIdentity.owner(await item.aget_data())
             ]
             if not others:
                 raise ValueError(self.runtime.t(MessageKey.PROJECT_DELETE_LAST))

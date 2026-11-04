@@ -72698,35 +72698,10 @@
   },
   {
     "path": "hub/backend/project/settings.py",
-    "sha256": "c6de2b1eeb1777be365341d90618d50965d383c99fe262b390aeeac78a46d2a9",
-    "reason": "ToolDataSetup provisions related Data handles through public component APIs after validated project settings save; it never writes backend-owned nested files. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Preparation-cost review: exact backend ToolRegistry snapshots are adapted through the Python deepcopy protocol with a class memo and preserved handler identities; Hub does not read/write private registry fields, cache execution decisions or skip backend register/prepare validation. Custom registry subclasses remain untouched. Native select validates once and the diagnostic copy adds no registration. SettingsService shares one validator only between the synchronous original/prepared validations; after awaits its read-back and later commands obtain fresh schema/host observations. Backend version locks and complete schema constraints remain. Backend lifecycle watchdogs are separate from unchanged short UI latency checks; debug stays enabled, and a failed sequential slash request aborts rather than poisoning subsequent cases. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes.",
+    "sha256": "7db660fd0ed6b0cfad9b425177338f016718b9d3202635e0e3a1e5fb98b29247",
+    "reason": "ToolDataSetup provisions related Data handles through public component APIs after validated project settings save; it never writes backend-owned nested files. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Preparation-cost review: exact backend ToolRegistry snapshots are adapted through the Python deepcopy protocol with a class memo and preserved handler identities; Hub does not read/write private registry fields, cache execution decisions or skip backend register/prepare validation. Custom registry subclasses remain untouched. Native select validates once and the diagnostic copy adds no registration. SettingsService shares one validator only between the synchronous original/prepared validations; after awaits its read-back and later commands obtain fresh schema/host observations. Backend version locks and complete schema constraints remain. Backend lifecycle watchdogs are separate from unchanged short UI latency checks; debug stays enabled, and a failed sequential slash request aborts rather than poisoning subsequent cases. Selected settings pages materialize PTK fields lazily while full schema, draft values, unknown JSON, host locks and save validation remain eager data. ConversationProjection indexes source messages by Run and retains canonical continuation folding for linked attempts; unchanged MessageRenderCache rows skip work except dynamic per-block revisions. SessionProjection reuses unchanged observation summaries; background reconciliation phases stay within ten seconds and events still invalidate immediately. No execution or persistence authority is cached. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Plugin API source delta 2026-11-04: The ordinary Project catalog and deletion replacement exclude plugin-owned Projects; settings validation, public writes, revisions and user selection remain owned by the existing service.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "e3a8400bcf7b7831355d6bdabc4ac08e8ebc46483dd71b1cc13fa65b22fc8123",
-        "classification": "declaration",
-        "owner": "SettingsService",
-        "reason": "ToolDataSetup provisions related Data handles through public component APIs after validated project settings save; it never writes backend-owned nested files."
-      },
-      {
-        "id": "65dd41bc131288a262cdbb1c39aa4a4ed03c1e55427c9fdeeed09466659355ec",
-        "classification": "declaration",
-        "owner": "SettingsService",
-        "reason": "ToolDataSetup provisions related Data handles through public component APIs after validated project settings save; it never writes backend-owned nested files."
-      },
-      {
-        "id": "98e6df243630e6aa6738c3e97316ac23f15e2607b6bc3f399f4a3a27a5faff97",
-        "classification": "declaration",
-        "owner": "SettingsService",
-        "reason": "ToolDataSetup provisions related Data handles through public component APIs after validated project settings save; it never writes backend-owned nested files."
-      },
-      {
-        "id": "0e1ee13996daaf443d1212576665baf4218db24812b0aaa0e7b7ed17856019f9",
-        "classification": "non_contract",
-        "owner": "SettingsService",
-        "reason": "ToolDataSetup provisions related Data handles through public component APIs after validated project settings save; it never writes backend-owned nested files."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "SettingsService",
@@ -83255,35 +83230,10 @@
   },
   {
     "path": "hub/backend/project/agents.py",
-    "sha256": "49df435625e130b211bb9a04e93965e8360f3b5bc5ddf8f691d09efc5d8be5bc",
-    "reason": "Reviewed model-only bounded fallback for partial Tool summaries. Backend-issued completed-Step result_ref is the sole source locator; no call-ID path guessing or stored result rewrite. Only summary mode plus selected reader can replace a body. Skip source-reader output, leave user input unchanged. New default Agent selects Run-bound reader; existing custom Tool selections remain authoritative. Hub UX review 2026-10-28: new Hub-created Agents opt into the public RAG resource only when that Component is selected; explicit definitions and existing saved Agents remain unchanged. Restart entry points share a small confirmation and start existing cleanup only after acceptance, without a second confirmation for saved settings. Backend admission, resources, storage and restart ownership are unchanged. Focus remains constrained by the existing modal dispatcher. Settings polish: empty tabs/internal engines omitted from UI only; full JSON/schema/CAS retained. Shared active-region hover and edit completion preserve modal scope. Resource timestamps are application metadata passed to public Agent/RAG APIs, never private file inspection. Recommendation metadata is filtered independently from suggestion validation.",
+    "sha256": "eb86a93334bc76981068fe5bef010a2aac05d721d3cd947be620f8886e3810c0",
+    "reason": "Reviewed model-only bounded fallback for partial Tool summaries. Backend-issued completed-Step result_ref is the sole source locator; no call-ID path guessing or stored result rewrite. Only summary mode plus selected reader can replace a body. Skip source-reader output, leave user input unchanged. New default Agent selects Run-bound reader; existing custom Tool selections remain authoritative. Hub UX review 2026-10-28: new Hub-created Agents opt into the public RAG resource only when that Component is selected; explicit definitions and existing saved Agents remain unchanged. Restart entry points share a small confirmation and start existing cleanup only after acceptance, without a second confirmation for saved settings. Backend admission, resources, storage and restart ownership are unchanged. Focus remains constrained by the existing modal dispatcher. Settings polish: empty tabs/internal engines omitted from UI only; full JSON/schema/CAS retained. Shared active-region hover and edit completion preserve modal scope. Resource timestamps are application metadata passed to public Agent/RAG APIs, never private file inspection. Recommendation metadata is filtered independently from suggestion validation. Resource date source delta 2026-11-04: Only newly created Agent definitions receive detached metadata dates, including explicit creation templates. Existing preset revision replacement remains exact; model/configuration values and CAS ownership are unchanged.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "2145d438a507e4027689da42631472b9102823d80132f8c3b166f879e2365fed",
-        "classification": "declaration",
-        "owner": "Hub Agent presets / initialize",
-        "reason": "Hub default/title Agent identifiers and unspecified definition; AgentDefinition owns the explicit selected-engine/tools writer."
-      },
-      {
-        "id": "bd4b36031fcd495b7359e8ec4928020b3c2f7804dff947eef191877f1c2845f2",
-        "classification": "declaration",
-        "owner": "Hub Agent presets / initialize",
-        "reason": "Hub default/title Agent identifiers and unspecified definition; AgentDefinition owns the explicit selected-engine/tools writer."
-      },
-      {
-        "id": "279aa1a7053ad8d38e0057f7307a6174a81bf5f4eb993d195f3e527f369a7cfe",
-        "classification": "declaration",
-        "owner": "Hub Agent presets / initialize",
-        "reason": "Hub default/title Agent identifiers and unspecified definition; AgentDefinition owns the explicit selected-engine/tools writer."
-      },
-      {
-        "id": "a3e32b5e862abbc391bd48fdb3d9ef22e4fb21f0a1863d38464854ec6b6f84df",
-        "classification": "non_contract",
-        "owner": "AgentDefinition / Hub creation profile",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Seeds system prompt and explicit supplied model on newly created assistant only. Explicit Agent completion wins; existing definitions are never rewritten on reopen."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "Hub Agent presets / initialize",
@@ -83362,8 +83312,8 @@
   },
   {
     "path": "hub/backend/project/bootstrap.py",
-    "sha256": "7317757376db780dd0c98942ca3a1687750320676076dcce0e4cac1d2002300e",
-    "reason": "Passes explicit HubConfig connection values into default Agent initialization, never Engine parameters; existing preset and failed-create rollback ordering remains.",
+    "sha256": "dcd2b6835d5f93f5cf2c5973ad803eb30a3c2bc93caf8f34e9f97188f6426a24",
+    "reason": "Passes explicit HubConfig connection values into default Agent initialization, never Engine parameters; existing preset and failed-create rollback ordering remains. Plugin API source delta 2026-11-04: Project selection excludes explicitly plugin-owned Projects. Existing creation locks and public CRUD are unchanged; no persisted choice or legacy data is inferred.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -83413,36 +83363,6 @@
         "classification": "non_contract",
         "owner": "select_or_create",
         "reason": "Unbounded lock-acquisition loop exits only on flock success; not an execution retry or default."
-      },
-      {
-        "id": "87cc0291d84f4752d553982fd9241225673ad52f090496f414844ef5866ff547",
-        "classification": "non_contract",
-        "owner": "select_or_create",
-        "reason": "Tuple projection of the data in (record, handle) for sorting."
-      },
-      {
-        "id": "bab047443f5fb242522f7042f4a96880e632ee8bf90a56647f20596ecdc764d4",
-        "classification": "non_contract",
-        "owner": "select_or_create",
-        "reason": "Tuple projection of the data in (record, handle) for sorting."
-      },
-      {
-        "id": "6c4488444bb5fee89c3cc5204fe5851110834e5ab5891db4726591b338717574",
-        "classification": "non_contract",
-        "owner": "select_or_create",
-        "reason": "Select the handle from the existing (record, handle) pair."
-      },
-      {
-        "id": "7c6e083b22834be86f76909b42a06b16a7611632f153bc695972172246dca98a",
-        "classification": "non_contract",
-        "owner": "ProjectStartup / PresetProject",
-        "reason": "Local optional object/argument absence, not default repair, persisted identity or execution authorization. Empty-root creation imports explicitly selected preset Agent definitions; explicit host Agent definition wins. Failed initialization soft-deletes only its newly created Project."
-      },
-      {
-        "id": "53f7bcf788a03a9882cae6bc0216e3d5dad2c40cd4ac5bce67e48afd67d5a115",
-        "classification": "non_contract",
-        "owner": "ProjectStartup / PresetProject",
-        "reason": "Local optional object/argument absence, not default repair, persisted identity or execution authorization. Empty-root creation imports explicitly selected preset Agent definitions; explicit host Agent definition wins. Failed initialization soft-deletes only its newly created Project."
       }
     ],
     "contracts": [
@@ -83522,221 +83442,10 @@
   },
   {
     "path": "hub/backend/project/title_values.py",
-    "sha256": "e72919fea36a372220303b1faa625cc688a3f92ce85c4955599839bcc61aee0e",
-    "reason": "Reviewed shared tool-free Agent-owned completion path for ordinary isolated Runs. Execution config keeps provider policy only; public adapter schemas/request validation, events, usage and completion policy retained. Exact greeting-only exchanges defer naming until substantive history; bounded jobs do not block source answers. Former private duplicated completion field declaration removed in favor of AgentDefinition.",
+    "sha256": "38be96489fb0c90690b318ea95f736752b51dd935c5165175c7f02d624b794e2",
+    "reason": "Reviewed shared tool-free Agent-owned completion path for ordinary isolated Runs. Execution config keeps provider policy only; public adapter schemas/request validation, events, usage and completion policy retained. Exact greeting-only exchanges defer naming until substantive history; bounded jobs do not block source answers. Former private duplicated completion field declaration removed in favor of AgentDefinition. Plugin API source delta 2026-11-04: The existing hub_internal metadata key moves to InternalSession and retains identical meaning. Title execution and persisted state are unchanged.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "232fc77520fa8ea18ddac798e3591eff114a537eb67a5d8b2f5cb2674c838986",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "95720b0d485e3d0f4af67d881847a6093bcd5d8343b3e2c2c73d3251c11e3b2b",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "857de114cf795892770de3be0f6e8852f1b36f404398a409f7986722441b7013",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "0994447b78884bffe84282b31ffaef94928b6bf7d795c81b0f1e96555c5a035b",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "d9268bf8c8900d2efda7515c8d1e550a4886cf1e477d1f4b9020a24dacf6d5be",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "4ac1b8d4cf6802f70b760c9645c4a27b2f5178069985c4843e87742aa737593b",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "6837e9aef2f000221ec0aae42e56ac02b863dfda81041d678c5d11c0da9e4b0a",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "aeb3aed624967309a83d10cf7d1fd2baef2724f44da930257002eadad28b03fe",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "495058d96453befac92281cffce58175e1b7f442727850707f5c23b7453db28d",
-        "classification": "declaration",
-        "owner": "TitleSessionMetadata",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "8e6c5a13bd5bd56b9ef36cf4d839dbb77581147a88d9c7ec5d3b2604947dbaf6",
-        "classification": "declaration",
-        "owner": "TitleAttempt",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "ad9cea99f18846bfb3d7a3b350b003d8fa68946ebd65ac1cbe645b44f81514c1",
-        "classification": "declaration",
-        "owner": "TitleAttempt",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "32d2ab9adbc8f607a60cae685c339763b88f6b85143f19304cc9e58674fc699f",
-        "classification": "declaration",
-        "owner": "TitleAttempt",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "123dbbc6e6edccf0dca26834f65ef53a67c6eadee88075247cd421921b0d3279",
-        "classification": "declaration",
-        "owner": "TitleAttempt",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "7dd049d2c1d39b45790b735c420a5060f060c5ea0f34ce29c0a7696464e28db3",
-        "classification": "declaration",
-        "owner": "TitleAttempt",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "4dca8556f923bc3aafc4e6da642b66370be3822d85a06f8d8c409ebce82ec57c",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "cfb99d1f44f959f4770a80356009a04cedd9bfc07b95f26e53caa4e11837d863",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "2524cee977fcc801c4ef26d37ad23b6f68ed6197404a66922171f1193534ec35",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "3a2d0578bba21150adcefc872836f81169d4b6991256af581e7bb38ded68a1cc",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "9ac3695859db6abebfb6c8b95095af51ba0c25eb2a949fd3bd95c848fa582e8a",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "58170b09f52d9b5fccd4468c7349b833122502f16e44e572d048470e0c183713",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "629b20e159366d396ab15da64b75a1e9511a6259ff8090e5f1c471bf6a174ada",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "852c2a942b32d5dfcb38ac6cddbc5acded53b0dd6c6b21db1b529deff96a8a2c",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "1761fe70934668e09434866bc50c01419337f6a8fdd1e041ace34f42fab3aa7f",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "db1cfc38c8ff66f6241e1a18f0278dd0dfa54b2cc9ae172d153d8846d160e1e0",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "1e1ee2a0dc7fb3de82311a799eb966cb87a9ae7eb345e44069d22efa23196948",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "535297979fc346b8a4642f09a74fa68706f3cb7b0f46f17855f17065cef6d1f7",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "3dca7d105bb247ae5b3dc29aa2fc021de69456682fb7ee6d0fd5bb84519bbd8e",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "7b0bf2c4c7fee859a75306540108b3edae637bcfe107e5ca21258294e3f3dbf3",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "17129f113e6602abfaf87829fe1790085886c06ab06b02bd58956c06e6659dce",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "850bb93fca351522d1a3b9ac26c79daf53fdd35fdd20ce0ecb3093fd6829f48e",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "7c4f51155f91456fafb1eb12059e2b616f1637415f4b9c7a646306b5f0259456",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "794ffe553e469759f815b04619e33b0179373b12dea8363e73d83ebc82d5c58e",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "dbe43e490a3ae3a0ea4ba18529bcf4b2465edd3d62429d910122e549a5204b86",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "1ec3ffaa6ce3336f825b887bb7ab0ab74c4def35a94ec6ec4c983df1a3677333",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      },
-      {
-        "id": "25b32867a5724de90eb046fcac8c4df86c37b3524789b0b5f3c91e09d7dd815a",
-        "classification": "declaration",
-        "owner": "TitlePresentation",
-        "reason": "Canonical title metadata, digest version/fields/serialization, source observation and existing title prompt/limits/format; shared completion/provider keys reference LoopParameters, role/schema values reference Backend Owners."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "TitleCompletion / TitleSessionMetadata / TitleAttempt / TitlePresentation",
@@ -84501,8 +84210,8 @@
   },
   {
     "path": "hub/backend/session_contracts.py",
-    "sha256": "31de378d72710f0f0618bc5bb89779aca848846c8e9679c79df8d2285e6563c9",
-    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior.",
+    "sha256": "9eff28da9c46d69cf6e54deb37047f08fbca892459d5e4956638f0c239d61553",
+    "reason": "The lightweight Hub management catalog, command syntax and Session operation contracts are shared by their actual parser, completion, manager, form and Runtime consumers. Registration/order, dispatch, path confinement, clone boundaries and stale-callback guards retain existing behavior. Plugin API source delta 2026-11-04: InternalSession owns only the existing UI visibility marker. It is not a backend access-control boundary or a new session status.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84636,8 +84345,8 @@
   },
   {
     "path": "hub/ui/chat/component_ui.py",
-    "sha256": "10124e9be1c6a5b386e844c7722181446fe7e7ef5ec3933f62c37281f48278c4",
-    "reason": "Pins Project ID, rejects slash arguments and opens shared manager; participant edit targets existing Agent using public versioned read and schema query. 2026-11-01 source-delta re-review: Direct Agent editing requests the revisioned record through ManagementAction.READ, then opens AgentEditor only if the initiating dialog is still current. Return restores the same parent/focus; progress and failure callbacks clear busy state. No intervening manager is displayed, and no private component storage is read.",
+    "sha256": "cd321e5a570711507adfbf56b2bc2aea7d65d41f7162f40a589ef5ca72f60521",
+    "reason": "Pins Project ID, rejects slash arguments and opens shared manager; participant edit targets existing Agent using public versioned read and schema query. 2026-11-01 source-delta re-review: Direct Agent editing requests the revisioned record through ManagementAction.READ, then opens AgentEditor only if the initiating dialog is still current. Return restores the same parent/focus; progress and failure callbacks clear busy state. No intervening manager is displayed, and no private component storage is read. Plugin API source delta 2026-11-04: Detached AgentLocation IDs route CRUD to the selected entry owner. Direct participant editing still targets the current Project. Stage feedback uses the existing completion callback; no unsupported streaming-progress argument is forwarded.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -84660,48 +84369,6 @@
       },
       {
         "id": "1d37b954376e841df7b6e2a22a0ba78c1108b520efcfbdbe46d5fb676d38a7f9",
-        "classification": "non_contract",
-        "owner": "ComponentCommands.edit_agent",
-        "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
-      },
-      {
-        "id": "4bdc1793630d72d3706f44e751944c87d5f38f1b8d9373041a4def0a336d69dc",
-        "classification": "non_contract",
-        "owner": "ComponentCommands / ManagementAction",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Pins Project ID, rejects slash arguments and opens shared manager; participant edit targets existing Agent using public versioned read and schema query."
-      },
-      {
-        "id": "dd5063fcb2c2b24d113ece1c13571efb197f9cf476da9f9adacb25056cee3fca",
-        "classification": "non_contract",
-        "owner": "ComponentCommands.edit_agent",
-        "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
-      },
-      {
-        "id": "f0e7f75aa20269a7e43b6d51cdf45e15fabb12ccd7ca2d1eccc00919fcb6f1a1",
-        "classification": "non_contract",
-        "owner": "ComponentCommands.edit_agent",
-        "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
-      },
-      {
-        "id": "09a5e2ed63cfb653697673d2a58b9756bc2db317aa625decc9e23144bb8af45c",
-        "classification": "non_contract",
-        "owner": "ComponentCommands.edit_agent",
-        "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
-      },
-      {
-        "id": "006646be004e69717c4cfedd6da7e08e52049be2891992f5c8ffbdebcec89a09",
-        "classification": "non_contract",
-        "owner": "ComponentCommands.edit_agent",
-        "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
-      },
-      {
-        "id": "7f32f016cfa0980bffdcabe47172b0f3fc59211eb20f0453d7a33d7925d9984a",
-        "classification": "non_contract",
-        "owner": "ComponentCommands.edit_agent",
-        "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
-      },
-      {
-        "id": "122ffff5218efa45f5b6ffdbfa162d99f0f654db11ab553d503aa9ab11c8cceb",
         "classification": "non_contract",
         "owner": "ComponentCommands.edit_agent",
         "reason": "Optional Python callback/parent/record absence. The revisioned READ remains ManagementAction.READ through manager.request; None is not an inferred schema, approval or successful mutation. Parent identity and progress callback scope prevent a late result from replacing another dialog."
@@ -94976,8 +94643,8 @@
   },
   {
     "path": "hub/hub.py",
-    "sha256": "f58efd9bc6735a3f5ace77e206adcc7b38ee3b89b52fd1cc24bfee3454ef801a",
-    "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Tool inspection review 2026-10-30: The plugin declares pathspec for gitignore parsing; host loading and dependency ownership remain unchanged.",
+    "sha256": "2aa11a00a2ecf83154996aa55e489c10f8945c454d9919e1b2d752890363ac8a",
+    "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Tool inspection review 2026-10-30: The plugin declares pathspec for gitignore parsing; host loading and dependency ownership remain unchanged. Plugin API source delta 2026-11-04: The explicit client resolves the current installation lazily and reuses its worker; it does not open Home, create another backend or retain stale execution handles.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -95141,36 +94808,6 @@
         "classification": "non_contract",
         "owner": "HubInstallation.set_theme",
         "reason": "Return type annotation."
-      },
-      {
-        "id": "9e4244d323425460d874a7f6c6fd224dbe78271913971d05ec01ca021d8684c4",
-        "classification": "non_contract",
-        "owner": "HubInstallation.close",
-        "reason": "Return type annotation."
-      },
-      {
-        "id": "6aa814442aa57f4d2080717475c5da62c426ea330b40c07eef16b34f2a39da6e",
-        "classification": "non_contract",
-        "owner": "install",
-        "reason": "Optional argument type annotation."
-      },
-      {
-        "id": "f94a546c3db6f5716968338ceee9c7cd6eda77a9674ba3c4abc32cb5f0205a62",
-        "classification": "non_contract",
-        "owner": "install",
-        "reason": "Optional argument type annotation."
-      },
-      {
-        "id": "6fb785211e59b4d6f856f450d9b3f529b2ddcc7315e8d35c08d0b542c66ad902",
-        "classification": "non_contract",
-        "owner": "HubConfig / BackendComposition / HubRuntime",
-        "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
-      },
-      {
-        "id": "1936d1e58b493c85e17eb7ac00581c4bcf4cb213538dede77772fd359a0e3e3e",
-        "classification": "non_contract",
-        "owner": "HubConfig / BackendComposition / HubRuntime",
-        "reason": "Reviewed explicit application composition of postprocess, registered auxiliary Engine and lifecycle cancellation. Embedded runtimes preserve opt-in; installer/CLI enable application choice without stored-preference migration. Internal events remain observation-only and do not dirty the conversation. Existing selection, shutdown and backend ownership remain intact. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
       },
       {
         "id": "75784c1dd6e9d8607a549995b8e8cf6c326751559e99aae619c8930b1f3adbd8",
@@ -96103,17 +95740,10 @@
   },
   {
     "path": "hub/backend/tools/resources.py",
-    "sha256": "3d1af5cceb82dd045740e9ba0162935b7cbd310d868d82d9d63f0d47e0c4ac3e",
-    "reason": "Reviewed explicit host approval contract revision for internal Goal and candidate Memory writes. Retain original effect, handlers, invocation scope and CAS. Candidate update checks current status; deletion/confirmed-write policy requires approval. No automatic external effects, false read-only classification, legacy revision adapter or approval replay. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Native ToolRegistry.derive now preserves existing schema-syntax proofs when applying Hub risk metadata or RAG rerank requirements. Changed schemas, handler selections, contracts and execution arguments still undergo their native validation; no approval or persistence boundary is bypassed. Existing Hub advice/input/constraint regression cases cover these paths.",
+    "sha256": "bab47c26b5729d78c6ba4a78403e705d16c8e1fbdc09c5253227110183f90375",
+    "reason": "Reviewed explicit host approval contract revision for internal Goal and candidate Memory writes. Retain original effect, handlers, invocation scope and CAS. Candidate update checks current status; deletion/confirmed-write policy requires approval. No automatic external effects, false read-only classification, legacy revision adapter or approval replay. Low-resource Hub observation review: public service observations retain backend ownership, durable writes, authorization and resume admission. ConversationProjection owns disposable selected-history rows with event/reconciliation invalidation and retained source identities. Settled rows are pruned; live/paused/latest output remains observed, not inferred. SessionNamer deduplicates source/config checks without caching execution settings. Settings usage is an explicit read command; catalog no longer aggregates receipts. Nonblocking usage completion is catalog-scoped and updates text/chart without writing settings. Hidden refresh coalesces ordinary deltas but lifecycle/interactions and reopening remain urgent. Selected/nonselected expiry changes only observation freshness. No llm implementation, persisted record format, storage reader or execution/retry authority changes. Native ToolRegistry.derive now preserves existing schema-syntax proofs when applying Hub risk metadata or RAG rerank requirements. Changed schemas, handler selections, contracts and execution arguments still undergo their native validation; no approval or persistence boundary is bypassed. Existing Hub advice/input/constraint regression cases cover these paths. Resource date source delta 2026-11-04: Approved authoring handlers stamp copied Skill/Workflow/Agent/RAG/Goal creation inputs before the same public ComponentData call. Schema checks, Tool owner validation, effect/approval requirements and backend record ownership are unchanged.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "171ed39f40ac1ff0281d2e857d341ca8cb9dbff8f3cd2c25e56bd8fd1e0bfd39",
-        "classification": "non_contract",
-        "owner": "ToolInputRegistry / native schema / backend ToolRegistry",
-        "reason": "ToolInputRegistry delegates every prepare call to the backend and only diagnoses rejection through public schemas/constraints; no handler effects, retries or approval bypass. FileReadSchema declares native mode exclusions; fixed policy injection is visible to provider validation. HubRAGComponent requires explicit false only when the backend advertises reranker absence; configured rerank remains unchanged. Selections, handler identities and trusted contracts remain backend-owned."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "Resource authoring Tool orchestration",
@@ -96422,23 +96052,10 @@
   },
   {
     "path": "hub/backend/project/record_management.py",
-    "sha256": "53c4adc2089e8c146c1508875f60a8ae6547105c119bdfb96b26bb9a53890272",
-    "reason": "Selected Engine schema queried through public Agents.adescribe. Existing CAS read/write/delete contracts retained. Settings polish: empty tabs/internal engines omitted from UI only; full JSON/schema/CAS retained. Shared active-region hover and edit completion preserve modal scope. Resource timestamps are application metadata passed to public Agent/RAG APIs, never private file inspection. Recommendation metadata is filtered independently from suggestion validation.",
+    "sha256": "34505ca6aeb26549714d1bfb4ee5612ce4ad13a0f758bddc0bd8cd9c8c25010f",
+    "reason": "Selected Engine schema queried through public Agents.adescribe. Existing CAS read/write/delete contracts retained. Settings polish: empty tabs/internal engines omitted from UI only; full JSON/schema/CAS retained. Shared active-region hover and edit completion preserve modal scope. Resource timestamps are application metadata passed to public Agent/RAG APIs, never private file inspection. Recommendation metadata is filtered independently from suggestion validation. Resource date source delta 2026-11-04: Common definition create/save carries only host metadata dates through public ComponentData. Skill import and CAS Markdown editing use standard frontmatter; Agent and RAG retain their specialized revision/generation writers. Memory overrides stamping. Listing does not write or open private files.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "5fc4f6230bebc3ea897ad7f91dfb350addd8330053799f72101aca63d714a013",
-        "classification": "non_contract",
-        "owner": "AgentManagement / AgentDescription",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Selected Engine schema queried through public Agents.adescribe. Existing CAS read/write/delete contracts retained."
-      },
-      {
-        "id": "f9c5cb04be9636eaecbd54fb22b3881722bd9a291a5bcb3f24417adaaf4569af",
-        "classification": "declaration",
-        "owner": "DocumentManagement",
-        "reason": "Owner-local management behavior, presentation fields and explicit import limits; stored domain fields/identities use existing declarations and projections. Public aliases retain original values."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "RecordManagement / SkillManagement / AgentManagement / DocumentManagement",
@@ -96506,8 +96123,8 @@
   },
   {
     "path": "hub/backend/project/memory_management.py",
-    "sha256": "a4be9decba4448df1afa2db0339587dd1763488ca51b2d6de0ce35fff1082239",
-    "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged.",
+    "sha256": "bcebe09c36234104a32778c572836db324a72983a9be18ae29a50151db3e8d75",
+    "reason": "Only replace spaced middle-dot presentation literals with a consistent bullet; leave source data, actions and layout unchanged. Resource date source delta 2026-11-04: Memory creation explicitly retains its native ComponentData writer, which owns top-level lifecycle dates. Generic host metadata stamping is not inherited; public scope, revision and generation checks remain unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -96576,107 +96193,10 @@
   },
   {
     "path": "hub/backend/tools/management.py",
-    "sha256": "735e40aeaea78f4471e7691a9119cfee763693e9f803adfc6009ba1ead4dfff3",
-    "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default.",
+    "sha256": "64d8a096eef67b5274a9747d54cd25c546fe3422517abaa9560c525fa09700e5",
+    "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default. Resource date source delta 2026-11-04: ToolManagement still obtains modification time only from the backend-owned public ToolPaths.modified_at contract. ResourceTimestamps.from_epoch formats that existing value without probing other paths, writing metadata or changing package authority.",
     "dynamic_paths_reviewed": true,
-    "decisions": [
-      {
-        "id": "5087120dd0edb22b14b3f1ace4d3623459b8771f0bbab96527713b0793b5347d",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "a1dca755c64a511d7289de65e9c41168bd29eb823bc0493f835bef91cad2ae69",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "36d92b96591917f8634f2d2b71ea7c7032d19a7db58df0f368b131d73843c58b",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "bd36d6acd7ab4fe4d6f12c71b582d7b5e4807bcc6f6a328c48ce57332b431e8a",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "c42812ed0eeb95bd9149897acf6bcfbfe9f14b0112167c747c52db614a5f1391",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "5fe2f013cf88750bd2e04701ddb2e24a04cbefb590f764331e93ed05caf6c229",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "913cdc984902b93fef2187fb5508cc9b2070a499f4e245ee71b8c1620fa3cb3b",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "2b96c33fb1614ecdb0126c93c03f298be663c30cfeed4b22c8c05ef6743b9437",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "7b48ed19e95223ba5711f5a107685669f608b80b02f786dfbcb2be3d36e45d61",
-        "classification": "declaration",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "59512f60058012391d81034c25c74dc0cd7f7e13ba2ed353c901bcac24bfe5cd",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "4e5ca5bda6bb482566814209a1c63321635bca740509af952d9b86821401c899",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "824952d77935d0048e6bf80c668d181b5db28d7d2ec27078fe98d25779e37464",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "1bbb555e51e7fd7bda07392f7ca3bef13c76378bde1b72664aea2ea8b62a515a",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "9a27678a10da4163975ac7749361ec1ac283d71c50ee51d10471e22599d1f60f",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "d81dcc2b3513492bbed215f7c2d6336c8f8b71f5f092f0e9eb5869c0fc7e2d2a",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      },
-      {
-        "id": "c48a5534e111ebe501e12bf55e1abf2c82b0119b33dba5b176b44b2ef02a70ae",
-        "classification": "non_contract",
-        "owner": "ToolManagementContract / ToolManagement",
-        "reason": "Built-in selection uses the component selection contract and preserves unrelated output settings while changing enabled with the current revision. Optional local handle sentinels create no stored default."
-      }
-    ],
+    "decisions": [],
     "contracts": [
       {
         "owner": "ToolManagementContract / ToolManagement",
@@ -99245,8 +98765,8 @@
         "complete": true
       }
     ],
-    "sha256": "0d2272aa3bca24e68d63b0f0fe9d9d583e5317d4ed01581a5d6aababdf7cab85",
-    "reason": "Reviewed single footer ownership: main pane owns Agent status/progress, excluding sidebar; Dialog status_in_body prevents duplicate outer footer while retaining modal status routing. Shared page retains geometry, focus, padding and loading behavior. Review 2026-10-29: Shared SaveButton compares editable identity and schema draft with the initial definition, caching comparisons between edits. Full native schema and revision-based save are unchanged. Essential settings: common presentation selector preserves the entire schema/draft, required fields, null/missing and host locks. Hidden values remain JSON-editable and publicly validated. Focused clicks enter editing without changing readonly/busy or modal boundaries. Public execution/persistence authority remains unchanged. Settings polish: empty tabs/internal engines omitted from UI only; full JSON/schema/CAS retained. Shared active-region hover and edit completion preserve modal scope. Resource timestamps are application metadata passed to public Agent/RAG APIs, never private file inspection. Recommendation metadata is filtered independently from suggestion validation. 2026-11-01 source-delta re-review: An optional UI return callback restores the initiating participant popup after direct editing; the ordinary definition-manager path remains available. Native Agent schema validation, original version/CAS, dirty tracking and public save remain unchanged. 2026-11-04 source-delta review: Failure labels use the common error notice. Engine/schema load callbacks still reject stale popups, preserve invalid drafts and enforce original versioned save validation.",
+    "sha256": "5f8f89f36b04b7f75b65fb380618865b4f3ee7945c557a839264f45b23bbb5d5",
+    "reason": "Reviewed single footer ownership: main pane owns Agent status/progress, excluding sidebar; Dialog status_in_body prevents duplicate outer footer while retaining modal status routing. Shared page retains geometry, focus, padding and loading behavior. Review 2026-10-29: Shared SaveButton compares editable identity and schema draft with the initial definition, caching comparisons between edits. Full native schema and revision-based save are unchanged. Essential settings: common presentation selector preserves the entire schema/draft, required fields, null/missing and host locks. Hidden values remain JSON-editable and publicly validated. Focused clicks enter editing without changing readonly/busy or modal boundaries. Public execution/persistence authority remains unchanged. Settings polish: empty tabs/internal engines omitted from UI only; full JSON/schema/CAS retained. Shared active-region hover and edit completion preserve modal scope. Resource timestamps are application metadata passed to public Agent/RAG APIs, never private file inspection. Recommendation metadata is filtered independently from suggestion validation. 2026-11-01 source-delta re-review: An optional UI return callback restores the initiating participant popup after direct editing; the ordinary definition-manager path remains available. Native Agent schema validation, original version/CAS, dirty tracking and public save remain unchanged. 2026-11-04 source-delta review: Failure labels use the common error notice. Engine/schema load callbacks still reject stale popups, preserve invalid drafts and enforce original versioned save validation. Plugin API source delta 2026-11-04: A schema-declared final_review selector applies only explicit user changes. Existing custom budgets and inherited values are preserved; parent policy cannot be bypassed. Backend save/revision authority remains unchanged.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -99256,103 +98776,13 @@
         "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
       },
       {
-        "id": "11e2d553263fe1e31ed9138ae11394020ea6bbf725025a925b8fa10cb6b1c530",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "1540273e1365e711612987311d1d4192e0bf6e5e8bc315d55b4b86d37f6fce9a",
-        "classification": "non_contract",
-        "owner": "AgentEditor",
-        "reason": "Shared SaveButton compares editable identity and schema draft with the initial definition, caching comparisons between edits. Full native schema and revision-based save are unchanged."
-      },
-      {
-        "id": "17b33c7f4359b1d50d37c3b32c7d76c60bc83a336675d5107948170d4a88a075",
-        "classification": "non_contract",
-        "owner": "AgentEditor",
-        "reason": "Shared SaveButton compares editable identity and schema draft with the initial definition, caching comparisons between edits. Full native schema and revision-based save are unchanged."
-      },
-      {
-        "id": "1b80e4bcd02490dccd8fe316fed0c4f23f47f49aef8a4325b0a3790803bc34da",
-        "classification": "non_contract",
-        "owner": "AgentEditor.install_form",
-        "reason": "UI activation/selection flags, fixed tuple positions, natural text height and one-row spacing; original schemas, full JSON and runtime settings retained."
-      },
-      {
-        "id": "320057e060e8d9947d3e4cb114be3c1cf9a5c1eed33589e1b3ebaca0818d8e9d",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "39bf1f78d1383a0dc21fc4224d88a6df2b5a83bcdf3845ddc9f94f98cd9319e5",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "3ecb041e9de61612e5622d979035e7ae8a67c9b0a173d728767de0d5360ad4a7",
-        "classification": "non_contract",
-        "owner": "AgentEditor / SettingsEditorLayout / AgentDescription",
-        "reason": "Separates schema installation for Engine switching and validated JSON editing. Reuses TwoPanelPage layout through workspace; no duplicate status label. Public full-schema validation and optimistic saves remain."
-      },
-      {
-        "id": "4f3e42a3c424c53e67cc2069e919bd38d9fb7447329a1488dfa113b36ba91370",
-        "classification": "non_contract",
-        "owner": "AgentEditor",
-        "reason": "Shared SaveButton compares editable identity and schema draft with the initial definition, caching comparisons between edits. Full native schema and revision-based save are unchanged."
-      },
-      {
         "id": "58415e5c8cf2a2ca32fb0de01478826d1307a0bdc072804cfa2f71e21dfb5c34",
         "classification": "non_contract",
         "owner": "AgentEditor",
         "reason": "Optional local return callback. The default still returns to the definition manager; direct editing restores the initiating popup after the same public schema/CAS save."
       },
       {
-        "id": "5cfceebe20d306d7c4c72766817fc577ca1fb56df3965a75a5281101e5e78af7",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "64d67379eee3227857d23f7ce87f0d0aa762c7b6d050b70fb3b9218c559a83d8",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "6895ebaedabae6a9641eb06e0b7e223b8fb105185718825755a41fc6c9f48e76",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "6fc029ab0327812a696cbde09346c0badd0270d88d686b6da090940b30f8c6b7",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
         "id": "7481b49d2136ae99368f4b5c273dc611b341180c079af3291f0458141f28f111",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "79d4c37baaf7601f45878fb03278a759542045fde35cbb5f2f6b2d7620c28e30",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "7bc96117bd74ad070893744132408b8068c4075dbaac5985e212b62e125cb8ca",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "7f6ed2bdb00825228a5895ed499b1b00abf34bce20512526b495cea29c96b0ff",
         "classification": "non_contract",
         "owner": "AgentEditor / AgentDescription / SchemaForm",
         "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
@@ -99376,12 +98806,6 @@
         "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
       },
       {
-        "id": "894515dd74657332b49bb7df88af7f3e3197d6e5fb501a577c83e76ac63782d5",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Optional in-memory argument/object absence, not persisted configuration fallback. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
         "id": "8a97278cb93028aaa122c19e58273a8fdb2f4c4c503aa5f6098af27a3f4b0f7c",
         "classification": "non_contract",
         "owner": "AgentEditor / AgentDescription / SchemaForm",
@@ -99394,12 +98818,6 @@
         "reason": "Identity fields reuse schema controls and local identity declarations. Shared settings layout hosts sidebar, tabs, fields and actions. Engine caption changes with selected schema, drafts and original full-schema/CAS validation remain."
       },
       {
-        "id": "a18cdfb2ba9664143f273766c269a19469294218cfe0963ff367e6f447a01574",
-        "classification": "non_contract",
-        "owner": "AgentEditor / SettingsEditorLayout / AgentDescription",
-        "reason": "Separates schema installation for Engine switching and validated JSON editing. Reuses TwoPanelPage layout through workspace; no duplicate status label. Public full-schema validation and optimistic saves remain."
-      },
-      {
         "id": "b19965039bb02de52f72220c22630087d5c8f1515bd6d0481e1f3236c922dfd1",
         "classification": "non_contract",
         "owner": "AgentEditor / AgentDescription / SchemaForm",
@@ -99410,30 +98828,6 @@
         "classification": "declaration",
         "owner": "AgentEditor / AgentDescription / SchemaForm",
         "reason": "Identity fields reuse schema controls and local identity declarations. Shared settings layout hosts sidebar, tabs, fields and actions. Engine caption changes with selected schema, drafts and original full-schema/CAS validation remain."
-      },
-      {
-        "id": "d8e3dff2dbad494bbf7ef2f3fa15bbcb05b1e0dfa5f9ba90c5317ef5c988b7f2",
-        "classification": "non_contract",
-        "owner": "AgentEditor / AgentDescription / SchemaForm",
-        "reason": "Local editor geometry, draft/busy state, navigation indexing or external JSON editor suffix; backend schema and CAS own settings semantics. Queries public selected schema asynchronously and reuses setting fields. Root allOf is only projected for display, original schema validates full saved definition; backend CAS remains authoritative. Engine drafts and failed-save input retained."
-      },
-      {
-        "id": "df60d971f137972ed79cc32ed14baf81e7d1099dc790bb182af844315bfc7e44",
-        "classification": "non_contract",
-        "owner": "AgentEditor / SettingsEditorLayout",
-        "reason": "Embeds Settings page without outer inset and passes the existing page status control to the common popup footer; validation/navigation unchanged."
-      },
-      {
-        "id": "ed7650dd73f340bec32d60836f2608a35e7d45fcdf56c6ca0ca6c3d73326a885",
-        "classification": "non_contract",
-        "owner": "TwoPanelPage / Dialog / SettingsEditorLayout",
-        "reason": "Reviewed single footer ownership: main pane owns Agent status/progress, excluding sidebar; Dialog status_in_body prevents duplicate outer footer while retaining modal status routing. Shared page retains geometry, focus, padding and loading behavior. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
-      },
-      {
-        "id": "f1c43f13bf99585f1211e5bc30fe9b11596c38a08770756d25fb1b44e99375f7",
-        "classification": "non_contract",
-        "owner": "AgentEditor",
-        "reason": "Shared SaveButton compares editable identity and schema draft with the initial definition, caching comparisons between edits. Full native schema and revision-based save are unchanged."
       }
     ]
   },
@@ -99665,8 +99059,8 @@
         "complete": true
       }
     ],
-    "sha256": "d4c00a283e36b8c7814668315a7a25cc6f2816d09a1342ff257abda00c0fb8ab",
-    "reason": "Filter and external JSON edit change only Agent drafts. Public describe result selects schema; entire schema validates before installing a new Engine draft. Invalid text is retained for correction without overwriting valid values. Existing configured editor, operation callbacks, revision-checked save and common modal navigation are reused. 2026-11-04 source-delta review: JSON editor exceptions use NoticeText only. Size limits, Agent schema validation, host-fixed restrictions, draft recovery and public save remain unchanged.",
+    "sha256": "2c83e7afe93dd64458ff818cab4137931e66f1f0a1818c4ef52ec2f40ad91705",
+    "reason": "Filter and external JSON edit change only Agent drafts. Public describe result selects schema; entire schema validates before installing a new Engine draft. Invalid text is retained for correction without overwriting valid values. Existing configured editor, operation callbacks, revision-checked save and common modal navigation are reused. 2026-11-04 source-delta review: JSON editor exceptions use NoticeText only. Size limits, Agent schema validation, host-fixed restrictions, draft recovery and public save remain unchanged. Plugin API source delta 2026-11-04: JSON round trips use the same current Agent definition as Save, including explicit review selection. Schema validation, missing/null and original revision remain authoritative.",
     "dynamic_paths_reviewed": true,
     "decisions": [
       {
@@ -100612,202 +100006,10 @@
         "classification": "non_contract",
         "owner": "BackgroundRecords / Postprocessing",
         "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
-      },
-      {
-        "id": "2ee1d29c31f672e157e8a74755f269841434dbdcd908fdf750ef12265bb33017",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
-      },
-      {
-        "id": "e05c41847a6dd881461511c76a46903b373031d29c44a313d00387229756a1fb",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "7a46c88d5ecee751d41260acbec844d198a0c01c9012fc674ad424fe0f099141",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "b5edf799434244cf458ec0fd56b6faeb1bfc2e06af2d0cc0d99a4e6b236275e4",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
-      },
-      {
-        "id": "e1e03576746ef2e0cc96ae6a659c09f6b4df5e9e2767271ac3ea407e545a15ce",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "18725091e20d38a641ed1d42eba86ecb619e4e10008bea201532c8750e8a8ed5",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "e2c86838f0a757493723bcbfa3639dba9490a42378e2fe0a4c5f13ebaa54b1f8",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts. Inline schema/field/format projection consumes the declared application schema or public backend API; local control sentinels do not create stored defaults."
-      },
-      {
-        "id": "feabb3c3d2ca39c04318c6323dad58d534ef4872d297ff09e56a9b519ab5a91e",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "1feeb8196b1d8684318408a52d82c9a1d8f1ded8c9a03d725725b95cd47d1ddf",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "d18db0309e83f069eda4bace90ecc58e666535b7bec11faf4e289c488dc37d67",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "2fcd150183323e04e6d1c2f5057aaa1fe1f634a672aef2c393498e047b35fef0",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "103434e104ae935136197d0c7e8c8b671a9bbe5127fa039be6a28847a3f78899",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "e923b70a18444ccc2794de9bb00ec59d2bddb796c7ed58161a0c75a410e5ac25",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "bfa76766f34069e98bfeb426e18d07b1d9c25cef824084c4f5007026996129df",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "4d8c869eddbf71a52bde143ae337e3bb8f171755fd863f49ff5f7970e73234ca",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "083539c5eeaf267b93d4987d01abb99f2e68c316ac08c64f5eb5b284d65748e7",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "77e1eb3b89f5f839e90208242fb5c87898ccdfd5ae5aaaf6c7aa75cfc881d4e4",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "aead4dd2d5d75ab1bf491241107571796e917b60aabeb75f1a82c69fcb3da583",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "64a9de10347454d5131d89e3464893af0928c2235c4062ea3d2c55784c497bb5",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "1ed70656c7eec8a2166478cbc9c409e9f7a9912a7a5e08132030f76588812c68",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "a6ca60bfeb488c9e19122f78d54ba3ac5ba55e8222126a777b9655b6bb51871f",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "8dd725a00a547a218174cf9ecee10da4fe606b3732437e835d2c645a1984c5b8",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "19ba7344e3c061cea23108d5d4525831f869a97dfa148bc1df7a798e5285be46",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "6600a58f53fe3636cbbcfd70b7b30db51a6c02fcfbd2c01311084b47dde0075b",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "0752af894207b33ce9b8503c2a4bc105cf9ac731078cc00a3a5d56e82112f63a",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "fbd4f885c22e77f43748a10b2307fec63970eb2f66857d5692d153da5d62e50a",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "94a7c23f412df36c9b1ef757eec9f964948a76c396be65e1e18e75c97fa45716",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "e351e55ae358604d2f1b90c048eafbe1ab8281dba68d19cc96f0d099e6c4e634",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "f1218a4b8344c4143734c3b5a29e27c71d6a1400c5ca0465e80c948486b821c8",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "f72861ae2890b6715c3d39dd51c35fdb083da3241db93ef3d896df67f86a32e8",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "c1679525b8d7ae9843de23d3f5ddfce7dabbd10d0e52f1edae0cabba2f364fe6",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
-      },
-      {
-        "id": "304e550c2302dd549cb2fa68273744ca833d6259e63d11f4f0e732c9f164c9e0",
-        "classification": "non_contract",
-        "owner": "BackgroundRecords / Postprocessing",
-        "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts."
       }
     ],
-    "sha256": "a2bf57e85df6d7c424013fe5bfdc3db4157438dd8b57b75e4079b326e93fda3a",
-    "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts.",
+    "sha256": "0f8643d8ea22f22cb58f822ccd2ea0f8c8491cc1a0017d4524d7908a24e05ac6",
+    "reason": "Reviewed bounded tool-free after-response plan and its sole JSON schema. Public AgentBinding selects Project/Session; public Component APIs retain CAS, policy and persistence. Authorized internal Memory/Goal CRUD is limited to captured records and current Session creation; new Memory status follows its component policy. Only unapplied guidance proposals are allowed for Refinement. Connection parameters are excluded from model-visible target guidance. Live completion schedules once; new Run/shutdown cancels; no startup replay, foreground failure or UI status propagation. Internal plan field projections do not reinterpret backend contracts. Resource date source delta 2026-11-04: Background Goal creation adds host resource dates through the existing public data create call. Memory/Refinement lifecycle histories, foreground authority, cancellation and revision checks are unchanged.",
     "dynamic_paths_reviewed": true
   },
   {

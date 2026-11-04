@@ -24,7 +24,7 @@ from hub.widget.forms.rag_manager import RAGManager
 from llm.components.rag import RAGComponent, EmbeddingModel
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
 from llm.llm import CheckpointError
-from tests.hub.support import SizedOutput, render_container
+from tests.hub.support import SizedOutput, render_container, backend_ready
 from tests.hub.test_components import config, Extractor
 
 
@@ -392,16 +392,17 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await wait_for(lambda: view.connected)
+                await backend_ready(lambda: view.connected, "persisted RAG job backend connection")
                 view.composer.text = "/rag"
                 pipe.send_text("\r")
-                await wait_for(lambda: isinstance(view._dialog, RAGManager) and not view._dialog.busy)
+                await backend_ready(lambda: isinstance(view._dialog, RAGManager) and not view._dialog.busy,
+                                    "persisted RAG job catalog")
                 popup = view._dialog
                 self.assertEqual(popup._selected_job()["job_id"], job["id"])
                 with set_app(app):
                     app.layout.focus(popup.retry_button)
                 pipe.send_text("\r")
-                await wait_for(lambda: not popup.busy and popup.selected == "queued")
+                await backend_ready(lambda: not popup.busy and popup.selected == "queued", "RAG retry completion")
                 self.assertEqual(calls, [["Saved input"]])
                 self.assertEqual([item["name"] for item in popup.entries], ["queued"])
                 self.assertFalse(view.progress.active)

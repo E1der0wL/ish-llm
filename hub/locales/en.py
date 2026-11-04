@@ -5,6 +5,12 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.AGENT_REVIEW: "Completion review",
+    MessageKey.AGENT_REVIEW_HELP: "When enabled, only reviewed answers are public. When disabled, public engine output is delivered immediately. Project-required review cannot be disabled. Edit detailed budgets in JSON.",
+    MessageKey.AGENT_REVIEW_INHERIT: "Inherit project setting",
+    MessageKey.AGENT_REVIEW_ON: "Enable",
+    MessageKey.AGENT_REVIEW_OFF: "Disable",
+    MessageKey.PLUGIN_AGENT_LABEL: "Plugin · {plugin} • {name}",
     MessageKey.CARD_INPUT: "Input",
     MessageKey.CARD_ANSWER: "Answer",
     MessageKey.CARD_DESCRIPTION: "Description",

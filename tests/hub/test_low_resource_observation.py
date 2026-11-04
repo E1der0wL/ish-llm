@@ -155,6 +155,7 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
     async def test_builtin_question_is_urgent_even_without_a_paused_run(self):
         from hub.backend.runtime import HubRuntime
         runtime = HubRuntime.__new__(HubRuntime)
+        runtime.plugins = None
         runtime.builtin_tools = NS(questions=NS(pending={}))
         runtime.notifications = Mock()
         runtime.dirty = asyncio.Event()

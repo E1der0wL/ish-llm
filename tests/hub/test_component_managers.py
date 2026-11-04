@@ -215,12 +215,13 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected, timeout=10)
+                await backend_ready(lambda: view.connected, "component CRUD backend connection")
                 for name in ("skills", "rag", "workflows", "agents", "mcp"):
                     view.composer.text = "/" + component_spec(name).tool_prefix
                     view.composer.buffer.cancel_completion()
                     pipe.send_text("\r")
-                    await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)
+                    await backend_ready(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy,
+                                        "component CRUD catalog")
                     popup = view._dialog
                     self.assertIsInstance(popup, ComponentManager)
                     self.assertEqual(popup.name, name)
@@ -230,15 +231,16 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         popup.path.text = "guide/SKILL.md"
                         popup.path.buffer.cancel_completion()
                         pipe.send_text("\r")
-                        await eventually(lambda: not popup.busy and popup.selected == "guide")
+                        await backend_ready(lambda: not popup.busy and popup.selected == "guide", "Skill import")
                         self.assertEqual(popup.path.text, "")
                         pipe.send_text("\t\t")  # InputField action, then component list.
                         await eventually(lambda: app.layout.current_control is popup.list)
                         edited = skill_markdown("guide", "Revised instructions", "Revised")
                         with patch("hub.ui.host.edit_text", new_callable=AsyncMock, return_value=edited) as editor:
                             pipe.send_text("\r")
-                            await eventually(lambda: editor.await_count == 1 and not popup.busy and
-                                             any(item.get("description") == "Revised" for item in popup.entries))
+                            await backend_ready(lambda: editor.await_count == 1 and not popup.busy and
+                                             any(item.get("description") == "Revised" for item in popup.entries),
+                                             "Skill edit commit")
                         self.assertFalse(popup.drafts)
                         pipe.send_text("d")
                         await eventually(lambda: view._dialog is not popup)
@@ -248,8 +250,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         with set_app(app):
                             popup.delete()
                         pipe.send_text("\x1b[D\r")  # Cancel -> Confirm within the same button group.
-                        await eventually(lambda: view._dialog is popup and not popup.busy and
-                                         all(item["name"] != "guide" for item in popup.entries))
+                        await backend_ready(lambda: view._dialog is popup and not popup.busy and
+                                         all(item["name"] != "guide" for item in popup.entries), "Skill deletion")
                     pipe.send_text("\x1b")
                     await eventually(lambda: view._dialog is None)
                 self.assertEqual(source.read_text(), skill_markdown("guide", "Original instructions"))

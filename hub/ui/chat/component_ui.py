@@ -34,8 +34,19 @@ class ComponentCommands:
         from ...widget.forms.record_manager import RecordManager
         from ...widget.forms.rag_manager import RAGManager
         from ...widget.forms.definition_manager import DefinitionManager
+        from ...widget.forms.agent_manager import AgentManager
+        from ...backend.project.management_values import AgentLocation
 
-        def request(operation, argument, version, done, *, progress=self.NO_PROGRESS):
+        def request(operation, argument, version, done, *, progress=self.NO_PROGRESS, target_project=None):
+            if spec.manager == ManagerKind.AGENT:
+                owner = target_project or project_id
+                if target_project is None and operation in (ManagementAction.READ, ManagementAction.DELETE):
+                    entry = next((row for row in popup.entries if row["name"] == argument), None)
+                    if entry is not None:
+                        owner, argument = entry[AgentLocation.PROJECT], entry[AgentLocation.AGENT]
+                self.controller._call("manage_agents", project_id, owner, operation, argument, version,
+                                      completed=done)
+                return
             target = (
                 (project_id,)
                 if spec.manager == ManagerKind.TOOLS
@@ -52,7 +63,7 @@ class ComponentCommands:
             )
 
         record_manager = (
-            RAGManager
+            AgentManager if spec.manager == ManagerKind.AGENT else RAGManager
             if spec.manager == ManagerKind.DOCUMENT
             else DefinitionManager if spec.definition_editor else RecordManager
         )

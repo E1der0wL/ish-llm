@@ -2,6 +2,12 @@
 
 
 class MessageKey:
+    AGENT_REVIEW = 'agent_review'
+    AGENT_REVIEW_HELP = 'agent_review_help'
+    AGENT_REVIEW_INHERIT = 'agent_review_inherit'
+    AGENT_REVIEW_ON = 'agent_review_on'
+    AGENT_REVIEW_OFF = 'agent_review_off'
+    PLUGIN_AGENT_LABEL = 'plugin_agent_label'
     CARD_INPUT = 'card_input'
     CARD_ANSWER = 'card_answer'
     CARD_DESCRIPTION = 'card_description'

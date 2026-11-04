@@ -140,6 +140,10 @@ class HubInstallation:
         self.view.set_theme(theme)
         self.prompt.app.invalidate()
 
+    def plugin_client(self, plugin_id):
+        """Return a lazy client following this prompt's current Hub installation."""
+        return client(self.prompt, plugin_id)
+
     def close(self) -> None:
         """Detach Hub without clearing other plugins' floats or keys."""
         if self._closed:
@@ -216,3 +220,17 @@ def install(
         prompt.run = run_with_hub_cleanup
         setattr(prompt, HubInstallation.WRAPPED_ATTRIBUTE, HubInstallation.WRAPPED)
     return installation
+
+
+def client(prompt, plugin_id):
+    """Official Agent integration entry point. Does not open Hub or start work."""
+    from .api import PluginClient
+
+    def worker():
+        installation = getattr(prompt, HubInstallation.INSTALLATION_ATTRIBUTE, None)
+        if installation is None or installation._closed or installation.controller is None:
+            raise RuntimeError("Install live Hub before using its plugin API")
+        installation.controller.bind_app(prompt.app, refresh_environment=False)
+        return installation.controller.ensure_worker()
+
+    return PluginClient(plugin_id, worker)

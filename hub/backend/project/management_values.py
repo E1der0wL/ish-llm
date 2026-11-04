@@ -151,6 +151,23 @@ class ManagementEntry:
         }
 
 
+class AgentLocation:
+    """Owner identity on detached, unified Agent manager list entries."""
+
+    PROJECT = "owner_project_id"
+    AGENT = "agent_id"
+    PLUGIN = "plugin_name"
+
+    @classmethod
+    def entry(cls, entry, project, *, plugin=None):
+        item = deepcopy(entry)
+        item[cls.PROJECT], item[cls.AGENT] = project.id, entry["name"]
+        if plugin is not None:
+            item["name"] = project.id + ":" + entry["name"]
+            item[cls.PLUGIN] = plugin
+        return item
+
+
 class ImportProvenance:
     SOURCE = "source"
 
@@ -168,7 +185,7 @@ class ResourceTimestamps:
 
     CREATED_AT = "created_at"
     UPDATED_AT = "updated_at"
-    METADATA = AgentDefinition.Field.METADATA
+    METADATA = AgentDefinition.Field.METADATA.value
 
     @classmethod
     def created(cls, values):
@@ -186,6 +203,31 @@ class ResourceTimestamps:
         if isinstance(metadata, dict):
             metadata[cls.UPDATED_AT] = datetime.now(timezone.utc).isoformat()
         return result
+
+    @classmethod
+    def skill(cls, values, *, modified=False):
+        """Skill dates belong to standard frontmatter, never record-level extras."""
+        from llm.core.skills import SkillDocument
+        from llm.components.skills import SkillRecord
+
+        document = SkillRecord.document(values)
+        fields = cls.modified(document.frontmatter) if modified else cls.created(document.frontmatter)
+        result = deepcopy(values)
+        if fields != document.frontmatter:
+            name, description = fields.pop(SkillDocument.NAME), fields.pop(SkillDocument.DESCRIPTION)
+            result[SkillRecord.MARKDOWN] = SkillDocument.compose(
+                name=name, description=description, body=document.body, **fields).text
+        return result
+
+    @classmethod
+    def latest(cls, metadata):
+        """Missing historical dates stay unknown; reads never write timestamps."""
+        return metadata.get(cls.UPDATED_AT) or metadata.get(cls.CREATED_AT, ManagementEntry.EMPTY)
+
+    @staticmethod
+    def from_epoch(stamp):
+        """Format a timestamp supplied by its storage owner without replacing it."""
+        return datetime.fromtimestamp(stamp, timezone.utc).isoformat()
 
 
 class DefinitionSummary:
@@ -215,7 +257,7 @@ class DefinitionSummary:
                 or values.get(cls.CONTENT)
                 or cls.EMPTY
             )[: cls.MAXIMUM_DESCRIPTION],
-            metadata.get(cls.UPDATED_AT) or metadata.get(ResourceTimestamps.CREATED_AT, cls.EMPTY),
+            ResourceTimestamps.latest(metadata),
             version,
         )
 

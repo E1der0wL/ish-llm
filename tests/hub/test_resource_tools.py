@@ -59,6 +59,14 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result["applies_to"], "subsequent_runs")
             read = await self.invoke(prefix + "_read", identifier="created-" + prefix)
             self.assertIn("hub_source", json.dumps(read))
+            data = (self.runtime.project.agents if prefix == "agent"
+                    else await self.runtime.project.components.aget(prefix + "s"))
+            stored = await data.aload("created-" + prefix)
+            if prefix == "skill":
+                from llm.core.skills import SkillDocument
+                stored = SkillDocument.parse(stored["markdown"]).frontmatter
+            self.assertTrue(stored["metadata"]["created_at"])
+            self.assertEqual(stored["metadata"]["updated_at"], stored["metadata"]["created_at"])
         agents = self.runtime.project.agents
         before = await agents.aload("created-agent")
         # Invalid definitions and duplicate IDs are rejected by the public API.
@@ -85,6 +93,9 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("memories", json.dumps([step.output.data for step in recalled if step.output]))
         goal = await self.invoke("goal_create", identifier="verify", title="Verify resources", objective="Save and verify a guide",
                                  success_criteria=["Guide stored", "Readback matches"])
+        goal_data = await self.runtime.project.components.goals.aload("verify")
+        self.assertTrue(goal_data["metadata"]["created_at"])
+        self.assertEqual(goal_data["metadata"]["updated_at"], goal_data["metadata"]["created_at"])
         updated = await self.invoke("goal_update_progress", identifier="verify", expected_version=goal["version"],
                                     changes={"progress": ["Guide stored"], "next_actions": ["Readback"]})
         self.provider.responses.append([chunk("Progress checked", finish="stop")])
@@ -103,10 +114,12 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
             operation="update", expected_version=target["version"], reason="Add a missing verification step",
             evidence=[{"session_id": self.session.id, "run_id": evidence_id}], patch={"markdown": skill_markdown('guide', "After: verify readback")})
         skills = await self.runtime.project.components.aget("skills")
-        self.assertEqual((await skills.aload("guide"))["markdown"], skill_markdown("guide", "Before"))
+        before = (await skills.aload("guide"))["markdown"]
+        from llm.core.skills import SkillDocument
+        self.assertEqual(SkillDocument.parse(before).body, SkillDocument.parse(skill_markdown("guide", "Before")).body)
         identifier, = await self.runtime.project.components.refinement.alist()
         paused = await self.invoke("refinement_apply", approve=False, identifier=identifier, expected_version=proposed["version"])
-        self.assertEqual((await skills.aload("guide"))["markdown"], skill_markdown("guide", "Before"))
+        self.assertEqual((await skills.aload("guide"))["markdown"], before)
         request, = await paused.ainteractions()
         await paused.arespond(request.respond("approve"))
         resumed = (await (await self.session.run.resume(paused.id, agent_id="assistant")).wait())[0]
@@ -118,6 +131,8 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["id"], "note")
         data = await self.runtime.project.components.aget("rag")
         document = await data.aget_document("note")
+        self.assertTrue(document["metadata"]["created_at"])
+        self.assertEqual(document["metadata"]["updated_at"], document["metadata"]["created_at"])
         self.assertIn("Violet", document["content"])
         self.assertIn("Violet", document["description"])
         found = await self.invoke("rag_search", query="Violet", method="bm25", rerank=False)

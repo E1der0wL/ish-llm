@@ -97,8 +97,10 @@ class FileRootPresenceTests(unittest.IsolatedAsyncioTestCase):
             snapshot = await runtime.snapshot()
             await runtime.manage_records(runtime.project.id, 'skills', 'import', 'guide/SKILL.md')
             imported = await runtime.manage_records(runtime.project.id, 'skills', 'read', 'guide')
-            self.assertEqual((snapshot.file_root, imported['text']),
-                             (str(self.work), skill_markdown('guide', 'Selected source instructions')))
+            from llm.core.skills import SkillDocument
+            self.assertEqual(snapshot.file_root, str(self.work))
+            self.assertEqual(SkillDocument.parse(imported['text']).body,
+                             SkillDocument.parse(skill_markdown('guide', 'Selected source instructions')).body)
             self.assertEqual(selected.read_text(), skill_markdown('guide', 'Selected source instructions'))
             self.assertEqual(wrong.read_text(), skill_markdown('guide', 'Wrong source instructions'))
         finally:

@@ -219,6 +219,7 @@ class HubRuntime:
         self.t = Language(config.language, config.language_packs)
         self._factory = backend_factory
         self.backend = HubRuntime.ABSENT
+        self.plugins = None
         self.project = HubRuntime.ABSENT
         self.sessions = {}
         self.selected_id = HubRuntime.NO_SELECTION
@@ -264,6 +265,8 @@ class HubRuntime:
         self._opened_sessions.difference_update(identifiers)
 
     async def _engine_event(self, run, event) -> None:
+        if self.plugins is not None and self.plugins.observe(run):
+            return
         from .project.postprocessing_values import Postprocessing
         from .execution.instruction_routing import InstructionEngine
         if run.engine in (Postprocessing.ENGINE, InstructionEngine.IDENTITY):
@@ -288,6 +291,8 @@ class HubRuntime:
         self.dirty.set()
 
     async def _run_event(self, event) -> None:
+        if self.plugins is not None and self.plugins.observe(event.run):
+            return
         from .project.postprocessing_values import Postprocessing
         from .execution.instruction_routing import InstructionEngine
         if event.run.engine in (Postprocessing.ENGINE, InstructionEngine.IDENTITY):
@@ -322,7 +327,12 @@ class HubRuntime:
             )  # Corrupt UI state must not prevent opening the backend.
 
     def _questions_changed(self):
-        self.notifications.observe_questions(self.builtin_tools.questions.pending)
+        pending = self.builtin_tools.questions.pending
+        if self.plugins is not None:
+            self.plugins.questions_changed()
+            pending = {key: item for key, item in pending.items()
+                       if item.session_id not in self.plugins.streams}
+        self.notifications.observe_questions(pending)
         self.urgent_observation = True
         self.dirty.set()
 
@@ -348,6 +358,9 @@ class HubRuntime:
                 component.questions.changed = self._questions_changed
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_STORAGE)
         await self.backend.__aenter__()
+        from .plugins.requests import PluginRequests
+        self.plugins = PluginRequests(self.backend,
+            questions=self.builtin_tools.questions if self.builtin_tools is not None else None)
         from .execution.retries import RetryMonitor
 
         monitor = BackendServices.observed_sink(self.backend.services)
@@ -368,19 +381,16 @@ class HubRuntime:
                 )
             )
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_PROJECT)
+        from .plugins.definitions import PluginIdentity
         if self.config.project_id:
             self.project = await self.backend.projects.aload(self.config.project_id)
         elif self.general.restore_last_project:
             previous = self._saved_selection()
             if previous:
-                self.project = next(
-                    (
-                        project
-                        for project in await self.backend.projects.alist()
-                        if project.id == previous
-                    ),
-                    HubRuntime.ABSENT,
-                )
+                for project in await self.backend.projects.alist():
+                    if project.id == previous and not PluginIdentity.owner(await project.aget_data()):
+                        self.project = project
+                        break
         if self.project is HubRuntime.ABSENT:
             self.project = await select_or_create(self.backend, self.config)
         await self.activate_project(self.project, session_id=self.config.session_id)
@@ -393,8 +403,24 @@ class HubRuntime:
             if operation in OperationProgress.SETTINGS_WRITES:
                 self.snapshot_reader.invalidate_project()
 
+    async def plugin_call(self, operation, plugin_id, *args):
+        """Explicit integration commands run independently of Home selection."""
+        allowed = {"register", "open_session", "submit", "reconnect", "poll", "cancel",
+                   "interrupt", "steer", "respond", "cancel_interaction", "resume_plan",
+                   "resume", "receipt", "answer_live"}
+        if operation not in allowed:
+            raise ValueError("Unknown plugin operation")
+        return await getattr(self.plugins, operation)(plugin_id, *args)
+
+    async def manage_agents(self, home_id, target_id, operation, argument, version):
+        from .plugins.catalog import manage_agents
+        return await manage_agents(self.backend, home_id, target_id, operation, argument, version)
+
     async def activate_project(self, project, *, session_id=ABSENT):
         from .progress import OperationProgress
+        from .plugins.definitions import PluginIdentity
+        if PluginIdentity.owner(await project.aget_data()):
+            raise ValueError("Plugin Projects are configured through plugin settings, not Home")
 
         # Tool capabilities are resolved by the backend when execution needs them.
         # Merely opening history must not build an unused per-project toolkit.
@@ -405,7 +431,8 @@ class HubRuntime:
         for index, session in enumerate(available):
             OperationProgress.report(MessageKey.PROGRESS_BACKEND_SESSIONS, index, len(available))
             record = await session.aget_data()
-            if not TitleSessionMetadata(record.metadata).internal:
+            from .session_contracts import InternalSession
+            if not InternalSession.is_internal(record.metadata):
                 sessions.append(session)
                 titles[session.id] = record.title
         candidates = {session.id: session for session in sessions}
@@ -1165,6 +1192,8 @@ class HubRuntime:
         )
 
     async def close(self) -> None:
+        if self.plugins is not None:
+            self.plugins.close_observers()
         if self.snapshot_reader.background is not None:
             await self.snapshot_reader.background.close()
         await self.automatic_approvals.close()

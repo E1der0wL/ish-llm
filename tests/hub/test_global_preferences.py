@@ -85,9 +85,11 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             totals = {"call_count": 4, "known_tokens": 120, "reserved_tokens": 30,
                       "unknown_calls": 1, "period_seconds": 3600, "calls": []}
-            good = SimpleNamespace(id="good", aget_data=AsyncMock(return_value=SimpleNamespace(id="good", title="Good")),
+            good = SimpleNamespace(id="good", aget_data=AsyncMock(return_value=SimpleNamespace(
+                id="good", title="Good", config=SimpleNamespace(data={}))),
                                    amodel_usage=AsyncMock(return_value=totals))
-            bad = SimpleNamespace(id="bad", aget_data=AsyncMock(return_value=SimpleNamespace(id="bad", title="Bad")),
+            bad = SimpleNamespace(id="bad", aget_data=AsyncMock(return_value=SimpleNamespace(
+                id="bad", title="Bad", config=SimpleNamespace(data={}))),
                                   amodel_usage=AsyncMock(side_effect=OSError("unreadable receipts")))
             runtime = SimpleNamespace(config=HubConfig(directory, model="test/model"), project=good,
                 backend=SimpleNamespace(projects=SimpleNamespace(alist=AsyncMock(return_value=[good, bad])),

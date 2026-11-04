@@ -62,6 +62,7 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_runtime_start_signal_does_not_acquire_snapshot_lock(self):
         runtime = HubRuntime.__new__(HubRuntime)
+        runtime.plugins = None
         runtime.project = NS(id='project')
         runtime.sessions = {'session': NS(project=runtime.project)}
         runtime.background_records = Mock()
@@ -102,6 +103,7 @@ class SubmissionObservationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_native_started_event_uses_session_owner_without_reading_history(self):
         runtime = HubRuntime.__new__(HubRuntime)
+        runtime.plugins = None
         # A real Run deliberately has no project_id. Its Session owns the
         # Project identity, independently of the UI's currently selected page.
         run = Run('run', 'session', 'request', 'answer', 'loop', None,

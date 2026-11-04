@@ -1,7 +1,5 @@
 """New-Project coding resources; never runtime authority or open-time migration."""
 
-from copy import deepcopy
-
 from llm.components.workflows import WorkflowComponent
 from llm.core.agents import AgentDefinition, AgentMode
 from llm.engines.base import agent_mode
@@ -12,6 +10,7 @@ from ...asset.coding_workflow import CodingWorkflow
 from ...config.defaults import HubDefaults
 from ..execution.engine_selection import HubEngineIdentity
 from ..execution.environment import underlying_engine
+from .management_values import ResourceTimestamps
 
 
 async def initialize(backend, project, worker_id: str) -> None:
@@ -31,5 +30,7 @@ async def initialize(backend, project, worker_id: str) -> None:
             or agent_mode(backend.engines.get(engine_name)) != AgentMode.BEHAVIORAL):
         return
     workflows = await project.components.aget(WorkflowComponent.name)
-    await workflows.acreate(CodingWorkflow.definition(worker_id), identifier=HubDefaults.CODING_WORKFLOW_ID)
-    await project.agents.acreate(deepcopy(HubDefaults.PLANNER_AGENT), identifier=HubDefaults.PLANNER_AGENT_ID)
+    await workflows.acreate(ResourceTimestamps.created(CodingWorkflow.definition(worker_id)),
+                            identifier=HubDefaults.CODING_WORKFLOW_ID)
+    await project.agents.acreate(ResourceTimestamps.created(HubDefaults.PLANNER_AGENT),
+                                identifier=HubDefaults.PLANNER_AGENT_ID)

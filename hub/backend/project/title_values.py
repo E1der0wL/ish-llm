@@ -4,6 +4,7 @@ import hashlib
 import json
 from llm.core.model_protocol import ModelRole
 from llm.core.agents import AgentDefinition
+from ..session_contracts import InternalSession
 
 
 class TitleSessionMetadata:
@@ -12,7 +13,7 @@ class TitleSessionMetadata:
     AUTOMATIC = "hub_auto_title"
     AGENT = "hub_title_agent"
     ATTEMPT = "hub_title_attempt"
-    INTERNAL = "hub_internal"
+    INTERNAL = InternalSession.KEY
     SOURCE_SESSION = "source_session"
     ENGINE = "hub_title_engine"
     TITLE_JOB = "title"
@@ -28,7 +29,7 @@ class TitleSessionMetadata:
 
     @property
     def internal(self):
-        return self._value.get(self.INTERNAL)
+        return InternalSession.is_internal(self._value)
 
     @property
     def engine(self):

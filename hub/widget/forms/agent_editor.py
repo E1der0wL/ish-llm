@@ -38,6 +38,7 @@ class AgentEditor(Dialog):
         self.drafts = {self.engine_name: definition}
         self.form, self.busy, self.status = None, False, ""
         self.schema = None
+        self.review = None
         from ...backend.project.participants import AgentProfile
         from llm.core.schema import SchemaType
         properties = {
@@ -108,6 +109,9 @@ class AgentEditor(Dialog):
         schema.pop(SchemaKeyword.ALL_OF, None)
         self.form = SchemaForm(schema, definition, self.view.t,
                                presentation=EssentialSettings(EssentialSettings.AGENT, self.engine_name))
+        from .agent_review import AgentReview
+        self.review = AgentReview(self, schema, definition)
+        self.workspace.bind_choice(self.review.choice)
         for field in self.form.visible_fields.values():
             self.bind_field(field)
         self.workspace.refresh(reset=True)
@@ -121,6 +125,8 @@ class AgentEditor(Dialog):
         from ...backend.project.participants import AgentProfile
 
         values = self.form.values()
+        if self.review is not None:
+            self.review.apply(values)
         values[AgentDefinition.Field.ENGINE] = self.engine_name
         AgentProfile.rename(values, self.display_name.text or self.identifier.text.strip())
         return values
@@ -128,7 +134,8 @@ class AgentEditor(Dialog):
     @property
     def dirty(self):
         # Parse JSON only after edits, never on each redraw of the save button.
-        signature = (self.form, self.engine_name, tuple(field.text for field in self.all_fields()))
+        signature = (self.form, self.engine_name, tuple(field.text for field in self.all_fields()),
+                     self.review.choice.value if self.review else None)
         if signature != self._dirty_signature:
             self._dirty_signature = signature
             try:
@@ -167,7 +174,7 @@ class AgentEditor(Dialog):
             return
         try:
             if self.form:
-                self.drafts[self.engine_name] = self.form.values()
+                self.drafts[self.engine_name] = self.definition()
         except (ValueError, TypeError) as error:
             self.engine.value = self.engine_name
             self.status = NoticeText.error(str(error), self.view.t).inline()

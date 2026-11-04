@@ -2,6 +2,23 @@
 
 구조 설명과 날짜별 변경 기록을 함께 보관한다. [현행 Hub 책임](README.md), [전체 문서 분류](../document-map.md)를 먼저 확인하며 과거 manifest/시험 수를 현재 구현으로 해석하지 않는다.
 
+## 플러그인 Agent 연동 (2026-11-04)
+
+`api.py`는 호출 플러그인과 공유 backend worker 사이의 비동기 공개 경로다.
+`backend/plugins/`는 전용 Project/Session identity, 등록 템플릿, 요청별 제어와 출력 cursor를
+소유한다. 실행·저장·승인·재개 판단은 모두 기존 llm public API에 위임한다.
+새 worker, 실행 계층, 결과 저장소나 자동 재실행 경로를 만들지 않는다.
+
+`backend/plugins/catalog.py`는 현재 Project와 플러그인 Project의 Agent 목록을 합친다.
+`AgentLocation`의 표시 키와 실제 Agent/Project ID를 구분하여 동일 이름도 원래 소유자에게
+저장한다. `widget/forms/agent_manager.py`는 기존 관리 위젯을 확장하고 데이터와 콜백만
+받는다. `agent_review.py`는 공개 schema에 선언된 검증 설정의 missing/null/value를
+편집하며, 최종 설정 검증과 상위 제한 집행은 backend에 남는다.
+
+실행 관찰 구독은 shared worker 수명에 속한다. 이벤트는 관찰자를 깨우고, 출력은 canonical
+`aoutput_events` cursor로 읽는다. 종료 시 관찰 대기를 해제하며, 재시작한 요청은 저장된
+ID로 명시적으로 다시 연결한다. 과거 Run을 재실행하지 않는다.
+
 ## 미사용 경로와 중복 처리 정리 (2026-10-16)
 
 폐기된 입력 상태줄의 projection·표시 속성과 HistoryUI의 중복 팝업 참조를 제거했습니다.

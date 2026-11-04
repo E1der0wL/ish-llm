@@ -30,7 +30,9 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         definition['description'] = 'caller mutation'
         await runtime.start()
         await runtime.new_session()
-        self.assertEqual(await runtime.project.agents.aload('writer'), original)
+        saved = await runtime.project.agents.aload('writer')
+        self.assertEqual(saved['metadata'].pop('created_at'), saved['metadata'].pop('updated_at'))
+        self.assertEqual(saved, original)
         session_id = next(iter(runtime.sessions))
         request = await runtime.submit(session_id, 'hello', 'writer')
         run = (await runtime.sessions[session_id].run.request(request).wait(timeout=15))[0]
@@ -53,14 +55,18 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         await runtime.start()
         await runtime.new_session()
         definitions = await runtime.project.agents.alist()
-        self.assertEqual(definitions['_hub_title'], {'engine': '_hub_title'})
+        self.assertEqual({k: v for k, v in definitions['_hub_title'].items() if k != 'metadata'},
+                         {'engine': '_hub_title'})
         self.assertEqual(definitions['assistant']['engine'], 'loop')
         self.assertIn('agent_run', definitions['assistant']['tools'])
         self.assertIn('file_read', definitions['assistant']['tools'])
         catalog = await runtime.execution_catalog(next(iter(runtime.sessions)))
         self.assertEqual(set(catalog), {'agents'})
         self.assertEqual(set(catalog['agents']), {'assistant', 'planner'})
-        self.assertEqual(definitions['planner'], HubDefaults.PLANNER_AGENT)
+        planner = definitions['planner']
+        self.assertEqual(planner['metadata']['created_at'], planner['metadata']['updated_at'])
+        self.assertEqual({k: v for k, v in planner.items() if k != 'metadata'},
+                         {k: v for k, v in HubDefaults.PLANNER_AGENT.items() if k != 'metadata'})
         with self.assertRaisesRegex(ValueError, 'Internal Agent'):
             await runtime.submit(next(iter(runtime.sessions)), 'hello', '_hub_title')
 

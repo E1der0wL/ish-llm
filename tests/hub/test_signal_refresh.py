@@ -134,6 +134,7 @@ class SignalRefreshTests(IsolatedAsyncioTestCase):
         from llm.core.checkpoint_records import CheckpointWrite
 
         runtime = HubRuntime.__new__(HubRuntime)
+        runtime.plugins = None
         runtime.dirty = asyncio.Event()
         runtime.snapshot_reader = Mock()
         event = EngineEvent(EngineEventType.CHECKPOINT,

@@ -162,10 +162,11 @@ async def create_project(
 
         await initialize_workflow(backend, project, agent_id)
         if SkillComponent.name in components:
+            from .skill_registration import import_skill
             skills = await project.components.aget(SkillComponent.name)
             for index, skill in enumerate(STARTER_SKILLS):
                 OperationProgress.report(MessageKey.PROGRESS_BACKEND_SKILLS, index, len(STARTER_SKILLS))
-                await skills.aimport_directory(skill.directory)
+                await import_skill(skills, skill.directory)
     except BaseException:
         # Do not leave a partially seeded project as the next startup selection.
         await asyncio.shield(project.adelete())

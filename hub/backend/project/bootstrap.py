@@ -49,7 +49,9 @@ async def select_or_create(backend, config):
             except BlockingIOError:
                 # 잠금 대기만 양보한다. 실행 timeout/retry 정책이 아니다.
                 await asyncio.sleep(ProjectStartup.LOCK_POLL_SECONDS)
-        projects = await backend.projects.alist()
+        from ..plugins.definitions import PluginIdentity
+        projects = [project for project in await backend.projects.alist()
+                    if not PluginIdentity.owner(await project.aget_data())]
         if projects:
             records = [(await project.aget_data(), project) for project in projects]
             return min(records, key=lambda item: (item[0].created_at, item[0].id))[1]

@@ -6,6 +6,9 @@ Hub는 현재 동작하는 ish 인터페이스
 
 ## 책임과 계약
 
+[다른 플러그인의 Agent 연동](plugin-api.md)은 공유 Hub worker를 통한 등록·내부 세션·
+엔진 공통 출력 전달과 명시적 승인/재개 경계를 설명한다. 설정은 기존 `/agent` 관리 창을 사용한다.
+
 [공통 표시 형식](ui-formatting.md)은 헤더·상태·목록·안내·설정 항목의 표시 소유권과
 현재 UI 확인 범위를 설명한다.
 
@@ -40,7 +43,7 @@ UI effective values를 새 설정 기본값으로 저장하지 않는다.
 | 대용량 Tool 데이터 | 생성 preset·공개 저장 연결·범위 조회 지침 | [원문 저장과 외부 읽기](large-data-tools.md) |
 | backend 오류 계약 소비 | Diagnostic 보존·backend admission·앱 선택 | [오류](error-handling.md), [Provider 복구](provider-recovery.md), [작업 복구](operation-recovery.md) |
 | Tool UI/선택기 | 승인·질문 표시, 허용된 인자 수정 제안 | [질문과 Tool](questions-tools.md), [Tool retry](tool-retry.md) |
-| 자원 편집 | 현재 Project의 Schema·CRUD·CAS·참조 보호 | [관리 창](component-managers.md), [authoring](resource-authoring.md), [RAG](rag.md) |
+| 자원 편집 | 선택한 자원의 소유 Project에서 Schema·CRUD·CAS·참조 보호 | [관리 창](component-managers.md), [authoring](resource-authoring.md), [RAG](rag.md) |
 | UI | immutable snapshot, 키·마우스·출력·설정 초안 | [홈](home-navigation.md), [패널](panel-ux.md), [출력 객체](output-objects.md), [마우스](mouse.md) |
 
 승인 응답과 실행은 별개다. Hub는 공개 resume_plan/resume/restart와 revision을 사용하며,

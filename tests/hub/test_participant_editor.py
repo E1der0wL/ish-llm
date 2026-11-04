@@ -33,7 +33,8 @@ class ParticipantEditorTests(unittest.IsolatedAsyncioTestCase):
         self.pending = []
 
         def call(operation, *args, completed=None, **kwargs):
-            self.assertEqual(args[:2], ('project', 'agents'))
+            self.assertEqual(operation, 'manage_agents')
+            self.assertEqual(args[:2], ('project', 'project'))
             self.pending.append((*args[2:], completed))
 
         self.controller = SimpleNamespace(view=self.view, _call=call)

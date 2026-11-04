@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import asyncio
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +12,7 @@ from llm.core.editable_snapshot import EditableSnapshot
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.components.tools.package_values import ToolPackageSource
 from llm.components.tools.packages import ToolPaths
-from ..project.management_values import ManagementAction, ManagementEntry
+from ..project.management_values import ManagementAction, ManagementEntry, ResourceTimestamps
 
 
 class ToolManagementContract:
@@ -119,7 +118,7 @@ class ToolManagement:
                 ManagementEntry.tool(
                     name,
                     description(ToolPackageSource.read(snapshot.data).source),
-                    datetime.fromtimestamp(stamp, timezone.utc).isoformat(),
+                    ResourceTimestamps.from_epoch(stamp),
                     name in enabled,
                     snapshot.version,
                 )
