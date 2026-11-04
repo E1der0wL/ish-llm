@@ -60,7 +60,7 @@ class DockController:
     def _after_render(self, app):
         self._audio.sync(active=self.visible and self.display_mode != DockMode.HIDDEN
                          and (self._config.widgets.visualizer.enabled or self._config.widgets.title.enabled),
-                         config=self._config.audio, app=app)
+                         config=self._config.audio, start_task=app.create_background_task)
         self._dashboard.sync(active=self.visible and self.display_mode == DockMode.MAXIMIZED,
                              config=self._config, app=app)
 

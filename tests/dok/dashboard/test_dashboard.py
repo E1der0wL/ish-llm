@@ -363,12 +363,122 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.runtime.snapshot_for(changed), WeatherSnapshot())
         self.gate = asyncio.Event()
         self.sync(config=changed)
-        await self.until(lambda: all((task.done() for task in self.tasks)))
+        await self.until(lambda: any(task.done() for task in self.tasks))
         self.sync(config=changed)
         await self.until(lambda: self.calls == 2)
         self.assertFalse(self.runtime.snapshot.days)
         await self.stop()
         self.assertTrue(self.cancelled)
+
+    async def test_appearance_and_location_label_changes_preserve_inflight_collection(self):
+        self.gate = asyncio.Event()
+        self.sync()
+        await self.until(lambda: self.calls == 1)
+        tasks = tuple(self.tasks)
+        weather = replace(
+            self.config.widgets.weather,
+            location=replace(self.config.widgets.weather.location, label='renamed'),
+            icons={'clear': 'SUN'}, style={'color': '#abcdef'}, spacing={'after_rows': 3},
+        )
+        changed = replace(
+            self.config, dock={'width': {'value': 90}},
+            widgets=replace(
+                self.config.widgets, weather=weather, shortcuts={'items': []},
+                time=TimeConfig(format='%I:%M', style={'color': '#123456'}),
+                weekday_art=WeekdayConfig(font='small'),
+            ),
+        )
+        for _ in range(3):
+            self.sync(config=changed)
+            await asyncio.sleep(0)
+        self.assertEqual(tuple(self.tasks), tasks)
+        self.assertFalse(any(task.cancelling() for task in tasks))
+        self.assertFalse(self.cancelled)
+        self.gate.set()
+        await self.until(lambda: bool(self.runtime.snapshot.days))
+        self.assertEqual(self.runtime.snapshot_for(changed), self.runtime.snapshot)
+        self.assertEqual(self.calls, 1)
+
+    async def test_clock_cadence_and_timezone_changes_do_not_cancel_forecast(self):
+        self.gate = asyncio.Event()
+        self.sync()
+        await self.until(lambda: self.calls == 1)
+        original_tasks = tuple(self.tasks)
+        changed = replace(
+            self.config, clock=ClockConfig(timezone='UTC'),
+            widgets=replace(self.config.widgets, time=TimeConfig(format='%H:%M:%S')),
+        )
+        self.sync(config=changed)
+        await self.until(lambda: any(task.done() for task in original_tasks))
+        self.sync(config=changed)
+        self.assertEqual(len(self.tasks), len(original_tasks) + 1)
+        self.assertFalse(self.cancelled)
+        self.assertEqual(self.calls, 1)
+        self.gate.set()
+        await self.until(lambda: self.runtime.snapshot.updated_at is not None)
+        self.assertEqual(self.runtime.snapshot.updated_at.tzinfo.key, 'UTC')
+
+    async def test_weather_settings_replace_only_weather_and_preserve_cache_on_cadence_change(self):
+        self.sync()
+        await self.until(lambda: bool(self.runtime.snapshot.days))
+        original_tasks = tuple(self.tasks)
+        saved = self.runtime.snapshot
+        changed = replace(self.config, widgets=replace(
+            self.config.widgets, weather=replace(self.config.widgets.weather, refresh_minutes=5),
+        ))
+        self.gate = asyncio.Event()
+        self.sync(config=changed)
+        await self.until(lambda: any(task.done() for task in original_tasks))
+        self.sync(config=changed)
+        await self.until(lambda: self.calls == 2)
+        self.assertEqual(len(self.tasks), len(original_tasks) + 1)
+        self.assertEqual(sum(task.done() for task in original_tasks), 1)
+        self.assertEqual(self.runtime.snapshot, saved)
+        self.gate.set()
+
+    async def test_rapid_reconfigure_waits_for_cleanup_and_uses_latest_location(self):
+        calls, started_cleanup, release_cleanup = [], asyncio.Event(), asyncio.Event()
+
+        async def fetch(config):
+            calls.append(config.location.coordinates)
+            if len(calls) == 1:
+                try:
+                    await asyncio.Event().wait()
+                finally:
+                    started_cleanup.set()
+                    await release_cleanup.wait()
+            return (ForecastDay(date(2026, 11, 3), WeatherKind.CLEAR, 18, 6),)
+
+        runtime = DashboardRuntime(lambda: None, SimpleNamespace(fetch=fetch))
+        first = self.config
+        second = replace(first, widgets=replace(first.widgets, weather=replace(
+            first.widgets.weather, location=WeatherLocation(1, 2),
+        )))
+        latest = replace(first, widgets=replace(first.widgets, weather=replace(
+            first.widgets.weather, location=WeatherLocation(3, 4),
+        )))
+        try:
+            runtime.sync(active=True, config=first, app=self.app)
+            await self.until(lambda: len(calls) == 1)
+            runtime.sync(active=True, config=second, app=self.app)
+            await asyncio.wait_for(started_cleanup.wait(), 3)
+            for active in (False, True, False, True):
+                runtime.sync(active=active, config=latest, app=self.app)
+                await asyncio.sleep(0)
+            self.assertEqual(calls, [(0, 0)])
+            release_cleanup.set()
+            await self.until(lambda: not runtime._weather_task.running)
+            runtime.sync(active=True, config=latest, app=self.app)
+            await self.until(lambda: len(calls) == 2)
+            self.assertEqual(calls, [(0, 0), (3, 4)])
+            self.assertEqual(runtime.snapshot_for(first), WeatherSnapshot())
+        finally:
+            release_cleanup.set()
+            runtime.close()
+        await self.until(lambda: all(task.done() for task in self.tasks))
+        count = len(self.tasks)
+        runtime.sync(active=True, config=latest, app=self.app)
+        self.assertEqual(len(self.tasks), count)
 
     async def test_http_adapter_uses_async_transport_and_validates_status(self):
         requests = []

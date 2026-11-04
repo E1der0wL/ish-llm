@@ -127,43 +127,43 @@ class AudioRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_start_stop_restart_and_hotplug_all_outputs(self):
         config = AudioConfig()
-        self.runtime.sync(active=True, config=config, app=self.app)
+        self.runtime.sync(active=True, config=config, start_task=self.app.create_background_task)
         await self.until(lambda: self.runtime.snapshot.levels[0] == 0.75)
         self.assertEqual(self.backend.opened, set(self.backend.sources))
         self.backend.sources = ("first.monitor",)
         await self.until(lambda: self.runtime.snapshot.sources == self.backend.sources and self.runtime.snapshot.levels[0] == 0.25)
         self.assertIn("second.monitor", self.backend.closed)
-        self.runtime.sync(active=False, config=config, app=self.app)
+        self.runtime.sync(active=False, config=config, start_task=self.app.create_background_task)
         await self.until(lambda: self.backend.closed == self.backend.opened)
         self.assertEqual(self.runtime.snapshot.status, AudioStatus.STOPPED)
-        self.runtime.sync(active=True, config=config, app=self.app)
+        self.runtime.sync(active=True, config=config, start_task=self.app.create_background_task)
         await self.until(lambda: self.runtime.snapshot.status == AudioStatus.RUNNING)
 
     async def test_stalled_stream_becomes_silence_and_disabled_config_stops_capture(self):
-        self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
+        self.runtime.sync(active=True, config=AudioConfig(), start_task=self.app.create_background_task)
         await self.until(lambda: max(self.runtime.snapshot.levels) > 0)
         self.backend.emit = False
         await self.until(lambda: self.runtime.snapshot.levels == SpectrumAnalyzer.silence())
-        self.runtime.sync(active=True, config=AudioConfig(enabled=False), app=self.app)
+        self.runtime.sync(active=True, config=AudioConfig(enabled=False), start_task=self.app.create_background_task)
         await self.until(lambda: self.backend.closed == self.backend.opened)
 
     async def test_missing_server_retries_only_on_new_activation(self):
         original = self.backend.monitors
         unavailable = AsyncMock(side_effect=OSError("server unavailable"))
         self.backend.monitors = unavailable
-        self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
+        self.runtime.sync(active=True, config=AudioConfig(), start_task=self.app.create_background_task)
         await self.until(lambda: self.runtime.snapshot.status == AudioStatus.UNAVAILABLE)
         self.assertIn("server unavailable", self.runtime.snapshot.message)
         await self.until(lambda: all(task.done() for task in self.tasks))
         for _ in range(5):
-            self.runtime.sync(active=False, config=AudioConfig(), app=self.app)
-            self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
+            self.runtime.sync(active=False, config=AudioConfig(), start_task=self.app.create_background_task)
+            self.runtime.sync(active=True, config=AudioConfig(), start_task=self.app.create_background_task)
             await asyncio.sleep(0.05)
         self.assertEqual(unavailable.await_count, 1)
         self.assertEqual(len(self.tasks), 1)
         self.backend.monitors = original
         self.runtime.begin_activation()
-        self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
+        self.runtime.sync(active=True, config=AudioConfig(), start_task=self.app.create_background_task)
         await self.until(lambda: self.runtime.snapshot.status == AudioStatus.RUNNING)
 
     async def test_no_outputs_and_capture_or_metadata_failure_stop_all_work(self):
@@ -185,12 +185,12 @@ class AudioRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 runtime.DISCOVERY_INTERVAL = 0.05
                 runtime.APPLICATION_INTERVAL = 0.05
                 try:
-                    runtime.sync(active=True, config=AudioConfig(), app=self.app)
+                    runtime.sync(active=True, config=AudioConfig(), start_task=self.app.create_background_task)
                     await self.until(lambda: runtime.snapshot.status == AudioStatus.UNAVAILABLE)
                     await self.until(lambda: all(task.done() for task in self.tasks))
                     count = len(self.tasks)
                     for _ in range(3):
-                        runtime.sync(active=True, config=AudioConfig(), app=self.app)
+                        runtime.sync(active=True, config=AudioConfig(), start_task=self.app.create_background_task)
                         await asyncio.sleep(0.05)
                     self.assertEqual(len(self.tasks), count)
                     self.assertEqual(runtime.snapshot.levels, SpectrumAnalyzer.silence())
@@ -199,12 +199,60 @@ class AudioRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     runtime.close()
 
     async def test_application_changes_update_without_restarting_capture(self):
-        self.runtime.sync(active=True, config=AudioConfig(sources=("first.monitor",)), app=self.app)
+        self.runtime.sync(active=True, config=AudioConfig(sources=("first.monitor",)), start_task=self.app.create_background_task)
         await self.until(lambda: self.runtime.snapshot.applications == ("Player",))
         self.backend.names["first.monitor"] = "New Player"
         await self.until(lambda: self.runtime.snapshot.applications == ("New Player",))
         self.assertEqual(self.backend.opened, {"first.monitor"})
         self.assertEqual(self.backend.closed, set())
+
+    async def test_rapid_source_changes_wait_for_capture_cleanup_and_close_is_final(self):
+        opened, cleaned = [], []
+        cleaning, release = asyncio.Event(), asyncio.Event()
+
+        async def frames(source):
+            opened.append(source)
+            try:
+                while True:
+                    yield SpectrumAnalyzer.silence()
+                    await asyncio.sleep(0.01)
+            finally:
+                if source == 'first.monitor':
+                    cleaning.set()
+                    await release.wait()
+                cleaned.append(source)
+
+        self.backend.frames = frames
+        first = AudioConfig(sources=('first.monitor',))
+        second = AudioConfig(sources=('second.monitor',))
+
+        def sync(config, active=True):
+            self.runtime.sync(active=active, config=config, start_task=self.app.create_background_task)
+
+        sync(first)
+        await self.until(lambda: opened == ['first.monitor'])
+        sync(second)
+        await asyncio.wait_for(cleaning.wait(), 3)
+        try:
+            for active in (False, True, False, True):
+                sync(second, active)
+                await asyncio.sleep(0)
+            self.assertEqual(opened, ['first.monitor'])
+            self.assertEqual(cleaned, [])
+        finally:
+            release.set()
+        await self.until(lambda: all(task.done() for task in self.tasks))
+        sync(second)
+        await self.until(lambda: opened == ['first.monitor', 'second.monitor'])
+        self.assertEqual(cleaned, ['first.monitor'])
+        self.runtime.close()
+        await self.until(lambda: all(task.done() for task in self.tasks))
+        self.assertEqual(cleaned, opened)
+        count = len(self.tasks)
+        self.runtime.begin_activation()
+        sync(first)
+        self.assertEqual(len(self.tasks), count)
+        self.assertEqual(self.runtime.snapshot, AudioSnapshot())
 
     async def test_cancellation_terminates_and_reaps_actual_capture_child(self):
         opened = asyncio.get_running_loop().create_future()

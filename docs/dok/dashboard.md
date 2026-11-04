@@ -152,6 +152,6 @@ dock.display_mode   # 직전 렌더링의 실제 모드; 보이지 않으면 hid
 dock.weather        # WeatherSnapshot
 ```
 
-`DockState`가 상태 전이를, `DockGeometry`가 공간에 따른 실제 모드를 소유한다. `WidgetsConfig`는 날짜·시간·요일·날씨 등 화면 요소를 조합하고 `ClockConfig`는 공통 시간대를 소유하며 각 Owner가 기본값·검증·schema·표시 해석을 제공한다. `OpenMeteo`만 외부 JSON 필드와 WMO 코드·HTTP 인자를 해석한다. `app/lifecycle.py`의 `DashboardRuntime`은 작업 그룹의 시작·취소를 조율하고, 각 기능의 `ClockRuntime`과 `WeatherRuntime`이 시각 갱신과 예보 갱신·캐시를 담당한다. `WeekdayRenderer`는 아트 생성·폭 제한·캐시를 소유한다. 구체적인 파일 위치는 [폴더 구조](architecture.md)를 따른다.
+`DockState`가 상태 전이를, `DockGeometry`가 공간에 따른 실제 모드를 소유한다. `WidgetsConfig`는 날짜·시간·요일·날씨 등 화면 요소를 조합하고 `ClockConfig`는 공통 시간대를 소유하며 각 Owner가 기본값·검증·schema·표시 해석을 제공한다. `OpenMeteo`만 외부 JSON 필드와 WMO 코드·HTTP 인자를 해석한다. `app/lifecycle.py`의 `DashboardRuntime`은 공통 `TaskSlot`을 사용해 날씨·시계 작업의 시작·취소를 독립적으로 조율하고, 각 기능의 `ClockRuntime`과 `WeatherRuntime`이 시각 갱신과 예보 갱신·캐시를 담당한다. `WeekdayRenderer`는 아트 생성·폭 제한·캐시를 소유한다. 구체적인 파일 위치는 [폴더 구조](architecture.md)를 따른다.
 
 `TextRow`와 `TextSpan`은 행 안의 색상·굵기와 표시 폭을 전달한다. `DockView`만 이를 터미널 스타일로 변환한다. 날짜 Owner와 날씨 Owner의 스타일 선언을 렌더러에서 재해석하지 않는다.

@@ -67,8 +67,22 @@ class ClockConfig(Record):
         return datetime.now(ZoneInfo(self.timezone)) if self.timezone is not None else datetime.now().astimezone()
 
     def next_tick(self, now, date, time):
+        return self.schedule(date, time).next_tick(now)
+
+    def schedule(self, date, time) -> ClockSchedule:
         seconds = any(element.needs_clock and "%S" in element.format.replace("%%", "") for element in (date, time))
-        return (1 if seconds else 60 - now.second) - now.microsecond / 1_000_000
+        return ClockSchedule(self, seconds)
+
+
+@dataclass(frozen=True, slots=True)
+class ClockSchedule:
+    """Effective clock inputs; styling and same-cadence formats are excluded."""
+
+    clock: ClockConfig
+    seconds: bool
+
+    def next_tick(self, now: datetime) -> float:
+        return (1 if self.seconds else 60 - now.second) - now.microsecond / 1_000_000
 
 @dataclass(frozen=True, slots=True)
 class DateStyle(BoldStyle):

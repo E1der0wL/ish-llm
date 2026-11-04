@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import aclosing
 import asyncio
 
+from ...core.tasks import TaskSlot, TaskStarter
 from ...integrations.audio.pulse import PulseBackend
 from .config import AudioConfig
 from .models import AudioSnapshot, AudioStatus
@@ -20,13 +21,11 @@ class AudioRuntime:
         self._invalidate = invalidate
         self._backend = backend if backend is not None else PulseBackend()
         self._snapshot = AudioSnapshot()
-        self._task = None
-        self._config = None
-        self._closed = False
+        self._task = TaskSlot(invalidate)
         self._failure = None
 
     def _publish(self, snapshot: AudioSnapshot):
-        if snapshot != self._snapshot:
+        if not self._task.closed and snapshot != self._snapshot:
             self._snapshot = snapshot
             self._invalidate()
 
@@ -93,27 +92,17 @@ class AudioRuntime:
         """Allow a fresh connection attempt when the user opens the dock."""
         self._failure = None
 
-    def sync(self, *, active: bool, config: AudioConfig, app):
-        active = active and config.enabled and not self._closed
-        if self._task is not None and not self._task.done():
-            if active and self._config == config and not self._task.cancelling():
-                return
-            if not self._task.cancelling():
-                self._task.cancel()
-            self._publish(AudioSnapshot())
-            return
-        if active:
-            if self._failure is not None:
-                self._publish(self._failure)
-                return
-            self._config = config
-            self._task = app.create_background_task(self._run(config))
-            self._task.add_done_callback(lambda task: self._invalidate())
-        else:
+    def sync(self, *, active: bool, config: AudioConfig, start_task: TaskStarter):
+        active = active and config.enabled and not self._task.closed
+        running = self._task.sync(
+            active=active and self._failure is None, key=config,
+            run=lambda: self._run(config), start=start_task,
+        )
+        if active and self._failure is not None:
+            self._publish(self._failure)
+        elif not running:
             self._publish(AudioSnapshot())
 
     def close(self):
-        self._closed = True
-        if self._task is not None and not self._task.done() and not self._task.cancelling():
-            self._task.cancel()
         self._publish(AudioSnapshot())
+        self._task.close()

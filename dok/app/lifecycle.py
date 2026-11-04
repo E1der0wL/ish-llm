@@ -1,27 +1,24 @@
-"""Coordinate the active lifetime of clock and weather background tasks."""
+"""Connect independent feature tasks to the active host application."""
 
-import asyncio
-
+from ..core.tasks import TaskSlot
+from ..features.clock.config import ClockConfig
 from ..features.clock.runtime import ClockRuntime
 from ..features.weather.runtime import WeatherRuntime
 
 
 class DashboardRuntime:
-    """Keep one task group active; feature runtimes retain their own cached data."""
+    """Reconcile each feature independently; feature owners retain their data."""
 
     def __init__(self, invalidate, backend=None):
-        self._invalidate = invalidate
         self._clock = ClockRuntime(invalidate)
         self._weather = WeatherRuntime(invalidate, backend)
-        self._task = None
-        self._config = None
-        self._closed = False
+        self._clock_task = TaskSlot(invalidate)
+        self._weather_task = TaskSlot(invalidate)
+        self._clock_config = ClockConfig()
 
-    async def _run(self, config):
-        async with asyncio.TaskGroup() as group:
-            if config.widgets.needs_clock:
-                group.create_task(self._clock.run(config.clock, config.widgets.date, config.widgets.time))
-            group.create_task(self._weather.run(config.widgets.weather, config.clock.now))
+    def _now(self):
+        # An in-flight forecast uses the latest display timezone on publication.
+        return self._clock_config.now()
 
     @property
     def snapshot(self):
@@ -31,20 +28,22 @@ class DashboardRuntime:
         return self._weather.snapshot_for(config.widgets.weather)
 
     def sync(self, *, active, config, app):
-        active = active and not self._closed and config.widgets.needs_runtime
-        if self._task is not None and not self._task.done():
-            if active and self._config == config and not self._task.cancelling():
-                return
-            if not self._task.cancelling():
-                self._task.cancel()
+        if self._clock_task.closed:
             return
-        self._weather.prepare(config.widgets.weather)
-        if active:
-            self._config = config
-            self._task = app.create_background_task(self._run(config))
-            self._task.add_done_callback(lambda task: self._invalidate())
+        self._clock_config = config.clock
+        schedule = config.clock.schedule(config.widgets.date, config.widgets.time)
+        self._clock_task.sync(
+            active=active and config.widgets.needs_clock, key=schedule,
+            run=lambda: self._clock.run(schedule), start=app.create_background_task,
+        )
+        weather = config.widgets.weather
+        if not self._weather_task.running:
+            self._weather.prepare(weather)
+        self._weather_task.sync(
+            active=active and weather.can_fetch, key=weather.polling_key,
+            run=lambda: self._weather.run(weather, self._now), start=app.create_background_task,
+        )
 
     def close(self):
-        self._closed = True
-        if self._task is not None and not self._task.done():
-            self._task.cancel()
+        self._clock_task.close()
+        self._weather_task.close()

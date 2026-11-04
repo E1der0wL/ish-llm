@@ -46,6 +46,10 @@ class WeatherLocation(Record):
         description="Location label for your reference. Not displayed or used to look up coordinates."
     )
 
+    @property
+    def coordinates(self) -> tuple[float, float]:
+        return self.latitude, self.longitude
+
 
 @dataclass(frozen=True, slots=True)
 class WeatherStyle(TextStyle):
@@ -141,4 +145,9 @@ class WeatherConfig(ElementConfig):
 
     @property
     def request_key(self):
-        return (self.location, self.temperature_unit, self.days)
+        return (self.location.coordinates if self.location is not None else None, self.temperature_unit, self.days)
+
+    @property
+    def polling_key(self):
+        """Only query identity and cadence affect the collection task."""
+        return self.request_key, self.refresh_seconds
