@@ -8,11 +8,12 @@ from types import SimpleNamespace
 import sys
 import threading
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from dok import AudioConfig, AudioSnapshot, AudioStatus, DockConfig
-from dok.audio import AudioRuntime, OutputMonitor, PulseBackend
-from dok.spectrum import SpectrumAnalyzer
+from dok.features.audio.runtime import AudioRuntime
+from dok.integrations.audio.pulse import OutputMonitor, PulseBackend
+from dok.features.audio.spectrum import SpectrumAnalyzer
 
 
 class SpectrumTests(unittest.TestCase):
@@ -113,7 +114,6 @@ class AudioRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.runtime = AudioRuntime(lambda: None, self.backend)
         self.runtime.DISCOVERY_INTERVAL = 0.05
         self.runtime.STALE_AFTER = 0.05
-        self.runtime.RETRY_INTERVAL = 0.05
         self.runtime.APPLICATION_INTERVAL = 0.05
 
     async def asyncTearDown(self):
@@ -147,16 +147,56 @@ class AudioRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.runtime.sync(active=True, config=AudioConfig(enabled=False), app=self.app)
         await self.until(lambda: self.backend.closed == self.backend.opened)
 
-    async def test_missing_server_is_observable_and_recovers(self):
+    async def test_missing_server_retries_only_on_new_activation(self):
         original = self.backend.monitors
-        async def unavailable():
-            raise OSError("server unavailable")
+        unavailable = AsyncMock(side_effect=OSError("server unavailable"))
         self.backend.monitors = unavailable
         self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
         await self.until(lambda: self.runtime.snapshot.status == AudioStatus.UNAVAILABLE)
         self.assertIn("server unavailable", self.runtime.snapshot.message)
+        await self.until(lambda: all(task.done() for task in self.tasks))
+        for _ in range(5):
+            self.runtime.sync(active=False, config=AudioConfig(), app=self.app)
+            self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
+            await asyncio.sleep(0.05)
+        self.assertEqual(unavailable.await_count, 1)
+        self.assertEqual(len(self.tasks), 1)
         self.backend.monitors = original
+        self.runtime.begin_activation()
+        self.runtime.sync(active=True, config=AudioConfig(), app=self.app)
         await self.until(lambda: self.runtime.snapshot.status == AudioStatus.RUNNING)
+
+    async def test_no_outputs_and_capture_or_metadata_failure_stop_all_work(self):
+        for failure in ("no_outputs", "capture", "metadata", "discovery"):
+            with self.subTest(failure=failure):
+                backend = FakeBackend()
+                if failure == "no_outputs":
+                    backend.sources = ()
+                elif failure == "capture":
+                    async def broken_frames(source):
+                        yield SpectrumAnalyzer.silence()
+                        raise OSError("capture failed")
+                    backend.frames = broken_frames
+                elif failure == "metadata":
+                    backend.applications = AsyncMock(side_effect=OSError("metadata failed"))
+                elif failure == "discovery":
+                    backend.monitors = AsyncMock(side_effect=[backend.sources, OSError("disconnected")])
+                runtime = AudioRuntime(lambda: None, backend)
+                runtime.DISCOVERY_INTERVAL = 0.05
+                runtime.APPLICATION_INTERVAL = 0.05
+                try:
+                    runtime.sync(active=True, config=AudioConfig(), app=self.app)
+                    await self.until(lambda: runtime.snapshot.status == AudioStatus.UNAVAILABLE)
+                    await self.until(lambda: all(task.done() for task in self.tasks))
+                    count = len(self.tasks)
+                    for _ in range(3):
+                        runtime.sync(active=True, config=AudioConfig(), app=self.app)
+                        await asyncio.sleep(0.05)
+                    self.assertEqual(len(self.tasks), count)
+                    self.assertEqual(runtime.snapshot.levels, SpectrumAnalyzer.silence())
+                    self.assertEqual(backend.opened, backend.closed)
+                finally:
+                    runtime.close()
 
     async def test_application_changes_update_without_restarting_capture(self):
         self.runtime.sync(active=True, config=AudioConfig(sources=("first.monitor",)), app=self.app)

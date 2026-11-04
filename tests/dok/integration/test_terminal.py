@@ -14,11 +14,11 @@ import unittest
 
 class TerminalTests(unittest.TestCase):
     def test_preview_accepts_shortcut_and_exits_cleanly_on_real_pty(self):
-        root = Path(__file__).resolve().parents[2]
+        root = Path(__file__).resolve().parents[3]
         master, slave = pty.openpty()
-        termios.tcsetwinsize(slave, (24, 120))
+        termios.tcsetwinsize(slave, (32, 120))
         process = subprocess.Popen(
-            [sys.executable, "-m", "tests.dok.terminal_fixture", "--no-audio"],
+            [sys.executable, "-m", "tests.dok.terminal_fixture", "--offline"],
             cwd=root, stdin=slave, stdout=slave, stderr=slave, start_new_session=True,
             env=dict(os.environ, TERM="xterm-256color", PYTHONUNBUFFERED="1"),
         )
@@ -44,6 +44,9 @@ class TerminalTests(unittest.TestCase):
 
         try:
             until("플레이어 연결 안 됨".encode())
+            until("--°".encode())  # Unknown temperatures with no configured location.
+            os.write(master, b"\x17")  # Ctrl+W: hide.
+            os.write(master, b"\x17")  # Ctrl+W: reopen at the available size.
             os.write(master, b"status\x1b1")
             submitted = b"Submitted: 'git status'"
             until(submitted)

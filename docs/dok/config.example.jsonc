@@ -1,0 +1,483 @@
+// dok configuration: edit values, then run ish_reload to apply them.
+// Line comments (//) and block comments (/* ... */) are supported. Trailing commas are not allowed.
+// All settings are shown. Explicit values take precedence; omitted fields use this version's defaults.
+{
+  // Dock width and mode keys.
+  "dock": {
+    // Dock mode key sequences.
+    "keys": {
+      // Toggle dock visibility. Opens maximized by default and fits the available space. Examples: ["c-w"], ["f8"].
+      "toggle": ["c-w"]
+    },
+    // Overall dock width; widget rows are centered within it.
+    "width": {
+      // Width mode: fixed uses terminal cells; ratio uses a fraction of the ish PTY width.
+      "mode": "fixed",
+      // Cell count for fixed, or a fraction greater than 0 and at most 1 for ratio. Clamped to the available width.
+      "value": 80
+    }
+  },
+  // Linux output audio capture. Native Windows audio is not included.
+  "audio": {
+    // Enable Linux output audio capture. false prevents capture processes from running.
+    "enabled": true,
+    // Output monitor names to capture. [] uses all discovered output monitors.
+    "sources": []
+  },
+  // Shared clock settings.
+  "clock": {
+    // Shared IANA timezone for date, time, weekday art and weather timestamps. Empty uses local time.
+    "timezone": "Asia/Seoul"
+  },
+  // Widget content, appearance and spacing.
+  "widgets": {
+    // Maximized daily forecast. Requests send configured coordinates to Open-Meteo.
+    "weather": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 1,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null
+      },
+      // Forecast location. null disables weather requests. Supply your own latitude and longitude.
+      // Object format: {"latitude": <latitude>, "longitude": <longitude>, "label": "<location name>"}
+      "location": null,
+      // Temperature unit: celsius or fahrenheit.
+      "temperature_unit": "celsius",
+      // Number of forecast days to display. Fewer days are shown when space is limited.
+      "days": 7,
+      // Weather refresh interval in minutes. Reopening the dock reuses a valid cache until this interval expires.
+      "refresh_minutes": 30,
+      // Weather foreground and low-temperature colors.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db",
+        // Low temperature foreground color in #RRGGBB format.
+        "low_temperature_color": "#77818d"
+      },
+      // Weather status messages.
+      "texts": {
+        // Message displayed when a weather request fails.
+        "unavailable": "날씨 연결 실패"
+      },
+      // Target weather width as a fraction of the dock width. Enough space is retained to prevent temperature overlap.
+      "width_ratio": 0.5,
+      // Horizontal icon offset in cells. Negative moves left; positive moves right. Clamped within each column.
+      "icon_offset_columns": -1,
+      // Icons or single-line text for each weather condition.
+      "icons": {
+        // Clear sky icon.
+        "clear": "☀",
+        // Partly cloudy icon.
+        "partly_cloudy": "🌤",
+        // Cloudy icon.
+        "cloudy": "☁",
+        // Fog icon.
+        "fog": "🌫",
+        // Rain icon.
+        "rain": "🌧",
+        // Snow icon.
+        "snow": "❄",
+        // Thunderstorm icon.
+        "thunder": "⛈",
+        // Unknown weather icon. Also used when no forecast location is configured.
+        "unknown": "?"
+      },
+      // Weather weekday labels in Monday-to-Sunday order. Small capitals, regular letters, and other text are supported.
+      "weekday_labels": ["ᴍᴏɴ", "ᴛᴜᴇ", "ᴡᴇᴅ", "ᴛʜᴜ", "ꜰʀɪ", "ꜱᴀᴛ", "ꜱᴜɴ"]
+    },
+    // Maximized pyfiglet weekday art.
+    "weekday_art": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 1,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null
+      },
+      // Installed pyfiglet font name. Examples: future, slant, ansi_regular, small.
+      "font": "future",
+      // Weekday art foreground color.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db"
+      },
+      // Use abbreviated English weekdays. Automatically falls back to abbreviations or plain text when space is limited.
+      "abbreviated": false
+    },
+    // Maximized date row.
+    "date": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 0,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null
+      },
+      // Date foreground color and bold text.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db",
+        // Render text in bold.
+        "bold": true
+      },
+      // Date format. %d is day, %B uppercase English month, %Y year. Empty hides this row.
+      "format": "%d %B, %Y."
+    },
+    // Maximized time row.
+    "time": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 2,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null
+      },
+      // Time foreground color.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db"
+      },
+      // Time format. %H is hour, %M minute, %S second. %S enables second updates; empty hides this row.
+      "format": "-%H:%M-"
+    },
+    // Linux output audio visualizer.
+    "visualizer": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 0,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null
+      },
+      // Solid color or horizontal gradient stops.
+      "style": {
+        // Colors in #RRGGBB format. One color gives a solid fill; multiple colors form a left-to-right gradient.
+        "colors": ["#67e8f9", "#c084fc", "#fb7185"]
+      },
+      // Visualizer length in terminal cells. Clamped to the dock width.
+      "width_columns": 38
+    },
+    // Playback progress bar. No external player is connected.
+    "progress": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 0,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null
+      },
+      // Foreground appearance.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#6b7280"
+      },
+      // Progress bar length in cells, excluding the time labels. Clamped to the available space.
+      "width_columns": 48
+    },
+    // Application title and audio connection messages.
+    "title": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 1,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": 0
+      },
+      // Foreground appearance.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db"
+      },
+      // Title prefix and audio connection message.
+      "texts": {
+        // Text before application names. An empty string shows names only. Trailing spaces are preserved.
+        "prefix": "재생 중: ",
+        // Title text when the audio connection fails. An empty string uses the normal title instead.
+        "audio_error": "사운드 연결 실패"
+      }
+    },
+    // Display-only music buttons; no playback control is connected.
+    "media_controls": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical spacing in terminal rows.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 2,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": 1
+      },
+      // Buttons in display order. [] draws no buttons.
+      "buttons": [
+        {
+          // Button action: previous, play_pause, next, play, pause, or stop. Duplicate actions are not allowed.
+          "action": "previous",
+          // Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font.
+          "text": "󰒮",
+          // Foreground appearance.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#6b7280"
+          }
+        },
+        {
+          // Button action: previous, play_pause, next, play, pause, or stop. Duplicate actions are not allowed.
+          "action": "play_pause",
+          // Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font.
+          "text": "󰐎",
+          // Foreground appearance.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#6b7280"
+          }
+        },
+        {
+          // Button action: previous, play_pause, next, play, pause, or stop. Duplicate actions are not allowed.
+          "action": "next",
+          // Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font.
+          "text": "󰒭",
+          // Foreground appearance.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#6b7280"
+          }
+        }
+      ]
+    },
+    // Shortcut entries, visibility and spacing. Disabling releases their keys.
+    "shortcuts": {
+      // Show this widget. false removes its content and trailing spacing.
+      "enabled": true,
+      // Vertical rows and horizontal cells between shortcut entries.
+      "spacing": {
+        // Blank rows after this widget, including bottom spacing for the last widget.
+        "after_rows": 1,
+        // Basic-mode trailing rows. null uses after_rows.
+        "basic_after_rows": null,
+        // Horizontal cells between entries. Reduced when space is limited.
+        "item_gap_columns": 2
+      },
+      // Shortcut and separator entries. [] leaves all numbered slots empty.
+      "items": [
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 1,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "fzf",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Find",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-1"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#e67e80"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 2,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "yazi",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "File",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-2"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#e69875"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 3,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "htop",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Sys",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-3"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#dbbc7f"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 4,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "vim",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Vim",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-4"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#83c092"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 5,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "lazygit",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Git",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-5"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#7fbbb3"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 6,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "firefox &",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Web",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-6"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#84c8fa"
+          }
+        },
+        {
+          // Slot occupied by the separator. Must be unique across all entries.
+          "slot": 7,
+          // separator marks a non-executable divider. command and key are not allowed.
+          "type": "separator",
+          // Single-line text displayed as the separator.
+          "text": "│",
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#6b7280"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 8,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "vim ~/ish/dok/config.jsonc",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Dock",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-7"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#a6a1fb"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 9,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "vim ~/ish/.ishrc.py",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Conf",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-8"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#d699b6"
+          }
+        },
+        {
+          // Shortcut slot number. Must be unique across all entries.
+          "slot": 10,
+          // Shell command prepended to the current prompt buffer. Runs on its own when the buffer is empty.
+          "command": "ish_reload",
+          // Icon or emoji. Nerd Font glyphs require a compatible font. An empty string is allowed.
+          "icon": "",
+          // Executable shortcut entry type.
+          "type": "shortcut",
+          // Label after the icon. May be omitted when space is limited.
+          "label": "Rld",
+          // Shortcut key sequence. Examples: ["c-1"], ["escape", "1"]. null registers no key. Ctrl+number requires terminal key mappings.
+          "key": ["c-9"],
+          // Enable this shortcut. false dims it and disables execution by click or keyboard.
+          "enabled": true,
+          // Entry foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#c084fc"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -102,3 +102,141 @@ dok 테스트 **67개가 통과**했다. [실행 로그](../../tests/dok/reports
 dok 테스트 **77개가 통과**했다. 새 설정의 저장·조회, 기존 설정의 기본값, schema/runtime 거부 일치, 접두 문구 제거, 실제 타이틀·진행바 셀 색, 버튼 순서·사용자 문자·숨김·비실행 클릭, 긴 버튼 말줄임, 0칸 간격 및 큰 길이·간격의 화면 폭 제한을 검증했다. [실행 로그](../../tests/dok/reports/dok-s_t2h1qi/dok.txt), [소스 해시](../../tests/dok/reports/dok-s_t2h1qi/snapshot.json).
 
 이번 변경은 표시 설정이다. 음악 버튼의 플레이어 연결은 추가하지 않았으며 ish 본체 변경과 llm/hub 전체 회귀도 수행하지 않았다.
+
+## 바로가기 위 여백과 오디오 연결 실패 처리
+
+`DockRow`에 바로가기 위 투명 padding 행을 추가했다. 본문은 6줄, 하단 padding까지 7줄이며 최소 입력 영역 높이는 8줄이다. 기존 `DockGeometry` 선언으로 배치와 표시 가능 여부를 계산한다. 빈 행의 뒤 화면과 클릭 처리는 유지한다.
+
+오디오 오류는 `AudioSnapshot.diagnostic`을 통해 타이틀 행에 표시하고 비주얼라이저는 정지 상태로 유지한다. 설정 오류가 함께 있으면 설정 오류를 우선 표시한다. `AudioRuntime`이 연결 실패를 보관하고 캡처·조회 작업을 종료한다. 사용자가 dock을 닫았다 다시 열 때만 `begin_activation()`으로 실패 후 새 시도를 허용한다. 정상 연결 중 장치·프로그램 조회는 유지한다.
+
+Linux Python 3.12.14의 네이티브 파일시스템 스냅샷에서 dok 테스트 **81개가 통과**했다. 실제 Float의 두 padding 행과 자동완성·프레임 복원, 타이틀 오류 표시, 서버·장치·캡처·메타데이터 조회 실패 후 작업 종료, 반복 렌더링과 일시 비활성화 시 재연결 방지, 재열기 시 새 연결을 검증했다. [실행 로그](../../tests/dok/reports/dok-h4724jqz/dok.txt), [소스 해시](../../tests/dok/reports/dok-h4724jqz/snapshot.json).
+
+ish 본체는 수정하지 않았으며 llm/hub 전체 회귀는 수행하지 않았다.
+
+## 사운드 연결 실패 문구 설정과 높이 검토
+
+`TitleConfig.audio_error_text`가 오류 안내 문구의 기본값·한 줄 검증·schema와 표시 해석을 소유한다. 기본은 `사운드 연결 실패`, 빈 문자열은 오류 안내 대신 일반 타이틀을 표시한다. 상세 오류는 `AudioSnapshot`에 유지하며 재연결 수명주기는 변경하지 않았다.
+
+Linux Python 3.12.14에서 dok 테스트 **82개가 통과**했다. 설정 저장·조회, 기본값, schema/runtime 거부 일치, 사용자 문구·빈 문구의 실제 렌더링, 상세 원인 보존과 설정 오류 우선순위를 검증했다. [실행 로그](../../tests/dok/reports/dok-0zp77meg/dok.txt), [소스 해시](../../tests/dok/reports/dok-0zp77meg/snapshot.json).
+
+호스트 레이아웃과 설치된 prompt-toolkit의 높이 계산을 읽어 [높이 확대 검토](dock-height-review.md)를 작성했다. 높이 확대 자체는 구현하거나 실기 검증하지 않았다. ish 본체 변경과 llm/hub 전체 회귀는 수행하지 않았다.
+
+## 숨김·기본·최대화와 날씨·날짜·요일 아트
+
+`DockState`에 3단계 모드와 마지막 펼침 상태 복원을 추가했다. `DockGeometry`는 최대화 높이가 부족하면 기본 모드로 표시하고 사용자 선택은 유지한다. `DashboardConfig`가 날짜·시간·요일·날씨 Owner를 조합하고, `WeekdayRenderer`가 실제 pyfiglet 아트·약어 대체·블록 정렬·한 항목 캐시를 제공한다. 날씨 조회는 httpx 비동기 요청이며 작업 취소와 한 항목 예보 캐시는 `DashboardRuntime`이 소유한다.
+
+사용자 요청에 따라 기본 위치는 화성 동탄(동탄1동 대표 좌표 37.20754, 127.07335), 시간대는 `Asia/Seoul`로 설정했다. 위치 미설정과 네트워크 없는 미리보기도 지원한다. 새 의존성 `pyfiglet`, `httpx`는 플러그인 메타데이터에 선언했다.
+
+Linux Python 3.12.14 네이티브 파일시스템 스냅샷에서 dok 테스트 **94개가 통과**했다. [실행 로그](../../tests/dok/reports/dok-mcrfnrr7/dok.txt), [소스 해시](../../tests/dok/reports/dok-mcrfnrr7/snapshot.json).
+
+- 설정 저장·조회, 폰트·시간대·시간 형식·좌표·주기·키 충돌 검증
+- 실제 pyfiglet 출력의 내부 정렬, 모든 요일의 폭 제한과 아트 캐시 재사용
+- 날짜·시간 형식과 분/초 경계 갱신 계산
+- 날씨 HTTP 요청·응답 해석, 누락 온도, 실패와 갱신 시각 표시
+- 최대화 숨김 시 요청 취소, 위치 변경 시 캐시 분리, 재열기 시 캐시 재사용과 실패 후 조회 주기 유지
+- 실제 Float 최대화 행·투명 여백 클릭·창 축소/복원·키 전환·입력 버퍼 보존
+- 실제 Linux PTY에서 F9 최대화 후 바로가기 제출과 정상 종료
+
+자동 테스트는 날씨 서버에 접속하지 않는다. 별도 실제 조회에서 동탄 좌표의 Open-Meteo 일별 예보 **7일**을 성공적으로 수신·해석했다(2026-11-03 확인). 장시간 최대화 성능 soak는 별도로 수행하지 않았다. ish 본체는 수정하지 않았고 llm/hub 전체 회귀도 실행하지 않았다.
+
+## 최대화 UI 미리보기 반영 — 요일 아트 유지
+
+지역 헤더를 제거하고 날씨 영역을 3줄로 정리했다. 날씨 목표 폭은 본문 절반, 아이콘 이동은 왼쪽 한 셀이다. 온도는 `16° 4°` 형식이며 최저 온도만 기본 회색으로 표시한다. 설정·schema·표시 해석은 `WeatherConfig`와 `WeatherPresentation`이 소유한다. 날짜는 기본 `03 NOVEMBER, 2026.`와 볼드, 시간은 `-06:29-`다. `ClockFormat`이 로케일과 독립적인 영문 월을 해석하고 `CalendarConfig`가 날짜 굵기를 소유한다.
+
+사용자 후속 요청에 따라 기존 pyfiglet 요일 아트를 날씨와 날짜 사이에 유지했다. 시간 아래 3줄, 타이틀 아래 1줄, 버튼 아래 2줄, 바로가기 아래 1줄을 비운다. `DashboardView`와 `DockGeometry`의 공개 행 구성으로 실제 그리기 위치와 최소 높이를 함께 계산한다. 기본 모드 배치는 유지한다. `TextRow`/`TextSpan`을 통해 날씨의 부분 색상과 날짜 굵기를 렌더러까지 전달한다.
+
+Linux Python 3.12.14 네이티브 스냅샷에서 dok 테스트 **96개가 통과**했다. [실행 로그](../../tests/dok/reports/dok-p6vdef23/dok.txt), [소스 해시](../../tests/dok/reports/dok-p6vdef23/snapshot.json).
+
+실제 Float 셀에서 날짜 볼드·시간 일반체·최저 온도 색·요일 아트·각 여백 좌표·클릭 통과를 확인했다. 날씨 폭 축소·아이콘 이동·좁은 폭·음수 및 누락 온도·설정 검증과 실패 안내도 확인했다. 실제 PTY 미리보기는 새 높이를 수용하는 32행 화면에서 최대화 후 바로가기 제출과 정상 종료를 검증했다. 기본 `slant` 5행 아트·정상 날씨·날짜/시간을 모두 표시할 때는 입력 컨테이너 최소 25줄이 필요하다.
+
+이전 설정 파일에 날짜/시간 형식을 명시한 경우 자동으로 덮어쓰지 않는다. 새 형식 설정은 [최대화 정보 영역](dashboard.md)의 예시를 따른다. ish 본체 변경과 llm/hub 전체 회귀는 수행하지 않았다.
+
+## 날씨·요일 아트 사이 여백 제거와 시간 아래 2줄
+
+`DashboardView`가 날씨 직후 요일 아트를 배치하고, 시간 아래 투명 여백은 2줄로 줄였다. 요일 아트와 날짜 사이 여백 1줄은 유지한다. 기본 `slant` 5행 아트·정상 날씨·날짜/시간 기준으로 입력 컨테이너 최소 높이는 23줄이다.
+
+아트 타입은 기존 `dashboard.weekday.font` 계약으로 선택한다. 실제 설치된 pyfiglet의 `ansi_regular`, `ansi_shadow`, `future`, `cyberlarge`, `modular`, `small` 출력을 비교하고 참고 이미지의 굵은 기하학적 느낌에 가까운 `ansi_regular`를 문서에 추천했다. 기본 폰트와 사용자 선택은 변경하지 않았다.
+
+dok 테스트 **96개가 통과**했다. 실제 화면에서 날씨 다음 행에 아트가 시작하는지, 시간과 비주얼라이저 사이에 정확히 2줄이 있는지 확인했다. [실행 로그](../../tests/dok/reports/dok-wn2kvkwh/dok.txt), [소스 해시](../../tests/dok/reports/dok-wn2kvkwh/snapshot.json). ish 본체 변경과 llm/hub 전체 회귀는 수행하지 않았다.
+
+## 요소별 표시·간격과 날씨 요일 문구
+
+`ElementConfig`가 `enabled`, `padding_after`, `basic_padding_after`의 선언·검증·해석을 소유한다. 날짜와 시간은 `calendar.date`/`calendar.time`으로 따로 제어하며, 비활성 요소와 뒤 여백은 실제 행 계산에서 제거한다. 기본 펼침의 기존 간격은 유지하고 사용자 추가 요청에 따라 날씨와 요일 아트 사이의 기본 여백은 다시 1줄로 설정했다. 정상 날씨·5행 아트의 최대화 기본 최소 입력 높이는 24줄이다.
+
+날씨 위 요일은 월~일 순서의 `weekday_labels` 7개로 설정한다. 기본값은 `ᴍᴏɴ`, `ᴛᴜᴇ`, `ᴡᴇᴅ`, `ᴛʜᴜ`, `ꜰʀɪ`, `ꜱᴀᴛ`, `ꜱᴜɴ`이며 실제 글자 모양은 사용자 터미널 폰트에 따른다. 설정과 예시는 [요소 표시와 세로 간격](layout.md)에 정리했다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **104개가 통과**했다(13.108초). [실행 로그](../../tests/dok/reports/dok-hssspwft/dok.txt), [소스 해시](../../tests/dok/reports/dok-hssspwft/snapshot.json).
+
+- schema·생성자 검증·저장/로드의 일치, 여백 범위 및 모드별 해석
+- 요소 제거에 따른 높이 축소, 정보 영역만 남는 경우, 전부 비활성인 경우
+- 실제 Float 셀의 사용자 여백·날짜 굵기·온도 색상·기존 자동완성/편집 내용과 클릭 보존
+- 바로가기 비활성화 시 키 우선 처리와 직접 제출 중단, 재활성화 후 정상 제출
+- 모든 정보 요소 비활성화 시 비동기 작업 종료 및 반복 생성 방지
+- 작은 영문 요일 기본값·문자 폭·날짜별 매핑·사용자 문구·유효성 검증
+- 실제 Linux PTY의 최대화·바로가기 제출·정상 종료
+
+ish 본체 변경과 llm/hub 전체 회귀는 수행하지 않았다. 기존 보고서는 해당 시점의 결과로 보존한다.
+
+## 현재 사용자 설정을 기본값으로 반영
+
+WSL의 `~/ish/dok/config.json`을 설치된 dok Owner로 해석한 전체 설정과 새 `DockConfig()`를 비교했다. 사용자 요청으로 제외한 날씨 위치(`null`) 외의 모든 값이 일치한다. 원본 개인 설정 파일의 SHA-256도 변경 전후 일치한다.
+
+기본값은 바로가기 9개와 구분선, 각 Nerd Font 아이콘·색·Ctrl+숫자 키, 38칸 3색 비주얼라이저, Nerd Font 음악 버튼, `future` 아트, 가로 간격 2칸이다. 읽은 파일의 날씨 뒤 여백 1줄을 유지했다. 위치는 기본값에서 제거하여 사용자가 명시하기 전에는 날씨를 요청하지 않는다. [기본 설정 안내](defaults.md)에 전체 구성을 정리했다.
+
+설정 Owner의 선언을 바꿨으며 별도 기본 JSON 파일이나 기본값 재해석 계층을 추가하지 않았다. 기본 schema, `{}` 및 설정 파일 부재 시 로드, 명시적인 빈 바로가기 목록, 기본 위치 미설정 시 조회 방지를 검증했다. 빈 슬롯을 검증하는 렌더링 테스트는 `shortcuts=()`를 명시한다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **104개 통과**(13.131초). [실행 로그](../../tests/dok/reports/dok-i75_qh23/dok.txt), [소스 해시](../../tests/dok/reports/dok-i75_qh23/snapshot.json). 실제 Linux PTY, 투명 Float 배치와 키 우선 처리 검증도 포함된다. ish 본체 변경이나 llm/hub 전체 회귀는 수행하지 않았다. WSL의 설치된 플러그인 코드는 이번 작업에서 교체하지 않았다.
+
+## 모든 설정값과 Owner 주석을 포함하는 JSONC
+
+처음 설치할 때 모든 기본값과 한글 설명이 담긴 `config.jsonc`를 생성한다. `setting`의 설명 선언을 schema와 `Record.documented_fields()`가 공유하며, 중첩 레코드·배열 항목에도 설명을 붙인다. 기본 독 편집 바로가기의 파일명도 JSONC로 변경했다. 기존 JSON 파일만 있으면 그대로 사용하며 두 파일이 있으면 JSONC가 우선한다. 기존 파일이나 주석을 시작·재로드 시 덮어쓰지 않는다. [사용법](configuration-file.md).
+
+JSONC는 문자열 밖의 줄·블록 주석만 공백으로 대체한 뒤 표준 JSON 파서와 기존 Owner 검증에 전달한다. 원래 오류 위치, URL·셸 명령·이스케이프·한글·Nerd Font 문자를 보존한다. 잘못 닫힌 주석, 중복 키와 허용하지 않는 추가 문법은 거부한다. 최초 파일 생성은 기존 파일이 있을 때 실패하는 원자적 배치를 사용하고 임시 파일을 정리한다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **111개 통과**(13.397초). 전체 생성값 왕복, 모든 필드 설명과 schema 일치, 파일 우선순위, 최초 설치와 사용자 주석 보존, 오류 시 기존 실행 설정 유지, 저장 실패와 기존 파일 덮어쓰기 방지, 실제 PTY를 검증했다. [실행 로그](../../tests/dok/reports/dok-7kjxsyno/dok.txt), [소스 해시](../../tests/dok/reports/dok-7kjxsyno/snapshot.json).
+
+ish 본체와 WSL 개인 설정 파일은 변경하지 않았으며 llm/hub 전체 회귀는 수행하지 않았다. 배포된 플러그인 코드는 이번 작업에서 교체하지 않았다.
+
+## 영어 기본 라벨과 설정 설명
+
+기본 바로가기 이름을 `Find`, `File`, `Sys`, `Vim`, `Git`, `Web`, `Dock`, `Conf`, `Rld`로 변경했다. 시스템 명령은 `htop`이며 아이콘·색상·키·구분선은 유지한다. 설정 Owner의 설명 77개와 JSONC 파일 머리말을 영어로 바꿨다. schema와 생성 주석은 같은 설명 선언을 사용한다.
+
+dok 테스트 **111개 통과**. [실행 로그](../../tests/dok/reports/dok-y7dxeqzx/dok.txt), [소스 해시](../../tests/dok/reports/dok-y7dxeqzx/snapshot.json), [생성 예시](../../tests/dok/reports/dok-y7dxeqzx/config.generated.jsonc). 생성된 주석 164줄이 모두 영어이고, JSONC 왕복 시 값이 보존됨을 확인했다. 라벨 변경 직후 스냅샷과 비교하여 주석 번역이 실제 설정값을 바꾸지 않았음도 확인했다. 타이틀 접두 문구·연결 오류 안내 등 화면에 표시되는 기본 문자열은 그대로다.
+
+기존 사용자 설정과 역사적 생성 예시는 다시 쓰지 않았다. ish 본체 변경과 llm/hub 전체 회귀는 수행하지 않았다.
+
+## 책임별 폴더 정리 (2026-11-03)
+
+런타임을 `app`, `core`, `settings`, `dashboard`, `features`, `integrations`, `rendering`으로 재배치했다. 기능별 설정·화면·작업과 외부 연결을 분리하고, 기본 영역의 순서와 높이 계산은 같은 위젯 선언을 사용한다. 테스트도 책임별 하위 패키지로 이동했다. [전체 구조](architecture.md).
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **111개 통과**(15.412초). 재배치된 패키지를 포함한 실제 ish 플러그인 로딩, 공개 설정 타입의 동일성, 실제 PTY, 투명 Float, 입력 제출·복원, 비동기 작업 취소·캐시와 설정 저장을 검증했다. [실행 로그](../../tests/dok/reports/dok-apg7zqpu/dok.txt), [소스 해시](../../tests/dok/reports/dok-apg7zqpu/snapshot.json).
+
+작업 전 원본과 별도 프로세스에서 **90가지 화면 조건**을 비교해 기본/최대화 모드, 폭, 요소 비활성화, 여백, 긴 바로가기 및 폰트 변경 시 문자열·스타일·위치·폭·높이가 같음을 확인했다. 공개 루트 이름 32개와 기존 진입점 노출 이름을 유지하고, 기본값·schema·생성 JSONC가 작업 전 결과와 동일함도 확인했다. [화면 비교 결과](../../tests/dok/reports/reorganization-20261103/render-comparison.json), [API·설정 비교 결과](../../tests/dok/reports/reorganization-20261103/compatibility.json).
+
+향후 기능용 빈 폴더는 추가하지 않았다. ish 본체, 배포된 플러그인과 개인 설정은 수정하지 않았으며 llm/hub 전체 회귀는 실행하지 않았다. 기존 역사적 검증 결과는 보존했다.
+
+## 이전 설정 파일 호환 분기 제거 (2026-11-03)
+
+출시 전에는 이전 설정 호환을 유지하지 않는다는 방침에 따라 `config.json` 자동 선택과 확장자별 JSON/JSONC 읽기·쓰기 분기를 제거했다. 기본 경로는 항상 `config.jsonc`이며 명시적으로 지정한 경로도 같은 JSONC 처리기를 사용한다. 이전 파일 자체를 삭제하거나 변환하지 않는다. 필드명 별칭이나 버전 변환 계층은 없으며 옵션 이름·중첩 구조 개편은 아직 적용하지 않았다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **112개 통과**(20.415초). 이전 JSON 파일이 있어도 새 경로를 선택하고 기존 파일을 보존하는 동작, 확장자와 무관한 주석 포함 저장·재로드, 원자적 저장, 실제 호스트 로딩과 PTY를 검증했다. [실행 로그](../../tests/dok/reports/dok-pign1f08/dok.txt), [소스 해시](../../tests/dok/reports/dok-pign1f08/snapshot.json). ish 본체와 개인 설정은 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.
+
+## 옵션 구조 통일 (2026-11-03)
+
+루트를 `dock`, `audio`, `clock`, `widgets`로 나누고 화면 옵션을 `enabled`, `spacing`, `style`, `texts`로 묶었다. 날짜·시간 위젯과 공통 시간대를 분리하고 바로가기 항목과 줄 설정을 `widgets.shortcuts`에 합쳤다. 단위가 있는 옵션은 `width_columns`, `after_rows`, `item_gap_columns`, `icon_offset_columns`처럼 명확하게 표시한다. 바로가기·구분선은 `type`으로 구분하며 `icon`으로 이모지와 Nerd Font를 받는다.
+
+이전 설정 필드·생성자 별칭·버전 코덱·런타임 변환 계층은 추가하지 않았다. Owner의 실제 필드 구조를 변경하여 검증·schema·직렬화·영어 JSONC 설명이 한 선언을 사용한다. 중첩 `style`·`spacing`에서 일부 값만 지정해도 각 기능의 나머지 기본값을 유지한다. [구조 설명](options.md), [Owner에서 생성한 전체 JSONC](config.example.jsonc).
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **116개 통과**(15.223초). 기존 렌더링·명령 제출·키 복원·오디오·날씨 수명주기·실제 ish 로더·PTY 검증을 새 설정으로 유지했고, 구형 경로 거부, 중첩 기본값, 독립 날짜·시간 스타일, 생성 순서 검증을 추가했다. 중복 키와 잘못된 너비 저장 파일도 새 경로로 검사한다. [실행 로그](../../tests/dok/reports/dok-i6kuqxhs/dok.txt), [소스 해시](../../tests/dok/reports/dok-i6kuqxhs/snapshot.json).
+
+작업 전 원본을 별도 프로세스에서 실행하여 기본값을 대조하고 **90가지 화면 조건**의 문자열·색상·좌표·폭·높이가 동일함을 확인했다. 비교를 위한 일회성 구조 대응은 보고서 폴더에만 있으며 배포 코드에 포함되지 않는다. 현재 문서의 설정 예시 8개도 실제 Owner와 schema로 검증했다. [비교 결과](../../tests/dok/reports/options-restructure/comparison.json).
+
+ish 본체, 배포된 플러그인과 개인 설정은 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다. 기존 설정 파일은 자동으로 변환되지 않으며 새 코드에는 현재 형식의 설정이 필요하다.
+
+## 위치 미설정 날씨와 자동 크기 토글 (2026-11-04)
+
+위치가 없으면 설정 시간대의 오늘부터 요일과 Unknown 아이콘, `--° --°`를 표시한다. `WeatherSnapshot.unknown()`이 날짜별 빈 예보를 만들고 기존 온도·아이콘 렌더링을 공유한다. `widgets.weather.icons`에서 모든 아이콘과 `unknown`을 수정할 수 있으며 최저 온도 색과 폭 제한을 유지한다. 다른 시계 위젯을 모두 꺼도 날씨 요일의 자정 갱신을 위해 시계 작업이 활성화된다. 위치 미설정 시 네트워크 조회는 하지 않는다.
+
+토글 기본값은 Ctrl+W이며 첫 펼침은 최대화를 요청한다. 공간에 따라 기본 크기로 줄어들고 공간이 복원되면 최대화로 돌아온다. 크기 전환용 키 바인딩과 `dock.keys.maximize`, 사용하지 않는 `widgets.weather.texts.location_missing`은 제거했다. 기존 공개 Python 모드 제어 API는 유지한다. 개인 설정은 자동 변환하거나 덮어쓰지 않았다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **119개 통과**(17.064초). 날짜 경계, 기본·사용자 Unknown 아이콘, 기존 예보 제거, 최저 온도 색, 좁은 화면, 아이콘 설정 저장·schema·렌더링, Ctrl+W 입력 보존, 자동 크기 복원, F9 호스트 바인딩 복원과 실제 Linux PTY를 검증했다. [실행 로그](../../tests/dok/reports/dok-i4qca5bg/dok.txt), [소스 해시](../../tests/dok/reports/dok-i4qca5bg/snapshot.json). 현재 문서의 설정 예시 9개를 Owner와 schema로 검증하고 전체 기본 JSONC를 Owner에서 재생성했다. ish 본체는 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.
