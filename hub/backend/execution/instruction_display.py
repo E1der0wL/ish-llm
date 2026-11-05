@@ -12,6 +12,7 @@ from ...model import InstructionDisplay, InstructionTargetDisplay
 
 
 class UserInstructions:
+    TARGET_SEPARATOR = ' / '
     @staticmethod
     def signature(message):
         receipt = InstructionMessageRecord.from_message(message)
@@ -57,7 +58,7 @@ class UserInstructions:
         instructions = tuple(
             InstructionDisplay(item.id, item.text, status=item.status, time=item.time,
                 targets=tuple(InstructionTargetDisplay(
-                    (' / '.join((*target.reservation.workflow_path, target.reservation.node_id))
+                    (UserInstructions.TARGET_SEPARATOR.join((*target.reservation.workflow_path, target.reservation.node_id))
                      if target.reserved else target.scope or target.id),
                     str(target.status), target.reason or '') for target in self.receipts[child].targets),
                 reason=self.receipts[child].reason or '')

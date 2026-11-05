@@ -245,7 +245,7 @@ def render_messages(
                 from .instruction_caption import instruction_caption, target_captions
                 caption = OutputHeader(t(MessageKey.INSTRUCTION_LABEL),
                     instruction_caption(instruction, t), (instruction.time,)).render()
-                body.extend(markdown_lines(Text(caption, style="bold")))
+                body.extend(markdown_lines(Text(caption, style=ThemeStyle.BOLD)))
                 body.extend(markdown_lines(HubMarkdown(instruction.text, theme)))
                 for detail in target_captions(instruction, t):
                     body.extend(markdown_lines(Text(detail)))
@@ -344,6 +344,7 @@ class DeferredScroll(NamedTuple):
 
 
 class ConversationControl(SelectableControl):
+    URGENT_INDICES = '_urgent_indices'
     ABSENT = None
     EMPTY = ""
     ORIGIN = 0
@@ -439,7 +440,7 @@ class ConversationControl(SelectableControl):
             self, ConversationControl.MESSAGE_STORAGE, ConversationControl.ABSENT
         ):
             start = unchanged_prefix(getattr(self, self.MESSAGE_STORAGE, ()), value)
-            urgent = {i:m for i,m in getattr(self, '_urgent_indices', {}).items() if i < start}
+            urgent = {i:m for i,m in getattr(self, self.URGENT_INDICES, {}).items() if i < start}
             urgent.update((i,m) for i,m in enumerate(value[start:], start)
                           if m.role == MessageRole.ASSISTANT
                           and (m.phase == InterruptFeedback.PHASE or m.status in self.LIVE_HEADER_STATES))

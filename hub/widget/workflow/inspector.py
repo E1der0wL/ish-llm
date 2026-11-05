@@ -18,8 +18,9 @@ from ..section import Heading
 from ..notices import Notice, NoticeText
 from ..forms.settings import SchemaForm, SettingField, MISSING
 from ..actions import ActionBar
+from ..dialog import PopupGeometry
 from ...ui.input.registry import ShortcutRegistry
-from ...ui.input.keys import ShortcutLabel, ShortcutAction
+from ...ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
 from ...ui.input.json_document import JsonDocument
 
 
@@ -46,7 +47,7 @@ class WorkflowInspector:
         self.apply_button = Button(t(K.WORKFLOW_APPLY), handler=editor.apply_properties)
         self.cancel_button = Button(t(K.CANCEL), handler=editor.cancel_properties)
         self.actions = ActionBar([self.apply_button, self.cancel_button],
-                                 lambda: editor.INSPECTOR_WIDTH - 2, equal_width=True)
+                                 lambda: editor.INSPECTOR_WIDTH - PopupGeometry.FRAME_COLUMNS, equal_width=True)
         self.container = HSplit([self.pane, Window(height=1), self.actions, Window(height=1)])
 
     def fields(self):
@@ -125,11 +126,11 @@ class WorkflowInspector:
 
     def bind_navigation(self, control, available):
         registry = ShortcutRegistry.require(control)
-        registry.add(['up', 'down'], ShortcutLabel.VERTICAL, ShortcutAction.SELECT,
-                     lambda event: self.move(-1 if event.key_sequence[-1].key == 'up' else 1), when=available)
-        registry.add(['left'], ShortcutLabel.LEFT, ShortcutAction.MAIN,
+        registry.add([KeyName.UP, KeyName.DOWN], ShortcutLabel.VERTICAL, ShortcutAction.SELECT,
+                     lambda event: self.move(-1 if event.key_sequence[-1].key == KeyName.UP else 1), when=available)
+        registry.add([KeyName.LEFT], ShortcutLabel.LEFT, ShortcutAction.MAIN,
                      lambda event: self.editor.navigation.focus(self.editor.canvas), when=available)
-        registry.add(['right'], ShortcutLabel.HIDDEN, ShortcutAction.NONE, lambda event: None, when=available)
+        registry.add([KeyName.RIGHT], ShortcutLabel.HIDDEN, ShortcutAction.NONE, lambda event: None, when=available)
 
     def move(self, delta):
         controls = [field.input for field in self.fields()] + self.special
@@ -145,7 +146,7 @@ class WorkflowInspector:
             return
         e.busy = True
         try:
-            field.text = await e.manager.edit_text(field.text, e.view.general, suffix='.json')
+            field.text = await e.manager.edit_text(field.text, e.view.general, suffix=JsonDocument.SUFFIX)
         except Exception as error:
             e.status = NoticeText.error(str(error), e.view.t).inline()
         finally:

@@ -10,10 +10,17 @@ from .devices import Microphone, Speakers
 
 
 class SpeechSession:
+    MISSING_CALLS = 'Speech requires the Backend shared ProviderCalls owner'
+    NO_INPUT = 'Speech input is not configured'
+    CAPTURE_ACTIVE = 'A microphone capture is already active'
+    NO_OUTPUT = 'Speech output is not configured'
+    PLAYBACK_ACTIVE = 'Speech playback is already active'
+    PCM_SAMPLE = '<h'
+    PCM_SCALE = 32768.0
     def __init__(self, config, calls, *, transcriber=None, synthesizer=None,
                  microphone_factory=Microphone, speakers_factory=Speakers):
         if calls is None:
-            raise ValueError('Speech requires the Backend shared ProviderCalls owner')
+            raise ValueError(SpeechSession.MISSING_CALLS)
         self.config, self.calls = config, calls
         self.transcriber = transcriber if transcriber is not None else config.build_input()
         self.synthesizer = synthesizer if synthesizer is not None else config.build_output()
@@ -37,22 +44,22 @@ class SpeechSession:
     @staticmethod
     def _level(data):
         # PCM normalization is a wire-format conversion, not a VAD preset.
-        return max((abs(value[0]) for value in struct.iter_unpack('<h', data)), default=0) / 32768.0
+        return max((abs(value[0]) for value in struct.iter_unpack(SpeechSession.PCM_SAMPLE, data)), default=0) / SpeechSession.PCM_SCALE
 
     async def listen(self, *, partial, final, speaking):
         if self.transcriber is None:
-            raise ValueError('Speech input is not configured')
+            raise ValueError(SpeechSession.NO_INPUT)
         if self.capture_task is not None:
-            raise RuntimeError('A microphone capture is already active')
+            raise RuntimeError(SpeechSession.CAPTURE_ACTIVE)
         self.capture_task = asyncio.current_task()
-        self.microphone = self.microphone_factory(self.transcriber.input_format, **self.config.capture)
+        self.microphone = self.microphone_factory(self.transcriber.input_format, **self.config.capture_device().to_dict())
         microphone = self.microphone
         format = self.transcriber.input_format
-        behavior = self.config.interaction
+        behavior = self.config.behavior
         try:
             await microphone.open()
             with self.calls.scope():
-                if 'speech_threshold' not in behavior:
+                if behavior.speech_threshold is None:
                     identifier = uuid4().hex
                     speaking()
                     async def chunks():
@@ -66,7 +73,7 @@ class SpeechSession:
                     return
                 # Continuous VAD is enabled only by the application's explicit
                 # threshold and silence length. No speech or silence preset exists.
-                threshold, silence = behavior['speech_threshold'], behavior['silence_frames']
+                threshold, silence = behavior.speech_threshold, behavior.silence_frames
                 while (first := await microphone.read()) is not None:
                     if self._level(first) < threshold:
                         continue
@@ -107,12 +114,12 @@ class SpeechSession:
 
     async def speak(self, text, *, stream_id):
         if self.synthesizer is None:
-            raise ValueError('Speech output is not configured')
+            raise ValueError(SpeechSession.NO_OUTPUT)
         if self.playback_task is not None:
-            raise RuntimeError('Speech playback is already active')
+            raise RuntimeError(SpeechSession.PLAYBACK_ACTIVE)
         self.playback_task = asyncio.current_task()
         try:
-            speakers = self.speakers_factory(**self.config.playback)
+            speakers = self.speakers_factory(**self.config.playback_device().to_dict())
             with self.calls.scope():
                 async with aclosing(self.synthesizer.synthesize(text, stream_id=stream_id)) as stream:
                     await speakers.play(stream, stream_id=stream_id)

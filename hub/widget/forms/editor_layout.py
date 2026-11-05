@@ -1,6 +1,7 @@
 """Settings-style navigation for schema editors hosted inside a dialog."""
 
-from llm.core.schema import SchemaKeyword
+from llm.core.schema import SchemaKeyword, SchemaType
+from llm.engines.loop.configuration import LoopParameters
 from llm.core.agents import AgentDefinition
 
 from prompt_toolkit.application.current import get_app
@@ -27,6 +28,10 @@ from ...asset.icon import AuxiliaryIcon
 
 
 class SettingsEditorLayout:
+    SPACE = ' '
+    FRAME_COLUMNS = 3
+    PATH_SEPARATOR = '.'
+    DESCRIPTION_PREFIX = '- '
     GENERAL = "general"
     CONFIG = "config"
     POLICY = "policy"
@@ -78,7 +83,7 @@ class SettingsEditorLayout:
         self.layout = TwoPanelPage(
             header=None, footer=None,
             sidebar=HSplit([
-                SidebarHeading(lambda: editor.view.icons.agent + " " +
+                SidebarHeading(lambda: editor.view.icons.agent + SettingsEditorLayout.SPACE +
                                editor.view.t(MessageKey.AGENT_CATEGORY)),
                 Window(self.sidebar, style=ThemeSelector.SIDEBAR.style),
             ], width=lambda: Dimension.exact(editor.view.sidebar_width())),
@@ -104,7 +109,7 @@ class SettingsEditorLayout:
                                  field.text)
 
     def matches_text(self, *values):
-        return not self.query or self.query.casefold() in " ".join(map(str, values)).casefold()
+        return not self.query or self.query.casefold() in SettingsEditorLayout.SPACE.join(map(str, values)).casefold()
 
     def engine_visible(self):
         return (self.selected == self.GENERAL and self.tabs.selected == self.CONFIG
@@ -115,7 +120,7 @@ class SettingsEditorLayout:
     def review_visible(self):
         return (self.selected == self.GENERAL and self.tabs.selected == self.CONFIG
                 and self.editor.review is not None and self.editor.review.available
-                and self.matches_text("final_review", self.editor.view.t(MessageKey.AGENT_REVIEW)))
+                and self.matches_text(LoopParameters.FINAL_REVIEW, self.editor.view.t(MessageKey.AGENT_REVIEW)))
 
     def bind_choice(self, choice):
         registry = ShortcutRegistry.require(choice.control)
@@ -126,7 +131,7 @@ class SettingsEditorLayout:
     def main_width(self):
         from ..dialog import PopupGeometry, PopupSize
         return max(1, PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
-                   - self.editor.view.sidebar_width() - 3)
+                   - self.editor.view.sidebar_width() - SettingsEditorLayout.FRAME_COLUMNS)
 
     def page_title(self):
         title = next(item.title for item in self.sections if item.key == self.selected)
@@ -177,7 +182,7 @@ class SettingsEditorLayout:
                 relative = list(path[1:] or path)
                 while len(relative) > 1 and relative[0] in (self.CONFIG, self.POLICY, AgentDefinition.Field.COMPLETION):
                     relative = relative[1:]
-                field.label = field.schema.get(SchemaKeyword.TITLE) or ".".join(relative)
+                field.label = field.schema.get(SchemaKeyword.TITLE) or SettingsEditorLayout.PATH_SEPARATOR.join(relative)
         names = list(dict.fromkeys(path[0] for path in editor.form.visible_fields
                                   if path and path[0] not in self.GENERAL_FIELDS)) if editor.form else []
         self.sections = [SidebarItem(self.GENERAL, editor.view.t(MessageKey.SETTINGS_GENERAL))]
@@ -196,11 +201,11 @@ class SettingsEditorLayout:
         children = [field.container for field in fields]
         if self.engine_visible():
             children.append(FieldLayout(editor.view.t(MessageKey.AGENT_ENGINE), editor.engine,
-                description='- ' + editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
-                type_label=editor.view.t(MessageKey.SETTINGS_TYPE, type='string')))
+                description=SettingsEditorLayout.DESCRIPTION_PREFIX + editor.view.t(MessageKey.OPTION_HELP_AGENT_ENGINE),
+                type_label=editor.view.t(MessageKey.SETTINGS_TYPE, type=SchemaType.STRING)))
         if self.review_visible():
             children.append(FieldLayout(editor.view.t(MessageKey.AGENT_REVIEW), editor.review.choice,
-                description='- ' + editor.view.t(MessageKey.AGENT_REVIEW_HELP)))
+                description=SettingsEditorLayout.DESCRIPTION_PREFIX + editor.view.t(MessageKey.AGENT_REVIEW_HELP)))
         children = children or [Notice(editor.view.t(MessageKey.SETTINGS_NO_FIELDS))]
         if editor.form and len(editor.form.visible_fields) < len(editor.form.fields):
             children.append(Label(editor.view.t(MessageKey.SETTINGS_ESSENTIAL_NOTICE), style=ThemeSelector.MUTED.style))

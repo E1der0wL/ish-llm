@@ -6,6 +6,11 @@ from llm.core.json_data import JsonObject, JsonValue
 
 
 class JsonDocument:
+    OBJECT_OPEN = '{'
+    OBJECT_CLOSE = '}'
+    ITEM_SEPARATOR = ','
+    ARRAY_OPEN = '['
+    ARRAY_CLOSE = ']'
     SUFFIX = ".json"
     INDENT = 2
     ENSURE_ASCII = False
@@ -48,27 +53,27 @@ class JsonDocument:
         position = space(0)
         for part in JsonPointer.parse(pointer):
             start, candidate = space(position + 1), None
-            if text[position] == '{':
-                while text[start] != '}':
+            if text[position] == JsonDocument.OBJECT_OPEN:
+                while text[start] != JsonDocument.OBJECT_CLOSE:
                     key, end = decoder.raw_decode(text, start)
                     value_start = space(space(end) + 1)
                     _, end = decoder.raw_decode(text, value_start)
                     if key == part:
                         candidate = value_start
                     start = space(end)
-                    if text[start] == ',':
+                    if text[start] == JsonDocument.ITEM_SEPARATOR:
                         start = space(start + 1)
                 # The last duplicate key is the value used by json.loads.
-            elif text[position] == '[' and part.isdecimal():
+            elif text[position] == JsonDocument.ARRAY_OPEN and part.isdecimal():
                 ordinal = 0
-                while text[start] != ']':
+                while text[start] != JsonDocument.ARRAY_CLOSE:
                     _, end = decoder.raw_decode(text, start)
                     if str(ordinal) == part:
                         candidate = start
                         break
                     ordinal += 1
                     start = space(end)
-                    if text[start] == ',':
+                    if text[start] == JsonDocument.ITEM_SEPARATOR:
                         start = space(start + 1)
             if candidate is None:
                 break

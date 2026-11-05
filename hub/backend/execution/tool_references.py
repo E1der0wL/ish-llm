@@ -1,13 +1,20 @@
 """Bounded model views backed by the completed Step's authoritative result."""
 
 import json
+from dataclasses import dataclass
 
 from llm.components.memory import MemoryComponent
 from llm.components.memory.configuration import MemoryProcessingConfig
 from llm.components.memory.sources import MemorySource
 from llm.components.memory.tool_values import MemoryToolDefinition, MemoryToolArguments
 from llm.core.model_protocol import ModelRole
-from .reader_calls import ReaderCalls
+from .reader_calls import ReaderCalls, ReadCall
+
+
+@dataclass(frozen=True, slots=True)
+class ToolReference(ReadCall):
+    notice: str
+    original_chars: int
 
 
 class ToolReferences:
@@ -25,9 +32,11 @@ class ToolReferences:
                 and any(tool.name == MemoryToolDefinition.Name.TOOL_RESULT for tool in request.tools))
 
     @staticmethod
-    def processing_policy(context):
+    def processing_options(context):
+        """Read the admitted component snapshot without supplying creation defaults."""
         parameters = context.project.config.parameter_targets.component(MemoryComponent.name)
-        return parameters.policy.get(MemoryProcessingConfig.KEY, {})
+        values = MemoryComponent.parameter_layout.unpack(parameters.to_dict())
+        return MemoryProcessingConfig(values.get(MemoryProcessingConfig.KEY, {}))
 
     @classmethod
     def reference(cls, item, *, context=None, request):
@@ -39,7 +48,7 @@ class ToolReferences:
                          {MemorySource.Field.RUN_ID: source.run_id,
                           MemorySource.Field.STEP_ID: source.step_id,
                           argument.OFFSET: 0, argument.LIMIT: cls.READ_CHARS}, limit_field=argument.LIMIT)
-        return ({'notice': cls.NOTICE, 'original_chars': len(item.message.text), **call}
+        return (ToolReference(call.tool, call.arguments, cls.NOTICE, len(item.message.text))
                 if call is not None else None)
 
     @classmethod
@@ -48,7 +57,7 @@ class ToolReferences:
         value = cls.reference(item, context=context, request=request)
         if value is None:
             return False
-        text = json.dumps(value, ensure_ascii=False)
+        text = json.dumps(value.to_dict(), ensure_ascii=False)
         if len(text) >= len(item.message.text):
             return False
         request.messages[index] = item.with_text(text)
@@ -58,9 +67,10 @@ class ToolReferences:
     def prepare(cls, context, request):
         if not cls.available(context, request):
             return 0  # Do not give the model references it has no selected Tool to read.
-        from ...config.defaults import HubDefaults
-        limit = cls.processing_policy(context).get(
-            MemoryProcessingConfig.Field.TOOL_RESULT_CHARS, HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']['max_chars']['maximum'])
+        options = cls.processing_options(context)
+        if not options.compress_tools and not options.has_tool_result_mode:
+            return 0
+        limit = options.tool_result_chars
         names = {call.id: call.name for item in request.messages for call in item.message.calls}
         readers = (MemoryToolDefinition.Name.READ_SOURCE, MemoryToolDefinition.Name.TOOL_RESULT)
         pending = [i for i, item in enumerate(request.messages)

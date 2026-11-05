@@ -4,6 +4,8 @@ from copy import deepcopy
 
 from llm.components.data import DataComponent
 from llm.components.tools.builtin.component import BuiltinParameter
+from llm.components.tools.builtin.process_values import OutputDestination
+from llm.components.data.records import DataDefinition
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.core.models import ProjectConfig
 from llm.core.policies import ToolPolicyValues, PolicySection
@@ -12,9 +14,11 @@ from ...config.defaults import HubDefaults
 
 
 class ToolDataSetup:
+    SOURCE_DEFINITION = {DataDefinition.Field.TITLE: 'Command outputs'}
+
     @staticmethod
     def destination() -> dict[str, str]:
-        return {"component": DataComponent.name, "identifier": HubDefaults.TOOL_OUTPUT_SOURCE}
+        return OutputDestination(DataComponent.name, HubDefaults.TOOL_OUTPUT_SOURCE).to_dict()
 
     @classmethod
     def creation_defaults(cls, config: ProjectConfig, components, builtins) -> ProjectConfig:
@@ -51,4 +55,4 @@ class ToolDataSetup:
             return
         files = await project.components.aget(DataComponent.name)
         if HubDefaults.TOOL_OUTPUT_SOURCE not in await files.alist():
-            await files.acreate({"title": "Command outputs"}, identifier=HubDefaults.TOOL_OUTPUT_SOURCE)
+            await files.acreate(deepcopy(cls.SOURCE_DEFINITION), identifier=HubDefaults.TOOL_OUTPUT_SOURCE)

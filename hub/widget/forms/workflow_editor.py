@@ -15,6 +15,7 @@ from hub.backend.project.management_values import ManagementAction
 from hub.backend.project.workflow_contracts import WorkflowInspectionRequest, WorkflowInspectionResponse
 from llm.core.json_data import JsonPointer
 from hub.ui.input.json_document import JsonDocument
+from hub.ui.input.keys import KeyName
 from hub.config.theme_style import ThemeSelector
 from .definition_manager import DefinitionEditor
 from .manager_values import DefinitionDraft
@@ -33,10 +34,27 @@ from prompt_toolkit.utils import get_cwidth
 
 
 class WorkflowEditor(DefinitionEditor):
+    BUTTON_INSET = 2
+    PATH_SEPARATOR = ' / '
+    UNTITLED = 'Workflow'
+    UNKNOWN_ENGINE = '—'
+    LOCATION = '{scope}  •  {engine}  •  x:{x} y:{y}'
+    DIRTY_PREFIX = '* '
+    SEPARATOR = ' • '
+    REFERENCE = '{component}/{identifier} @ {version}'
+    DETAIL_SEPARATOR = ': '
+    LIST_SEPARATOR = ', '
+    NEWLINE = '\n'
+    INSPECTOR_ATTRIBUTE = 'inspector'
+    CANVAS_ATTRIBUTE = 'canvas'
     LIST_WIDTH = 21
     INSPECTOR_WIDTH = 35
     LIST_MIN_COLUMNS = 115
     EMPTY_STATUS = ''
+    UPPER_ACTION_KEY = 'a'
+    HELP_KEY = '?'
+    NARROW_LIST_WIDTH = 14
+    NARROW_INSPECTOR_WIDTH = 25
 
     def __init__(self, manager, name='', record=None):
         self._closed = False
@@ -54,18 +72,18 @@ class WorkflowEditor(DefinitionEditor):
         self.dialogs = WorkflowDialogs(self)
         self.canvas = GraphCanvas(self.document, lambda: self.selected, self.select,
                                   self.move_node, {
-            'a': (lambda: self.navigation.toolbar(), K.WORKFLOW_UPPER_ACTIONS),
-            's': (lambda: self.navigation.toolbar(lower=True), K.WORKFLOW_LOWER_ACTIONS),
-            'c-z': (self.undo, K.WORKFLOW_UNDO),
-            'c-y': (lambda: self.undo(redo=True), K.WORKFLOW_REDO),
-            '?': (self.help, K.WORKFLOW_HELP),
+            self.UPPER_ACTION_KEY: (lambda: self.navigation.toolbar(), K.WORKFLOW_UPPER_ACTIONS),
+            KeyName.S: (lambda: self.navigation.toolbar(lower=True), K.WORKFLOW_LOWER_ACTIONS),
+            KeyName.CONTROL_Z: (self.undo, K.WORKFLOW_UNDO),
+            KeyName.CONTROL_Y: (lambda: self.undo(redo=True), K.WORKFLOW_REDO),
+            self.HELP_KEY: (self.help, K.WORKFLOW_HELP),
         })
         self.inspector = WorkflowInspector(self)
         self.navigation = WorkflowNavigation(self)
         keys = KeyBindings()
-        keys.add('up')(lambda e: self.sidebar.move(-1))
-        keys.add('down')(lambda e: self.sidebar.move(1))
-        for key in ('enter', ' ', 'right'):
+        keys.add(KeyName.UP)(lambda e: self.sidebar.move(-1))
+        keys.add(KeyName.DOWN)(lambda e: self.sidebar.move(1))
+        for key in (KeyName.ENTER, KeyName.SPACE, KeyName.RIGHT):
             keys.add(key)(lambda e: self.navigation.focus(self.canvas))
         self.sidebar = SidebarList(self.items, lambda: self.selected, self.select,
                                    key_bindings=keys, on_activate=lambda: self.navigation.focus(self.canvas))
@@ -90,7 +108,7 @@ class WorkflowEditor(DefinitionEditor):
             Button(t(K.WORKFLOW_HELP), handler=self.help),
         ], self.toolbar_width)
         for button in [*self.toolbar.buttons, *self.lower_toolbar.buttons]:
-            button.width = max(button.width, get_cwidth(button.text) + 2)
+            button.width = max(button.width, get_cwidth(button.text) + self.BUTTON_INSET)
             button.window.width = Dimension.exact(button.width)
         name = HSplit([Heading(t(K.WORKFLOW_NAME)), self.identifier])
 
@@ -111,7 +129,7 @@ class WorkflowEditor(DefinitionEditor):
                 workspace_region(VSplit([
                     Frame(self.canvas, title=t(K.WORKFLOW_CANVAS)),
                     Frame(self.inspector.container, title=t(K.WORKFLOW_PROPERTIES),
-                          width=lambda: Dimension.exact(self.INSPECTOR_WIDTH if self.view._columns() >= self.LIST_MIN_COLUMNS else 25)),
+                          width=lambda: Dimension.exact(self.INSPECTOR_WIDTH if self.view._columns() >= self.LIST_MIN_COLUMNS else self.NARROW_INSPECTOR_WIDTH)),
                 ], padding=1)),
             ], padding=1),
             workspace_region(HSplit([
@@ -123,10 +141,11 @@ class WorkflowEditor(DefinitionEditor):
         self.identifier.buffer.on_text_changed += self.update_dirty
 
     def sidebar_width(self):
-        return self.LIST_WIDTH if self.view._columns() >= self.LIST_MIN_COLUMNS else 14
+        return self.LIST_WIDTH if self.view._columns() >= self.LIST_MIN_COLUMNS else self.NARROW_LIST_WIDTH
 
     def toolbar_width(self):
-        return max(1, self._width().preferred - 2 - 2 * self._content_padding)
+        from ..dialog import PopupGeometry
+        return max(1, self._width().preferred - PopupGeometry.FRAME_COLUMNS - 2 * self._content_padding)
 
     def actions_active(self):
         return self.navigation.region() == WorkflowRegion.ACTIONS
@@ -172,8 +191,9 @@ class WorkflowEditor(DefinitionEditor):
         return True
 
     def breadcrumb(self):
-        scope = ' / '.join((self.identifier.text or 'Workflow', *self.document.path))
-        return f'{scope}  •  {self.engine or "—"}  •  x:{self.canvas.offset_x} y:{self.canvas.offset_y}'
+        scope = self.PATH_SEPARATOR.join((self.identifier.text or self.UNTITLED, *self.document.path))
+        return self.LOCATION.format(scope=scope, engine=self.engine or self.UNKNOWN_ENGINE,
+                                    x=self.canvas.offset_x, y=self.canvas.offset_y)
 
     def items(self):
         return [SidebarItem(name, self.document.title(name)) for name in self.document.graph()[WorkflowDocument.NODES]]
@@ -210,8 +230,8 @@ class WorkflowEditor(DefinitionEditor):
         pending = self.inspector.dirty
         dirty = (pending or self.input.text != self.saved_text
                  or self.identifier.text != self.original_name)
-        self.buttons[0].text = ('* ' if dirty else '') + self.view.t(K.SETTINGS_SAVE)
-        self.inspector.apply_button.text = ('* ' if pending else '') + self.view.t(K.WORKFLOW_APPLY)
+        self.buttons[0].text = (self.DIRTY_PREFIX if dirty else '') + self.view.t(K.SETTINGS_SAVE)
+        self.inspector.apply_button.text = (self.DIRTY_PREFIX if pending else '') + self.view.t(K.WORKFLOW_APPLY)
         get_app().invalidate()
 
     def select(self, name):
@@ -344,7 +364,7 @@ class WorkflowEditor(DefinitionEditor):
                 self.highlight_report()
                 self.status = self.view.t(K.WORKFLOW_VALIDATION_RESULT, count=len(report.diagnostics))
                 if report.unverified:
-                    self.status += ' • ' + self.view.t(K.WORKFLOW_UNVERIFIED)
+                    self.status += self.SEPARATOR + self.view.t(K.WORKFLOW_UNVERIFIED)
             get_app().invalidate()
         self.manager.request(ManagementAction.INSPECT,
                              WorkflowInspectionRequest(self.document.value, engine).to_dict(), None,
@@ -386,10 +406,10 @@ class WorkflowEditor(DefinitionEditor):
         text, report = self._report
         if not report.diagnostics:
             lines = [self.status]
-            lines.extend(f"{item.component}/{item.id} @ {item.version}" for item in report.references)
+            lines.extend(self.REFERENCE.format(component=item.component, identifier=item.id, version=item.version) for item in report.references)
             if report.unverified:
-                lines.append(self.view.t(K.WORKFLOW_UNVERIFIED) + ': ' + ', '.join(report.unverified))
-            body = TextArea(text='\n'.join(lines), read_only=True, scrollbar=True)
+                lines.append(self.view.t(K.WORKFLOW_UNVERIFIED) + self.DETAIL_SEPARATOR + self.LIST_SEPARATOR.join(report.unverified))
+            body = TextArea(text=self.NEWLINE.join(lines), read_only=True, scrollbar=True)
             self.view.open_dialog(self.view.t(K.WORKFLOW_INSPECT), body,
                                   self.restore, body, on_cancel=self.restore, parent=self)
             return
@@ -414,7 +434,7 @@ class WorkflowEditor(DefinitionEditor):
                     break
             self.inspector.show(self.selected)
             self.highlight_report()
-            self.status = path + ': ' + issue.message
+            self.status = path + self.DETAIL_SEPARATOR + issue.message
             if len(parts) >= 2 and parts[0] == WorkflowDocument.EDGES:
                 try:
                     index = int(parts[1])
@@ -426,7 +446,7 @@ class WorkflowEditor(DefinitionEditor):
             elif parts == [WorkflowDocument.ENTRY]:
                 self.dialogs.graph_options()
         self.dialogs.choose(self.view.t(K.WORKFLOW_LOCATION),
-                            [(index, WorkflowInspectionResponse.location(item) + ': ' + item.message)
+                            [(index, WorkflowInspectionResponse.location(item) + self.DETAIL_SEPARATOR + item.message)
                              for index, item in enumerate(report.diagnostics)], selected)
 
     def save(self):
@@ -442,8 +462,8 @@ class WorkflowEditor(DefinitionEditor):
     def dispose(self):
         self._closed = True
         super().dispose()
-        if hasattr(self, 'inspector'):
+        if hasattr(self, self.INSPECTOR_ATTRIBUTE):
             self.inspector.finish()
-        if hasattr(self, 'canvas'):
+        if hasattr(self, self.CANVAS_ATTRIBUTE):
             self.canvas.drag = self.canvas.drag_position = None
             self.canvas.pan_anchor = None

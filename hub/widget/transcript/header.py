@@ -13,6 +13,7 @@ class OutputHeader(Caption):
     Language.status supplies the state part; callers never parse localized text.
     Colors, alignment, wrapping and cache lifetimes remain with each surface.
     """
+    SPACE = ' '
 
     __slots__ = ()
     MAX_TOOL_NAME = 64
@@ -34,5 +35,5 @@ class OutputHeader(Caption):
 
     @classmethod
     def tool(cls, name: str, status: str, language: Language, detail: str = ""):
-        target = language.icons.tool + " " + " ".join(name.split())[:cls.MAX_TOOL_NAME]
+        target = language.icons.tool + OutputHeader.SPACE + OutputHeader.SPACE.join(name.split())[:cls.MAX_TOOL_NAME]
         return cls(target, language.status(status), (detail,))

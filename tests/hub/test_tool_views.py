@@ -35,6 +35,18 @@ class ToolViewTests(unittest.IsolatedAsyncioTestCase):
         self.context = EngineContext(NS(components=('memory',), config=ProjectConfig()), NS(id='s'),
             NS(id='r', input_message_id='u'), (), tools=self.builtin.registry,
             tool_scope=NS(argument_constraints=deepcopy(HubDefaults.TOOL_PAGE_CONSTRAINTS)))
+        self.context.project.config.set_component_parameters('memory', {
+            'policy': {'processing': {'compress_tools': True, 'tool_result_chars': 8000}}})
+
+    async def test_absent_or_disabled_memory_projection_does_not_supply_creation_defaults(self):
+        value = dict(path='source', sha256='a' * 64, text='x' * 12000, offset=0,
+                     next_offset=12000, truncated=True)
+        for parameters in ({}, {'policy': {'processing': {'compress_tools': False}}}):
+            self.context.project.config.set_component_parameters('memory', parameters)
+            request = self.request('file_read', value, {'path': 'source'})
+            original = deepcopy(request)
+            await self.project(request)
+            self.assertEqual(request, original)
 
     def request(self, name, value, arguments):
         return CompletionRequest({}, [
@@ -105,6 +117,23 @@ class ToolViewTests(unittest.IsolatedAsyncioTestCase):
         # Re-projecting a model view must not reset its nonzero stream offsets.
         self.assertEqual(await self.project(request), view)
 
+    async def test_invalid_or_unretained_reader_values_remain_untouched(self):
+        cases = (
+            ('file_read', dict(path='source', sha256='a' * 64, text='body', offset=True,
+                              next_offset=None, truncated=False), {'path': 'source'}),
+            ('process_output', dict(process_id='a' * 32, status='completed', returncode=0,
+                truncated=False, stdout='hello', stderr='', next_stdout_offset=2,
+                next_stderr_offset=0, stdout_remaining=0, stderr_remaining=0), {'process_id': 'a' * 32}),
+            ('shell_execute', dict(process_id='a' * 32, status='completed', returncode=0,
+                truncated=False, stdout='hello', stderr=''), {'command': 'echo hello'}),
+        )
+        for name, value, arguments in cases:
+            with self.subTest(name=name):
+                request = self.request(name, value, arguments)
+                original = deepcopy(request)
+                await self.project(request)
+                self.assertEqual(request, original)
+
     async def test_small_command_returns_content_without_storage_metadata(self):
         value = dict(process_id='a' * 32, status='completed', returncode=0, truncated=False,
                      stdout='hello', stderr='', stdout_chars=5, stderr_chars=0,
@@ -128,7 +157,8 @@ class ToolViewTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(request, original)
 
     async def test_explicit_page_and_memory_limits_remain_authoritative(self):
-        self.context.project.config.set_component_parameters('memory', {'policy': {'processing': {'tool_result_chars': 2000}}})
+        self.context.project.config.set_component_parameters('memory', {'policy': {'processing': {
+            'compress_tools': True, 'tool_result_chars': 2000}}})
         self.context.tool_scope.argument_constraints['file_read']['max_chars']['maximum'] = 1500
         value = dict(path='source', sha256='a' * 64, text='x' * 1500, offset=0, next_offset=1500, truncated=True)
         request = self.request('file_read', value, {'path': 'source'})

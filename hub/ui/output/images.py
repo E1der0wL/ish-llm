@@ -75,6 +75,8 @@ class ImageResult(NamedTuple):
 
 
 class ImageRenderer:
+    COLOR_MODE = 'RGBA'
+    IMAGE_FORMAT = 'PNG'
     ABSENT = None
     OPEN = False
     CLOSED = True
@@ -160,7 +162,7 @@ class ImageRenderer:
             raise ValueError(self.UNKNOWN_ARTIFACT)
         with self._image(root, source, artifact) as image:
             target = BytesIO()
-            image.convert('RGBA').save(target, format='PNG')
+            image.convert(ImageRenderer.COLOR_MODE).save(target, format=ImageRenderer.IMAGE_FORMAT)
             return target.getvalue()
 
     @staticmethod

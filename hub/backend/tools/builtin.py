@@ -159,7 +159,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         )
         # Extend observation only. Starting, stopping, output storage and the
         # synchronous shell_execute contract remain owned by the native toolkit.
-        from .command_waits import CommandWaits
+        from .command_waits import CommandWaits, CommandObservationRevision
         from llm.services.infrastructure.storage import revision_token
         original = toolkit.registry.get(ProcessReferenceArguments.STATUS_NAME)
         async def process_status(args):
@@ -167,8 +167,8 @@ class HubBuiltinTools(BuiltinToolComponent):
         toolkit.registry = toolkit.registry.derive(tuple(
             replace(tool, handler=process_status, description=CommandWaits.DESCRIPTION,
                     parameters=CommandWaits.parameters(tool.parameters),
-                    contract=replace(tool.contract, revision=revision_token({
-                        "native": tool.contract.revision, "hub": "command-observation-v1"})))
+                    contract=replace(tool.contract, revision=revision_token(
+                        CommandObservationRevision(tool.contract.revision).to_dict())))
             if tool.name == ProcessReferenceArguments.STATUS_NAME else tool
             for tool in (toolkit.registry.get(name) for name in toolkit.registry.names())))
         for question_tool in QuestionTool.tools():

@@ -38,7 +38,10 @@ class TerminalReviewTests(IsolatedAsyncioTestCase):
         self.assertEqual(call.args[0], 'terminal_page')
         self.assertEqual(call.args[-1], 5)
         evidence = {'source': {'project_id': 'project', 'process_id': 'identifier'},
-                    'page': {'stdout': 'hello', 'next_stdout_offset': 5, 'next_stderr_offset': 0}}
+                    'page': {'process_id': 'identifier', 'status': 'completed', 'returncode': 0,
+                             'truncated': False, 'stdout': 'hello', 'stderr': '',
+                             'next_stdout_offset': 5, 'next_stderr_offset': 0,
+                             'stdout_remaining': 0, 'stderr_remaining': 0}}
         call.kwargs['completed'](evidence)
         review.capture()
         review.review()

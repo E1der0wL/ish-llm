@@ -4,6 +4,14 @@ from jsonschema import Draft202012Validator
 from math import ceil, floor
 from llm.core.policies import ArgumentConstraint, ConstraintMode
 from llm.core.schema import SchemaKeyword
+from llm.core.contracts import JsonValue
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class ReadCall(JsonValue):
+    tool: str
+    arguments: dict
 
 
 class ReaderCalls:
@@ -34,4 +42,4 @@ class ReaderCalls:
                 _, arguments = context.tools.prepare(name, arguments, constraints=constraints)
             except ValueError:
                 return None
-        return {'tool': name, 'arguments': arguments}
+        return ReadCall(name, arguments)

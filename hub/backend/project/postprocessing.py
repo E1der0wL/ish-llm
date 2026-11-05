@@ -4,17 +4,18 @@ import asyncio
 import json
 from copy import deepcopy
 from collections import deque
-from jsonschema import validate
 
 from llm.core.agents import AgentBinding, AgentDefinition
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.core.models import RunStatus
 from llm.components.memory.records import MemoryRecord
+from llm.components.memory.identity import MemoryIdentity
 from llm.components.memory.sources import MemorySource
 from llm.components.memory.configuration import MemoryConfiguration
 from llm.components.goals.records import GoalStatus, GoalScope, GoalDefinition, GoalRunReference
 from llm.components.goals.records import GoalSettings
-from llm.components.refinement.records import ProposalOperation, RefinementPolicy
+from llm.components.refinement.records import ProposalOperation, RefinementPolicy, RefinementRecord
+from llm.core.resource_references import ResourceTarget
 from llm.providers.request_values import ModelParameters
 
 from ..execution.auxiliary_engine import AuxiliaryEngine
@@ -23,7 +24,7 @@ from ..execution.engine_selection import HubEngineIdentity
 from ..tools.resource_contracts import GoalAuthoring
 from .agents import apply_agents
 from .title_values import TitleSessionMetadata
-from .postprocessing_values import Postprocessing as P
+from .postprocessing_values import Postprocessing as P, BackgroundInput, BackgroundTarget, BackgroundPlan
 
 
 class PostprocessingEngine(AuxiliaryEngine):
@@ -56,116 +57,117 @@ class BackgroundRecords:
         if not ModelParameters(agent.get(AgentDefinition.Field.COMPLETION, {})).optional_model:
             return None
         current = await project.aget_data()
-        payload = {'request':question[:P.EXCERPT_CHARS], 'answer':answer[:P.EXCERPT_CHARS],
-                   'excerpted':len(question)>P.EXCERPT_CHARS or len(answer)>P.EXCERPT_CHARS,
-                   'memories':{}, 'goals':{}, 'refinement_target':None}
+        payload = BackgroundInput(question[:P.EXCERPT_CHARS], answer[:P.EXCERPT_CHARS],
+                   len(question)>P.EXCERPT_CHARS or len(answer)>P.EXCERPT_CHARS, {}, {}, None)
         owners = {}
-        if 'memory' in current.components:
-            policy = current.config.parameter_targets.component('memory').policy
+        if MemoryIdentity.COMPONENT in current.components:
+            policy = current.config.parameter_targets.component(MemoryIdentity.COMPONENT).policy
             if policy.get(MemoryConfiguration.Field.TOOL_WRITE_STATUS) in MemoryRecord.STATUSES:
-                data = await project.components.aget('memory')
-                owners['memory'] = data
+                data = await project.components.aget(MemoryIdentity.COMPONENT)
+                owners[MemoryIdentity.COMPONENT] = data
                 records = await data.alist(session_id=session.id)
-                payload['memories'] = dict(list(records.items())[-P.RECORDS:])
-        if 'goals' in current.components:
-            policy = current.config.parameter_targets.component('goals').policy
+                payload.memories = dict(list(records.items())[-P.RECORDS:])
+        if GoalDefinition.COMPONENT in current.components:
+            policy = current.config.parameter_targets.component(GoalDefinition.COMPONENT).policy
             if policy.get(GoalSettings.WRITE_TOOLS):
-                data = await project.components.aget('goals')
-                owners['goals'] = data
+                data = await project.components.aget(GoalDefinition.COMPONENT)
+                owners[GoalDefinition.COMPONENT] = data
                 records = await data.alist(session_id=session.id)
-                payload['goals'] = {key:await data.asnapshot(key) for key in list(records)[:P.RECORDS]}
-        if 'refinement' in current.components:
-            policy = current.config.parameter_targets.component('refinement').policy
+                payload.goals = {key:await data.asnapshot(key) for key in list(records)[:P.RECORDS]}
+        if RefinementRecord.CAPABILITY in current.components:
+            policy = current.config.parameter_targets.component(RefinementRecord.CAPABILITY).policy
             if ProposalOperation.UPDATE.value in policy.get(RefinementPolicy.Field.PROPOSAL_OPERATIONS, ()):
-                data = await project.components.aget('refinement')
-                owners['refinement'] = data
-                target = {'component':'agents','identifier':agent_id}
-                captured = EditableSnapshot.read(await data.atarget_snapshot(target))
-                payload['refinement_target'] = {'target':target, 'version':captured.version,
-                    'guidance':{key:value for key,value in captured.data.items() if key in P.REFINEMENT_FIELDS}}
+                data = await project.components.aget(RefinementRecord.CAPABILITY)
+                owners[RefinementRecord.CAPABILITY] = data
+                target = ResourceTarget(AgentDefinition.REFERENCE_COMPONENT, agent_id)
+                captured = EditableSnapshot.read(await data.atarget_snapshot(target.to_dict()))
+                payload.refinement_target = BackgroundTarget(target, captured.version,
+                    {key:value for key,value in captured.data.items() if key in P.REFINEMENT_FIELDS})
         # Drop optional reference records, never truncate definitions into valid-looking patches.
-        if len(json.dumps(payload, ensure_ascii=False)) > P.INPUT_CHARS:
-            payload['refinement_target'] = None
-        for section in ('memories','goals'):
-            while payload[section] and len(json.dumps(payload, ensure_ascii=False)) > P.INPUT_CHARS:
-                payload[section].pop(next(iter(payload[section])))
+        if len(json.dumps(payload.to_dict(), ensure_ascii=False)) > P.INPUT_CHARS:
+            payload.refinement_target = None
+        for records in (payload.memories, payload.goals):
+            while records and len(json.dumps(payload.to_dict(), ensure_ascii=False)) > P.INPUT_CHARS:
+                records.pop(next(iter(records)))
         if not owners:
             return None
         return payload, owners, agent
 
     async def _apply(self, source, session, payload, owners, plan):
-        validate(plan, P.schema())
+        plan = BackgroundPlan.read(plan)
         current = await session.project.aget_data()
         parameters = current.config.parameter_targets
-        if ('memory' in owners and ('memory' not in current.components or
-                parameters.component('memory').policy.get(MemoryConfiguration.Field.TOOL_WRITE_STATUS) not in MemoryRecord.STATUSES)):
-            raise ValueError('Memory writing was disabled')
-        if ('goals' in owners and ('goals' not in current.components or
-                not parameters.component('goals').policy.get(GoalSettings.WRITE_TOOLS))):
-            raise ValueError('Goal writing was disabled')
-        if ('refinement' in owners and ('refinement' not in current.components or
-                ProposalOperation.UPDATE.value not in parameters.component('refinement').policy.get(RefinementPolicy.Field.PROPOSAL_OPERATIONS, ()))):
-            raise ValueError('Refinement proposals were disabled')
+        if (MemoryIdentity.COMPONENT in owners and (MemoryIdentity.COMPONENT not in current.components or
+                parameters.component(MemoryIdentity.COMPONENT).policy.get(MemoryConfiguration.Field.TOOL_WRITE_STATUS) not in MemoryRecord.STATUSES)):
+            raise ValueError(P.MEMORY_DISABLED)
+        if (GoalDefinition.COMPONENT in owners and (GoalDefinition.COMPONENT not in current.components or
+                not parameters.component(GoalDefinition.COMPONENT).policy.get(GoalSettings.WRITE_TOOLS))):
+            raise ValueError(P.GOALS_DISABLED)
+        if (RefinementRecord.CAPABILITY in owners and (RefinementRecord.CAPABILITY not in current.components or
+                ProposalOperation.UPDATE.value not in parameters.component(RefinementRecord.CAPABILITY).policy.get(RefinementPolicy.Field.PROPOSAL_OPERATIONS, ()))):
+            raise ValueError(P.REFINEMENT_DISABLED)
         # Validate every target before the first write; never expand scope from model text.
-        for section, component in (('memories','memory'), ('goals','goals')):
-            if plan[section] and component not in owners:
-                raise ValueError('Background component writing is not selected')
-            identifiers = [item['id'] for item in plan[section] if item['id'] is not None]
+        for operations, captured, component in ((plan.memories, payload.memories, MemoryIdentity.COMPONENT),
+                                               (plan.goals, payload.goals, GoalDefinition.COMPONENT)):
+            if operations and component not in owners:
+                raise ValueError(P.UNSELECTED)
+            identifiers = [item.id for item in operations if item.id is not None]
             if len(set(identifiers)) != len(identifiers):
-                raise ValueError('Background plan contains duplicate targets')
-            for item in plan[section]:
-                action, identifier, data = item['action'], item['id'], item['data']
+                raise ValueError(P.DUPLICATE)
+            for item in operations:
+                action, identifier, data = item.action, item.id, item.data
                 if action == P.CREATE:
-                    required = ('content',) if component == 'memory' else ('title','objective')
+                    required = ((MemoryRecord.Field.CONTENT,) if component == MemoryIdentity.COMPONENT
+                                else (GoalDefinition.Field.TITLE, GoalDefinition.Field.OBJECTIVE))
                     if identifier is not None or data is None or any(key not in data for key in required):
-                        raise ValueError('Background creation requires data and a new identity')
-                elif identifier not in payload[section]:
-                    raise ValueError('Background record is outside the captured scope')
+                        raise ValueError(P.INVALID_CREATE)
+                elif identifier not in captured:
+                    raise ValueError(P.OUTSIDE_SCOPE)
                 if (action == P.DELETE) != (data is None):
-                    raise ValueError('Only background deletion accepts null data')
-        if plan['refinement'] is not None and payload['refinement_target'] is None:
-            raise ValueError('Background refinement has no captured target')
-        if plan['refinement'] is not None and not set(plan['refinement']['patch']).issubset(P.REFINEMENT_FIELDS):
-            raise ValueError('Background refinement may only propose guidance changes')
-        known = {MemoryRecord(m).content for m in payload['memories'].values()}
+                    raise ValueError(P.INVALID_DELETE)
+        if plan.refinement is not None and payload.refinement_target is None:
+            raise ValueError(P.NO_TARGET)
+        if plan.refinement is not None and not set(plan.refinement.patch).issubset(P.REFINEMENT_FIELDS):
+            raise ValueError(P.GUIDANCE_ONLY)
+        known = {MemoryRecord(m).content for m in payload.memories.values()}
         provenance = {MemorySource.Field.KIND: MemorySource.API,
             MemorySource.Field.PROJECT_ID: session.project.id, MemorySource.Field.SESSION_ID: session.id,
             MemorySource.Field.RUN_ID: source.id, MemorySource.Field.INPUT_MESSAGE_ID: source.input_message_id}
-        for item in plan['memories']:
-            data = owners['memory']
-            if item['action'] == P.CREATE:
-                if item['data']['content'] in known:
+        for item in plan.memories:
+            data = owners[MemoryIdentity.COMPONENT]
+            if item.action == P.CREATE:
+                if item.data[MemoryRecord.Field.CONTENT] in known:
                     continue
-                status = parameters.component('memory').policy[MemoryConfiguration.Field.TOOL_WRITE_STATUS]
-                await data.acreate({**item['data'], MemoryRecord.Field.STATUS:status,
+                status = parameters.component(MemoryIdentity.COMPONENT).policy[MemoryConfiguration.Field.TOOL_WRITE_STATUS]
+                await data.acreate({**item.data, MemoryRecord.Field.STATUS:status,
                     MemoryRecord.Field.SCOPE:MemoryRecord.SESSION_SCOPE, MemoryRecord.Field.SESSION_ID:session.id}, source=provenance)
-                known.add(item['data']['content'])
+                known.add(item.data[MemoryRecord.Field.CONTENT])
             else:
-                old = MemoryRecord(payload['memories'][item['id']])
-                version = dict(expected_revision=old.revision,expected_generation=old.generation,
-                               session_id=session.id,source=provenance)
-                if item['action'] == P.DELETE:
-                    await data.adelete(item['id'], **version)
+                old = MemoryRecord(payload.memories[item.id])
+                if item.action == P.DELETE:
+                    await data.adelete(item.id, expected_revision=old.revision, expected_generation=old.generation,
+                                       session_id=session.id, source=provenance)
                 else:
-                    await data.aupdate(item['id'], item['data'], **version)
-        for item in plan['goals']:
-            data = owners['goals']
-            if item['action'] == P.CREATE:
-                await data.acreate({GoalDefinition.Field.STATUS:GoalStatus.ACTIVE.value, **item['data'],
+                    await data.aupdate(item.id, item.data, expected_revision=old.revision, expected_generation=old.generation,
+                                       session_id=session.id, source=provenance)
+        for item in plan.goals:
+            data = owners[GoalDefinition.COMPONENT]
+            if item.action == P.CREATE:
+                await data.acreate({GoalDefinition.Field.STATUS:GoalStatus.ACTIVE.value, **item.data,
                     GoalDefinition.Field.SCOPE:GoalScope.session(session.id),
                     GoalDefinition.Field.RUN_REFS:[GoalRunReference.create(session.id,source.id,GoalAuthoring.RELATION)]})
             else:
-                version = EditableSnapshot.read(payload['goals'][item['id']]).version
-                if item['action'] == P.DELETE:
-                    await data.adelete(item['id'],expected_version=version)
+                version = EditableSnapshot.read(payload.goals[item.id]).version
+                if item.action == P.DELETE:
+                    await data.adelete(item.id,expected_version=version)
                 else:
-                    await data.aupdate(item['id'],item['data'],expected_version=version)
-        if plan['refinement'] is not None:
-            captured = payload['refinement_target']
-            await owners['refinement'].acreate({
-                'target':captured['target'], 'operation':ProposalOperation.UPDATE.value,
-                'expected_version':captured['version'], **plan['refinement'],
-                'evidence':[{'session_id':session.id,'run_id':source.id}],
+                    await data.aupdate(item.id,item.data,expected_version=version)
+        if plan.refinement is not None:
+            captured = payload.refinement_target
+            await owners[RefinementRecord.CAPABILITY].acreate({
+                RefinementRecord.Field.TARGET:captured.target.to_dict(), RefinementRecord.Field.OPERATION:ProposalOperation.UPDATE.value,
+                RefinementRecord.Field.EXPECTED_VERSION:captured.version, **plan.refinement.to_dict(),
+                RefinementRecord.Field.EVIDENCE:[{RefinementRecord.Field.SESSION_ID:session.id,RefinementRecord.Field.RUN_ID:source.id}],
             })  # Proposal only. Approval/apply stays in the foreground.
 
     async def _process(self, source):
@@ -187,7 +189,7 @@ class BackgroundRecords:
                 job = await project.sessions.acreate(P.NAME, agent_ids=[agent_id])
                 await job.asave(metadata={TitleSessionMetadata.INTERNAL:P.JOB,
                     TitleSessionMetadata.SOURCE_SESSION:session.id})
-                run, = await (await job.run.submit(json.dumps(payload, ensure_ascii=False),
+                run, = await (await job.run.submit(json.dumps(payload.to_dict(), ensure_ascii=False),
                                                   recipients=[agent_id])).wait()
                 result = await run.aget_data()
                 if result.status != RunStatus.COMPLETED:
@@ -195,12 +197,12 @@ class BackgroundRecords:
                 plan = json.loads((await run.aresponse()).content)
                 # A newer foreground Run cancels this task through observe().
                 await self._apply(source, session, payload, owners, plan)
-                await self._log(project, source, 'hub.background.completed', job_run_id=run.id)
+                await self._log(project, source, P.COMPLETED_EVENT, job_run_id=run.id)
         except asyncio.CancelledError:
             raise
         except Exception as error:
             if project is not None:
-                await self._log(project, source, 'hub.background.failed', error=str(error))
+                await self._log(project, source, P.FAILED_EVENT, error=str(error))
         finally:
             if job is not None:
                 await job.run.shutdown()

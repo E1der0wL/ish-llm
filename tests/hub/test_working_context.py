@@ -52,8 +52,15 @@ class WorkingContextTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(config.parameter_targets.component('memory').config['processing']['priority'], priority)
 
     def setup_request(self, *, turns=4, chars=7000, arguments=0, budget=None, reader=True):
+        config = ProjectConfig()
+        config.set_component_parameters('memory', {
+            'config': {'processing': {'priority': 10}},
+            'policy': {'processing': {'compress_tools': True, 'tool_result_chars': 8000,
+                                     'summarize': True, 'compact_active': True,
+                                     'active_keep_iterations': 1}},
+        })
         context = EngineContext(
-            NS(id='p', components=('memory',), config=ProjectConfig()), NS(id='s'),
+            NS(id='p', components=('memory',), config=config), NS(id='s'),
             NS(id='run', input_message_id='input'), (),
             completion_policy=CompletionPolicy(budget, counter=counter) if budget else None)
         messages = [CompletionMessage(ModelMessage(ModelRole.SYSTEM, 'Keep instructions')),
@@ -72,6 +79,30 @@ class WorkingContextTests(unittest.IsolatedAsyncioTestCase):
         context = replace(context, tools=registry)
         tools = registry.definitions()
         return context, CompletionRequest({}, messages, turns, tools=tools)
+
+    def test_missing_memory_policy_never_uses_creation_preset(self):
+        context, request = self.setup_request(chars=9000)
+        context.project.config.set_component_parameters('memory', {})
+        original = deepcopy(request)
+        self.assertEqual(ToolReferences.prepare(context, request), 0)
+        self.assertFalse(WorkingContext.compact_prefix(context, request))
+        self.assertEqual(request, original)
+
+    def test_disabled_compaction_does_not_read_missing_keep_count(self):
+        context, request = self.setup_request()
+        for options in ({'compact_active': False}, {'summarize': False, 'compact_active': True}):
+            with self.subTest(options=options):
+                context.project.config.set_component_parameters('memory', {'policy': {'processing': options}})
+                self.assertFalse(WorkingContext.compact_prefix(context, request))
+
+    def test_explicit_result_limit_is_used_without_file_reader_defaults(self):
+        context, request = self.setup_request(chars=9000)
+        context.project.config.set_component_parameters('memory', {
+            'policy': {'processing': {'compress_tools': True, 'tool_result_chars': 10000}}})
+        self.assertEqual(ToolReferences.prepare(context, request), 0)
+        context.project.config.set_component_parameters('memory', {
+            'policy': {'processing': {'compress_tools': True, 'tool_result_chars': 8000}}})
+        self.assertEqual(ToolReferences.prepare(context, request), 4)
 
     async def prepare(self, context, request):
         original = deepcopy(request.messages)
@@ -132,7 +163,8 @@ class WorkingContextTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_explicit_active_compaction_choice_and_retained_iterations_are_preserved(self):
         for policy, expected in (({'compact_active': False}, ()),
-                                 ({'active_keep_iterations': 3}, ('c0',))):
+                                 ({'summarize': True, 'compact_active': True,
+                                   'active_keep_iterations': 3}, ('c0',))):
             context, request = self.setup_request(chars=1000, arguments=3000)
             context.project.config.set_component_parameters('memory', {'policy': {'processing': policy}})
             original, invocation = deepcopy(request.messages), request.to_model()

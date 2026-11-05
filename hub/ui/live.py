@@ -232,6 +232,9 @@ class LiveHubView(HubView):
 
 
 class LiveController:
+    STARTUP_FAILURE = 'startup_failure'
+    CLOSED_INSTALLATION = 'Hub installation is closed'
+    SPEECH_SOURCE = 'speech'
     ABSENT = None
     OPEN = False
     CLOSED = True
@@ -614,7 +617,7 @@ class LiveController:
             self._startup_popup.observe(update)
 
     def _worker_error(self, error):
-        issue = getattr(self.worker, "startup_failure", None)
+        issue = getattr(self.worker, LiveController.STARTUP_FAILURE, None)
         if issue is not None:
             self.startup_failure = issue
             self._show_startup()
@@ -670,7 +673,7 @@ class LiveController:
     def ensure_worker(self):
         """Start shared backend lazily, including calls while Hub stays hidden."""
         if self.closed:
-            raise RuntimeError("Hub installation is closed")
+            raise RuntimeError(LiveController.CLOSED_INSTALLATION)
         if self.startup_failure is not None:
             self._show_startup()
             return self.worker
@@ -828,7 +831,9 @@ class LiveController:
 
         def answered(result):
             question.finish_answer(response, bool(result))
-            if result and result.get('continue_requested') and not result.get('continued'):
+            from ..backend.interactions.question_operations import ApprovalAnswer
+            outcome = ApprovalAnswer.from_dict(result) if result is not None else None
+            if outcome and outcome.continue_requested and not outcome.continued:
                 self.view.notice = self.view.t(MessageKey.ANSWER_SAVED_PAUSED)
             if remember_selection is not None and response.acknowledged:
                 self.invalidate_approval_settings(SessionIdentity(identity).project_id)
@@ -886,7 +891,7 @@ class LiveController:
         from .input.submission import SubmittedDraft
 
         draft = SubmittedDraft(SessionIdentity(identity).project_id, session_id, text)
-        voice = getattr(self, 'speech', None)
+        voice = getattr(self, LiveController.SPEECH_SOURCE, None)
         if voice is not None:
             draft.request_key = voice.request_key(identity, text)
         draft.consume(view)

@@ -21,6 +21,8 @@ from ..forms.settings import SchemaForm
 
 
 class WorkflowDialogs:
+    EDGE_LABEL = '{source} → {target}  {port}'
+    UNKNOWN_NODE = '?'
     def __init__(self, editor):
         self.editor = editor
 
@@ -80,7 +82,8 @@ class WorkflowDialogs:
         e, t = self.editor, self.editor.view.t
         if not e.flush():
             return
-        values = [(index, f"{edge.get(WorkflowEdge.SOURCE, '?')} → {edge.get(WorkflowEdge.TARGET, '?')}  {edge.get(WorkflowEdge.PORT, '')}")
+        values = [(index, self.EDGE_LABEL.format(source=edge.get(WorkflowEdge.SOURCE, self.UNKNOWN_NODE),
+                   target=edge.get(WorkflowEdge.TARGET, self.UNKNOWN_NODE), port=edge.get(WorkflowEdge.PORT, '')))
                   for index, edge in enumerate(e.document.graph()[WorkflowDocument.EDGES]) if isinstance(edge, dict)]
         self.choose(t(K.WORKFLOW_EDGES), values, self.edge)
 

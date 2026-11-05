@@ -140,6 +140,10 @@ class LargeDataToolsTests(unittest.IsolatedAsyncioTestCase):
                 [chunk('Read a page.', finish='stop')])
             runtime = HubRuntime(HubConfig(Path(root) / 'storage', file_root=work, auto_title=False,
                 agent_definition={'engine': 'loop', 'tools': ['file_read']}, model='test/model',
+                project_config={'parameters': {'components': {'memory': {
+                    'policy': {'processing': {'compress_tools': True, 'tool_result_chars': 8000}},
+                    'config': {'processing': {'priority': 10}},
+                }}}},
                 engine_factories={'loop': lambda: LoopEngine(
                     completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:

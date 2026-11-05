@@ -5,6 +5,7 @@ from prompt_toolkit.layout.dimension import Dimension
 from llm.core.agents import AgentDefinition
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.engines.loop.configuration import LoopParameters
+from llm.core.schema import SchemaKeyword
 
 from hub.config.defaults import HubDefaults
 from hub.locales.keys import MessageKey
@@ -16,12 +17,13 @@ class AgentReview:
     PATH = (AgentDefinition.Field.ENGINE_OPTIONS.value, ImplementationParameters.POLICY,
             LoopParameters.FINAL_REVIEW)
     INHERIT, ENABLED, DISABLED = "inherit", "enabled", "disabled"
+    CHOICE_WIDTH = 24
 
     def __init__(self, editor, schema, definition):
         self.editor = editor
         node = schema
         for key in self.PATH:
-            node = node.get("properties", {}).get(key, {})
+            node = node.get(SchemaKeyword.PROPERTIES, {}).get(key, {})
         self.available = bool(node)
         self.original = at_path(definition, self.PATH)
         self.initial = (self.INHERIT if self.original is MISSING else
@@ -30,7 +32,7 @@ class AgentReview:
             (self.INHERIT, editor.view.t(MessageKey.AGENT_REVIEW_INHERIT)),
             (self.ENABLED, editor.view.t(MessageKey.AGENT_REVIEW_ON)),
             (self.DISABLED, editor.view.t(MessageKey.AGENT_REVIEW_OFF)),
-        ], value=self.initial, icons=lambda: editor.view.icons, width=24)
+        ], value=self.initial, icons=lambda: editor.view.icons, width=self.CHOICE_WIDTH)
         self.choice.button.window.width = Dimension(min=1, weight=1)
 
     def apply(self, definition):

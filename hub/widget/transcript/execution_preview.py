@@ -11,25 +11,29 @@ from .header import OutputHeader
 
 
 class ExecutionPreview:
+    SPACE = ' '
+    OVERFLOW_ELLIPSIS = 'ellipsis'
+    FOLD = 'fold'
+    CROP = 'crop'
     TOOL_LINES = 4
     ELLIPSIS = '…'
     ANSWER_SENDING = 'answer_sending'
 
     @staticmethod
     def single_line(text):
-        return ' '.join(text.split())
+        return ExecutionPreview.SPACE.join(text.split())
 
     @classmethod
     def fit(cls, text, width):
         value = Text(cls.single_line(text))
-        value.truncate(width, overflow='ellipsis')
+        value.truncate(width, overflow=ExecutionPreview.OVERFLOW_ELLIPSIS)
         return value.plain
 
     @classmethod
     def wrap(cls, text, width, limit, console):
-        rows = Text(cls.single_line(text)).wrap(console, width, overflow='fold')
+        rows = Text(cls.single_line(text)).wrap(console, width, overflow=ExecutionPreview.FOLD)
         if len(rows) > limit:
-            rows[limit - 1].truncate(max(0, width - 1), overflow='crop')
+            rows[limit - 1].truncate(max(0, width - 1), overflow=ExecutionPreview.CROP)
             rows[limit - 1].append(cls.ELLIPSIS)
         return [row.plain for row in rows[:limit]]
 
@@ -37,7 +41,7 @@ class ExecutionPreview:
     def question(cls, item, details, width, console, theme, language):
         def plain(value):
             segments = console.render_lines(HubMarkdown(value, theme), console.options, pad=False)
-            return cls.single_line(' '.join(''.join(s.text for s in line if not s.control) for line in segments))
+            return cls.single_line(ExecutionPreview.SPACE.join(''.join(s.text for s in line if not s.control) for line in segments))
 
         question = plain(details.get(MessageKey.QUESTION_HEADING, item.text))
         description = plain(details.get(MessageKey.CARD_DESCRIPTION, ''))

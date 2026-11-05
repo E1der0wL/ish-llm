@@ -37,6 +37,7 @@ class HubInstallation:
     WRAPPED_ATTRIBUTE = "_hub_run_wrapped"
     WRAPPED = True
     UNWRAPPED = False
+    CLIENT_REQUIRES_INSTALLATION = "Install live Hub before using its plugin API"
 
     def __init__(
         self, prompt, theme: HubTheme | None = ABSENT, config: HubConfig | None = ABSENT
@@ -231,7 +232,7 @@ def client(prompt, plugin_id):
     def worker():
         installation = getattr(prompt, HubInstallation.INSTALLATION_ATTRIBUTE, None)
         if installation is None or installation._closed or installation.controller is None:
-            raise RuntimeError("Install live Hub before using its plugin API")
+            raise RuntimeError(HubInstallation.CLIENT_REQUIRES_INSTALLATION)
         installation.controller.bind_app(prompt.app, refresh_environment=False)
         worker = installation.controller.ensure_worker()
         if worker is None:

@@ -26,6 +26,9 @@ from ..execution.environment import underlying_engine
 from ..execution.retries import HubLoopEngine
 
 
+SKILL_TARGET = '{project} / {component} / {skill}'
+
+
 def creation_values(backend, values):
     """Materialize Hub choices only for missing creation fields."""
     return ProjectConfigForm.creation_defaults(
@@ -188,7 +191,7 @@ async def create_project(
                     await skills.aimport_directory(skill.directory)
                 except Exception as error:
                     from ...errors.startup import StartupLoadError
-                    raise StartupLoadError(error, f"{project.id} / {SkillComponent.name} / {skill.identifier}",
+                    raise StartupLoadError(error, SKILL_TARGET.format(project=project.id, component=SkillComponent.name, skill=skill.identifier),
                                            hint=MessageKey.STARTUP_BACKEND_HINT) from error
     except BaseException:
         # Do not leave a partially seeded project as the next startup selection.

@@ -205,7 +205,7 @@ class SnapshotReader:
 
     def observe_run(self, run):
         self.question_history.pop(run.id, None)
-        self.reads.discard('questions', run.id)
+        self.reads.discard(ReadKind.QUESTIONS, run.id)
         projection = self.projections.get(run.session_id)
         if projection is not None:
             projection.changed(run.id)
@@ -257,7 +257,7 @@ class SnapshotReader:
             self.reads.discard(ReadKind.CONVERSATION, run.session_id)
         if kind in (EngineEventType.PAUSED, EngineEventType.INTERACTION_CHANGED, EngineEventType.QUESTION_POSTED):
             self.question_history.pop(run.id, None)
-            self.reads.discard('questions', run.id)
+            self.reads.discard(ReadKind.QUESTIONS, run.id)
             self.invalidate(run.session_id)
             self._remember_run(run)
 
@@ -778,7 +778,7 @@ class SnapshotReader:
                     try:
                         # Reuse the cached native status, not the UI's stop label.
                         handle, source = await self.read_run(session, selected_id, run_id)
-                        native = await self.reads.read(('questions', run_id),
+                        native = await self.reads.read((ReadKind.QUESTIONS, run_id),
                             lambda handle=handle: QuestionAnswers.observe(handle))
                     except FileNotFoundError:
                         sources.discard(run_id)  # Backend retention removed the source.

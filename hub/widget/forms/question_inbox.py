@@ -11,6 +11,8 @@ from ...config.theme_style import ThemeSelector
 from ...asset.icon import AuxiliaryIcon, IconSet
 from ...locales.keys import MessageKey
 from ...model import QuestionPresentation, QuestionSource
+from ...backend.interactions.question_operations import (QuestionAction, QuestionList, QuestionRun,
+    QuestionAnswer, QuestionDelivery, QuestionTargets)
 from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from ...ui.input.registry import ShortcutRegistry
 from ..actions import ActionBar, ButtonNavigation, bind_button_navigation
@@ -21,6 +23,12 @@ from ..feedback.progress import ProgressCompletion
 
 class QuestionInbox:
     """UI selection and drafts only; native APIs own answers and deliveries."""
+    POSITION = ' {index}/{total} '
+    PAGE_STYLE = ' nobold fg:'
+    NEWLINE = '\n'
+    PAGE_BUTTON_WIDTH = 3
+    DESTINATION_WIDTH = 32
+    BUTTON_PADDING = 2
 
     CLOSED_STATES = (InteractionStatus.CANCELLED, InteractionStatus.EXPIRED)
 
@@ -37,9 +45,9 @@ class QuestionInbox:
         self.targets = []
         self.open_button = self.button(MessageKey.QUESTION_ANSWER, self.open)
         self.previous_button = Button(lambda: IconSet.action(self.view.icons, AuxiliaryIcon.PREVIOUS),
-                                      handler=lambda: self.move(-1), width=3, focusable=False)
+                                      handler=lambda: self.move(-1), width=QuestionInbox.PAGE_BUTTON_WIDTH, focusable=False)
         self.next_button = Button(lambda: IconSet.action(self.view.icons, AuxiliaryIcon.NEXT),
-                                  handler=lambda: self.move(1), width=3, focusable=False)
+                                  handler=lambda: self.move(1), width=QuestionInbox.PAGE_BUTTON_WIDTH, focusable=False)
         self.navigation_control = FormattedTextControl(self.position, focusable=True, show_cursor=False)
         self.bind_navigation(self.navigation_control)
         self.navigation = VSplit([
@@ -48,8 +56,8 @@ class QuestionInbox:
                    style=self.navigation_style),
             self.next_button,
         ], height=1, style=ThemeSelector.QUESTION_HEADING.style)
-        self.destination = DropdownBox(lambda: [(i, row['label']) for i, row in enumerate(self.targets)],
-                                       width=32, icons=lambda: self.view.icons)
+        self.destination = DropdownBox(lambda: [(i, row.label) for i, row in enumerate(self.targets)],
+                                       width=QuestionInbox.DESTINATION_WIDTH, icons=lambda: self.view.icons)
         self.buttons = [
             self.button(MessageKey.QUESTION_SEND, composer.answer),
             self.button(MessageKey.QUESTION_BACK, composer.return_to_input),
@@ -96,12 +104,12 @@ class QuestionInbox:
 
     def button(self, key, handler):
         text = self.view.t(key)
-        return self.bind(Button(text, width=get_cwidth(text) + 2, handler=handler))
+        return self.bind(Button(text, width=get_cwidth(text) + QuestionInbox.BUTTON_PADDING, handler=handler))
 
     def navigation_style(self):
         focused = get_app().layout.current_control is self.navigation_control
         foreground = self.view.theme.accent2 if focused else self.view.theme.muted
-        return ThemeSelector.QUESTION_HEADING.style + f' nobold fg:{foreground}'
+        return ThemeSelector.QUESTION_HEADING.style + self.PAGE_STYLE + foreground
 
     def bind_navigation(self, control):
         # The region owns keyboard focus; its two icons are mouse-only buttons.
@@ -143,7 +151,7 @@ class QuestionInbox:
         index = next((i for i, item in enumerate(items, 1)
                       if self.composer.item and QuestionPresentation.identity(*self.identity, item)
                       == self.composer.identity), 0)
-        return f' {index}/{len(items)} '
+        return self.POSITION.format(index=index, total=len(items))
 
     def move(self, direction):
         items = self.outstanding()
@@ -186,8 +194,7 @@ class QuestionInbox:
             previous = self.items.get(key)
             if previous and QuestionPresentation.observe(previous).request.revision == observed.request.revision:
                 # A queued observation may predate our successful native write.
-                item = {**item, **{name: previous[name] for name in ('response', 'delivery')
-                                  if previous.get(name) and not item.get(name)}}
+                item = observed.retaining_answer(previous)
             self.items[key] = item
 
     @staticmethod
@@ -210,8 +217,7 @@ class QuestionInbox:
             self.delivery = None
             self.composer.leave()
         draft = self.composer.drafts.pop(identity, '')
-        saved = {**item, **{name: previous[name] for name in ('response', 'delivery')
-                            if previous and previous.get(name) and not item.get(name)}}
+        saved = observed.retaining_answer(previous)
         if QuestionPresentation.observe(saved).delivery:
             return
         if not draft.strip() and QuestionPresentation.observe(saved).response:
@@ -220,7 +226,7 @@ class QuestionInbox:
             choices = QuestionSource.suggestions(observed.request.source) if observed.text_answer else []
             if draft.isdecimal() and 1 <= int(draft) <= len(choices):
                 draft = choices[int(draft) - 1]
-            text = f'{observed.request.title}\n{draft}'
+            text = observed.request.title + self.NEWLINE + draft
             self.preserve_draft(text)
         if selected or draft.strip():
             self.view.notice = self.view.t(MessageKey.QUESTION_FINISHED)
@@ -258,7 +264,7 @@ class QuestionInbox:
         self.busy = True
         identity = self.identity
         task = self.view.progress.start(self.view.t(MessageKey.PROGRESS_BACKEND_READ
-            if operation in ('list', 'targets') else MessageKey.PROGRESS_BACKEND_WRITE))
+            if operation in (QuestionAction.LIST, QuestionAction.TARGETS) else MessageKey.PROGRESS_BACKEND_WRITE))
 
         def received(result):
             self.view.progress.finish(task)
@@ -292,8 +298,8 @@ class QuestionInbox:
                         self.select(QuestionPresentation.observe(item).request.id)
                     else:
                         self.view.notice = self.view.t(MessageKey.QUESTION_EMPTY)
-        self.call('list', {'run_ids': list(dict.fromkeys(
-            QuestionPresentation.observe(item).run_id for item in self.items.values()))}, loaded)
+        self.call(QuestionAction.LIST, QuestionList(tuple(dict.fromkeys(
+            QuestionPresentation.observe(item).run_id for item in self.items.values()))).to_dict(), loaded)
 
     @staticmethod
     def answer_text(item):
@@ -322,7 +328,7 @@ class QuestionInbox:
             if self.key(item) in self.finished:
                 return  # A late receipt must not reopen or deliver to an ended task.
             if result is not None:
-                updated = {**item, 'response': result, 'status': InteractionStatus.ANSWERED.value}
+                updated = observed.with_response(result)
                 self.items[observed.request.id] = updated
                 if self.composer.identity == identity:
                     self.composer.item = updated
@@ -334,8 +340,8 @@ class QuestionInbox:
             else:
                 self.composer.drafts[identity] = draft
 
-        self.call('save', {'run_id': observed.run_id, 'request': observed.request.to_record(),
-                           'option_id': option_id, 'value': value}, saved)
+        self.call(QuestionAction.SAVE, QuestionAnswer(observed.run_id,
+            InteractionRequest.from_dict(observed.request.to_record()), option_id, value).to_dict(), saved)
 
     def prepare_delivery(self):
         if self.busy or not (item := self.selected()):
@@ -353,11 +359,12 @@ class QuestionInbox:
                 return  # A read error is not proof that the source has ended.
             if not self.same_selection(item):
                 return
-            latest = {**item, 'run_status': result['status']}
+            result = QuestionTargets.from_dict(result)
+            latest = observed.with_run_status(result.status)
             if QuestionPresentation.observe(latest).source_finished:
                 self.finish(latest)
                 return
-            own = [row for row in result['targets'] if row['run_id'] == observed.run_id]
+            own = [row for row in result.targets if row.run_id == observed.run_id]
             if len(own) == 1:
                 self.send_to(item, own[0])
             elif own:
@@ -365,7 +372,7 @@ class QuestionInbox:
             else:
                 self.status = self.view.t(MessageKey.QUESTION_NO_TARGET)
                 get_app().layout.focus(self.view.composer)
-        self.call('targets', {'run_id': observed.run_id}, loaded)
+        self.call(QuestionAction.TARGETS, QuestionRun(observed.run_id).to_dict(), loaded)
 
     def choose_target(self, item, rows):
         if not self.same_selection(item):
@@ -401,17 +408,17 @@ class QuestionInbox:
         if self.busy or not self.same_selection(item):
             return
         observed = QuestionPresentation.observe(item)
-        payload = {'run_id': observed.run_id, 'request_id': observed.request.id,
-                   'target_run_id': choice['run_id'], 'targets': [choice['target_id']]}
+        payload = QuestionDelivery(observed.run_id, observed.request.id,
+                                   choice.run_id, (choice.target_id,)).to_dict()
 
         def delivered(result):
             if self.key(item) in self.finished:
                 return
             self.status = self.view.t(MessageKey.QUESTION_RECEIPT if result is not None else MessageKey.TOOLS_FAILED)
             if result is not None:
-                self.items[observed.request.id] = {**item, 'delivery': result}
+                self.items[observed.request.id] = observed.with_delivery(result)
                 self.delivery = None
                 self.view.notice = self.status
                 if self.selected() and self.composer.observation.request.id == observed.request.id:
                     self.composer.return_to_input()
-        self.call('deliver', payload, delivered)
+        self.call(QuestionAction.DELIVER, payload, delivered)

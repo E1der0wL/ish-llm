@@ -19,6 +19,7 @@ class ReadKind(StrEnum):
     PAUSED = "paused_runs"
     STEPS = "steps"
     CONVERSATION = "conversation"
+    QUESTIONS = "questions"
 
 
 @dataclass(slots=True)

@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 
 class ParticipantBar(TagBar):
+    MEMBERS_INDENT = '  '
     ACCEPTED = True
 
     def __init__(self, output: "EngineOutput", view: "HubView") -> None:
@@ -71,7 +72,7 @@ class ParticipantBar(TagBar):
             rows.append(item(group.id, group.title))
             for identifier in group.members:
                 grouped.add(identifier)
-                rows.append(item(identifier, self.view.agent_titles.get(identifier, identifier), "  "))
+                rows.append(item(identifier, self.view.agent_titles.get(identifier, identifier), ParticipantBar.MEMBERS_INDENT))
         rows.extend(item(identifier, self.view.agent_titles.get(identifier, identifier))
                     for identifier in self.view.participant_ids if identifier not in grouped)
         return rows or [NoticeText(self.view.t(MessageKey.PARTICIPANTS_EMPTY)).sidebar(self.UNSELECTED)]

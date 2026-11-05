@@ -19,12 +19,22 @@ class NodePosition:
 
 class WorkflowDraft:
     # UI-only metadata and undo budget, never an execution/resource policy.
+    INVALID_GRAPH = 'Workflow draft requires nodes and edges'
+    INVALID_NODE = 'A node needs a nonempty ID and JSON object'
+    MISSING_ENDPOINT = 'Select existing endpoint nodes'
+    DUPLICATE_EDGE = 'Duplicate edge'
+    INVALID_NODE_VALUE = 'node must be an object; edit JSON to resolve it'
+    INVALID_METADATA = 'metadata must be an object; edit JSON to resolve it'
+    INVALID_POSITION = 'metadata.hub_graph must be an object; edit JSON to resolve it'
+    MISSING_BODY = 'Select a node with an inline Workflow body'
     UI_KEY = 'hub_graph'
     UI_TITLE = 'title'
     UI_POSITION = 'position'
     HISTORY_LENGTH = 80
     COLUMN_GAP = 31
     ROW_GAP = 7
+    POSITION_DIMENSIONS = 2
+    ORIGIN_X = 2
 
     def __init__(self, value: dict[str, Any]):
         self.value = deepcopy(value)
@@ -38,7 +48,7 @@ class WorkflowDraft:
         for name in self.path:
             graph = graph[WorkflowDocument.NODES][name][WorkflowNode.BODY]
         if not isinstance(graph.get(WorkflowDocument.NODES), dict) or not isinstance(graph.get(WorkflowDocument.EDGES), list):
-            raise ValueError('Workflow draft requires nodes and edges')
+            raise ValueError(WorkflowDraft.INVALID_GRAPH)
         return graph
 
     def change(self, edit: Callable[[dict[str, Any]], object]) -> None:
@@ -72,7 +82,7 @@ class WorkflowDraft:
 
     def put_node(self, name: str, node: dict[str, Any]) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(node, dict):
-            raise ValueError('A node needs a nonempty ID and JSON object')
+            raise ValueError(WorkflowDraft.INVALID_NODE)
         if not JsonDocument.same(self.graph()[WorkflowDocument.NODES].get(name), node, missing=object()):
             self.change(lambda graph: graph[WorkflowDocument.NODES].__setitem__(name, deepcopy(node)))
 
@@ -83,12 +93,12 @@ class WorkflowDraft:
     def add_edge(self, source: str, target: str, port: str) -> None:
         graph = self.graph()
         if source not in graph[WorkflowDocument.NODES] or target not in graph[WorkflowDocument.NODES]:
-            raise ValueError('Select existing endpoint nodes')
+            raise ValueError(WorkflowDraft.MISSING_ENDPOINT)
         edge = {WorkflowEdge.SOURCE: source, WorkflowEdge.TARGET: target}
         if port:
             edge[WorkflowEdge.PORT] = port
         if edge in graph[WorkflowDocument.EDGES]:
-            raise ValueError('Duplicate edge')
+            raise ValueError(WorkflowDraft.DUPLICATE_EDGE)
         self.change(lambda value: value[WorkflowDocument.EDGES].append(edge))
 
     def delete_edge(self, index: int) -> None:
@@ -109,21 +119,21 @@ class WorkflowDraft:
             metadata = node.get(WorkflowNode.METADATA, {}) if isinstance(node, dict) else {}
             ui = metadata.get(self.UI_KEY, {}) if isinstance(metadata, dict) else {}
             position = ui.get(self.UI_POSITION) if isinstance(ui, dict) else None
-            valid = (isinstance(position, list) and len(position) == 2
+            valid = (isinstance(position, list) and len(position) == self.POSITION_DIMENSIONS
                      and all(type(item) is int and item >= 0 for item in position))
-            positions[name] = NodePosition(*position) if valid else NodePosition(2, 1 + index * self.ROW_GAP)
+            positions[name] = NodePosition(*position) if valid else NodePosition(self.ORIGIN_X, 1 + index * self.ROW_GAP)
         return positions
 
     @classmethod
     def metadata(cls, node: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(node, dict):
-            raise ValueError('node must be an object; edit JSON to resolve it')
+            raise ValueError(WorkflowDraft.INVALID_NODE_VALUE)
         metadata = node.setdefault(WorkflowNode.METADATA, {})
         if not isinstance(metadata, dict):
-            raise ValueError('metadata must be an object; edit JSON to resolve it')
+            raise ValueError(WorkflowDraft.INVALID_METADATA)
         ui = metadata.setdefault(cls.UI_KEY, {})
         if not isinstance(ui, dict):
-            raise ValueError('metadata.hub_graph must be an object; edit JSON to resolve it')
+            raise ValueError(WorkflowDraft.INVALID_POSITION)
         return ui
 
     def move(self, name: str, x: int, y: int) -> None:
@@ -153,7 +163,7 @@ class WorkflowDraft:
             rank = ranks.get(name, 0)
             row = counts.get(rank, 0)
             counts[rank] = row + 1
-            positions[name] = [2 + rank * self.COLUMN_GAP, 1 + row * self.ROW_GAP]
+            positions[name] = [self.ORIGIN_X + rank * self.COLUMN_GAP, 1 + row * self.ROW_GAP]
         def edit(value):
             for name, position in positions.items():
                 self.metadata(value[WorkflowDocument.NODES][name])[self.UI_POSITION] = position
@@ -163,7 +173,7 @@ class WorkflowDraft:
         node = self.graph()[WorkflowDocument.NODES][name]
         body = node.get(WorkflowNode.BODY) if isinstance(node, dict) else None
         if not isinstance(body, dict) or not isinstance(body.get(WorkflowDocument.NODES), dict) or not isinstance(body.get(WorkflowDocument.EDGES), list):
-            raise ValueError('Select a node with an inline Workflow body')
+            raise ValueError(WorkflowDraft.MISSING_BODY)
         self.path = (*self.path, name)
         self.revision += 1
 

@@ -100,8 +100,13 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
             component_factories=(lambda: source, *components),
             # Exercise provider partial-output/recovery semantics independently of
             # final-review candidate buffering (covered by application_defaults).
-            project_config={"parameters": {"engines": {"loop": {"policy": {
-                "provider": {"max_attempts": attempts}, "final_review": None}}}}}))
+            project_config={"parameters": {
+                "components": {"memory": {
+                    "policy": {"processing": {"compress_tools": True, "tool_result_chars": 8000}},
+                    "config": {"processing": {"priority": 10}},
+                }},
+                "engines": {"loop": {"policy": {
+                    "provider": {"max_attempts": attempts}, "final_review": None}}}}}))
         self.addAsyncCleanup(runtime.close)
         await runtime.start()
         sid = await runtime.new_session()

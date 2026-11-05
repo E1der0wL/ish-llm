@@ -145,7 +145,7 @@ class BackgroundRecordTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'outside'):
             await runtime.background_records._apply(source,session,payload,owners,invalid)
         self.assertFalse(await runtime.project.components.memory.alist())
-        await goals.aupdate('work',{'progress':['User changed']},expected_version=payload['goals']['work']['version'])
+        await goals.aupdate('work',{'progress':['User changed']},expected_version=payload.goals['work']['version'])
         with self.assertRaises(Exception):
             await runtime.background_records._apply(source,session,payload,owners,
                 {**deepcopy(EMPTY),'goals':[{'action':'update','id':'work','data':{'progress':['Stale'], 'next_actions':[]}}]})
@@ -169,7 +169,7 @@ class BackgroundRecordTests(unittest.IsolatedAsyncioTestCase):
         await runtime.project.components.memory.aupdate(memory['id'], {'status':'confirmed'}, session_id=session.id,
             expected_generation=memory['generation'], expected_revision=memory['revision'])
         payload, owners, _ = await records._inputs(runtime.project, session, source)
-        self.assertEqual(payload['memories'][memory['id']]['status'], 'confirmed')
+        self.assertEqual(payload.memories[memory['id']]['status'], 'confirmed')
         await records._apply(source, session, payload, owners, {**deepcopy(EMPTY),
             'memories':[{'action':'update','id':memory['id'],'data':{'content':'Corrected fact'}}],
             'goals':[{'action':'update','id':goal_id,'data':{'status':'completed','progress':['Verified result']}}]})
@@ -203,8 +203,8 @@ class BackgroundRecordTests(unittest.IsolatedAsyncioTestCase):
         run = await self.submit(session)
         source = await run.aget_data()
         payload, owners, _ = await runtime.background_records._inputs(runtime.project,session,source)
-        self.assertNotIn('test-private-key',json.dumps(payload))
-        self.assertNotIn('completion',payload['refinement_target']['guidance'])
+        self.assertNotIn('test-private-key',json.dumps(payload.to_dict()))
+        self.assertNotIn('completion',payload.refinement_target.guidance)
         plan = {**deepcopy(EMPTY),'refinement':{'reason':'Use concise explanations.', 'patch':{'description':'Concise helper'}}}
         await runtime.background_records._apply(source,session,payload,owners,plan)
         proposals = await runtime.project.components.refinement.alist()

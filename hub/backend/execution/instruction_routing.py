@@ -6,20 +6,58 @@ uncertain effects, pending approvals and explicit resume remain authoritative.
 
 import asyncio
 import json
+from dataclasses import dataclass
+from enum import StrEnum
 from weakref import WeakValueDictionary
 
 from llm.core.agents import AgentBinding, AgentDefinition
 from llm.core.configuration import UNSET
+from llm.core.contracts import JsonValue
 from llm.core.models import RunStatus, StepStatus
 from llm.providers.request_values import ModelParameters
 from llm.engines.agent_values import AgentExecutionBinding
 from llm.engines.graph.node_records import GraphStepMetadata
+from llm.services.runtime.client_inputs import InputKind
 
 from .auxiliary_engine import AuxiliaryEngine
 from .recovery_model import parse_object
 from .tool_details import ValuePreview, ToolDetails
 from ..project.agents import apply_agents
 from ..project.title_values import TitleSessionMetadata
+
+
+class InstructionAction(StrEnum):
+    STEER = 'steer'
+    REDIRECT = 'redirect'
+
+
+@dataclass(frozen=True, slots=True)
+class InstructionChoice(JsonValue):
+    INVALID_REASON = 'Invalid instruction assessment'
+    action: InstructionAction
+    reason: str
+
+    def __post_init__(self):
+        JsonValue.__post_init__(self)
+        if not self.reason.strip():
+            raise ValueError(self.INVALID_REASON)
+
+
+@dataclass(frozen=True, slots=True)
+class InstructionStep(JsonValue):
+    name: str
+    kind: str
+    status: str
+    preview: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class InstructionObservation(JsonValue):
+    original_request: str
+    current_steps: tuple[InstructionStep, ...]
+    new_instruction: str
+    targets: tuple[dict, ...]
+    user_language: str
 
 
 class InstructionEngine(AuxiliaryEngine):
@@ -40,6 +78,12 @@ Do not answer the task or execute tools. Use the supplied user_language for the 
 
 
 class InstructionRouting:
+    MAXIMUM_STEPS = 6
+    MISSING_MODEL = 'No model configured for the selected instruction target'
+    CONFLICTING_KEY = 'Request key already belongs to another operation'
+    ASSESSED_EVENT = 'hub.instruction.assessed.{action}'
+    AGENT_SEPARATOR = '_'
+
     def __init__(self, runtime):
         self.runtime = runtime
         self._locks = WeakValueDictionary()
@@ -59,7 +103,7 @@ class InstructionRouting:
                         and step.metadata.get(GraphStepMetadata.NODE_PATH) == target.node_path
                         and ModelParameters(selected.get(AgentDefinition.Field.COMPLETION, {})).optional_model):
                     return selected
-        raise ValueError('No model configured for the selected instruction target')
+        raise ValueError(InstructionRouting.MISSING_MODEL)
 
     async def assess(self, session, handle, text, targets=()):
         source = await handle.aget_data()
@@ -73,16 +117,13 @@ class InstructionRouting:
         request = await session.run.arequest(source.input_message_id)
         original = await request.aget_data()
         active = [step for step in steps if step.status in (StepStatus.RUNNING, StepStatus.PENDING)]
-        payload = {
-            'original_request': ValuePreview.render(original.content),
-            'current_steps': [{'name': step.name, 'kind': str(step.kind), 'status': str(step.status),
-                               'preview': ToolDetails.project(step.metadata, name=step.name)}
-                              for step in active[-6:]],
-            'new_instruction': text,
-            'targets': [target.to_dict() for target in selected],
-            'user_language': self.runtime.general.resolved_language(self.runtime.config.language),
-        }
-        identifier = InstructionEngine.IDENTITY + '_' + session.id
+        payload = InstructionObservation(ValuePreview.render(original.content),
+            tuple(InstructionStep(step.name, str(step.kind), str(step.status),
+                                  ToolDetails.project(step.metadata, name=step.name))
+                  for step in active[-self.MAXIMUM_STEPS:]), text,
+            tuple(target.to_dict() for target in selected),
+            self.runtime.general.resolved_language(self.runtime.config.language))
+        identifier = InstructionEngine.IDENTITY + self.AGENT_SEPARATOR + session.id
         project, job = session.project, None
         try:
             await apply_agents(project, {identifier: {
@@ -92,19 +133,16 @@ class InstructionRouting:
             job = await project.sessions.acreate(InstructionEngine.name, agent_ids=[identifier])
             await job.asave(metadata={TitleSessionMetadata.INTERNAL: InstructionEngine.IDENTITY,
                                      TitleSessionMetadata.SOURCE_SESSION: session.id})
-            run, = await (await job.run.submit(json.dumps(payload, ensure_ascii=False),
+            run, = await (await job.run.submit(json.dumps(payload.to_dict(), ensure_ascii=False),
                                               recipients=[identifier])).wait()
             result = await run.aget_data()
             if result.status != RunStatus.COMPLETED:
                 raise ValueError(result.error or str(result.status))
-            choice = parse_object((await run.aresponse()).content)
-            if (set(choice) != {'action', 'reason'} or choice['action'] not in ('steer', 'redirect')
-                    or not isinstance(choice['reason'], str) or not choice['reason'].strip()):
-                raise ValueError('Invalid instruction assessment')
+            choice = InstructionChoice.from_dict(parse_object((await run.aresponse()).content))
             await asyncio.to_thread(self.runtime.backend.services.logger.write,
-                project.data.paths.logs, 'hub.instruction.assessed.' + choice['action'],
+                project.data.paths.logs, self.ASSESSED_EVENT.format(action=choice.action),
                 entity_id=source.id, related_id=run.id, status=RunStatus.COMPLETED.value)
-            return choice['action']
+            return choice.action
         finally:
             if job is not None:
                 await job.run.shutdown()
@@ -121,12 +159,11 @@ class InstructionRouting:
             if prior is not None:
                 # Re-enter the SAME native operation: it validates the key's full
                 # content/targets even if the original Run has already ended.
-                if prior.kind not in ('instruction', 'redirect'):
-                    raise ValueError('Request key already belongs to another operation')
-                action = 'redirect' if prior.kind == 'redirect' else 'steer'
+                if prior.kind not in (InputKind.INSTRUCTION, InputKind.REDIRECT):
+                    raise ValueError(self.CONFLICTING_KEY)
+                action = InstructionAction.REDIRECT if prior.kind == InputKind.REDIRECT else InstructionAction.STEER
             else:
                 handle = await self.runtime._instruction_run(session.id, run_id)
                 action = await self.assess(session, handle, text, targets)
-            operation = session.run.redirect if action == 'redirect' else session.run.steer
-            return await operation(run_id, text, targets=targets,
-                **({} if request_key is UNSET else {'request_key': request_key}))
+            operation = session.run.redirect if action == InstructionAction.REDIRECT else session.run.steer
+            return await operation(run_id, text, targets=targets, request_key=request_key)

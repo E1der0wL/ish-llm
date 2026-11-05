@@ -1,7 +1,7 @@
 """Native durable input requests project into the same question card as ask_user."""
 
-from llm.core.interactions import InteractionRequest
-from ...model import TraceItem
+from llm.core.interactions import InteractionRequest, InteractionStatus
+from ...model import TraceItem, SessionSummary
 from ...locales.keys import MessageKey
 from .tool_details import ValuePreview, TextPreview
 
@@ -27,6 +27,6 @@ class QuestionTrace:
                 details.append((MessageKey.CARD_ANSWER, TextPreview.render(
                     view.response.decision(request), TextPreview.OUTPUT_KEYS)))
             result.append(TraceItem(cls.identifier(request.id), TraceItem.QUESTION, request.title,
-                'answered' if view.response is not None else 'waiting_input' if view.can_respond else view.status,
+                InteractionStatus.ANSWERED if view.response is not None else SessionSummary.WAITING_INPUT if view.can_respond else view.status,
                 request.created_at, details=tuple(details)))
         return tuple(result)

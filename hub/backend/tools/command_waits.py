@@ -9,6 +9,8 @@ from llm.components.tools.builtin.process_values import (
     ProcessReferenceArguments, ProcessStatus, ProcessStartArguments, ProcessOutputArguments, ProcessSnapshot,
 )
 from llm.services.runtime.tools import current_tool_call
+from llm.core.schema import SchemaKeyword, SchemaType
+from llm.core.contracts import JsonValue
 
 from ...config.defaults import HubDefaults
 
@@ -20,8 +22,13 @@ class CommandWait:
 
 class CommandWaits:
     """A persisted steering ACK wakes observation, never consumes the instruction."""
+    INVALID_WAIT = 'wait_seconds must be finite and nonnegative'
 
     WAIT_SECONDS = "wait_seconds"
+    WAIT_SCHEMA = {
+        SchemaKeyword.TYPE: SchemaType.NUMBER, SchemaKeyword.MINIMUM: 0,
+        SchemaKeyword.DESCRIPTION: "Observation wait in seconds, not a command timeout. Zero returns immediately.",
+    }
     DESCRIPTION = (
         "Inspect a process. In a Hub conversation, wait briefly for completion or new user "
         "instructions before returning its current status. Set wait_seconds=0 for an immediate "
@@ -60,7 +67,7 @@ class CommandWaits:
                   if call is not None else None)
         seconds = (HubDefaults.COMMAND_WAIT_SECONDS if waiter is not None else 0) if supplied is None else supplied
         if type(seconds) not in (int, float) or not math.isfinite(seconds) or seconds < 0:
-            raise ValueError("wait_seconds must be finite and nonnegative")
+            raise ValueError(CommandWaits.INVALID_WAIT)
         loop = asyncio.get_running_loop()
         deadline = loop.time() + seconds
         while True:
@@ -87,11 +94,14 @@ class CommandWaits:
         from copy import deepcopy
 
         schema = deepcopy(original)
-        schema["properties"][cls.WAIT_SECONDS] = {
-            "type": "number", "minimum": 0,
-            "description": "Observation wait in seconds, not a command timeout. Zero returns immediately.",
-        }
+        schema[SchemaKeyword.PROPERTIES][cls.WAIT_SECONDS] = deepcopy(cls.WAIT_SCHEMA)
         return schema
+
+
+@dataclass(frozen=True, slots=True)
+class CommandObservationRevision(JsonValue):
+    native: str
+    hub: str = 'command-observation-v1'
 
 
 class ConversationalCommands:

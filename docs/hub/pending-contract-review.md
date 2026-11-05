@@ -1,5 +1,9 @@
 # 기존 미검토 경로 검토 — 2026-11-05
 
+후속 작업: 아래에서 발견한 항목의 수정과 108개 파일의 파일별 검토는
+[2026-11-06 정리 결과](ownership-review-20261106.md)에 기록한다.
+이 문서의 개수와 판정은 당시 점검 기록이다.
+
 Backend 시각 계약 전환과 함께 기존 감사의 미검토 항목을 점검했다. 기준은
 [단일 소유](../llm/contract-ownership.md), [명명](../llm/naming-conventions.md),
 [검증](../llm/verification-policy.md) 계약이다. `llm/`은 읽기만 했다.

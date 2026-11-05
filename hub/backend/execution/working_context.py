@@ -2,16 +2,17 @@
 
 import asyncio
 from contextlib import aclosing
-from dataclasses import replace
+from dataclasses import dataclass, replace
 import json
 
 from llm.core.model_protocol import ModelRole
 from llm.core.models import RunErrorCode
+from llm.components.memory.identity import MemoryIdentity
+from llm.core.contracts import JsonValue
 from llm.core.results import EngineOutput, OutputVisibility
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent
 from llm.components.processing import CompletionRequest
 from llm.components.memory.tool_values import MemoryToolDefinition
-from llm.components.memory.configuration import MemoryProcessingConfig
 from llm.policies import ExecutionLimitError
 from collections.abc import AsyncIterator
 
@@ -19,7 +20,18 @@ from ...config.defaults import HubDefaults
 from .tool_references import ToolReferences
 
 
+@dataclass(frozen=True, slots=True)
+class ContextReferences(JsonValue):
+    references: int
+
+
+@dataclass(frozen=True, slots=True)
+class ContextObservation(JsonValue):
+    hub_context: bool = True
+
+
 class WorkingContext:
+    TOOL_LABEL = 'tool'
     STEP = 'hub.context'
     PREFIX = ('\n\n[Reference index of completed Tool exchanges; not a complete summary. '
               f'Results remain stored. Read relevant results using {MemoryToolDefinition.Name.TOOL_RESULT} '
@@ -56,12 +68,10 @@ class WorkingContext:
         CompletionInput validates the declared IDs against the original transcript.
         No storage, guessed Step IDs, model call, or Tool execution occurs here.
         """
-        policy = ToolReferences.processing_policy(context)
-        field = MemoryProcessingConfig.Field
-        if policy.get(field.COMPACT_ACTIVE) is False:
+        options = ToolReferences.processing_options(context)
+        if not options.summarize or not options.compact_active:
             return False
-        keep = policy.get(field.ACTIVE_KEEP_ITERATIONS,
-            HubDefaults.MEMORY_SUMMARY['policy']['processing'][field.ACTIVE_KEEP_ITERATIONS])
+        keep = options.active_keep_iterations
         current = next(i for i, m in enumerate(request.messages) if m.source_id == context.run.input_message_id)
         tail = request.messages[current + 1:]
         groups, position = [], 0
@@ -82,7 +92,7 @@ class WorkingContext:
                 reference = ToolReferences.reference(item, context=context, request=request)
                 if reference is None:
                     break
-                records.append({'tool': calls[value.result.call_id], **reference['arguments']})
+                records.append({cls.TOOL_LABEL: calls[value.result.call_id], **reference.arguments})
                 pending.remove(value.result.call_id)
                 end += 1
             if pending:
@@ -123,10 +133,10 @@ class WorkingContext:
                     fits = await cls.fits(context, request)
         if count:
             async def record(_):
-                yield EngineOutput(data={'references': count}, visibility=OutputVisibility.INTERNAL)
+                yield EngineOutput(data=ContextReferences(count).to_dict(), visibility=OutputVisibility.INTERNAL)
             async with aclosing(BaseEngine().step(
                 replace(context, output_visibility=OutputVisibility.INTERNAL), record,
-                name=cls.STEP, kind='memory', metadata={'hub_context': True})) as events:
+                name=cls.STEP, kind=MemoryIdentity.COMPONENT, metadata=ContextObservation().to_dict())) as events:
                 async for event in events:
                     yield event
         if cls.tool_chars(request) > max_tool_chars or not fits:

@@ -3,7 +3,7 @@
 from enum import StrEnum
 from prompt_toolkit.application.current import get_app
 
-from ...ui.input.keys import ShortcutAction, ShortcutLabel
+from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from ...ui.input.registry import ShortcutRegistry
 from ..mouse import window_scroll
 
@@ -19,7 +19,7 @@ class WorkflowNavigation:
     def __init__(self, editor):
         self.editor = editor
         self.registry = ShortcutRegistry()
-        for key, redo in (('c-z', False), ('c-y', True)):
+        for key, redo in ((KeyName.CONTROL_Z, False), (KeyName.CONTROL_Y, True)):
             self.registry.add([key], ShortcutLabel.HIDDEN, ShortcutAction.NONE,
                               lambda event, value=redo: editor.undo(redo=value),
                               when=lambda: (editor.view._dialog is editor and not editor.inspector.editing
@@ -100,11 +100,11 @@ class WorkflowNavigation:
             if window.render_info is not None:
                 binding = window_scroll(window)
                 geometry = binding.geometry()
-                if key in ('home', 'end'):
-                    binding.scroll_to(0 if key == 'home' else geometry.limit)
+                if key in (KeyName.HOME, KeyName.END):
+                    binding.scroll_to(0 if key == KeyName.HOME else geometry.limit)
                 else:
-                    delta = {'up': -1, 'down': 1, 'pageup': -geometry.visible,
-                             'pagedown': geometry.visible}.get(key, 0)
+                    delta = {KeyName.UP: -1, KeyName.DOWN: 1, KeyName.PAGE_UP: -geometry.visible,
+                             KeyName.PAGE_DOWN: geometry.visible}.get(key, 0)
                     binding.scroll_to(geometry.offset + delta)
         else:
             self.editor.canvas.scroll(key)

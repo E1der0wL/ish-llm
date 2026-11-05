@@ -3,7 +3,7 @@
 
 from ...backend.project.component_commands import parse_arguments
 from ...components import component_spec, ManagerKind
-from ...backend.project.management_values import ManagementAction
+from ...backend.project.management_values import ManagementAction, ManagementEntry
 from ...locales.keys import MessageKey
 from prompt_toolkit.application.current import get_app
 from .. import host
@@ -42,10 +42,11 @@ class ComponentCommands:
             if spec.manager == ManagerKind.AGENT:
                 owner = target_project or project_id
                 if target_project is None and operation in (ManagementAction.READ, ManagementAction.DELETE):
-                    entry = next((row for row in popup.entries if row["name"] == argument), None)
+                    entry = next((row for row in popup.entries if ManagementEntry(row).name == argument), None)
                     if entry is not None:
                         owner, argument = entry[AgentLocation.PROJECT], entry[AgentLocation.AGENT]
-                self.controller._call("manage_agents", project_id, owner, operation, argument, version,
+                from ...backend.runtime import HubRuntime
+                self.controller._call(HubRuntime.manage_agents.__name__, project_id, owner, operation, argument, version,
                                       completed=done)
                 return
             target = (

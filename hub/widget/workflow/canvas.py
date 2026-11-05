@@ -11,9 +11,9 @@ from prompt_toolkit.layout.controls import UIContent, UIControl
 from prompt_toolkit.mouse_events import MouseButton, MouseEventType, MouseEvent
 from prompt_toolkit.utils import get_cwidth
 
-from ...config.theme_style import ThemeSelector
+from ...config.theme_style import ThemeSelector, ThemeStyle
 from ...ui.input.registry import ShortcutRegistry
-from ...ui.input.keys import ShortcutAction, ShortcutLabel
+from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from ...locales.keys import MessagePattern
 from ..mouse_contract import MouseBinding
 from ..mouse import ScrollbarGeometry
@@ -49,6 +49,31 @@ class GraphCanvas(UIControl):
     NODE_WIDTH = 25
     NODE_HEIGHT = 5
     PAN_ROWS = 3
+    DIRECTIONS = {KeyName.LEFT: (-1, 0), KeyName.RIGHT: (1, 0), KeyName.UP: (0, -1), KeyName.DOWN: (0, 1)}
+    KEY_LABELS = {KeyName.CONTROL_Z: 'Ctrl+Z', KeyName.CONTROL_Y: 'Ctrl+Y'}
+    SELECT_KEYS = '←↓↑→'
+    SCROLL_KEYS = 'Alt+←↓↑→/PgUp/PgDn/Home/End'
+    HELP_LINE = '{label}  •  {description}'
+    NEWLINE = '\n'
+    CARRIAGE_RETURN = '\r'
+    SPACE = ' '
+    HORIZONTAL = '─'
+    VERTICAL = '│'
+    TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT = '┌', '┐', '└', '┘'
+    ARROW = '▶'
+    ENTRY_MARKER, PLAIN_MARKER = '▶ ', '  '
+    UNKNOWN_KIND = '?'
+    ELLIPSIS = '…'
+    PAN_MARGIN = 2
+    MIN_REVEAL_WIDTH, MIN_REVEAL_HEIGHT = 5, 2
+    VERTICAL_DISTANCE_WEIGHT = 3
+    EDGE_ROW = 2
+    PORT_CHARS = 14
+    NODE_BORDER_COLUMNS = 2
+    TITLE_RESERVED_COLUMNS = 6
+    CONTENT_RESERVED_COLUMNS = 5
+    CONTENT_COLUMN = 2
+    TYPE_ROW, ID_ROW = 2, 3
 
     def __init__(self, draft, selected, select, move_node, actions):
         self.draft, self.selected, self.select = draft, selected, select
@@ -63,13 +88,12 @@ class GraphCanvas(UIControl):
         self.registry = ShortcutRegistry().attach(self)
         self.bindings = self.registry.bindings
         self._help = []
-        directions = {'left': (-1, 0), 'right': (1, 0), 'up': (0, -1), 'down': (0, 1)}
-        self.bind(list(directions), '←↓↑→', MessagePattern.shortcut(ShortcutAction.SELECT),
-                  lambda e: self.navigate(*directions[e.key_sequence[-1].key]))
+        self.bind(list(self.DIRECTIONS), self.SELECT_KEYS, MessagePattern.shortcut(ShortcutAction.SELECT),
+                  lambda e: self.navigate(*self.DIRECTIONS[e.key_sequence[-1].key]))
         self.registry.scroll(lambda e: self.scroll(e.key_sequence[-1].key))
-        self._help.append(('Alt+←↓↑→/PgUp/PgDn/Home/End', MessagePattern.shortcut(ShortcutAction.SCROLL)))
+        self._help.append((self.SCROLL_KEYS, MessagePattern.shortcut(ShortcutAction.SCROLL)))
         for key, (action, description) in actions.items():
-            label = {'c-z': 'Ctrl+Z', 'c-y': 'Ctrl+Y'}.get(key, key)
+            label = self.KEY_LABELS.get(key, key)
             self.bind([key], label, description, lambda e, callback=action: callback())
         MouseBinding.keep_selection_on_empty(self)
         self.window = CanvasWindow(self)
@@ -79,7 +103,8 @@ class GraphCanvas(UIControl):
         self._help.append((label, description))
 
     def help_text(self, translate):
-        return '\n'.join(f'{label}  •  {translate(description)}' for label, description in self._help)
+        return self.NEWLINE.join(self.HELP_LINE.format(label=label, description=translate(description))
+                                 for label, description in self._help)
 
     def is_focusable(self):
         return True
@@ -107,24 +132,24 @@ class GraphCanvas(UIControl):
         positions = self.positions().values()
         max_x = max((p.x + self.NODE_WIDTH for p in positions), default=self.width)
         max_y = max((p.y + self.NODE_HEIGHT for p in self.positions().values()), default=self.height)
-        self.offset_x = min(max(0, max_x - self.width + 2), max(0, self.offset_x + dx))
-        self.offset_y = min(max(0, max_y - self.height + 2), max(0, self.offset_y + dy))
+        self.offset_x = min(max(0, max_x - self.width + self.PAN_MARGIN), max(0, self.offset_x + dx))
+        self.offset_y = min(max(0, max_y - self.height + self.PAN_MARGIN), max(0, self.offset_y + dy))
         get_app().invalidate()
 
     def geometry(self, height=None, arrows=False):
-        total = max((p.y + self.NODE_HEIGHT + 2 for p in self.positions().values()), default=self.height)
+        total = max((p.y + self.NODE_HEIGHT + self.PAN_MARGIN for p in self.positions().values()), default=self.height)
         return ScrollbarGeometry(height or self.height, total, self.height, self.offset_y, arrows)
 
     def scroll(self, key):
-        if key == 'home':
+        if key == KeyName.HOME:
             self.pan(-self.offset_x, -self.offset_y)
-        elif key == 'end':
+        elif key == KeyName.END:
             positions = list(self.positions().values())
             self.pan(max((p.x + self.NODE_WIDTH for p in positions), default=0),
                      max((p.y + self.NODE_HEIGHT for p in positions), default=0))
         else:
-            delta = {'left': (-3, 0), 'right': (3, 0), 'up': (0, -3), 'down': (0, 3),
-                     'pageup': (0, -self.height), 'pagedown': (0, self.height)}.get(key)
+            delta = ({name: (x * self.PAN_ROWS, y * self.PAN_ROWS) for name, (x, y) in self.DIRECTIONS.items()}
+                     | {KeyName.PAGE_UP: (0, -self.height), KeyName.PAGE_DOWN: (0, self.height)}).get(key)
             if delta:
                 self.pan(*delta)
 
@@ -132,7 +157,7 @@ class GraphCanvas(UIControl):
         self.pan(0, position - self.offset_y)
 
     def reveal(self):
-        if self.width < 5 or self.height < 2:
+        if self.width < self.MIN_REVEAL_WIDTH or self.height < self.MIN_REVEAL_HEIGHT:
             return
         pos = self.positions().get(self.selected())
         if pos:
@@ -153,7 +178,7 @@ class GraphCanvas(UIControl):
         for name, pos in positions.items():
             x, y = pos.x - origin.x, pos.y - origin.y
             if x * dx + y * dy > 0:
-                candidates.append((abs(x) + abs(y) * 3, name))
+                candidates.append((abs(x) + abs(y) * self.VERTICAL_DISTANCE_WEIGHT, name))
         if candidates:
             self.select(min(candidates)[1])
             self.reveal()
@@ -211,12 +236,12 @@ class GraphCanvas(UIControl):
     def _render(self, width, height):
         # Allocate only visible terminal cells, never the potentially huge world.
         background = ThemeSelector.WORKFLOW_CANVAS.style
-        cells = [[(background, ' ') for _ in range(width)] for _ in range(height)]
+        cells = [[(background, self.SPACE) for _ in range(width)] for _ in range(height)]
         ox, oy = self.offset_x, self.offset_y
-        muted = ThemeSelector.MUTED.style + ' ' + background
+        muted = ThemeSelector.MUTED.style + ThemeStyle.MODIFIER_SEPARATOR + background
 
         def put(x, y, text, style=muted):
-            for char in str(text).replace('\n', ' ').replace('\r', ' '):
+            for char in str(text).replace(self.NEWLINE, self.SPACE).replace(self.CARRIAGE_RETURN, self.SPACE):
                 size = get_cwidth(char)
                 if size < 1:
                     continue
@@ -228,20 +253,20 @@ class GraphCanvas(UIControl):
 
         def horizontal(x1, x2, y):
             for x in range(max(min(x1, x2), ox), min(max(x1, x2), ox + width - 1) + 1):
-                put(x, y, '─')
+                put(x, y, self.HORIZONTAL)
 
         def vertical(x, y1, y2):
             for y in range(max(min(y1, y2), oy), min(max(y1, y2), oy + height - 1) + 1):
-                put(x, y, '│')
+                put(x, y, self.VERTICAL)
 
         def clipped(text, limit):
             result, used = '', 0
-            for char in str(text).replace('\n', ' '):
+            for char in str(text).replace(self.NEWLINE, self.SPACE):
                 size = get_cwidth(char)
                 if size < 1:
                     continue
                 if used + size > limit:
-                    return result + '…'
+                    return result + self.ELLIPSIS
                 result += char
                 used += size
             return result
@@ -255,29 +280,29 @@ class GraphCanvas(UIControl):
             a, b = positions.get(edge.get(WorkflowEdge.SOURCE)), positions.get(edge.get(WorkflowEdge.TARGET))
             if a is None or b is None:
                 continue
-            start, end, y1, y2 = a.x + self.NODE_WIDTH, b.x - 1, a.y + 2, b.y + 2
+            start, end, y1, y2 = a.x + self.NODE_WIDTH, b.x - 1, a.y + self.EDGE_ROW, b.y + self.EDGE_ROW
             middle = max(start + 1, (start + end) // 2)
             horizontal(start, middle, y1)
             vertical(middle, y1, y2)
             horizontal(middle, end, y2)
-            put(end, y2, '▶')
+            put(end, y2, self.ARROW)
             if edge.get(WorkflowEdge.PORT):
-                put(middle + 1, y2 - 1, clipped(edge[WorkflowEdge.PORT], 14))
+                put(middle + 1, y2 - 1, clipped(edge[WorkflowEdge.PORT], self.PORT_CHARS))
         for name, pos in positions.items():
             if pos.y + self.NODE_HEIGHT < oy or pos.y >= oy + height or pos.x + self.NODE_WIDTH < ox or pos.x >= ox + width:
                 continue
-            style = (ThemeSelector.ACCENT.style + ' bold' if name == self.selected() else ThemeSelector.MUTED.style)
+            style = (ThemeSelector.ACCENT.style + ThemeStyle.MODIFIER_SEPARATOR + ThemeStyle.BOLD if name == self.selected() else ThemeSelector.MUTED.style)
             if name in self.errors:
-                style = ThemeSelector.SYSTEM.style + ' bold'
-            style += ' ' + background
-            put(pos.x, pos.y, '┌' + '─' * (self.NODE_WIDTH - 2) + '┐', style)
+                style = ThemeSelector.SYSTEM.style + ThemeStyle.MODIFIER_SEPARATOR + ThemeStyle.BOLD
+            style += ThemeStyle.MODIFIER_SEPARATOR + background
+            put(pos.x, pos.y, self.TOP_LEFT + self.HORIZONTAL * (self.NODE_WIDTH - self.NODE_BORDER_COLUMNS) + self.TOP_RIGHT, style)
             for row in range(1, self.NODE_HEIGHT - 1):
-                put(pos.x, pos.y + row, '│' + ' ' * (self.NODE_WIDTH - 2) + '│', style)
-            put(pos.x, pos.y + self.NODE_HEIGHT - 1, '└' + '─' * (self.NODE_WIDTH - 2) + '┘', style)
-            marker = '▶ ' if name == graph.get(WorkflowDocument.ENTRY) else '  '
-            put(pos.x + 1, pos.y + 1, marker + clipped(self.draft.title(name), self.NODE_WIDTH - 6), style)
+                put(pos.x, pos.y + row, self.VERTICAL + self.SPACE * (self.NODE_WIDTH - self.NODE_BORDER_COLUMNS) + self.VERTICAL, style)
+            put(pos.x, pos.y + self.NODE_HEIGHT - 1, self.BOTTOM_LEFT + self.HORIZONTAL * (self.NODE_WIDTH - self.NODE_BORDER_COLUMNS) + self.BOTTOM_RIGHT, style)
+            marker = self.ENTRY_MARKER if name == graph.get(WorkflowDocument.ENTRY) else self.PLAIN_MARKER
+            put(pos.x + 1, pos.y + 1, marker + clipped(self.draft.title(name), self.NODE_WIDTH - self.TITLE_RESERVED_COLUMNS), style)
             node = graph[WorkflowDocument.NODES][name]
-            kind = node.get(WorkflowNode.TYPE, '?') if isinstance(node, dict) else '?'
-            put(pos.x + 2, pos.y + 2, clipped(kind, self.NODE_WIDTH - 5), muted)
-            put(pos.x + 2, pos.y + 3, clipped(name, self.NODE_WIDTH - 5), muted)
+            kind = node.get(WorkflowNode.TYPE, self.UNKNOWN_KIND) if isinstance(node, dict) else self.UNKNOWN_KIND
+            put(pos.x + self.CONTENT_COLUMN, pos.y + self.TYPE_ROW, clipped(kind, self.NODE_WIDTH - self.CONTENT_RESERVED_COLUMNS), muted)
+            put(pos.x + self.CONTENT_COLUMN, pos.y + self.ID_ROW, clipped(name, self.NODE_WIDTH - self.CONTENT_RESERVED_COLUMNS), muted)
         return [[part for part in row if part[1]] for row in cells]

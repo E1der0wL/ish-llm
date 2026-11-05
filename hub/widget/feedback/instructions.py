@@ -19,6 +19,7 @@ class PendingInstruction:
 
 
 class PreparingInstructions:
+    DRAFT_PREFIX = 'instruction-draft:'
     def __init__(self, view):
         self.view = view
         self.pending = {}
@@ -34,7 +35,7 @@ class PreparingInstructions:
                 elif message.role == MessageRole.ASSISTANT and message.run_id == run_id:
                     parent = preceding
                     break
-        token = 'instruction-draft:' + uuid4().hex
+        token = PreparingInstructions.DRAFT_PREFIX + uuid4().hex
         self.pending[token] = PendingInstruction(
             key, parent, InstructionDisplay(token, text, ChatMessage.PREPARING))
         self.view.notice = self.view.t(MessageKey.INSTRUCTION_PREPARING)

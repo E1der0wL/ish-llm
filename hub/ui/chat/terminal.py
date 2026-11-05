@@ -4,20 +4,29 @@ import json
 from prompt_toolkit.layout import HSplit, VSplit
 from hub.locales.keys import MessageKey
 from hub.widget.controls import Button, RadioList, TextArea
+from hub.backend.terminal_values import TerminalCatalog, TerminalStep, TerminalKind, TerminalOffsets, TerminalPage, TerminalOperation
+from hub.ui.input.json_document import JsonDocument
 
 
 class TerminalReview:
+    PROMPT_SEPARATOR = ': '
+    PROCESS_LABEL = '{identifier} · {status} · {source}'
+    STEP_LABEL = '{name} · {status} · {identifier}'
+    RUN_LABEL = 'Run {identifier}'
+    PATH_SEPARATOR = ' / '
+    PARAGRAPH = '\n\n'
+    NEWLINE = '\n'
     def __init__(self, controller):
         self.controller, self.view = controller, controller.view
         self.scope = (self.view.project_id, self.view.sessions[self.view.selected].id)
         self.target, self.last_page, self.popup = None, None, None
-        self.offsets = {'text': 0, 'stdout': 0, 'stderr': 0}
+        self.offsets = TerminalOffsets()
         self.evidence = []
         self.limit = TextArea(text='', multiline=False,
-                              prompt=self.view.t(MessageKey.TERMINAL_PAGE_SIZE) + ': ')
+                              prompt=self.view.t(MessageKey.TERMINAL_PAGE_SIZE) + self.PROMPT_SEPARATOR)
         self.body = TextArea(text='', multiline=True, read_only=True)
         self.question = TextArea(text='', multiline=True,
-                                 prompt=self.view.t(MessageKey.TERMINAL_QUESTION) + ': ')
+                                 prompt=self.view.t(MessageKey.TERMINAL_QUESTION) + self.PROMPT_SEPARATOR)
 
     def current(self):
         return (self.view.visible and self.view._dialog is self.popup
@@ -36,16 +45,17 @@ class TerminalReview:
         def ready(value):
             if value is None or not self.current():
                 return
-            if value['process_error'] is not None:
-                self.view.notice = value['process_error']
-            choices = [(('process', identifier), f"{identifier} · {item['record']['status']} · {item['source']}")
-                       for identifier, item in value['processes'].items()]
-            choices += [(('run', identifier), f'Run {identifier}') for identifier in value['runs']]
+            value = TerminalCatalog.from_dict(value)
+            if value.process_error is not None:
+                self.view.notice = value.process_error
+            choices = [((TerminalKind.PROCESS, identifier), self.PROCESS_LABEL.format(identifier=identifier, status=item.record.status, source=item.source))
+                       for identifier, item in value.processes.items()]
+            choices += [((TerminalKind.RUN, identifier), self.RUN_LABEL.format(identifier=identifier)) for identifier in value.runs]
             if not choices:
                 self.view.notice = self.view.t(MessageKey.TERMINAL_EMPTY)
                 return
             self._choose(choices, self._selected)
-        self.controller._call('terminal_catalog', self.scope[1], completed=ready)
+        self.controller._call(TerminalOperation.CATALOG, self.scope[1], completed=ready)
 
     def _choose(self, choices, selected):
         selection = RadioList(choices)
@@ -59,20 +69,20 @@ class TerminalReview:
                               selection, on_cancel=restore)
 
     def _selected(self, target):
-        if target[0] == 'run':
+        if target[0] == TerminalKind.RUN:
             def ready(values):
                 if values is None or not self.current(): return
                 if not values:
                     self.view.notice = self.view.t(MessageKey.TERMINAL_EMPTY)
                     return
-                self._choose([(('step', target[1], value['id']),
-                               f"{value['name']} · {value['status']} · {value['id']}")
-                              for value in values], self._selected)
-            self.controller._call('terminal_steps', self.scope[1], target[1], completed=ready)
+                rows = [TerminalStep.from_dict(value) for value in values]
+                self._choose([((TerminalKind.STEP, target[1], row.id),
+                               self.STEP_LABEL.format(name=row.name, status=row.status, identifier=row.id)) for row in rows], self._selected)
+            self.controller._call(TerminalOperation.STEPS, self.scope[1], target[1], completed=ready)
             return
         self.target, self.last_page = list(target), None
-        self.offsets = {'text': 0, 'stdout': 0, 'stderr': 0}
-        self.body.text = ' / '.join(target)
+        self.offsets = TerminalOffsets()
+        self.body.text = self.PATH_SEPARATOR.join(target)
 
     def read(self):
         if not self.current():
@@ -84,22 +94,18 @@ class TerminalReview:
         except ValueError:
             self.view.notice = self.view.t(MessageKey.TERMINAL_SELECT_LIMIT)
             return
-        target, offsets = list(self.target), dict(self.offsets)
+        target, offsets = list(self.target), self.offsets
         def ready(value):
             if value is None or not self.current() or target != self.target or offsets != self.offsets:
                 return
-            self.last_page = value
-            self.body.text = json.dumps(value, ensure_ascii=False, indent=2)
-        self.controller._call('terminal_page', self.scope[1], target, offsets, limit, completed=ready)
+            self.last_page = TerminalPage.from_dict(value)
+            self.body.text = JsonDocument.render(value, allow_non_finite=JsonDocument.ALLOW_NON_FINITE_PREVIEW)
+        self.controller._call(TerminalOperation.PAGE, self.scope[1], target, offsets.to_dict(), limit, completed=ready)
 
     def next(self):
         if self.last_page is None:
             return self.read()
-        page = self.last_page['page']
-        if self.target[0] == 'process':
-            self.offsets.update(stdout=page['next_stdout_offset'], stderr=page['next_stderr_offset'])
-        else:
-            self.offsets['text'] = page['next_offset']
+        self.offsets = self.offsets.after(self.last_page.page)
         self.read()
 
     def capture(self):
@@ -113,7 +119,7 @@ class TerminalReview:
         if not self.evidence or not self.question.text.strip():
             self.view.notice = self.view.t(MessageKey.TERMINAL_SELECT_EVIDENCE)
             return
-        text = (self.question.text + '\n\n' + self.view.t(MessageKey.TERMINAL_REVIEW_BOUNDARY)
-                + '\n' + json.dumps(self.evidence, ensure_ascii=False, indent=2))
+        text = (self.question.text + self.PARAGRAPH + self.view.t(MessageKey.TERMINAL_REVIEW_BOUNDARY)
+                + self.NEWLINE + JsonDocument.render([page.to_dict() for page in self.evidence], allow_non_finite=JsonDocument.ALLOW_NON_FINITE_PREVIEW))
         self.view.close_dialog()
         self.controller.submit(self.scope[1], text)

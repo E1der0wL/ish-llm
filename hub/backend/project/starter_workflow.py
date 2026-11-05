@@ -13,6 +13,7 @@ from ..execution.environment import underlying_engine
 
 
 async def initialize(backend, project, worker_id: str) -> None:
+    from ..bootstrap import BackendComposition
     if (WorkflowComponent.name not in project.data.components
             or HubEngineIdentity.GRAPH not in backend.engines.names()
             or worker_id == HubDefaults.PLANNER_AGENT_ID):
@@ -20,7 +21,7 @@ async def initialize(backend, project, worker_id: str) -> None:
     graph = underlying_engine(backend.engines.get(HubEngineIdentity.GRAPH))
     if not isinstance(graph, GraphEngine):
         return
-    handler = graph.workflow_handlers().get("agent")
+    handler = graph.workflow_handlers().get(BackendComposition.AGENT_HANDLER)
     if not isinstance(handler, AgentNode):
         return
     worker = await project.agents.aload(worker_id)

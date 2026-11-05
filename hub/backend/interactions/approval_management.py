@@ -10,6 +10,7 @@ from llm.services.query import Query
 
 from .remembered import ToolApprovalConditions
 from .command_range import CommandRangeApproval, CommandChain
+from .approval_operations import ApprovalQuery, ApprovalRuleTarget, ApprovalEdit, ApprovalTarget, ApprovalAssessment, ApprovalApplication
 
 
 class ApprovalAction(StrEnum):
@@ -19,6 +20,21 @@ class ApprovalAction(StrEnum):
     CANCEL = 'cancel'
     RECLASSIFY = 'reclassify'
     APPLY = 'apply'
+
+    def read(self, value):
+        match self:
+            case ApprovalAction.LIST:
+                return ApprovalQuery.from_dict(value)
+            case ApprovalAction.REVOKE:
+                return ApprovalRuleTarget.from_dict(value)
+            case ApprovalAction.UPDATE:
+                return ApprovalEdit.from_dict(value)
+            case ApprovalAction.RECLASSIFY:
+                return ApprovalAssessment.from_dict(value)
+            case ApprovalAction.APPLY:
+                return ApprovalApplication.from_dict(value)
+            case _:
+                return ApprovalTarget.from_dict(value)
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +46,11 @@ class ApprovalEntry:
 
     @property
     def request(self):
-        return InteractionRequest.from_dict(self.view[InteractionView.request.__name__])
+        return self.observation.request
+
+    @property
+    def observation(self):
+        return InteractionView.from_dict(self.view)
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +63,7 @@ class ApprovalCatalog:
 
 
 class ApprovalManagement:
+    READ_ONLY = 'This condition is not editable by the Hub approval editor'
     def __init__(self, runtime):
         self.runtime = runtime
 
@@ -67,48 +88,48 @@ class ApprovalManagement:
         return ApprovalCatalog(rules, tuple(entries), policy.enabled, policy.risk_scheme, resumed)
 
     async def perform(self, project_id, action, payload=None):
-        payload = payload or {}
         action = ApprovalAction(action)
+        payload = action.read({} if payload is None else payload)
         project = await self.runtime.backend.projects.aload(project_id)
         resumed = False
         if action == ApprovalAction.UPDATE:
             # The editor changes arguments/threshold only. Keep the captured
             # Tool contract and environment; scopes and proof are backend-owned.
-            rule = next(ApprovalRule.from_dict(item) for item in await project.approvals.alist()
-                        if item[ApprovalRule.id.__name__] == payload['id'])
+            rule = next(rule for item in await project.approvals.alist()
+                        if (rule := ApprovalRule.from_dict(item)).id == payload.id)
             condition = rule.remembered.condition
             original = ToolApprovalConditions.exact_action(condition)
             ranged = CommandRangeApproval.config(condition)
             if original is not None:
-                original = ToolApprovalConditions.replace_arguments(original, payload['arguments'])
+                original = ToolApprovalConditions.replace_arguments(original, payload.arguments)
                 updated = ToolApprovalConditions.exact_condition(original)
             elif ranged is not None:
-                updated = CommandRangeApproval.condition(ranged['action'], CommandChain.prefixes(payload['prefixes']))
+                updated = CommandRangeApproval.condition(ranged.action, CommandChain.prefixes(payload.prefixes))
             else:
-                raise ValueError('This condition is not editable by the Hub approval editor')
-            changes = {'condition': updated.to_dict()}
+                raise ValueError(ApprovalManagement.READ_ONLY)
+            from llm.core.approval import RememberedApproval
+            changes = {RememberedApproval.condition.__name__: updated.to_dict()}
             if rule.basis != ApprovalRule.EXPLICIT_UNKNOWN:
-                changes['max_risk'] = payload['max_risk']
+                changes[ApprovalRule.max_risk.__name__] = payload.max_risk
             await project.approvals.aupdate(rule.id, changes,
-                                           expected_revision=payload['revision'])
+                                           expected_revision=payload.revision)
         elif action == ApprovalAction.REVOKE:
-            await project.approvals.arevoke(payload['id'], expected_revision=payload['revision'])
+            await project.approvals.arevoke(payload.id, expected_revision=payload.revision)
         elif action in (ApprovalAction.CANCEL, ApprovalAction.RECLASSIFY, ApprovalAction.APPLY):
-            session = await project.sessions.aload(payload['session_id'])
-            run = await session.run.aload(payload['run_id'])
+            session = await project.sessions.aload(payload.session_id)
+            run = await session.run.aload(payload.run_id)
             async with self.runtime.approval_flow.lock(session.id, run.id):
                 if action == ApprovalAction.CANCEL:
-                    await run.acancel_interaction(InteractionRequest.from_dict(payload['request']))
+                    await run.acancel_interaction(payload.request)
                 elif action == ApprovalAction.RECLASSIFY:
-                    request = InteractionRequest.from_dict(payload['request'])
+                    request = payload.request
                     # Explicit user assessment; never claim that the model
                     # supplied a score or that reclassification itself approves.
-                    await run.areclassify(request, risk=payload['risk'],
-                                          risk_scheme=payload['risk_scheme'])
+                    await run.areclassify(request, risk=payload.risk, risk_scheme=payload.risk_scheme)
                 else:
                     await run.apply_approval()
                     resumed = await self.runtime.approval_flow.resume_approved(session, run, preview=True)
             self.runtime.snapshot_reader.invalidate(session.id)
             self.runtime.urgent_observation = True
         self.runtime.dirty.set()
-        return await self._catalog(project, payload.get('include_interactions', False), resumed)
+        return await self._catalog(project, payload.include_interactions, resumed)

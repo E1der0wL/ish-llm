@@ -156,7 +156,9 @@ class MCPSelectionUITests(unittest.IsolatedAsyncioTestCase):
                 record = {'server': 'notes', 'definition_version': 'server-v1', 'tools_version': 'catalog-v1',
                     'agents': [{'name': 'a', 'label': 'First', 'revision': 'a-v1', 'bindings': {}},
                                {'name': 'b', 'label': 'Second', 'revision': 'b-v1', 'bindings': {'alias': 'read_notes'}}],
-                    'tools': [{'name': 'read_notes', 'description': 'Read notes'}]}
+                    'tools': [{'name': 'read_notes', 'description': 'Read notes',
+                               'parameters': {'type': 'object', 'properties': {}},
+                               'contract': MCPConnector.REMOTE_CONTRACT.to_dict(), 'classification': None}]}
                 popup = MCPToolSelection(manager, record)
                 view.dialogs.show(popup, popup.agent.button)
                 popup.tools.current_values = ['read_notes']

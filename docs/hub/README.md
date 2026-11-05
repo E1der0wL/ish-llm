@@ -58,7 +58,9 @@ UI effective values를 새 설정 기본값으로 저장하지 않는다.
 Hub가 definition·metadata·Skill Markdown에 관리 날짜를 기록하지 않는다.
 연결 경로와 CAS 보존은 [관리 창의 시각 계약](component-managers.md#생성수정-시각)에 정리한다.
 [기존 미검토 경로 점검](pending-contract-review.md)은 확인한 책임 경계와
-남아 있는 요청/응답 선언·설정 해석 정리 항목을 구분한다.
+당시 남아 있던 요청/응답 선언·설정 해석 항목을 구분한다.
+[미검토 경로 정리 결과](ownership-review-20261106.md)는 이 항목들의 수정,
+파일별 감사 근거와 후속 검증을 기록한다.
 
 승인 응답과 실행은 별개다. Hub는 공개 resume_plan/resume/restart와 revision을 사용하며,
 불확실한 효과나 checkpoint 부재를 이유로 새 submit을 자동 호출하지 않는다. 별도 Run/Step 저장소,

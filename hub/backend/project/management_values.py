@@ -161,13 +161,14 @@ class AgentLocation:
     PROJECT = "owner_project_id"
     AGENT = "agent_id"
     PLUGIN = "plugin_name"
+    SEPARATOR = ':'
 
     @classmethod
     def entry(cls, entry, project, *, plugin=None):
         item = deepcopy(entry)
-        item[cls.PROJECT], item[cls.AGENT] = project.id, entry["name"]
+        item[cls.PROJECT], item[cls.AGENT] = project.id, ManagementEntry(entry).name
         if plugin is not None:
-            item["name"] = project.id + ":" + entry["name"]
+            item[ManagementEntry.NAME] = project.id + cls.SEPARATOR + ManagementEntry(entry).name
             item[cls.PLUGIN] = plugin
         return item
 

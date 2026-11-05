@@ -17,6 +17,8 @@ from .section import Heading
 
 @dataclass(frozen=True, slots=True)
 class NoticeText:
+    PARAGRAPH = '\n\n'
+    SPACE = ' '
     title: str
     description: str = ""
     hint: str = ""
@@ -25,7 +27,7 @@ class NoticeText:
         return Caption(self.title, details=(self.description, self.hint)).render()
 
     def paragraphs(self) -> str:
-        return "\n\n".join(value for value in (self.title, self.description, self.hint) if value)
+        return NoticeText.PARAGRAPH.join(value for value in (self.title, self.description, self.hint) if value)
 
     def sidebar(self, key=""):
         from .list_presentation import ListPresentation
@@ -34,7 +36,7 @@ class NoticeText:
 
     @classmethod
     def error(cls, message, language):
-        return cls(language.icons.alerts[NotificationKind.ERROR.value] + " "
+        return cls(language.icons.alerts[NotificationKind.ERROR.value] + NoticeText.SPACE
                    + language(MessageKey.ERROR, error=message))
 
 

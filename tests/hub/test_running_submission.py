@@ -16,6 +16,7 @@ from hub.ui.live import LiveController
 from hub.widget.dialog import PopupSize
 from tests.hub.support import SizedOutput
 from llm.core.steering import SteeringRoute
+from llm.core.configuration import UNSET
 
 
 class RunningSubmissionTests(IsolatedAsyncioTestCase):
@@ -140,7 +141,7 @@ class RunningSubmissionTests(IsolatedAsyncioTestCase):
         self.assertEqual(run_id, 'r-a')
         self.assertEqual(routes[0][0], route.key)
         self.assertEqual(await runtime.reserve_instruction('s', 'r-a', 'Change', [route.key]), 'instruction')
-        runs.reserve_instruction.assert_awaited_once_with('r-a', 'Change', targets=[route])
+        runs.reserve_instruction.assert_awaited_once_with('r-a', 'Change', targets=[route], request_key=UNSET)
         handle.ainstruction_routes.return_value = []
         with self.assertRaises(ValueError):
             await runtime.reserve_instruction('s', 'r-a', 'Change', [route.key])

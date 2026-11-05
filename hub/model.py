@@ -3,7 +3,8 @@
 from llm.providers.diagnostic_values import ProviderAttempt
 
 from llm.core.models import SessionStatus, MessageStatus, RunStatus
-from llm.core.interactions import InteractionRequest, InteractionRequestObservation
+from llm.core.interactions import InteractionRequest, InteractionRequestObservation, InteractionStatus
+from llm.core.schema import SchemaKeyword, SchemaType
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import ClassVar
@@ -376,7 +377,7 @@ class QuestionPresentation:
 
     @classmethod
     def nonblocking_request(cls, run_id, request, *, response=None, delivery=None,
-                            status='pending', run_status=None):
+                            status=InteractionStatus.PENDING, run_status=None):
         return cls(run_id, request, True,
                    response.to_dict() if response is not None else None,
                    delivery, status, run_status).to_record()
@@ -404,6 +405,28 @@ class QuestionObservation:
     def to_record(self):
         return self._value
 
+    def with_run_status(self, status):
+        return {**self._value, QuestionPresentation.run_status.__name__: str(status)}
+
+    def with_response(self, response):
+        from llm.core.interactions import InteractionResponse, InteractionStatus
+        parsed = InteractionResponse.from_dict(response)
+        return {**self._value, QuestionPresentation.response.__name__: parsed.to_dict(),
+                QuestionPresentation.status.__name__: InteractionStatus.ANSWERED.value}
+
+    def with_delivery(self, delivery):
+        from copy import deepcopy
+        return {**self._value, QuestionPresentation.delivery.__name__: deepcopy(delivery)}
+
+    def retaining_answer(self, previous):
+        """A stale UI observation cannot erase a successfully saved answer/receipt."""
+        from copy import deepcopy
+        result = deepcopy(self._value)
+        for name in (QuestionPresentation.response.__name__, QuestionPresentation.delivery.__name__):
+            if previous and previous.get(name) and not result.get(name):
+                result[name] = deepcopy(previous[name])
+        return result
+
     @property
     def run_id(self):
         return self._value[QuestionPresentation.run_id.__name__]
@@ -422,7 +445,7 @@ class QuestionObservation:
 
     @property
     def status(self):
-        return self._value.get(QuestionPresentation.status.__name__, 'pending')
+        return self._value.get(QuestionPresentation.status.__name__, InteractionStatus.PENDING)
 
     @property
     def source_finished(self):
@@ -434,7 +457,7 @@ class QuestionObservation:
     @property
     def text_answer(self):
         return (self.request.kind == InteractionRequest.KIND_INPUT and self.request.options.count == 1
-                and (self.request.input_schema or {}).get('type') == 'string')
+                and (self.request.input_schema or {}).get(SchemaKeyword.TYPE) == SchemaType.STRING)
 
     @property
     def request(self):

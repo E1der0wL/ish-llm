@@ -12,6 +12,7 @@ from ..execution.stopping import stopped, StopIntent
 
 class ApprovalFlow:
     RECENT_ADMISSIONS = 128
+    REVISION_OPTION = 'expected_revision'
 
     def __init__(self, runtime):
         self.runtime = runtime
@@ -71,7 +72,7 @@ class ApprovalFlow:
             plan = await session.run.resume_plan(current.id, agent_id=current.agent_id)
             if not plan.can_resume or plan.retry_nodes:
                 return False
-            options['expected_revision'] = plan.revision
+            options[self.REVISION_OPTION] = plan.revision
         request = await session.run.resume(current.id, agent_id=current.agent_id,
             partial_output=self.runtime.PARTIAL_OUTPUT, **options)
         self._admissions[(session.id, run.id)] = request

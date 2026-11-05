@@ -5,21 +5,17 @@ from dataclasses import dataclass
 from enum import StrEnum
 from uuid import uuid5, NAMESPACE_URL
 
-from llm.core.approval import ApprovalCondition
+from llm.core.approval import ApprovalCondition, RememberRequest, RememberScope
+from llm.core.schema import SchemaKeyword as K, SchemaType as T
 from llm.core.interactions import InteractionOption, InteractionRequest
 from llm.core.policies import ApprovalRule
 from llm.components.tools.builtin.process_values import ProcessInvocation
 from llm.services.runtime.approval import SchemaApprovalEvaluator
-from llm.services.runtime.tool_approval_records import ToolApprovalAction
 from llm.services.runtime.interactions import InteractionRepository
 
 from ...locales.keys import MessageKey
 from .command_range import CommandRangeApproval
-
-
-class RememberScope(StrEnum):
-    SESSION = 'session'
-    PROJECT = 'project'
+from .approval_matching import MatchedToolAction
 
 
 class ApprovalMatch(StrEnum):
@@ -50,10 +46,12 @@ class ToolApprovalConditions:
 
     IMPLEMENTATION = 'hub-exact-tool-action'
     REVISION = '1'
-    ACTION_FIELDS = tuple(field.__name__ for field in (
-        ToolApprovalAction.tool, ToolApprovalAction.arguments,
-        ToolApprovalAction.contract, ToolApprovalAction.policy,
-    ))
+    ACTION_FIELDS = MatchedToolAction.names()
+    UNAVAILABLE = 'This interaction cannot create a remembered Tool approval rule'
+    INVALID_ARGUMENTS = 'Tool arguments must be a JSON object'
+    ENVIRONMENT_CHANGED = 'The working directory and environment cannot be changed in this rule'
+    REQUEST_KEY = 'hub-approval/{id}/{revision}'
+    RULE_KEY = '{key}/{scope}/{match}'
 
     @classmethod
     def evaluators(cls):
@@ -70,62 +68,57 @@ class ToolApprovalConditions:
 
     @classmethod
     def exact_condition(cls, action):
-        properties = {key: {'const': deepcopy(action[key])} for key in cls.ACTION_FIELDS}
+        properties = {key: {K.CONST: value} for key, value in MatchedToolAction.capture(action).to_dict().items()}
         return ApprovalCondition(cls.IMPLEMENTATION, cls.REVISION, {
-            'type': 'object', 'required': [InteractionRequest.action.__name__],
-            'properties': {InteractionRequest.action.__name__: {
-                'type': 'object', 'required': list(properties), 'properties': properties,
+            K.TYPE: T.OBJECT, K.REQUIRED: [InteractionRequest.action.__name__],
+            K.PROPERTIES: {InteractionRequest.action.__name__: {
+                K.TYPE: T.OBJECT, K.REQUIRED: list(properties), K.PROPERTIES: properties,
             }},
         })
 
     @classmethod
     def remember(cls, request, selection):
         if not cls.available(request):
-            raise ValueError('This interaction cannot create a remembered Tool approval rule')
+            raise ValueError(cls.UNAVAILABLE)
         scope = RememberScope(selection.scope)
         match = ApprovalMatch(selection.match)
-        action = {key: deepcopy(request.action[key]) for key in cls.ACTION_FIELDS}
+        action = MatchedToolAction.capture(request.action)
         condition = (CommandRangeApproval.condition(action, selection.prefixes)
                      if match == ApprovalMatch.COMMAND_RANGE else cls.exact_condition(action))
-        rule = {
-            'id': uuid5(NAMESPACE_URL, f'{cls.request_key(request)}/{scope}/{match}').hex,
-            'category': request.category,
-            'scope': scope.value,
-            'condition': condition.to_dict(),
-        }
-        if request.risk is None:
-            rule['basis'] = ApprovalRule.EXPLICIT_UNKNOWN
-        else:
-            rule['max_risk'] = request.risk
-        return rule
+        rule = ApprovalRule(uuid5(NAMESPACE_URL, cls.RULE_KEY.format(
+            key=cls.request_key(request), scope=scope, match=match)).hex, request.category,
+            max_risk=request.risk, basis=ApprovalRule.EXPLICIT_UNKNOWN if request.risk is None else None)
+        return {**rule.to_dict(), RememberRequest.scope.__name__: scope.value,
+                RememberRequest.condition.__name__: condition.to_dict()}
 
     @staticmethod
     def request_key(request):
-        return f'hub-approval/{request.id}/{request.revision}'
+        return ToolApprovalConditions.REQUEST_KEY.format(id=request.id, revision=request.revision)
 
     @classmethod
     def exact_action(cls, condition):
         """Only the exact condition generated here has an editable Hub form."""
         if (condition.implementation, condition.revision) != (cls.IMPLEMENTATION, cls.REVISION):
             return None
-        properties = condition.config.get('properties', {}).get(
-            InteractionRequest.action.__name__, {}).get('properties', {})
-        if not all(isinstance(properties.get(key), dict) and set(properties[key]) == {'const'}
+        properties = condition.config.get(K.PROPERTIES, {}).get(
+            InteractionRequest.action.__name__, {}).get(K.PROPERTIES, {})
+        if not all(isinstance(properties.get(key), dict) and set(properties[key]) == {K.CONST}
                    for key in cls.ACTION_FIELDS):
             return None
-        action = {key: deepcopy(properties[key]['const']) for key in cls.ACTION_FIELDS}
+        action = MatchedToolAction.from_dict({key: deepcopy(properties[key][K.CONST]) for key in cls.ACTION_FIELDS})
         return action if cls.exact_condition(action) == condition else None
 
     @staticmethod
     def replace_arguments(action, arguments):
         """The management editor retains the approval's execution environment."""
         if not isinstance(arguments, dict):
-            raise TypeError('Tool arguments must be a JSON object')
-        original = action['arguments']
+            raise TypeError(ToolApprovalConditions.INVALID_ARGUMENTS)
+        action = MatchedToolAction.capture(action)
+        original = action.arguments
         for key in (ProcessInvocation.cwd.__name__, ProcessInvocation.env.__name__):
             if (key in original) != (key in arguments) or original.get(key) != arguments.get(key):
-                raise ValueError('The working directory and environment cannot be changed in this rule')
-        return {**action, 'arguments': deepcopy(arguments)}
+                raise ValueError(ToolApprovalConditions.ENVIRONMENT_CHANGED)
+        return action.with_arguments(arguments)
 
 
 def approval_choices(request, t):

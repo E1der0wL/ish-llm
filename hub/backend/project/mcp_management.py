@@ -7,11 +7,13 @@ import re
 from llm.core.agent_views import AgentSnapshot, AgentDescription
 from llm.core.agents import AgentDefinition
 from llm.core.editable_snapshot import EditableSnapshot
-from llm.components.mcp.records import MCPCatalog
+from llm.components.mcp.records import MCPCatalog, MCPToolSnapshot
+from llm.core.schema import SchemaKeyword
 from llm.services.infrastructure.storage import revision_token
 
 from .record_management import RecordManagement
 from .management_values import MCPOperation
+from .mcp_views import MCPAgentChoice, MCPDiscovery, MCPSelection, MCPApplied, MCPToolPage
 from .participants import AgentProfile
 from ..execution.engine_selection import HubEngineIdentity
 from ..progress import OperationProgress
@@ -19,12 +21,26 @@ from ...locales.keys import MessageKey
 
 
 class MCPManagement(RecordManagement):
+    ALIAS_PATTERN = r"[^A-Za-z0-9_-]"
+    ALIAS_REPLACEMENT = "_"
+    ALIAS_STEM = "mcp_{server}_{remote}"
+    ALIAS_IDENTITY = "{server}/{remote}"
+    ALIAS_MAX_STEM = 48
+    ALIAS_DIGEST = 12
+    ALIAS_JOIN = "{stem}_{suffix}"
+    ALIAS_CONFLICT = "MCP alias conflicts with an existing Tool; edit Agent resources explicitly"
+    DEFINITION_CHANGED = "MCP definition changed; reload before connecting"
+    CONNECTION_CHANGED = "MCP definition changed during connection; select it again"
+    DISCOVERY_CHANGED = "MCP discovery changed; connect and select again"
+    TOOL_MISSING = "Selected MCP Tool is no longer available"
+    AGENT_CHANGED = "Agent changed; reload its Tool selection before applying"
+
     def __init__(self, data, name, root, project):
         super().__init__(data, name, root)
         self.project = project
 
-    @staticmethod
-    def _aliases(server, selected, definition):
+    @classmethod
+    def _aliases(cls, server, selected, definition):
         resources = definition.get(AgentDefinition.Field.RESOURCES, {})
         servers = resources.get(AgentDefinition.ResourceField.MCP, {})
         previous = servers.get(server, {})
@@ -34,11 +50,12 @@ class MCPManagement(RecordManagement):
         for remote in selected:
             if remote in aliases.values():
                 continue
-            stem = re.sub(r"[^A-Za-z0-9_-]", "_", f"mcp_{server}_{remote}")[:48]
-            suffix = hashlib.sha256(f"{server}/{remote}".encode()).hexdigest()[:12]
-            alias = f"{stem}_{suffix}"
+            stem = re.sub(cls.ALIAS_PATTERN, cls.ALIAS_REPLACEMENT,
+                          cls.ALIAS_STEM.format(server=server, remote=remote))[:cls.ALIAS_MAX_STEM]
+            suffix = hashlib.sha256(cls.ALIAS_IDENTITY.format(server=server, remote=remote).encode()).hexdigest()[:cls.ALIAS_DIGEST]
+            alias = cls.ALIAS_JOIN.format(stem=stem, suffix=suffix)
             if alias in used or alias in aliases:
-                raise ValueError("MCP alias conflicts with an existing Tool; edit Agent resources explicitly")
+                raise ValueError(cls.ALIAS_CONFLICT)
             aliases[alias] = remote
         return aliases
 
@@ -47,11 +64,11 @@ class MCPManagement(RecordManagement):
         # starting a local server or contacting a remote endpoint.
         snapshot = EditableSnapshot.read(await self.data.asnapshot(identifier))
         if expected_version is None or snapshot.version != expected_version:
-            raise ValueError("MCP definition changed; reload before connecting")
+            raise ValueError(self.DEFINITION_CHANGED)
         OperationProgress.report(MessageKey.MCP_CONNECTING)
         catalog = MCPCatalog.from_dict(await self.data.aprepare(identifier))
         if catalog.version != snapshot.version:
-            raise ValueError("MCP definition changed during connection; select it again")
+            raise ValueError(self.CONNECTION_CHANGED)
         OperationProgress.report(MessageKey.MCP_SELECTING)
         agents, descriptions = [], {}
         for name in await self.project.agents.alist():
@@ -65,30 +82,30 @@ class MCPManagement(RecordManagement):
             schema = descriptions[engine]
             # Engine-owned schemas decide eligibility; Graph orchestrators do not
             # acquire model Tools through a guessed engine-name exception.
-            properties = schema["properties"]
-            resources = properties.get(AgentDefinition.Field.RESOURCES, {}).get("properties", {})
+            properties = schema[SchemaKeyword.PROPERTIES]
+            resources = properties.get(AgentDefinition.Field.RESOURCES, {}).get(SchemaKeyword.PROPERTIES, {})
             if AgentDefinition.ResourceField.MCP in resources:
                 bindings = agent.definition.get(AgentDefinition.Field.RESOURCES, {}).get(
                     AgentDefinition.ResourceField.MCP, {}).get(identifier, {})
-                agents.append({"name": name, "label": AgentProfile.title(name, agent.definition),
-                               "bindings": bindings, "revision": agent.revision})
-        return {"server": identifier, "tools": catalog.tool_records(), "agents": agents}
+                agents.append(MCPAgentChoice(name, AgentProfile.title(name, agent.definition),
+                                             bindings, agent.revision))
+        tools_version = revision_token(MCPToolPage(catalog.tools).to_dict())
+        return MCPDiscovery(identifier, catalog.tools, tuple(agents), snapshot.version, tools_version).to_dict()
 
     async def select_tools(self, value):
-        server, agent_id, names = value["server"], value["agent"], value["tools"]
-        if not isinstance(names, list) or any(not isinstance(name, str) for name in names) or len(set(names)) != len(names):
-            raise ValueError("Select distinct MCP Tool names")
+        selection = MCPSelection.from_dict(value)
+        server, agent_id, names = selection.server, selection.agent, selection.tools
         # alist_tools checks definition + connector revisions without reconnecting.
-        tools = await self.data.alist_tools(server)
+        tools = tuple(MCPToolSnapshot.from_dict(tool) for tool in await self.data.alist_tools(server))
         definition = EditableSnapshot.read(await self.data.asnapshot(server))
         # Compare the public discovery view, never inspect backend catalog paths.
-        if definition.version != value["definition_version"] or revision_token({"tools": tools}) != value["tools_version"]:
-            raise ValueError("MCP discovery changed; connect and select again")
-        if set(names) - {tool["name"] for tool in tools}:
-            raise ValueError("Selected MCP Tool is no longer available")
+        if definition.version != selection.definition_version or revision_token(MCPToolPage(tools).to_dict()) != selection.tools_version:
+            raise ValueError(self.DISCOVERY_CHANGED)
+        if set(names) - {tool.name for tool in tools}:
+            raise ValueError(self.TOOL_MISSING)
         agent = AgentSnapshot.read(await self.project.agents.asnapshot(agent_id))
-        if agent.revision != value["agent_revision"]:
-            raise ValueError("Agent changed; reload its Tool selection before applying")
+        if agent.revision != selection.agent_revision:
+            raise ValueError(self.AGENT_CHANGED)
         values = deepcopy(agent.definition)
         resources = values.setdefault(AgentDefinition.Field.RESOURCES, {})
         servers = resources.setdefault(AgentDefinition.ResourceField.MCP, {})
@@ -99,15 +116,12 @@ class MCPManagement(RecordManagement):
             servers.pop(server, None)
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_WRITE)
         await self.project.agents.arevise(agent_id, values,
-                                         expected_revision=value["agent_revision"])
-        return {"agent": agent_id, "tools": len(names)}
+                                         expected_revision=selection.agent_revision)
+        return MCPApplied(agent_id, len(names)).to_dict()
 
     async def execute(self, action, argument="", expected_version=None):
         if action == MCPOperation.DISCOVER:
-            result = await self.discover(argument, expected_version)
-            result["definition_version"] = expected_version
-            result["tools_version"] = revision_token({"tools": result["tools"]})
-            return result
+            return await self.discover(argument, expected_version)
         if action == MCPOperation.SELECT:
             return await self.select_tools(argument)
         return await super().execute(action, argument, expected_version)

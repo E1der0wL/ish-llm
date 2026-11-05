@@ -65,6 +65,7 @@ class EnvironmentEngine:
     """Keep request-owned shell context separate from the selected Agent."""
 
     IMPLEMENTATION = "implementation"
+    TOOL_SELECTOR = "tool_selector"
     ABSENT = None
     UNSUPPORTED_CONTEXT = "Engine does not support these request context fields"
 
@@ -255,7 +256,7 @@ class EnvironmentEngine:
         from .tool_exposure import HubToolSelector
         command_scope = (self.builtins.command_waits.scope(bound)
             if isinstance(self.builtins, HubBuiltinTools)
-            and isinstance(getattr(implementation, 'tool_selector', None), HubToolSelector)
+            and isinstance(getattr(implementation, self.TOOL_SELECTOR, self.ABSENT), HubToolSelector)
             and ConversationalCommands.available(bound.tools.names()) else nullcontext())
         if self.recovery is not self.ABSENT:
             from .tool_recovery import recovery_events

@@ -34,6 +34,11 @@ class PopupGeometry:
     MARGIN = 4
     SMALL = (60, 9)
     MEDIUM = (100, 36)
+    FRAME_COLUMNS = 2
+    FRAME_ROWS = 2
+    ACTION_INSET = 4
+    TITLE_INSET = 4
+    CUSTOM_REQUIRES_SIZE = 'Custom popup size requires measured content dimensions'
 
     @classmethod
     def dimensions(cls, size, *, preferred=None):
@@ -42,7 +47,7 @@ class PopupGeometry:
                      max(1, terminal.rows - cls.MARGIN))
         if size == PopupSize.CUSTOM:
             if preferred is None:
-                raise ValueError("Custom popup size requires measured content dimensions")
+                raise ValueError(cls.CUSTOM_REQUIRES_SIZE)
         else:
             preferred = (cls.SMALL if size == PopupSize.SMALL else
                          cls.MEDIUM if size == PopupSize.MEDIUM else available)
@@ -92,10 +97,12 @@ class PopupBody(DynamicContainer):
 
 class PopupSurface(DynamicContainer):
     """Erase the whole allocated popup rectangle before drawing its children."""
+    BACKGROUND_STYLE = 'class:dialog.body'
+    BACKGROUND_CHAR = ' '
 
     def __init__(self, content):
         self.popup = to_container(content)
-        self.background = Window(char=" ", style="class:dialog.body")
+        self.background = Window(char=self.BACKGROUND_CHAR, style=self.BACKGROUND_STYLE)
         super().__init__(lambda: self.popup)
 
     def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
@@ -122,6 +129,9 @@ class PopupSurface(DynamicContainer):
 
 
 class Dialog(PTKDialog):
+    BODY = 'body'
+    DIMENSIONS = ('width', 'height')
+    OWNED_SIZE = 'Dialog dimensions are owned by PopupSize'
     CONTENT_PADDING = 1
     STATUS_PADDING = 1
     navigation = None
@@ -131,6 +141,8 @@ class Dialog(PTKDialog):
     CLOSE_HANDLER = "on_close"
     CANCEL_HANDLER = "on_cancel"
     DISPOSER = "dispose"
+    SUSPEND_HANDLER = "suspend"
+    RESUME_HANDLER = "resume"
     OUTPUT_SURFACE = "output"
     WITH_BACKGROUND = "with_background"
     MODAL = "modal"
@@ -151,6 +163,18 @@ class Dialog(PTKDialog):
         return getattr(dialog, cls.CANCEL_HANDLER, cls.ABSENT_HOOK)
 
     @classmethod
+    def suspend_resources(cls, dialog, app):
+        callback = getattr(dialog, cls.SUSPEND_HANDLER, cls.ABSENT_HOOK)
+        if callback is not cls.ABSENT_HOOK:
+            callback(app)
+
+    @classmethod
+    def resume_resources(cls, dialog, app):
+        callback = getattr(dialog, cls.RESUME_HANDLER, cls.ABSENT_HOOK)
+        if callback is not cls.ABSENT_HOOK:
+            callback(app)
+
+    @classmethod
     def dispose_resources(cls, dialog):
         from .output.text_viewport import TextViewport
 
@@ -168,11 +192,11 @@ class Dialog(PTKDialog):
         self.shortcut_context = shortcut_context
         self.requested_size = PopupSize(size)
         self.allow_small_input = allow_small_input
-        self.popup_body = kwargs.get("body", args[0] if args else None)
+        self.popup_body = kwargs.get(self.BODY, args[0] if args else None)
         self.status_bar = status_bar
         self.status_in_body = status_in_body
-        if "width" in kwargs or "height" in kwargs:
-            raise TypeError("Dialog dimensions are owned by PopupSize")
+        if any(name in kwargs for name in self.DIMENSIONS):
+            raise TypeError(self.OWNED_SIZE)
         kwargs.setdefault(self.WITH_BACKGROUND, self.DEFAULT_BACKGROUND)
         kwargs.setdefault(self.MODAL, self.DEFAULT_MODAL)
         buttons = kwargs.pop(self.BUTTONS, None) or []
@@ -185,7 +209,7 @@ class Dialog(PTKDialog):
         body = Box(content,
                    padding=content_padding, padding_bottom=0)
         if buttons:
-            actions = Box(ActionBar(buttons, lambda: max(1, self._width().preferred - 4),
+            actions = Box(ActionBar(buttons, lambda: max(1, self._width().preferred - PopupGeometry.ACTION_INSET),
                               bind_navigation=shortcut_context != DialogContext.READER,
                               equal_width=True),
                     padding=Dimension(preferred=1, max=1), padding_left=0, padding_right=0,
@@ -205,7 +229,7 @@ class Dialog(PTKDialog):
         if args:
             args = (body, *args[1:])
         else:
-            kwargs["body"] = body
+            kwargs[self.BODY] = body
         super().__init__(*args, **kwargs, width=self._width)
         # PTK's default Shadow intentionally styles old cells without clearing
         # them. Hub popups use an opaque surface and no transparent shadow.
@@ -225,25 +249,26 @@ class Dialog(PTKDialog):
         if self.size != PopupSize.CUSTOM:
             return PopupGeometry.dimensions(self.size)[0]
         limit = PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
-        inset = 2 + self._content_padding * 2
+        inset = PopupGeometry.FRAME_COLUMNS + self._content_padding * 2
         content_width = to_container(self.body).preferred_width(max(1, limit - inset)).preferred
         action_width = ActionBar.shared_width(self._buttons) * len(self._buttons)
         action_width += ActionBar.GAP * max(0, len(self._buttons) - 1)
-        title_width = fragment_list_width(to_formatted_text(self.title)) + 4
+        title_width = fragment_list_width(to_formatted_text(self.title)) + PopupGeometry.TITLE_INSET
         return Dimension.exact(min(limit, max(content_width + inset,
-                                             action_width + 4, title_width)))
+                                             action_width + PopupGeometry.ACTION_INSET, title_width)))
 
     def _height(self):
         if self.size != PopupSize.CUSTOM:
             return PopupGeometry.dimensions(self.size)[1]
         width = self._width().preferred
         limit = PopupGeometry.dimensions(PopupSize.LARGE)[1].preferred
-        height = self._frame_body.preferred_height(max(1, width - 2), max(1, limit - 2)).preferred + 2
+        height = self._frame_body.preferred_height(max(1, width - PopupGeometry.FRAME_COLUMNS),
+            max(1, limit - PopupGeometry.FRAME_ROWS)).preferred + PopupGeometry.FRAME_ROWS
         return PopupGeometry.dimensions(PopupSize.CUSTOM, preferred=(width, height))[1]
 
     @property
     def size(self):
-        body = getattr(self, "body", self.popup_body)
+        body = getattr(self, self.BODY, self.popup_body)
         if (self.requested_size == PopupSize.SMALL and body is not None
                 and not self.allow_small_input):
             if any(isinstance(item, Window) and item.content.is_focusable()

@@ -2,6 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass
+from enum import StrEnum
 from time import monotonic
 
 from llm.core.configuration import UNSET
@@ -9,6 +10,16 @@ from llm.core.models import MessageRole, MessageStatus
 from hub.config.speech import SpeechConfig, SpeechStore
 from hub.locales.keys import MessageKey
 from .session import SpeechSession
+from hub.backend.speech_resources import SpeechResources
+
+
+class SpeechCommand(StrEnum):
+    CONFIGURE = 'configure'
+    START = 'start'
+    FINISH = 'finish'
+    CANCEL = 'cancel'
+    QUIET = 'quiet'
+    OUTPUT = 'output'
 
 
 @dataclass(slots=True)
@@ -20,6 +31,11 @@ class SpokenOutput:
 
 
 class SpeechController:
+    NEWLINE = '\n'
+    STREAM_ID = '{run}:{message}:{offset}'
+    NOTICE_HEIGHT = 3
+    OUTPUT_DISABLED = 'Configure output and interaction.read_responses=true explicitly'
+    PUBLICATION_READY = 'speech_publication_ready'
     def __init__(self, controller):
         self.controller, self.view = controller, controller.view
         self.store = SpeechStore(controller.config._workspace_anchor)
@@ -61,9 +77,9 @@ class SpeechController:
                     ready.set_exception(RuntimeError(self.view.t(MessageKey.NOT_CONNECTED)))
                 else:
                     ready.set_result(resources)
-        self.controller._call('get_speech_resources', completed=received)
+        self.controller._call(SpeechResources.OPERATION, completed=received)
         resources = await ready
-        calls, diagnostics = resources['calls'], resources['diagnostics']
+        calls, diagnostics = resources.calls, resources.diagnostics
         session = await asyncio.to_thread(SpeechSession, config, calls)
         if self.closed:
             await session.aclose()
@@ -83,19 +99,19 @@ class SpeechController:
             self.pending.pop(scope, None)
 
     def command(self, argument):
-        if argument == 'configure':
+        if argument == SpeechCommand.CONFIGURE:
             self._launch(self._configure())
-        elif argument == 'start':
+        elif argument == SpeechCommand.START:
             self._launch(self._listen())
-        elif argument == 'finish':
+        elif argument == SpeechCommand.FINISH:
             if self.session is not None:
                 self._launch(self.session.finish_capture())
-        elif argument == 'cancel':
+        elif argument == SpeechCommand.CANCEL:
             if self.session is not None:
                 self.session.cancel_capture()
-        elif argument == 'quiet':
+        elif argument == SpeechCommand.QUIET:
             self.stop_playback()
-        elif argument == 'output':
+        elif argument == SpeechCommand.OUTPUT:
             self._launch(self._output())
         elif argument:
             self.view.notice = self.view.t(MessageKey.VOICE_COMMANDS)
@@ -104,11 +120,11 @@ class SpeechController:
             from prompt_toolkit.layout.controls import FormattedTextControl
             from hub.widget.controls import Button
             buttons = [Button(self.view.t(label), handler=lambda command=command: self._choose(command))
-                       for label, command in ((MessageKey.VOICE_START, 'start'),
-                           (MessageKey.VOICE_FINISH, 'finish'), (MessageKey.VOICE_CANCEL, 'cancel'),
-                           (MessageKey.VOICE_QUIET, 'quiet'), (MessageKey.VOICE_OUTPUT, 'output'),
-                           (MessageKey.VOICE_CONFIGURE, 'configure'))]
-            body = HSplit([Window(FormattedTextControl(self.view.t(MessageKey.VOICE_NOTICE)), height=3), *buttons])
+                       for label, command in ((MessageKey.VOICE_START, SpeechCommand.START),
+                           (MessageKey.VOICE_FINISH, SpeechCommand.FINISH), (MessageKey.VOICE_CANCEL, SpeechCommand.CANCEL),
+                           (MessageKey.VOICE_QUIET, SpeechCommand.QUIET), (MessageKey.VOICE_OUTPUT, SpeechCommand.OUTPUT),
+                           (MessageKey.VOICE_CONFIGURE, SpeechCommand.CONFIGURE))]
+            body = HSplit([Window(FormattedTextControl(self.view.t(MessageKey.VOICE_NOTICE)), height=SpeechController.NOTICE_HEIGHT), *buttons])
             self.view.open_dialog(self.view.t(MessageKey.VOICE_TITLE), body, lambda: None, buttons[0])
 
     def _choose(self, command):
@@ -117,8 +133,8 @@ class SpeechController:
 
     async def _output(self):
         await self._connect()
-        if self.config.output is None or not self.config.interaction.get('read_responses'):
-            raise ValueError('Configure output and interaction.read_responses=true explicitly')
+        if self.config.output is None or not self.config.behavior.read_responses:
+            raise ValueError(SpeechController.OUTPUT_DISABLED)
         self.view.notice = self.view.t(MessageKey.VOICE_OUTPUT)
 
     async def _configure(self):
@@ -170,13 +186,13 @@ class SpeechController:
             if self.closed or scope != self.current_scope() or not self.view.visible:
                 return
             prefix = self.view.composer.text
-            text = prefix + ('\n' if prefix else '') + item.text
+            text = prefix + (self.NEWLINE if prefix else '') + item.text
             self.pending[scope] = (text, item.stream_id)
             self.view.composer.text = text
             self.view._drafts[scope[1]] = text
             # Voice does not interpret yes/no as approval or choose a Graph target.
             # Those actions retain the same explicit interactive routing as text.
-            if (self.config.interaction['submit'] == SpeechConfig.AUTOMATIC
+            if (self.config.behavior.submit == SpeechConfig.AUTOMATIC
                     and self.view._dialog is None and self.view.question.item is None
                     and not self.view.settings_open):
                 self.controller.submit(scope[1], text)
@@ -201,7 +217,7 @@ class SpeechController:
             self.scope = scope
             self.seen = {message.id for message in snapshot.messages}
         if (self.closed or self.config is None or not self.view.visible
-                or not self.config.interaction.get('read_responses')):
+                or not self.config.behavior.read_responses):
             return
         for message in snapshot.messages:
             if message.role != MessageRole.ASSISTANT or not message.run_id:
@@ -233,7 +249,7 @@ class SpeechController:
                     from llm.providers.runtime import logging_scope, diagnostic
                     with logging_scope(self.controller.config._workspace_anchor,
                                        project_id=scope[0], session_id=scope[1], run_id=message.run_id):
-                        diagnostic('speech_publication_ready', message_id=message.id,
+                        diagnostic(SpeechController.PUBLICATION_READY, message_id=message.id,
                                    observed_draft_wait_seconds=(None if output.draft_seen_at is None
                                        else monotonic() - output.draft_seen_at))
         self._start_reader()
@@ -243,7 +259,7 @@ class SpeechController:
             return
         output = next(iter(self.outputs.values()))
         if (output.message.status in (MessageStatus.COMMITTED, MessageStatus.STREAMING)
-                and len(output.message.text) - output.offset < self.config.interaction['text_chunk_chars']):
+                and len(output.message.text) - output.offset < self.config.behavior.text_chunk_chars):
             return
         self.read_task = self._launch(self._read())
         self.read_task.add_done_callback(lambda _: self._start_reader())
@@ -255,7 +271,7 @@ class SpeechController:
                 message = output.message
                 final = message.status not in (MessageStatus.COMMITTED, MessageStatus.STREAMING)
                 available = len(message.text) - output.offset
-                maximum = self.config.interaction['text_chunk_chars']
+                maximum = self.config.behavior.text_chunk_chars
                 if available < maximum and not final:
                     return
                 if available:
@@ -268,7 +284,7 @@ class SpeechController:
                     with logging_scope(self.controller.config._workspace_anchor,
                                        project_id=self.scope[0], session_id=self.scope[1], run_id=message.run_id,
                                        diagnostics=self.diagnostics):
-                        await self.session.speak(text, stream_id=f'{message.run_id}:{identifier}:{output.offset}')
+                        await self.session.speak(text, stream_id=self.STREAM_ID.format(run=message.run_id, message=identifier, offset=output.offset))
                     self.reading_message = None
                     output.offset = end
                 elif final:

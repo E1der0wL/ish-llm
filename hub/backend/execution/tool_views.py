@@ -6,20 +6,26 @@ permissions widened or receipts/checkpoints rewritten by this processor.
 
 import asyncio
 import json
+from dataclasses import replace
 
 from llm.components.processing import CompletionSession
 from llm.core.model_protocol import ModelRole
-from llm.components.memory.configuration import MemoryProcessingConfig
 from llm.components.tools.builtin.file_values import FileReadArguments
-from llm.components.tools.builtin.process_values import ProcessOutputArguments, ProcessStatus
+from llm.components.tools.builtin.process_values import (
+    ProcessOutputArguments, ProcessStatus, ShellArguments, ProcessStartArguments, ProcessReferenceArguments)
+from llm.core.schema import SchemaKeyword
 
 from ...config.defaults import HubDefaults
 from .reader_calls import ReaderCalls
 from .tool_references import ToolReferences
+from .tool_view_values import FilePage, ProcessPreview, PageHint
 
 
 class NativeToolViews:
-    PROCESS_TOOLS = frozenset(('shell_execute', 'process_start', 'process_status', 'process_output'))
+    PROCESS_TOOLS = frozenset((ShellArguments.NAME, ProcessStartArguments.NAME,
+                              ProcessReferenceArguments.STATUS_NAME, ProcessOutputArguments.NAME))
+    JSON_SEPARATORS = (',', ':')
+    ERROR_FIELD = 'error'
     PARTIAL = ('This is a partial source page, not a summary. Use next_read for more evidence; '
                'do not rerun the command. Output source paths are Data references, not working-directory files.')
 
@@ -32,7 +38,7 @@ class NativeToolViews:
 
     @staticmethod
     def encode(value):
-        return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+        return json.dumps(value, ensure_ascii=False, separators=NativeToolViews.JSON_SEPARATORS)
 
     @classmethod
     def bounded(cls, render, size, limit):
@@ -55,75 +61,66 @@ class NativeToolViews:
     @classmethod
     def file(cls, context, request, value, arguments, limit):
         # Explicit line-based configurations retain their own reader semantics.
-        if not (isinstance(value.get('text'), str) and type(value.get('offset')) is int
-                and isinstance(value.get('path'), str) and isinstance(value.get('sha256'), str)):
+        try:
+            page = FilePage.read(value)
+        except (KeyError, TypeError, ValueError):
             return None
-        if not {'next_offset', 'truncated'} <= value.keys():
-            return None
-        body, offset = value['text'], value['offset']
+        body, offset = page.text, page.offset
         def render(count):
-            more = count < len(body) or value['next_offset'] is not None
-            result = {key: value[key] for key in ('path', 'sha256', 'offset')}
-            result.update(text=body[:count], next_offset=offset + count if more else None,
-                          truncated=offset > 0 or more)
+            more = count < len(body) or page.next_offset is not None
+            result = replace(page, text=body[:count], next_offset=offset + count if more else None,
+                             truncated=offset > 0 or more).to_dict()
             if more:
-                args = {FileReadArguments.path.__name__: value['path'],
-                        FileReadArguments.expected_sha256.__name__: value['sha256'],
+                args = {FileReadArguments.path.__name__: page.path,
+                        FileReadArguments.expected_sha256.__name__: page.sha256,
                         FileReadArguments.offset.__name__: offset + count,
-                        FileReadArguments.max_chars.__name__: HubDefaults.TOOL_PAGE_CONSTRAINTS['file_read']['max_chars']['maximum']}
-                if 'max_file_bytes' in arguments:
-                    args['max_file_bytes'] = arguments['max_file_bytes']
-                hint = ReaderCalls.create(context, request, FileReadArguments.NAME, args, limit_field='max_chars')
+                        FileReadArguments.max_chars.__name__: HubDefaults.TOOL_PAGE_CONSTRAINTS[
+                            FileReadArguments.NAME][FileReadArguments.max_chars.__name__][SchemaKeyword.MAXIMUM]}
+                maximum = FileReadArguments.max_file_bytes.__name__
+                if maximum in arguments:
+                    args[maximum] = arguments[maximum]
+                hint = ReaderCalls.create(context, request, FileReadArguments.NAME, args,
+                                          limit_field=FileReadArguments.max_chars.__name__)
                 if hint is None:
                     return None
-                result.update(next_read=hint, notice=cls.PARTIAL)
+                result.update(PageHint(hint, cls.PARTIAL).to_dict())
             return cls.encode(result)
         return cls.bounded(render, len(body), limit)
 
     @classmethod
     def process(cls, context, request, value, arguments, limit):
-        if not (all(isinstance(value.get(key), str) for key in ('process_id', 'status', 'stdout', 'stderr'))
-                and {'returncode', 'truncated'} <= value.keys()):
+        try:
+            source = ProcessPreview.read(value)
+        except (KeyError, TypeError, ValueError):
             return None
-        offsets, totals = {}, {}
-        for name in ('stdout', 'stderr'):
-            if (type(value.get('next_' + name + '_offset')) is int
-                  and type(value.get(name + '_remaining')) is int):
-                offsets[name] = value['next_' + name + '_offset'] - len(value[name])
-                totals[name] = value['next_' + name + '_offset'] + value[name + '_remaining']
-            elif type(value.get(name + '_chars')) is int:
-                offsets[name], totals[name] = 0, value[name + '_chars']
-            else:
-                return None  # Non-retained output must not acquire an invented cursor.
-        size = max(len(value['stdout']), len(value['stderr']))
+        size = max(len(source.stdout.text), len(source.stderr.text))
         def render(count):
-            result = {key: value[key] for key in ('process_id', 'status', 'returncode', 'truncated')}
-            if 'cwd' in value:
-                result['cwd'] = value['cwd']
-            more = value['status'] == ProcessStatus.RUNNING
-            args = {'process_id': value['process_id'], 'max_chars': HubDefaults.TOOL_PAGE_CONSTRAINTS['process_output']['max_chars']['maximum']}
-            for name in ('stdout', 'stderr'):
-                result[name] = value[name][:count]
-                end = offsets[name] + len(result[name])
-                result['next_' + name + '_offset'] = args[name + '_offset'] = end
-                result[name + '_remaining'] = totals[name] - end
-                result[name + '_chars'] = totals[name]
-                more |= end < totals[name]
+            stdout, stderr = source.stdout.text[:count], source.stderr.text[:count]
+            end_out, end_err = source.stdout.offset + len(stdout), source.stderr.offset + len(stderr)
+            page = replace(source.page, stdout=stdout, stderr=stderr,
+                           next_stdout_offset=end_out, next_stderr_offset=end_err,
+                           stdout_remaining=source.stdout.total - end_out,
+                           stderr_remaining=source.stderr.total - end_err)
+            more = page.status == ProcessStatus.RUNNING or page.stdout_remaining > 0 or page.stderr_remaining > 0
+            result = source.to_dict(page, include_sources=more)
             if more:
-                hint = ReaderCalls.create(context, request, ProcessOutputArguments.NAME, args, limit_field='max_chars')
+                args = ProcessOutputArguments(process_id=page.process_id, stdout_offset=end_out, stderr_offset=end_err,
+                    max_chars=HubDefaults.TOOL_PAGE_CONSTRAINTS[ProcessOutputArguments.NAME][
+                        ProcessOutputArguments.max_chars.__name__][SchemaKeyword.MAXIMUM]).to_dict()
+                hint = ReaderCalls.create(context, request, ProcessOutputArguments.NAME, args,
+                                          limit_field=ProcessOutputArguments.max_chars.__name__)
                 if hint is None:
                     return None
-                result.update(next_read=hint, notice=cls.PARTIAL)
-                if 'output_sources' in value:
-                    result['output_sources'] = value['output_sources']
+                result.update(PageHint(hint, cls.PARTIAL).to_dict())
             return cls.encode(result)
         return cls.bounded(render, size, limit)
 
     @classmethod
     def prepare(cls, context, request):
-        limit = ToolReferences.processing_policy(context).get(
-            MemoryProcessingConfig.Field.TOOL_RESULT_CHARS,
-            HubDefaults.MEMORY_SUMMARY['policy']['processing']['tool_result_chars'])
+        options = ToolReferences.processing_options(context)
+        if not options.compress_tools and not options.has_tool_result_mode:
+            return
+        limit = options.tool_result_chars
         calls = {call.id: call for item in request.messages for call in item.message.calls}
         for index, item in enumerate(request.messages):
             message = item.message
@@ -136,7 +133,7 @@ class NativeToolViews:
                 value = json.loads(message.text)
             except (ValueError, TypeError):
                 continue
-            if not isinstance(value, dict) or 'error' in value:
+            if not isinstance(value, dict) or cls.ERROR_FIELD in value:
                 continue
             render = cls.file if call.name == FileReadArguments.NAME else cls.process
             text = render(context, request, value, call.arguments, limit)

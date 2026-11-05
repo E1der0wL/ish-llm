@@ -7,16 +7,22 @@ from threading import Lock
 from llm.providers.audio import AudioChunk, AudioSequence, SpeechError, native_call
 
 
+DEVICE_MODULE = 'sounddevice'
+PCM_TYPE = 'int16'
+
+
 class CaptureBuffer:
     """A bounded callback-thread bridge with at most one queued wake-up.
 
     Overflow is reported and capture stops; audio is never silently discarded.
     No task or unbounded call_soon queue is created for every microphone block.
     """
+    INVALID_CAPACITY = 'Microphone buffer capacity must be explicitly positive'
+    OVERFLOW = 'Microphone queue exceeded its configured capacity'
 
     def __init__(self, capacity, loop):
         if type(capacity) is not int or capacity <= 0:
-            raise ValueError('Microphone buffer capacity must be explicitly positive')
+            raise ValueError(CaptureBuffer.INVALID_CAPACITY)
         self.capacity, self.loop = capacity, loop
         self.values, self.lock, self.ready = deque(), Lock(), asyncio.Event()
         self.closed, self.notified, self.error = False, False, None
@@ -31,7 +37,7 @@ class CaptureBuffer:
             if self.closed:
                 return False
             if len(self.values) >= self.capacity:
-                self.error = SpeechError('Microphone queue exceeded its configured capacity')
+                self.error = SpeechError(CaptureBuffer.OVERFLOW)
                 self.closed = True
             else:
                 self.values.append(data)
@@ -58,21 +64,24 @@ class CaptureBuffer:
 
 
 class Microphone:
+    INVALID_SIZE = 'Capture block and queue sizes must be explicitly positive'
+    OVERRUN = 'Microphone capture overrun or invalid block size'
+    CLOSED = 'Microphone is not open'
     def __init__(self, format, *, device, block_frames, queue_size):
         if any(type(value) is not int or value <= 0 for value in (block_frames, queue_size)):
-            raise ValueError('Capture block and queue sizes must be explicitly positive')
+            raise ValueError(Microphone.INVALID_SIZE)
         self.format, self.device, self.block_frames = format, device, block_frames
         self.queue_size, self.stream, self.buffer = queue_size, None, None
 
     async def open(self):
         from importlib import import_module
-        sd = await native_call(import_module, 'sounddevice')
+        sd = await native_call(import_module, DEVICE_MODULE)
 
         self.buffer = CaptureBuffer(self.queue_size, asyncio.get_running_loop())
 
         def receive(data, frames, time, status):
             if status or frames > self.block_frames:
-                self.buffer.finish(SpeechError('Microphone capture overrun or invalid block size'))
+                self.buffer.finish(SpeechError(Microphone.OVERRUN))
                 raise sd.CallbackAbort
             if not self.buffer.put(bytes(data)):
                 raise sd.CallbackAbort
@@ -81,7 +90,7 @@ class Microphone:
         # selected STT adapter, while buffer values belong to Hub configuration.
         def start():
             stream = sd.RawInputStream(device=self.device, samplerate=self.format.sample_rate,
-                channels=self.format.channels, dtype='int16', blocksize=self.block_frames,
+                channels=self.format.channels, dtype=PCM_TYPE, blocksize=self.block_frames,
                 callback=receive)
             self.stream = stream
             try:
@@ -98,7 +107,7 @@ class Microphone:
 
     async def read(self):
         if self.buffer is None:
-            raise RuntimeError('Microphone is not open')
+            raise RuntimeError(Microphone.CLOSED)
         return await self.buffer.get()
 
     async def finish(self):
@@ -112,14 +121,17 @@ class Microphone:
 
 
 class Speakers:
+    INVALID_SIZE = 'Playback block and queue sizes must be explicitly positive'
+    EMPTY_STREAM = 'Speech output contained no audio stream'
+    STARTED = 'speech_playback_started'
     def __init__(self, *, device, block_frames, queue_size):
         if any(type(value) is not int or value <= 0 for value in (block_frames, queue_size)):
-            raise ValueError('Playback block and queue sizes must be explicitly positive')
+            raise ValueError(Speakers.INVALID_SIZE)
         self.device, self.block_frames, self.queue_size = device, block_frames, queue_size
 
     async def play(self, chunks, *, stream_id):
         from importlib import import_module
-        sd = await native_call(import_module, 'sounddevice')
+        sd = await native_call(import_module, DEVICE_MODULE)
         from time import monotonic
         from llm.providers.runtime import diagnostic
 
@@ -138,7 +150,7 @@ class Speakers:
                 for start in range(0, len(chunk.data), width):
                     await queue.put((chunk.format, chunk.data[start:start + width]))
             if validator is None:
-                raise SpeechError('Speech output contained no audio stream')
+                raise SpeechError(Speakers.EMPTY_STREAM)
             validator.finish()
             await queue.put(None)
 
@@ -161,7 +173,7 @@ class Speakers:
                         nonlocal stream
                         output = sd.RawOutputStream(device=self.device,
                             samplerate=format.sample_rate, channels=format.channels,
-                            dtype='int16', blocksize=self.block_frames)
+                            dtype=PCM_TYPE, blocksize=self.block_frames)
                         stream = output
                         try:
                             output.start()
@@ -173,7 +185,7 @@ class Speakers:
                 await native_call(stream.write, data)
                 if first:
                     first = False
-                    diagnostic('speech_playback_started', stream_id=stream_id,
+                    diagnostic(Speakers.STARTED, stream_id=stream_id,
                                first_write_seconds=monotonic() - started)
         finally:
             for task in (producer, reader):

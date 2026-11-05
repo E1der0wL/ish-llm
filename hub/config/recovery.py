@@ -8,13 +8,32 @@ from pathlib import Path
 import stat
 from datetime import datetime, timezone
 from uuid import uuid4
+from llm.core.contracts import JsonValue
 
 from ..errors.startup import StartupLoadError
 from .store import WorkspaceJSONStore
 
 
 @dataclass(frozen=True, slots=True)
+class RecoveryManifest(JsonValue):
+    source: str
+    sha256: str
+    created_at: str
+
+
+@dataclass(frozen=True, slots=True)
 class FileReset:
+    CHANGED = 'Settings changed since the failure; retry loading before resetting'
+    DIRECTORY = 'recovery-backups'
+    SYMLINK = 'Recovery backup directory must not be a symbolic link'
+    DIRECTORY_MODE = 0o700
+    STAMP = '%Y%m%dT%H%M%SZ'
+    SEPARATOR = '-'
+    MANIFEST = 'manifest.json'
+    CREATE_MODE = 'x'
+    ENCODING = 'utf-8'
+    FILE_MODE = 0o600
+    RACE = 'Settings changed during backup; loading must be retried'
     path: Path
     root: Path
     digest: str
@@ -39,19 +58,18 @@ class FileReset:
         current = self.capture(WorkspaceJSONStore(
             self.root.parent, self.path.relative_to(self.root)), workspace=self.root.parent)
         if current != self:
-            raise ValueError("Settings changed since the failure; retry loading before resetting")
-        directory = self.root / "recovery-backups"
+            raise ValueError(FileReset.CHANGED)
+        directory = self.root / FileReset.DIRECTORY
         if directory.is_symlink():
-            raise ValueError("Recovery backup directory must not be a symbolic link")
-        directory.mkdir(mode=0o700, exist_ok=True)
-        backup = directory / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex)
-        backup.mkdir(mode=0o700)
+            raise ValueError(FileReset.SYMLINK)
+        directory.mkdir(mode=FileReset.DIRECTORY_MODE, exist_ok=True)
+        backup = directory / (datetime.now(timezone.utc).strftime(FileReset.STAMP) + FileReset.SEPARATOR + uuid4().hex)
+        backup.mkdir(mode=FileReset.DIRECTORY_MODE)
         saved = backup / self.path.name
-        metadata = {"source": str(self.path), "sha256": self.digest,
-                    "created_at": datetime.now(timezone.utc).isoformat()}
-        with (backup / "manifest.json").open("x", encoding="utf-8") as stream:
-            os.chmod(stream.name, 0o600)
-            json.dump(metadata, stream, ensure_ascii=False)
+        metadata = RecoveryManifest(str(self.path), self.digest, datetime.now(timezone.utc).isoformat())
+        with (backup / FileReset.MANIFEST).open(FileReset.CREATE_MODE, encoding=FileReset.ENCODING) as stream:
+            os.chmod(stream.name, FileReset.FILE_MODE)
+            json.dump(metadata.to_dict(), stream, ensure_ascii=False)
             stream.flush()
             os.fsync(stream.fileno())
         # Rename within .hub atomically preserves the actual bytes. Never remove
@@ -59,8 +77,8 @@ class FileReset:
         os.rename(self.path, saved)
         try:
             if saved.is_symlink() or hashlib.sha256(saved.read_bytes()).hexdigest() != self.digest:
-                raise ValueError("Settings changed during backup; loading must be retried")
-            os.chmod(saved, 0o600)
+                raise ValueError(FileReset.RACE)
+            os.chmod(saved, FileReset.FILE_MODE)
             # Persist both directory creation and removal from nested owners
             # such as presets/, not just the backup file's immediate parent.
             for path in dict.fromkeys((backup, directory, self.path.parent, self.root)):

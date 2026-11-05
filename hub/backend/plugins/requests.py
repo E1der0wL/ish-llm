@@ -7,10 +7,17 @@ from llm.core.models import MessageRole
 from .projects import PluginProjects
 from .definitions import PluginContext
 from .stream import PluginStream
+from .protocol import PluginReference, PluginSession, PluginDelivery
+from llm.core.questions import AnswerDeliveryMode
 
 
 class PluginRequests:
     """One shared-backend integration lifetime, never a second execution manager."""
+    RECONNECT_REQUIRED = 'Hub restarted; reconnect using the stored Session and request IDs'
+    INVALID_REQUEST = 'Expected a user request'
+    FOREIGN_RUN = 'Run does not belong to this request'
+    INVALID_RESUME = 'Unsupported resume option'
+    RESUME_OPTIONS = frozenset(('retry_nodes', 'decisions', 'partial_output', 'expected_revision'))
 
     def __init__(self, backend):
         self.projects = PluginProjects(backend)
@@ -34,23 +41,25 @@ class PluginRequests:
         return session
 
     async def _request(self, plugin_id, reference):
-        if reference["generation"] != self.generation:
-            raise RuntimeError("Hub restarted; reconnect using the stored Session and request IDs")
-        session = await self._session(plugin_id, reference["session_id"])
-        request = await session.run.arequest(reference["request_id"])
+        reference = PluginReference.from_dict(reference)
+        if reference.generation != self.generation:
+            raise RuntimeError(PluginRequests.RECONNECT_REQUIRED)
+        session = await self._session(plugin_id, reference.session_id)
+        if session.project.id != reference.project_id:
+            raise ValueError(PluginReference.FOREIGN_PROJECT)
+        request = await session.run.arequest(reference.request_id)
         await request.aget_data()  # Verify the persisted request, not just an ID shape.
         return request
 
     def _reference(self, session, request):
-        return {"generation": self.generation, "project_id": session.project.id,
-                "session_id": session.id, "request_id": request.id}
+        return PluginReference(self.generation, session.project.id, session.id, request.id).to_dict()
 
     async def register(self, plugin_id, definition):
         return await self.projects.register(plugin_id, definition)
 
     async def open_session(self, plugin_id, key, agent_ids):
         result = await self.projects.open_session(plugin_id, key, agent_ids)
-        self.streams.setdefault(result["session_id"], PluginStream())
+        self.streams.setdefault(PluginSession.from_dict(result).session_id, PluginStream())
         return result
 
     async def submit(self, plugin_id, session_id, text, recipients, context, request_key):
@@ -68,7 +77,7 @@ class PluginRequests:
         request = await session.run.arequest(request_id)
         record = await request.aget_data()
         if record.role != MessageRole.USER:
-            raise ValueError("Expected a user request")
+            raise ValueError(PluginRequests.INVALID_REQUEST)
         return self._reference(session, request)
 
     async def poll(self, plugin_id, reference, cursors, revision, include_internal):
@@ -94,11 +103,11 @@ class PluginRequests:
         run = await self._run(plugin_id, reference, run_id)
         # A plugin may only steer a Run in its owned request; submitting still
         # goes through that same plugin-owned Session and native recipient checks.
-        if options.get('mode') == 'steer':
-            await self._run(plugin_id, reference, options['target_run_id'])
-            options = {**options, 'run_id': options['target_run_id']}
-            del options['target_run_id']
-        return (await QuestionAnswers.deliver(run, request_id, **options)).to_dict()
+        selected = PluginDelivery.from_dict(options)
+        if selected.mode == AnswerDeliveryMode.STEER:
+            await self._run(plugin_id, reference, selected.target_run_id)
+        return (await QuestionAnswers.deliver(run, request_id, mode=selected.mode,
+            run_id=selected.target_run_id, targets=selected.targets, recipients=selected.recipients)).to_dict()
 
     async def get_delivery(self, plugin_id, reference, run_id, request_id):
         run = await self._run(plugin_id, reference, run_id)
@@ -114,7 +123,7 @@ class PluginRequests:
         for run in await request.aget_runs():
             if run.id == run_id:
                 return run
-        raise ValueError("Run does not belong to this request")
+        raise ValueError(PluginRequests.FOREIGN_RUN)
 
     async def cancel(self, plugin_id, reference):
         request = await self._request(plugin_id, reference)
@@ -149,9 +158,8 @@ class PluginRequests:
         record = await run.aget_data()
         # Backend validates checkpoint evidence and uncertain-effect decisions.
         # A failed plan is never converted into an automatic restart/replay.
-        allowed = {"retry_nodes", "decisions", "partial_output", "expected_revision"}
-        if options.keys() - allowed:
-            raise ValueError("Unsupported resume option")
+        if options.keys() - self.RESUME_OPTIONS:
+            raise ValueError(PluginRequests.INVALID_RESUME)
         request = await run.session.run.resume(run.id, agent_id=record.agent_id, **options)
         self.streams[run.session.id].signal()
         return self._reference(run.session, request)

@@ -210,6 +210,11 @@ class ScrollablePane(PTKScrollablePane):
 
 
 class Button(PTKButton):
+    SPACE = ' '
+    TEXT_STYLE = 'class:button.text'
+    ARROW_STYLE = 'class:button.arrow'
+    CURSOR_POSITION = '[SetCursorPosition]'
+    NEVER_PRESSED = 0.0
     LEFT_SYMBOL = "left_symbol"
     RIGHT_SYMBOL = "right_symbol"
     NO_SYMBOL = ""
@@ -234,23 +239,23 @@ class Button(PTKButton):
                 elif event.event_type == MouseEventType.MOUSE_UP:
                     self._activate()
 
-        text_style = 'class:button.text'
+        text_style = self.TEXT_STYLE
         if not self.enabled():
-            text_style += ' ' + ThemeSelector.BUTTON_DISABLED.style
+            text_style += Button.SPACE + ThemeSelector.BUTTON_DISABLED.style
         elif monotonic() < self._pressed_until:
-            text_style += ' ' + ThemeSelector.BUTTON_PRESSED.style
+            text_style += Button.SPACE + ThemeSelector.BUTTON_PRESSED.style
 
         # WindowAlign.CENTER is the sole alignment owner. Never pre-pad to the
         # preferred width: the parent may allocate a different number of cells.
         return [
-            ("class:button.arrow", self.left_symbol, activate),
-            ("[SetCursorPosition]", ""),
+            (self.ARROW_STYLE, self.left_symbol, activate),
+            (self.CURSOR_POSITION, ""),
             (text_style, self.text, activate),
-            ("class:button.arrow", self.right_symbol, activate),
+            (self.ARROW_STYLE, self.right_symbol, activate),
         ]
 
     def __init__(self, *args, focusable=True, enabled=True, **kwargs):
-        self._pressed_until = 0.0
+        self._pressed_until = self.NEVER_PRESSED
         self.enabled = to_filter(enabled)
         kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)
         kwargs.setdefault(self.RIGHT_SYMBOL, self.NO_SYMBOL)

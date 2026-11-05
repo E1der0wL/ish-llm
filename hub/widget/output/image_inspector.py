@@ -9,6 +9,13 @@ from hub.ui.output.graphics import KittyGraphics
 from hub.ui.output.worker import RenderSlot
 from hub.widget.controls import Button
 from hub.widget.output_inspector import ExpandedOutputDialog
+from enum import StrEnum
+
+
+class ImageMode(StrEnum):
+    ASCII = 'ascii'
+    NATIVE = 'native'
+    AUTO = 'auto'
 
 
 class ImageInspector(ExpandedOutputDialog):
@@ -19,15 +26,14 @@ class ImageInspector(ExpandedOutputDialog):
         output = context.viewport(item)
         super().__init__(item, context, output,
                          body=DynamicContainer(lambda: self.canvas if self.native else output))
-        for mode, label in (('ascii', MessageKey.IMAGE_ASCII), ('native', MessageKey.IMAGE_NATIVE),
-                            ('auto', MessageKey.IMAGE_AUTO)):
+        for mode, label in ((ImageMode.ASCII, MessageKey.IMAGE_ASCII), (ImageMode.NATIVE, MessageKey.IMAGE_NATIVE),
+                            (ImageMode.AUTO, MessageKey.IMAGE_AUTO)):
             self.actions.insert(0, Button(self.t(label), handler=lambda mode=mode: self.choose(mode)))
 
     def choose(self, mode):
         if self.closed:
             return
-        if mode not in {'ascii', 'native', 'auto'}:
-            raise ValueError('Unsupported image display mode')
+        mode = ImageMode(mode)
         self.generation += 1
         generation = self.generation
         self.context.render_worker.cancel(RenderSlot.POPUP)
@@ -35,9 +41,9 @@ class ImageInspector(ExpandedOutputDialog):
             self.painter.close()
             self.painter = None
         supported = KittyGraphics.supported()
-        self.native = mode != 'ascii' and supported
+        self.native = mode != ImageMode.ASCII and supported
         if not self.native:
-            self.notice = self.t(MessageKey.IMAGE_UNSUPPORTED) if mode == 'native' else ''
+            self.notice = self.t(MessageKey.IMAGE_UNSUPPORTED) if mode == ImageMode.NATIVE else ''
             get_app().invalidate()
             return
         self.notice = self.t(MessageKey.SETTINGS_LOADING)
@@ -71,7 +77,7 @@ class ImageInspector(ExpandedOutputDialog):
             return
         # Revalidate the original source after returning to the popup. Never
         # resolve an old block against a newly selected Project's working root.
-        self.choose('native')
+        self.choose(ImageMode.NATIVE)
 
     def dispose(self):
         self.closed = True

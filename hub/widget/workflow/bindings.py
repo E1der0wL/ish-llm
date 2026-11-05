@@ -12,6 +12,7 @@ from prompt_toolkit.widgets import Label
 
 from ...locales.keys import MessageKey as K
 from ...config.theme_style import ThemeSelector
+from ...ui.input.keys import KeyName
 from ..controls import Button, TextArea, ScrollbarMargin
 from ..section import Heading
 from ..sidebar import SidebarList, SidebarItem
@@ -21,6 +22,9 @@ from ..tab_page import TabPage
 
 class WorkflowBindings:
     DIRECTIONS = (BindingFields.INPUTS, BindingFields.OUTPUTS)
+    BODY_WIDTH = 62
+    LIST_WIDTH = 25
+    LIST_MINIMUM = 14
 
     def __init__(self, editor):
         self.editor = editor
@@ -36,9 +40,9 @@ class WorkflowBindings:
         self.name = TextArea(multiline=False, height=1)
         self.path = TextArea(multiline=False, height=1)
         keys = KeyBindings()
-        keys.add('up')(lambda event: self.list.move(-1))
-        keys.add('down')(lambda event: self.list.move(1))
-        for key in ('right', 'enter', ' '):
+        keys.add(KeyName.UP)(lambda event: self.list.move(-1))
+        keys.add(KeyName.DOWN)(lambda event: self.list.move(1))
+        for key in (KeyName.RIGHT, KeyName.ENTER, KeyName.SPACE):
             keys.add(key)(lambda event: event.app.layout.focus(self.name))
         self.list = SidebarList(self.items, lambda: self.selected, self.select,
                                 key_bindings=keys, on_activate=lambda: get_app().layout.focus(self.name))
@@ -47,13 +51,13 @@ class WorkflowBindings:
             Button(t(K.COMPONENT_CREATE), handler=self.new),
             Button(t(K.WORKFLOW_APPLY), handler=self.store_action),
             Button(t(K.SETTINGS_DELETE), handler=self.remove),
-        ], lambda: 62, equal_width=True)
+        ], lambda: self.BODY_WIDTH, equal_width=True)
         content = HSplit([
             Window(height=1),
             VSplit([
                 HSplit([Heading(lambda: t(K.WORKFLOW_INPUTS if self.direction == BindingFields.INPUTS else K.WORKFLOW_OUTPUTS)),
                         Window(self.list, right_margins=[ScrollbarMargin()],
-                               style=ThemeSelector.POPUP_LIST.style)], width=Dimension(preferred=25, min=14)),
+                               style=ThemeSelector.POPUP_LIST.style)], width=Dimension(preferred=self.LIST_WIDTH, min=self.LIST_MINIMUM)),
                 HSplit([Heading(t(K.WORKFLOW_BINDING_NAME)), self.name, Window(height=1),
                         Heading(t(K.WORKFLOW_BINDING_PATH)), self.path, Window(height=1),
                         Label(t(K.WORKFLOW_BINDING_NOTE), style=ThemeSelector.MUTED.style), Window()]),
@@ -63,7 +67,7 @@ class WorkflowBindings:
         self.tabs = TabPage([
             (BindingFields.INPUTS, t(K.WORKFLOW_INPUTS), content),
             (BindingFields.OUTPUTS, t(K.WORKFLOW_OUTPUTS), content),
-        ], width=lambda: 62, on_change=self.switch, on_enter=lambda: get_app().layout.focus(self.list))
+        ], width=lambda: self.BODY_WIDTH, on_change=self.switch, on_enter=lambda: get_app().layout.focus(self.list))
         self.load(next(iter(self.values[self.direction]), None))
 
     def items(self):

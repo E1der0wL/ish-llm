@@ -54,6 +54,8 @@ class HubConfig:
     nonempty collections retain their entries regardless of custom truthiness.
     Factories are validated here and constructed later on the backend thread.
     """
+    INVALID_PREPARATION = 'prepare_provider must be a boolean'
+    INVALID_POSTPROCESS = 'postprocess must be a boolean or None'
 
     UNSPECIFIED = None
     INVALID_LOG_SINK = "log_sink must be callable"
@@ -98,9 +100,9 @@ class HubConfig:
 
     def __post_init__(self) -> None:
         if type(self.prepare_provider) is not bool:
-            raise TypeError('prepare_provider must be a boolean')
+            raise TypeError(HubConfig.INVALID_PREPARATION)
         if self.postprocess is not None and type(self.postprocess) is not bool:
-            raise TypeError('postprocess must be a boolean or None')
+            raise TypeError(HubConfig.INVALID_POSTPROCESS)
         Language(self.language, self.language_packs)
         if self.file_root is not HubConfig.UNSPECIFIED:
             # Validate path input without changing its value or resolution time.
@@ -181,6 +183,9 @@ class HubConfig:
 
 class HubRuntime:
     """All handles, subscriptions and locks belong to one backend event loop."""
+    ROUTE_SEPARATOR = ' / '
+    PLUGIN_CONFIGURATION_ONLY = 'Plugin Projects are configured through plugin settings, not Home'
+    NO_WORKFLOW_HANDLERS = 'Selected Engine does not expose Workflow handlers'
 
     ABSENT = None
     NO_SELECTION = ""
@@ -395,13 +400,9 @@ class HubRuntime:
 
     async def plugin_call(self, operation, plugin_id, *args):
         """Explicit integration commands run independently of Home selection."""
-        allowed = {"register", "open_session", "submit", "reconnect", "poll", "cancel",
-                   "interrupt", "steer", "respond", "cancel_interaction", "resume_plan",
-                   "resume", "receipt", "questions", "answer_question", "cancel_question",
-                   "deliver_answer", "get_delivery", "question_targets"}
-        if operation not in allowed:
-            raise ValueError("Unknown plugin operation")
-        return await getattr(self.plugins, operation)(plugin_id, *args)
+        from .plugins.protocol import PluginOperation
+        selected = PluginOperation(operation)
+        return await getattr(self.plugins, selected.value)(plugin_id, *args)
 
     async def manage_agents(self, home_id, target_id, operation, argument, version):
         from .plugins.catalog import manage_agents
@@ -411,7 +412,7 @@ class HubRuntime:
         from .progress import OperationProgress
         from .plugins.definitions import PluginIdentity
         if PluginIdentity.owner(await project.aget_data()):
-            raise ValueError("Plugin Projects are configured through plugin settings, not Home")
+            raise ValueError(HubRuntime.PLUGIN_CONFIGURATION_ONLY)
 
         # Tool capabilities are resolved by the backend when execution needs them.
         # Merely opening history must not build an unused per-project toolkit.
@@ -785,7 +786,7 @@ class HubRuntime:
         engine = underlying_engine(self.backend.engines.get(engine_name))
         declare = WorkflowHandlerContract.declaration(engine)
         if declare is None:
-            raise ValueError('Selected Engine does not expose Workflow handlers')
+            raise ValueError(HubRuntime.NO_WORKFLOW_HANDLERS)
         data = await project.components.aget(WorkflowComponent.name)
         report = await data.ainspect(definition, handlers=declare(),
                                      declared_tools=self.builtin_tools.toolkit.registry if self.builtin_tools else None)
@@ -849,7 +850,7 @@ class HubRuntime:
         request = await session.run.submit(
             text, recipients=recipients,
             request_context=RequestProfile.for_engines(text, request_context, engines),
-            **({} if request_key is UNSET else {'request_key': request_key})
+            request_key=request_key
         )
         # QUEUED admission changes the conversation/queue, not the Run list.
         # A persisted lifecycle event invalidates that list when dispatch occurs.
@@ -950,7 +951,7 @@ class HubRuntime:
         routes = await run.ainstruction_routes()
         if not routes:
             raise ValueError(self.t(MessageKey.NO_INSTRUCTION_ROUTES))
-        return run.id, tuple((route.key, ' / '.join((*route.workflow_path, route.node_id)))
+        return run.id, tuple((route.key, self.ROUTE_SEPARATOR.join((*route.workflow_path, route.node_id)))
                              for route in routes)
 
     async def get_input_receipt(self, session_id: str, request_key: str):
@@ -958,8 +959,8 @@ class HubRuntime:
 
     async def get_speech_resources(self):
         """Share Host admission and its explicit diagnostic choice with audio."""
-        return {'calls': self.backend.provider_calls,
-                'diagnostics': self.backend.services.provider_diagnostics}
+        from .speech_resources import SpeechResources
+        return SpeechResources(self.backend.provider_calls, self.backend.services.provider_diagnostics)
 
     async def terminal_catalog(self, session_id):
         from .terminal import catalog
@@ -980,7 +981,7 @@ class HubRuntime:
             raise ValueError(self.t(MessageKey.NO_INSTRUCTION_ROUTES))
         receipt = await self.sessions[session_id].run.reserve_instruction(
             run_id, text, targets=[routes[key] for key in targets],
-            **({} if request_key is UNSET else {'request_key': request_key}))
+            request_key=request_key)
         self.dirty.set()
         return receipt.id
 
@@ -1062,6 +1063,8 @@ class HubRuntime:
         from llm.core.interactions import InteractionOption, InteractionRequest
         from .interactions.questions import pending_requests
         from .interactions.remembered import ToolApprovalConditions
+        from .interactions.question_operations import ApprovalAnswer
+        from llm.services.runtime.client_inputs import ResponsePayload
 
         if project_id != self.project.id:
             raise ValueError(HubRuntime.FOREIGN_QUESTION)
@@ -1069,7 +1072,7 @@ class HubRuntime:
         session = self.sessions[session_id]
         run = await session.run.aload(run_id)
         async with self.approval_flow.lock(session_id, run_id):
-            options = ({'remember': ToolApprovalConditions.remember(request, remember_selection)}
+            options = ({ResponsePayload.remember.__name__: ToolApprovalConditions.remember(request, remember_selection)}
                        if remember_selection is not None else {})
             await run.arespond(request.respond(option_id, value=value),
                                request_key=ToolApprovalConditions.request_key(request), **options)
@@ -1090,33 +1093,35 @@ class HubRuntime:
                 from .execution.stopping import stop_paused
                 await stop_paused(session, run_id=run_id)
         self.dirty.set()
-        return {'saved': True, 'continued': continued, 'continue_requested': continue_execution}
+        return ApprovalAnswer(saved=True, continued=continued, continue_requested=continue_execution).to_dict()
 
     async def question_action(self, project_id, session_id, operation, payload=None):
         """Home question UI uses the same public contracts as external clients."""
         from .interactions.questions import QuestionAnswers
-        from llm.core.interactions import InteractionRequest
+        from ..model import QuestionPresentation
         from llm.core.questions import QuestionPublication
+        from .interactions.question_operations import (QuestionAction, QuestionList, QuestionRun,
+            QuestionAnswer, QuestionDelivery, QuestionTarget, QuestionTargets)
         if project_id != self.project.id:
             raise ValueError(self.FOREIGN_QUESTION)
         session = self.sessions[session_id]
-        payload = payload or {}
-        if operation == 'targets':
+        operation = QuestionAction(operation)
+        payload = {} if payload is None else payload
+        if operation == QuestionAction.TARGETS:
             from llm.core.steering import SteeringMode
-            handle = await session.run.aload(payload['run_id'])
+            handle = await session.run.aload(QuestionRun.from_dict(payload).run_id)
             record = await handle.aget_data()
-            targets = [{'run_id': handle.id, 'target_id': target.id,
-                        'label': target.node_path or target.node_id or target.engine}
+            targets = [QuestionTarget(handle.id, target.id, target.node_path or target.node_id or target.engine)
                        for target in await handle.ainstruction_targets()
                        if target.accepting and target.mode == SteeringMode.CONSUME]
-            return {'status': record.status.value, 'targets': targets}
-        if operation == 'list':
+            return QuestionTargets(record.status, tuple(targets)).to_dict()
+        if operation == QuestionAction.LIST:
             from llm.services.query import Query
             status = await session.run.astatus()
             handles = {handle.id: handle for handle in await session.run.alist(
                 query=Query(status=RunStatus.PAUSED))}
             source_ids = dict.fromkeys([*(active.run_id for active in status.active_runs),
-                                       *payload.get('run_ids', ())])
+                                       *QuestionList.from_dict(payload).run_ids])
             for run_id in source_ids:
                 if run_id not in handles:
                     try:
@@ -1127,25 +1132,24 @@ class HubRuntime:
             for handle in handles.values():
                 record = await handle.aget_data()
                 if QuestionPublication.identifiers(record.metadata):
-                    questions.extend({**item, 'run_status': str(record.status)}
+                    questions.extend(QuestionPresentation.observe(item).with_run_status(record.status)
                                      for item in await QuestionAnswers.observe(handle))
             return questions
-        run = await session.run.aload(payload['run_id'])
+        selected = (QuestionAnswer.from_dict(payload) if operation == QuestionAction.SAVE
+                    else QuestionDelivery.from_dict(payload))
+        run = await session.run.aload(selected.run_id)
         try:
-            if operation == 'save':
-                response = await QuestionAnswers.save(run, InteractionRequest.from_dict(payload['request']),
-                                                      payload['option_id'], payload['value'])
+            if operation == QuestionAction.SAVE:
+                response = await QuestionAnswers.save(run, selected.request, selected.option_id, selected.value)
                 return response.to_dict()
-            if operation == 'deliver':
-                if payload['target_run_id'] != run.id:
-                    raise ValueError('The answer must target the question\'s original Run')
-                receipt = await QuestionAnswers.deliver(run, payload['request_id'], mode='steer',
-                    run_id=payload['target_run_id'], targets=payload['targets'])
-                return receipt.to_dict()
-            raise ValueError('Unknown question operation')
+            from llm.core.questions import AnswerDeliveryMode
+            receipt = await QuestionAnswers.deliver(run, selected.request_id, mode=AnswerDeliveryMode.STEER,
+                run_id=selected.target_run_id, targets=list(selected.targets))
+            return receipt.to_dict()
         finally:
             self.snapshot_reader.invalidate(session_id)
-            self.snapshot_reader.reads.discard('questions', run.id)
+            from .observability.reads import ReadKind
+            self.snapshot_reader.reads.discard(ReadKind.QUESTIONS, run.id)
             self.dirty.set()
 
     def _reconcile_snapshot(self, project_id, observations):

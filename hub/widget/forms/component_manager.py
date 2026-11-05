@@ -33,6 +33,7 @@ from ...ui.input.registry import ShortcutRegistry
 
 class ComponentManager(Dialog):
     """Backend callbacks own data; this widget owns selection and pending UI work."""
+    PARAGRAPH = '\n\n'
 
     def __init__(
         self,
@@ -156,7 +157,7 @@ class ComponentManager(Dialog):
         popup = ReadOnlyDialog(
             self.view.t(MessageKey.HELP_TITLE),
             self.view.t(MessageKey.COMPONENT_HELP, command=component_spec(self.name).tool_prefix)
-            + "\n\n" + self.view.t(MessagePattern.component_help(self.name)),
+            + ComponentManager.PARAGRAPH + self.view.t(MessagePattern.component_help(self.name)),
             self.view._rows, self.view._columns, close, self.view.t,
             markdown=True, theme=lambda: self.view.theme,
             render_worker=self.view.render_worker,

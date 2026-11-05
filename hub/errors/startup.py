@@ -20,6 +20,7 @@ class StartupLoadError(Exception):
 
 @dataclass(frozen=True, slots=True)
 class StartupFailure:
+    OPERATION = 'startup'
     error: ErrorInfo
     stage: str
     target: str
@@ -41,5 +42,5 @@ class StartupFailure:
             hint = MessageKey.STARTUP_INSTALL_HINT
         if not retry_allowed:
             hint, reset = MessageKey.STARTUP_CLEANUP_HINT, None
-        return cls(from_exception(error, origin=ErrorOrigin.BACKEND, operation="startup"),
+        return cls(from_exception(error, origin=ErrorOrigin.BACKEND, operation=StartupFailure.OPERATION),
                    stage, str(target), hint, reset, retry_allowed)

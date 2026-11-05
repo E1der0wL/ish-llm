@@ -56,6 +56,13 @@ class StartupMessageControl(UIControl):
 
 
 class StartupLoadingDialog(Dialog):
+    PERCENT_SCALE = 100
+    PERCENT_TEXT = '{value:.0f}%'
+    TARGET_SEPARATOR = ': '
+    NEWLINE = '\n'
+    PARAGRAPH = '\n\n'
+    UNKNOWN_PROGRESS = '—%'
+    EXCEPTION_NOTES = '__notes__'
     CONTENT_COLUMNS = 56
     blocks_restart = True
 
@@ -108,19 +115,19 @@ class StartupLoadingDialog(Dialog):
 
     def message(self):
         if not self.showing_failure:
-            return [(ThemeSelector.ACCENT.style, "\n".join(logo(self.CONTENT_COLUMNS)))]
+            return [(ThemeSelector.ACCENT.style, StartupLoadingDialog.NEWLINE.join(logo(self.CONTENT_COLUMNS)))]
         issue, t = self.issue, self.view.t
         cause = self.recovery_error or issue.error.detail or issue.error.message
         return [
             (ThemeSelector.ACCENT.style, t(K.STARTUP_FAILURE)),
             ("", cause),
-            (ThemeSelector.MUTED.style, t(K.STARTUP_TARGET) + ": " + issue.target + "\n\n" + t(issue.hint)),
+            (ThemeSelector.MUTED.style, t(K.STARTUP_TARGET) + self.TARGET_SEPARATOR + issue.target + StartupLoadingDialog.PARAGRAPH + t(issue.hint)),
         ]
 
     def stage(self):
         update = self.update
-        percent = (f"{min(100, max(0, update.completed / update.total * 100)):.0f}%"
-                   if update.total else "—%")
+        percent = (self.PERCENT_TEXT.format(value=min(self.PERCENT_SCALE, max(0, update.completed / update.total * self.PERCENT_SCALE)))
+                   if update.total else StartupLoadingDialog.UNKNOWN_PROGRESS)
         return self.view.t(K.STARTUP_PROGRESS, stage=self.view.t(update.key), percent=percent)
 
     def observe(self, update):
@@ -164,7 +171,7 @@ class StartupLoadingDialog(Dialog):
         except Exception as error:
             from ...errors.adapters import from_exception
             self.view.operation_diagnostics.record_view(self.view, from_exception(error))
-            self.recovery_error = str(error) + "\n" + "\n".join(getattr(error, "__notes__", ()))
+            self.recovery_error = str(error) + StartupLoadingDialog.NEWLINE + StartupLoadingDialog.NEWLINE.join(getattr(error, StartupLoadingDialog.EXCEPTION_NOTES, ()))
             self.failed(self.issue)
         finally:
             self.busy = False

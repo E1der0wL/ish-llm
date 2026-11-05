@@ -95,6 +95,17 @@ class PluginAPITests(unittest.IsolatedAsyncioTestCase):
             await self.api.interrupt(self.plugin, reference, "foreign")
         self.release.set()
 
+    async def test_reference_project_must_match_owned_session(self):
+        _, lane = await self.registered()
+        reference = await self.api.submit(self.plugin, lane['session_id'], 'hello', ['helper'], None, 'scope')
+        self.release.set()
+        with self.assertRaisesRegex(ValueError, 'another Project'):
+            await self.api.cancel(self.plugin, {**reference, 'project_id': self.runtime.project.id})
+        with self.assertRaises((TypeError, ValueError)):
+            await self.api.cancel(self.plugin, {k: v for k, v in reference.items() if k != 'generation'})
+        with self.assertRaises((TypeError, ValueError)):
+            await self.api.cancel(self.plugin, {**reference, 'request_id': 123})
+
     async def test_bad_template_does_not_leave_visible_or_partially_registered_project(self):
         with self.assertRaises(Exception):
             await self.api.register(self.plugin, PluginDefinition("Bad", {"helper": {"engine": "missing"}}))

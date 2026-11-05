@@ -4,6 +4,7 @@ from .observability.reads import ObservationReads
 from .callbacks import CommandCallbacks
 from ..config.preferences import PreferencesStore
 import asyncio
+import math
 from contextlib import nullcontext
 from concurrent.futures import Future
 import threading
@@ -18,6 +19,8 @@ from .project.settings_contracts import SettingsOperation
 
 
 class BackendWorker:
+    CLEANUP_FAILURE = 'Startup and cleanup failed'
+    UNCLOSED_STARTUP = 'Failed startup still owns resources; restart ish after reviewing cleanup errors'
     WRITE_OPERATIONS = frozenset({
         HubRuntime.new_session.__name__, HubRuntime.delete_session.__name__,
         HubRuntime.rename_session.__name__, HubRuntime.invite_agent.__name__,
@@ -187,7 +190,7 @@ class BackendWorker:
                         await self.runtime.close()
                         self._runtime_closed = True
                     except Exception as cleanup_error:
-                        error = ExceptionGroup("Startup and cleanup failed", [error, cleanup_error])
+                        error = ExceptionGroup(BackendWorker.CLEANUP_FAILURE, [error, cleanup_error])
                         retry_allowed = False
                 target = (self.runtime.project.id if self.runtime is not None
                           and self.runtime.project is not None else str(self.config.workspace))
@@ -283,7 +286,7 @@ class BackendWorker:
         last = initial
         preempt = True
         loop = asyncio.get_running_loop()
-        last_read = loop.time() if initial is not None or not self._visible else -float('inf')
+        last_read = loop.time() if initial is not None or not self._visible else -math.inf
         reconcile_at = loop.time() + self.RECONCILE_INTERVAL
         if initial is None:
             self.runtime.dirty.set()
@@ -425,7 +428,7 @@ class BackendWorker:
         self._restarting = BackendWorker.RESTARTING
         if self.startup_failure is not None:
             if not self.startup_failure.retry_allowed:
-                raise RuntimeError("Failed startup still owns resources; restart ish after reviewing cleanup errors")
+                raise RuntimeError(BackendWorker.UNCLOSED_STARTUP)
             return
         commands = tuple(self._commands)
         for task in commands:

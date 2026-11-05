@@ -7,37 +7,40 @@ from prompt_toolkit.layout import ConditionalContainer, HSplit, Window
 from prompt_toolkit.widgets import Label
 
 from ...backend.interactions.command_range import CommandChain, CommandRangeApproval
+from ...backend.interactions.approval_matching import MatchedToolAction
 from ...backend.interactions.remembered import ApprovalMatch, ApprovalSelection, RememberScope, ToolApprovalConditions
 from ...config.theme_style import ThemeSelector
 from ...locales.keys import MessageKey
+from ...ui.input.json_document import JsonDocument
 from ..controls import Button, RadioList, TextArea
 from ..dialog import Dialog, PopupSize
 from ..section import Heading
 
 
 class ApprovalSelectionDialog(Dialog):
+    MINIMUM_PREFIX_ROWS = 2
+    MAXIMUM_DETAIL_ROWS = 5
     def __init__(self, question, match, option_id, value):
         self.question = question
         self.option_id, self.value = option_id, value
         self.identity, self.item = question.identity, question.item
         view, t = question.view, question.view.t
         self.status = ''
-        request = question.observation.request.to_record()
-        self.action = {key: request['action'][key] for key in ToolApprovalConditions.ACTION_FIELDS}
+        self.action = MatchedToolAction.capture(question.observation.request.action)
         matches = [(ApprovalMatch.EXACT, t(MessageKey.APPROVAL_EXACT))]
         if CommandRangeApproval.available(self.action):
             matches.append((ApprovalMatch.COMMAND_RANGE, t(MessageKey.APPROVAL_RANGE)))
         self.matching = RadioList(matches, default=match, select_on_focus=True)
         body = [Heading(t(MessageKey.APPROVAL_CURRENT_ACTION))]
-        self.original = TextArea(text=json.dumps(self.action['arguments'], ensure_ascii=False, indent=2),
-            read_only=True, focusable=False, wrap_lines=True, height=5,
+        self.original = TextArea(text=JsonDocument.render(self.action.arguments, allow_non_finite=False),
+            read_only=True, focusable=False, wrap_lines=True, height=ApprovalSelectionDialog.MAXIMUM_DETAIL_ROWS,
             style=ThemeSelector.POPUP_LIST.style)
         body.extend((self.original, Window(height=1)))
         body.extend((Heading(t(MessageKey.APPROVAL_MATCHING)), self.matching, Window(height=1)))
         if len(matches) > 1:
-            chain = CommandChain.parse(self.action['arguments'][CommandRangeApproval.COMMAND])
+            chain = CommandChain.parse(self.action.arguments[CommandRangeApproval.COMMAND])
             self.prefixes = TextArea(text=CommandChain.text(chain.suggested()), multiline=True,
-                wrap_lines=False, height=max(2, min(5, len(chain.commands))),
+                wrap_lines=False, height=max(ApprovalSelectionDialog.MINIMUM_PREFIX_ROWS, min(ApprovalSelectionDialog.MAXIMUM_DETAIL_ROWS, len(chain.commands))),
                 style=ThemeSelector.POPUP_LIST.style)
             body.append(ConditionalContainer(HSplit([
                 Heading(t(MessageKey.APPROVAL_PREFIXES)), self.prefixes,

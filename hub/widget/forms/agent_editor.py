@@ -160,7 +160,7 @@ class AgentEditor(Dialog):
             return
         self.busy = True
         try:
-            field.input.text = await self.manager.edit_text(field.input.text, self.view.general, suffix='.json')
+            field.input.text = await self.manager.edit_text(field.input.text, self.view.general, suffix=JsonDocument.SUFFIX)
         except Exception as error:
             self.status = NoticeText.error(str(error), self.view.t).inline()
         finally:
