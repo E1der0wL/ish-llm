@@ -1,6 +1,7 @@
 """MCP 발견 결과를 명시적으로 준비하고, 저장된 선택만 공통 Tool 경계에 연결한다."""
 
 from llm.components.tools.registry import Tool, ToolRegistry
+from llm.core.configuration import UNSET
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import revision_token, async_method
@@ -125,6 +126,14 @@ class MCPData(ComponentData):
     async def aread_resource(self, identifier, uri):
         async with self.connect(identifier) as access:
             return await access.aread_resource(uri)
+
+    async def alist_prompts(self, identifier, *, cursor=UNSET):
+        async with self.connect(identifier) as access:
+            return await access.alist_prompts(cursor=cursor)
+
+    async def aget_prompt(self, identifier, name, *, arguments=UNSET):
+        async with self.connect(identifier) as access:
+            return await access.aget_prompt(name, arguments=arguments)
 
     @workspace_locked
     def list_tools(self, identifier):

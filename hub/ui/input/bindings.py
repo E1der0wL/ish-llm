@@ -52,7 +52,7 @@ class HubBindings:
             ShortcutLabel.CONTROL_W,
             ShortcutAction.RESTART,
             lambda e: view.restart(),
-            when=lambda: view.visible,
+            when=lambda: view.visible and not getattr(view._dialog, "blocks_restart", False),
             global_=self.GLOBAL,
         )
         common.add(

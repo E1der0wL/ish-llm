@@ -48,9 +48,10 @@ the ordinary Agent list with their plugin name, alongside the current Project's
 Agents. New/imported Agents still belong to the current Project. Editing or
 deleting an existing entry targets its original owning Project.
 Backend reference protection still prevents deleting Agents used by Sessions or
-other resources. Newly registered Agents and the default planner use the same
-creation/modification timestamp writer as manual Agent creation. Existing records
-without dates are not rewritten with an invented historical timestamp.
+other resources. Newly registered Agents, the default planner and manually created
+Agents use Backend-owned record times. Lists read `project.agents.aget_times()`;
+Hub does not insert dates into Agent definitions or interpret user metadata as dates.
+Unsupported records without native times are not repaired or backfilled.
 The ordinary schema-based Agent editor and revision checks are reused. Its
 Completion review selector preserves inheritance, explicit null (disabled), and
 enabled budgets. A Project-required review cannot be disabled by an Agent.

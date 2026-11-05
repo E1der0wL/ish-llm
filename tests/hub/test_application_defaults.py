@@ -43,8 +43,8 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNone(result['batch']['error'])
                 self.assertEqual((await project.agents.aload('reviewer'))['completion']['model'], 'test/reviewer')
                 again = await settings.execute('preset_export', project.id)
-                reviewer_metadata = again['project']['agents']['reviewer'].pop('metadata')
-                self.assertEqual(reviewer_metadata['created_at'], reviewer_metadata['updated_at'])
+                times = await project.agents.aget_times('reviewer')
+                self.assertEqual(times['created_at'], times['updated_at'])
                 self.assertEqual(again['project']['agents'], value['project']['agents'])
                 for name in ('../outside', 'a/b', 'a\\b', '.', 'CON', 'bad:port'):
                     with self.subTest(name=name), self.assertRaises(ValueError):

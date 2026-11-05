@@ -16,7 +16,7 @@ from prompt_toolkit.input import create_pipe_input
 
 from hub.hub import install
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
+from hub.asset.guides import load_skills, SYSTEM_PROMPT, TEMPLATE_VERSION
 from llm.components.workflows import WorkflowGraph
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.test_live import until
@@ -24,6 +24,7 @@ from tests.hub.support import SizedOutput
 
 
 COMPONENTS = {"tools", "skills", "mcp", "rag", "workflows", "memory", "data", "prompts", "builtin_tools", "goals", "refinement", "vision"}
+SKILLS = load_skills()
 
 
 class DefaultTests(unittest.IsolatedAsyncioTestCase):
@@ -48,8 +49,9 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 try:
                     await runtime.start()
                     saved = await runtime.project.agents.aload('assistant')
-                    self.assertEqual(saved['metadata']['created_at'], saved['metadata']['updated_at'])
-                    self.assertEqual({k: v for k, v in saved.items() if k != 'metadata'}, definition)
+                    times = await runtime.project.agents.aget_times('assistant')
+                    self.assertEqual(times['created_at'], times['updated_at'])
+                    self.assertEqual(saved, definition)
                 finally:
                     await runtime.close()
 
@@ -71,8 +73,11 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(document.name, identifier)
                     self.assertEqual(document.frontmatter["description"], description)
                     self.assertEqual(document.body.replace('\r\n', '\n'), SkillDocument.parse(instructions).body)
-                    self.assertEqual(document.frontmatter['metadata']['created_at'],
-                                     document.frontmatter['metadata']['updated_at'])
+                    times = await skills.aget_times(identifier)
+                    # Native import also commits package file evidence/modes.
+                    self.assertTrue(times['created_at'])
+                    self.assertTrue(times['updated_at'])
+                    self.assertNotIn('created_at', document.frontmatter['metadata'])
                     self.assertEqual(document.frontmatter["metadata"]["hub-template-version"], str(TEMPLATE_VERSION))
                 record = await runtime.project.agents.asnapshot("assistant")
                 definition = record["definition"]

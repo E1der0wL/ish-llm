@@ -18,6 +18,8 @@
 | [journal.py](journal.py) | JSONL 증분 읽기·projection·조회 인덱스입니다. |
 | [logging.py](logging.py) | 도메인별 로그 경로와 주입 가능한 로그 출력 계약입니다. |
 | [observability.py](observability.py) | 누적 운영 통계와 기존 owner 상태를 모은 조회 스냅샷입니다. |
+| [exporter.py](exporter.py) | 명시적 용량·overflow 정책을 받는 선택형 관찰 이벤트 내보내기 worker입니다. |
+| [cancellation.py](cancellation.py) | 소유한 child task에 취소를 전달하고 반복 취소 중에도 회수를 기다립니다. |
 | [activity.py](activity.py) | Project 단위 activity/event 참조 인덱스입니다. Run/Step 원본을 대체하지 않습니다. |
 | [processes.py](processes.py) | Linux process group, parent-death gate와 종료·회수의 공통 처리입니다. |
 | [process_state.py](process_state.py) | /proc의 PID·시작 identity·종료 상태를 읽습니다. |

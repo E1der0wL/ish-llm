@@ -58,8 +58,13 @@ class SkillComponent(DefinitionComponent):
     def delete(self, project, identifier):
         self.storage(project).delete(identifier)
 
-    def read_file(self, project, identifier, path, *, offset=FileRange.START, length=FileRange.TO_END):
-        return self.storage(project).read_file(identifier, path, offset=offset, length=length)
+    def get_times(self, project, identifier):
+        return self.storage(project).get_times(identifier)
+
+    def read_file(self, project, identifier, path, *, expected_revision=None,
+                  offset=FileRange.START, length=FileRange.TO_END):
+        return self.storage(project).read_file(identifier, path, expected_revision=expected_revision,
+                                                offset=offset, length=length)
 
     def write_file(self, project, identifier, path, content):
         with FileComponent.content_stream(content) as stream:
@@ -69,9 +74,8 @@ class SkillComponent(DefinitionComponent):
         self.storage(project).write_file(identifier, path, stream)
 
     def read_text(self, project, identifier, path, *, expected_revision, offset, limit):
-        from llm.services.infrastructure.storage import check_revision
-        check_revision(self.load(project, identifier), expected_revision)
-        return self.storage(project).read_text(identifier, path, offset=offset, limit=limit)
+        return self.storage(project).read_text(identifier, path, expected_revision=expected_revision,
+                                                offset=offset, limit=limit)
 
     def import_file(self, project, identifier, path, source):
         source = self._checked(Path(source).absolute())
@@ -106,6 +110,8 @@ class SkillComponent(DefinitionComponent):
         if capability == ToolRegistry.CAPABILITY:
             from .tools import skill_tools
             from .views import SkillResourceRequest
+            # Keep the public resolver: selected Host implementations may wrap
+            # snapshot readers (for example, move them off the event loop).
             registry = self.resolve(project, capability)
             registry.register(skill_tools(records, read_resource=data.aread_resource,
                 read_file=data.aread_file).get(SkillResourceRequest.NAME))

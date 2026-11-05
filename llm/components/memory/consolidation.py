@@ -7,7 +7,6 @@ from .sources import MemorySource
 from .consolidation_records import (ConsolidationOperation, ConsolidationMetadata,
                                     ConsolidationEntry, ConsolidationJournal, ConsolidationReceipt)
 from .consolidation_storage import ConsolidationManifest, ConsolidationInventory
-from datetime import datetime, timezone
 import hashlib
 
 from llm.components.base import Component, validate_name
@@ -202,7 +201,9 @@ class MemoryConsolidation:
         entries = []
         for identifier in [proposal, *names]:
             before = self._envelope(identifier)
-            after = self._after(identifier, before, proposal, source, datetime.now(timezone.utc).isoformat(), operation_id)
+            from llm.core.record_times import RecordTimes
+            at = RecordTimes.from_record(MemoryEnvelope(before).record).touch().updated_at
+            after = self._after(identifier, before, proposal, source, at, operation_id)
             entries.append(ConsolidationEntry.create(identifier, self._digest(before), after))
         journal = ConsolidationJournal.create(operation_id, component.identity(project), entries, proposal, names, source)
         self._store_journal(journal)

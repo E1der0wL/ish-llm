@@ -5,6 +5,7 @@
 """
 
 from llm.core.schema import SchemaExtension, SchemaKeyword, SchemaBoolean
+from llm.services.infrastructure.cancellation import cancel_tasks
 
 from llm.core.resource_references import ResourceTarget
 
@@ -815,7 +816,6 @@ class GraphEngine:
     steering_mode = SteeringMode.FORWARD
     agent_mode = AgentMode.WORKFLOW
     ABSENT = GraphPreparation.ABSENT
-    DRAIN_EXCEPTIONS = True
 
     TIMEOUT_PARAMETER = GraphParameters.TIMEOUT_SECONDS
     DEFAULT_BUFFER_SIZE = GraphParameters.DEFAULT_BUFFER_SIZE
@@ -1526,13 +1526,7 @@ class GraphEngine:
                     if not ack.done():
                         ack.set_result(GraphPreparation.ABSENT)
                 else:
-                    reader.cancel()
-                    await asyncio.gather(reader, return_exceptions=self.DRAIN_EXCEPTIONS)
+                    await cancel_tasks((reader,))
                     reader = GraphPreparation.ABSENT
         finally:
-            if reader is not GraphPreparation.ABSENT:
-                reader.cancel()
-                await asyncio.gather(reader, return_exceptions=self.DRAIN_EXCEPTIONS)
-            if not producer.done():
-                producer.cancel()
-            await asyncio.gather(producer, return_exceptions=self.DRAIN_EXCEPTIONS)
+            await cancel_tasks((producer,) if reader is GraphPreparation.ABSENT else (reader, producer))

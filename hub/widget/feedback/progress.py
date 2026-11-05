@@ -132,10 +132,10 @@ class TaskProgress:
     INDETERMINATE = False
     PERCENT_FORMAT = "{percentage:.0f}%"
 
-    def __init__(self, view):
+    def __init__(self, view, *, bar_only=False):
         self.view = view
         self.bar = BarColumn()
-        self.progress = Progress(
+        columns = (
             SpinnerColumn(),
             TextColumn(
                 ProgressTaskFields.label_column(),
@@ -144,6 +144,9 @@ class TaskProgress:
             ),
             self.bar,
             TextColumn(ProgressTaskFields.percent_column(), markup=self.MARKUP),
+        )
+        self.progress = Progress(
+            *((self.bar,) if bar_only else columns),
             auto_refresh=self.AUTO_REFRESH,
             expand=self.EXPAND,
         )

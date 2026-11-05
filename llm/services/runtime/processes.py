@@ -15,6 +15,7 @@ from llm.services.infrastructure.process_result import ProcessResult
 from llm.services.infrastructure.process_command import ProcessCommand
 from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 from llm.services.infrastructure.storage import drain_on_cancel
+from llm.services.infrastructure.cancellation import cancel_tasks
 from llm.services.infrastructure.captured_text import CapturedText
 from llm.policies import ExecutionLimitError
 from llm.core.tool_contracts import ToolIsolation
@@ -52,7 +53,6 @@ class ProcessToolRunner:
     READ_CHUNK_BYTES = 8192
     OUTPUT_LIMIT = "Tool process output limit exceeded"
     NEW_SESSION = True
-    COLLECT_CLEANUP_ERRORS = True
     PROCESS_FAILURE = "Tool process exited with {code}: {stderr}"
     INVALID_RESPONSE = "Tool process must return one UTF-8 JSON value"
     WRONG_LOOP = "Use ProcessToolRunner on its original event loop"
@@ -151,9 +151,7 @@ class ProcessToolRunner:
                 nonlocal process
                 if process is None:
                     process = await pending
-                for reader in readers:
-                    reader.cancel()
-                await asyncio.gather(*readers, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
+                await cancel_tasks(readers)
                 async def discard(stream):
                     while await stream.read(self.READ_CHUNK_BYTES):
                         pass
@@ -163,9 +161,7 @@ class ProcessToolRunner:
                     await kill_process_tree(process)
                     await asyncio.gather(*drains)
                 finally:
-                    for drain in drains:
-                        drain.cancel()
-                    await asyncio.gather(*drains, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
+                    await cancel_tasks(drains)
                 if process.stdin is not None:
                     process.stdin.close()
             try:

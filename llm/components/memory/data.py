@@ -18,7 +18,7 @@ from .tool_values import MemoryToolArguments, MemoryToolDefinition
 from llm.components.prompts.records import PromptDefinition
 
 from llm.services.lifecycle.components import ComponentData
-from llm.services.infrastructure.locking import workspace_locked
+from llm.services.infrastructure.locking import workspace_locked, WorkspaceOwnership
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.storage import async_method
 from copy import deepcopy
@@ -195,7 +195,7 @@ class MemoryData(ComponentData):
         Compactions(self, session_id, scope, tool_id=tool_id).checkpoint(
             identifier, run_id, fingerprint, total, progress, previous_offset)
 
-    @workspace_locked(records=True)
+    @workspace_locked(records=WorkspaceOwnership.RECORD_BATCH)
     def _observe_context(self, session_id, scope, view):
         from .compaction import Compactions
         storage = Compactions(self, session_id, scope)

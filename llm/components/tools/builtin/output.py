@@ -1,7 +1,8 @@
 """Builtin-owned completed output references; file bytes remain with the selected Component."""
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from enum import StrEnum
 from pathlib import Path
 import tempfile
 
@@ -12,30 +13,51 @@ from llm.services.infrastructure.text_stream import text_blocks
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.components.file_manifest import FileManifest
 from llm.services.lifecycle.components import ComponentData
-from .process_values import ProcessOutput, ProcessSnapshot, StoredOutput, OutputReference, OutputDestination
+from llm.services.lifecycle.sessions import SessionRepository
+from .process_values import (ProcessOutput, ProcessSnapshot, StoredOutput, OutputReference,
+                             OutputDestination, ProcessOutputArguments, ProcessText)
+
+
+class ProcessOrigin(StrEnum):
+    RUNTIME = 'runtime'
+    RETAINED = 'retained'
 
 
 @dataclass(frozen=True, slots=True)
 class ProcessObservation:
     """Origin is observation provenance, never permission to restart a command."""
+    INVALID = 'Invalid process observation'
+
     source: str
     record: StoredOutput
 
     def __post_init__(self):
-        if self.source not in {'runtime', 'retained'} or not isinstance(self.record, StoredOutput):
-            raise ValueError('Invalid process observation')
+        if self.source not in ProcessOrigin or not isinstance(self.record, StoredOutput):
+            raise ValueError(self.INVALID)
 
     def to_dict(self):
-        return {'source': self.source, 'record': self.record.to_dict()}
+        value = asdict(self)
+        value[type(self).record.__name__] = self.record.to_dict()
+        return value
 
 
 class BuiltinOutputData(ComponentData):
+    MISSING_DESTINATION = 'Process observation requires an explicitly configured output destination'
+    PUBLICATION_REQUIRED = 'Process output records are published by the execution owner'
+    IMMUTABLE_OUTPUT = 'Process output records cannot be rewritten'
+    MISSING_REFERENCES = 'Output deletion requires execution reference checks'
+    RESUME_REFERENCES = 'Output is retained while unfinished Run resume references exist'
+    DUPLICATE_PUBLICATION = 'Process output already exists; cannot replay publication'
+    CHANGED_OUTPUT = 'Stored process output changed'
+
+    FILE_PATTERN = "process-output/{identifier}/{name}.txt"
+
     @workspace_locked
     def _process_binding(self):
         project, component = self._current()
         output = component.get_output(project)
         if output is None:
-            raise ValueError('Process observation requires an explicitly configured output destination')
+            raise ValueError(BuiltinOutputData.MISSING_DESTINATION)
         return component.get_observers(project), ProcessOutputStore(self, output.output.to_dict(), output.output_preview_chars)
 
     async def alist_processes(self):
@@ -43,11 +65,11 @@ class BuiltinOutputData(ComponentData):
         from .capture import output_scope
 
         observers, store = await self._async_call(self._process_binding)
-        records = {identifier: ProcessObservation('retained', StoredOutput(**record))
+        records = {identifier: ProcessObservation(ProcessOrigin.RETAINED.value, StoredOutput(**record))
                    for identifier, record in (await self.alist()).items()}
         with output_scope(store):
             for processes in observers:
-                records.update({identifier: ProcessObservation('runtime', StoredOutput(**record))
+                records.update({identifier: ProcessObservation(ProcessOrigin.RUNTIME.value, StoredOutput(**record))
                                 for identifier, record in (await processes.observe()).items()})
         return records
 
@@ -69,32 +91,32 @@ class BuiltinOutputData(ComponentData):
             return await store.read(ProcessOutputArguments.read(arguments))
 
     def create(self, data, *, identifier=ComponentData.UNSPECIFIED):
-        raise ValueError("Process output records are published by the execution owner")
+        raise ValueError(BuiltinOutputData.PUBLICATION_REQUIRED)
 
     def save(self, identifier, data, *, expected_version=ComponentData.UNSPECIFIED):
-        raise ValueError("Process output records cannot be rewritten")
+        raise ValueError(BuiltinOutputData.IMMUTABLE_OUTPUT)
 
     def update(self, identifier, changes, *, expected_version=ComponentData.UNSPECIFIED):
-        raise ValueError("Process output records cannot be rewritten")
+        raise ValueError(BuiltinOutputData.IMMUTABLE_OUTPUT)
 
     @workspace_locked
     def delete(self, identifier, *, expected_version=ComponentData.UNSPECIFIED):
         project, _ = self._current()
         if self._sessions is None or self._sessions.run_repository is None:
-            raise RuntimeError("Output deletion requires execution reference checks")
-        for session in self._sessions.list(project, include_deleted=True):
+            raise RuntimeError(BuiltinOutputData.MISSING_REFERENCES)
+        for session in self._sessions.list(project, include_deleted=SessionRepository.ALL_RECORDS):
             self._sessions.require_inactive(session)
             if self._sessions.run_repository.resume_references(session):
-                raise ValueError("Output is retained while unfinished Run resume references exist")
+                raise ValueError(BuiltinOutputData.RESUME_REFERENCES)
         return super().delete(identifier, expected_version=expected_version)
 
     @workspace_locked
     def _publish_output(self, identifier, sources, record, *, destination):
         files = self.related(destination.component)
         snapshot = EditableSnapshot.read(files.snapshot(destination.identifier))
-        paths = {f"process-output/{identifier}/{name}.txt": source for name, source in sources.items()}
+        paths = {self.FILE_PATTERN.format(identifier=identifier, name=name): source for name, source in sources.items()}
         if any(path in FileManifest(snapshot.data).entries for path in paths):
-            raise ValueError("Process output already exists; cannot replay publication")
+            raise ValueError(BuiltinOutputData.DUPLICATE_PUBLICATION)
         snapshot = EditableSnapshot.read(files.import_files(destination.identifier, paths, expected_revision=snapshot.version))
         references = {name: OutputReference(destination.component, destination.identifier, path=path,
             revision=revision_token(FileManifest(snapshot.data).require(path))).to_dict()
@@ -112,7 +134,7 @@ class BuiltinOutputData(ComponentData):
         files = self.related(reference.component)
         snapshot = EditableSnapshot.read(files.snapshot(reference.identifier))
         if revision_token(FileManifest(snapshot.data).require(reference.path)) != reference.revision:
-            raise ValueError("Stored process output changed")
+            raise ValueError(BuiltinOutputData.CHANGED_OUTPUT)
         return files.read_text(reference.identifier, reference.path,
                                expected_revision=snapshot.version, offset=offset, limit=limit)
 
@@ -124,6 +146,9 @@ class BuiltinOutputData(ComponentData):
 
 
 class ProcessOutputStore:
+    INVALID_OFFSET = 'Output offset is outside the retained stream'
+    WRITE_MODE = 'wb'
+
     def __init__(self, data, destination, preview_chars):
         self.data, self.destination, self.preview_chars = data, OutputDestination(**deepcopy(destination)), preview_chars
         self.owner = (str(data.ownership.path), data.project.id, data.name,
@@ -141,12 +166,12 @@ class ProcessOutputStore:
         directory = tempfile.TemporaryDirectory()
         def stage():
             sources = {}
-            for name, capture in (("stdout", stdout), ("stderr", stderr)):
+            for name, capture in zip(ProcessSnapshot.stream_names(), (stdout, stderr)):
                 path = Path(directory.name) / name
-                with capture.lock, path.open("wb") as output:
+                with capture.lock, path.open(self.WRITE_MODE) as output:
                     capture.stream.seek(0)
-                    for block in text_blocks(capture.stream, errors="replace"):
-                        output.write(block.encode("utf-8"))
+                    for block in text_blocks(capture.stream, errors=ProcessText.ERRORS):
+                        output.write(block.encode(ProcessText.ENCODING))
                 sources[name] = path
             return sources
         try:
@@ -163,11 +188,12 @@ class ProcessOutputStore:
         identifier = uuid4().hex
         timestamp = datetime.now(timezone.utc).isoformat()
         from .process_values import ProcessStatus
-        snapshot = ProcessSnapshot(identifier, ProcessStatus.COMPLETED.value, code, None,
-            list(argv), str(cwd), started_at, timestamp, False,
-            await asyncio.to_thread(stdout.read, 0, self.preview_chars),
-            await asyncio.to_thread(stderr.read, 0, self.preview_chars), False)
-        record = StoredOutput.from_snapshot(snapshot, sources=None, stdout_chars=stdout.characters,
+        snapshot = ProcessSnapshot(identifier, ProcessStatus.COMPLETED.value, code, ProcessSnapshot.NO_PROCESS_ID,
+            list(argv), str(cwd), started_at, timestamp, ProcessSnapshot.STDIN_CLOSED,
+            await asyncio.to_thread(stdout.read, ProcessOutputArguments.MIN_OFFSET, self.preview_chars),
+            await asyncio.to_thread(stderr.read, ProcessOutputArguments.MIN_OFFSET, self.preview_chars),
+            ProcessSnapshot.COMPLETE_OUTPUT)
+        record = StoredOutput.from_snapshot(snapshot, sources=StoredOutput.UNPUBLISHED, stdout_chars=stdout.characters,
                                            stderr_chars=stderr.characters, preview_chars=self.preview_chars)
         sources = await self.publish_capture(identifier, record.to_dict(), stdout, stderr)
         return record.with_sources(sources).to_dict()
@@ -179,11 +205,11 @@ class ProcessOutputStore:
         record = StoredOutput(**await self.load(args.process_id))
         limit = None if args.max_chars is UNSET else args.max_chars
         values = {}
-        for name, offset in (("stdout", args.stdout_offset), ("stderr", args.stderr_offset)):
+        for name, offset in zip(ProcessSnapshot.stream_names(), (args.stdout_offset, args.stderr_offset)):
             total = record.total(name)
-            if not 0 <= offset <= total:
-                raise ValueError("Output offset is outside the retained stream")
+            if not ProcessOutputArguments.MIN_OFFSET <= offset <= total:
+                raise ValueError(ProcessOutputStore.INVALID_OFFSET)
             text = await self.data.aread_output(args.process_id, name, offset=offset, limit=limit)
             values[name] = (text, offset + len(text), total - offset - len(text))
         return ProcessOutput(args.process_id, record.status, record.returncode, record.truncated,
-            *values["stdout"], *values["stderr"]).to_dict()
+            *values[ProcessSnapshot.stdout.__name__], *values[ProcessSnapshot.stderr.__name__]).to_dict()

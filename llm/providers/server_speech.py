@@ -12,7 +12,8 @@ from urllib.parse import urlsplit
 from contextlib import asynccontextmanager
 from importlib import import_module
 
-from .audio import AudioFormat, AudioChunk, AudioSequence, Transcript, SpeechError, speech_admission, native_call
+from .audio import AudioFormat, AudioChunk, AudioSequence, Transcript, SpeechError, SpeechStream, speech_admission, native_call
+from llm.services.infrastructure.cancellation import cancel_tasks
 
 
 @asynccontextmanager
@@ -70,7 +71,7 @@ class RealtimeTranscriber:
                 committed.set()
                 await connection.send(json.dumps({'type': 'input_audio_buffer.commit'}))
 
-            text, item_id, revision = '', None, 0
+            text, item_id, revision = '', None, SpeechStream.FIRST_SEQUENCE
             sender, receiver = asyncio.create_task(send()), None
             try:
                 while True:
@@ -102,14 +103,12 @@ class RealtimeTranscriber:
                             raise SpeechError('Server transcript delta must be text')
                         text += delta
                     yield observation.record(Transcript(stream_id, revision, text, final, event.get('usage')))
-                    revision += 1
+                    revision += SpeechStream.SEQUENCE_STEP
                     if final:
                         return
             finally:
                 pending = [task for task in (sender, receiver) if task is not None]
-                for task in pending:
-                    task.cancel()
-                await asyncio.gather(*pending, return_exceptions=True)
+                await cancel_tasks(pending)
 
 
 class ServerSynthesizer:
@@ -132,14 +131,14 @@ class ServerSynthesizer:
                 content_type = response.headers.get('content-type', '').split(';')[0].strip()
                 if content_type not in {'audio/pcm', 'application/octet-stream'}:
                     raise SpeechError('Speech server returned a non-PCM response')
-                carry, sequence = b'', 0
+                carry, sequence = b'', SpeechStream.FIRST_SEQUENCE
                 async for data in response.iter_bytes():
                     carry += data
                     size = len(carry) - len(carry) % self.output_format.frame_bytes
                     if size:
-                        yield observation.record(AudioChunk(stream_id, sequence, self.output_format, carry[:size], False))
+                        yield observation.record(AudioChunk(stream_id, sequence, self.output_format, carry[:size], SpeechStream.PARTIAL))
                         carry = carry[size:]
-                        sequence += 1
+                        sequence += SpeechStream.SEQUENCE_STEP
                 if carry or not sequence:
                     raise SpeechError('Speech server returned incomplete or empty PCM audio')
-                yield observation.record(AudioChunk(stream_id, sequence, self.output_format, b'', True))
+                yield observation.record(AudioChunk(stream_id, sequence, self.output_format, SpeechStream.NO_AUDIO, SpeechStream.FINAL))

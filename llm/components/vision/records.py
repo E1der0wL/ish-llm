@@ -3,7 +3,7 @@
 from copy import deepcopy
 import hashlib
 import re
-from llm.core.models import now
+from llm.core.record_times import RecordTimes
 from .image_contracts import ImageInfo, ImageEncoding, ImageOperation
 
 
@@ -66,7 +66,8 @@ class VisionImageRecord:
         SHA256 = ImageInfo.sha256.__name__
         TITLE = "title"
         METADATA = "metadata"
-        CREATED_AT = "created_at"
+        CREATED_AT = RecordTimes.CREATED_AT
+        UPDATED_AT = RecordTimes.UPDATED_AT
         DELETED = "deleted"
         DELETED_AT = "deleted_at"
         ORIGIN = "origin"
@@ -82,6 +83,7 @@ class VisionImageRecord:
         Field.TITLE,
         Field.METADATA,
         Field.CREATED_AT,
+        Field.UPDATED_AT,
         Field.DELETED,
         Field.DELETED_AT,
         Field.ORIGIN,
@@ -96,6 +98,7 @@ class VisionImageRecord:
 
     @classmethod
     def validate(cls, identifier, data, format_version):
+        RecordTimes.from_record(data)
         unknown = set(data) - cls.FIELDS
         if unknown:
             raise ValueError(cls.UNKNOWN_FIELDS.format(identifier=identifier, fields=sorted(unknown)))
@@ -121,7 +124,7 @@ class VisionImageRecord:
             **info,
             cls.Field.TITLE: title,
             cls.Field.METADATA: deepcopy(metadata),
-            cls.Field.CREATED_AT: now(),
+            **RecordTimes.create().to_dict(),
             cls.Field.DELETED: cls.LIVE,
         }
         if origin is not cls.ABSENT:
@@ -171,7 +174,9 @@ class VisionImageRecord:
             raise ValueError(self.IMMUTABLE)
 
     def mark_deleted(self):
-        self._value.update({self.Field.DELETED: self.DELETED, self.Field.DELETED_AT: now()})
+        times = RecordTimes.from_record(self._value).touch()
+        self._value.update({self.Field.DELETED: self.DELETED, self.Field.DELETED_AT: times.updated_at})
+        self._value.update(times.to_dict())
 
     def verify_asset(self, raw):
         if len(raw) != self.bytes or hashlib.sha256(raw).hexdigest() != self.sha256:

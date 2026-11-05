@@ -263,6 +263,14 @@ class ComponentData:
         return component.load(project, identifier)
 
     @workspace_locked
+    def get_times(self, identifier: str) -> dict:
+        """Read the selected owner's managed times without modifying its definition."""
+        project, component = self._current()
+        return component.get_times(project, identifier)
+
+    aget_times = async_method(get_times)
+
+    @workspace_locked
     def snapshot(self, identifier=UNSPECIFIED) -> dict:
         """UI 편집용 데이터와 충돌 검사용 버전을 함께 조회한다. None이면 Component 설정이다."""
         project, component = self._current()

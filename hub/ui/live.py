@@ -60,7 +60,7 @@ class LiveHubView(HubView):
         self.model = HubView.NO_MODEL
         self.agent_id = HubView.NO_AGENT
         self.connected = LiveHubView.DISCONNECTED
-        self.notice = self.t(MessageKey.CONNECTING_NOTICE)
+        self.notice = ""
         SubmittedMessages.initialize(self)
         self._presentation_cache = MessagePresentationCache()
         self.failure_diagnoses = {}
@@ -263,14 +263,16 @@ class LiveController:
     })
 
     def __init__(
-        self, view: LiveHubView, config: HubConfig, *, worker_factory=BackendWorker
+        self, view: LiveHubView, config: HubConfig, *, worker_factory=BackendWorker,
+        initial_preferences=None,
     ):
-        from ..config.preferences import configured_workspace
-
-        config = configured_workspace(config)
-        preferences = PreferenceSnapshot(
-            PreferencesStore(config._workspace_anchor).load()
-        )
+        from ..config.preferences import prepare_profile
+        if initial_preferences is None:
+            config, preferences, startup_failure = prepare_profile(config)
+        else:
+            preferences, startup_failure = initial_preferences
+        self.startup_failure = startup_failure
+        self.retry_startup = None
         if preferences.has_section(PreferenceSection.PROFILE.value):
             config = replace(config, user_profile=preferences.required_profile())
         if preferences.has_section(PreferenceSection.APPEARANCE.value):
@@ -287,7 +289,7 @@ class LiveController:
         self.app = LiveController.ABSENT
         self.loop = LiveController.ABSENT
         self.closed = LiveController.OPEN
-        self._startup_task = None
+        self._startup_popup = None
         self._history_focus = None
         self.requests = UIRequests(
             lambda: self.worker,
@@ -608,17 +610,43 @@ class LiveController:
         )
 
     def _startup_stage(self, update):
-        if not self.closed and self._startup_task is not None:
-            self.view.progress.observe(self._startup_task, update)
+        if not self.closed and self._startup_popup is not None:
+            self._startup_popup.observe(update)
 
     def _worker_error(self, error):
-        self._finish_startup()
+        issue = getattr(self.worker, "startup_failure", None)
+        if issue is not None:
+            self.startup_failure = issue
+            self._show_startup()
+            return
         self._error(error)
 
+    @property
+    def starting(self):
+        return self._startup_popup is not None or self.startup_failure is not None
+
+    def _show_startup(self):
+        from ..widget.forms.startup_loading import StartupLoadingDialog
+        if self.closed:
+            return
+        if self._startup_popup is None:
+            self._startup_popup = StartupLoadingDialog(self.view, self.retry_startup)
+            self.view.dialogs.show(self._startup_popup, self._startup_popup.first_button)
+        if self.startup_failure is not None:
+            if self._startup_popup.issue is not self.startup_failure:
+                self.view.operation_diagnostics.record(self.view.project_id, self.startup_failure.error)
+            self._startup_popup.failed(self.startup_failure)
+
     def _finish_startup(self):
-        if self._startup_task is not None:
-            self.view.progress.finish(self._startup_task)
-            self._startup_task = None
+        if self._startup_popup is not None:
+            popup, self._startup_popup = self._startup_popup, None
+            popup.on_close = None
+            if self.view._dialog is popup:
+                self.view.dialogs.close(restore_focus=False)
+                if self.view.visible:
+                    self.view.active_page.focus_main()
+            else:
+                popup.dispose()
 
     def _set_output_interval(self, seconds):
         if self.worker:
@@ -636,14 +664,18 @@ class LiveController:
         self.view.toasts.app = app
         self.loop = asyncio.get_running_loop()
         self.ensure_worker()
-        self.worker.set_visible(True)
+        if self.worker is not None:
+            self.worker.set_visible(True)
 
     def ensure_worker(self):
         """Start shared backend lazily, including calls while Hub stays hidden."""
         if self.closed:
             raise RuntimeError("Hub installation is closed")
+        if self.startup_failure is not None:
+            self._show_startup()
+            return self.worker
         if self.worker is LiveController.ABSENT:
-            self._startup_task = self.view.progress.start(self.view.t(MessageKey.PROGRESS_BACKEND_PREPARE))
+            self._show_startup()
             self.worker = self.worker_factory(
                 self.config,
                 self._publish,

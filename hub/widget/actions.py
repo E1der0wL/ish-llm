@@ -63,7 +63,7 @@ def bind_button_navigation(buttons):
     """Keep button arrows and their footer hints together, including edge keys."""
 
     def move(event):
-        controls = [button.control for button in buttons]
+        controls = [button.control for button in buttons if button.control.is_focusable()]
         current = event.app.layout.current_control
         if current in controls:
             index = controls.index(current) + (

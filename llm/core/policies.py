@@ -667,6 +667,7 @@ def narrow_constraints(parent: dict, child: dict) -> dict:
 class ApprovalRule:
 
     EXPLICIT_UNKNOWN: ClassVar[str] = 'explicit_unknown'
+    MINIMUM_CHANGES: ClassVar[int] = 1
 
     id: str = policy_field(
         metadata={
@@ -703,11 +704,11 @@ class ApprovalRule:
     def to_dict(self):
         value = asdict(self)
         if self.remembered is None:
-            value.pop('remembered')
+            value.pop(type(self).remembered.__name__)
         if self.basis is None:
-            value.pop('basis')
+            value.pop(type(self).basis.__name__)
         if self.max_risk is None:
-            value.pop('max_risk')
+            value.pop(type(self).max_risk.__name__)
         return value
 
     def matches(self, request, policy):
@@ -721,9 +722,28 @@ class ApprovalRule:
     @classmethod
     def from_dict(cls, value):
         values = deepcopy(value)
-        if 'remembered' in values:
-            values['remembered'] = RememberedApproval.from_dict(values['remembered'])
+        if cls.remembered.__name__ in values:
+            values[cls.remembered.__name__] = RememberedApproval.from_dict(values[cls.remembered.__name__])
         return cls(**values)
+
+    def updated(self, changes):
+        """Validate the editable projection without changing grant identity/scope."""
+        from .approval import RememberRequest, ApprovalCondition
+
+        cls = type(self)
+        schema = RememberRequest.schema(cls.schema())
+        editable = (cls.category.__name__, RememberRequest.condition.__name__) if self.basis else (
+            cls.category.__name__, cls.max_risk.__name__, RememberRequest.condition.__name__)
+        schema[SchemaKeyword.PROPERTIES] = {
+            key: schema[SchemaKeyword.PROPERTIES][key] for key in editable}
+        schema[SchemaKeyword.REQUIRED] = []
+        schema.pop(SchemaKeyword.ONE_OF)
+        schema[SchemaKeyword.MIN_PROPERTIES] = self.MINIMUM_CHANGES
+        Draft202012Validator(schema).validate(changes)
+        values = deepcopy(changes)
+        condition = (ApprovalCondition.from_dict(values.pop(RememberRequest.condition.__name__))
+                     if RememberRequest.condition.__name__ in values else self.remembered.condition)
+        return replace(self, **values, remembered=self.remembered.updated(condition=condition))
 
     @classmethod
     def selected_threshold(cls, category, max_risk):
@@ -737,10 +757,12 @@ class ApprovalRule:
     @classmethod
     def schema(cls):
         value = _declared_policy_schema(cls)
-        value[SchemaKeyword.REQUIRED] = ['id', 'category']
-        value['oneOf'] = [
-            {'required': ['max_risk'], 'not': {'required': ['basis']}},
-            {'required': ['basis', 'remembered'], 'not': {'required': ['max_risk']}},
+        value[SchemaKeyword.REQUIRED] = [cls.id.__name__, cls.category.__name__]
+        value[SchemaKeyword.ONE_OF] = [
+            {SchemaKeyword.REQUIRED: [cls.max_risk.__name__],
+             SchemaKeyword.NOT: {SchemaKeyword.REQUIRED: [cls.basis.__name__]}},
+            {SchemaKeyword.REQUIRED: [cls.basis.__name__, cls.remembered.__name__],
+             SchemaKeyword.NOT: {SchemaKeyword.REQUIRED: [cls.max_risk.__name__]}},
         ]
         return value
 
@@ -800,6 +822,10 @@ class ApprovalPolicy(PolicyValue):
         value = PolicyValue.to_dict(self)
         value[self.__class__.rules.__name__] = [rule.to_dict() for rule in self.rules]
         return value
+
+    @classmethod
+    def rules_update(cls, rules):
+        return {cls.SECTION: {cls.rules.__name__: [rule.to_dict() for rule in rules]}}
 
     @classmethod
     def validated(cls, value):

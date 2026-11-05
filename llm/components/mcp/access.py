@@ -51,6 +51,12 @@ class MCPAccess:
     async def aread_resource(self, uri):
         return await self._call(MCPClientOperation.READ, uri)
 
+    async def alist_prompts(self, *, cursor=UNSET):
+        return await self._call(MCPClientOperation.PROMPTS, cursor=cursor)
+
+    async def aget_prompt(self, name, *, arguments=UNSET):
+        return await self._call(MCPClientOperation.PROMPT, name, arguments=arguments)
+
     async def aprepare(self):
         await self._check()
         refresh = getattr(self._client, MCPClientOperation.REFRESH, None)

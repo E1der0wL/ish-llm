@@ -20,9 +20,14 @@ class ApprovalEvaluator(ABC):
     must change revision when their decision semantics change.
     """
 
+    INVALID_REVISION = 'Approval evaluator requires an explicit revision'
+    INVALID_RESULT = 'Approval evaluator must return a boolean'
+    UNAVAILABLE = 'Approval evaluator unavailable: {implementation}'
+    CHANGED_REVISION = 'Approval evaluator revision changed: {implementation}'
+
     def __init__(self, *, revision: str):
         if not isinstance(revision, str) or not revision:
-            raise ValueError('Approval evaluator requires an explicit revision')
+            raise ValueError(ApprovalEvaluator.INVALID_REVISION)
         self.revision = revision
 
     @abstractmethod
@@ -45,8 +50,10 @@ class SchemaApprovalEvaluator(ApprovalEvaluator):
     explicitly selects it. It does not choose matching fields, patterns or limits.
     """
 
+    SCHEMA_OWNER = 'JSON Schema'
+
     def describe_config(self):
-        return open_schema('JSON Schema', category=OpenSchemaKind.SCHEMA)
+        return open_schema(SchemaApprovalEvaluator.SCHEMA_OWNER, category=OpenSchemaKind.SCHEMA)
 
     def validate_config(self, config):
         super().validate_config(config)
@@ -59,9 +66,9 @@ class SchemaApprovalEvaluator(ApprovalEvaluator):
 def resolve_evaluator(evaluators, condition: ApprovalCondition):
     evaluator = evaluators.get(condition.implementation)
     if not isinstance(evaluator, ApprovalEvaluator):
-        raise ValueError(f'Approval evaluator unavailable: {condition.implementation}')
+        raise ValueError(ApprovalEvaluator.UNAVAILABLE.format(implementation=condition.implementation))
     if evaluator.revision != condition.revision:
-        raise ValueError(f'Approval evaluator revision changed: {condition.implementation}')
+        raise ValueError(ApprovalEvaluator.CHANGED_REVISION.format(implementation=condition.implementation))
     evaluator.validate_config(deepcopy(condition.config))
     return evaluator
 
@@ -71,5 +78,5 @@ async def evaluate_approval(evaluator, request, condition):
     if inspect.isawaitable(result):
         result = await result
     if type(result) is not bool:
-        raise TypeError('Approval evaluator must return a boolean')
+        raise TypeError(ApprovalEvaluator.INVALID_RESULT)
     return result

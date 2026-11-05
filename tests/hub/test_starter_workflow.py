@@ -26,19 +26,17 @@ class StarterWorkflowTests(unittest.IsolatedAsyncioTestCase):
                 project = runtime.project
                 project_id = project.id
                 planner = await project.agents.aload(HubDefaults.PLANNER_AGENT_ID)
-                metadata = planner.pop('metadata')
-                self.assertEqual(metadata['created_at'], metadata['updated_at'])
-                self.assertTrue(metadata['created_at'])
-                self.assertEqual(planner, {k: v for k, v in HubDefaults.PLANNER_AGENT.items() if k != 'metadata'})
-                self.assertEqual({k: v for k, v in metadata.items() if k not in ('created_at', 'updated_at')},
-                                 HubDefaults.PLANNER_AGENT.get('metadata', {}))
+                times = await project.agents.aget_times(HubDefaults.PLANNER_AGENT_ID)
+                self.assertEqual(times['created_at'], times['updated_at'])
+                self.assertTrue(times['created_at'])
+                self.assertEqual(planner, HubDefaults.PLANNER_AGENT)
                 self.assertNotIn('completion', planner)
                 self.assertNotIn('completion', await project.agents.aload('assistant'))
                 workflows = await project.components.aget('workflows')
                 definition = await workflows.aload(HubDefaults.CODING_WORKFLOW_ID)
-                self.assertEqual({key: value for key, value in definition.items() if key != 'metadata'},
-                                 {key: value for key, value in CodingWorkflow.definition('assistant').items() if key != 'metadata'})
-                self.assertEqual(definition['metadata']['created_at'], definition['metadata']['updated_at'])
+                self.assertEqual(definition, CodingWorkflow.definition('assistant'))
+                times = await workflows.aget_times(HubDefaults.CODING_WORKFLOW_ID)
+                self.assertEqual(times['created_at'], times['updated_at'])
                 for stage in CodingWorkflow.STAGES:
                     self.assertEqual(definition['nodes'][stage]['agent'], 'assistant')
                     self.assertEqual(definition['nodes'][stage]['emit_text'], stage == 'report')

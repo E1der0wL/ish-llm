@@ -1,5 +1,10 @@
 # 현행 LLM 아키텍처
 
+[영속 기록 시각](component-times.md)은 공통 core 값 계약과 각 저장 소유자를 분리합니다.
+관리 시각은 기존 원본/manifest의 트랜잭션에 함께 저장하며 설정·revision·권한을 대체하지 않습니다.
+Project·Session·Agent·Run·Step과 Component 자료에 적용하며, 자식 변경은 부모 시각으로 전파하지 않습니다.
+Run·Step의 시작/종료 시각은 레코드 수정 시각과 별도로 보존합니다.
+
 명시적 추가 지시/방향 전환은 [steering 계약](steering.md)을 따른다. RunManager가 접수와
 선택을 저장하고 Engine이 적용 경계를 소유한다. 현재 invocation 취소는 저장 Task나 Run 전체
 취소와 구분하며 ToolExecutor의 승인·효과·재시도 책임을 옮기지 않는다.

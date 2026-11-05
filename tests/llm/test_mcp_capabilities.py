@@ -26,6 +26,37 @@ def reply(request, value):
 
 
 class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
+    async def test_tool_error_preserves_remote_result_but_details_require_explicit_opt_in(self):
+        from llm.providers.mcp import MCPToolError
+        from llm.providers.runtime import logging_scope, ProviderDiagnostics
+        from unittest.mock import AsyncMock
+        from types import SimpleNamespace
+        raw = {'isError': True, 'content': [{'type': 'text', 'text': 'private missing file'}]}
+        item = SimpleNamespace(name='fail', description='fixture', input_schema={'type': 'object'},
+                               model_dump=lambda **_: {})
+        session = SimpleNamespace(list_tools=AsyncMock(return_value=SimpleNamespace(tools=[item], next_cursor=None)),
+            call_tool=AsyncMock(return_value=SimpleNamespace(is_error=True, model_dump=lambda **_: raw)))
+        connector = MCPConnector()
+        client = MCPSession(connector, session, SimpleNamespace(model_dump=lambda **_: {}), connection_id='fixture')
+        registry = await connector._discover(session, client=client)
+        with self.assertRaises(MCPToolError) as caught:
+            await registry.get('fail').handler({})
+        error = caught.exception
+        self.assertEqual(error.result, raw)
+        self.assertEqual(error.effect, 'uncertain')
+        self.assertFalse(error.retryable)
+        self.assertFalse(error.recoverable)
+        with tempfile.TemporaryDirectory() as folder:
+            with logging_scope(folder):
+                self.assertNotIn('private', str(error.diagnostic.to_dict()))
+            with logging_scope(folder, diagnostics=ProviderDiagnostics(error_details=True, max_detail_chars=7)):
+                self.assertEqual(error.diagnostic.details['provider_error']['message'], 'private')
+        self.assertEqual(session.call_tool.await_count, 1)
+        explicit = MCPToolError('trusted host failure', effect='none', retryable=True, recoverable=True)
+        self.assertEqual(explicit.diagnostic.details, {'effect': 'none', 'retryable': True, 'recoverable': True})
+        with self.assertRaises(TypeError):
+            MCPToolError('invalid', unknown=True)
+
     async def test_real_sdk_resources_and_live_elicitation_share_connection(self):
         requests = []
         async def answer(request):
@@ -44,6 +75,11 @@ class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(templates["resourceTemplates"][0]["uriTemplate"], "fixture://item/{name}")
                 contents = await client.read_resource("fixture://document")
                 self.assertEqual(contents["contents"][0]["text"], "Resource body")
+                prompts = await client.list_prompts()
+                self.assertEqual(prompts["prompts"][0]["name"], "explain")
+                prompt = await client.get_prompt("explain", arguments={"topic": "asyncio"})
+                self.assertEqual(prompt["messages"][0]["content"]["text"], "Explain asyncio.")
+                self.assertEqual(client.names(), ("ask",))
                 self.assertTrue(client.get("ask").contract.approval_required)
                 # Transport test only; Application/Engine uses ToolExecutor.
                 result = await client.get("ask").handler({})
@@ -89,6 +125,39 @@ class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(sdk["read_timeout_seconds"], value)
                 self.assertNotIn("elicitation_callback", sdk)
 
+    async def test_prompt_paging_arguments_and_capability_contract(self):
+        initialized = SimpleNamespace(model_dump=lambda **_: {"capabilities": {"prompts": {}}})
+        result = SimpleNamespace(model_dump=lambda **_: {"prompts": [], "nextCursor": "next"})
+        sdk = SimpleNamespace(list_prompts=AsyncMock(return_value=result), get_prompt=AsyncMock(return_value=result))
+        client = MCPSession(MCPConnector(), sdk, initialized, connection_id="test")
+        self.assertEqual(await client.list_prompts(), {"prompts": [], "nextCursor": "next"})
+        sdk.list_prompts.assert_awaited_once_with()
+        await client.list_prompts(cursor="next")
+        self.assertEqual(sdk.list_prompts.call_args.kwargs["params"].cursor, "next")
+        await client.get_prompt("explain")
+        sdk.get_prompt.assert_awaited_once_with("explain")
+        await client.get_prompt("explain", arguments=None)
+        sdk.get_prompt.assert_awaited_with("explain", arguments=None)
+        for arguments in ({"topic": 1}, [], False):
+            with self.subTest(arguments=arguments), self.assertRaisesRegex(ValueError, "arguments"):
+                await client.get_prompt("explain", arguments=arguments)
+        self.assertEqual(sdk.get_prompt.await_count, 2)
+        entered = asyncio.Event()
+        async def blocked(name):
+            entered.set()
+            await asyncio.Event().wait()
+        sdk.get_prompt.side_effect = blocked
+        pending = asyncio.create_task(client.get_prompt("explain"))
+        await asyncio.wait_for(entered.wait(), 5)
+        await client.close()
+        with self.assertRaises(asyncio.CancelledError):
+            await pending
+        with self.assertRaisesRegex(ValueError, "closed"):
+            await client.list_prompts()
+        client = MCPSession(MCPConnector(), sdk, SimpleNamespace(model_dump=lambda **_: {}), connection_id="none")
+        with self.assertRaisesRegex(ValueError, "advertise prompts"):
+            await client.get_prompt("explain")
+
     async def test_live_session_resources_native_paging_and_cancellation(self):
         initialized = SimpleNamespace(model_dump=lambda **kw: {
             "protocolVersion": "test", "capabilities": {"resources": {}},
@@ -128,6 +197,10 @@ class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
                 return {"resources": [{"uri": "data://one"}]}
             async def read_resource(self, uri):
                 return {"contents": [{"uri": uri, "text": "data"}]}
+            async def list_prompts(self, *, cursor=UNSET):
+                return {"prompts": [{"name": "example"}]}
+            async def get_prompt(self, name, *, arguments=UNSET):
+                return {"messages": [{"role": "user", "content": {"type": "text", "text": "untrusted"}}]}
         @asynccontextmanager
         async def connector(definition):
             connections.append("open")
@@ -145,15 +218,23 @@ class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual((await access.aget_status())["state"], "connected")
                     self.assertEqual((await access.alist_resources())["resources"][0]["uri"], "data://one")
                     self.assertEqual((await access.aread_resource("data://one"))["contents"][0]["text"], "data")
+                    self.assertEqual((await access.alist_prompts())["prompts"][0]["name"], "example")
+                    self.assertEqual((await access.aget_prompt("example"))["messages"][0]["content"]["text"], "untrusted")
                     await access.aprepare()
                     self.assertEqual((await access.aget_tools({})).names(), ())
                     self.assertEqual(connections, ["open"])
                     await data.aupdate("server", {"command": "changed"})
                     with self.assertRaisesRegex(ValueError, "changed"):
                         await access.aread_resource("data://one")
+                    with self.assertRaisesRegex(ValueError, "changed"):
+                        await access.aget_prompt("example")
                 self.assertEqual(connections, ["open", "close"])
                 with self.assertRaisesRegex(ValueError, "closed"):
                     await access.aget_status()
+                with self.assertRaisesRegex(ValueError, "closed"):
+                    await access.aget_prompt("example")
+                self.assertEqual((await data.alist_prompts("server"))["prompts"][0]["name"], "example")
+                self.assertEqual((await data.aget_prompt("server", "example"))["messages"][0]["role"], "user")
             finally:
                 await app.shutdown()
 
@@ -162,6 +243,9 @@ class MCPFeatureTests(unittest.IsolatedAsyncioTestCase):
         registry = ToolRegistry()
         with self.assertRaisesRegex(ValueError, "support"):
             MCPClientOperation.require(registry, MCPClientOperation.RESOURCES)
+        for operation in (MCPClientOperation.PROMPTS, MCPClientOperation.PROMPT):
+            with self.assertRaisesRegex(ValueError, "support"):
+                MCPClientOperation.require(registry, operation)
 
     async def test_elicitation_form_decline_cancel_validation_and_binding(self):
         from mcp.types import ElicitRequestFormParams

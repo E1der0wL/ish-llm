@@ -31,7 +31,8 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         await runtime.start()
         await runtime.new_session()
         saved = await runtime.project.agents.aload('writer')
-        self.assertEqual(saved['metadata'].pop('created_at'), saved['metadata'].pop('updated_at'))
+        times = await runtime.project.agents.aget_times('writer')
+        self.assertEqual(times['created_at'], times['updated_at'])
         self.assertEqual(saved, original)
         session_id = next(iter(runtime.sessions))
         request = await runtime.submit(session_id, 'hello', 'writer')
@@ -64,9 +65,9 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(set(catalog), {'agents'})
         self.assertEqual(set(catalog['agents']), {'assistant', 'planner'})
         planner = definitions['planner']
-        self.assertEqual(planner['metadata']['created_at'], planner['metadata']['updated_at'])
-        self.assertEqual({k: v for k, v in planner.items() if k != 'metadata'},
-                         {k: v for k, v in HubDefaults.PLANNER_AGENT.items() if k != 'metadata'})
+        times = await runtime.project.agents.aget_times('planner')
+        self.assertEqual(times['created_at'], times['updated_at'])
+        self.assertEqual(planner, HubDefaults.PLANNER_AGENT)
         with self.assertRaisesRegex(ValueError, 'Internal Agent'):
             await runtime.submit(next(iter(runtime.sessions)), 'hello', '_hub_title')
 

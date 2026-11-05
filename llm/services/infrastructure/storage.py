@@ -361,6 +361,23 @@ def atomic_domain_json(path: Path, data: dict) -> None:
     atomic_json(path, data)
 
 
+def atomic_timed_record(model, data: dict, previous=None) -> None:
+    """Persist owner-validated contents and times in the same existing write.
+
+    Reuse the owner's already-read previous record; never read children or
+    select a durability policy. Readers still reject missing stored times.
+    """
+    from llm.core.record_times import RecordTimes
+    from .transactions import watch
+
+    times = (RecordTimes.from_record(data) if previous is None else
+             RecordTimes.for_update(previous, data))
+    data = {**data, **times.to_dict()}
+    atomic_domain_json(model.paths.record, data)
+    watch(model)
+    model.created_at, model.updated_at = times.created_at, times.updated_at
+
+
 def record(model: object) -> dict:
     return DomainRecord.serialize(model)
 

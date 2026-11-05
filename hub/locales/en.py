@@ -5,6 +5,20 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.STARTUP_FAILURE: 'Hub could not start',
+    MessageKey.STARTUP_LOADING: 'HUB Loading',
+    MessageKey.STARTUP_PROGRESS: '{stage} • {percent}',
+    MessageKey.STARTUP_TARGET: 'Target',
+    MessageKey.STARTUP_RETRY: 'Retry',
+    MessageKey.STARTUP_RESET: 'Reset',
+    MessageKey.STARTUP_RESET_CONFIRM: 'Back up this Hub settings file, reset it, then restart:\n{target}\n\nSettings in this file return to their defaults.\nThe original is kept in .hub/recovery-backups.',
+    MessageKey.STARTUP_RESET_HINT: 'Correct the file and retry, or back up the original and reset it to defaults.',
+    MessageKey.STARTUP_PERMISSION_HINT: 'Check the path and read/write permissions, then retry. Files that cannot be backed up safely are not reset.',
+    MessageKey.STARTUP_INSTALL_HINT: 'An installed Hub file is missing or invalid. Reinstall the plugin and retry. Resetting settings cannot restore installation assets.',
+    MessageKey.STARTUP_BACKEND_HINT: 'Check the storage path, configuration and other running ish instances. Backend data requires its public recovery APIs and cannot be reset arbitrarily here.',
+    MessageKey.STARTUP_CLEANUP_HINT: 'Cleanup after startup failure also failed. Review the cause, exit ish, then start again.',
+    MessageKey.STARTUP_RESETTING: 'Recovery • Backing up and resetting settings',
+    MessageKey.PROGRESS_BACKEND_PREFERENCES: 'Startup • Reading Hub settings',
     MessageKey.FAILURE_MODEL_RESPONSE: 'The model output did not satisfy the required format or validation constraints. Check the summary/extraction model and instructions. Failed records are retained; only explicit backend policy can allow continuation.',
     MessageKey.FAILURE_MCP_CONNECTION: 'Could not connect to the MCP server. Check the server process, address/command and network. Checking a connection does not approve or repeat a Tool call.',
     MessageKey.FAILURE_MCP_AUTHENTICATION: 'The MCP server requires authentication. Check credentials or the login integration for this server. Hub does not initiate login or forward credentials to another server automatically.',
@@ -889,7 +903,7 @@ MESSAGES = {
     MessageKey.SESSION: "SESSION", MessageKey.RUN: "RUN", MessageKey.STEPS: "STEPS",
 
 
-    MessageKey.CONNECTING: "Connecting", MessageKey.CONNECTING_NOTICE: "Connecting to the backend.",
+    MessageKey.CONNECTING: "Connecting",
 
     MessageKey.NEW_SESSION: "New conversation", MessageKey.SESSIONS: "{icon_sessions} SESSIONS", MessageKey.WORKSPACE: "WORKSPACE",
 

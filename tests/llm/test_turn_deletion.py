@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 from llm.core.models import RunStatus
 from llm.core.plans import TurnDeletionPlan
+from llm.core.record_times import RecordTimes
 from llm.engines.loop import LoopEngine
 from llm.engines.base import EngineEventType
 from llm.components.workflows import WorkflowComponent
@@ -44,11 +45,14 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 await self.session.run.shutdown()
                 with self.assertRaisesRegex(ValueError, "unfinished resumable"):
                     await self.session.adelete_turn(original.input_message_id)
-                await self.session.adelete_turn(original.input_message_id,
-                    abandon_runs=[run.id], expected_revision=plan.revision)
+                updated_at = "2030-01-01T00:00:00+00:00"
+                with patch.object(RecordTimes, "touch", lambda times: RecordTimes(times.created_at, updated_at)):
+                    await self.session.adelete_turn(original.input_message_id,
+                        abandon_runs=[run.id], expected_revision=plan.revision)
                 saved = await run.aget_data()
                 marker = saved.metadata.pop("resume_abandonment")
-                self.assertEqual(saved, original)
+                # Abandonment changes this Run record, not its execution evidence.
+                self.assertEqual(saved, replace(original, updated_at=updated_at))
                 self.assertEqual(marker["request_id"], original.input_message_id)
                 self.assertEqual(marker["reason"], "conversation_deleted")
                 self.assertEqual(await run.acheckpoint(), checkpoint)

@@ -15,7 +15,9 @@ class SkillStateValueTests(unittest.TestCase):
         self.header = {"schema_version": 1, "project_id": "a" * 32, "component": "skills"}
         self.document = {"sha256": hashlib.sha256(b"document").hexdigest(), "bytes": 8, "mode": 0o600}
         self.entry = {**self.header, "id": "guide", "document": self.document, "directories": [],
-                      "files": {}, "resources": [], "lineage": None, "source": None}
+                      "files": {}, "resources": [], "lineage": None, "source": None,
+                      "times": {"created_at": "2026-11-05T00:00:00+00:00",
+                                "updated_at": "2026-11-05T00:00:00+00:00"}}
 
     def test_exact_wire_and_detached_catalog_and_entry(self):
         wire = {**self.header, "records": {"guide": "b" * 64}}

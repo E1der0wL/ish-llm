@@ -16,7 +16,7 @@ from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.worker import BackendWorker
 from hub.locales.keys import MessageKey
 from hub.ui.application import create_application
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually, backend_ready
 from tests.hub.test_settings import settings_backend
 
 
@@ -60,7 +60,7 @@ class BackendProgressTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([[v.completed for v in values] for values in seen], [[0, 0], [1, 1]])
         self.assertTrue(all([v.key for v in values] == ['begin', 'end'] for values in seen))
 
-    async def test_initial_connection_shows_stages_without_blocking_ui(self):
+    async def test_initial_connection_blocks_home_but_preserves_minimize_and_loading(self):
         gate = Event()
         def factory(config):
             if not gate.wait(10):
@@ -72,17 +72,26 @@ class BackendProgressTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: controller._startup_task is not None)
+                await eventually(lambda: controller._startup_popup is not None)
+                popup = controller._startup_popup
                 self.assertFalse(view.connected)
-                self.assertTrue(view.progress.active)
-                pipe.send_text('still responsive')
-                await eventually(lambda: view.composer.text == 'still responsive')
+                self.assertTrue(popup.progress.active)
+                self.assertFalse(view.progress.active)
+                self.assertFalse(popup.retry_button.control.is_focusable())
+                self.assertFalse(popup.reset_button.control.is_focusable())
+                pipe.send_text('ignoredtyping')
+                pipe.send_text('\x11')
+                await eventually(lambda: not view.visible)
+                self.assertEqual(view.composer.text, '')
+                pipe.send_text('\x11')
+                await eventually(lambda: view.visible)
+                self.assertIs(view._dialog, popup)
+                self.assertIs(app.layout.current_control, popup.minimize_button.control)
                 gate.set()
-                async with asyncio.timeout(15):
-                    while not view.connected or view.progress.active:
-                        await asyncio.sleep(.01)
-                self.assertIsNone(controller._startup_task)
-                self.assertEqual(view.composer.text, 'still responsive')
+                await backend_ready(lambda: view.connected and not controller.starting, 'initial connection')
+                self.assertIsNone(view._dialog)
+                self.assertIsNone(popup.progress._timer)
+                self.assertEqual(view.composer.text, '')
                 self.assertIs(app.layout.current_control, view.composer.control)
             finally:
                 gate.set()
@@ -99,11 +108,47 @@ class BackendProgressTests(unittest.IsolatedAsyncioTestCase):
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: controller.worker is not None and controller._startup_task is None)
+                await backend_ready(lambda: controller.startup_failure is not None, 'startup failure')
                 self.assertFalse(view.connected)
                 self.assertFalse(view.progress.active)
-                self.assertTrue(view.notice)
+                popup = view._dialog
+                self.assertTrue(popup.showing_failure)
+                self.assertIn('startup failed', str(popup.message()))
+                self.assertFalse(popup.progress.active)
+                self.assertFalse(view.notice)
+                self.assertTrue(popup.retry_button.control.is_focusable())
+                self.assertFalse(popup.reset_button.control.is_focusable())
             finally:
+                app.exit()
+                await task
+                await controller.aclose()
+
+    async def test_loading_can_complete_while_minimized_without_stealing_shell_focus(self):
+        gate = Event()
+        def factory(config):
+            if not gate.wait(10):
+                raise TimeoutError('test gate')
+            return settings_backend(config)
+        with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
+            app, controller = create_application(HubConfig(root, auto_title=False), input=pipe,
+                output=SizedOutput(), worker_factory=partial(BackendWorker, backend_factory=factory))
+            view = controller.view
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: view._dialog is not None)
+                pipe.send_text('\x11')
+                await eventually(lambda: not view.visible)
+                shell_focus = app.layout.current_control
+                gate.set()
+                await backend_ready(lambda: view.connected and not controller.starting, 'hidden startup')
+                self.assertFalse(view.visible)
+                self.assertIsNone(view._dialog)
+                self.assertIs(app.layout.current_control, shell_focus)
+                pipe.send_text('\x11')
+                await eventually(lambda: view.visible)
+                self.assertIs(app.layout.current_control, view.composer.control)
+            finally:
+                gate.set()
                 app.exit()
                 await task
                 await controller.aclose()

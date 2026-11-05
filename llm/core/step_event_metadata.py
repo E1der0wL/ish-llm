@@ -13,6 +13,7 @@ class StepEventPhase(StrEnum):
 
 
 class StepEventMetadata:
+    NO_DIAGNOSTIC = None
     REUSED = "reused"
     REUSED_VALUE = True
 
@@ -22,6 +23,7 @@ class StepEventMetadata:
     class Field:
         PHASE = "phase"
         ERROR_CODE = "error_code"
+        REASON = "reason"
 
     @classmethod
     def was_reused(cls, metadata):
@@ -52,3 +54,9 @@ class StepEventMetadata:
     @classmethod
     def failure(cls, phase, code):
         return {cls.Field.PHASE: phase, cls.Field.ERROR_CODE: code}
+
+    @classmethod
+    def cancelled(cls, reason, diagnostic=NO_DIAGNOSTIC):
+        from .contracts import DiagnosticObservation
+        return {cls.Field.REASON: reason, **(
+            {DiagnosticObservation.ATTRIBUTE: diagnostic.to_dict()} if diagnostic is not cls.NO_DIAGNOSTIC else {})}

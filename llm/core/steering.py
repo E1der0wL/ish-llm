@@ -149,6 +149,7 @@ class SteeringTarget(JsonValue):
     INVALID_STATE = "target identity/state"
     INVALID_DESCRIPTOR = "target descriptor"
     CLOSED: ClassVar[bool] = False
+    REDIRECTION_UNSUPPORTED: ClassVar[bool] = False
 
     id: str
     run_id: str
@@ -160,7 +161,7 @@ class SteeringTarget(JsonValue):
     accepting: bool = CLOSED
     reason: Optional[str] = None
 
-    redirectable: bool = False
+    redirectable: bool = REDIRECTION_UNSUPPORTED
 
     def __post_init__(self):
         JsonValue.__post_init__(self)
@@ -216,6 +217,11 @@ class RunInstruction(JsonValue):
     reason: Optional[str] = None
     targets: list[dict] = field(default_factory=list)
     redirect: bool = False
+
+    @property
+    def target_ids(self):
+        from .instruction_records import InstructionReceipt
+        return tuple(InstructionReceipt(value).id for value in self.targets)
 
     @staticmethod
     def validate_message(message: Message) -> None:

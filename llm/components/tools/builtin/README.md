@@ -19,6 +19,7 @@ retained 출력으로 구분합니다. [관찰 계약](../../../../docs/llm/inte
 | [file_values.py](file_values.py) | 파일 Tool의 공통·작업별 입력 Schema, 조회·변경 결과와 휴지통 ID 계약을 선언합니다. |
 | [path_access.py](path_access.py) | 작업 디렉터리와 독립된 읽기·쓰기·cwd 권한과 안전한 파일 열기를 검증합니다. |
 | [file_text.py](file_text.py) | 전체 원문을 메모리에 올리지 않는 파일 해시·줄 위치·범위 조회를 제공합니다. |
+| [file_cache.py](file_cache.py) | Host가 용량을 명시했을 때만 검증한 UTF-8 원문을 재사용합니다. 경로 권한은 매번 검사합니다. |
 | [file_execution.py](file_execution.py) | 파일 준비 중 협력 취소와 게시 이후 fsync·결과 확정의 분리입니다. 승인·retry 정책은 소유하지 않습니다. |
 | [output.py](output.py) | 명시한 Data 목적지에 명령 출력·참조를 함께 저장하고 재시작 후 범위 조회합니다. |
 | [capture.py](capture.py) | 호출별 출력 저장 연결을 다른 동시 실행과 분리합니다. |
@@ -65,7 +66,17 @@ file_search 페이지는 현재 파일을 다시 읽으며 파일 변경 시 처
 file_read의 expected_sha256으로 동일 파일 버전 여부를 확인할 수 있습니다.
 문자 범위(`offset`·`max_chars`) 조회는 전체 파일의 SHA-256·UTF-8·명시적 크기 제한을
 한 번의 순회에서 검사하고 요청한 페이지와 다음 문자만 보관합니다. 줄 위치 임시 인덱스는
-줄 범위·검색 경로에서만 만듭니다. 다음 조회는 파일을 다시 검증하며 취소·변경 감지를 유지합니다.
+줄 범위·검색 경로에서만 만듭니다. 기본적으로 다음 조회는 파일을 다시 검증합니다.
+
+Host가 `BuiltinTools(..., read_cache_bytes=...)`에 양의 정수 용량을 명시하면 문자 범위
+조회에 검증된 UTF-8 원문 캐시를 사용합니다. 미설정이면 캐시를 만들지 않습니다.
+용량은 보관하는 원문 바이트의 합이며 빈 파일은 관리 단위 1을 사용합니다. Python 객체
+관리 비용·일시적 decoding 메모리는 별도입니다. 용량보다 큰 파일은 기존 streaming 경로를
+사용하고, LRU 축출과 toolkit 종료 시 해제합니다. 캐시는 영속 데이터나 승인 근거가 아닙니다.
+매 호출 경로·symlink·읽기 권한·명시적 크기 제한을 확인하고, 열린 파일의 device/inode/mode/
+size/mtime_ns/ctime_ns가 같을 때만 검증 결과를 재사용합니다. 조회 전후 변경도 거부합니다.
+이 opt-in은 변경 stat이 일관적인 로컬 파일시스템용이며, 외부 서버가 stat 변경을 숨기는
+파일시스템에서는 선택하지 않아야 합니다. 원문 수정·교체 시 hash/UTF-8 검사를 다시 합니다.
 
 file_move와 file_restore는 Linux `renameat2(RENAME_NOREPLACE)`로 이동합니다.
 경로 검사를 통과한 뒤 다른 프로세스가 목적지 파일이나 심볼릭 링크를 만들어도 덮어쓰지 않습니다.

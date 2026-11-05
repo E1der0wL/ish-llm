@@ -2,6 +2,7 @@
 
 from .document_records import RAGDocument
 from .ingestion_records import EmbeddingEvidence
+from llm.core.record_times import RecordTimes
 
 
 class RAGCorpus:
@@ -62,6 +63,7 @@ class RAGCorpus:
             raise ValueError(cls.INVALID_FIELDS)
         documents = value[cls.Field.DOCUMENTS]
         for identifier, document in documents.items():
+            RecordTimes.from_record(document)
             validate_document(document)
             if RAGDocument(document).identifier != identifier:
                 raise ValueError(cls.CHANGED_DOCUMENT)

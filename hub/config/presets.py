@@ -33,24 +33,30 @@ class PresetStore(WorkspaceJSONStore):
             PreferencesStore.validate_section,
         )
 
-    def read(self):
+    def read(self, *, startup=False):
+        from .recovery import read_for_startup
         if self.definitions.is_symlink():
             raise ValueError(self.SYMLINK_ERROR)
         result = PresetIndex.empty(self.VERSION)
-        selection = self._read_json({PresetIndex.SELECTED: PresetIndex.UNSELECTED})
-        if not isinstance(selection, dict) or selection.keys() != {PresetIndex.SELECTED}:
-            raise ValueError(PresetIndex.INVALID)
+        def read_selection():
+            value = self._read_json({PresetIndex.SELECTED: PresetIndex.UNSELECTED})
+            if not isinstance(value, dict) or value.keys() != {PresetIndex.SELECTED}:
+                raise ValueError(PresetIndex.INVALID)
+            return value
+        selection = read_for_startup(self, read_selection) if startup else read_selection()
         result[PresetIndex.SELECTED] = selection[PresetIndex.SELECTED]
         for path in sorted(self.definitions.glob(self.GLOB)):
             if path.is_symlink():
                 raise ValueError(self.SYMLINK_ERROR)
             self.validate_name(path.stem)
-            result[PresetIndex.PRESETS][path.stem] = self.validate(
-                self._definition(path.stem)._read_json(None)
-            )
-        return PresetIndex.validate(
-            result, self.VERSION, self.validate_name, self.validate
-        )
+            store = self._definition(path.stem)
+            def read_definition():
+                return self.validate(store._read_json(None))
+            result[PresetIndex.PRESETS][path.stem] = (
+                read_for_startup(store, read_definition, workspace=self.workspace) if startup else read_definition())
+        def validate_selection():
+            return PresetIndex.validate(result, self.VERSION, self.validate_name, self.validate)
+        return read_for_startup(self, validate_selection) if startup else validate_selection()
 
     @classmethod
     def validate_name(cls, name):
@@ -90,8 +96,8 @@ class PresetStore(WorkspaceJSONStore):
             PresetIndex(record).select(name)
             self._write_json({PresetIndex.SELECTED: name})
 
-    def selected_project(self):
-        return PresetIndex(self.read()).selected_project()
+    def selected_project(self, *, startup=False):
+        return PresetIndex(self.read(startup=startup)).selected_project()
 
     def globals(self, profile=PresetGlobals.DEFAULT_PROFILE):
         return PresetGlobals.snapshot(

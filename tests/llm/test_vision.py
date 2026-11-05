@@ -101,6 +101,17 @@ class ImageTests(unittest.TestCase):
 
 
 class VisionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_native_times_are_shared_by_read_and_update(self):
+        from llm.core.record_times import RecordTimes
+        original = await self.vision.aget_times("probe")
+        self.assertEqual(original["created_at"], original["updated_at"])
+        returned = await self.vision.aupdate("probe", {"title": "New title"})
+        self.assertEqual(await self.vision.aget_times("probe"), RecordTimes.from_record(returned).to_dict())
+        self.assertEqual(returned["created_at"], original["created_at"])
+        self.assertNotEqual(returned["updated_at"], original["updated_at"])
+        await self.vision.aupdate("probe", {"title": "New title"})
+        self.assertEqual(await self.vision.aget_times("probe"), RecordTimes.from_record(returned).to_dict())
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

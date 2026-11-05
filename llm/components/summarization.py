@@ -54,16 +54,20 @@ class SummarySource:
     read: Callable[[int, int], Awaitable[str]]
 
     def __post_init__(self):
-        if type(self.total_chars) is not int or self.total_chars < 0 or not isinstance(self.identity, str) or not self.identity:
-            raise ValueError("Summary source requires a length and immutable identity")
-        if type(self.read_chars) is not int or self.read_chars <= 0 or not callable(self.read):
-            raise ValueError("Summary source requires an explicit read size and reader")
+        if type(self.total_chars) is not int or self.total_chars < SummaryValidation.MINIMUM_SIZE or not isinstance(self.identity, str) or not self.identity:
+            raise ValueError(SummaryValidation.INVALID_SOURCE)
+        if type(self.read_chars) is not int or self.read_chars < SummaryValidation.MINIMUM_POSITIVE or not callable(self.read):
+            raise ValueError(SummaryValidation.INVALID_READER)
 
     def __len__(self):
         return self.total_chars
 
 
 class SummaryValidation:
+    INVALID_SOURCE = 'Summary source requires a length and immutable identity'
+    INVALID_READER = 'Summary source requires an explicit read size and reader'
+    INCONSISTENT_RANGE = 'Summary source returned an inconsistent range'
+
     MINIMUM_POSITIVE = 1
     MINIMUM_SIZE = 0
     MINIMUM_OFFSET = 0
@@ -201,7 +205,7 @@ async def summarize_fragments(text: str | SummarySource, *, offset: int, previou
             count = min(text.read_chars, len(text) - start)
             fragment = await text.read(start, count)
             if not isinstance(fragment, str) or len(fragment) != count:
-                raise ValueError("Summary source returned an inconsistent range")
+                raise ValueError(SummaryValidation.INCONSISTENT_RANGE)
             stop = start + len(fragment)
         else:
             fragment, stop = None, len(text)

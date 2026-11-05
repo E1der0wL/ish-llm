@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, fields
 from inspect import getattr_static
 import json
 from typing import Any
+from contextlib import aclosing
 
 from llm.core.tool_contracts import ToolClassification, ToolContract
 
@@ -77,3 +78,45 @@ class ToolHandlerBindings:
     @classmethod
     def execution_binding(cls, handler):
         return getattr(handler, ToolRegistrationBinding.execution_binding.__name__, cls.ABSENT)
+
+
+class ScopedToolHandler:
+    """Preserve the public handler contract while entering an owner's sync scope.
+
+    No hook is invented for plain callbacks. Binding observations stay live;
+    scopes also cover selection validation and the complete event iterator.
+    """
+
+    def __init__(self, handler, scope):
+        self._handler, self._scope = handler, scope
+        for name in (ToolHandlerBindings.BIND_ARGUMENTS, ToolHandlerBindings.VALIDATE_SELECTION):
+            method = getattr(handler, name, None)
+            if method is not None:
+                if not callable(method):
+                    raise TypeError(f"Tool handler hook must be callable: {name}")
+                setattr(self, name, self._scoped(method))
+        events = ToolHandlerBindings.events(handler)
+        if events is not None:
+            if not callable(events):
+                raise TypeError("Tool event handler must be callable")
+            setattr(self, ToolHandlerBindings.EXECUTE_EVENTS, self._events)
+
+    def _scoped(self, method):
+        def invoke(*args, **kwargs):
+            with self._scope():
+                return method(*args, **kwargs)
+        return invoke
+
+    async def _events(self, *args, **kwargs):
+        with self._scope():
+            async with aclosing(ToolHandlerBindings.events(self._handler)(*args, **kwargs)) as stream:
+                async for event in stream:
+                    yield event
+
+    @property
+    def execution_binding(self):
+        return ToolHandlerBindings.execution_binding(self._handler)
+
+    async def __call__(self, arguments):
+        with self._scope():
+            return await self._handler(arguments)

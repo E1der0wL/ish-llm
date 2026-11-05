@@ -5,6 +5,20 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.STARTUP_FAILURE: 'Hub 시작 실패',
+    MessageKey.STARTUP_LOADING: 'HUB 로딩',
+    MessageKey.STARTUP_PROGRESS: '{stage} • {percent}',
+    MessageKey.STARTUP_TARGET: '대상',
+    MessageKey.STARTUP_RETRY: '재시도',
+    MessageKey.STARTUP_RESET: '초기화',
+    MessageKey.STARTUP_RESET_CONFIRM: '다음 Hub 설정 파일을 백업하고 초기화한 뒤 다시 시작합니다.\n{target}\n\n이 파일에 저장된 설정은 기본값으로 돌아갑니다.\n원본은 같은 .hub 폴더의 recovery-backups에 보존합니다.',
+    MessageKey.STARTUP_RESET_HINT: '파일을 직접 수정한 뒤 재시도하거나, 원본을 백업하고 기본값으로 초기화할 수 있습니다.',
+    MessageKey.STARTUP_PERMISSION_HINT: '경로와 읽기·쓰기 권한을 확인한 뒤 재시도하세요. 안전하게 백업할 수 없는 파일은 초기화하지 않습니다.',
+    MessageKey.STARTUP_INSTALL_HINT: '설치된 Hub 파일이 없거나 올바르지 않습니다. 플러그인을 다시 설치한 뒤 재시도하세요. 설치 원본은 설정 초기화로 복원할 수 없습니다.',
+    MessageKey.STARTUP_BACKEND_HINT: '저장 경로·설정·다른 실행 중인 ish를 확인하세요. 백엔드 데이터는 공개 복구 API가 허용하는 범위에서만 복구할 수 있어 여기서 임의로 초기화하지 않습니다.',
+    MessageKey.STARTUP_CLEANUP_HINT: '시작 실패 후 자원 정리도 완료하지 못했습니다. 오류 원인을 확인하고 ish를 종료한 뒤 다시 시작하세요.',
+    MessageKey.STARTUP_RESETTING: '복구 • 설정 백업 및 초기화',
+    MessageKey.PROGRESS_BACKEND_PREFERENCES: '시작 • Hub 설정 읽기',
     MessageKey.FAILURE_MODEL_RESPONSE: '모델이 반환한 내용이 필요한 형식이나 검증 조건에 맞지 않습니다. 해당 요약·추출 모델과 지침을 확인하세요. 실패 기록은 유지하며, 계속 진행할지는 백엔드에 명시한 정책으로 결정합니다.',
     MessageKey.FAILURE_MCP_CONNECTION: 'MCP 서버에 연결하지 못했습니다. 서버 실행 상태, 연결 주소·명령, 네트워크를 확인하세요. 연결 확인이 도구 실행 승인이나 재실행을 뜻하지는 않습니다.',
     MessageKey.FAILURE_MCP_AUTHENTICATION: 'MCP 서버 인증이 필요합니다. 해당 서버의 인증 정보나 로그인 연결을 확인하세요. Hub가 임의로 로그인하거나 인증 정보를 다른 서버에 보내지 않습니다.',
@@ -889,7 +903,7 @@ MESSAGES = {
     MessageKey.SESSION: "대화", MessageKey.RUN: "실행", MessageKey.STEPS: "단계",
 
 
-    MessageKey.CONNECTING: "연결 중", MessageKey.CONNECTING_NOTICE: "백엔드를 연결하고 있습니다.",
+    MessageKey.CONNECTING: "연결 중",
 
     MessageKey.NEW_SESSION: "새 대화", MessageKey.SESSIONS: "{icon_sessions} 세션", MessageKey.WORKSPACE: "프로젝트",
 

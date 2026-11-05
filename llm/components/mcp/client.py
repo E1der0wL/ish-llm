@@ -17,6 +17,8 @@ class MCPClient(Protocol):
     async def list_resources(self, *, cursor=UNSET) -> dict: ...
     async def list_templates(self, *, cursor=UNSET) -> dict: ...
     async def read_resource(self, uri: str) -> dict: ...
+    async def list_prompts(self, *, cursor=UNSET) -> dict: ...
+    async def get_prompt(self, name: str, *, arguments=UNSET) -> dict: ...
 
 
 class MCPClientOperation:
@@ -27,6 +29,8 @@ class MCPClientOperation:
     RESOURCES = MCPClient.list_resources.__name__
     TEMPLATES = MCPClient.list_templates.__name__
     READ = MCPClient.read_resource.__name__
+    PROMPTS = MCPClient.list_prompts.__name__
+    PROMPT = MCPClient.get_prompt.__name__
 
     @staticmethod
     def require(client, name):

@@ -13,6 +13,12 @@ class QuestionMode(StrEnum):
     NONBLOCKING = 'nonblocking'
 
 
+class AnswerDeliveryMode(StrEnum):
+    """Application-selected destination, never automatic execution or resume."""
+    SUBMIT = 'submit'
+    STEER = 'steer'
+
+
 def validate_question(request):
     if not isinstance(request, InteractionRequest):
         raise TypeError('Question requires an InteractionRequest')

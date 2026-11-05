@@ -118,7 +118,11 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: app.is_running)
                 shell = app.layout.current_control
-                pipe.send_text('\x11\x10\r')
+                # Startup is modal; settings actions become available only
+                # after the initial snapshot closes the loading popup.
+                pipe.send_text('\x11')
+                await until(lambda: view.connected and view._dialog is None and not view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: settings.page is not None and not settings.busy)
                 field = settings.page.form.fields[("email",)]
                 field.input.text = "unsaved@example.com"
@@ -136,6 +140,9 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(field.input.text, "unsaved@example.com")
                 self.assertTrue(settings.page.dirty)
                 self.assertIn("email", settings.page.form.schema["properties"])
+                # Usage is loaded separately from the catalog/form, including
+                # after a catalog refresh while the Hub is minimized.
+                await until(lambda: bool(settings.usage))
                 self.assertIn("known_tokens", settings.usage[0])
                 await until(lambda: not settings.busy)
                 settings.choose("general")

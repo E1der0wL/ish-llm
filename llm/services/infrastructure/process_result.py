@@ -2,11 +2,12 @@
 
 from dataclasses import dataclass
 from llm.core.contracts import JsonValue
+from .text_stream import ENCODING as TEXT_ENCODING
 
 
 @dataclass(frozen=True, slots=True)
 class ProcessResult(JsonValue):
-    ENCODING = "utf-8"
+    ENCODING = TEXT_ENCODING
     ERRORS = "replace"
     SUCCESS = 0
 

@@ -45,6 +45,8 @@ SDK 내부의 동기 작업까지 강제 종료하는 기능은 아니다.
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | provider 패키지의 역할을 설명합니다. 함수·클래스는 각 모듈에서 import합니다. |
+| [web.py](web.py) | 주입된 HTTP client/검색 서비스의 연결·요청·취소 회수를 담당합니다. |
+| [web_content.py](web_content.py) | 웹 검색·조회 결과 계약과 스트리밍 HTML 텍스트 해석입니다. |
 | [runtime.py](runtime.py) | LiteLLM 지연 초기화, SDK 재시도·런타임 격리 불변식, 로그·진단 라우팅입니다. |
 | [runtime_values.py](runtime_values.py) | SDK 초기화 불변식, Provider 로그 경로/출처/안전한 로그·예외 frame의 정규 Writer입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |

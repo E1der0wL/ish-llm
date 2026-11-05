@@ -18,7 +18,6 @@ class ModelClient:
     RUNTIME_OPTIONS = False
     UNSUPPORTED_CALLBACK_FIELDS = frozenset(("completion_fn", "embedding_fn", "rerank_fn"))
     PARAMETERS_ATTRIBUTE = "params"
-    INSTANCE_EMBED_METHOD = "embed"
     REQUIRE_ADAPTER = "Model clients require an operation adapter"
     INVALID_RETRY_SELECTOR = "Retry selector must be callable"
     INVALID_COMPLETION_RESULT = "Operation adapter must return ModelResponse"
@@ -46,7 +45,7 @@ class ModelClient:
 
     def cache_identity(self):
         """프로세스 내 호출 구현의 정체성. 영속 fingerprint와 별도로 사용한다."""
-        return (self.adapter.cache_identity(), id(self.__dict__.get(self.INSTANCE_EMBED_METHOD, type(self))))
+        return (self.adapter.cache_identity(), id(type(self)))
 
     def with_provider(self, options):
         worker = copy(self)

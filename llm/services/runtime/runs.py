@@ -1,6 +1,7 @@
 """Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
 from llm.services.infrastructure.storage import record_exists, record_children, record_directory
+from llm.services.infrastructure.cancellation import cancel_tasks
 from .client_inputs import InputKind, InputReceipt
 
 from llm.services.runtime.subscription_state import EventChannel
@@ -27,7 +28,7 @@ from llm.services.infrastructure.storage import SnapshotFile
 from llm.core.execution_observations import ExecutionObservations
 from llm.core.steering_channel import SteeringChannel
 from llm.core.instruction_records import InstructionMessageRecord, InstructionReceipt
-from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringNotification
+from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringNotification, SteeringReason
 from llm.core.checkpoint_records import CheckpointContent, CheckpointRecords, CheckpointPause
 
 from llm.core.checkpoints import CheckpointConversation
@@ -59,7 +60,7 @@ from llm.core.checkpoints import CheckpointErrorCode
 from llm.core.results import OutputOperation, OutputVisibility
 from llm.core.models import RunErrorCode, RunTransition
 
-from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
+from llm.services.infrastructure.storage import read_domain_record, atomic_timed_record
 
 from llm.services.query import FileCatalog, Query, select, select_ordered
 from llm.services.infrastructure.journal import OutputJournal
@@ -180,6 +181,11 @@ from llm.services.infrastructure.observability import ObservationKind, Observati
 # 실행 메타데이터를 저장한다. Facade와 실행 서비스가 같은 인스턴스를 공유한다.
 class RunRepository:
     """Run metadata and paths beneath the owning Session's runs root."""
+
+    CHANGED_QUESTION = 'Question revision changed'
+    ANSWERED_QUESTION = 'Answered questions are immutable; delivery remains explicit'
+    UNANSWERED_QUESTION = 'Question must be answered before explicit delivery'
+    RECLASSIFICATION_STATE = 'Reclassification requires a paused Run'
 
     ABSENT = None
     ENTRY_PATTERN = "*"
@@ -537,17 +543,16 @@ class RunRepository:
         if prior.status != run.status:
             validate_run_transition(prior.status, run.status)
         CompletionRecords.validate_update(prior.metadata, run.metadata)
-        self._write(run, creating=RunRepository.UPDATE)
+        self._write(run, creating=RunRepository.UPDATE, previous=record(prior))
 
-    def _write(self, run: Run, *, creating: bool) -> None:
-        path = run.paths.record
+    def _write(self, run: Run, *, creating: bool, previous=None) -> None:
         CompletionRecords.finalize(run)
         data = record(run)
         Run.from_record(data, run.paths)
         CheckpointRepository().names(run)
         if not creating:
             self.output_journal.validate(RunPaths.output_path(run.paths.state))
-        atomic_domain_json(path, data)
+        atomic_timed_record(run, data, previous)
         if creating:
             self.output_journal.initialize(RunPaths.output_path(run.paths.state))
         log_event(run.paths.logs, RunLogEvent.SAVED, entity_id=run.id, status=run.status)
@@ -684,9 +689,9 @@ class RunRepository:
         interactions = InteractionRepository()
         publication = interactions.question(run, request.id)
         if publication.parsed_request != request:
-            raise ValueError('Question revision changed')
+            raise ValueError(RunRepository.CHANGED_QUESTION)
         if interactions.control(run, request).has_response:
-            raise ValueError('Answered questions are immutable; delivery remains explicit')
+            raise ValueError(RunRepository.ANSWERED_QUESTION)
         interactions.cancel(run, request)
 
     def question_delivery(self, run, request_id):
@@ -694,7 +699,7 @@ class RunRepository:
         publication = interactions.question(run, request_id)
         control = interactions.control(run, publication.parsed_request)
         if control.cancelled or not control.has_response:
-            raise ValueError('Question must be answered before explicit delivery')
+            raise ValueError(RunRepository.UNANSWERED_QUESTION)
         control.response_for(publication.parsed_request)
         return publication.delivery_key
 
@@ -988,7 +993,7 @@ class RunRepository:
     def reclassify_interaction(self, session, run, request, *, risk, risk_scheme):
         self.require_resume(run)
         if run.status != RunStatus.PAUSED:
-            raise ValueError('Reclassification requires a paused Run')
+            raise ValueError(RunRepository.RECLASSIFICATION_STATE)
         current = next((r for r in self.interaction_requests(session, run) if r.id == request.id), None)
         if current is None or current.fingerprint != request.fingerprint or current.revision != request.revision:
             raise ValueError(RunRepository.CHANGED_INTERACTION)
@@ -1149,11 +1154,20 @@ class _RunOutcome:
 class RunManager:
     """One Session-bound scheduler; separate instances execute separate Sessions."""
 
+    UNSUPPORTED_REDIRECT = 'Selected execution does not support redirection'
+    DISPATCHED_REDIRECT = 'Redirection has already been dispatched; send a new correction'
+    CHANGED_FAILURE = 'Failed Step handling checkpoint changed'
+    QUESTION_STEP = 'Question publication requires an active originating Step'
+    APPROVAL_STATE = 'Approval policy application requires a paused, unsubmitted Run'
+
     ABSENT = None
     OPEN = False
     CLOSED = True
     DIRECT_INSTRUCTION = False
     RESERVED_INSTRUCTION = True
+    INSTRUCTION_WRITTEN = True
+    INSTRUCTION_REUSED = False
+    NO_DISPATCH_PROOF = False
     TRANSFER_CREATED = True
     TRANSFER_REUSED = False
     CONTROL_ACCEPTED = True
@@ -1386,7 +1400,7 @@ class RunManager:
             EventChannel.ENGINE.value, run, event, on_error=lambda: self._observer_failed(run)
         )
 
-    def _accept_instruction(self, run_id, content, targets, reserved=DIRECT_INSTRUCTION, redirect=False,
+    def _accept_instruction(self, run_id, content, targets, reserved=DIRECT_INSTRUCTION, redirect=InstructionMessageRecord.NO_REDIRECT,
                             *, receipts=None):
         _, session = self._prepare()
         run = self.repository.load(session, run_id)
@@ -1427,7 +1441,7 @@ class RunManager:
             if redirect and (not target.redirectable or control.steering is None
                              or identifier not in control.steering.channels):
                 raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE,
-                                      'Selected execution does not support redirection')
+                                      RunManager.UNSUPPORTED_REDIRECT)
         store = self._store(session)
         message = store.create(
             MessageRole.USER,
@@ -1441,7 +1455,7 @@ class RunManager:
         return run, RunInstruction.from_message(message)
 
     async def _send_instruction(self, run_id, content, targets, *, reserved=DIRECT_INSTRUCTION,
-                                request_key=UNSET, redirect=False):
+                                request_key=UNSET, redirect=InstructionMessageRecord.NO_REDIRECT):
         if not isinstance(content, str) or not content.strip():
             raise ValueError(RunManager.EMPTY_INSTRUCTION)
 
@@ -1453,23 +1467,21 @@ class RunManager:
                     _, session = self._prepare()
                     store = self._store(session)
                     kind = InputKind.RESERVATION if reserved else InputKind.REDIRECT if redirect else InputKind.INSTRUCTION
-                    payload = {'run_id': run_id, 'content': content, 'targets':
-                               [v.to_dict() for v in targets] if reserved else
-                               list(targets) if targets is not RunManager.ABSENT else None}
+                    payload = InputReceipt.instruction_payload(run_id, content, targets, reserved=reserved)
                     previous = InputReceipt.find(store, session, request_key) if request_key is not UNSET else None
                     if previous is not None:
                         previous.require(kind, payload)
-                        return self.repository.load(session, run_id), RunInstruction.from_message(store.get(previous.message_id)), False
+                        return self.repository.load(session, run_id), RunInstruction.from_message(store.get(previous.message_id)), self.INSTRUCTION_REUSED
                     run, value = self._accept_instruction(run_id, content, targets, reserved, redirect)
                     if request_key is not UNSET:
                         InputReceipt.record(store, session, value.id, request_key, kind, payload, run_id=run_id)
-                    return run, value, True
+                    return run, value, self.INSTRUCTION_WRITTEN
                 run, value, accepted = await self._io.run_records(persist)
                 if accepted and redirect:
                     control = self._active.executions.get(run.id) if self._active is not None else None
                     if control is not None and control.steering is not None:
-                        for target in value.targets:
-                            inbox = control.steering.channels.get(target['id'])
+                        for target_id in value.target_ids:
+                            inbox = control.steering.channels.get(target_id)
                             if inbox is not None and not inbox.closed:
                                 inbox.control.request(value.id)
                 return run, value, accepted
@@ -1489,12 +1501,12 @@ class RunManager:
                     _, session = self._prepare()
                     run = self.repository.load(session, run_id)
                     store = self._store(session)
-                    payload = {'run_id': run_id, 'instruction_id': identifier, 'content': content}
+                    payload = InputReceipt.replacement_payload(run_id, identifier, content)
                     if request_key is not UNSET:
                         previous = InputReceipt.find(store, session, request_key)
                         if previous is not None:
                             previous.require(InputKind.REPLACEMENT, payload)
-                            return run, [RunInstruction.from_message(store.get(previous.message_id))], False
+                            return run, [RunInstruction.from_message(store.get(previous.message_id))], self.INSTRUCTION_REUSED
                     if run.status != RunStatus.RUNNING or self._active is None:
                         raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, self.NO_LIVE_INSTRUCTIONS)
                     execution = self._active.executions.get(run_id)
@@ -1504,7 +1516,7 @@ class RunManager:
                     # Delivery to a live cancellation boundary is already an
                     # action, even if new model input has not yet been selected.
                     if original.redirect:
-                        raise ValueError('Redirection has already been dispatched; send a new correction')
+                        raise ValueError(RunManager.DISPATCHED_REDIRECT)
                     replacement = None
                     if content is not None:
                         reserved = all(t.reserved for t in original.targets)
@@ -1518,8 +1530,8 @@ class RunManager:
                             InputReceipt.record(store, session, replacement.id, request_key,
                                                 InputKind.REPLACEMENT, payload, run_id=run_id)
                     changed = withdraw_instruction(store, message, original,
-                        reason='superseded' if replacement is not None else 'withdrawn')
-                    return run, [changed, *([replacement] if replacement is not None else [])], True
+                        reason=SteeringReason.SUPERSEDED.value if replacement is not None else SteeringReason.WITHDRAWN.value)
+                    return run, [changed, *([replacement] if replacement is not None else [])], self.INSTRUCTION_WRITTEN
                 return await self._io.run_records(persist)
 
         run, values, changed = await drain_on_cancel(change())
@@ -1772,9 +1784,7 @@ class RunManager:
         async with self._control_lock():
             if self._closed:
                 raise RuntimeError(RunManager.SHUT_DOWN)
-            payload = {'content': content, 'recipients': list(recipients) if isinstance(recipients, tuple) else recipients}
-            if request_context is not UNSET:
-                payload['request_context'] = request_context
+            payload = InputReceipt.request_payload(content, recipients, request_context)
             if request_key is not UNSET:
                 def repeated():
                     _, session = self._prepare()
@@ -2845,7 +2855,7 @@ class RunManager:
                 saved = self.repository.checkpoint(run, receipt.checkpoint)
                 record = CheckpointRecords.from_checkpoint(saved).records[receipt.key]
                 if revision_token(record) != receipt.revision:
-                    raise ValueError("Failed Step handling checkpoint changed")
+                    raise ValueError(RunManager.CHANGED_FAILURE)
         return False
 
     def _record_engine_event(
@@ -2863,7 +2873,7 @@ class RunManager:
             from llm.services.infrastructure.transactions import watch
             step = self.steps.load(run, event.step_id)
             if step.status != StepStatus.RUNNING:
-                raise ValueError('Question publication requires an active originating Step')
+                raise ValueError(RunManager.QUESTION_STEP)
             watch(run)
             InteractionRepository().post_question(run, step.id, event.interaction)
             self.repository.save(run)
@@ -2968,7 +2978,7 @@ class RunManager:
         status: RunStatus,
         error: Optional[str] = ABSENT,
         error_code: Optional[str] = ABSENT,
-        *, unentered: bool = False,
+        *, unentered: bool = NO_DISPATCH_PROOF,
     ) -> list[RunInstruction]:
         # 변경 전 검증한다. 중복 종료로 시각/오류/Step을 덮거나 다음 Run의 Session을 해제하지 않는다.
         validate_run_transition(run.status, status, reason=RunTransition.FINISH)
@@ -3191,9 +3201,7 @@ class RunManager:
                             else:
                                 runtime.waiting.append(identifier)
                 finally:
-                    for waiter in waiters:
-                        waiter.cancel()
-                    await asyncio.gather(*waiters, return_exceptions=RunManager.COLLECT_TASK_ERRORS)
+                    await cancel_tasks(waiters)
         except BaseException as error:
             failure = error
             raise
@@ -3201,9 +3209,9 @@ class RunManager:
             controls = tuple(runtime.executions.values())
             for control in controls:
                 control.interrupt()
-            results = await asyncio.gather(
+            results = await drain_on_cancel(asyncio.gather(
                 *(control.task for control in controls), return_exceptions=RunManager.COLLECT_TASK_ERRORS
-            )
+            ))
             if failure is RunManager.ABSENT:
                 for result in results:
                     if isinstance(result, BaseException):
@@ -3252,7 +3260,7 @@ class RunManager:
             if not isinstance(targets, (list, tuple)) or any(not isinstance(v, str) or not v for v in targets):
                 raise ValueError(self.INVALID_STEERING_TARGETS)
             targets = tuple(targets)
-        return await self._send_instruction(run_id, content, targets, request_key=request_key, redirect=True)
+        return await self._send_instruction(run_id, content, targets, request_key=request_key, redirect=InstructionMessageRecord.REDIRECT_REQUESTED)
 
     async def withdraw_instruction(self, run_id, identifier):
         return await self._change_instruction(run_id, identifier)
@@ -3269,7 +3277,7 @@ class RunManager:
             run = self.repository.load(session, run_id)
             self.repository.require_resume(run)
             if run.status != RunStatus.PAUSED or any(self.repository.resume_link(session, run, self._store(session))):
-                raise ValueError('Approval policy application requires a paused, unsubmitted Run')
+                raise ValueError(RunManager.APPROVAL_STATE)
             return session, run
         session, run = await self._io.run(read)
         return await self._apply_approval_policy(session, run)
@@ -3367,8 +3375,7 @@ class RunManager:
                 try:
                     await asyncio.wait((notification, runtime.worker), return_when=asyncio.FIRST_COMPLETED)
                 finally:
-                    notification.cancel()
-                    await asyncio.gather(notification, return_exceptions=RunManager.COLLECT_TASK_ERRORS)
+                    await cancel_tasks((notification,))
 
         return await asyncio.wait_for(wait(), timeout=timeout)
 
@@ -3459,8 +3466,7 @@ class RunManager:
                     raise RuntimeError(RunManager.UNDRAINED_QUEUE)
             await joined
         finally:
-            joined.cancel()
-            await asyncio.gather(joined, return_exceptions=RunManager.COLLECT_TASK_ERRORS)
+            await cancel_tasks((joined,))
 
     async def shutdown(self) -> None:
         await drain_on_cancel(self._shutdown())

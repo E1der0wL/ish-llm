@@ -129,6 +129,10 @@ class WorkspaceExecutionResult(ProcessResult):
     workspace_id: str
 
     @classmethod
+    def attach(cls, result, identifier):
+        return {**result, cls.workspace_id.__name__: identifier}
+
+    @classmethod
     def from_result(cls, workspace_id, result):
         value = ProcessResult.from_dict(result)
         return cls(value.returncode, value.stdout, value.stderr, workspace_id)

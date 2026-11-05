@@ -53,6 +53,28 @@ class WorkflowDataInspectionTests(IsolatedAsyncioTestCase):
 
 
 class WorkflowInspectionTests(TestCase):
+    def test_incomplete_control_nodes_report_paths_and_keep_independent_checks(self):
+        for node, field in (
+            ({'type': 'loop', 'max_iterations': 1, 'on_limit': 'fail'}, 'body'),
+            ({'type': 'workflow'}, 'workflow'),
+        ):
+            with self.subTest(kind=node['type']):
+                draft = self.graph()
+                draft['entry'] = 'incomplete'
+                draft['nodes']['incomplete'] = node
+                draft['edges'].insert(0, {'source': 'incomplete', 'target': 'action'})
+                original = deepcopy(draft)
+                reader = Mock(side_effect=AssertionError('No reference may be guessed'))
+                report = inspect_graph(draft, handlers={}, read_reference=reader)
+                self.assertFalse(report.valid)
+                self.assertIn('/nodes/incomplete/' + field,
+                              [item.details['path'] for item in report.diagnostics])
+                self.assertTrue(any(item.code == 'workflow_handler_missing'
+                                    and item.details['node_id'] == 'action'
+                                    for item in report.diagnostics))
+                self.assertEqual(draft, original)
+                reader.assert_not_called()
+
     def test_structural_paths_identify_edges_and_nodes(self):
         graph = self.graph()
         graph['edges'][0]['target'] = 'missing'

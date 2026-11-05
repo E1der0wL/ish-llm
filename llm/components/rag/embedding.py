@@ -13,6 +13,7 @@ from llm.providers.schema import EmbeddingParameters
 class EmbeddingModel(ModelClient):
     operation = ModelOperation.EMBEDDING
     FIRST_VECTOR = 0
+    INSTANCE_EMBED_METHOD = "embed"
     INVALID_EMBEDDING = "Embedding adapter must return EmbeddingResult"
 
     @classmethod
@@ -24,6 +25,11 @@ class EmbeddingModel(ModelClient):
     @property
     def enforced_configuration(self):
         return copy_model(self.adapter.embedding_enforced)
+
+    def cache_identity(self):
+        # Only embedding caches depend on this client's embedding callable.
+        # Shared model mechanics must not assume every operation is embedding.
+        return (self.adapter.cache_identity(), id(self.__dict__.get(self.INSTANCE_EMBED_METHOD, type(self))))
 
     def identity(self, **kwargs):
         return EmbeddingParameters({**self.params, **kwargs}).optional_model

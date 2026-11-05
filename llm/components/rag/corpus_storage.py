@@ -265,6 +265,9 @@ class CorpusStorage:
             progress(PublicationObservation.VALIDATING)
         if not isinstance(documents, dict):
             raise ValueError(CorpusStorage.INVALID_DOCUMENTS)
+        from .document_records import RAGDocument
+        documents = {identifier: RAGDocument.for_publication(document,
+            RAGCorpus(previous).documents.get(identifier)) for identifier, document in documents.items()}
         profile = CorpusStorage.ABSENT
         if documents:
             first = next(iter(documents.values()))

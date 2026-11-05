@@ -60,8 +60,10 @@ class ToolExecutionError(CodedError, RuntimeError):
 class ToolRedirected(ToolExecutionError):
     """Explicit invocation cancellation, not a retryable Tool failure."""
 
+    MESSAGE = 'Tool interrupted by an explicit direction change'
+
     def __init__(self, instructions, *, effect):
-        super().__init__('Tool interrupted by an explicit direction change', effect=effect)
+        super().__init__(ToolRedirected.MESSAGE, effect=effect)
         self.instructions = tuple(instructions)
 
 

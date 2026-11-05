@@ -1,63 +1,20 @@
-"""Resource dates follow each public record contract without modifying source files."""
+"""Hub observes owner-managed times without changing definitions or adding writes."""
 
 from copy import deepcopy
-from datetime import datetime
-import json
 from pathlib import Path
+import json
 import tempfile
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
-from hub.backend.project.management_values import ResourceTimestamps
-from hub.backend.project.record_management import RecordManagement
-from hub.backend.project.skill_registration import import_skill
+from hub.backend.project.record_management import RecordManagement, SkillManagement, DocumentManagement
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.tools.management import ToolManagement
+from llm.core.record_times import RecordTimes
 from llm.core.skills import SkillDocument
-from llm.components.skills import SkillRecord
 
 
-class ResourceTimestampTests(unittest.TestCase):
-    def test_dates_preserve_supplied_history_and_do_not_mutate_inputs_or_backfill_reads(self):
-        value = {'metadata': {'created_at': '2020-01-01T00:00:00+00:00', 'custom': 'kept'}}
-        original = deepcopy(value)
-        created = ResourceTimestamps.created(value)
-        self.assertEqual(created['metadata']['updated_at'], original['metadata']['created_at'])
-        self.assertEqual(value, original)
-        changed = ResourceTimestamps.modified(created)
-        self.assertEqual(changed['metadata']['created_at'], original['metadata']['created_at'])
-        self.assertEqual(changed['metadata']['custom'], 'kept')
-        self.assertGreater(changed['metadata']['updated_at'], created['metadata']['updated_at'])
-        self.assertEqual(ResourceTimestamps.latest({}), '')
-        self.assertEqual(ResourceTimestamps.created({'metadata': None}), {'metadata': None})
-
-    def test_skill_frontmatter_keeps_body_fields_and_native_record_shape(self):
-        document = SkillDocument.compose(name='guide', description='A guide', body='Keep exact body.\n',
-            license='MIT', metadata={'custom': 'kept'})
-        value = SkillRecord.markdown_change(document.text)
-        stamped = ResourceTimestamps.skill(value)
-        self.assertEqual(set(stamped), set(value))
-        parsed = SkillDocument.parse(stamped['markdown'])
-        self.assertEqual(parsed.body, document.body)
-        self.assertEqual(parsed.frontmatter['license'], 'MIT')
-        self.assertEqual(parsed.frontmatter['metadata']['custom'], 'kept')
-        self.assertEqual(parsed.frontmatter['metadata']['created_at'], parsed.frontmatter['metadata']['updated_at'])
-        self.assertEqual(ResourceTimestamps.skill(stamped), stamped)
-        self.assertEqual(value['markdown'], document.text)
-
-    def test_skill_without_metadata_uses_yaml_serializable_string_keys(self):
-        value = SkillRecord.markdown_change(SkillDocument.compose(
-            name='guide', description='A guide', body='Body').text)
-        for modified in (False, True):
-            with self.subTest(modified=modified):
-                stored = ResourceTimestamps.skill(value, modified=modified)
-                parsed = SkillDocument.parse(stored['markdown'])
-                self.assertTrue(parsed.frontmatter['metadata']['updated_at'])
-                self.assertEqual(parsed.body, SkillDocument.parse(value['markdown']).body)
-                self.assertNotIn('metadata', SkillDocument.parse(value['markdown']).frontmatter)
-
-
-class ResourceTimestampIntegrationTests(unittest.IsolatedAsyncioTestCase):
+class ResourceTimeIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
@@ -66,83 +23,142 @@ class ResourceTimestampIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.runtime.close)
         await self.runtime.start()
 
-    async def test_imported_skill_dates_files_edit_revision_and_original_are_preserved(self):
+    async def test_skill_import_and_noop_save_preserve_markdown_revision_and_times(self):
         source = self.root / 'imported-guide'
         (source / 'scripts').mkdir(parents=True)
         original = SkillDocument.compose(name=source.name, description='Imported', body='Original body.\n',
-                                         metadata={'custom': 'kept'}).text
+                                         metadata={'custom': 'kept', 'updated_at': 'user metadata'}).text
         (source / 'SKILL.md').write_text(original)
         (source / 'scripts' / 'check.py').write_text('print(1)\n')
-        data = await self.runtime.project.components.aget('skills')
-        await import_skill(data, source)
         manager = await RecordManagement.for_project(self.runtime.project, 'skills', root=self.root)
-        rows = await manager.list()
-        self.assertTrue(next(row['modified'] for row in rows if row['name'] == source.name))
+        data = manager.data
+        with patch.object(data, 'awrite_markdown', wraps=data.awrite_markdown) as write:
+            rows = await manager.execute('import', str(source / 'SKILL.md'))
+            write.assert_not_called()
+        times = RecordTimes.read(await data.aget_times(source.name))
+        # Import may add files/modes after initial creation; keep the owner's
+        # final times instead of forcing creation and update to be identical.
+        self.assertTrue(times.created_at)
+        self.assertTrue(times.updated_at)
+        self.assertEqual(next(row['modified'] for row in rows if row['name'] == source.name), times.updated_at)
         record = await manager.read(source.name)
-        document = SkillDocument.parse(record['text'])
-        created = document.frontmatter['metadata']['created_at']
-        self.assertEqual(document.frontmatter['metadata']['updated_at'], created)
+        self.assertEqual(record['text'], original)
         self.assertEqual((source / 'SKILL.md').read_text(), original)
         self.assertIn('scripts/check.py', await data.alist_files(source.name))
-        updated = SkillDocument.compose(name=source.name, description='Updated', body='Changed body.\n',
-                                        metadata=document.frontmatter['metadata']).text
+        await manager.execute('save', {'name': source.name, 'text': original}, record['version'])
+        self.assertEqual(await manager.read(source.name), record)
+        self.assertEqual(RecordTimes.read(await data.aget_times(source.name)), times)
+        updated = original.replace('Original body.', 'Changed body.')
         await manager.execute('save', {'name': source.name, 'text': updated}, record['version'])
         current = await manager.read(source.name)
-        edited = SkillDocument.parse(current['text'])
-        self.assertEqual(edited.frontmatter['metadata']['created_at'], created)
-        self.assertGreaterEqual(edited.frontmatter['metadata']['updated_at'], created)
-        self.assertEqual(edited.body, 'Changed body.\n')
+        changed = RecordTimes.read(await data.aget_times(source.name))
+        self.assertEqual(changed.created_at, times.created_at)
+        self.assertNotEqual(changed.updated_at, times.updated_at)
+        self.assertEqual(current['text'], updated)
         with self.assertRaises(ValueError):
-            await manager.execute('save', {'name': source.name, 'text': updated}, record['version'])
+            await manager.execute('save', {'name': source.name, 'text': original}, record['version'])
         self.assertEqual(await manager.read(source.name), current)
+        self.assertEqual(RecordTimes.read(await data.aget_times(source.name)), changed)
+        # A later native edit must be visible without consulting frontmatter dates.
+        await data.awrite_markdown(source.name, updated.replace('Changed', 'Native'),
+                                   expected_revision=current['version'])
+        rows = await manager.list()
+        self.assertEqual(next(row['modified'] for row in rows if row['name'] == source.name),
+                         RecordTimes.read(await data.aget_times(source.name)).updated_at)
 
-    async def test_generic_definitions_use_shared_dates_but_native_memory_and_tool_owners_remain(self):
+    async def test_definition_managers_keep_payloads_and_observe_native_edits(self):
         definitions = {
             'workflows': {'schema_version': 1, 'entry': 'end', 'nodes': {'end': {'type': 'end'}}, 'edges': []},
             'prompts': {'messages': [{'role': 'system', 'content': 'Test'}]},
             'mcp': {'transport': 'stdio', 'command': 'never-executed'},
+            'agents': {'engine': 'loop', 'tools': []},
         }
         for component, value in definitions.items():
             with self.subTest(component=component):
+                value['metadata'] = {'created_at': 'arbitrary user value', 'updated_at': 'not a managed date'}
                 original = deepcopy(value)
                 manager = await RecordManagement.for_project(self.runtime.project, component, root=self.root)
                 await manager.create('new-resource', value)
-                self.assertEqual(value, original)
                 record = await manager.read('new-resource')
-                stored = json.loads(record['text'])
-                created = stored['metadata']['created_at']
-                self.assertIsNotNone(datetime.fromisoformat(created).utcoffset())
-                self.assertEqual(stored['metadata']['updated_at'], created)
-                stored['metadata']['custom'] = 'changed'
-                await manager.save('new-resource', stored, record['version'])
-                after = json.loads((await manager.read('new-resource'))['text'])
-                self.assertEqual(after['metadata']['created_at'], created)
-                self.assertEqual(after['metadata']['custom'], 'changed')
-                self.assertTrue(next(row['modified'] for row in await manager.list() if row['name'] == 'new-resource'))
+                before = RecordTimes.read(await manager.data.aget_times('new-resource'))
+                self.assertEqual(json.loads(record['text']), original)
+                self.assertEqual(value, original)
+                self.assertEqual(before.created_at, before.updated_at)
+                await manager.save('new-resource', value, record['version'])
+                self.assertEqual(await manager.read('new-resource'), record)
+                self.assertEqual(RecordTimes.read(await manager.data.aget_times('new-resource')), before)
+                changed = deepcopy(value)
+                changed['metadata']['custom'] = 'changed outside Hub'
+                if component == 'agents':
+                    await manager.data.arevise('new-resource', changed, expected_revision=record['version'])
+                else:
+                    await manager.data.asave('new-resource', changed, expected_version=record['version'])
+                after = RecordTimes.read(await manager.data.aget_times('new-resource'))
+                self.assertEqual(after.created_at, before.created_at)
+                self.assertNotEqual(after.updated_at, before.updated_at)
+                rows = await manager.list()
+                self.assertEqual(next(row['modified'] for row in rows if row['name'] == 'new-resource'),
+                                 after.updated_at)
+                with self.assertRaises(ValueError):
+                    await manager.save('new-resource', value, record['version'])
+                self.assertEqual(json.loads((await manager.read('new-resource'))['text']), changed)
+                self.assertEqual(RecordTimes.read(await manager.data.aget_times('new-resource')), after)
+
+    async def test_memory_and_tool_lists_use_native_managed_times(self):
         memory = await RecordManagement.for_project(self.runtime.project, 'memory')
         await memory.create('note', {'content': 'A note', 'scope': 'project', 'status': 'confirmed'})
         native = await memory.data.aload('note')
-        self.assertTrue(native['created_at'])
-        self.assertEqual(native['created_at'], native['updated_at'])
+        self.assertEqual(next(row['modified'] for row in await memory.list() if row['name'] == 'note'),
+                         native['updated_at'])
         self.assertNotIn('created_at', native.get('metadata', {}))
         source = self.root / 'sample_tool'
         source.mkdir()
         (source / 'sample_tool.py').write_text('def main(value: str) -> str:\n    return value\n')
         tools = await ToolManagement.for_project(self.runtime.project, root=self.root)
-        entries = await tools.import_package(str(source))
-        stamp = next(row['modified'] for row in entries if row['name'] == source.name)
-        self.assertIsNotNone(datetime.fromisoformat(stamp).utcoffset())
+        with patch.object(type(tools.paths), 'modified_at', side_effect=AssertionError('Use public data times')):
+            entries = await tools.import_package(str(source))
+        times = RecordTimes.read(await tools.data.aget_times(source.name))
+        self.assertEqual(next(row['modified'] for row in entries if row['name'] == source.name), times.updated_at)
         self.assertNotIn('metadata', await tools.data.aload(source.name))
 
 
-class SkillImportFailureTests(unittest.IsolatedAsyncioTestCase):
-    async def test_stamp_conflict_does_not_overwrite_or_delete_successfully_imported_package(self):
-        value = SkillRecord.markdown_change(SkillDocument.compose(name='guide', description='Guide', body='Body').text)
+class ResourceTimeBoundaryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_import_has_no_timestamp_write_or_cleanup_after_failure(self):
         data = AsyncMock()
-        data.aimport_directory.return_value = 'guide'
-        data.asnapshot.return_value = {'data': value, 'version': 'captured-revision'}
-        data.awrite_markdown.side_effect = ValueError('revision changed')
-        with self.assertRaisesRegex(ValueError, 'revision changed'):
-            await import_skill(data, '/explicit/source/guide')
-        self.assertEqual(data.awrite_markdown.call_args.kwargs, {'expected_revision': 'captured-revision'})
-        data.adelete.assert_not_called()
+        manager = SkillManagement(data, 'skills', Path.cwd())
+        with patch.object(manager, 'list', new_callable=AsyncMock, return_value=[]):
+            await manager.execute('import', 'guide')
+            data.aimport_directory.assert_awaited_once_with(Path.cwd() / 'guide')
+            data.asnapshot.assert_not_called()
+            data.awrite_markdown.assert_not_called()
+            data.aimport_directory.side_effect = OSError('package unavailable')
+            with self.assertRaisesRegex(OSError, 'package unavailable'):
+                await manager.execute('import', 'guide')
+            data.adelete.assert_not_called()
+
+    async def test_catalog_times_are_used_without_reading_document_bodies(self):
+        data = AsyncMock()
+        document = {'id': 'note', 'title': 'Note', 'description': 'Small catalog row',
+                    'revision': 2, 'generation': 'generation',
+                    'created_at': '2026-01-01T00:00:00+00:00', 'updated_at': '2026-01-02T00:00:00+00:00'}
+        data.alist_catalog.return_value = {'documents': [document], 'next_cursor': None, 'generation': 'generation'}
+        manager = DocumentManagement(data, 'rag', Path.cwd())
+        rows = await manager.list()
+        self.assertEqual(rows[0]['modified'], document['updated_at'])
+        data.aget_document.assert_not_called()
+        data.aget_times.assert_not_called()
+        # Unsupported data stays an error; no metadata/Job/mtime/clock fallback.
+        del document['updated_at']
+        with self.assertRaises(ValueError):
+            await manager.list()
+
+    async def test_missing_owner_times_are_not_replaced_by_user_metadata(self):
+        data = AsyncMock()
+        data.alist.return_value = ['item']
+        data.asnapshot.return_value = {'data': {'metadata': {'updated_at': '2026-01-01T00:00:00+00:00'}},
+                                       'version': 'revision'}
+        data.aget_times.return_value = {}
+        manager = RecordManagement(data, 'prompts', Path.cwd())
+        with self.assertRaises(ValueError):
+            await manager.list()
+        data.asave.assert_not_called()

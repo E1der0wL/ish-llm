@@ -6,7 +6,7 @@ import struct
 import tempfile
 from dataclasses import dataclass
 
-from llm.services.infrastructure.text_stream import text_blocks, read_text_range, BUFFER_BYTES
+from llm.services.infrastructure.text_stream import text_blocks, read_text_range, BUFFER_BYTES, ENCODING
 from .file_execution import FileReader, check_cancelled
 
 
@@ -49,10 +49,19 @@ class TextRange:
 
 
 class TextIndex:
-    ROW = struct.Struct("QQ")
-    BREAK = re.compile(r"\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]")
+    BINARY_FILE = 'Binary file'
+    ALLOW_NUL = False
+    NO_CHARACTER_LIMIT = None
+    KEEP_ENDINGS = True
 
-    def __init__(self, stream, *, max_bytes, reject_nul=False):
+    ROW = struct.Struct("QQ")
+    NUL = "\x00"
+    CR = "\r"
+    LF = "\n"
+    LINE_ENDINGS = LF + CR + "\v\f\x1c\x1d\x1e\x85\u2028\u2029"
+    BREAK = re.compile(re.escape(CR + LF) + "|[" + re.escape(LINE_ENDINGS) + "]")
+
+    def __init__(self, stream, *, max_bytes, reject_nul=ALLOW_NUL):
         stream = FileReader(stream)
         self.stream, self.rows = stream, tempfile.TemporaryFile()
         self.count = 0
@@ -64,19 +73,19 @@ class TextIndex:
             stream.seek(0)
             start, position, pending = 0, 0, ""
             for block in text_blocks(stream):
-                if reject_nul and "\x00" in block:
-                    raise ValueError("Binary file")
+                if reject_nul and self.NUL in block:
+                    raise ValueError(TextIndex.BINARY_FILE)
                 block = pending + block
-                pending = "\r" if block.endswith("\r") else ""
+                pending = self.CR if block.endswith(self.CR) else ""
                 if pending:
                     block = block[:-1]
                 consumed = 0
                 for match in self.BREAK.finditer(block):
-                    position += len(block[consumed:match.end()].encode("utf-8"))
+                    position += len(block[consumed:match.end()].encode(ENCODING))
                     self.rows.write(self.ROW.pack(start, position - start))
                     self.count += 1
                     start, consumed = position, match.end()
-                position += len(block[consumed:].encode("utf-8"))
+                position += len(block[consumed:].encode(ENCODING))
             if pending:
                 position += 1
             if position > start:
@@ -94,20 +103,20 @@ class TextIndex:
         self.rows.seek((line - 1) * self.ROW.size)
         return self.ROW.unpack(self.rows.read(self.ROW.size))
 
-    def read(self, line, *, max_chars=None, keepends=True):
+    def read(self, line, *, max_chars=NO_CHARACTER_LIMIT, keepends=KEEP_ENDINGS):
         offset, size = self.bounds(line)
         self.stream.seek(offset)
         bounded = FileSlice(self.stream, size)
         text = read_text_range(bounded, offset=0, limit=max_chars)
-        return text if keepends else text.rstrip("\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029")
+        return text if keepends else text.rstrip(self.LINE_ENDINGS)
 
     def contains(self, line, needle, *, case_sensitive):
         offset, size = self.bounds(line)
         self.stream.seek(offset)
         tail = ""
         for text in text_blocks(FileSlice(self.stream, size)):
-            if "\x00" in text:
-                raise ValueError("Binary file")
+            if self.NUL in text:
+                raise ValueError(TextIndex.BINARY_FILE)
             text = tail + (text if case_sensitive else text.casefold())
             if needle in text:
                 return True

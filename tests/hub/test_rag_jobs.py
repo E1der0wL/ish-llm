@@ -212,12 +212,12 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.manage_records(runtime.project.id, "rag", "import", str(source))
                 self.assertEqual(calls, [["New source"]])
                 document = await data.aget_document('note')
-                stamp = document['metadata']['created_at']
-                self.assertEqual(document['metadata']['updated_at'], stamp)
+                stamp = document['created_at']
+                self.assertEqual(document['updated_at'], stamp)
+                self.assertNotIn('created_at', document['metadata'])
                 rows = await runtime.manage_records(runtime.project.id, 'rag', 'list')
-                completed = [job for job in await data.ajobs() if job['status'] == 'completed']
                 self.assertEqual(next(row for row in rows if row['name'] == 'note')['modified'],
-                                 completed[-1]['created_at'])
+                                 document['updated_at'])
             finally:
                 await runtime.close()
 

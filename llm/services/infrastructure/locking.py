@@ -39,6 +39,8 @@ class WorkspaceBusyError(RuntimeError):
 
 # 프로세스 소유권을 OS 잠금으로 유지하고 동기 트랜잭션을 직렬화한다.
 class WorkspaceOwnership:
+    RECORD_BATCH = True  # Restrict the transaction to the existing atomic record API.
+
     def __init__(self, root: Path, *, logger=WorkspaceLock.ABSENT) -> None:
         require_linux()
         self.logger = logger

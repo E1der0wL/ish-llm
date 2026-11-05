@@ -5,6 +5,8 @@ from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
+from contextlib import contextmanager
+from llm.components.tools.bindings import ScopedToolHandler
 
 from llm.core.tool_contracts import ToolContract
 from llm.components.tools.registry import Tool, ToolRegistry
@@ -73,10 +75,11 @@ class BuiltinTools:
                  adapters: Optional[Mapping[str, Callable]] = None,
                  shell: Optional[Sequence[str]] = None,
                  test_workspaces: Optional[TestWorkspaces] = None,
-                 read_access=None, write_access=None, cwd_access=None):
+                 read_access=None, write_access=None, cwd_access=None, read_cache_bytes=None):
         if any(type(value) is not bool for value in (allow_commands, git, diagnostics)):
             raise TypeError(self.INVALID_SWITCHES)
-        self.files = FileTools(Path(root), read_access=read_access, write_access=write_access, cwd_access=cwd_access)
+        self.files = FileTools(Path(root), read_access=read_access, write_access=write_access, cwd_access=cwd_access,
+                               read_cache_bytes=read_cache_bytes)
         self.processes = ProcessTools(self.files)
         self.registry = ToolRegistry()
         self.closed = self.OPEN_STATE
@@ -182,11 +185,12 @@ class BuiltinTools:
         return binding.revision(contract)
 
     def _register(self, name, description, parameters, handler, *, contract):
-        async def guarded(args):
+        @contextmanager
+        def scope():
             if self.closed:
                 raise RuntimeError(self.CLOSED)
-            return await handler(args)
-        self.registry.register(Tool(name, description, parameters, guarded, contract=contract))
+            yield
+        self.registry.register(Tool(name, description, parameters, ScopedToolHandler(handler, scope), contract=contract))
 
     def bind_prompts(self, agents) -> None:
         """조회만 공개한다. 영속 지침 변경은 별도의 Refinement 승인 경계를 사용한다."""
@@ -198,9 +202,20 @@ class BuiltinTools:
     async def close(self):
         if not self.closed:
             self.closed = self.CLOSED_STATE
-            await drain_on_cancel(self.processes.close())
-            if self.test_workspaces is not None:
-                await drain_on_cancel(self.test_workspaces.close())
+            async def cleanup():
+                try:
+                    await self.processes.close()
+                finally:
+                    try:
+                        if self.test_workspaces is not None:
+                            await self.test_workspaces.close()
+                    finally:
+                        if self.files.read_cache is not None:
+                            def clear_cache():
+                                with self.files.lock:
+                                    self.files.read_cache.clear()
+                            await asyncio.to_thread(clear_cache)
+            await drain_on_cancel(cleanup())
 
     async def __aenter__(self):
         if self.closed:

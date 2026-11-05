@@ -162,8 +162,10 @@ class BackgroundRecordTests(unittest.IsolatedAsyncioTestCase):
         memory, = (await runtime.project.components.memory.alist(session_id=session.id)).values()
         goal_id, = await runtime.project.components.goals.alist()
         goal = await runtime.project.components.goals.aload(goal_id)
-        self.assertTrue(goal['metadata']['created_at'])
-        self.assertEqual(goal['metadata']['created_at'], goal['metadata']['updated_at'])
+        times = await runtime.project.components.goals.aget_times(goal_id)
+        self.assertTrue(times['created_at'])
+        self.assertEqual(times['created_at'], times['updated_at'])
+        self.assertNotIn('created_at', goal.get('metadata', {}))
         await runtime.project.components.memory.aupdate(memory['id'], {'status':'confirmed'}, session_id=session.id,
             expected_generation=memory['generation'], expected_revision=memory['revision'])
         payload, owners, _ = await records._inputs(runtime.project, session, source)

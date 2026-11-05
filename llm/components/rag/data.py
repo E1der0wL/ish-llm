@@ -89,7 +89,10 @@ class RAGData(ComponentData):
         documents = dict(snapshot[RAGCorpus.Field.DOCUMENTS])
         documents.update({document[RAGDocument.Field.ID]: document for document in prepared})
         component.publish(project, snapshot, documents)
-        return [DocumentView.project(document) for document in prepared]
+        # Publication owns managed fields. Read its committed result through the
+        # existing public contract; custom publishers need not return a payload.
+        published = RAGCorpus(component.snapshot(project)).documents
+        return [DocumentView.project(published[document[RAGDocument.Field.ID]]) for document in prepared]
 
     def _current_snapshot(self, snapshot):
         """저장 트랜잭션 안에서 수명과 세대를 검사하고 이미 읽은 스냅샷을 재사용한다."""

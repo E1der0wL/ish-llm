@@ -1,8 +1,11 @@
 # Backend startup and foreground progress
 
-Hub keeps one shared one-row progress area in Home and Settings. Startup starts its
-task as soon as the backend worker is launched; it finishes only when the initial
-snapshot and saved reading position reach the UI, or when startup fails.
+Hub keeps one shared one-row progress area in Home and Settings for ordinary work.
+Startup instead opens the custom-sized [loading popup](startup-recovery.md) as soon
+as the worker is launched. Its dedicated progress model uses the same Rich/PTK
+renderer without duplicating the startup task in the page footer. The popup closes
+only when the initial snapshot and saved reading position reach the UI; failure
+keeps it open with the cause and explicit recovery actions.
 
 Component, definition and Agent editor dialogs register their status surface with
 `TaskProgress`. While one is the active dialog, only that surface renders the
@@ -40,8 +43,9 @@ chunk/stage observations and bulk-deletion counts remain intact.
 Counts represent actual items in the current stage, not estimated overall completion.
 Unknown work sizes stay indeterminate. Stage changes invalidate the rendered line
 immediately while repaint requests remain coalesced at the configured progress tick;
-completed task IDs ignore late observations. Loading never takes focus
-or adds another layout row. All stage labels are in the Korean/English language packs.
+completed task IDs ignore late observations. Ordinary foreground progress never takes
+focus or adds another layout row. The initial loading popup deliberately blocks Home
+actions while retaining minimize/reopen. All stage labels are in the Korean/English language packs.
 
 Restart also reports cancellation/draining followed by closing the old backend; the
 replacement instance then reports its normal startup stages.

@@ -214,8 +214,10 @@ class FileComponent(DefinitionComponent):
     def _remove_record(self, project, identifier):
         remove_named_tree(self.root(project), self._package(project, identifier), identifier)
 
-    def read_file(self, project, identifier, path, *, offset=FileRange.START, length=FileRange.TO_END):
+    def read_file(self, project, identifier, path, *, expected_revision=None,
+                  offset=FileRange.START, length=FileRange.TO_END):
         value = self.load(project, identifier)
+        check_revision(value, expected_revision)
         if file_path(path) not in FileManifest(value).entries:
             raise FileNotFoundError(path)
         selection = FileRange(offset, length)
@@ -301,11 +303,9 @@ class FileData(ComponentData):
     @workspace_locked
     def read_file(self, identifier, path, *, expected_revision=NO_REVISION, offset=FileRange.START, length=FileRange.TO_END):
         project, component = self._current()
-        # Without a requested revision there is no facade CAS to check.
-        # The selected reader still owns the full current package validation.
-        if expected_revision is not self.NO_REVISION:
-            check_revision(component.load(project, identifier), expected_revision)
-        return component.read_file(project, identifier, path, offset=offset, length=length)
+        # The file owner checks CAS against the same inventory it uses to read.
+        return component.read_file(project, identifier, path, expected_revision=expected_revision,
+                                   offset=offset, length=length)
 
     @workspace_locked
     def write_file(self, identifier, path, content, *, expected_revision):

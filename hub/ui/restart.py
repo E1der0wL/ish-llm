@@ -79,8 +79,27 @@ def bind_restart(controller, rebuild):
         get_app().create_background_task(restart())
 
     def confirm():
-        if not restarting and not controller.closed:
+        if not restarting and not controller.closed and not controller.starting:
             confirm_restart(controller.view, request)
 
+    async def retry_startup(issue, reset):
+        # Startup has no accepted user Run to replay. The worker has released its
+        # backend before exposing this action; reset is restricted by its owner.
+        if controller.startup_failure is not issue or not issue.retry_allowed:
+            raise ValueError("Startup failure changed; reopen the loading error")
+        saved = None
+        if reset:
+            if issue.reset is None:
+                raise ValueError("This loading target cannot be reset by Hub")
+            saved = await asyncio.to_thread(issue.reset)
+        try:
+            await rebuild()
+        except Exception as error:
+            if saved is not None:
+                error.add_note(f"Settings backup: {saved}")
+            raise
+        return saved
+
     controller.view.on_restart = confirm
+    controller.retry_startup = retry_startup
     screen.drafts.on_restart = request

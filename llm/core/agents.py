@@ -11,6 +11,7 @@ from enum import StrEnum
 
 from jsonschema import Draft202012Validator
 from llm.core.json_data import JsonObject
+from .record_times import RecordTimes
 from llm.core.schema import (open_schema, metadata_schema, validate_local_refs, SchemaKeyword,
                              SchemaType, SchemaBoolean, OpenSchemaKind)
 from llm.core.configuration import UNSET
@@ -327,6 +328,8 @@ class AgentRecord:
         ID = "id"
         DEFINITION = "definition"
         REVISION = "revision"
+        CREATED_AT = RecordTimes.CREATED_AT
+        UPDATED_AT = RecordTimes.UPDATED_AT
 
     VALUE_ATTRIBUTE = "_value"
 
@@ -339,14 +342,15 @@ class AgentRecord:
         return value
 
     @classmethod
-    def create(cls, project_id, identifier, definition):
+    def create(cls, project_id, identifier, definition, *, times=None):
         cls.validate_project_id(project_id)
         AgentDefinition.validate(identifier, definition)
         result = object.__new__(cls)
         object.__setattr__(result, cls.VALUE_ATTRIBUTE, {
             cls.Field.STORAGE_VERSION: cls.STORAGE_VERSION, cls.Field.PROJECT_ID: project_id,
             cls.Field.ID: identifier, cls.Field.DEFINITION: deepcopy(definition),
-            cls.Field.REVISION: AgentDefinition.revision(definition)})
+            cls.Field.REVISION: AgentDefinition.revision(definition),
+            **(RecordTimes.create() if times is None else times).to_dict()})
         return result
 
     @classmethod
@@ -356,7 +360,8 @@ class AgentRecord:
         version = value[cls.Field.STORAGE_VERSION]
         if type(version) is not int or version != cls.STORAGE_VERSION:
             raise ValueError(cls.INVALID_VERSION)
-        expected = cls.create(project_id, identifier, value[cls.Field.DEFINITION])
+        expected = cls.create(project_id, identifier, value[cls.Field.DEFINITION],
+                              times=RecordTimes.from_record(value))
         if value != expected.to_dict():
             raise ValueError(cls.INVALID_IDENTITY)
         return expected
@@ -376,6 +381,10 @@ class AgentRecord:
     @property
     def revision(self):
         return self._value[self.Field.REVISION]
+
+    @property
+    def times(self):
+        return RecordTimes.from_record(self._value)
 
     def to_dict(self):
         return deepcopy(self._value)

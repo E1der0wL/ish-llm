@@ -1,6 +1,7 @@
 """Project → Session → Run → Step의 영속 데이터와 상태를 정의한다. asyncio 객체나 서비스 핸들은 이 모델에 저장하지 않는다."""
 
 from llm.core.json_data import JsonObject
+from .record_times import RecordTimes
 from .configuration_targets import ParameterTargets, ResolvedEngineConfiguration
 
 from typing import Any, Optional, TYPE_CHECKING
@@ -42,6 +43,13 @@ class DomainRecord:
     def serialize(cls, model):
         return {item.name: getattr(model, item.name) for item in cls.fields(model)}
 
+    @staticmethod
+    def initialize_times(model):
+        # Creation only. Stored readers require both fields before construction.
+        if model.updated_at is None:
+            model.updated_at = model.created_at
+        RecordTimes(model.created_at, model.updated_at)
+
     @classmethod
     def validate_version(cls, data):
         key = Project.storage_version.__name__
@@ -75,6 +83,8 @@ def _stored_fields(model, data):
             missing=sorted(expected - data.keys()), unexpected=sorted(data.keys() - expected)))
     if Project.storage_version.__name__ in expected:
         validate_domain_version(data)
+    if RecordTimes.UPDATED_AT in expected:
+        RecordTimes.from_record(data)
     for item in declarations:
         value = data[item.name]
         if item.type in (str, dict, bool) and not isinstance(value, item.type):
@@ -447,6 +457,7 @@ class Project:
     paths: ProjectPaths
     config: ProjectConfig = field(default_factory=ProjectConfig)
     created_at: str = field(default_factory=now)
+    updated_at: Optional[str] = field(default=None, kw_only=True)
     deleted: bool = ACTIVE
     # Component identities only. Each component owns its configuration and paths.
     components: tuple[str, ...] = ()
@@ -492,6 +503,7 @@ class Project:
         return value
 
     def __post_init__(self) -> None:
+        DomainRecord.initialize_times(self)
         self.validate_conversation_storage()
 
     def validate_conversation_storage(self) -> None:
@@ -518,10 +530,14 @@ class Session:
     status: SessionStatus = SessionStatus.IDLE
     active_run_ids: list[str] = field(default_factory=list)
     created_at: str = field(default_factory=now)
+    updated_at: Optional[str] = field(default=None, kw_only=True)
     metadata: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
     agent_ids: list[str] = field(default_factory=list)
     storage_version: int = DOMAIN_STORAGE_VERSION
+
+    def __post_init__(self):
+        DomainRecord.initialize_times(self)
 
     @property
     def retained(self):
@@ -625,12 +641,16 @@ class Run:
     agent_id: str = field(kw_only=True)
     status: RunStatus = RunStatus.PENDING
     created_at: str = field(default_factory=now)
+    updated_at: Optional[str] = field(default=None, kw_only=True)
     started_at: Optional[str] = None
     ended_at: Optional[str] = None
     error: Optional[str] = None
     metadata: dict = field(default_factory=dict)
     error_code: Optional[str] = None
     storage_version: int = DOMAIN_STORAGE_VERSION
+
+    def __post_init__(self):
+        DomainRecord.initialize_times(self)
 
     @classmethod
     def index_record(cls, data):
@@ -672,11 +692,15 @@ class Step:
     paths: StepPaths
     status: StepStatus = StepStatus.PENDING
     created_at: str = field(default_factory=now)
+    updated_at: Optional[str] = field(default=None, kw_only=True)
     started_at: Optional[str] = None
     ended_at: Optional[str] = None
     error: Optional[str] = None
     metadata: dict = field(default_factory=dict)
     storage_version: int = DOMAIN_STORAGE_VERSION
+
+    def __post_init__(self):
+        DomainRecord.initialize_times(self)
 
     @classmethod
     def from_record(cls, data, paths):

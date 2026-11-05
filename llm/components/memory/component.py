@@ -5,9 +5,9 @@ from llm.core.history_references import HistoryReferenceRecord
 from llm.components.processing import COMPLETION_PROCESSORS
 from llm.components.tools.registry import ToolRegistry
 from copy import deepcopy
-from datetime import datetime, timezone
 
 from llm.components.base import Component, validate_name
+from llm.core.record_times import RecordTimes
 from llm.core.models import new_id
 from llm.errors import CodedError
 from .data import MemoryData
@@ -84,6 +84,10 @@ class MemoryComponent(Component):
         if MemoryConsolidation(self, project).pending():
             raise MemoryConflictError(self.PENDING_CONSOLIDATION)
 
+    @staticmethod
+    def read_times(envelope):
+        return RecordTimes.from_record(MemoryEnvelope(envelope).record)
+
     def _all_records(self, project):
         self._assert_ready(project)
         if not self._has_storage(project):
@@ -118,6 +122,10 @@ class MemoryComponent(Component):
         self._assert_ready(project)
         return super().load(project, identifier)
 
+    def get_times(self, project, identifier):
+        self._assert_ready(project)
+        return super().get_times(project, identifier)
+
     def _source(self, project, source):
         value = self.deserialize(self.serialize(MemorySource.api_input(source)))
         return MemorySource.ensure_project(value, project.id)
@@ -133,6 +141,7 @@ class MemoryComponent(Component):
     def _change(self, project, identifier, expected_revision, expected_generation, operation, *, changes=ABSENT, source=ABSENT, session_id=ABSENT):
         envelope = self._read(project, identifier)
         record = MemoryEnvelope(envelope).record
+        original = deepcopy(record)
         if not self._visible(record, session_id):
             raise FileNotFoundError(self.OUTSIDE_SCOPE)
         self._check_revision(record, expected_revision, expected_generation)
@@ -146,8 +155,11 @@ class MemoryComponent(Component):
         elif changes is not self.ABSENT:
             record.update(self._payload(changes))
         selected.deleted = operation == self.DELETE
+        from llm.services.infrastructure.storage import revision_token
+        if revision_token(record) == revision_token(original) and source is self.ABSENT:
+            return deepcopy(record)
         selected.advance_revision()
-        selected.updated_at = datetime.now(timezone.utc).isoformat()
+        selected.updated_at = RecordTimes.from_record(original).touch().updated_at
         return self._commit(project, identifier, record, MemoryEnvelope(envelope).history, operation, source)
 
     @staticmethod
@@ -262,7 +274,7 @@ class MemoryComponent(Component):
         identifier = new_id() if identifier is self.ABSENT else validate_name(identifier)
         if self._record_path(project, identifier).exists():
             raise FileExistsError(self.ALREADY_EXISTS)
-        now = datetime.now(timezone.utc).isoformat()
+        now = RecordTimes.create().created_at
         record = MemoryRecord.create(project_scope=self.PROJECT_SCOPE, confirmed=self.CONFIRMED,
             payload=self._payload(data), identifier=identifier, generation=new_id(),
             at=now, source=self._source(project, source))

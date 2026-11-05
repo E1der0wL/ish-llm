@@ -12,7 +12,6 @@ from tests.hub.support import SizedOutput, eventually
 from hub.asset.icon import AuxiliaryIcon
 from hub.ui.input.keys import KeyName
 from hub.widget.dialog import PopupSize
-from hub.backend.project.settings_contracts import SettingsOperation
 
 
 class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
@@ -25,6 +24,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 view.project_id = view.projects.selected = 'p'
                 view.projects.items = [{'id': 'p', 'title': 'Project'}]
                 view.projects.call = Mock()
+                view.settings.open_project = Mock()
                 view.on_rename = Mock()
                 for bar in (view.project_actions, view.session_buttons):
                     self.assertEqual(tuple(bar.buttons), tuple(name for name, _ in bar.ACTIONS))
@@ -39,6 +39,11 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(all(positions[b.window].xpos + positions[b.window].width <= edge
                                         for b in bar.buttons.values()))
                     pipe.send_text('\r')
+                    if bar is view.project_actions:
+                        await eventually(lambda: view.settings.open_project.called)
+                        view.settings.open_project.assert_called_once_with('p')
+                        self.assertIsNone(view._dialog)
+                        continue
                     await eventually(lambda: view._dialog is not None)
                     self.assertEqual(view._dialog.size, PopupSize.SMALL)
                     with set_app(app):
@@ -52,8 +57,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text('\r')
                     await eventually(lambda: view._dialog is None)
                     self.assertIs(app.layout.current_control, bar.buttons[AuxiliaryIcon.EDIT].control)
-                self.assertEqual(view.projects.call.call_args.args,
-                                 (SettingsOperation.RENAME_PROJECT, 'p', 'Renamed'))
+                view.projects.call.assert_not_called()
                 view.on_rename.assert_called_once_with(view.sessions[view.selected].id, 'Renamed')
                 with set_app(app):
                     view.projects.perform(KeyName.C)

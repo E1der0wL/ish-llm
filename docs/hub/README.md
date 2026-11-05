@@ -6,6 +6,9 @@ Hub는 현재 동작하는 ish 인터페이스
 
 ## 책임과 계약
 
+[시작 로딩 팝업·백업·재시도](startup-recovery.md)는 로딩 실패 대상의 표시와 Hub 파일의
+명시적 초기화, 백엔드 저장 자료를 임의로 수정하지 않는 복구 경계를 설명한다.
+
 [Tool 실패 피드백과 영속 질문](tool-feedback-questions.md)은 Loop 생성 프리셋,
 거절 후 명시적 재개, 차단/비차단 질문과 답변 저장·전달 분리의 계약을 설명한다.
 [MCP 연결·Memory 실패 처리](mcp-memory-integration.md)는 명시적 서버 발견·Agent 도구 선택과
@@ -50,6 +53,12 @@ UI effective values를 새 설정 기본값으로 저장하지 않는다.
 | Tool UI/선택기 | 승인·질문 표시, 허용된 인자 수정 제안 | [질문과 Tool](questions-tools.md), [Tool retry](tool-retry.md) |
 | 자원 편집 | 선택한 자원의 소유 Project에서 Schema·CRUD·CAS·참조 보호 | [관리 창](component-managers.md), [authoring](resource-authoring.md), [RAG](rag.md) |
 | UI | immutable snapshot, 키·마우스·출력·설정 초안 | [홈](home-navigation.md), [패널](panel-ux.md), [출력 객체](output-objects.md), [마우스](mouse.md) |
+
+자료 생성·수정 시각은 Backend의 `RecordTimes` 계약과 `aget_times()`/RAG catalog로 조회한다.
+Hub가 definition·metadata·Skill Markdown에 관리 날짜를 기록하지 않는다.
+연결 경로와 CAS 보존은 [관리 창의 시각 계약](component-managers.md#생성수정-시각)에 정리한다.
+[기존 미검토 경로 점검](pending-contract-review.md)은 확인한 책임 경계와
+남아 있는 요청/응답 선언·설정 해석 정리 항목을 구분한다.
 
 승인 응답과 실행은 별개다. Hub는 공개 resume_plan/resume/restart와 revision을 사용하며,
 불확실한 효과나 checkpoint 부재를 이유로 새 submit을 자동 호출하지 않는다. 별도 Run/Step 저장소,

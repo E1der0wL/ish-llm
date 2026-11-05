@@ -102,6 +102,7 @@ class ThemeSelector(StrEnum):
     AUXILIARY_BUTTON_TEXT = "hub.auxiliary button.text"
     AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT = "hub.auxiliary button.focused button.text"
     BUTTON_PRESSED = "hub-button-pressed"
+    BUTTON_DISABLED = "hub-button-disabled"
     PTK_CHECKBOX_LIST = "hub checkbox-list"
     CHECKLIST = "hub.checklist"
     PTK_CHECKBOX_LIST_FOCUSED = "hub checkbox-list.focused"
@@ -240,6 +241,7 @@ class ThemeStyle:
             ThemeSelector.AUXILIARY_BUTTON_TEXT.value: "fg:{theme.icon_button_foreground}",
             ThemeSelector.AUXILIARY_BUTTON_FOCUSED_BUTTON_TEXT.value: "fg:{theme.accent2} bold",
             ThemeSelector.BUTTON_PRESSED.value: "fg:{theme.accent1}",
+            ThemeSelector.BUTTON_DISABLED.value: "fg:{theme.muted} nobold nounderline",
             ThemeSelector.PTK_CHECKBOX_LIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background} nounderline noreverse",
             ThemeSelector.CHECKLIST.value: "fg:{theme.checklist_foreground} bg:{theme.checklist_background}",
             ThemeSelector.PTK_CHECKBOX_LIST_FOCUSED.value: "bold nounderline noreverse",

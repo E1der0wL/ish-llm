@@ -17,6 +17,7 @@ class ToolOutcomeStatus(StrEnum):
 @dataclass(frozen=True, slots=True)
 class ToolOutcome(JsonValue):
     """A terminal non-success result, not permission to retry or widen authority."""
+    NO_STEP = None
 
     status: str
     diagnostic: Diagnostic
@@ -26,9 +27,9 @@ class ToolOutcome(JsonValue):
         super(ToolOutcome, self).__post_init__()
         if self.status not in ToolOutcomeStatus or not isinstance(self.diagnostic, Diagnostic):
             raise ValueError("Invalid Tool outcome")
-        if self.step_id is not None and (not isinstance(self.step_id, str) or not self.step_id):
+        if self.step_id is not self.NO_STEP and (not isinstance(self.step_id, str) or not self.step_id):
             raise ValueError("Invalid Tool outcome Step")
-        if self.status != ToolOutcomeStatus.NOT_EXECUTED and self.step_id is None:
+        if self.status != ToolOutcomeStatus.NOT_EXECUTED and self.step_id is self.NO_STEP:
             raise ValueError("Executed or declined outcomes require their Step")
 
 

@@ -91,6 +91,30 @@ Schema·Reader·Writer·검증기·소비자는 같은 선언에서 파생하거
 
 ## 고정 구조 데이터의 생성·조회·직렬화
 
+### 2026-11-05 적용 예
+
+- 기억 승인 입력은 `RememberRequest`, 저장된 규칙 수정은 `ApprovalRule.updated()`가
+  해석한다. 수명 서비스는 Project 잠금·CAS·조건 구현 선택·저장을 소유한다. 입력 Schema에
+  저장 수명 필드를 노출하지 않고, 수정 시 원래 scope/origin/ID를 유지한다.
+- 호출자 키의 지문 입력은 `services/runtime/client_inputs.py`의 요청별 Projection에서
+  생성한다. missing과 명시적 null, 응답 시각을 제외한 결정 내용, 선택한 대상과 기억 조건을
+  보존한다. 지문은 접수 중복 방지 증거이며 승인이나 Tool 효과의 새 원장이 아니다.
+- Workflow 검사 위치는 `InspectionLocation`과 공통 `JsonPointer`로 표현한다. 검사 결과는
+  실행 허가가 아니며, incomplete draft의 null·edge 0과 실제 경로 escaping을 보존한다.
+- 명령 출력의 바이트 해석은 `ProcessResult`, UTF-8 범위 해석은 `text_stream`, 파일 줄 경계는
+  `TextIndex`가 소유한다. 일반 파일의 strict decoding과 명령 출력의 replacement decoding은
+  서로 다른 계약이다. `SpeechStream`은 음성/자막 순서·종료 표지만 공유하고, 모델·SDK 옵션은
+  각 Adapter가 계속 소유한다.
+- 방향 전환 요청·선택·Loop 취소/미실행 기록은 기존 Record와 이벤트 Projection을 사용한다.
+  Step 취소 관측은 `StepEventMetadata.cancelled()`에서 조립한다. 이 관측이 취소 성공이나
+  효과 부재를 새로 추정하지 않으며, Tool의 효과 증거와 명시적 재개 조건은 그대로 유지한다.
+- 고정 오류 문구는 실패 경계의 선언에 두되 문구 이동으로 오류 코드·예외 타입·정책 판단을
+  바꾸지 않는다. 상태·버전·승인 값이 같다는 이유만으로 다른 의미를 하나로 합치지 않는다.
+
+이번 정리는 기존 저장/전송 필드·버전과 공개 호출 인자를 유지한다. 구형 자료 보정, 자동
+재개·재시도, 숨은 정책값, Hub 실행 방식은 추가하지 않는다. 개별 감사 분류와 기능 회귀,
+Hub를 포함한 저장소 전체 게이트의 완료 상태는 각각 별도로 기록한다.
+
 프로그램이 고정된 의미로 해석하는 데이터 구조는 해당 Owner의 명시적 타입과 API로 제공한다.
 소비자는 저장·전송용 딕셔너리의 필드 구조를 직접 조립하거나 해석하지 않는다. 딕셔너리와
 내부 객체 사이의 변환은 지정된 Owner의 경계에서 수행한다. 사용 횟수와 관계없이 적용한다.

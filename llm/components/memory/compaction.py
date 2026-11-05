@@ -387,7 +387,7 @@ async def summarize_request(session, pending, text, previous, result, *, scope, 
     options = pending.options_record
     parameters = CompactionOptions(options)
     from llm.components.summarization import SummarySource
-    identity = {"source": text.identity} if isinstance(text, SummarySource) else text
+    identity = CompactionModelInput.source_identity(text) if isinstance(text, SummarySource) else text
     fingerprint = revision_token(CompactionModelInput.identity(identity, previous, options))
     saved = pending.checkpoint_record
     cursor = SummaryCheckpoint(saved)

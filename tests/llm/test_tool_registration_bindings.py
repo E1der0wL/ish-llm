@@ -4,6 +4,9 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 from types import SimpleNamespace
 import unittest
+import tempfile
+from pathlib import Path
+from contextlib import aclosing
 from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
@@ -16,6 +19,49 @@ from llm.core.model_protocol import ToolDefinition
 
 CONTRACT = {"revision": "explicit", "effect": "read_only", "isolation": "none",
             "approval_required": False, "operation_key_required": False, "retry_fields": []}
+
+
+class ScopedHandlerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_builtin_and_project_scopes_preserve_live_binding_and_selection_hooks(self):
+        from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
+        from llm.components.tools.builtin.path_access import current_path_access
+        from llm.llm import LargeLanguageModel
+        class Handler:
+            execution_binding = {'revision': 'first'}
+            def bind_arguments(self, args, context):
+                return {'arguments': args, 'grant': current_path_access()}
+            def validate_selection(self, *args, **kwargs):
+                return current_path_access()
+            async def __call__(self, args):
+                return args
+            async def execute_events(self, args):
+                yield current_path_access()
+        handler = Handler()
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            async with BuiltinTools(root, adapters={'web_fetch': handler}) as toolkit:
+                component = BuiltinToolComponent(toolkit, name='computer')
+                async with LargeLanguageModel(root / 'backend', components=[component]) as app:
+                    project = await app.projects.acreate(components=['computer'])
+                    grant = {'roots': [str(root)], 'follow_symlinks': False}
+                    await project.components['computer'].aconfigure({'config': {'enabled': ['web_fetch']},
+                        'policy': {'read_access': grant}})
+                    tools = component.resolve(project.data, 'tools')
+                    bound = tools.get_handler('web_fetch')
+                    self.assertTrue(ToolHandlerBindings.declares_selection(bound))
+                    self.assertEqual(bound.bind_arguments({}, None)['grant']['read_access'], grant)
+                    self.assertEqual(bound.validate_selection()['read_access'], grant)
+                    async with aclosing(bound.execute_events({})) as events:
+                        self.assertEqual((await anext(events))['read_access'], grant)
+                    self.assertIsNone(current_path_access())
+                    first = tools.contracts()
+                    handler.execution_binding = {'revision': 'second'}
+                    self.assertNotEqual(first, tools.contracts())
+                    await toolkit.close()
+                    with self.assertRaisesRegex(RuntimeError, 'closed'):
+                        bound.bind_arguments({}, None)
+                    with self.assertRaisesRegex(RuntimeError, 'closed'):
+                        await bound({})
 
 
 class ToolRegistrationBindingTests(unittest.TestCase):

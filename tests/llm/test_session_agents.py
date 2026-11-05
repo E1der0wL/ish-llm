@@ -146,13 +146,14 @@ class SessionAgentTests(unittest.IsolatedAsyncioTestCase):
         session = await self.project.sessions.acreate(agent_ids=["reader"])
         before = self.bytes(session)
         from llm.services.lifecycle import sessions
-        original = sessions.atomic_domain_json
+        from llm.services.infrastructure import storage
+        original = storage.atomic_domain_json
         reached = []
         def write_then_fail(path, value):
             original(path, value)
             reached.append(Path(path).read_bytes())
             raise OSError("after real membership replacement")
-        with patch.object(sessions, "atomic_domain_json", write_then_fail):
+        with patch.object(storage, "atomic_domain_json", write_then_fail):
             with self.assertRaisesRegex(OSError, "after real membership"):
                 await session.asave(agent_ids=["writer"])
         self.assertEqual(len(reached), 1)

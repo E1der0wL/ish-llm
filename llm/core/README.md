@@ -6,7 +6,8 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 
 | 파일 | 역할 |
 | --- | --- |
-| [__init__.py](__init__.py) | Core 패키지의 역할을 설명합니다. 타입은 각 모듈에서 import합니다. |
+| [__init__.py](__init__.py) | Core 패키지의 역할과 공통 RecordTimes export입니다. 나머지 타입은 각 모듈에서 import합니다. |
+| [record_times.py](record_times.py) | 영속 기록의 UTC 생성·수정 시각, 실제 변경 비교와 엄격한 읽기 계약입니다. 저장·revision·권한 판단은 각 소유자가 유지합니다. |
 | [models.py](models.py) | ProjectConfig, Project, Session, Message, Run, Step과 상태·저장 버전·Run 전이 검증을 정의합니다. |
 | [paths.py](paths.py) | Project/Session/Run/Step의 주요 경로를 정의합니다. Component 내부 경로는 포함하지 않습니다. |
 | [configuration.py](configuration.py) | 명시된 설정 계층을 병합하고 values/sources/overridden/editable을 계산합니다. |

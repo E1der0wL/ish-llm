@@ -42,7 +42,6 @@ class MemoryRecord:
     )
     INVALID_IDENTITY = "Invalid memory identity or revision"
     NONEMPTY_TEXT = "Memory {key} must be nonempty text"
-    TIMEZONE_REQUIRED = "Memory {key} requires a timezone"
     INVALID_SCOPE = "Memory requires project/session scope and a deletion marker"
     PROJECT_SESSION = "Project memories cannot have a session_id"
     INVALID_EXPIRY = "Memory expiry must be ISO datetime text"
@@ -84,8 +83,7 @@ class MemoryRecord:
             Field.SOURCE,
         }
     )
-    TEXT_FIELDS = (Field.CONTENT, Field.KIND, Field.CREATED_AT, Field.UPDATED_AT)
-    TIME_FIELDS = (Field.CREATED_AT, Field.UPDATED_AT)
+    TEXT_FIELDS = (Field.CONTENT, Field.KIND)
     SCOPE_FIELDS = (Field.SCOPE, Field.SESSION_ID)
     IMMUTABLE = (
         Field.ID,
@@ -230,9 +228,8 @@ class MemoryRecord:
         for key in cls.TEXT_FIELDS:
             if not cls.nonempty_text(record.get(key)):
                 raise ValueError(cls.NONEMPTY_TEXT.format(key=key))
-        for key in cls.TIME_FIELDS:
-            if datetime.fromisoformat(record[key]).utcoffset() is cls.ABSENT:
-                raise ValueError(cls.TIMEZONE_REQUIRED.format(key=key))
+        from llm.core.record_times import RecordTimes
+        RecordTimes.from_record(record)
         validate_status(record.get(cls.Field.STATUS))
         if (
             record.get(cls.Field.SCOPE) not in scopes

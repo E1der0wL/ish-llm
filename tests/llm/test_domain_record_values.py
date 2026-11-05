@@ -13,7 +13,7 @@ class DomainRecordValueTests(unittest.TestCase):
     def setUp(self):
         self.raw = {"id": "project", "title": "Title", "config": {
             "policies": {}, "parameters": {}, "data": {"opaque": [1.0]}},
-            "created_at": "2026-10-23T00:00:00+00:00", "deleted": False,
+            "created_at": "2026-10-23T00:00:00+00:00", "updated_at": "2026-10-23T00:00:00+00:00", "deleted": False,
             "components": ["active"], "initialized_components": ["active", "disabled"],
             "conversation_storage": "file", "storage_version": 1}
 

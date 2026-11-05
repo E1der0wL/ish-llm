@@ -47,11 +47,12 @@ class HubInstallation:
         self.controller = HubInstallation.ABSENT
         if config is not HubInstallation.ABSENT:
             from .ui.live import LiveController, LiveHubView
-            from .config.preferences import configured_profile
+            from .config.preferences import prepare_profile
 
-            config = configured_profile(config)
+            config, preferences, startup_failure = prepare_profile(config)
             self.view = LiveHubView(theme, config.language, config.language_packs)
-            self.controller = LiveController(self.view, config)
+            self.controller = LiveController(self.view, config,
+                                             initial_preferences=(preferences, startup_failure))
             self.controller.environment_provider = lambda: ShellEnvironment.from_prompt(
                 prompt
             )
@@ -125,7 +126,8 @@ class HubInstallation:
         from .config.restart import restart_config
 
         config = await asyncio.to_thread(
-            restart_config, self._launch_config, self.controller.config
+            restart_config, self._launch_config, self.controller.config,
+            recover_startup=self.controller.startup_failure is not None,
         )
         await self.controller.aclose()
         self.close()
@@ -231,6 +233,9 @@ def client(prompt, plugin_id):
         if installation is None or installation._closed or installation.controller is None:
             raise RuntimeError("Install live Hub before using its plugin API")
         installation.controller.bind_app(prompt.app, refresh_environment=False)
-        return installation.controller.ensure_worker()
+        worker = installation.controller.ensure_worker()
+        if worker is None:
+            raise RuntimeError(installation.controller.startup_failure.error.message)
+        return worker
 
     return PluginClient(plugin_id, worker)

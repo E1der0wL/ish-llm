@@ -151,10 +151,9 @@ class BackgroundRecords:
         for item in plan['goals']:
             data = owners['goals']
             if item['action'] == P.CREATE:
-                from .management_values import ResourceTimestamps
-                await data.acreate(ResourceTimestamps.created({GoalDefinition.Field.STATUS:GoalStatus.ACTIVE.value, **item['data'],
+                await data.acreate({GoalDefinition.Field.STATUS:GoalStatus.ACTIVE.value, **item['data'],
                     GoalDefinition.Field.SCOPE:GoalScope.session(session.id),
-                    GoalDefinition.Field.RUN_REFS:[GoalRunReference.create(session.id,source.id,GoalAuthoring.RELATION)]}))
+                    GoalDefinition.Field.RUN_REFS:[GoalRunReference.create(session.id,source.id,GoalAuthoring.RELATION)]})
             else:
                 version = EditableSnapshot.read(payload['goals'][item['id']]).version
                 if item['action'] == P.DELETE:

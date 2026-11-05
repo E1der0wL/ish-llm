@@ -4,20 +4,30 @@ The Project configuration is the only rule store. Interaction records remain the
 only individual decision store; these functions do not execute or resume work.
 """
 
-from copy import deepcopy
 from dataclasses import replace
 
-from jsonschema import Draft202012Validator
-
 from llm.core.approval import (
-    ApprovalCondition, ApprovalScope, ApprovalOrigin, RememberedApproval, remember_schema,
+    ApprovalOrigin, RememberedApproval, RememberRequest,
 )
-from llm.core.interactions import InteractionRequest
+from llm.core.interactions import InteractionRequest, InteractionRisk
 from llm.core.json_data import JsonValue
 from llm.core.models import now
 from llm.core.policies import ApprovalPolicy, ApprovalRule
 from llm.services.runtime.approval import resolve_evaluator
 
+
+MANAGED_RULES = 'Remembered approvals must be changed through approval APIs'
+FOREIGN_RULE = 'Remembered approval belongs to another Project'
+FOREIGN_REQUEST = 'Remembered approval scope does not own the request'
+MISMATCHED_REQUEST = 'Remembered approval requires a matching approval request'
+UNKNOWN_REQUIRED = 'Explicit unknown allowance requires unknown risk'
+KNOWN_REQUIRED = 'Threshold allowance requires known risk'
+MISMATCHED_SCHEME = 'Threshold allowance requires the Project risk scheme'
+UNCERTAIN_RETRY = 'Uncertain retries cannot create remembered approval rules'
+DUPLICATE_RULE = 'Approval rule ID already exists; revoked IDs cannot be reused'
+UNKNOWN_RULE = 'Unknown remembered approval rule'
+CHANGED_REVISION = 'Approval rule revision changed; reload before editing'
+REVOKED_RULE = 'Revoked approval rules cannot be reactivated'
 
 def approval_rules(config):
     return ApprovalPolicy.from_policies(config.policies).rules
@@ -28,7 +38,7 @@ def protect_approvals(previous, candidate):
     before = {rule.id: rule.to_dict() for rule in approval_rules(previous) if rule.remembered is not None}
     after = {rule.id: rule.to_dict() for rule in approval_rules(candidate) if rule.remembered is not None}
     if not JsonValue.same(before, after):
-        raise ValueError('Remembered approvals must be changed through approval APIs')
+        raise ValueError(MANAGED_RULES)
 
 
 def validate_approvals(project, evaluators):
@@ -37,48 +47,48 @@ def validate_approvals(project, evaluators):
         if memory is None:
             continue
         if memory.scope.project_id != project.id:
-            raise ValueError('Remembered approval belongs to another Project')
+            raise ValueError(FOREIGN_RULE)
         if memory.revoked_at is None:
             resolve_evaluator(evaluators, memory.condition)
 
 
 def _save(manager, project, rules):
-    project.config.configure_policies({'approval': {'rules': [rule.to_dict() for rule in rules]}})
+    project.config.configure_policies(ApprovalPolicy.rules_update(rules))
     manager._validate_config(project)
     manager.repository.save(project)
 
 
 def remember_approval(manager, project, session, run, request, spec):
-    Draft202012Validator(remember_schema(ApprovalRule.schema())).validate(spec)
+    spec = RememberRequest.read(spec)
     current = manager.access.require(project)
     if session.project_id != current.id or run.session_id != session.id:
-        raise ValueError('Remembered approval scope does not own the request')
+        raise ValueError(FOREIGN_REQUEST)
     policy = ApprovalPolicy.from_policies(current.config.policies)
-    explicit_unknown = spec.get('basis') == ApprovalRule.EXPLICIT_UNKNOWN
-    if request.kind != InteractionRequest.KIND_APPROVAL or request.category != spec['category']:
-        raise ValueError('Remembered approval requires a matching approval request')
+    explicit_unknown = spec.rule.basis == ApprovalRule.EXPLICIT_UNKNOWN
+    if request.kind != InteractionRequest.KIND_APPROVAL or request.category != spec.rule.category:
+        raise ValueError(MISMATCHED_REQUEST)
     if explicit_unknown:
-        if request.risk is not None:
-            raise ValueError('Explicit unknown allowance requires unknown risk')
+        if request.risk is not InteractionRisk.UNKNOWN:
+            raise ValueError(UNKNOWN_REQUIRED)
     else:
-        if request.risk is None:
-            raise ValueError('Threshold allowance requires known risk')
+        if request.risk is InteractionRisk.UNKNOWN:
+            raise ValueError(KNOWN_REQUIRED)
         if request.risk_scheme != policy.risk_scheme:
-            raise ValueError('Threshold allowance requires the Project risk scheme')
+            raise ValueError(MISMATCHED_SCHEME)
     from llm.services.runtime.interactions import InteractionRepository
     if request.category == InteractionRepository.RETRY_CATEGORY:
-        raise ValueError('Uncertain retries cannot create remembered approval rules')
-    if any(rule.id == spec['id'] for rule in policy.rules):
-        raise ValueError('Approval rule ID already exists; revoked IDs cannot be reused')
-    condition = ApprovalCondition.from_dict(spec['condition'])
+        raise ValueError(UNCERTAIN_RETRY)
+    if any(rule.id == spec.rule.id for rule in policy.rules):
+        raise ValueError(DUPLICATE_RULE)
+    condition = spec.condition
     resolve_evaluator(manager.approval_evaluators, condition)
     memory = RememberedApproval(
-        revision=1, scope=ApprovalScope(current.id, session.id if spec['scope'] == 'session' else None),
+        revision=RememberedApproval.INITIAL_REVISION, scope=spec.bound_scope(current.id, session.id),
         condition=condition,
         origin=ApprovalOrigin(run.id, request.id, request.revision, request.fingerprint, now()),
-        revoked_at=None,
+        revoked_at=RememberedApproval.NOT_REVOKED,
     )
-    rule = ApprovalRule(spec['id'], spec['category'], spec.get('max_risk'), memory, spec.get('basis'))
+    rule = replace(spec.rule, remembered=memory)
     _save(manager, current, [*policy.rules, rule])
     return rule.to_dict()
 
@@ -88,31 +98,20 @@ def _selected(manager, project, identifier, expected_revision):
     rules = approval_rules(current.config)
     rule = next((item for item in rules if item.id == identifier), None)
     if rule is None or rule.remembered is None:
-        raise ValueError('Unknown remembered approval rule')
+        raise ValueError(UNKNOWN_RULE)
     if rule.remembered.scope.project_id != current.id:
-        raise ValueError('Remembered approval belongs to another Project')
+        raise ValueError(FOREIGN_RULE)
     if type(expected_revision) is not int or rule.remembered.revision != expected_revision:
-        raise ValueError('Approval rule revision changed; reload before editing')
+        raise ValueError(CHANGED_REVISION)
     return current, rules, rule
 
 
 def update_approval(manager, project, identifier, changes, *, expected_revision):
     current, rules, rule = _selected(manager, project, identifier, expected_revision)
     if rule.remembered.revoked_at is not None:
-        raise ValueError('Revoked approval rules cannot be reactivated')
-    schema = remember_schema(ApprovalRule.schema())
-    editable = ('category', 'condition') if rule.basis else ('category', 'max_risk', 'condition')
-    schema['properties'] = {key: schema['properties'][key] for key in editable}
-    schema['required'] = []
-    schema.pop('oneOf')
-    schema['minProperties'] = 1
-    Draft202012Validator(schema).validate(changes)
-    condition = ApprovalCondition.from_dict(changes['condition']) if 'condition' in changes else rule.remembered.condition
-    resolve_evaluator(manager.approval_evaluators, condition)
-    replacement = replace(
-        rule, category=changes.get('category', rule.category), max_risk=changes.get('max_risk', rule.max_risk),
-        remembered=replace(rule.remembered, revision=rule.remembered.revision + 1, condition=condition),
-    )
+        raise ValueError(REVOKED_RULE)
+    replacement = rule.updated(changes)
+    resolve_evaluator(manager.approval_evaluators, replacement.remembered.condition)
     _save(manager, current, [replacement if item.id == identifier else item for item in rules])
     return replacement.to_dict()
 
@@ -121,11 +120,10 @@ def revoke_approval(manager, project, identifier, *, expected_revision):
     current, rules, rule = _selected(manager, project, identifier, expected_revision)
     if rule.remembered.revoked_at is not None:
         return rule.to_dict()
-    replacement = replace(rule, remembered=replace(
-        rule.remembered, revision=rule.remembered.revision + 1, revoked_at=now()))
+    replacement = replace(rule, remembered=rule.remembered.revoke(now()))
     # Withdrawal must remain available when a host evaluator is unavailable.
     # The normal Project policy validator still checks the complete stored shape.
-    current.config.configure_policies({'approval': {'rules': [
-        (replacement if item.id == identifier else item).to_dict() for item in rules]}})
+    current.config.configure_policies(ApprovalPolicy.rules_update(
+        replacement if item.id == identifier else item for item in rules))
     manager.repository.save(current)
     return replacement.to_dict()

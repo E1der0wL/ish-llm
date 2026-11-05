@@ -3,7 +3,9 @@
 from copy import deepcopy
 import hashlib
 import unittest
+from unittest.mock import patch
 
+from llm.core.record_times import RecordTimes
 from llm.components.tools.package_values import ToolPackageSource, ToolPackageDigests, ToolPackageManifest
 
 
@@ -42,14 +44,18 @@ class ToolPackageValueTests(unittest.TestCase):
     def test_manifest_closed_header_and_detached_changes(self):
         source = ToolPackageSource("async def main():\n    return 1\n")
         empty = ToolPackageManifest.create("project", "tools")
-        self.assertEqual(empty.to_dict(), {"schema_version": 1, "project_id": "project", "component": "tools", "packages": {}})
-        populated = empty.with_package("run", source)
+        self.assertEqual(empty.to_dict(), {"schema_version": 1, "project_id": "project", "component": "tools", "packages": {}, "times": {}})
+        times = RecordTimes("2026-11-05T00:00:00+00:00", "2026-11-05T00:00:00+00:00")
+        with patch.object(RecordTimes, "create", return_value=times):
+            populated = empty.with_package("run", source)
         self.assertEqual(empty.packages, {})
         expected = {"schema_version": 1, "project_id": "project", "component": "tools",
-                    "packages": {"run": source.fingerprints().to_dict()}}
+                    "packages": {"run": source.fingerprints().to_dict()}, "times": {"run": times.to_dict()}}
         self.assertEqual(populated.to_dict(), expected)
         loaded = ToolPackageManifest.read(expected, project_id="project", component="tools")
         expected["packages"].clear()
+        expected["times"]["run"]["updated_at"] = "2026-11-06T00:00:00+00:00"
+        self.assertEqual(loaded.to_dict()["times"]["run"], times.to_dict())
         self.assertEqual(tuple(loaded.packages), ("run",))
         self.assertEqual(loaded.without_package("run").to_dict(), empty.to_dict())
         self.assertEqual(tuple(loaded.packages), ("run",))

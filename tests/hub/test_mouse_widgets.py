@@ -2,7 +2,7 @@
 
 import asyncio
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -165,11 +165,12 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(field.editing, expected)
         self.assertEqual(editor.definition()['completion']['seed'], 17)
 
-    async def test_sidebar_heading_hover_focus_and_click_renames(self):
+    async def test_sidebar_heading_hover_focus_and_click_routes_edit(self):
         from hub.asset.icon import AuxiliaryIcon
         from hub.widget.dialog import PopupSize
         self.view.project_id = self.view.projects.selected = 'p'
         self.view.projects.items = [{'id': 'p', 'title': 'Project'}]
+        self.view.settings.open_project = Mock()
         for bar in (self.view.project_actions, self.view.session_buttons):
             await self.paint()
             button = bar.buttons[AuxiliaryIcon.EDIT]
@@ -187,6 +188,10 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(self.view._dialog)
             await self.mouse(0, *self.at(button.window))
             await self.mouse(0, *self.at(button.window), release=True)
+            if bar is self.view.project_actions:
+                self.view.settings.open_project.assert_called_once_with('p')
+                self.assertIsNone(self.view._dialog)
+                continue
             self.assertEqual(self.view._dialog.size, PopupSize.SMALL)
             self.pipe.send_text('\x1b')
             await eventually(lambda: self.view._dialog is None)

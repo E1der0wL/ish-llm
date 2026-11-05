@@ -125,7 +125,8 @@ class InvocationControl:
                 acknowledged.set()
         finally:
             closing = True
-            if not producer.done():
-                producer.cancel()
-            await asyncio.gather(producer, return_exceptions=True)
-            _restore_context(invocation_context, inherited)
+            from llm.services.infrastructure.cancellation import cancel_tasks
+            try:
+                await cancel_tasks((producer,))
+            finally:
+                _restore_context(invocation_context, inherited)

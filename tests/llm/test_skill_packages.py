@@ -43,6 +43,21 @@ class SkillPackageTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "manifests"):
             await self.skills.aupdate("guide", {"files": {}})
 
+    async def test_file_revision_is_checked_by_one_inventory(self):
+        from llm.components.skills.storage import SkillStorage
+        snapshot = await self.put()
+        inventory = SkillStorage.inventory
+        calls = []
+        def counted(storage):
+            calls.append(storage)
+            return inventory(storage)
+        with patch.object(SkillStorage, "inventory", counted):
+            self.assertEqual(await self.skills.aread_file("guide", "references/manual.md",
+                expected_revision=snapshot["version"], length=8), b"Original")
+        self.assertEqual(len(calls), 1)
+        with self.assertRaisesRegex(ValueError, "edit_conflict"):
+            await self.skills.aread_file("guide", "references/manual.md", expected_revision="stale")
+
     async def test_resource_read_and_delete_protection(self):
         after = await self.put()
         await self.skills.aupdate("guide", {"resources": [{"path": "references/manual.md"}]}, expected_version=after["version"])

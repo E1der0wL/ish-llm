@@ -114,6 +114,8 @@ class ValidatedEngine(BaseEngine):
 처리기는 동기 함수 또는 async 함수다. RunManager는 처리 완료를 기다린 후 다음 이벤트로
 진행한다. 실패하면 Run이 실패하고, 명시적 interrupt로 대기 중인 비동기 처리기를 중단할 수 있다.
 검증 결과·검색 결과 등을 Run에 남길 때는 `update_metadata()`를 사용한다.
+`question_ids`, `transfer`, `cloned_transfer` 등 런타임이 소유한 manifest는 이 API로
+덮어쓸 수 없다. 질문·이관의 원본 저장과 공개 API가 각 manifest를 갱신한다.
 `policies`, `completions`, `resume`, `checkpoints`, `output`, `steering`은 서비스 소유 키다.
 하나라도 포함하면 `ValueError`로 전체 갱신을 거부하며 허용 키만 부분 저장하지 않는다.
 정책은 Project 설정 API로 변경하고, 실행 중인 Run의 시작 시점 정책 사본은 유지한다.

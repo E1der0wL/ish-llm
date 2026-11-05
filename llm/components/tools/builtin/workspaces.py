@@ -9,11 +9,12 @@ from llm.core.models import RunErrorCode
 import asyncio
 from copy import deepcopy
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Mapping, Sequence, Self
 
 from llm._platform import require_linux
 from llm.services.infrastructure.linux_sandbox import LinuxSandbox
 from llm.services.infrastructure.storage import drain_on_cancel
+from llm.services.infrastructure.cancellation import cancel_tasks
 from .file_execution import execute_file
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import current_tool_call
@@ -40,7 +41,8 @@ class TestWorkspaces:
     OWNER_REQUIRED = "Test workspace Tools require an owning Project Tool invocation"
     OPEN_STATE = False
     CLOSED_STATE = True
-    COLLECT_CLOSE_ERRORS = True
+    _output_owner: Self | None = None
+    _output_store: object | None = None
 
     def __init__(self, root: str | Path, *, source_root: str | Path, allow_network: bool,
                  read_only_paths: Sequence[str | Path] = WorkspaceSettings.NO_MOUNTS,
@@ -83,7 +85,7 @@ class TestWorkspaces:
         return self.repository.source
 
     def _project(self):
-        if self._closed or getattr(self, "_output_owner", self)._closed:
+        if self._closed or self._output_owner is not None and self._output_owner._closed:
             raise RuntimeError(self.CLOSED)
         call = current_tool_call()
         if call is None or not call.project_id or not WorkspaceIdentity.valid_project(call.project_id):
@@ -128,7 +130,7 @@ class TestWorkspaces:
                 # Tool 인자의 env는 승인된 전체 환경이다. 호스트 환경과 암묵적으로 병합하지 않는다.
                 runtime = self._runtime.with_environment(request.env)
                 runner = runtime.runner(files.root)
-                store = getattr(self, "_output_store", None)
+                store = self._output_store
                 if store is not None:
                     from datetime import datetime, timezone
                     started_at = datetime.now(timezone.utc).isoformat()
@@ -136,7 +138,7 @@ class TestWorkspaces:
                         return await drain_on_cancel(store.command_result(request.argv, files.root, code, stdout, stderr,
                                                                           started_at=started_at))
                     result = await runner.execute(request.argv, pass_fds=(fd,), output_sink=save)
-                    return {**result, "workspace_id": request.workspace_id}
+                    return WorkspaceExecutionResult.attach(result, request.workspace_id)
                 result = await runner.execute(request.argv, pass_fds=(fd,))
                 return WorkspaceExecutionResult.from_result(request.workspace_id, result).to_dict()
         finally:
@@ -152,10 +154,7 @@ class TestWorkspaces:
     async def close(self) -> None:
         """실행만 회수한다. 영속 파일은 명시적 delete까지 보관한다."""
         self._closed = self.CLOSED_STATE
-        pending = tuple(self._active)
-        for task in pending:
-            task.cancel()
-        await drain_on_cancel(asyncio.gather(*pending, return_exceptions=self.COLLECT_CLOSE_ERRORS))
+        await cancel_tasks(tuple(self._active))
 
 
 class BuiltinToolRunner:

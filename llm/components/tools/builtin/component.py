@@ -2,6 +2,8 @@
 
 from dataclasses import replace
 from enum import StrEnum
+from contextlib import contextmanager
+from llm.components.tools.bindings import ScopedToolHandler
 
 from llm.components.base import Component, validate_name
 from llm.core.parameters import ParameterLayout
@@ -114,10 +116,11 @@ class BuiltinToolComponent(Component):
             from .workspaces import TestWorkspaces
             if isinstance(selected, TestWorkspaces):
                 return selected.with_output(store)
-            async def invoke(arguments):
+            @contextmanager
+            def scope():
                 with output_scope(store), path_scope(access):
-                    return await selected(arguments)
-            return invoke
+                    yield
+            return ScopedToolHandler(selected, scope)
         return selected.derive(tuple(Tool(tool.name, tool.description, tool.parameters,
                                        handler(tool),
                                        definition=tool.definition, contract=bound_contract(tool),

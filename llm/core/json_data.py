@@ -79,8 +79,12 @@ class JsonPointer:
             cls.ESCAPED_ESCAPE, cls.ESCAPE) for part in parts]
 
     @classmethod
-    def reference(cls, parts):
+    def from_parts(cls, parts):
         path = cls.ROOT
         for part in parts:
-            path = cls.append(path, part)
-        return cls.FRAGMENT + path
+            path = cls.append(path, str(part))
+        return path
+
+    @classmethod
+    def reference(cls, parts):
+        return cls.FRAGMENT + cls.from_parts(parts)

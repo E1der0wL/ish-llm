@@ -9,6 +9,7 @@ from llm.services.infrastructure.storage import revision_token
 from .arguments import BuiltinArguments
 from .process_values import ProcessInvocation
 from .workspace_values import WorkspaceBinding
+from llm.providers.web_content import WebArguments
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -109,8 +110,6 @@ class HostAdapterName(StrEnum):
 class HostAdapterSchemas:
     """Opaque Host-owned request schemas; the backend never interprets their payloads."""
 
-    WEB_SEARCH = object_schema({"query": {"type": "string", "minLength": 1},
-        "limit": {"type": "integer", "minimum": 1}}, required=["query"])
     # URI schemes and expansion vocabulary belong to the selected adapter.
     URL = object_schema({"url": {"type": "string", "minLength": 1}}, required=["url"])
     SESSION = object_schema({"session_id": {"type": "string"}}, required=["session_id"])
@@ -143,8 +142,8 @@ class HostAdapters:
         "The host interprets corpus/query/options; this does not search the current Project's local RAG.")
     DESCRIPTION = "Invoke the configured host adapter: {name}."
     SPECS = (
-        HostAdapterSpec(HostAdapterName.WEB_SEARCH, HostAdapterSchemas.WEB_SEARCH),
-        HostAdapterSpec(HostAdapterName.WEB_FETCH, HostAdapterSchemas.URL),
+        HostAdapterSpec(HostAdapterName.WEB_SEARCH, WebArguments.SEARCH),
+        HostAdapterSpec(HostAdapterName.WEB_FETCH, WebArguments.FETCH),
         HostAdapterSpec(HostAdapterName.BROWSER_OPEN, HostAdapterSchemas.URL, execution=True),
         HostAdapterSpec(HostAdapterName.BROWSER_SNAPSHOT, HostAdapterSchemas.SESSION),
         HostAdapterSpec(HostAdapterName.BROWSER_ACT, HostAdapterSchemas.BROWSER_ACT, execution=True),

@@ -13,9 +13,13 @@ from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import atomic_json, remove_named_tree
 from .naming import ComponentName
 from .record_manifest import ComponentRecordManifest
+from llm.core.record_times import RecordTimes
 
 
 class ComponentStorage:
+    INVALID_TIMES = 'Component.read_times must return RecordTimes'
+    IMMUTABLE_CREATION = 'Record created_at is immutable'
+
     MISSING_RECORD = "Component record does not exist"
     RETIRED_CONFIGURATION = "component.json"
     RETIRED_CONFIGURATION_MESSAGE = (
@@ -183,7 +187,8 @@ class ComponentStorage:
         if not component._has_storage(project):
             raise ValueError(ComponentStorage.UNINITIALIZED_RECORDS)
         manifest = read_json(component._checked(component.root(project) / component.RECORDS_MANIFEST))
-        ComponentRecordManifest.validate(manifest, component.SCHEMA_VERSION, project.id, component.name)
+        ComponentRecordManifest.validate(manifest, component.SCHEMA_VERSION, project.id, component.name,
+                                         native_times=component.read_times is not None)
         paths = component._record_files(project)
         if paths.keys() != ComponentRecordManifest(manifest).records.keys():
             raise ValueError(ComponentStorage.RECORD_INVENTORY_CHANGED)
@@ -219,7 +224,8 @@ class ComponentStorage:
         if record_catalog:
             atomic_json(
                 root / component.RECORDS_MANIFEST,
-                ComponentRecordManifest.empty(component.SCHEMA_VERSION, project.id, component.name),
+                ComponentRecordManifest.empty(component.SCHEMA_VERSION, project.id, component.name,
+                                               native_times=component.read_times is not None),
             )
 
     @staticmethod
@@ -237,11 +243,37 @@ class ComponentStorage:
     def _write(component, project: Project, identifier: str, data: dict) -> None:
         value = component.deserialize(component.serialize(data))
         component.validate_record(identifier, value)
-        manifest, _ = component._record_inventory(project)
+        manifest, records = component._record_inventory(project)
+        from llm.services.infrastructure.storage import revision_token
+        if identifier in records:
+            previous = component._decode_record(identifier, records[identifier])
+            if revision_token(previous) == revision_token(value):
+                return
+        if component.read_times is not None:
+            times = component.read_times(value)
+            if not isinstance(times, RecordTimes):
+                raise TypeError(ComponentStorage.INVALID_TIMES)
+            if identifier in records and times.created_at != component.read_times(previous).created_at:
+                raise ValueError(ComponentStorage.IMMUTABLE_CREATION)
+        else:
+            catalog = ComponentRecordManifest(manifest)
+            times = RecordTimes.read(catalog.times[identifier]).touch() if identifier in records else RecordTimes.create()
+            catalog.times[identifier] = times.to_dict()
         path = component._record_path(project, identifier)
         atomic_json(path, value)
         ComponentRecordManifest(manifest).record(identifier, hashlib.sha256(path.read_bytes()).hexdigest())
         atomic_json(component.root(project) / component.RECORDS_MANIFEST, manifest)
+
+    @staticmethod
+    def get_times(component, project, identifier):
+        component._record_path(project, identifier)
+        manifest, records = component._record_inventory(project)
+        if identifier not in records:
+            raise FileNotFoundError(identifier)
+        value = component._decode_record(identifier, records[identifier])
+        times = (component.read_times(value) if component.read_times is not None
+                 else RecordTimes.read(ComponentRecordManifest(manifest).times[identifier]))
+        return times.to_dict()
 
     @staticmethod
     def load(component, project: Project, identifier: str) -> dict:

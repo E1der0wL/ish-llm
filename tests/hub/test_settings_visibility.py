@@ -121,17 +121,11 @@ class EssentialSettingsTests(unittest.TestCase):
             self.assertFalse(form.visible_fields)
             self.assertEqual(form.values(), values)
 
-    def test_resource_metadata_uses_creation_time_without_mutating_the_input(self):
-        from datetime import datetime
-        from hub.backend.project.management_values import ResourceTimestamps, DefinitionSummary
-        original = {'metadata': {'title': 'Agent'}}
-        created = ResourceTimestamps.created(original)
-        stamp = created['metadata']['created_at']
-        self.assertIsNotNone(datetime.fromisoformat(stamp).tzinfo)
-        self.assertEqual(created['metadata']['updated_at'], stamp)
-        self.assertEqual(original, {'metadata': {'title': 'Agent'}})
-        changed = ResourceTimestamps.modified(created)
-        self.assertEqual(changed['metadata']['created_at'], stamp)
-        self.assertGreaterEqual(changed['metadata']['updated_at'], stamp)
-        self.assertEqual(DefinitionSummary.entry('a', {'metadata': {'created_at':stamp}}, 'v')['modified'], stamp)
-        self.assertEqual(DefinitionSummary.entry('a', {}, 'v')['modified'], '')
+    def test_resource_summary_displays_explicit_owner_time_not_user_metadata(self):
+        from hub.backend.project.management_values import DefinitionSummary
+        original = {'metadata': {'title': 'Agent', 'updated_at': 'user value'}}
+        stamp = '2026-11-05T00:00:00+00:00'
+        row = DefinitionSummary.entry('a', original, 'v', modified=stamp)
+        self.assertEqual(row['modified'], stamp)
+        self.assertEqual(row['label'], 'Agent')
+        self.assertEqual(original, {'metadata': {'title': 'Agent', 'updated_at': 'user value'}})

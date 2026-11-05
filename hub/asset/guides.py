@@ -16,10 +16,20 @@ CONVERSATION_FILE = "conversation.md"
 PROMPT_ENCODING = "utf-8"
 PROMPT_SEPARATOR = "\n"
 TEMPLATE_VERSION = 9
-WORK_GUIDANCE = (ASSET_ROOT / PROMPTS_DIRECTORY / WORK_CONTEXT_FILE).read_text(encoding=PROMPT_ENCODING)
-WORK_CYCLE = (ASSET_ROOT / PROMPTS_DIRECTORY / WORK_CYCLE_FILE).read_text(encoding=PROMPT_ENCODING)
-SYSTEM_PROMPT = (ASSET_ROOT / PROMPTS_DIRECTORY / SYSTEM_FILE).read_text(encoding=PROMPT_ENCODING) + PROMPT_SEPARATOR + WORK_GUIDANCE
-CONVERSATION_PROMPT = (ASSET_ROOT / PROMPTS_DIRECTORY / CONVERSATION_FILE).read_text(encoding=PROMPT_ENCODING)
+def _prompt(name):
+    from ..errors.startup import StartupLoadError
+    from ..locales.keys import MessageKey
+    path = ASSET_ROOT / PROMPTS_DIRECTORY / name
+    try:
+        return path.read_text(encoding=PROMPT_ENCODING)
+    except (OSError, ValueError) as error:
+        raise StartupLoadError(error, path, hint=MessageKey.STARTUP_INSTALL_HINT) from error
+
+
+WORK_GUIDANCE = _prompt(WORK_CONTEXT_FILE)
+WORK_CYCLE = _prompt(WORK_CYCLE_FILE)
+SYSTEM_PROMPT = _prompt(SYSTEM_FILE) + PROMPT_SEPARATOR + WORK_GUIDANCE
+CONVERSATION_PROMPT = _prompt(CONVERSATION_FILE)
 
 
 class StarterSkillValue(NamedTuple):
@@ -43,5 +53,24 @@ class StarterSkill:
         return StarterSkillValue(document.name, document.name, document.description, document.text)
 
 
-STARTER_SKILLS = tuple(StarterSkill(path) for path in sorted((ASSET_ROOT / SKILLS_DIRECTORY).iterdir()) if path.is_dir())
-SKILLS = tuple(skill.load() for skill in STARTER_SKILLS)
+STARTER_SKILL_NAMES = (
+    "hub-code-change", "hub-code-review", "hub-create-agent", "hub-create-rag",
+    "hub-create-skill", "hub-create-workflow", "hub-data-analysis", "hub-diagnose", "hub-document",
+)
+STARTER_SKILLS = tuple(StarterSkill(ASSET_ROOT / SKILLS_DIRECTORY / name) for name in STARTER_SKILL_NAMES)
+
+
+def load_skills():
+    """Read packaged skills explicitly, never while importing the Hub UI."""
+    return tuple(skill.load() for skill in STARTER_SKILLS)
+
+
+def validate_starter_skills():
+    from ..errors.startup import StartupLoadError
+    from ..locales.keys import MessageKey
+    for skill in STARTER_SKILLS:
+        try:
+            skill.load()
+        except (OSError, ValueError, TypeError) as error:
+            raise StartupLoadError(error, skill.directory / SkillDocument.FILENAME,
+                                   hint=MessageKey.STARTUP_INSTALL_HINT) from error

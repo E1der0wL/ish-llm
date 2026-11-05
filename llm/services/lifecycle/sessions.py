@@ -18,7 +18,7 @@ from llm.core.plans import PlanBlockerCode
 
 from llm.core.models import ResourceKind
 
-from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
+from llm.services.infrastructure.storage import read_domain_record, atomic_timed_record
 from llm.services.infrastructure.storage import make_directory
 from llm.services.infrastructure.transactions import after_commit, current_transaction
 
@@ -191,17 +191,17 @@ class SessionRepository:
         self._write(session, creating=SessionRepository.CREATE)
 
     def save(self, session: Session) -> None:
-        self._load(session.paths, session.id, session.project_id)
-        self._write(session, creating=SessionRepository.UPDATE)
+        previous = self._load(session.paths, session.id, session.project_id)
+        self._write(session, creating=SessionRepository.UPDATE, previous=record(previous))
 
-    def _write(self, session: Session, *, creating: bool) -> None:
+    def _write(self, session: Session, *, creating: bool, previous=None) -> None:
         ProjectConfig.validate_session(session.config)
         from llm.services.runtime.operations import OperationRepository
 
         operations = OperationRepository()
         data = record(session)
         Session.from_record(data, session.paths)
-        atomic_domain_json(session.paths.record, data)
+        atomic_timed_record(session, data, previous)
         if creating:
             operations.initialize(session)
             from llm.services.runtime.transfers import TransferLedger

@@ -1,6 +1,7 @@
 """RAG publication evidence and catalog projections, without filesystem effects."""
 
 import re
+from llm.core.record_times import RecordTimes
 from llm.components.base import validate_name
 from llm.services.infrastructure.storage import revision_token, SnapshotFile
 from .corpus_records import RAGCorpus
@@ -150,6 +151,8 @@ class CorpusCatalog:
             RAGDocument.Field.TITLE,
             RAGDocument.Field.GENERATION,
             RAGDocument.Field.REVISION,
+            RecordTimes.CREATED_AT,
+            RecordTimes.UPDATED_AT,
         )
     )
     INVALID_LIST = "RAG catalog must be a list"
@@ -183,6 +186,7 @@ class CorpusCatalog:
             ):
                 raise ValueError(cls.INVALID_FIELDS)
             identifier = validate_name(RAGDocument(row).identifier)
+            RecordTimes.from_record(row)
             RAGDocument.validate_versions({identifier: row})
             if (
                 not isinstance(RAGDocument(row).title, str)

@@ -9,7 +9,7 @@
 | 책임과 설정 | [Project 권한](project-authority.md), [설정](../../llm/CONFIGURATION.md), [계약 소유권](contract-ownership.md), [Schema](schema-ownership.md), [명명 규칙](naming-conventions.md) |
 | 실행과 확장 | [Engine](../../llm/engines/README.md), [Agents](agents.md), [Agent 모델 설정](agent-models.md), [Graph](graph-engine.md), [Component 정의](component-definitions.md), [Provider](../../llm/providers/README.md) |
 | 승인·재개·오류 | [Interactions](interactions.md), [Tool 제약](tool-constraints.md), [체크포인트](checkpoints.md), [복구 API](backend-recovery.md), [Retry](retry.md) |
-| 저장과 수명 | [트랜잭션](storage-transactions.md), [데이터 수명](data-lifecycle.md), [대화](conversation-storage.md), [Revision](revisions.md), [Session 전송](session-transfers.md) |
+| 저장과 수명 | [트랜잭션](storage-transactions.md), [데이터 수명](data-lifecycle.md), [자료 시각](component-times.md), [대화](conversation-storage.md), [Revision](revisions.md), [Session 전송](session-transfers.md) |
 | 모델 문맥과 자료 | [Completion 처리](completion-processing.md), [최종 검토](completion-review.md), [RAG](rag-components.md), [Memory](memory.md), [공통 요약 API](../../llm/components/summarization.py) |
 | 편집·실시간 입력 | [Workflow 검사·접수 영수증·음성 계약](interactive-contracts.md), [Hub 연결과 사용법](../hub/interactive-features.md) |
 | 검증과 운영 | [검증 정책](verification-policy.md), [최신 검증 범위](handoff.md), [운영 한계](production-readiness.md), [현재 문서 검토](documentation-review.md) |

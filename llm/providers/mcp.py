@@ -41,12 +41,6 @@ class MCPConnectionDetails(JsonValue):
     http_status: int | None = None
 
 
-@dataclass(frozen=True, slots=True)
-class MCPToolDetails(JsonValue):
-    effect: str
-    retryable: bool = False
-
-
 class MCPConnectionError(CodedError, RuntimeError):
     code = "mcp_connection_failed"
     AUTHENTICATION = "mcp_authentication_required"
@@ -82,9 +76,27 @@ class MCPToolError(ToolExecutionError):
     TRANSPORT_FAILED = "MCP Tool transport failed; remote effects are uncertain"
     REMOTE_FAILED = "MCP server reported a Tool error; remote effects are uncertain"
 
+    def __init__(self, message, *, result=None, **classification):
+        # ToolExecutionError retains ownership and validation of its public
+        # effect/retry/recovery arguments; do not duplicate their defaults.
+        super().__init__(message, **classification)
+        # The SDK result is data, never evidence of no effect or retry safety.
+        # Preserve it for a trusted caller, not in the default persisted log.
+        self.result = deepcopy(result)
+
+    @property
+    def body(self):
+        if self.result is None:
+            return None
+        text = '\n'.join(item['text'] for item in self.result.get('content', ())
+                         if item.get('type') == 'text' and isinstance(item.get('text'), str))
+        return {'error': {'message': text}}
+
     @property
     def diagnostic(self):
-        return Diagnostic(self.code, str(self), details=MCPToolDetails(self.effect).to_dict())
+        from .runtime import ProviderErrorDiagnostics
+        return Diagnostic(self.code, str(self), details={**super().diagnostic.details,
+                          **ProviderErrorDiagnostics.read(self)})
 
 
 class MCPSDK:
@@ -203,7 +215,7 @@ class MCPConnector:
                         except Exception as error:
                             raise MCPToolError(MCPToolError.TRANSPORT_FAILED) from error
                         if result.is_error:
-                            raise MCPToolError(MCPToolError.REMOTE_FAILED)
+                            raise MCPToolError(MCPToolError.REMOTE_FAILED, result=result.model_dump(**MCPSDK.DUMP))
                         return result.model_dump(**MCPSDK.DUMP)
                 registry.register(Tool(item.name, item.description or MCPSDK.EMPTY_DESCRIPTION, item.input_schema, invoke, contract=contract))
             cursor = page.next_cursor

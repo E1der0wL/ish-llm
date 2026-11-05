@@ -9,6 +9,7 @@ from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
 from asyncio import timeout
 from llm.services.infrastructure.storage import drain_on_cancel
+from llm.services.infrastructure.cancellation import cancel_tasks
 from llm.core.configuration import UNSET
 from .process_values import (ProcessStatus, ProcessText, ProcessStartArguments, ProcessReferenceArguments,
     ProcessOutputArguments, ProcessWriteArguments, ProcessSnapshot, ProcessOutput, ProcessWritten, StoredOutput)
@@ -29,6 +30,7 @@ class ProcessSession:
     truncated: bool = False
     ended_at: str | None = None
     input_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    stop_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     task: asyncio.Task | None = None
     store: object = None
     sources: dict | None = None
@@ -70,11 +72,13 @@ class OutputPage:
 class ProcessTools:
     """호스트 프로세스 실행기다. cwd는 보안 샌드박스가 아니며 별도 OS 격리를 제공하지 않는다."""
 
+    FOREIGN_OUTPUT = "Process output belongs to a different Project or destination"
+    MISSING_OBSERVER = 'Process observation requires a Project-bound output owner'
+
     OPEN = False
     CLOSED = True
     READ_BYTES = 8192
     NEW_PROCESS_GROUP = True
-    COLLECT_CLEANUP_ERRORS = True
     WRONG_LIFETIME = "Use open process tools on their original event loop"
     CLOSED_TOOLS = "Process tools are closed"
     INVALID_CWD = "Process cwd must be an existing directory"
@@ -87,6 +91,7 @@ class ProcessTools:
         self.closed = self.OPEN
         self.loop = None
         self.lock = asyncio.Lock()
+        self._closing = None
 
     async def _terminate_unobserved(self, process):
         # 출력 reader 생성 전 취소된 프로세스도 파이프를 비워야 wait()가 완료된다.
@@ -96,18 +101,32 @@ class ProcessTools:
         await asyncio.gather(kill_process_tree(process), discard(process.stdout), discard(process.stderr))
 
     async def _stop(self, item):
-        if not item.task.done():
-            item.task.cancel()
-        await asyncio.gather(item.task, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
-        if item.status == ProcessStatus.RUNNING:
-            # monitor가 첫 실행 기회를 얻기 전에 취소된 경우에도 프로세스를 회수한다.
-            item.status = ProcessStatus.CANCELLED
-            await self._terminate_unobserved(item.process)
-            item.ended_at = datetime.now(timezone.utc).isoformat()
-            item.stdout.finish(); item.stderr.finish()
-            if item.store is not None:
-                identifier = next(key for key, value in self.sessions.items() if value is item)
-                item.sources = await item.store.publish(identifier, item)
+        async def finish():
+            # Concurrent stops must also join the pre-monitor spawn cleanup.
+            async with item.stop_lock:
+                await cancel_tasks((item.task,))
+                if item.status == ProcessStatus.RUNNING:
+                    # monitor가 첫 실행 기회를 얻기 전에 취소돼도 프로세스를 회수한다.
+                    item.status = ProcessStatus.CANCELLED
+                    await self._terminate_unobserved(item.process)
+                    item.ended_at = datetime.now(timezone.utc).isoformat()
+                    item.stdout.finish(); item.stderr.finish()
+                    if item.store is not None:
+                        identifier = next(key for key, value in self.sessions.items() if value is item)
+                        item.sources = await item.store.publish(identifier, item)
+        await drain_on_cancel(finish())
+
+    async def _close(self):
+        try:
+            results = await asyncio.gather(*(self._stop(item) for item in self.sessions.values()),
+                                           return_exceptions=True)
+            for result in results:
+                if isinstance(result, BaseException):
+                    raise result
+        finally:
+            for item in self.sessions.values():
+                item.stdout.close()
+                item.stderr.close()
 
     def _session(self, identifier):
         item = self.sessions[identifier]
@@ -115,7 +134,7 @@ class ProcessTools:
         if (item.store is None) != (current is None) or (
             current is not None and item.store.owner != current.owner
         ):
-            raise ValueError("Process output belongs to a different Project or destination")
+            raise ValueError(self.FOREIGN_OUTPUT)
         return item
 
     def check(self):
@@ -133,7 +152,7 @@ class ProcessTools:
         self.check()
         current = current_output_store()
         if current is None:
-            raise ValueError('Process observation requires a Project-bound output owner')
+            raise ValueError(ProcessTools.MISSING_OBSERVER)
         identifiers = [identifier for identifier, item in self.sessions.items()
                        if item.store is not None and item.store.owner == current.owner]
         return {identifier: await asyncio.to_thread(self.snapshot, identifier) for identifier in identifiers}
@@ -166,7 +185,7 @@ class ProcessTools:
             # 취소가 프로세스 생성과 겹치더라도 핸들을 회수해 종료한다.
             with PathAccess.directory(cwd) as directory_fd:
                 pending = asyncio.create_task(asyncio.create_subprocess_exec(
-                    *args.argv, cwd=f"/proc/self/fd/{directory_fd}", pass_fds=(directory_fd,),
+                    *args.argv, cwd=PathAccess.descriptor_path(directory_fd), pass_fds=(directory_fd,),
                     stdin=asyncio.subprocess.PIPE if interactive else asyncio.subprocess.DEVNULL,
                     stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, start_new_session=self.NEW_PROCESS_GROUP,
                     **environment))
@@ -211,27 +230,26 @@ class ProcessTools:
                     item.status = ProcessStatus.FAILED
                     raise
                 finally:
-                    if process.stdin is not None:
-                        process.stdin.close()
-                    for reader in readers:
-                        if not reader.done():
-                            reader.cancel()
-                    observed = await asyncio.gather(*readers, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
-                    if any(isinstance(value, Exception) for value in observed):
-                        # A cancellation racing a failed write must not publish
-                        # incomplete bytes under a valid-looking character count.
-                        item.status = ProcessStatus.FAILED
-                    # A failed disk writer must not leave a child blocked on a full pipe.
-                    await drain_on_cancel(self._terminate_unobserved(process))
-                    item.ended_at = datetime.now(timezone.utc).isoformat()
-                    item.stdout.finish()
-                    item.stderr.finish()
-                    if item.store is not None and item.status != ProcessStatus.FAILED:
-                        try:
-                            item.sources = await drain_on_cancel(item.store.publish(identifier, item))
-                        except Exception:
+                    async def cleanup():
+                        if process.stdin is not None:
+                            process.stdin.close()
+                        await cancel_tasks(readers)
+                        # Read results belong to this output owner, not the
+                        # cancellation helper: writer errors invalidate output.
+                        if any(not reader.cancelled() and isinstance(reader.exception(), Exception)
+                               for reader in readers):
                             item.status = ProcessStatus.FAILED
-                            raise
+                        await self._terminate_unobserved(process)
+                        item.ended_at = datetime.now(timezone.utc).isoformat()
+                        item.stdout.finish()
+                        item.stderr.finish()
+                        if item.store is not None and item.status != ProcessStatus.FAILED:
+                            try:
+                                item.sources = await item.store.publish(identifier, item)
+                            except Exception:
+                                item.status = ProcessStatus.FAILED
+                                raise
+                    await drain_on_cancel(cleanup())
             item.task = asyncio.create_task(monitor())
             try:
                 return await asyncio.to_thread(self.snapshot, identifier)
@@ -299,14 +317,10 @@ class ProcessTools:
         return await asyncio.to_thread(self.snapshot, identifier)
 
     async def close(self):
-        if self.closed:
-            return
-        self.check()
-        async with self.lock:
-            self.closed = self.CLOSED
-            try:
-                await asyncio.gather(*(self._stop(item) for item in self.sessions.values()))
-            finally:
-                for item in self.sessions.values():
-                    item.stdout.close()
-                    item.stderr.close()
+        if self._closing is None:
+            self.check()
+            async with self.lock:
+                if self._closing is None:
+                    self.closed = self.CLOSED
+                    self._closing = asyncio.create_task(self._close())
+        await drain_on_cancel(self._closing)

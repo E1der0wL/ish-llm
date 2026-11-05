@@ -5,9 +5,11 @@ import subprocess
 import sys
 import unittest
 
-from hub.asset.guides import SKILLS, STARTER_SKILLS, SYSTEM_PROMPT, WORK_CYCLE
+from hub.asset.guides import load_skills, STARTER_SKILLS, SYSTEM_PROMPT, WORK_CYCLE
 from hub.backend.project.component_commands import component_commands
 from hub.components import COMPONENTS, component_spec
+
+SKILLS = load_skills()
 
 
 class ComponentCatalogTests(unittest.TestCase):

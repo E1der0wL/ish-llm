@@ -241,8 +241,14 @@ class RAGGenerationTests(unittest.IsolatedAsyncioTestCase):
         calls = len(self.calls)
         await self.rag.arun_job(job["id"], retry=True)
         self.assertEqual(len(self.calls), calls)
-        self.assertEqual(await self.rag.aget_document("manual"), {k: v for k, v in prepared.items()
-            if k not in ("vectors", "graph", "profile", "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
+        from llm.core.record_times import RecordTimes
+        published = await self.rag.aget_document("manual")
+        times = RecordTimes.from_record(published)
+        self.assertEqual(times.created_at, times.updated_at)
+        self.assertNotIn("created_at", prepared)
+        self.assertEqual(published, {**{k: v for k, v in prepared.items()
+            if k not in ("vectors", "graph", "profile", "preparation_configuration", "preparation_fingerprint", "extraction_manifest")},
+            **times.to_dict()})
 
     async def test_missing_stored_generation_fails_without_repair(self):
         await self.add()

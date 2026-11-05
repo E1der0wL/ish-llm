@@ -35,8 +35,6 @@ class ChatProjects:
     INPUT_HANDLED = True
     NEW_TITLE = ""
     COPY_SEPARATOR = " "
-    NO_COPY_SUFFIX = ""
-    NAME_ACTIONS = (KeyName.EDIT, KeyName.R)
 
     def __init__(self, view):
         self.view = view
@@ -174,29 +172,18 @@ class ChatProjects:
                 ),
                 size=PopupSize.SMALL,
             )
+        elif item is not ProjectSummaries.NO_MATCH and item.present and key == KeyName.EDIT:
+            self.view.settings.open_project(identifier)
         elif (
             item is not ProjectSummaries.NO_MATCH
             and item.present
-            and key in self.NAME_ACTIONS
+            and key == KeyName.R
         ):
-            operation = (
-                SettingsOperation.RENAME_PROJECT
-                if key == KeyName.EDIT
-                else SettingsOperation.CLONE_PROJECT
-            )
-            title = item.title + (
-                self.COPY_SEPARATOR + self.view.t(MessageKey.SETTINGS_COPY_SUFFIX)
-                if key == KeyName.R
-                else self.NO_COPY_SUFFIX
-            )
+            title = item.title + self.COPY_SEPARATOR + self.view.t(MessageKey.SETTINGS_COPY_SUFFIX)
             self.name_dialog(
-                self.view.t(
-                    MessageKey.SETTINGS_RENAME
-                    if key == KeyName.EDIT
-                    else MessageKey.SETTINGS_CLONE
-                ),
+                self.view.t(MessageKey.SETTINGS_CLONE),
                 title,
-                lambda name: self.call(operation, identifier, name, completed=saved),
+                lambda name: self.call(SettingsOperation.CLONE_PROJECT, identifier, name, completed=saved),
                 size=PopupSize.SMALL,
             )
         elif (

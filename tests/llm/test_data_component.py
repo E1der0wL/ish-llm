@@ -40,6 +40,22 @@ class DataTests(unittest.IsolatedAsyncioTestCase):
             await self.data.awrite_file("samples", "train/input.bin", b"other", expected_revision=before["version"])
         self.assertEqual(await self.data.aread_file("samples", "train/input.bin"), content)
 
+    async def test_range_revision_reuses_one_verified_inventory(self):
+        snapshot = await self.data.asnapshot("samples")
+        snapshot = await self.data.awrite_file("samples", "large.txt", "x" * 1_000_000,
+            expected_revision=snapshot["version"])
+        with patch.object(self.component, "_verify", wraps=self.component._verify) as verify:
+            self.assertEqual(await self.data.aread_file("samples", "large.txt",
+                expected_revision=snapshot["version"], length=5), b"xxxxx")
+            self.assertEqual(verify.call_count, 1)
+        path = self.project.paths.root / "data/samples/files/large.txt"
+        with path.open("r+b") as stream:
+            stream.seek(999_999)
+            stream.write(b"y")
+        with self.assertRaisesRegex(ValueError, "integrity"):
+            await self.data.aread_file("samples", "large.txt", length=5,
+                expected_revision=snapshot["version"])
+
     async def test_clone_backup_reopen_and_delete(self):
         before = await self.data.asnapshot("samples")
         after = await self.data.awrite_file("samples", "tmp/result.json", "{}", expected_revision=before["version"])

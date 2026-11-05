@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 import hashlib
+import json
 import io
 import os
 from pathlib import Path
@@ -162,7 +163,18 @@ class SkillStorage:
             raise FileNotFoundError(identifier)
         return records[identifier]
 
+    def get_times(self, identifier):
+        SkillName.validate(identifier)
+        _, entries = self._catalog_records()
+        if identifier not in entries:
+            raise FileNotFoundError(identifier)
+        self._read(identifier, entries[identifier])
+        return deepcopy(entries[identifier].times)
+
     def _commit(self, identifier, value, catalog):
+        from llm.core.record_times import RecordTimes
+        from llm.services.infrastructure.storage import revision_token
+        from dataclasses import replace
         record = Record.read(value, identifier=identifier)
         files, directories = self._tree(self.package(identifier))
         raw = record.markdown.encode(Record.TEXT_ENCODING)
@@ -170,10 +182,22 @@ class SkillStorage:
         if not document.matches(raw):
             raise ValueError(SkillStorage.DOCUMENT_CHANGED_BEFORE_COMMIT)
         document = files.pop(SkillDocument.FILENAME)
+        previous = None
+        if identifier in catalog.records:
+            raw_entry = self.record_path(identifier).read_bytes()
+            if hashlib.sha256(raw_entry).hexdigest() != catalog.records[identifier]:
+                raise ValueError(SkillStorage.PACKAGE_INTEGRITY)
+            previous = SkillOperationalRecord.read(json.loads(raw_entry),
+                identity=self._identity(), identifier=identifier)
+        times = RecordTimes.read(previous.times) if previous is not None else RecordTimes.create()
         entry = SkillOperationalRecord.create(self._identity(), identifier, document=document,
-            directories=directories, files=files, record=record)
+            directories=directories, files=files, record=record, times=times)
         if files != record.files:
             raise ValueError(SkillStorage.UNMANAGED_FILES)
+        if previous is not None and revision_token(previous.to_dict()) == revision_token(entry.to_dict()):
+            return
+        if previous is not None:
+            entry = replace(entry, times=times.touch().to_dict())
         path = self.record_path(identifier)
         atomic_json(path, entry.to_dict())
         catalog.records[identifier] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -244,8 +268,12 @@ class SkillStorage:
         info = self._copy_stream(stream, destination, mode=mode)
         self._commit(identifier, record.with_file(path, info), catalog)
 
-    def read_file(self, identifier, path, *, offset=FileRange.START, length=FileRange.TO_END):
-        record = Record.read(self.load(identifier))
+    def read_file(self, identifier, path, *, expected_revision=None,
+                  offset=FileRange.START, length=FileRange.TO_END):
+        from llm.services.infrastructure.storage import check_revision
+        value = self.load(identifier)
+        check_revision(value, expected_revision)
+        record = Record.read(value)
         if Record.resource_path(path) not in record.files:
             raise FileNotFoundError(path)
         selection = FileRange(offset, length)
@@ -253,9 +281,12 @@ class SkillStorage:
             stream.seek(selection.offset)
             return stream.read(selection.read_size)
 
-    def read_text(self, identifier, path, *, offset, limit):
+    def read_text(self, identifier, path, *, expected_revision, offset, limit):
         from llm.services.infrastructure.text_stream import read_text_range
-        record = Record.read(self.load(identifier))
+        from llm.services.infrastructure.storage import check_revision
+        value = self.load(identifier)
+        check_revision(value, expected_revision)
+        record = Record.read(value)
         if Record.resource_path(path) not in record.files:
             raise FileNotFoundError(path)
         with FileComponent._stream(self.checked(self.package(identifier) / path)) as stream:

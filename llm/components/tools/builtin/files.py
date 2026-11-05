@@ -11,7 +11,7 @@ from .path_access import PathAccess
 from .file_text import TextIndex, TextRange
 from .file_execution import FileReader, check_cancelled, begin_commit, file_lock
 from contextlib import closing, contextmanager, ExitStack
-from llm.services.infrastructure.text_stream import BUFFER_BYTES
+from llm.services.infrastructure.text_stream import BUFFER_BYTES, ENCODING
 from llm.core.configuration import UNSET
 from llm.services.runtime.tool_errors import ToolExecutionError
 from llm.core.schema import SchemaKeyword, validate_declared_fields
@@ -29,14 +29,14 @@ class FileTools:
     ARGUMENTS = (FileReadArguments, FileListArguments, FileSearchArguments, FileCreateArguments,
                  FilePatchArguments, FileMoveArguments, FileDeleteArguments, FileRestoreArguments)
     ROOT_PATH = "."
-    PARENT_PATH = ".."
-    RESERVED_PREFIX = ".llm-"
+    PARENT_PATH = PathAccess.PARENT_PATH
+    RESERVED_PREFIX = PathAccess.RESERVED_PREFIX
     WRITE_PREFIX = ".llm-write-"
     TRASH_ROOT = ".llm-trash"
     TRASH_CONTENT = "content"
-    TEXT_ENCODING = "utf-8"
-    NUL = "\x00"
-    BINARY_MODE = "rb"
+    TEXT_ENCODING = ENCODING
+    NUL = PathAccess.NUL
+    BINARY_MODE = PathAccess.BINARY_MODE
     FIRST_LINE = 1
     END_OF_LINES = None
     UNIQUE_MATCH = 1
@@ -70,10 +70,12 @@ class FileTools:
     def argument_schema(cls):
         return FileLimits.schema()[SchemaKeyword.PROPERTIES]
 
-    def __init__(self, root: Path, *, read_access=None, write_access=None, cwd_access=None):
+    def __init__(self, root: Path, *, read_access=None, write_access=None, cwd_access=None, read_cache_bytes=None):
         self.root = Path(root).absolute()
         self.max_bytes = self.NO_BYTE_LIMIT
         self.lock = threading.RLock()
+        from .file_cache import VerifiedTextCache
+        self.read_cache = None if read_cache_bytes is None else VerifiedTextCache(read_cache_bytes)
         self.path(self.ROOT_PATH)
         if not self.root.is_dir():
             raise ValueError(self.INVALID_ROOT)
@@ -207,7 +209,11 @@ class FileTools:
                         if any(value is not UNSET for value in (args.start_line, args.max_lines, args.tail_lines)):
                             raise ValueError(FileReadArguments.MIXED_CHAR_RANGE)
                         offset = 0 if args.offset is UNSET else args.offset
-                        page = TextRange.read(stream, offset=offset, limit=args.max_chars, max_bytes=self.max_bytes)
+                        if self.read_cache is None:
+                            page = TextRange.read(stream, offset=offset, limit=args.max_chars, max_bytes=self.max_bytes)
+                        else:
+                            page = self.read_cache.read(stream, before, offset=offset,
+                                                        limit=args.max_chars, max_bytes=self.max_bytes)
                         if args.expected_sha256 is not UNSET and args.expected_sha256 != page.sha256:
                             raise ValueError(self.CHANGED_FILE)
                         result = FileTextPage(args.path, page.text, page.sha256, offset,

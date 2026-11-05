@@ -368,7 +368,7 @@ class RAGJobs:
             validate_graph(item[GraphRecord.Field.GRAPH], item[SplitDocument.Field.CHUNKS], relation_types=component.extraction_options.get(ExtractionOptions.Field.RELATION_TYPES, ()))
             existing = documents.get(item[RAGDocument.Field.ID])
             # Publication may have succeeded before the completion receipt failed.
-            if existing is not RAGJobs.ABSENT and existing != item:
+            if existing is not RAGJobs.ABSENT and not RAGDocument.matches_prepared(existing, item):
                 raise ValueError(RAGJobs.MESSAGE_DOCUMENT_ALREADY_EXISTS_WITH_DIFFERENT_CONTENT)
             changed |= existing is RAGJobs.ABSENT
             documents[item[RAGDocument.Field.ID]] = item

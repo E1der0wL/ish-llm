@@ -34,12 +34,14 @@ class OCR:
 
 
 class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
-    async def test_catalog_registration_time_reuses_jobs_without_document_reads(self):
+    async def test_catalog_document_time_is_independent_of_jobs_without_document_reads(self):
         from unittest.mock import Mock
         from hub.backend.project.rag_management import RAGManagement
         data = Mock()
         data.alist_catalog = AsyncMock(return_value={'documents': [
-            {'id': 'note', 'title': 'Note', 'generation': 'g', 'revision': 1}], 'next_cursor': None})
+            {'id': 'note', 'title': 'Note', 'generation': 'g', 'revision': 1,
+             'created_at': '2026-01-03T00:00:00+00:00',
+             'updated_at': '2026-01-04T00:00:00+00:00'}], 'next_cursor': None})
         data.ajobs = AsyncMock(return_value=[
             {'id':'old', 'status':'completed', 'document_id':'note', 'created_at':'2026-01-01T00:00:00+00:00'},
             {'id':'new', 'status':'completed', 'document_id':'note', 'created_at':'2026-01-02T00:00:00+00:00'},
@@ -47,7 +49,7 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
         data.aget_document = AsyncMock(side_effect=AssertionError('Catalog must not load bodies'))
         manager = RAGManagement(data, 'rag', '.', 'p')
         rows = await manager.list()
-        self.assertEqual(rows[0]['modified'], '2026-01-02T00:00:00+00:00')
+        self.assertEqual(rows[0]['modified'], '2026-01-04T00:00:00+00:00')
         data.ajobs.assert_awaited_once()
         data.aget_document.assert_not_awaited()
 
@@ -233,13 +235,19 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
     async def test_catalog_manager_paginates_without_reading_document_bodies(self):
         data = AsyncMock()
         data.alist_catalog.side_effect = [
-            {"documents": [{"id": "one", "title": "One", "description": "First", "generation": "a", "revision": 1}],
+            {"documents": [{"id": "one", "title": "One", "description": "First", "generation": "a", "revision": 1,
+                            "created_at": "2026-01-01T00:00:00+00:00", "updated_at": "2026-01-02T00:00:00+00:00"}],
              "next_cursor": {"after": "one"}},
-            {"documents": [{"id": "two", "title": "Two", "generation": "b", "revision": 2}], "next_cursor": None}]
+            {"documents": [{"id": "two", "title": "Two", "generation": "b", "revision": 2,
+                            "created_at": "2026-01-03T00:00:00+00:00", "updated_at": "2026-01-03T00:00:00+00:00"}],
+             "next_cursor": None}]
         result = await DocumentManagement(data, "rag", Path(".")).list()
         self.assertEqual([item["name"] for item in result], ["one", "two"])
         data.alist_documents.assert_not_called()
         self.assertEqual(result[0]["description"], "First")
+        self.assertEqual(result[0]["modified"], "2026-01-02T00:00:00+00:00")
+        self.assertEqual(result[1]["modified"], "2026-01-03T00:00:00+00:00")
+        data.aget_document.assert_not_called()
         self.assertEqual(data.alist_catalog.await_args.kwargs["cursor"], {"after": "one"})
 
     async def test_catalog_preview_bounded_cached_and_nonfatal_without_retrieval(self):

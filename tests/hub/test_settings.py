@@ -390,7 +390,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             finally:
                 await runtime.close()
 
-    async def test_ctrl_q_then_ctrl_s_connects_backend_on_first_open(self):
+    async def test_first_open_connects_before_opening_settings(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
                 input=pipe, output=SizedOutput(),
@@ -398,7 +398,10 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async())
             try:
                 await until(lambda: app.is_running)
-                pipe.send_text('\x11\x10\r')
+                pipe.send_text('\x11')
+                await until(lambda: controller.view.connected and controller.view._dialog is None
+                            and not controller.view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: controller.view.settings.page is not None)
                 self.assertTrue(controller.view.settings_open)
                 self.assertTrue(controller.view.settings.projects)

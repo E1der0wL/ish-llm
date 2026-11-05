@@ -22,10 +22,15 @@ from llm.components.tools.exposure import ToolExposure
 
 
 class LoopIterationRecord:
+    INVALID_INTERRUPTION = 'Invalid interrupted Loop iteration'
+
     STATUS = CheckpointStep.Field.STATUS.value
     RESPONSE = "response"
     REVIEW_OBSERVATION = "review_observation"
     TOOLS = "tools"
+    REDIRECTED = "redirected"
+    REDIRECTED_VALUE = True
+    NOT_REDIRECTED = False
     TOOL_MODE = "tool_mode"
     INVALID_EXPOSURE = "Loop iteration requires its original Tool exposure"
     FIRST_ITERATION = 1
@@ -39,18 +44,18 @@ class LoopIterationRecord:
 
     @classmethod
     def interrupted(cls, *, tools, tool_mode):
-        return {cls.STATUS: CheckpointStatus.NOT_APPLIED, 'redirected': True,
+        return {cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.REDIRECTED: cls.REDIRECTED_VALUE,
                 cls.TOOLS: list(tools), cls.TOOL_MODE: tool_mode.value if tool_mode is not None else None}
 
     @classmethod
     def is_interrupted(cls, value):
-        if 'redirected' not in value:
-            return False
-        if (value['redirected'] is not True or value.get(cls.STATUS) != CheckpointStatus.NOT_APPLIED
+        if cls.REDIRECTED not in value:
+            return cls.NOT_REDIRECTED
+        if (value[cls.REDIRECTED] is not cls.REDIRECTED_VALUE or value.get(cls.STATUS) != CheckpointStatus.NOT_APPLIED
                 or cls.RESPONSE in value or cls.REVIEW_OBSERVATION in value):
-            raise ValueError('Invalid interrupted Loop iteration')
+            raise ValueError(LoopIterationRecord.INVALID_INTERRUPTION)
         cls.exposure(value)
-        return True
+        return cls.REDIRECTED_VALUE
 
     @classmethod
     def create(cls, response, status, *, tools, tool_mode):

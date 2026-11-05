@@ -71,7 +71,6 @@ class EmbeddingExecution:
     FIRST_RESULT = 0
     SINGLE_RESULT = 1
     COUNT_INCREMENT = 1
-    COLLECT_CANCELLED = True
     WORKER_FORMAT = "rag-embedding-{index}"
     INVALID_CONCURRENCY = "embedding_concurrency must be a positive integer"
     INVALID_CHUNK_SIZE = "Checkpoint source requires a positive chunk_size"
@@ -216,10 +215,8 @@ async def prepare_vectors(component, document, *, previous=EmbeddingExecution.AB
         try:
             await asyncio.gather(*workers)
         except BaseException:
-            for task in workers:
-                task.cancel()
-            from llm.services.infrastructure.storage import drain_on_cancel
-            await drain_on_cancel(asyncio.gather(*workers, return_exceptions=EmbeddingExecution.COLLECT_CANCELLED))
+            from llm.services.infrastructure.cancellation import cancel_tasks
+            await cancel_tasks(workers)
             raise
         finally:
             await publish()

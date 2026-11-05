@@ -214,6 +214,10 @@ class InstructionReceipt:
 
 
 class InstructionMessageRecord:
+    INVALID_REDIRECT = 'instruction redirect must be boolean'
+
+    NO_REDIRECT = False
+    REDIRECT_REQUESTED = True
     MESSAGE_STATUSES = {InstructionStatus.PENDING: MessageStatus.QUEUED,
         InstructionStatus.UNAPPLIED: MessageStatus.CANCELLED, InstructionStatus.APPLIED: MessageStatus.COMMITTED,
         InstructionStatus.PARTIALLY_APPLIED: MessageStatus.COMMITTED}
@@ -278,17 +282,17 @@ class InstructionMessageRecord:
         return value
 
     @classmethod
-    def create(cls, run_id, input_message_id, targets, *, redirect=False):
-        return cls({**({cls.Field.REDIRECT: True} if redirect else {}),
+    def create(cls, run_id, input_message_id, targets, *, redirect=NO_REDIRECT):
+        return cls({**({cls.Field.REDIRECT: cls.REDIRECT_REQUESTED} if redirect else {}),
                     cls.Field.RUN_ID: run_id, cls.Field.INPUT_MESSAGE_ID: input_message_id,
                     cls.Field.STATUS: InstructionStatus.PENDING,
                     cls.Field.TARGETS: [target.to_dict() for target in targets]})
 
     @property
     def redirect(self):
-        value = self._value.get(self.Field.REDIRECT, False)
+        value = self._value.get(self.Field.REDIRECT, self.NO_REDIRECT)
         if type(value) is not bool:
-            raise InstructionDataError('instruction redirect must be boolean')
+            raise InstructionDataError(InstructionMessageRecord.INVALID_REDIRECT)
         return value
 
     @property

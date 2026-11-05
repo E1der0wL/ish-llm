@@ -8,6 +8,7 @@ from .graph import WorkflowGraph, validate_graph
 
 class WorkflowData(ComponentData):
     """공통 CRUD 외에 버전 1 검증과 그래프 빌더 복원을 제공한다."""
+    UNSELECTED_COMPONENT = 'Component is not selected: {component}'
 
     @workspace_locked
     def validate(self, identifier: str) -> None:
@@ -44,7 +45,7 @@ class WorkflowData(ComponentData):
                     tool = declared_tools.get(target.identifier)
                     return InspectedDefinition(tool.parameters, tool.contract.revision)
             if target.component not in project.components:
-                raise ValueError(f'Component is not selected: {target.component}')
+                raise ValueError(self.UNSELECTED_COMPONENT.format(component=target.component))
             snapshot = EditableSnapshot.read(self.related(target.component).snapshot(target.identifier))
             return InspectedDefinition(snapshot.data, snapshot.version)
 

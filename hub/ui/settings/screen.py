@@ -83,6 +83,7 @@ class SettingsScreen:
         self.projects = []
         self.usage = []
         self._usage_requested = False
+        self._project_target = None
         self._usage_epoch = 0
         self.global_keys = self.GLOBAL_KEYS
         self.selected = PreferenceSection.PROFILE.value
@@ -208,6 +209,7 @@ class SettingsScreen:
     def reset_draft_page(self):
         self.clear_page()
         self._engine_target = self._component_target = SettingsTarget.UNSET
+        self._project_target = None
         self._pending_selection = self.NO_PENDING
 
     def clear_page(self):
@@ -374,6 +376,18 @@ class SettingsScreen:
     def show_json(self):
         self.json_editor.open()
 
+    def open_project(self, identifier):
+        """Home's project Edit action opens its existing General settings page."""
+        self.project_changed(identifier)
+        self._engine_target = self._component_target = SettingsTarget.UNSET
+        self._project_target = identifier
+        self.query = self.EMPTY_QUERY
+        if not self.view.settings_open:
+            self.view.toggle_settings()
+        elif self.schema is not self.NO_SCHEMA and not self.busy:
+            self.choose(identifier)
+            self._project_target = None
+
     def open_engine(self, engine=NO_ENGINE_TARGET):
         project = HubSnapshot.project_identifier(self.view)
         if not project:
@@ -522,7 +536,10 @@ class SettingsScreen:
         self.reset_usage()
         self.drafts.prepare_preferences()
         self._sidebar()
-        if self._engine_target:
+        if self._project_target:
+            target, self._project_target = self._project_target, None
+            self.choose(target)
+        elif self._engine_target:
             self.choose(self._engine_target.project_id)
         elif self._component_target:
             self.choose(self._component_target.project_id)

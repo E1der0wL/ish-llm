@@ -9,6 +9,7 @@ from llm.core.configuration import UNSET
 from llm.core.schema import SchemaKeyword, object_schema
 from jsonschema import Draft202012Validator
 from llm.services.infrastructure.process_environment import ProcessEnvironment
+from llm.services.infrastructure.process_result import ProcessResult
 from .arguments import BuiltinArguments
 
 
@@ -21,8 +22,8 @@ class ProcessStatus(StrEnum):
 
 
 class ProcessText:
-    ENCODING = "utf-8"
-    ERRORS = "replace"
+    ENCODING = ProcessResult.ENCODING
+    ERRORS = ProcessResult.ERRORS
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -269,6 +270,9 @@ class CheckArguments(ProcessLimits):
 
 @dataclass(frozen=True, slots=True)
 class ProcessSnapshot:
+    NO_PROCESS_ID = None
+    STDIN_CLOSED = False
+    COMPLETE_OUTPUT = False
     process_id: str = field(metadata={"type": "string"})
     status: str = field(metadata={"type": "string"})
     returncode: int | None = field(metadata={"type": ["integer", "null"]})
@@ -293,6 +297,10 @@ class ProcessSnapshot:
     @classmethod
     def identifier(cls, value):
         return value[cls.process_id.__name__]
+
+    @classmethod
+    def stream_names(cls):
+        return cls.stdout.__name__, cls.stderr.__name__
 
 
 @dataclass(frozen=True, slots=True)
@@ -357,8 +365,10 @@ class BoundOutputContract(OutputConfig):
 class StoredOutput(ProcessSnapshot):
     """Retained output wire contract; read() validates publication, not live drafts."""
 
+    UNPUBLISHED = None
     output_sources: dict = field(metadata=object_schema(
-        {name: OutputReference.schema() for name in ("stdout", "stderr")}, required=["stdout", "stderr"]))
+        {name: OutputReference.schema() for name in ProcessSnapshot.stream_names()},
+        required=list(ProcessSnapshot.stream_names())))
     stdout_chars: int = field(metadata={"type": "integer", "minimum": 0})
     stderr_chars: int = field(metadata={"type": "integer", "minimum": 0})
     preview_chars: int = field(metadata={"type": "integer", "minimum": 0})
@@ -384,7 +394,7 @@ class StoredOutput(ProcessSnapshot):
         return OutputReference(**self.output_sources[name])
 
     def total(self, name):
-        return {"stdout": self.stdout_chars, "stderr": self.stderr_chars}[name]
+        return dict(zip(self.stream_names(), (self.stdout_chars, self.stderr_chars)))[name]
 
 
 @dataclass(frozen=True, slots=True)

@@ -13,6 +13,19 @@ from llm.core.model_protocol import EmbeddingResult, RankedDocument, RerankResul
 
 
 class RAGModelTests(unittest.IsolatedAsyncioTestCase):
+    def test_embedding_callable_identity_is_owned_by_embedding_client(self):
+        adapter = LiteLLMOperations(call=AsyncMock())
+        embedding = EmbeddingModel(model='test', adapter=adapter)
+        reranker = RerankModel(model='test', adapter=adapter)
+        before_embedding, before_reranker = embedding.cache_identity(), reranker.cache_identity()
+        replacement = AsyncMock()
+        embedding.embed = replacement
+        # An unrelated attribute cannot redefine another operation's identity.
+        reranker.embed = replacement
+        self.assertNotEqual(embedding.cache_identity(), before_embedding)
+        self.assertEqual(reranker.cache_identity(), before_reranker)
+        self.assertEqual(embedding.with_config({}).cache_identity(), embedding.cache_identity())
+
     async def test_embedding_passes_open_kwargs_and_returns_common_vector_usage(self):
         response = SimpleNamespace(data=[{"embedding": [0.1, 0.2]}], usage={"total_tokens": 2})
         client = object()

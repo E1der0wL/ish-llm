@@ -12,11 +12,13 @@ from threading import Event
 from unittest.mock import patch
 
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.asset.guides import SKILLS, SYSTEM_PROMPT
+from hub.asset.guides import load_skills, SYSTEM_PROMPT
 from hub.config.environment import ENVIRONMENT_OPTION, ShellEnvironment
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 from llm.components.tools import ToolEffect, ToolIsolation
+
+SKILLS = load_skills()
 
 
 class CodingSkillTests(unittest.IsolatedAsyncioTestCase):

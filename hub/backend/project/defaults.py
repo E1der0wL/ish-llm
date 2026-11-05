@@ -154,6 +154,13 @@ async def create_project(
     builtins = (backend.project_manager.components.get(HubBuiltinTools.NAME)
                 if HubBuiltinTools.NAME in components else None)
     project_config = ToolDataSetup.creation_defaults(project_config, components, builtins)
+    if SkillComponent.name in components:
+        from ...asset.guides import validate_starter_skills
+        OperationProgress.report(MessageKey.PROGRESS_BACKEND_SKILLS)
+        # Missing/broken packaged assets must fail before creating persistent
+        # Projects, Agents or component records, not halfway through seeding.
+        await asyncio.to_thread(validate_starter_skills)
+    OperationProgress.report(MessageKey.PROGRESS_BACKEND_PROJECT)
     project = await backend.projects.acreate(
         title,
         config=project_config,
@@ -174,11 +181,15 @@ async def create_project(
 
         await initialize_workflow(backend, project, agent_id)
         if SkillComponent.name in components:
-            from .skill_registration import import_skill
             skills = await project.components.aget(SkillComponent.name)
             for index, skill in enumerate(STARTER_SKILLS):
                 OperationProgress.report(MessageKey.PROGRESS_BACKEND_SKILLS, index, len(STARTER_SKILLS))
-                await import_skill(skills, skill.directory)
+                try:
+                    await skills.aimport_directory(skill.directory)
+                except Exception as error:
+                    from ...errors.startup import StartupLoadError
+                    raise StartupLoadError(error, f"{project.id} / {SkillComponent.name} / {skill.identifier}",
+                                           hint=MessageKey.STARTUP_BACKEND_HINT) from error
     except BaseException:
         # Do not leave a partially seeded project as the next startup selection.
         await asyncio.shield(project.adelete())

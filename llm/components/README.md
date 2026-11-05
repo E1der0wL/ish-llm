@@ -38,6 +38,7 @@ Agent는 Component가 아닌 독립 도메인이며 `project.agents`로 관리�
 | [base.py](base.py) | ProjectComponent 프로토콜과 선택 구현의 검증·설정·수명·복제 콜백을 조율합니다. |
 | [storage.py](storage.py) | 공통 정의/사용량 파일의 경로·목록·무결성·원자적 쓰기/삭제를 소유합니다. 실행 허가와 Component 업무 정책은 해석하지 않습니다. |
 | [record_manifest.py](record_manifest.py) | 정의 목록의 정규 필드·버전·소유권/해시 검증·Writer와 열린 JSON 레코드 codec을 소유합니다. |
+| [공통 시각](../core/record_times.py) | core가 UTC 생성·수정 시각의 의미와 검증을 소유합니다. [시각 계약](../../docs/llm/component-times.md)에 따라 각 소유자의 기존 저장 경계에 함께 기록합니다. |
 | [naming.py](naming.py) | Component 디렉터리/기록 식별자의 정규 선언과 단일 검증을 소유합니다. |
 | [usage.py](usage.py) | Component 모델 영수증의 현재 필드·예약 불변식·상태·manifest 형식을 선언합니다. [사용량 계약](../../docs/llm/model-usage-contract.md)을 따릅니다. |
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |

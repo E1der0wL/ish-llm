@@ -71,7 +71,10 @@ class RepositoryTests(unittest.TestCase):
         stale = deepcopy(self.session)
         self.session.metadata = {"saved": True}
         self.sessions.save(self.session)
-        self.assertEqual(self.session_repository.reload(stale).metadata, {"saved": True})
+        current = self.session_repository.reload(stale)
+        self.assertEqual(current.metadata, {"saved": True})
+        # Manager writes a freshly loaded record; caller snapshots stay detached.
+        self.session = current
         other = self.sessions.create(self.project, "Deleted session")
         self.sessions.delete(other)
         self.assertEqual(self.session_repository.list(self.project), [self.session])

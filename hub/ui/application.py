@@ -19,7 +19,7 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.styles import DynamicStyle
 
 from .live import LiveController, LiveHubView
-from ..config.preferences import configured_profile
+from ..config.preferences import prepare_profile
 
 
 ABSENT = None
@@ -28,12 +28,13 @@ ABSENT = None
 def create_application(
     config, *, theme=ABSENT, input=ABSENT, output=ABSENT, worker_factory=ABSENT
 ):
-    config = configured_profile(config)
+    config, preferences, startup_failure = prepare_profile(config)
     view = LiveHubView(theme, config.language, config.language_packs)
     controller = (
-        LiveController(view, config, worker_factory=worker_factory)
+        LiveController(view, config, worker_factory=worker_factory,
+                       initial_preferences=(preferences, startup_failure))
         if worker_factory
-        else LiveController(view, config)
+        else LiveController(view, config, initial_preferences=(preferences, startup_failure))
     )
     background = Window(
         FormattedTextControl(

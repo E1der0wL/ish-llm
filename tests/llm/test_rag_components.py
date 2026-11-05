@@ -70,6 +70,29 @@ class ExtractionTests(unittest.IsolatedAsyncioTestCase):
 @unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("chromadb", "kuzu", "rank_bm25")),
                      "Optional RAG dependencies are not installed")
 class RAGTests(unittest.IsolatedAsyncioTestCase):
+    async def test_document_times_follow_atomic_publication(self):
+        from llm.core.record_times import RecordTimes
+        await self.rag.aadd_document(identifier="timed", title="A", content="Alice owns Atlas")
+        original = await self.rag.aget_document("timed")
+        times = RecordTimes.from_record(original)
+        self.assertEqual(times.created_at, times.updated_at)
+        await self.rag.aupdate_document("timed", title="B",
+            expected_revision=original["revision"], expected_generation=original["generation"])
+        changed = await self.rag.aget_document("timed")
+        self.assertEqual(changed["created_at"], original["created_at"])
+        self.assertNotEqual(changed["updated_at"], original["updated_at"])
+        await self.rag.aupdate_document("timed", title="B",
+            expected_revision=changed["revision"], expected_generation=changed["generation"])
+        unchanged = await self.rag.aget_document("timed")
+        self.assertEqual(RecordTimes.from_record(unchanged), RecordTimes.from_record(changed))
+        with patch.object(RAGComponent, "_write_control", side_effect=OSError("test commit failure")):
+            with self.assertRaises(OSError):
+                await self.rag.aupdate_document("timed", title="not committed",
+                    expected_revision=unchanged["revision"], expected_generation=unchanged["generation"])
+        self.assertEqual(await self.rag.aget_document("timed"), unchanged)
+        self.assertEqual(RecordTimes.from_record((await self.rag.alist_catalog(limit=1))["documents"][0]),
+                         RecordTimes.from_record(changed))
+
     async def test_catalog_description_paging_without_corpus_read(self):
         await self.rag.aadd_document(identifier="a", title="A", content="Alice owns Atlas", description="Short description")
         await self.rag.aadd_document(identifier="b", title="B", content="backup")

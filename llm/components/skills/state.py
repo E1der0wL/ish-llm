@@ -6,6 +6,7 @@ from typing import ClassVar
 
 from llm.core.skills import SkillName
 from llm.components.files import file_path
+from llm.core.record_times import RecordTimes
 from .records import SkillFileEvidence
 
 
@@ -64,7 +65,7 @@ class SkillCatalog(SkillStateIdentity):
 
 @dataclass(frozen=True, slots=True)
 class SkillOperationalRecord(SkillStateIdentity):
-    INVALID_FIELDS: ClassVar[str] = "Invalid Skill operational record fields"
+    INVALID_FIELDS: ClassVar[str] = "Invalid Skill operational record fields (required times included)"
     INVALID_DIRECTORIES: ClassVar[str] = "Invalid Skill directory inventory"
     MISSING_CONTAINERS: ClassVar[str] = "Skill requires stored file and reference containers"
 
@@ -75,6 +76,7 @@ class SkillOperationalRecord(SkillStateIdentity):
     resources: list
     lineage: dict | None
     source: dict | None
+    times: dict
 
     @classmethod
     def read(cls, value, *, identity, identifier):
@@ -82,6 +84,7 @@ class SkillOperationalRecord(SkillStateIdentity):
             raise ValueError(cls.INVALID_FIELDS)
         result = cls(**deepcopy(value))
         result.require_identity(identity)
+        RecordTimes.read(result.times)
         if not isinstance(result.directories, list) or result.directories != sorted(set(result.directories)):
             raise ValueError(cls.INVALID_DIRECTORIES)
         for path in result.directories:
@@ -92,9 +95,9 @@ class SkillOperationalRecord(SkillStateIdentity):
         return result
 
     @classmethod
-    def create(cls, identity, identifier, *, document, directories, files, record):
+    def create(cls, identity, identifier, *, document, directories, files, record, times):
         return cls(**identity.to_dict(), id=identifier, document=document.to_dict(),
                    directories=directories, files={path: value.to_dict() for path, value in files.items()},
                    resources=[reference.to_dict() for reference in record.resources],
                    lineage=record.lineage.to_dict() if record.lineage is not None else None,
-                   source=record.source)
+                   source=record.source, times=times.to_dict())

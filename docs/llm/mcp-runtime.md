@@ -49,3 +49,24 @@ Elicitation은 원격 요청에 묶인 입력 요청이다. 지원은 Applicatio
 실패 Step과 diagnostic은 유지한다. Engine이 제공한 실패 처리 checkpoint가 저장된
 뒤에만 계속하며 별도 성공 Step으로 위장하지 않는다. 명시적 압축 요청도 같은 선택을
 지원하고, 미설정에 continue를 삽입하지 않는다. 원문/Tool receipt/승인 증거를 바꾸지 않는다.
+# Prompts 조회와 명시적 선택
+
+`MCPData.alist_prompts(identifier, cursor=...)`와
+`MCPData.aget_prompt(identifier, name, arguments=...)`는 한 번의 연결로 외부 데이터를 반환한다.
+같은 연결을 재사용하려면 `async with data.connect(identifier) as access:` 안에서
+`access.alist_prompts()` / `access.aget_prompt(name, arguments=...)`를 호출한다.
+
+서버가 prompts capability를 선언해야 하며 선택 connector가 지원하지 않으면 명확히 실패한다.
+cursor를 생략하면 SDK에 pagination 옵션을 만들지 않는다. arguments도 생략과 명시적 null을
+구분하며, 지정할 때는 MCP 계약인 문자열 → 문자열 object를 사용한다. 서버 고유 인자의 의미와
+필수값은 서버가 검증한다. Backend는 이름을 자동 선택하거나 전체 페이지를 자동 순회하지 않는다.
+
+결과의 messages/description/metadata는 외부 자료다. Engine 입력, Agent 지침, Tool 권한으로
+자동 주입하거나 영속 Prompt 정의로 자동 변환하지 않는다. Application이 조회·선택·적용을
+별도로 결정한다. 기존 Project 정의 revision 검사, 연결 종료·취소 회수, 승인 경계는 그대로다.
+모델 sampling·자동 재연결·자동 재시도는 이 확장에 포함하지 않는다.
+
+`MCPToolError.result`는 신뢰된 호스트가 원격 `isError` 결과를 살펴볼 때 사용한다.
+기본 진단에는 원문을 추가하지 않고, 명시적인 ProviderDiagnostics.error_details 및
+max_detail_chars 계약으로만 서버 오류 텍스트를 제한해 포함한다. `isError`만으로 효과 없음이나
+안전한 재시도를 추정하지 않는다.

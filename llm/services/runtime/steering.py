@@ -22,6 +22,9 @@ class InstructionQuery:
 
 
 class InstructionBoundaryError:
+    NOT_PENDING = 'Only an entirely pending instruction from this Run can be changed'
+    ALREADY_SELECTED = 'Instruction has already been selected; send a new correction'
+
     DISTINCT_ROUTES = "Choose distinct reservation routes"
     INVALID_ROUTE = "Reservation route is not a consuming Agent in this Run snapshot"
     SCOPE_MISMATCH = "checkpoint scope mismatch"
@@ -107,11 +110,11 @@ def unselected_instruction(repository, run, store, identifier):
     message = store.get(identifier)
     value = InstructionMessageRecord.from_message(message)
     if value.run_id != run.id or any(t.status != InstructionStatus.PENDING for t in value.targets):
-        raise ValueError('Only an entirely pending instruction from this Run can be changed')
+        raise ValueError(InstructionBoundaryError.NOT_PENDING)
     for name in CheckpointDeclarations.reference_names(run.metadata):
         for _, selected in instruction_records(repository.checkpoint(run, name)):
             if identifier in selected.message_ids:
-                raise ValueError('Instruction has already been selected; send a new correction')
+                raise ValueError(InstructionBoundaryError.ALREADY_SELECTED)
     return message, value
 
 

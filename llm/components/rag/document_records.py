@@ -285,6 +285,42 @@ class RAGDocument:
         document[cls.Field.PREPARATION_FINGERPRINT] = fingerprint
 
     @classmethod
+    def matches_prepared(cls, document, prepared):
+        """Compare validated preparation evidence, excluding only publication times."""
+        from llm.core.record_times import RecordTimes
+        RecordTimes.from_record(document)
+        times = {RecordTimes.CREATED_AT, RecordTimes.UPDATED_AT}
+        evidence = lambda value: {key: item for key, item in value.items() if key not in times}
+        return revision_token(evidence(document)) == revision_token(evidence(prepared))
+
+    @classmethod
+    def for_publication(cls, document, previous):
+        """Owner-managed times join the atomic corpus publication, not preparation."""
+        from llm.core.record_times import RecordTimes
+        from llm.services.infrastructure.storage import revision_token
+        if not isinstance(document, dict):
+            raise ValueError(cls.ERROR_STORED_RAG_DOCUMENT_MUST_BE_AN_OBJECT)
+        supplied_times = None
+        if RecordTimes.CREATED_AT in document or RecordTimes.UPDATED_AT in document:
+            supplied_times = RecordTimes.from_record(document)
+        # Only managed top-level fields change. Keep the existing immutable
+        # text/vector/graph values; a second deep copy scales with the corpus.
+        value = dict(document)
+        if previous is None:
+            # New preparation has no times. Identity-preserving copies carry
+            # validated native record times; source snapshot loading is strict.
+            times = RecordTimes.create() if supplied_times is None else supplied_times
+        else:
+            times = RecordTimes.from_record(previous)
+            observations = {cls.Field.REVISION, EmbeddingEvidence.Field.INGESTION,
+                            RecordTimes.CREATED_AT, RecordTimes.UPDATED_AT}
+            content = lambda record: {key: item for key, item in record.items() if key not in observations}
+            if revision_token(content(value)) != revision_token(content(previous)):
+                times = times.touch()
+        value.update(times.to_dict())
+        return value
+
+    @classmethod
     def validate(cls, document):
         """Validate a stored RAG document without filling fields or consulting live settings."""
         if not isinstance(document, dict):
@@ -296,8 +332,11 @@ class RAGDocument:
             raise ValueError(
                 RAGDocument.ERROR_RAG_DOCUMENTS_REQUIRE_GRAPH_ENTITIES_AND_RELATIONS
             )
+        from llm.core.record_times import RecordTimes
+        if RecordTimes.CREATED_AT in document or RecordTimes.UPDATED_AT in document:
+            RecordTimes.from_record(document)
         if not cls.REQUIRED <= document.keys() or document.keys() - cls.REQUIRED - {
-            RAGDocument.Field.DESCRIPTION
+            RAGDocument.Field.DESCRIPTION, RecordTimes.CREATED_AT, RecordTimes.UPDATED_AT
         }:
             raise ValueError(
                 RAGDocument.ERROR_PREPARED_RAG_DOCUMENT_FIELDS_ARE_INCOMPLETE_OR_UNKNOWN

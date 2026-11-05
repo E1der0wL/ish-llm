@@ -196,19 +196,24 @@ class FileSearchMatch(FileObservation):
 
 @dataclass(frozen=True, slots=True)
 class FileSearchResult(FileObservation):
+    FULL_LINES = None
     matches: list[FileSearchMatch]
     skipped: int
     scanned: int
     truncated: bool
     next_offset: int | None = None
-    max_chars_per_line: int | None = None
+    max_chars_per_line: int | None = FULL_LINES
+
+    @property
+    def line_previews(self):
+        return self.max_chars_per_line is not self.FULL_LINES
 
     def to_dict(self):
         value = asdict(self)
-        if self.max_chars_per_line is None:
-            value.pop("max_chars_per_line")
+        if not self.line_previews:
+            value.pop(type(self).max_chars_per_line.__name__)
         else:
-            value["line_previews"] = True
+            value[type(self).line_previews.fget.__name__] = self.line_previews
         return value
 
 

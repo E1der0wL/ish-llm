@@ -1,6 +1,7 @@
 """Agent 업무 정의를 등록 엔진에 연결한다. 모든 실행은 부모 Run 안에서 관찰된다."""
 
 from llm.core.configuration_views import ConfigurationView
+from llm.services.infrastructure.cancellation import cancel_tasks
 
 from llm.core.checkpoint_records import CheckpointWrite, CheckpointRecords, CheckpointPause
 from llm.core.tool_event_result import ToolEventResult
@@ -526,7 +527,6 @@ class AgentDelegation:
     resumable_container = True
     MAX_UNACKNOWLEDGED = 1
     INPUT_ENSURE_ASCII = False
-    COLLECT_CLEANUP_ERRORS = True
     ACKNOWLEDGED = None
     REQUIRED_EVENT_CONTRACT = "agent_run requires the Engine ToolExecutor event contract"
     REQUIRED_PARENT = "Agent delegation requires a durable parent Engine checkpoint"
@@ -637,14 +637,8 @@ class AgentDelegation:
                     if not ack.done():
                         ack.set_result(self.ACKNOWLEDGED)
                 else:
-                    reader.cancel()
-                    await asyncio.gather(reader, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
+                    await cancel_tasks((reader,))
                     reader = self.NO_TASK
             await producer
         finally:
-            if reader is not self.NO_TASK:
-                reader.cancel()
-                await asyncio.gather(reader, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
-            if not producer.done():
-                producer.cancel()
-            await asyncio.gather(producer, return_exceptions=self.COLLECT_CLEANUP_ERRORS)
+            await cancel_tasks((producer,) if reader is self.NO_TASK else (reader, producer))

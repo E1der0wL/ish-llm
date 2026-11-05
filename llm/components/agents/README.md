@@ -6,6 +6,10 @@ Agent는 `project.agents`가 소유한다. 현재 구현은 [정의·필수 저�
 [Agent 실행](../../engines/agents.py), [agent_run Tool](../../engines/agent_tools.py)에 있다.
 AgentComponent와 `project.components.agents` API는 제공하지 않는다.
 
+생성·수정 시각은 definition 밖의 Agent 저장 envelope가 관리한다.
+`await project.agents.aget_times(identifier)`로 조회하며 동일 내용 저장은 시각을 바꾸지 않는다.
+시각은 Agent revision·승인 binding에 포함하지 않는다. [공통 시각 계약](../../../docs/llm/component-times.md)을 따른다.
+
 ## 저장과 명시적 선택
 
 ```python

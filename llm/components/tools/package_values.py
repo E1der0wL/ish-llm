@@ -6,6 +6,7 @@ import hashlib
 import re
 
 from packaging.requirements import Requirement, InvalidRequirement
+from llm.core.record_times import RecordTimes
 
 
 class ToolRequirements:
@@ -130,16 +131,17 @@ class ToolPackageDigests:
 @dataclass(frozen=True, slots=True)
 class ToolPackageManifest:
     VERSION = 1
-    INVALID = "Invalid Tool package manifest"
+    INVALID = "Invalid Tool package manifest (required package times included)"
 
     schema_version: int
     project_id: str
     component: str
     packages: dict[str, ToolPackageDigests]
+    times: dict[str, dict]
 
     @classmethod
     def create(cls, project_id, component):
-        return cls(cls.VERSION, project_id, component, {})
+        return cls(cls.VERSION, project_id, component, {}, {})
 
     @classmethod
     def read(cls, value, *, project_id, component):
@@ -150,17 +152,28 @@ class ToolPackageManifest:
                 or header.project_id != project_id or header.component != component
                 or not isinstance(header.packages, dict)):
             raise ValueError(cls.INVALID)
-        return replace(header, packages={name: ToolPackageDigests.read(entry) for name, entry in header.packages.items()})
+        if not isinstance(header.times, dict) or header.times.keys() != header.packages.keys():
+            raise ValueError(cls.INVALID)
+        for times in header.times.values():
+            RecordTimes.read(times)
+        return replace(header, packages={name: ToolPackageDigests.read(entry) for name, entry in header.packages.items()},
+                       times=deepcopy(header.times))
 
     def to_dict(self):
         return asdict(self)
 
     def with_package(self, name, source):
         packages = deepcopy(self.packages)
+        if packages.get(name) == source.fingerprints():
+            return self
+        times = deepcopy(self.times)
+        times[name] = (RecordTimes.read(times[name]).touch() if name in packages else RecordTimes.create()).to_dict()
         packages[name] = source.fingerprints()
-        return replace(self, packages=packages)
+        return replace(self, packages=packages, times=times)
 
     def without_package(self, name):
         packages = deepcopy(self.packages)
         del packages[name]
-        return replace(self, packages=packages)
+        times = deepcopy(self.times)
+        del times[name]
+        return replace(self, packages=packages, times=times)

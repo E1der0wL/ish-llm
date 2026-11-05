@@ -21,6 +21,11 @@ class Reply(BaseModel):
     name: str
 
 
+@server.prompt()
+def explain(topic: str) -> str:
+    return f"Explain {topic}."
+
+
 @server.tool()
 async def ask(ctx: Context) -> dict:
     response = await ctx.elicit("Name?", Reply)

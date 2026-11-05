@@ -7,11 +7,13 @@ import inspect
 from llm.core.agents import AgentDefinition, AgentMode
 from llm.core.configuration import UNSET
 from llm.core.json_data import JsonObject
-from llm.core.steering import SteeringMode
+from llm.core.steering import SteeringMode, SteeringTarget
 from llm.core.schema import reuse_schema_checks
 
 
 class EngineHooks:
+    INVALID_REDIRECTION = 'Only a consuming Engine may declare redirectable=True'
+
     RESUME_CONTEXT = "context"
     RESUME_DECISIONS = "decisions"
     EXECUTE = "execute"
@@ -60,9 +62,9 @@ class EngineHooks:
 
     @classmethod
     def can_redirect(cls, engine):
-        value = getattr(engine, cls.REDIRECTABLE, False)
+        value = getattr(engine, cls.REDIRECTABLE, SteeringTarget.REDIRECTION_UNSUPPORTED)
         if type(value) is not bool or value and steering_mode(engine) != SteeringMode.CONSUME:
-            raise ValueError('Only a consuming Engine may declare redirectable=True')
+            raise ValueError(EngineHooks.INVALID_REDIRECTION)
         return value
 
     @classmethod

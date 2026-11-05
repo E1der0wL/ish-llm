@@ -115,31 +115,58 @@ Agent 편집의 진행·상태 한 줄은 좌측 패널을 제외한 메인 영�
 
 ## 생성·수정 시각
 
-`ResourceTimestamps`가 Hub 생성·가져오기 시 UTC ISO 날짜를 기록한다. 날짜가 없을 때
-생성 시각을 채우고 최초 수정 시각을 생성 시각과 같게 지정한다. 가져온 자원에 이미 있는 날짜와
-다른 메타데이터는 보존한다. 입력 객체는 변경하지 않고 공개 CRUD/등록 API에 사본을 전달한다.
+`llm.core.record_times.RecordTimes`가 생성·수정 시각의 의미와 검증을 소유한다.
+Hub는 공개 CRUD에 사용자 정의를 그대로 전달하고 관리 시각을 metadata에 삽입하지 않는다.
+기록과 원자적 저장은 Backend가 담당하며, 목록의 날짜는 소유자의 공개 조회 결과로 표시한다.
+[영속 기록 시각 계약](../llm/component-times.md)을 따른다.
 
 | 자원 | 날짜 소유권과 연결 경로 |
 |---|---|
-| Agent | 공개 정의의 `metadata.created_at/updated_at`. 기본 assistant·planner·내부 Agent, 명시적 생성 정의, 새 프리셋 항목, 플러그인 등록, 관리 창·생성 도구에 적용 |
-| Workflow·Prompt·MCP | 공개 정의의 metadata. 공통 관리 창 생성·가져오기·편집, 기본 Workflow·Workflow 생성 도구에 적용 |
-| Skill | 표준 `SKILL.md` frontmatter의 metadata. 기본 Skill·패키지 가져오기·생성 도구·관리 창 편집에 적용. SkillRecord 최상위에 필드를 추가하지 않음 |
-| RAG | 공개 등록 입력의 metadata. 관리 창 Job·직접 생성·Agent의 등록 도구에 적용. 재시도는 저장된 동일 Job 입력과 날짜를 유지 |
-| Goal | Hub의 생성 도구와 백그라운드 후처리가 만드는 정의의 metadata에 생성 날짜 기록 |
-| Tool | 패키지 계약에 임의 metadata를 넣지 않고 공개 `ToolPaths.modified_at()`의 파일 수정 시각을 공통 UTC 형식으로 표시 |
-| Memory·Vision·Refinement·Data | 백엔드 소유 생성/수정 시각 또는 이력을 그대로 사용. 별도 날짜를 중복 저장하지 않음 |
+| Agent | `project.agents.aget_times(id)`를 `RecordTimes.read()`로 읽음. 일반·플러그인 Agent 목록이 같은 경로를 사용 |
+| Workflow·Prompt·MCP·Skill·Python Tool | Component의 `aget_times(id)`를 `RecordTimes.read()`로 읽음 |
+| RAG 문서 | `alist_catalog()`의 문서 시각을 `RecordTimes.from_record()`로 읽음. 본문 추가 조회·완료 Job 날짜 대체 없음 |
+| Memory | 공개 Memory 기록의 기존 `updated_at` 표시 유지 |
+| Goal·Vision·Refinement·Data | 해당 Backend 저장 Owner가 시각을 기록. Hub 생성 도구·후처리에서 날짜를 중복 주입하지 않음 |
+| 내장 Tool·RAG Job | 내장 Tool은 사용자 관리 자료의 수정 날짜가 없으며, Job은 기존 작업 진행 시각을 표시 |
 
-Agent·Workflow·Prompt·MCP·Skill·RAG 관리 창에서 편집하면 수정 시각만 갱신하며 기존 revision/CAS
-검사는 유지한다. 기존 Agent에 대한 전체 프리셋 적용은 원래 정의를 그대로 적용한다. 목록 조회나
-프로젝트 재열기는 날짜를 기록하지 않으며, 이전 항목의 알 수 없는 날짜를 현재 시각으로 채우지 않는다.
-일반 정의와 Skill 목록은 수정 시각이 없으면 저장된 생성 시각을 표시한다.
+기본 assistant·planner·Workflow 생성, 프리셋과 플러그인 Agent 등록, MCP의 Agent 도구 선택 변경,
+모델의 자료 생성 도구도 이 경계를 따른다. Skill 가져오기는 `aimport_directory()` 한 번으로
+완료하며 날짜를 넣기 위한 snapshot 조회·Markdown 재저장을 하지 않는다.
 
-Skill 패키지는 백엔드 공개 가져오기 API로 먼저 등록하고, 공개 snapshot의 revision으로
-Markdown 날짜를 저장한다. 원본 디렉터리·리소스·파일 manifest를 직접 수정하지 않는다.
-두 번째 저장에서 충돌하면 오류를 전달하며 이미 등록된 패키지를 삭제하거나 다른 편집을 덮어쓰지 않는다.
-기존 패키지에 대한 재등록·자동 재시도는 하지 않는다.
+Hub는 원본 metadata나 Skill frontmatter에 이미 존재하는 사용자 날짜를 변경·삭제하지 않고,
+관리 시각으로 해석하지도 않는다. 기존 필수 시각이 없는 저장 자료를 현재 시각이나 파일 mtime으로
+보정하지 않는다. Backend 오류를 그대로 기존 오류 처리 경로로 전달한다.
 
-RAG 목록은 본문을 읽지 않는 catalog와 이미 조회하는 Job 목록으로 마지막 성공 등록 작업의
-생성 시각을 표시한다. 정확한 문서 수정 시각은 편집 데이터의 metadata에서 확인한다. 정리된 Job이나
-직접 등록한 문서처럼 목록에 날짜 근거가 없으면 빈 날짜를 유지한다. Hub 외부의 직접 CRUD나
-백엔드 자체 도구까지 날짜를 강제하지 않으며 백엔드 소유 파일을 직접 조회·수정하지 않는다.
+동일 내용 저장·목록 조회는 수정 시각을 바꾸지 않으며, 실제 변경이 성공한 경우만 Owner가
+갱신한다. 날짜는 revision/CAS를 대체하지 않는다. 편집에는 기존 snapshot의 version,
+Agent revision, RAG generation/revision을 계속 전달한다. Run·Step 실행 시간과 Job 진행 시간,
+Hub 자체 복구 백업 기록의 시각은 별도 의미이며 변경하지 않는다.
+
+### 2026-11-05 전환 검토
+
+- 선언·검증 Owner는 `RecordTimes` 하나다. Hub의 `ResourceTimestamps`와 날짜 전용
+  Skill 재저장 helper를 제거했다. 새로운 날짜 필드·기본값·호환 Reader는 만들지 않았다.
+- 관찰 시각은 목록의 `modified` 표시값으로만 전달한다. 저장 승인·CAS·재개 판단에는
+  snapshot의 기존 version/revision을 사용하며 날짜를 사용하지 않는다.
+- 자료 Writer·manifest·저장 경로는 Backend에 남아 있다. Hub의 관리 창·기본 자료·프리셋·
+  플러그인 등록·모델 Tool·Goal 후처리는 원래 공개 CRUD를 호출한다.
+- RAG는 catalog가 가진 시각을 사용해 본문을 추가 조회하지 않는다. 다른 관리 목록은 각
+  Owner의 `aget_times()`를 호출하며, 검증을 생략하는 자체 캐시나 파일 읽기는 도입하지 않았다.
+- Skill 가져오기는 Backend 내부에서 파일·권한 정보를 추가 확정할 수 있다. 따라서 가져오기
+  완료 시의 생성·수정 시각을 동일하게 강제하지 않고 반환된 두 시각을 그대로 사용한다.
+- Linux Python 3.12.14의 격리 소스에서 집중 83개를 실행했다. 81개 통과,
+  가져오기 시각의 동일함을 가정한 두 검사 실패는 `focus01`에 그대로 보존했다.
+  그 가정을 Owner 관찰값 기준으로 수정한 `focus02`는 관련 12개 모두 통과했다.
+  Markdown 원문·사용자 metadata 보존, 동일 내용 저장의 무변경, 공개 API로 변경한
+  시각 표시, 오래된 CAS 거부, RAG 본문 추가 조회 없음도 검사했다.
+  원본 결과와 소스 해시는 `tests/hub/reports/backend-times-20261105/`에 기록한다.
+
+- 전체 Hub 회귀 `full01`은 1,134개를 실행하여 1,132개 통과, RAG mock 응답의
+  필수 시각 누락 2개 오류를 기록했다. 해당 모듈의 검사 자료를 현행 catalog 계약에
+  맞춘 `focus03`은 10/10 통과했다. 제품 코드는 전체 실행 이후 바꾸지 않았다.
+  변경된 모듈 전체의 재검과 나머지 동일 소스 결과를 합친 최종 확인 대상은
+  1,134개이며 누락·Skip은 없다. 단일 전체 실행이 모두 통과했다고 표현하지 않는다.
+  테스트 ID별 근거와 소스 대조는 `final-summary.json`에 보관한다.
+- 기존 미검토 항목의 경계 점검과 남은 소유권 정리 내용은
+  [미검토 경로 검토](pending-contract-review.md)에 따로 기록한다. 기능 회귀 통과와
+  모든 리터럴·동적 경로의 전수 계약 감사 완료는 구분한다.

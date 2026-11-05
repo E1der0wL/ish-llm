@@ -235,7 +235,9 @@ class Button(PTKButton):
                     self._activate()
 
         text_style = 'class:button.text'
-        if monotonic() < self._pressed_until:
+        if not self.enabled():
+            text_style += ' ' + ThemeSelector.BUTTON_DISABLED.style
+        elif monotonic() < self._pressed_until:
             text_style += ' ' + ThemeSelector.BUTTON_PRESSED.style
 
         # WindowAlign.CENTER is the sole alignment owner. Never pre-pad to the
@@ -247,12 +249,13 @@ class Button(PTKButton):
             ("class:button.arrow", self.right_symbol, activate),
         ]
 
-    def __init__(self, *args, focusable=True, **kwargs):
+    def __init__(self, *args, focusable=True, enabled=True, **kwargs):
         self._pressed_until = 0.0
+        self.enabled = to_filter(enabled)
         kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)
         kwargs.setdefault(self.RIGHT_SYMBOL, self.NO_SYMBOL)
         super().__init__(*args, **kwargs)
-        self.control.focusable = to_filter(focusable)
+        self.control.focusable = to_filter(focusable) & self.enabled
         self.control.show_cursor = self.SHOW_CURSOR
         ControlRole.register(self.control, ControlRole.BUTTON)
         hover_style(self.window)
@@ -287,11 +290,15 @@ class Button(PTKButton):
         return True
 
     def _activate(self):
+        if not self.enabled():
+            return
         self._feedback()
         if self.handler:
             return self.handler()
 
     def _feedback(self):
+        if not self.enabled():
+            return
         self._pressed_until = monotonic() + self.ACTIVATION_FEEDBACK_SECONDS
         app = get_app()
         app.invalidate()

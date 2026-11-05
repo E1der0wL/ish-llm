@@ -7,6 +7,7 @@ from llm.core.models import ResourceKind, StepKind
 
 from llm.core.checkpoints import CheckpointOperation
 from llm.core.steering_channel import SteeringChannel
+from llm.core.step_event_metadata import StepEventMetadata
 from llm.core.steering import SteeringTarget
 from llm.engines.steering import InvocationRedirected
 from llm.core.steering_events import SteeringEventData, SteeringOperation, SteeringReason
@@ -78,6 +79,8 @@ class BaseEngine:
     Labels/metadata/error_message are trusted, persistable developer constants.
     """
 
+    INVALID_PREPARATION = 'Step prepare must be boolean'
+
     required_capabilities = ()
     ABSENT = None
     COMPLETION_ADAPTER = "completion_adapter"
@@ -100,6 +103,8 @@ class BaseEngine:
     JSON_ALLOW_NAN = False
     PUBLISH_OUTPUT = True
     STEP_ONLY = False
+    PREPARE_STEP = True
+    START_STEP = False
     INTERMEDIATE_BOUNDARY = False
     FINAL_BOUNDARY = True
     ALLOW_CONTINUE = True
@@ -135,7 +140,7 @@ class BaseEngine:
     HOST_AGENT_INVALID = "Host action must implement these Agent settings: "
     HOST_FIELD_SEPARATOR = ", "
     steering_mode = SteeringMode.UNSUPPORTED
-    redirectable = False
+    redirectable = SteeringTarget.REDIRECTION_UNSUPPORTED
 
     def for_agent(self, definition):
         """Bind a host action without silently accepting unimplemented settings."""
@@ -168,7 +173,7 @@ class BaseEngine:
 
     @classmethod
     async def open_instructions(cls, context: EngineContext, *, checkpoint_event: Optional[EngineEvent] = ABSENT,
-                                boundary: Optional[str] = ABSENT, redirectable: bool = False) -> AsyncIterator[EngineEvent]:
+                                boundary: Optional[str] = ABSENT, redirectable: bool = SteeringTarget.REDIRECTION_UNSUPPORTED) -> AsyncIterator[EngineEvent]:
         """Open and optionally select the first boundary under one storage ACK.
 
         The caller supplies a prepared checkpoint and stable boundary before any
@@ -214,7 +219,7 @@ class BaseEngine:
     @classmethod
     async def select_instructions(cls, context: EngineContext, *, checkpoint: str, boundary: str,
                                   final: bool = INTERMEDIATE_BOUNDARY, allow_continue: bool = ALLOW_CONTINUE,
-                                  reason: Optional[str] = ABSENT, only_pending: bool = False) -> AsyncIterator[EngineEvent]:
+                                  reason: Optional[str] = ABSENT, only_pending: bool = SteeringEventData.INCLUDE_SELECTED) -> AsyncIterator[EngineEvent]:
         """boundary는 엔진 소유의 안정적인 키다. 반복 횟수/노드 의미는 해석하지 않는다."""
         if not isinstance(boundary, str) or not boundary or not isinstance(checkpoint, str) or not checkpoint:
             raise ValueError(BaseEngine.INVALID_INSTRUCTION_BOUNDARY)
@@ -277,7 +282,7 @@ class BaseEngine:
     def step(self, context: EngineContext,
              action: Callable[[EngineContext], Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]], *,
              name: str, kind: str = DEFAULT_KIND, timeout_seconds: Optional[float] = ABSENT,
-             metadata: Optional[dict] = ABSENT, prepare: bool = False,
+             metadata: Optional[dict] = ABSENT, prepare: bool = START_STEP,
              error_message: str = DEFAULT_ERROR_MESSAGE) -> AsyncIterator[EngineEvent]:
         """Wrap one operation when an Engine needs several Steps in execute().
 
@@ -291,7 +296,7 @@ class BaseEngine:
         ):
             raise ValueError(BaseEngine.INVALID_TIMEOUT)
         if not isinstance(prepare, bool):
-            raise TypeError("Step prepare must be boolean")
+            raise TypeError(BaseEngine.INVALID_PREPARATION)
         return BaseEngine(name, kind=kind, action=action,
                           metadata=metadata, error_message=error_message)._execute(
                               context, publish_output=BaseEngine.STEP_ONLY, timeout_seconds=timeout_seconds, prepare=prepare)
@@ -569,7 +574,7 @@ class BaseEngine:
         return EngineEvent(EngineEventType.EXECUTION_BOUNDARY)
 
     async def _execute(self, context: EngineContext, *, publish_output: bool, timeout_seconds=ABSENT,
-                       prepare=False) -> AsyncIterator[EngineEvent]:
+                       prepare=START_STEP) -> AsyncIterator[EngineEvent]:
         step_id = new_id()
         parts = []
         visibility = BaseEngine.ABSENT
@@ -686,7 +691,7 @@ class BaseEngine:
             if not started_step:
                 yield start
             yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
-                              metadata={'reason': 'execution_redirected'})
+                              metadata=StepEventMetadata.cancelled(InvocationRedirected.code))
             raise
         except Exception as error:
             # 소유한 기한만 분류한다. action이 직접 던진 TimeoutError를 wrapper timeout으로 오인하지 않는다.

@@ -279,8 +279,8 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
             # HubInstallation imports LiveController locally; replace its default worker factory.
             from hub.ui.live import LiveController
             original_init = LiveController.__init__
-            def initialize(controller, view, config):
-                original_init(controller, view, config, worker_factory=factory)
+            def initialize(controller, view, config, **kwargs):
+                original_init(controller, view, config, worker_factory=factory, **kwargs)
             with patch.object(LiveController, "__init__", initialize):
                 prompt = Prompt(input=pipe, output=SizedOutput())
                 old = install(prompt, config=HubConfig(root, model="test/model", auto_title=False))

@@ -180,6 +180,9 @@ pending 지시 선택·선택 checkpoint를 한 트랜잭션으로 준비한다.
 승인/재개 binding과 operation receipt는 실행 경계에서 계속 확인한다. 영속 `validated` 표시나
 숨은 TTL·용량 설정을 만들지 않는다. 검증과 재사용 범위는 해당 데이터 owner가 소유한다.
 
+도메인·Component의 생성·수정 시각은 [자료 시각 계약](component-times.md)을 따른다. 관리 시각은
+원본과 함께 저장하며 검증 결과 재사용이나 실행 허가의 근거가 아니다.
+
 Skill capability 준비는 전체 목록을 검증해 얻은 자료로 참조 검사를 수행한다. 각 Skill의 참조를
 확인할 때 같은 전체 목록을 다시 읽지 않는다. 외부 Tool/Data 참조의 현재 revision 확인과 실행 중
 resource 조회의 expected_revision 검사는 유지한다. 다음 준비 요청은 저장 원본을 다시 읽는다.

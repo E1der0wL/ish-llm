@@ -18,6 +18,8 @@ from llm.core.checkpoints import ResumeAbandonment
 from llm.core.results import CompletionRecords
 from llm.core.agents import AgentBinding
 from llm.core.policies import RunPolicySnapshot
+from llm.core.questions import QuestionPublication
+from .transfer_values import TransferReceipt
 from .subscription_state import (
     EventChannel,
     EventDelivery,
@@ -121,6 +123,9 @@ class EventContext:
             AgentBinding.METADATA_FIELD,
             AgentBinding.CONTEXT_FIELD,
             AgentBinding.EXECUTION_FIELD,
+            QuestionPublication.METADATA,
+            TransferReceipt.KEY,
+            TransferReceipt.CLONE_KEY,
         )
     )
 

@@ -87,9 +87,25 @@ class VisionComponent(Component):
         return {key: value for key, value in records.items() if not VisionImageRecord(value).deleted}
 
     def save(self, project, identifier, data):
+        from llm.services.infrastructure.storage import revision_token
         old = self.load(project, identifier)
         VisionImageRecord(old).check_edit(data)
+        if revision_token(old) == revision_token(data):
+            return
+        from llm.core.record_times import RecordTimes
+        data = {**data, **RecordTimes.from_record(old).touch().to_dict()}
         super().save(project, identifier, data)
+
+    def update(self, project, identifier, changes):
+        value = self.load(project, identifier)
+        value.update(self.deserialize(self.serialize(changes)))
+        self.save(project, identifier, value)
+        return self.load(project, identifier)
+
+    @staticmethod
+    def read_times(record):
+        from llm.core.record_times import RecordTimes
+        return RecordTimes.from_record(record)
 
     def delete(self, project, identifier):
         record = self.load(project, identifier)

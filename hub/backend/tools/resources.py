@@ -3,7 +3,6 @@
 from llm.components.processing import COMPLETION_PROCESSORS
 
 from .resource_views import CreatedResource
-from ..project.management_values import ResourceTimestamps
 
 from llm.components.goals.records import GoalDefinition, GoalSettings
 from llm.components.goals.tool_values import GoalToolArguments, GoalToolContract
@@ -95,9 +94,6 @@ def authoring_tools(
         call = owner(data)
         definition = deepcopy(DefinitionArguments(args).definition)
         ResourceAuthorship.stamp(definition, source_field, call)
-        from llm.components.skills import SkillComponent
-        definition = (ResourceTimestamps.skill(definition) if name == SkillComponent.name
-                      else ResourceTimestamps.created(definition))
         identifier = await data.acreate(
             definition, identifier=DefinitionArguments(args).identifier
         )
@@ -217,7 +213,7 @@ class HubRAGComponent(RAGComponent):
                 values, document_description(RAGDocumentInput(values).content)
             )
             ResourceAuthorship.stamp(values, RAGDocumentInput.Field.METADATA, call)
-            result = await data.aadd_document(**ResourceTimestamps.created(values))
+            result = await data.aadd_document(**values)
             return DocumentView.created(result)
 
         registry.register(
@@ -248,7 +244,7 @@ class HubGoalComponent(GoalComponent):
         async def create(args):
             call = owner(data)
             identifier = await data.acreate(
-                ResourceTimestamps.created(GoalDefinition.session_task(args, call, GoalAuthoring.RELATION)),
+                GoalDefinition.session_task(args, call, GoalAuthoring.RELATION),
                 identifier=GoalToolArguments(args).identifier,
             )
             return CreatedResource.from_snapshot(

@@ -11,7 +11,7 @@ from llm.components.mcp.records import MCPCatalog
 from llm.services.infrastructure.storage import revision_token
 
 from .record_management import RecordManagement
-from .management_values import ResourceTimestamps, MCPOperation
+from .management_values import MCPOperation
 from .participants import AgentProfile
 from ..execution.engine_selection import HubEngineIdentity
 from ..progress import OperationProgress
@@ -98,7 +98,7 @@ class MCPManagement(RecordManagement):
         else:
             servers.pop(server, None)
         OperationProgress.report(MessageKey.PROGRESS_BACKEND_WRITE)
-        await self.project.agents.arevise(agent_id, ResourceTimestamps.modified(values),
+        await self.project.agents.arevise(agent_id, values,
                                          expected_revision=value["agent_revision"])
         return {"agent": agent_id, "tools": len(names)}
 

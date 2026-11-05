@@ -13,7 +13,7 @@ from llm.core.interactions import (
 )
 from llm.core.checkpoints import CheckpointStatus
 from llm.core.checkpoint_records import CheckpointInteractions, CheckpointStep
-from llm.core.models import RunStatus, Run
+from llm.core.models import MessageStatus, RunStatus, Run
 from llm.services.infrastructure.storage import atomic_json, child, read_json, tree_snapshot
 from .interaction_records import InteractionRecord, InteractionControl, InteractionStorage, RetryInteraction
 from llm.core.questions import QuestionPublication, QuestionView
@@ -421,7 +421,8 @@ class InteractionRepository:
                     (
                         str(resumed_run.status)
                         if resumed_run
-                        else RunStatus.QUEUED.value if resume_message else self.NO_RESUME
+                        # Before dispatch, only the queued Message exists.
+                        else MessageStatus.QUEUED.value if resume_message else self.NO_RESUME
                     ),
                 )
             )

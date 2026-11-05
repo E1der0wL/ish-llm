@@ -28,6 +28,23 @@ async def main():
 
 
 class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_runtime_keeps_selected_public_resolver_extensions(self):
+        from dataclasses import replace
+        component = self.parts[0]
+        selected = component.resolve
+        calls = []
+        def resolve(project, capability):
+            calls.append(capability)
+            registry = selected(project, capability)
+            return registry.derive(tuple(replace(registry.get(name), description="Host snapshot reader")
+                if name == "skill_list" else registry.get(name) for name in registry.names()))
+        with patch.object(component, "resolve", side_effect=resolve):
+            registry = component.resolve_runtime(await self.project.aget_data(), "tools",
+                data_factory=lambda name: self.project.components[name])
+        self.assertEqual(calls, ["tools"])
+        self.assertEqual(registry.get("skill_list").description, "Host snapshot reader")
+        self.assertIn("skill_read_resource", registry.names())
+
     async def test_runtime_preparation_reuses_inventory_but_rechecks_changed_sources(self):
         from llm.components.skills.storage import SkillStorage
         from llm.components.tools import ToolRegistry

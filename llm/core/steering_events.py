@@ -22,6 +22,8 @@ class SteeringReason(StrEnum):
     COMPLETED = "completed"
     NODE_NOT_REACHED = "node_not_reached"
     CLONED = "cloned"
+    SUPERSEDED = "superseded"
+    WITHDRAWN = "withdrawn"
 
 
 class SteeringEventData:
@@ -31,6 +33,9 @@ class SteeringEventData:
     permission. Current channel, scope, record and receipt validation stays with
     the service transaction that handles the request.
     """
+
+    INCLUDE_SELECTED = False
+    ONLY_PENDING = True
 
     class Field(StrEnum):
         OPERATION = "operation"
@@ -130,7 +135,7 @@ class SteeringEventData:
 
     @property
     def only_pending(self):
-        return self._value.get(self.Field.ONLY_PENDING, False)
+        return self._value.get(self.Field.ONLY_PENDING, self.INCLUDE_SELECTED)
 
     @property
     def details(self):

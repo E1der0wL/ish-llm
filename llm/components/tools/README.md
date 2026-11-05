@@ -4,6 +4,10 @@ Project가 소유하는 Python Tool 소스를 저장하고 준비·활성화합�
 
 ## 파일 안내
 
+`bindings.py`의 `ScopedToolHandler`는 builtin/Component 래퍼 안에서도 원본 handler의
+실행 binding과 인자 바인딩·선택 검증·이벤트 hook을 보존한다. Wrapper가 새 권한이나
+revision을 만들지 않으며, hook 실행 중에도 동일한 출력·경로 scope를 사용한다.
+
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | tool 데코레이터, Tool/ToolContract/ToolRegistry, ToolComponent와 공개 핸들 import입니다. |

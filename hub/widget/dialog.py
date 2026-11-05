@@ -125,6 +125,7 @@ class Dialog(PTKDialog):
     CONTENT_PADDING = 1
     STATUS_PADDING = 1
     navigation = None
+    blocks_restart = False
     NAVIGATION = "navigation"
     ABSENT_HOOK = None
     CLOSE_HANDLER = "on_close"

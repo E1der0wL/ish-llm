@@ -32,6 +32,7 @@ class ProjectComponent(Protocol):
         self, project: Project, data: dict, *, identifier: Optional[str] = ComponentStorage.AUTO_IDENTIFIER
     ) -> str: ...
     def load(self, project: Project, identifier: str) -> dict: ...
+    def get_times(self, project: Project, identifier: str) -> dict: ...
     def list(self, project: Project) -> dict[str, dict]: ...
     def save(self, project: Project, identifier: str, data: dict) -> None: ...
     def update(self, project: Project, identifier: str, changes: dict) -> dict: ...
@@ -60,6 +61,9 @@ class Component:
     name: str
     directory: str
     SCHEMA_VERSION = ComponentRecordManifest.SCHEMA_VERSION
+    # A selected owner may read times from its existing record instead of the
+    # common inventory. Never infer native fields from arbitrary JSON keys.
+    read_times = None
     RECORDS_DIRECTORY = ComponentStorage.RECORDS_DIRECTORY
     RECORDS_MANIFEST = ComponentStorage.RECORDS_MANIFEST
     NO_CONFIG_ERROR = None
@@ -239,6 +243,9 @@ class Component:
 
     def load(self, project: Project, identifier: str) -> dict:
         return ComponentStorage.load(self, project, identifier)
+
+    def get_times(self, project: Project, identifier: str) -> dict:
+        return ComponentStorage.get_times(self, project, identifier)
 
     def list(self, project: Project) -> dict[str, dict]:
         return ComponentStorage.list(self, project)

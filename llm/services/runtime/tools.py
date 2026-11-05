@@ -980,8 +980,7 @@ class ToolExecutor:
             raise
         except ToolRedirected as error:
             yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
-                              metadata={'reason': 'execution_redirected',
-                                        'diagnostic': error.diagnostic.to_dict()})
+                              metadata=StepEventMetadata.cancelled(InvocationRedirected.code, error.diagnostic))
             raise
         except ToolApprovalRequired as request:
             if authorized:

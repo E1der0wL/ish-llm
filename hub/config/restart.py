@@ -50,21 +50,23 @@ def startup_settings(config, general):
     return PreferenceSnapshot.startup(config, general).to_dict()
 
 
-def restart_config(launch_config, current_config):
-    from .preferences import configured_profile
+def restart_config(launch_config, current_config, *, recover_startup=False):
+    from .preferences import configured_profile, prepare_profile
 
     anchor = (
         launch_config.workspace
         if current_config._workspace_anchor is WorkspaceSelection.UNBOUND_ANCHOR
         else current_config._workspace_anchor
     )
-    config = configured_profile(
-        replace(
-            launch_config,
-            workspace=anchor,
-            _workspace_anchor=WorkspaceSelection.UNBOUND_ANCHOR,
-        )
+    unresolved = replace(
+        launch_config,
+        workspace=anchor,
+        _workspace_anchor=WorkspaceSelection.UNBOUND_ANCHOR,
     )
+    # A recovery retry can uncover another bad settings file. Let the replacement
+    # installation observe that owner and display its own recovery action; normal
+    # restarts still validate before releasing the working installation.
+    config = prepare_profile(unresolved)[0] if recover_startup else configured_profile(unresolved)
     if config.workspace != current_config.workspace:
         config = replace(
             config,

@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import Any
 
 from llm.core.editable_snapshot import EditableSnapshot
+from llm.core.record_times import RecordTimes
 
 from llm.core.implementation_parameters import ImplementationParameters
 from llm.components.tools.package_values import ToolPackageSource
 from llm.components.tools.packages import ToolPaths
-from ..project.management_values import ManagementAction, ManagementEntry, ResourceTimestamps
+from ..project.management_values import ManagementAction, ManagementEntry
 
 
 class ToolManagementContract:
@@ -113,12 +114,12 @@ class ToolManagement:
                 )
         for name in packages:
             snapshot = EditableSnapshot.read(await self.data.asnapshot(name))
-            stamp = await asyncio.to_thread(self.paths.modified_at, name)
+            times = RecordTimes.read(await self.data.aget_times(name))
             entries.append(
                 ManagementEntry.tool(
                     name,
                     description(ToolPackageSource.read(snapshot.data).source),
-                    ResourceTimestamps.from_epoch(stamp),
+                    times.updated_at,
                     name in enabled,
                     snapshot.version,
                 )

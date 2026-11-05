@@ -3,6 +3,7 @@
 Navigable service handles; these objects are never persisted domain models."""
 
 from llm.core.interactions import InteractionOperation, InteractionActor
+from llm.core.questions import AnswerDeliveryMode
 from llm.core.continuations import ResumeRecord
 from llm.services.lifecycle.lifecycle_records import LifecycleDeletion
 from llm.services.lifecycle.projects import ProjectRepository, ProjectManager
@@ -24,6 +25,7 @@ from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.storage import async_method
+from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.query import Query, select
 from llm.services.schema import ProjectConfiguration
 
@@ -690,6 +692,16 @@ class Runs(AsyncFacade):
 # Run 데이터/응답/결과/Step을 조회하는 서비스 핸들.
 class RunHandle(AsyncFacade):
 
+    DELETED_QUESTION = 'Question source conversation was deleted'
+    INVALID_DELIVERY = 'Answer delivery requires explicit submit or steer mode'
+    INVALID_SUBMIT = 'Submit answer requires recipients only'
+    INVALID_STEER = 'Steer answer requires a target Run, not recipients'
+    CHANGED_RESPONSE = 'Accepted interaction response is missing or changed'
+    UNKNOWN_APPROVAL = 'Unknown approval request'
+    INVALID_REMEMBER = 'Only approval responses can remember a rule'
+    MISSING_REQUEST_KEY = 'Remembering an answered request requires its original client request key'
+    SINGLE_RESPONSE = 1
+
     UNSPECIFIED = None
     ADMITTED_INTERACTION = "Interaction cannot change after execution admission"
     RESPONSE_OWNER = "Assistant message and Run ownership mismatch"
@@ -726,7 +738,7 @@ class RunHandle(AsyncFacade):
             store = self.app.project_manager.sessions.conversations(session)
             if any(store.get(identifier).conversation_deleted for identifier in
                    (run.input_message_id, run.assistant_message_id)):
-                raise ValueError('Question source conversation was deleted')
+                raise ValueError(RunHandle.DELETED_QUESTION)
             return self.app.run_repository.question_delivery(run, request_id)
 
     @property
@@ -850,7 +862,7 @@ class RunHandle(AsyncFacade):
         self.app._check_open()
         if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER:
             raise ValueError(self.USER_CHOICE_REQUIRED)
-        with self.app.project_manager.ownership.scope(records=True):
+        with self.app.project_manager.ownership.scope(records=WorkspaceOwnership.RECORD_BATCH):
             run = self.data
             result = self.app.run_repository.answer_question(run, response)
             views = self.app.run_repository.question_views(run)
@@ -859,7 +871,7 @@ class RunHandle(AsyncFacade):
 
     def cancel_question(self, request: InteractionRequest):
         self.app._check_open()
-        with self.app.project_manager.ownership.scope(records=True):
+        with self.app.project_manager.ownership.scope(records=WorkspaceOwnership.RECORD_BATCH):
             run = self.data
             self.app.run_repository.cancel_question(run, request)
             views = self.app.run_repository.question_views(run)
@@ -872,14 +884,14 @@ class RunHandle(AsyncFacade):
         Acceptance does not imply consumption. Inspect the ordinary request or
         steering handle for application. An ended target never falls back to submit.
         """
-        if mode not in ('submit', 'steer'):
-            raise ValueError('Answer delivery requires explicit submit or steer mode')
-        if mode == 'submit' and (recipients is UNSET or run_id is not UNSET or targets is not UNSET):
-            raise ValueError('Submit answer requires recipients only')
-        if mode == 'steer' and (run_id is UNSET or recipients is not UNSET):
-            raise ValueError('Steer answer requires a target Run, not recipients')
+        if mode not in (AnswerDeliveryMode.SUBMIT, AnswerDeliveryMode.STEER):
+            raise ValueError(RunHandle.INVALID_DELIVERY)
+        if mode == AnswerDeliveryMode.SUBMIT and (recipients is UNSET or run_id is not UNSET or targets is not UNSET):
+            raise ValueError(RunHandle.INVALID_SUBMIT)
+        if mode == AnswerDeliveryMode.STEER and (run_id is UNSET or recipients is not UNSET):
+            raise ValueError(RunHandle.INVALID_STEER)
         key = await self._async_call(self._question_delivery_key, request_id)
-        if mode == 'submit':
+        if mode == AnswerDeliveryMode.SUBMIT:
             return await self.session.run.submit(content, recipients=recipients, request_key=key)
         return await self.session.run.steer(run_id, content, targets=None if targets is UNSET else targets,
                                            request_key=key)
@@ -907,9 +919,7 @@ class RunHandle(AsyncFacade):
             if not isinstance(response, InteractionResponse) or response.actor != InteractionActor.USER.value:
                 raise ValueError(RunHandle.USER_CHOICE_REQUIRED)
             store = self.app.project_manager.sessions.conversations(session)
-            payload = response_payload(run.id, response)
-            if remember is not UNSET:
-                payload['remember'] = deepcopy(remember)
+            payload = response_payload(run.id, response, remember=remember)
             if request_key is not UNSET:
                 previous = InputReceipt.find(store, session, request_key)
                 if previous is not None:
@@ -917,8 +927,8 @@ class RunHandle(AsyncFacade):
                     responses = [item for item in self.app.run_repository.interaction_responses(session, run)
                                  if item.request_id == previous.interaction_id
                                  and item.request_revision == previous.interaction_revision]
-                    if len(responses) != 1 or response_payload(run.id, responses[0]) != response_payload(run.id, response):
-                        raise ValueError('Accepted interaction response is missing or changed')
+                    if len(responses) != self.SINGLE_RESPONSE or response_payload(run.id, responses[0]) != response_payload(run.id, response):
+                        raise ValueError(RunHandle.CHANGED_RESPONSE)
                     return responses[0]
             if run.status not in Run.RESUMABLE_STATES:
                 raise ValueError(RunHandle.ACTIVE_RESPONSE)
@@ -928,14 +938,14 @@ class RunHandle(AsyncFacade):
                 requests = self.app.run_repository.interaction_requests(session, run)
                 request = next((item for item in requests if item.id == response.request_id), None)
                 if request is None:
-                    raise ValueError('Unknown approval request')
+                    raise ValueError(RunHandle.UNKNOWN_APPROVAL)
                 response.decision(request)
                 option = request.find_approval()
                 if option is None or option.id != response.option_id:
-                    raise ValueError('Only approval responses can remember a rule')
+                    raise ValueError(RunHandle.INVALID_REMEMBER)
                 existing = self.app.run_repository.interaction_responses(session, run)
                 if any(item.request_id == request.id for item in existing):
-                    raise ValueError('Remembering an answered request requires its original client request key')
+                    raise ValueError(RunHandle.MISSING_REQUEST_KEY)
                 self.app.project_manager.remember_approval(
                     self.session.project._snapshot, session, run, request, remember)
             result = self.app.run_repository.respond(session, run, response)
@@ -964,7 +974,7 @@ class RunHandle(AsyncFacade):
     def reclassify(self, request: InteractionRequest, *, risk: int, risk_scheme: str):
         """Persist an explicit numeric assessment; never approve or resume automatically."""
         self.app._check_open()
-        with self.app.project_manager.ownership.scope(records=True):
+        with self.app.project_manager.ownership.scope(records=WorkspaceOwnership.RECORD_BATCH):
             session, run = self.session.data, self.data
             store = self.app.project_manager.sessions.conversations(session)
             if any(self.app.run_repository.resume_link(session, run, store)):

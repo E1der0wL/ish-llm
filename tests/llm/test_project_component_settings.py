@@ -182,7 +182,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         before = [p.read_bytes() for p in files]
         config = (await project.aget_data()).config
         config.parameters.setdefault("components", {}).update({"memory": {'config': {'search_limit': 4}}, "rag": {'config': {'chunk_size': 64}}})
-        with patch("llm.services.lifecycle.projects.atomic_domain_json", side_effect=OSError("disk unavailable")):
+        with patch("llm.services.infrastructure.storage.atomic_domain_json", side_effect=OSError("disk unavailable")):
             with self.assertRaises(OSError):
                 await project.asave(config=config)
         self.assertEqual([p.read_bytes() for p in files], before)

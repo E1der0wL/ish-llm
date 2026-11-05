@@ -101,4 +101,5 @@ WSL Python 3.12.14의 Linux 파일시스템 복사본에서 검증했다.
 
 `full/hub.json`은 최초 실패를 그대로 보존하고 `corrected/hub.json`은 재검증 결과다.
 두 결과와 제품 소스 동일성은 `verification-summary.json`에 대조해 기록했다.
-RAG 목록 날짜는 본문을 읽지 않고 기존 Job 조회에서 얻은 등록 작업 생성 시각을 사용한다.
+검증 당시 RAG 목록은 본문을 읽지 않고 기존 Job 조회에서 얻은 등록 작업 생성 시각을 사용했다.
+현재는 [자료 시각 계약](component-managers.md#생성수정-시각)에 따라 catalog의 문서 수정 시각을 표시한다.

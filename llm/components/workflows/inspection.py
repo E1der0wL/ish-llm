@@ -5,11 +5,13 @@ supplies declarations and an optional metadata reader; runtime admission is sepa
 """
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from jsonschema import Draft202012Validator
 
 from llm.core.contracts import Diagnostic, JsonValue, ResourceRef
 from llm.core.resource_references import ResourceTarget
+from llm.core.json_data import JsonPointer
+from llm.core.configuration import UNSET
 from .graph import (ControlNodeType, WorkflowHandlerContract, COMMON_NODE_FIELDS,
                     validate_graph, workflow_schema, WorkflowStructureError)
 from .contracts import WorkflowDocument, WorkflowNode
@@ -18,6 +20,8 @@ from .contracts import WorkflowDocument, WorkflowNode
 @dataclass(frozen=True, slots=True)
 class InspectedDefinition(JsonValue):
     """One effect-free metadata read; a missing revision is explicitly unverified."""
+    INVALID = 'Invalid inspected definition snapshot'
+
     data: dict
     revision: str | None
 
@@ -25,11 +29,29 @@ class InspectedDefinition(JsonValue):
         JsonValue.__post_init__(self)
         if not isinstance(self.data, dict) or self.revision is not None and (
                 not isinstance(self.revision, str) or not self.revision):
-            raise ValueError('Invalid inspected definition snapshot')
+            raise ValueError(InspectedDefinition.INVALID)
 
 
 @dataclass(frozen=True, slots=True)
 class WorkflowInspection(JsonValue):
+    INVALID_REFERENCE = 'Workflow definition references require a record identifier'
+    INVALID_READER = 'Metadata readers must return InspectedDefinition'
+    MISSING_REFERENCE = 'Workflow reference is required'
+    CYCLIC_REFERENCE = 'Nested Workflow reference cycle'
+    UNREGISTERED_HANDLER = 'Unregistered handler: {kind}'
+
+    SCHEMA_INVALID = 'workflow_schema_invalid'
+    STRUCTURE_INVALID = 'workflow_structure_invalid'
+    REFERENCE_INVALID = 'workflow_reference_invalid'
+    REFERENCE_CYCLE = 'workflow_reference_cycle'
+    HANDLER_MISSING = 'workflow_handler_missing'
+    HANDLER_INVALID = 'workflow_handler_invalid'
+    DYNAMIC_CHECKS = ('runtime_authorization', 'provider_availability', 'dynamic_inputs')
+    REFERENCE_UNCHECKED = ': reference'
+    SCHEMA_UNCHECKED = ': handler schema'
+    REFERENCES_UNCHECKED = ': handler references'
+    REVISION_UNCHECKED = '{component}/{identifier}: reference revision'
+
     diagnostics: list[Diagnostic]
     unverified: list[str]
     references: list[ResourceRef]
@@ -40,8 +62,28 @@ class WorkflowInspection(JsonValue):
         return not self.diagnostics
 
 
-def pointer(parts):
-    return ''.join('/' + str(part).replace('~', '~0').replace('/', '~1') for part in parts)
+@dataclass(frozen=True, slots=True)
+class InspectionLocation:
+    path: str
+    owner: str
+    node_id: object = UNSET
+    edge_index: object = UNSET
+    workflow_path: object = UNSET
+
+    @classmethod
+    def from_path(cls, path, owner):
+        location = cls(JsonPointer.from_parts(path), owner)
+        from dataclasses import replace
+        for index, part in enumerate(path[:-1]):
+            if part == WorkflowDocument.NODES:
+                location = replace(location, node_id=path[index + 1], workflow_path=list(path[:index]))
+            elif part == WorkflowDocument.EDGES and type(path[index + 1]) is int:
+                location = replace(location, edge_index=path[index + 1], workflow_path=list(path[:index]))
+        return location
+
+    def to_dict(self):
+        return {item.name: deepcopy(getattr(self, item.name)) for item in fields(self)
+                if getattr(self, item.name) is not UNSET}
 
 
 def inspect_graph(definition, *, handlers, read_reference=None):
@@ -52,23 +94,24 @@ def inspect_graph(definition, *, handlers, read_reference=None):
     A missing reader leaves references unverified, rather than silently accepting them.
     """
     data = deepcopy(definition)
-    issues, unchecked = [], ['runtime_authorization', 'provider_availability', 'dynamic_inputs']
+    issues, unchecked = [], list(WorkflowInspection.DYNAMIC_CHECKS)
     observed, loaded = {}, {}
     reported = set()
 
     def read(target):
         if not isinstance(target, ResourceTarget) or target.identifier is None:
-            raise ValueError('Workflow definition references require a record identifier')
+            raise ValueError(WorkflowInspection.INVALID_REFERENCE)
         key = target.component, target.identifier
         if key not in loaded:
             snapshot = read_reference(target)
             if not isinstance(snapshot, InspectedDefinition):
-                raise TypeError('Metadata readers must return InspectedDefinition')
+                raise TypeError(WorkflowInspection.INVALID_READER)
             loaded[key] = snapshot.data
             observed[key] = ResourceRef(target.component, target.identifier,
                                        component=target.component, version=snapshot.revision)
             if snapshot.revision is None:
-                unchecked.append(f'{target.component}/{target.identifier}: reference revision')
+                unchecked.append(WorkflowInspection.REVISION_UNCHECKED.format(
+                    component=target.component, identifier=target.identifier))
         return deepcopy(loaded[key])
 
     def issue(code, message, path, owner):
@@ -76,44 +119,45 @@ def inspect_graph(definition, *, handlers, read_reference=None):
         if identity in reported:
             return
         reported.add(identity)
-        details = {'path': pointer(path), 'owner': owner}
         # Locations come from the structured validator path, never its message.
-        for index, part in enumerate(path[:-1]):
-            if part == WorkflowDocument.NODES:
-                details.update(node_id=path[index + 1], workflow_path=list(path[:index]))
-            elif part == WorkflowDocument.EDGES and type(path[index + 1]) is int:
-                details.update(edge_index=path[index + 1], workflow_path=list(path[:index]))
-        issues.append(Diagnostic(code, message, details=details))
+        issues.append(Diagnostic(code, message, details=InspectionLocation.from_path(path, owner).to_dict()))
 
     def inspect(document, path, references):
         schema_errors = list(Draft202012Validator(workflow_schema()).iter_errors(document))
         if schema_errors:
             for error in schema_errors:
-                issue('workflow_schema_invalid', error.message, (*path, *error.absolute_path), 'workflows')
+                issue(WorkflowInspection.SCHEMA_INVALID, error.message, (*path, *error.absolute_path), WorkflowDocument.COMPONENT)
             return
         try:
             validate_graph(document)
         except (TypeError, ValueError) as error:
             location = error.path if isinstance(error, WorkflowStructureError) else ()
-            issue('workflow_structure_invalid', str(error), (*path, *location), 'workflows')
+            issue(WorkflowInspection.STRUCTURE_INVALID, str(error), (*path, *location), WorkflowDocument.COMPONENT)
             # Fields satisfy the schema; independent action declarations can still be inspected.
         for name, node in document[WorkflowDocument.NODES].items():
             node_path = (*path, WorkflowDocument.NODES, name)
             kind = node[WorkflowNode.TYPE]
             if kind == ControlNodeType.LOOP:
-                inspect(node[WorkflowNode.BODY], (*node_path, WorkflowNode.BODY), references)
+                # A draft may fail structural validation while independent
+                # action declarations remain inspectable. Missing bodies are
+                # invalid schema inputs, never invented empty workflows.
+                inspect(node.get(WorkflowNode.BODY), (*node_path, WorkflowNode.BODY), references)
                 continue
             if kind == ControlNodeType.WORKFLOW:
+                if WorkflowNode.WORKFLOW not in node:
+                    issue(WorkflowInspection.REFERENCE_INVALID, WorkflowInspection.MISSING_REFERENCE,
+                          (*node_path, WorkflowNode.WORKFLOW), WorkflowDocument.COMPONENT)
+                    continue
                 target = ResourceTarget(WorkflowDocument.COMPONENT, node[WorkflowNode.WORKFLOW])
                 if target.identifier in references:
-                    issue('workflow_reference_cycle', 'Nested Workflow reference cycle', node_path, 'workflows')
+                    issue(WorkflowInspection.REFERENCE_CYCLE, WorkflowInspection.CYCLIC_REFERENCE, node_path, WorkflowDocument.COMPONENT)
                 elif read_reference is None:
-                    unchecked.append(pointer(node_path) + ': reference')
+                    unchecked.append(JsonPointer.from_parts(node_path) + WorkflowInspection.REFERENCE_UNCHECKED)
                 else:
                     try:
                         child = read(target)
                     except (KeyError, FileNotFoundError, ValueError) as error:
-                        issue('workflow_reference_invalid', str(error), node_path, 'workflows')
+                        issue(WorkflowInspection.REFERENCE_INVALID, str(error), node_path, WorkflowDocument.COMPONENT)
                     else:
                         inspect(child, (*node_path, WorkflowNode.WORKFLOW), (*references, target.identifier))
                 continue
@@ -121,31 +165,31 @@ def inspect_graph(definition, *, handlers, read_reference=None):
                 continue
             handler = handlers.get(kind)
             if handler is None:
-                issue('workflow_handler_missing', f'Unregistered handler: {kind}', node_path, kind)
+                issue(WorkflowInspection.HANDLER_MISSING, WorkflowInspection.UNREGISTERED_HANDLER.format(kind=kind), node_path, kind)
                 continue
             schema = WorkflowHandlerContract.describe_snapshot(handler)
             if schema is None:
-                unchecked.append(pointer(node_path) + ': handler schema')
+                unchecked.append(JsonPointer.from_parts(node_path) + WorkflowInspection.SCHEMA_UNCHECKED)
                 continue
             Draft202012Validator.check_schema(schema)
             options = {key: value for key, value in node.items() if key not in COMMON_NODE_FIELDS}
             errors = list(Draft202012Validator(schema).iter_errors(options))
             for error in errors:
-                issue('workflow_handler_invalid', error.message, (*node_path, *error.absolute_path), kind)
+                issue(WorkflowInspection.HANDLER_INVALID, error.message, (*node_path, *error.absolute_path), kind)
             if errors:
                 continue
             reader = getattr(handler, WorkflowHandlerContract.REFERENCES_METHOD, None)
             if reader is None:
-                unchecked.append(pointer(node_path) + ': handler references')
+                unchecked.append(JsonPointer.from_parts(node_path) + WorkflowInspection.REFERENCES_UNCHECKED)
                 continue
             for target in reader(deepcopy(node)):
                 if read_reference is None:
-                    unchecked.append(pointer(node_path) + ': reference')
+                    unchecked.append(JsonPointer.from_parts(node_path) + WorkflowInspection.REFERENCE_UNCHECKED)
                 else:
                     try:
                         read(target)
                     except (KeyError, FileNotFoundError, ValueError) as error:
-                        issue('workflow_reference_invalid', str(error), node_path, kind)
+                        issue(WorkflowInspection.REFERENCE_INVALID, str(error), node_path, kind)
 
     inspect(data, (), ())
     return WorkflowInspection(issues, list(dict.fromkeys(unchecked)), list(observed.values()))

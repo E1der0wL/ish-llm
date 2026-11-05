@@ -8,6 +8,7 @@ from llm.components.tools.registry import ToolRegistry
 from llm.core.configuration import UNSET
 from .mcp_interactions import MCPElicitation
 from .mcp import MCPConnectionState
+from llm.services.infrastructure.cancellation import cancel_tasks
 
 
 class MCPSession(ToolRegistry):
@@ -46,11 +47,7 @@ class MCPSession(ToolRegistry):
     async def close(self):
         self.active = False
         tasks = tuple(task for task in self.calls if task is not asyncio.current_task())
-        for task in tasks:
-            task.cancel()
-        if tasks:
-            from llm.services.infrastructure.storage import drain_on_cancel
-            await drain_on_cancel(asyncio.gather(*tasks, return_exceptions=True))
+        await cancel_tasks(tasks)
 
     def get_status(self):
         # All server fields are observations; instructions never become prompts.
@@ -102,6 +99,33 @@ class MCPSession(ToolRegistry):
             result = await self.session.read_resource(uri)
             return result.model_dump(mode="json", by_alias=True, exclude_none=True)
 
+    def _require_prompts(self):
+        self._require_active()
+        if "prompts" not in self.initialized.get("capabilities", {}):
+            raise ValueError("MCP server does not advertise prompts")
+
+    async def list_prompts(self, *, cursor=UNSET):
+        self._require_prompts()
+        async with self.operation():
+            result = await self.session.list_prompts(**self._page(cursor))
+            return result.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+    async def get_prompt(self, name, *, arguments=UNSET):
+        self._require_prompts()
+        if not isinstance(name, str) or not name:
+            raise ValueError("MCP prompt name must be nonempty text")
+        options = {}
+        if arguments is not UNSET:
+            if arguments is not None and (not isinstance(arguments, dict) or any(
+                not isinstance(key, str) or not isinstance(value, str) for key, value in arguments.items()
+            )):
+                raise ValueError("MCP prompt arguments must map strings to strings, or be null")
+            options["arguments"] = deepcopy(arguments)
+        async with self.operation():
+            result = await self.session.get_prompt(name, **options)
+            # Returned messages are external data, never injected into Engine input.
+            return result.model_dump(mode="json", by_alias=True, exclude_none=True)
+
 
 class MCPElicitationSession:
     """Live request identity; closing a connection cancels all pending replies."""
@@ -131,8 +155,4 @@ class MCPElicitationSession:
     async def close(self):
         self.active = False
         tasks = tuple(task for task in self.pending if task is not asyncio.current_task())
-        for task in tasks:
-            task.cancel()
-        if tasks:
-            from llm.services.infrastructure.storage import drain_on_cancel
-            await drain_on_cancel(asyncio.gather(*tasks, return_exceptions=True))
+        await cancel_tasks(tasks)

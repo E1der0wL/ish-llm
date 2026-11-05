@@ -21,7 +21,8 @@ from llm.core.models import ResourceKind, StepKind
 from llm.core.continuations import ResumeRecord
 
 from llm.core.results import OutputVisibility
-from llm.core.tool_event_result import ToolEventResult, ToolOutcome, ToolOutcomeStatus
+from llm.core.tool_event_result import ToolEventResult, ToolOutcomeStatus
+from llm.core.steering_events import SteeringEventData
 from llm.core.step_tool_metadata import ToolStepMetadata
 
 from llm.core.model_protocol import (
@@ -88,6 +89,9 @@ from llm.core.agents import AgentDefinition
 # 모델 응답과 Tool 실행을 반복한다. 동시 Run의 설정을 서로 격리한다.
 class LoopEngine(BaseEngine):
     """Common-model completion/Tool loop with a selected runtime adapter."""
+
+    FEEDBACK_FORBIDDEN = 'Stored Tool feedback is not permitted by the current policy'
+    MISSING_SELECTION = 'Deferred Tool lost its selected instructions'
 
     required_capabilities = (ToolRegistry.CAPABILITY, COMPLETION_PROCESSORS)
     checkpoint_name = "loop"
@@ -525,7 +529,7 @@ class LoopEngine(BaseEngine):
             else BaseEngine.ABSENT
         )
         async with aclosing(self.open_instructions(context, checkpoint_event=initial_checkpoint,
-                                                  boundary=first_boundary, redirectable=True)) as events:
+                                                  boundary=first_boundary, redirectable=self.redirectable)) as events:
             async for event in events:
                 yield event
         initial_records = {}
@@ -787,7 +791,7 @@ class LoopEngine(BaseEngine):
                             ),
                             complete,
                             name=LoopEngine.COMPLETION_STEP_NAME,
-                            prepare=True,
+                            prepare=BaseEngine.PREPARE_STEP,
                             kind=StepKind.LLM,
                             timeout_seconds=self.request_timeout,
                             metadata=LoopStepMetadata.completion(
@@ -929,7 +933,7 @@ class LoopEngine(BaseEngine):
                     outcome = ToolEventResult(result).outcome
                     if outcome.status != ToolOutcomeStatus.NOT_EXECUTED:
                         if not self.tool_feedback.allows(outcome.status):
-                            raise ValueError("Stored Tool feedback is not permitted by the current policy")
+                            raise ValueError(LoopEngine.FEEDBACK_FORBIDDEN)
                         if self.tool_feedback.defer_remaining:
                             defer_after = call.id
                     messages.append(CompletionMessage(ModelMessage(ModelRole.TOOL,
@@ -937,9 +941,7 @@ class LoopEngine(BaseEngine):
                     continue
                 if defer_after is not None and not stored:
                     result = {}
-                    ToolEventResult(result).reject(ToolOutcome(ToolOutcomeStatus.NOT_EXECUTED,
-                        Diagnostic("tool_not_executed", "Application policy deferred remaining calls after Tool feedback",
-                                   details={"after_call_id": defer_after}), None))
+                    ToolEventResult(result).reject(LoopToolRecord.deferred_outcome(defer_after))
                     stored = LoopToolRecord.feedback(name=tool.name, arguments=arguments, result=result, run_id=context.run.id)
                     yield self._record(key, stored)
                     records[key] = stored
@@ -957,7 +959,7 @@ class LoopEngine(BaseEngine):
                         allowed = self.max_iterations is BaseEngine.ABSENT or iteration < self.max_iterations
                         async with aclosing(self.select_instructions(
                             context, checkpoint=self.checkpoint_name, boundary=boundary,
-                            final=BaseEngine.INTERMEDIATE_BOUNDARY, allow_continue=allowed, only_pending=True,
+                            final=BaseEngine.INTERMEDIATE_BOUNDARY, allow_continue=allowed, only_pending=SteeringEventData.ONLY_PENDING,
                             reason=BaseEngine.ABSENT if allowed else LoopInstructionBoundary.ITERATION_LIMIT,
                         )) as events:
                             async for event in events:
@@ -981,7 +983,7 @@ class LoopEngine(BaseEngine):
                             result=ToolResult(call.id, content, tool.name))))
                         continue
                     if LoopToolRecord(stored).is_deferred:
-                        raise ValueError('Deferred Tool lost its selected instructions')
+                        raise ValueError(LoopEngine.MISSING_SELECTION)
                 result = deepcopy(LoopToolRecord(stored).result_or_empty)
                 result_ref = (
                     ResourceRef(
@@ -1069,7 +1071,7 @@ class LoopEngine(BaseEngine):
                         if boundary not in records:
                             async with aclosing(self.select_instructions(
                                 context, checkpoint=self.checkpoint_name, boundary=boundary,
-                                only_pending=True,
+                                only_pending=SteeringEventData.ONLY_PENDING,
                             )) as events:
                                 async for event in events:
                                     yield event
@@ -1077,7 +1079,7 @@ class LoopEngine(BaseEngine):
                                 inbox.scope, (m.id for m in inbox.messages)).to_dict()
                         following = InstructionCheckpoint.read(records[boundary]).message_ids
                         stored = LoopToolRecord.deferred(name=tool.name, arguments=arguments,
-                            boundary=boundary, instructions=following, cancelled=True)
+                            boundary=boundary, instructions=following, cancelled=LoopToolRecord.CANCELLED_VALUE)
                         yield self._record(key, stored)
                         records[key] = stored
                         content = LoopToolRecord(stored).deferred_content(name=tool.name, arguments=arguments,

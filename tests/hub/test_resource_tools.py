@@ -65,8 +65,10 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
             if prefix == "skill":
                 from llm.core.skills import SkillDocument
                 stored = SkillDocument.parse(stored["markdown"]).frontmatter
-            self.assertTrue(stored["metadata"]["created_at"])
-            self.assertEqual(stored["metadata"]["updated_at"], stored["metadata"]["created_at"])
+            times = await data.aget_times("created-" + prefix)
+            self.assertTrue(times["created_at"])
+            self.assertEqual(times["updated_at"], times["created_at"])
+            self.assertNotIn("created_at", stored.get("metadata", {}))
         agents = self.runtime.project.agents
         before = await agents.aload("created-agent")
         # Invalid definitions and duplicate IDs are rejected by the public API.
@@ -94,8 +96,10 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         goal = await self.invoke("goal_create", identifier="verify", title="Verify resources", objective="Save and verify a guide",
                                  success_criteria=["Guide stored", "Readback matches"])
         goal_data = await self.runtime.project.components.goals.aload("verify")
-        self.assertTrue(goal_data["metadata"]["created_at"])
-        self.assertEqual(goal_data["metadata"]["updated_at"], goal_data["metadata"]["created_at"])
+        times = await self.runtime.project.components.goals.aget_times("verify")
+        self.assertTrue(times["created_at"])
+        self.assertEqual(times["updated_at"], times["created_at"])
+        self.assertNotIn("created_at", goal_data.get("metadata", {}))
         updated = await self.invoke("goal_update_progress", identifier="verify", expected_version=goal["version"],
                                     changes={"progress": ["Guide stored"], "next_actions": ["Readback"]})
         self.provider.responses.append([chunk("Progress checked", finish="stop")])
@@ -131,8 +135,9 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["id"], "note")
         data = await self.runtime.project.components.aget("rag")
         document = await data.aget_document("note")
-        self.assertTrue(document["metadata"]["created_at"])
-        self.assertEqual(document["metadata"]["updated_at"], document["metadata"]["created_at"])
+        self.assertTrue(document["created_at"])
+        self.assertEqual(document["updated_at"], document["created_at"])
+        self.assertNotIn("created_at", document["metadata"])
         self.assertIn("Violet", document["content"])
         self.assertIn("Violet", document["description"])
         found = await self.invoke("rag_search", query="Violet", method="bm25", rerank=False)

@@ -12,6 +12,7 @@
 
 | 파일 | 제목 |
 |---|---|
+| [llm/component-times.md](llm/component-times.md) | Component 자료의 생성·수정 시각과 조회 검증 재사용 |
 | [README.md](README.md) | 개발 문서 |
 | [hub/README.md](hub/README.md) | Hub 설계 문서 |
 | [hub/application-defaults.md](hub/application-defaults.md) | Hub application creation profile and Agent APIs |

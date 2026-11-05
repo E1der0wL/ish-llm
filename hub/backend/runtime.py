@@ -244,7 +244,7 @@ class HubRuntime:
         from .project.settings import SettingsService
 
         self.settings_service = SettingsService(self)
-        preferences = self.settings_service.preferences.load()
+        preferences = self.settings_service.preferences.snapshot(startup=True).to_dict()
         self.general = PreferenceSnapshot(preferences).general()
         from .project.naming import SessionNamer
 

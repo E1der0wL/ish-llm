@@ -62,7 +62,7 @@ async def select_or_create(backend, config):
             if config._workspace_anchor is ProjectStartup.UNSPECIFIED_ANCHOR
             else config._workspace_anchor
         )
-        preset = await asyncio.to_thread(PresetStore(anchor).selected_project)
+        preset = await asyncio.to_thread(PresetStore(anchor).selected_project, startup=True)
         project_config = ProjectConfig.from_dict(
             ProjectConfig.merge(PresetProject(preset).config, config.project_config)
             if preset

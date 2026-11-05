@@ -13,6 +13,7 @@ import time
 from llm.errors import CodedError
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
+from llm.services.infrastructure.cancellation import cancel_tasks
 from llm.services.runtime._worker import ProcessGate, ProcessLaunch
 from .registry import Tool, ToolRegistry
 from .package_values import ToolPackageDigests
@@ -31,7 +32,6 @@ INTERPRETER_ARGUMENTS = ("-I",)
 INTERPRETER_ENVIRONMENT = {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}
 NORMAL_EXIT = 0
 NEW_PROCESS_GROUP = True
-COLLECT_CLEANUP_ERRORS = True
 INSPECTION_THREADS = 1
 NO_SHARED_LIBRARY = None
 fingerprint = ToolPackageDigests.digest
@@ -185,9 +185,7 @@ async def _invoke_worker(request):
                 except Exception:
                     return
             note_spawn()
-            for reader in readers:
-                reader.cancel()
-            await asyncio.gather(*readers, return_exceptions=COLLECT_CLEANUP_ERRORS)
+            await cancel_tasks(readers)
             async def discard(stream):
                 while await stream.read(READ_BYTES):
                     pass
@@ -197,9 +195,7 @@ async def _invoke_worker(request):
                 # 그룹 종료 후 EOF를 회수한다. host가 지정하지 않은 cleanup 기한은 만들지 않는다.
                 await asyncio.gather(*drains)
             finally:
-                for task in drains:
-                    task.cancel()
-                await asyncio.gather(*drains, return_exceptions=COLLECT_CLEANUP_ERRORS)
+                await cancel_tasks(drains)
                 process.stdin.close()
         await drain_on_cancel(cleanup())
 

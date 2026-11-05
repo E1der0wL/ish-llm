@@ -396,11 +396,36 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
         _, snapshot = await self.rag._async_call(self.rag._snapshot)
         await self.rag._async_call(self.rag._commit_documents, snapshot, prepared["documents"])
         published = self.component.corpus_version(self.project.data)
+        published_documents = await self.rag.alist_documents()
         self.calls.reset_mock()
         with patch.object(RAGComponent, "publish", side_effect=AssertionError("already published")):
             await self.rag.arun_job(job["id"], retry=True)
         self.calls.assert_not_awaited()
         self.assertEqual(self.component.corpus_version(self.project.data), published)
+        self.assertEqual(await self.rag.alist_documents(), published_documents)
+
+    async def test_bulk_job_changed_published_evidence_still_blocks_reconciliation(self):
+        from copy import deepcopy
+        from llm.components.rag.jobs import RAGJobs
+        job = await self.rag.aenqueue_documents(self.inputs())
+        with patch.object(RAGJobs, "_commit", side_effect=OSError("unrecorded completion")):
+            with self.assertRaises(OSError):
+                await self.rag.arun_job(job["id"])
+        jobs = RAGJobs(self.rag)
+        prepared = await self.rag._async_call(jobs._prepared, job["id"])
+        changed = deepcopy(prepared["documents"])
+        changed[0]["metadata"] = {"changed": True}
+        _, snapshot = await self.rag._async_call(self.rag._snapshot)
+        await self.rag._async_call(self.rag._commit_documents, snapshot, changed)
+        before = await self.rag.alist_documents()
+        published = self.component.corpus_version(self.project.data)
+        self.calls.reset_mock()
+        with patch.object(RAGComponent, "publish", side_effect=AssertionError("must not overwrite")):
+            with self.assertRaisesRegex(ValueError, "different content"):
+                await self.rag.arun_job(job["id"], retry=True)
+        self.calls.assert_not_awaited()
+        self.assertEqual(self.component.corpus_version(self.project.data), published)
+        self.assertEqual(await self.rag.alist_documents(), before)
 
     async def test_bulk_conflict_does_not_overwrite_concurrent_document(self):
         entered, release = asyncio.Event(), asyncio.Event()

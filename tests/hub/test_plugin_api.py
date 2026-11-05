@@ -45,9 +45,10 @@ class PluginAPITests(unittest.IsolatedAsyncioTestCase):
         result, lane = await self.registered()
         project = await self.api.projects.project(self.plugin)
         snapshot = AgentSnapshot.read(await project.agents.asnapshot("helper"))
-        metadata = snapshot.definition["metadata"]
-        self.assertEqual(metadata["created_at"], metadata["updated_at"])
-        self.assertTrue(metadata["created_at"])
+        times = await project.agents.aget_times("helper")
+        self.assertEqual(times["created_at"], times["updated_at"])
+        self.assertTrue(times["created_at"])
+        self.assertEqual(snapshot.definition, {"engine": "host"})
         await project.agents.arevise("helper", {"engine": "host", "description": "User setting"},
                                      expected_revision=snapshot.revision)
         again = await self.api.register(self.plugin, self.definition)

@@ -56,6 +56,15 @@ class ToolComponent(Component):
     def load(self, project, identifier):
         return read_package(ToolPaths.for_project(project), identifier)
 
+    def get_times(self, project, identifier):
+        from copy import deepcopy
+        paths = ToolPaths.for_project(project)
+        paths.package(identifier)
+        manifest, packages = paths.inventory()
+        if identifier not in packages:
+            raise FileNotFoundError(identifier)
+        return deepcopy(manifest.times[identifier])
+
     def list(self, project):
         if not self._has_storage(project):
             return {}

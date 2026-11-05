@@ -7,7 +7,7 @@ from llm.core.models import StepErrorCode
 
 from llm.core.models import ResourceKind
 
-from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
+from llm.services.infrastructure.storage import read_domain_record, atomic_timed_record
 
 from llm.services.query import FileCatalog, Query, select
 from copy import deepcopy
@@ -108,12 +108,12 @@ class StepRepository:
             raise ValueError(StepRepository.OWNER_MISMATCH)
         if prior.status != step.status:
             validate_step_transition(prior.status, step.status)
-        self._write(step)
+        self._write(step, previous=record(prior))
 
-    def _write(self, step: Step) -> None:
+    def _write(self, step: Step, *, previous=None) -> None:
         data = record(step)
         Step.from_record(data, step.paths)
-        atomic_domain_json(step.paths.record, data)
+        atomic_timed_record(step, data, previous)
         log_event(step.paths.logs, StepLogEvent.SAVED, entity_id=step.id, status=step.status)
 
     def load(self, run: Run, step_id: str) -> Step:

@@ -17,7 +17,7 @@ from ...errors.adapters import from_exception
 from ...errors.contracts import ErrorOrigin
 from ...errors.operations import OperationBlocked
 from .record_management import DocumentManagement
-from .management_values import ManagementOperation, ManagementEntry, ResourceTimestamps
+from .management_values import ManagementOperation
 from .rag_views import RAGOperation, JobDeleteReview, JobRetentionReview, ImageImport
 from llm.components.rag.job_views import JobObservation, JobCleanupPlan, JobCleanupRow
 from llm.components.rag.publication_records import (
@@ -248,20 +248,6 @@ class RAGManagement(DocumentManagement):
     async def list(self):
         documents = await super().list()
         records = await self.data.ajobs()
-        registered = {}
-        for record in records:
-            job = JobObservation(record)
-            if job.status == RAGJobStatus.COMPLETED.value:
-                for identifier in job.document_ids:
-                    previous = registered.get(identifier)
-                    if previous is None or datetime.fromisoformat(job.created_at) > datetime.fromisoformat(previous):
-                        registered[identifier] = job.created_at
-        # Catalog intentionally excludes document bodies/metadata. Reuse the
-        # already-needed job inventory for registration time, never N full reads.
-        for item in documents:
-            entry = ManagementEntry(item)
-            if not entry.modified:
-                item[ManagementEntry.MODIFIED] = registered.get(entry.name, ManagementEntry.EMPTY)
         return [*documents, *await self.jobs(records=records)]
 
     async def execute(
@@ -303,7 +289,7 @@ class RAGManagement(DocumentManagement):
 
             identifier, values = await read_document(self, argument, progress=progress)
             await self._require_new(identifier)
-            job = await self.data.aenqueue_document(identifier=identifier, **ResourceTimestamps.created(values))
+            job = await self.data.aenqueue_document(identifier=identifier, **values)
             if progress:
                 progress(job_entry(job))
             await self._run(JobObservation(job).identifier, progress=progress)

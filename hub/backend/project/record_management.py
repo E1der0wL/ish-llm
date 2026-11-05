@@ -2,6 +2,7 @@
 
 from llm.core.editable_snapshot import EditableSnapshot
 from llm.core.agent_views import AgentSnapshot
+from llm.core.record_times import RecordTimes
 from llm.components.rag.document_records import RAGDocumentInput, RAGDocument
 from llm.components.rag.document_views import DocumentEdit
 from llm.components.rag.retrieval_records import CatalogPage
@@ -13,7 +14,6 @@ from .management_values import (
     DefinitionSummary,
     SelectedFileImport,
     ImportProvenance,
-    ResourceTimestamps,
 )
 
 import asyncio
@@ -118,15 +118,17 @@ class RecordManagement:
                 raise ValueError(ManagementOperation.INVALID_IMPORT)
         return identifier, values
 
-    @staticmethod
-    def _entry(identifier, values, version):
-        return DefinitionSummary.entry(identifier, values, version)
+    async def _read_entry(self, identifier):
+        snapshot = EditableSnapshot.read(await self.snapshot(identifier))
+        times = RecordTimes.read(await self.data.aget_times(identifier))
+        return DefinitionSummary.entry(
+            identifier, snapshot.data, snapshot.version, modified=times.updated_at
+        )
 
     async def list(self):
         entries = []
         for identifier in await self.data.alist():
-            snapshot = EditableSnapshot.read(await self.snapshot(identifier))
-            entries.append(self._entry(identifier, snapshot.data, snapshot.version))
+            entries.append(await self._read_entry(identifier))
         return entries
 
     async def read(self, identifier):
@@ -137,10 +139,10 @@ class RecordManagement:
         return await self.data.asnapshot(identifier)
 
     async def create(self, identifier, values):
-        await self.data.acreate(ResourceTimestamps.created(values), identifier=identifier)
+        await self.data.acreate(values, identifier=identifier)
 
     async def save(self, identifier, values, version):
-        await self.data.asave(identifier, ResourceTimestamps.modified(values), expected_version=version)
+        await self.data.asave(identifier, values, expected_version=version)
 
     async def delete(self, identifier, version):
         await self.data.adelete(identifier, expected_version=version)
@@ -190,23 +192,20 @@ class RecordManagement:
 class SkillManagement(RecordManagement):
     """Native directory import and Markdown editing through the Skill owner."""
 
-    async def create(self, identifier, values):
-        await self.data.acreate(ResourceTimestamps.skill(values), identifier=identifier)
-
     async def list(self):
         from llm.components.skills import SkillRecord
-        from llm.core.skills import SkillDocument
 
         entries = []
         for identifier in await self.data.alist():
             snapshot = EditableSnapshot.read(await self.snapshot(identifier))
             document = SkillRecord.document(snapshot.data)
+            times = RecordTimes.read(await self.data.aget_times(identifier))
             entries.append(
                 ManagementEntry.record(
                     identifier,
                     document.name,
                     document.description,
-                    ResourceTimestamps.latest(document.frontmatter.get(SkillDocument.METADATA, {})),
+                    times.updated_at,
                     snapshot.version,
                 )
             )
@@ -228,22 +227,18 @@ class SkillManagement(RecordManagement):
     ):
         if action == ManagementAction.IMPORT:
             from llm.core.skills import SkillDocument
-            from .skill_registration import import_skill
 
             source = self.source_path(argument)
             if source.name == SkillDocument.FILENAME and source.is_file():
                 source = source.parent
-            await import_skill(self.data, source)
+            await self.data.aimport_directory(source)
             return await self.list()
         if action == ManagementAction.SAVE:
             if expected_version is ManagementOperation.ABSENT:
                 raise ValueError(ManagementOperation.RELOAD_SAVE)
-            from llm.components.skills import SkillRecord
-            stamped = ResourceTimestamps.skill(
-                SkillRecord.markdown_change(EditorRecord(argument).text), modified=True)
             await self.data.awrite_markdown(
                 EditorRecord(argument).name,
-                SkillRecord.document(stamped).text,
+                EditorRecord(argument).text,
                 expected_revision=expected_version,
             )
             return await self.list()
@@ -262,8 +257,7 @@ class AgentManagement(RecordManagement):
         entries = []
         for identifier in await self.data.alist():
             if not HubEngineIdentity.internal(identifier):
-                snapshot = EditableSnapshot.read(await self.snapshot(identifier))
-                entries.append(self._entry(identifier, snapshot.data, snapshot.version))
+                entries.append(await self._read_entry(identifier))
         return entries
 
     async def snapshot(self, identifier):
@@ -271,7 +265,7 @@ class AgentManagement(RecordManagement):
         return EditableSnapshot(snapshot.definition, snapshot.revision).to_dict()
 
     async def save(self, identifier, values, version):
-        await self.data.arevise(identifier, ResourceTimestamps.modified(values), expected_revision=version)
+        await self.data.arevise(identifier, values, expected_revision=version)
 
     async def delete(self, identifier, version):
         await self.data.adelete(identifier, expected_revision=version)
@@ -287,8 +281,9 @@ class DocumentManagement(RecordManagement):
         while ManagementOperation.ITERATE:
             page = await self.data.alist_catalog(limit=self.PAGE_SIZE, cursor=cursor)
             entries.extend(
-                self._entry(
-                    RAGDocument(item).identifier, item, DocumentEdit.version(item)
+                DefinitionSummary.entry(
+                    RAGDocument(item).identifier, item, DocumentEdit.version(item),
+                    modified=RecordTimes.from_record(item).updated_at,
                 )
                 for item in CatalogPage(page).documents
             )
@@ -304,13 +299,13 @@ class DocumentManagement(RecordManagement):
         )
 
     async def create(self, identifier, values):
-        await self.data.aadd_document(identifier=identifier, **ResourceTimestamps.created(values))
+        await self.data.aadd_document(identifier=identifier, **values)
 
     async def save(self, identifier, values, version):
         DocumentEdit.require_fields(values)
         await self.data.aupdate_document(
             identifier,
-            **ResourceTimestamps.modified(values),
+            **values,
             expected_revision=DocumentEdit(version).revision,
             expected_generation=DocumentEdit(version).generation
         )

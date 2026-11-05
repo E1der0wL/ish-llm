@@ -2,7 +2,6 @@
 
 import json
 from copy import deepcopy
-from datetime import datetime, timezone
 from enum import StrEnum
 from hub.model import RAGAction
 from llm.core.agents import AgentDefinition
@@ -185,56 +184,6 @@ class ImportProvenance:
         RAGDocumentInput(values).metadata[cls.SOURCE] = str(path)
 
 
-class ResourceTimestamps:
-    """Hub-authored resource metadata, written only through public CRUD APIs."""
-
-    CREATED_AT = "created_at"
-    UPDATED_AT = "updated_at"
-    METADATA = AgentDefinition.Field.METADATA.value
-
-    @classmethod
-    def created(cls, values):
-        result = deepcopy(values)
-        metadata = result.setdefault(cls.METADATA, {})
-        if isinstance(metadata, dict):
-            metadata.setdefault(cls.CREATED_AT, datetime.now(timezone.utc).isoformat())
-            metadata.setdefault(cls.UPDATED_AT, metadata[cls.CREATED_AT])
-        return result
-
-    @classmethod
-    def modified(cls, values):
-        result = deepcopy(values)
-        metadata = result.setdefault(cls.METADATA, {})
-        if isinstance(metadata, dict):
-            metadata[cls.UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        return result
-
-    @classmethod
-    def skill(cls, values, *, modified=False):
-        """Skill dates belong to standard frontmatter, never record-level extras."""
-        from llm.core.skills import SkillDocument
-        from llm.components.skills import SkillRecord
-
-        document = SkillRecord.document(values)
-        fields = cls.modified(document.frontmatter) if modified else cls.created(document.frontmatter)
-        result = deepcopy(values)
-        if fields != document.frontmatter:
-            name, description = fields.pop(SkillDocument.NAME), fields.pop(SkillDocument.DESCRIPTION)
-            result[SkillRecord.MARKDOWN] = SkillDocument.compose(
-                name=name, description=description, body=document.body, **fields).text
-        return result
-
-    @classmethod
-    def latest(cls, metadata):
-        """Missing historical dates stay unknown; reads never write timestamps."""
-        return metadata.get(cls.UPDATED_AT) or metadata.get(cls.CREATED_AT, ManagementEntry.EMPTY)
-
-    @staticmethod
-    def from_epoch(stamp):
-        """Format a timestamp supplied by its storage owner without replacing it."""
-        return datetime.fromtimestamp(stamp, timezone.utc).isoformat()
-
-
 class DefinitionSummary:
     """Optional presentation fields of current public snapshots, not a stored Reader."""
 
@@ -244,12 +193,11 @@ class DefinitionSummary:
     METADATA = AgentDefinition.Field.METADATA.value
     CONTENT = RAGDocumentInput.Field.CONTENT
     INSTRUCTIONS = "instructions"
-    UPDATED_AT = ResourceTimestamps.UPDATED_AT
     MAXIMUM_DESCRIPTION = 200
     EMPTY = ManagementEntry.EMPTY
 
     @classmethod
-    def entry(cls, identifier, values, version):
+    def entry(cls, identifier, values, version, *, modified):
         metadata = values.get(cls.METADATA) or {}
         return ManagementEntry.record(
             identifier,
@@ -262,7 +210,7 @@ class DefinitionSummary:
                 or values.get(cls.CONTENT)
                 or cls.EMPTY
             )[: cls.MAXIMUM_DESCRIPTION],
-            ResourceTimestamps.latest(metadata),
+            modified,
             version,
         )
 

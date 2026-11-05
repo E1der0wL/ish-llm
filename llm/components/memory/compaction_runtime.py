@@ -28,6 +28,7 @@ class CompactionExecution:
 
 
 class CompactionModelInput:
+    SOURCE = "source"
     TEXT = "text"
     PREVIOUS = "previous"
     OPTIONS = "options"
@@ -45,6 +46,10 @@ class CompactionModelInput:
     @classmethod
     def identity(cls, text, previous, options):
         return {cls.TEXT: text, cls.PREVIOUS: previous, cls.OPTIONS: options}
+
+    @classmethod
+    def source_identity(cls, source):
+        return {cls.SOURCE: source.identity}
 
     @classmethod
     def payload(cls, value, start, total, previous, maximum):

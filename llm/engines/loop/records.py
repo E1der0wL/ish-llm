@@ -6,6 +6,8 @@ from llm.core.checkpoints import CheckpointLifecycle
 from llm.core.interactions import InteractionRequest, same_interaction_value
 from llm.core.step_tool_metadata import ToolStepMetadata
 from llm.core.step_event_metadata import StepEventMetadata
+from llm.core.contracts import Diagnostic
+from llm.core.tool_event_result import ToolOutcome, ToolOutcomeStatus
 
 
 class LoopCheckpointRecord:
@@ -64,6 +66,13 @@ class LoopCheckpointRecord:
 class LoopToolRecord(LoopCheckpointRecord):
     """Loop Tool receipt Writers; effect, approval and usage authority stay in the shared runtime."""
 
+    MISSING_SELECTION = 'Deferred Tools require selected instructions'
+    INVALID_CANCELLATION = 'Invalid cancelled Tool receipt'
+    CHANGED_SELECTION = 'Deferred Tool identity or instruction selection changed'
+    MISSING_OUTCOME = 'Tool feedback requires a non-success outcome'
+    CHANGED_INVOCATION = 'Tool feedback invocation changed'
+    CHANGED_RESULT = 'Tool feedback result changed'
+
     NAME = "name"
     ARGUMENTS = "arguments"
     RESULT = "result"
@@ -73,7 +82,18 @@ class LoopToolRecord(LoopCheckpointRecord):
     ERROR = "error"
     DEFERRED_BY = "deferred_by"
     DEFERRED_BOUNDARY = "deferred_boundary"
-    NOT_EXECUTED = "not_executed"
+    NOT_EXECUTED = ToolOutcomeStatus.NOT_EXECUTED.value
+    CANCELLED = "cancelled"
+    CANCELLED_VALUE = True
+    NOT_CANCELLED = False
+    CANCELLED_NO_EFFECT = "cancelled_no_effect"
+    REASON = "reason"
+    SUPERSEDED = "superseded_by_instruction"
+    INSTRUCTION_IDS = "instruction_ids"
+    AFTER_CALL_ID = "after_call_id"
+    DEFERRED_CODE = "tool_not_executed"
+    DEFERRED_MESSAGE = "Application policy deferred remaining calls after Tool feedback"
+    JSON_ENSURE_ASCII = False
     KEY_TEMPLATE = "tool:{iteration}:{call_id}"
     PAUSE_TOOL_KEY = "tool_key"
 
@@ -118,28 +138,33 @@ class LoopToolRecord(LoopCheckpointRecord):
         return {cls.STATUS: status, cls.ERROR: error}
 
     @classmethod
-    def deferred(cls, *, name, arguments, boundary, instructions, cancelled=False):
+    def deferred(cls, *, name, arguments, boundary, instructions, cancelled=NOT_CANCELLED):
         from llm.core.checkpoints import CheckpointStatus
         if not instructions:
-            raise ValueError('Deferred Tools require selected instructions')
-        return {**({'cancelled': True} if cancelled else {}),
+            raise ValueError(LoopToolRecord.MISSING_SELECTION)
+        return {**({cls.CANCELLED: cls.CANCELLED_VALUE} if cancelled else {}),
                 cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.NAME: name,
                 cls.ARGUMENTS: arguments, cls.DEFERRED_BOUNDARY: boundary,
                 cls.DEFERRED_BY: list(instructions)}
 
     def deferred_content(self, *, name, arguments, boundary, instructions):
-        cancelled = self._value.get('cancelled', False)
+        cancelled = self._value.get(self.CANCELLED, self.NOT_CANCELLED)
         if type(cancelled) is not bool:
-            raise ValueError('Invalid cancelled Tool receipt')
+            raise ValueError(LoopToolRecord.INVALID_CANCELLATION)
         expected = self.deferred(name=name, arguments=arguments, boundary=boundary, instructions=instructions,
                                  cancelled=cancelled)
         # The checkpoint owner adds scope/usage envelopes. Compare only the Loop
         # deferral payload; common metadata remains validated by its own owner.
         if any(key not in self._value or self._value[key] != value for key, value in expected.items()):
-            raise ValueError('Deferred Tool identity or instruction selection changed')
-        return json.dumps({'status': 'cancelled_no_effect' if cancelled else self.NOT_EXECUTED,
-                           'reason': 'superseded_by_instruction',
-                           'instruction_ids': list(instructions)}, ensure_ascii=False)
+            raise ValueError(LoopToolRecord.CHANGED_SELECTION)
+        return json.dumps({self.STATUS: self.CANCELLED_NO_EFFECT if cancelled else self.NOT_EXECUTED,
+                           self.REASON: self.SUPERSEDED,
+                           self.INSTRUCTION_IDS: list(instructions)}, ensure_ascii=self.JSON_ENSURE_ASCII)
+
+    @classmethod
+    def deferred_outcome(cls, after_call_id):
+        return ToolOutcome(ToolOutcomeStatus.NOT_EXECUTED,
+            Diagnostic(cls.DEFERRED_CODE, cls.DEFERRED_MESSAGE, details={cls.AFTER_CALL_ID: after_call_id}), ToolOutcome.NO_STEP)
 
     @property
     def is_deferred(self):
@@ -160,7 +185,7 @@ class LoopToolRecord(LoopCheckpointRecord):
         from llm.core.tool_event_result import ToolEventResult
         outcome = ToolEventResult(result).outcome
         if outcome is None:
-            raise ValueError("Tool feedback requires a non-success outcome")
+            raise ValueError(LoopToolRecord.MISSING_OUTCOME)
         return {cls.STATUS: CheckpointStatus.NOT_APPLIED, cls.NAME: name, cls.ARGUMENTS: arguments,
                 cls.RESULT: result, cls.STEP_ID: outcome.step_id, cls.RUN_ID: run_id}
 
@@ -168,13 +193,13 @@ class LoopToolRecord(LoopCheckpointRecord):
         from llm.core.tool_event_result import ToolEventResult
         from copy import deepcopy
         if self._value[self.NAME] != name or not same_interaction_value(self._value[self.ARGUMENTS], arguments):
-            raise ValueError("Tool feedback invocation changed")
+            raise ValueError(LoopToolRecord.CHANGED_INVOCATION)
         result = deepcopy(self._value[self.RESULT])
         outcome = ToolEventResult(result).outcome
         expected = {}
         ToolEventResult(expected).reject(outcome)
         if result != expected or outcome.step_id != self.step_id:
-            raise ValueError("Tool feedback result changed")
+            raise ValueError(LoopToolRecord.CHANGED_RESULT)
         return result
 
     @classmethod

@@ -186,6 +186,8 @@ class NamingContractTests(unittest.TestCase):
         self.assertEqual(config.to_dict(), self.before['project_config'])
         for domain in (Project, Session, Run, Step):
             expected = list(self.before['fields'][domain.__name__])
+            # Managed record times add updated_at; historical naming evidence stays intact.
+            expected.insert(expected.index('created_at') + 1, 'updated_at')
             if domain is Project:
                 # H2 adds managed storage lifetime without renaming existing fields.
                 expected.insert(expected.index('components') + 1, 'initialized_components')

@@ -49,7 +49,7 @@ class TesseractBackend:
     REVISION_SEPARATOR = ":"
     ABSENT = None
     OWN_PROCESS_SESSION = True
-    COLLECT_CLEANUP_ERRORS = False
+    COLLECT_CLEANUP_ERRORS = True
     REQUIRED_EXECUTABLE = "Tesseract executable is required"
     MISSING_EXECUTABLE = "Tesseract executable is not installed"
     EXIT_FAILURE = "Tesseract exited with code {code}"
@@ -79,11 +79,16 @@ class TesseractBackend:
         )
 
         async def cleanup(process, exchange=TesseractBackend.ABSENT):
-            await asyncio.gather(
+            results = await asyncio.gather(
                 kill_process_tree(process),
                 exchange if exchange is not TesseractBackend.ABSENT else process.communicate(),
                 return_exceptions=TesseractBackend.COLLECT_CLEANUP_ERRORS,
             )
+            # A failed pipe must not release the caller while termination is
+            # still running. Surface cleanup errors only after both finish.
+            for result in results:
+                if isinstance(result, BaseException):
+                    raise result
 
         try:
             process = await asyncio.shield(pending)

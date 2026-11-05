@@ -2,7 +2,7 @@
 
 from llm.services.infrastructure.storage import (
     read_domain_record,
-    atomic_domain_json,
+    atomic_timed_record,
     revision_token,
     check_revision,
     recover_deletions,
@@ -74,16 +74,16 @@ class ProjectRepository:
 
     @workspace_locked
     def save(self, project: Project) -> None:
-        self.load(project.id)
-        self._write(project)
+        previous = self.load(project.id)
+        self._write(project, previous=previous.to_record())
 
-    def _write(self, project: Project) -> None:
+    def _write(self, project: Project, *, previous=None) -> None:
         if project.paths.root.absolute() != self.paths(project.id).root.absolute():
             raise ValueError(ProjectRepository.PATH_MISMATCH)
         project.config.validate()
         project.validate_conversation_storage()
         data = project.to_record()
-        atomic_domain_json(project.paths.record, data)
+        atomic_timed_record(project, data, previous)
         log_event(project.paths.logs, ProjectLogEvent.SAVED, entity_id=project.id)
 
     @workspace_locked

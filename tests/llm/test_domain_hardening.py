@@ -5,6 +5,7 @@ import asyncio
 import json
 import unittest
 from datetime import datetime, timedelta, timezone
+from dataclasses import replace
 from unittest.mock import patch
 
 from llm.components.memory import MemoryConflictError
@@ -16,11 +17,66 @@ from tests.llm import test_graph_checkpoints
 from tests.llm import test_memory_processing
 from tests.llm.test_memory_processing import answer
 from tests.llm.test_loop import chunk, call
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
     setup_app = test_interactions.InteractionRuntimeTests.setup_app
     paused = test_interactions.InteractionRuntimeTests.paused
+
+    async def _check_queued_approval_view(self, actor):
+        from llm.components.tools import ToolClassification
+
+        effects = []
+        async def act(arguments):
+            effects.append(arguments)
+        policies = ({'approval': {'enabled': True, 'risk_scheme': 'test', 'rules': [
+            {'id': 'allow-write', 'category': 'file.write', 'max_risk': 20}]}}
+            if actor == 'policy' else {})
+        app, session, model = await self.setup_app(act, [
+            [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
+            [chunk('done', finish='stop')]],
+            ToolRuntime(classify=lambda call: ToolClassification('file.write', 'test', 20)),
+            policies=policies, tool_contract=replace(TEST_CONTRACT, approval_required=True))
+        run = (await (await session.run.submit('write', recipients=['loop'])).wait())[0]
+        self.assertEqual(run.data.status, 'paused', run.data.error)
+        await session.run.wait_idle()
+        request, = await run.ainteractions()
+        if actor == 'user':
+            await run.arespond(request.respond('approve'))
+        receipts = await run.ainteraction_responses()
+        self.assertEqual([response.actor for response in receipts], [actor])
+        self.assertEqual(effects, [])
+
+        # Hold scheduling, not admission: the real public resume API persists
+        # the request, while no resumed Run can exist yet. No timing guesses.
+        manager = app._manager(session._snapshot)
+        async with manager._scheduling_lock():
+            queued = await session.run.resume(run.id, agent_id='loop')
+            self.assertEqual((await queued.aget_data()).status, 'queued')
+            self.assertEqual([item.id for item in await session.run.alist()], [run.id])
+            view, = await run.ainteraction_views()
+            self.assertEqual((view.status, view.execution_status), ('submitted', 'queued'))
+            self.assertEqual(view.blocked_reason, 'already_resumed')
+            self.assertIsNone(view.resumed_run_id)
+            self.assertFalse(view.can_resume)
+            self.assertFalse(view.can_respond)
+            self.assertEqual(await run.ainteraction_responses(), receipts)
+            self.assertEqual(effects, [])
+
+        resumed, = await queued.wait()
+        self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
+        view, = await run.ainteraction_views()
+        self.assertEqual((view.status, view.execution_status), ('submitted', 'completed'))
+        self.assertEqual(view.resumed_run_id, resumed.id)
+        self.assertEqual(effects, [{}])
+        self.assertEqual(len(model.requests), 2)
+
+    async def test_policy_approval_view_before_resumed_run_exists(self):
+        await self._check_queued_approval_view('policy')
+
+    async def test_user_approval_view_before_resumed_run_exists(self):
+        await self._check_queued_approval_view('user')
 
     async def test_rolled_back_interaction_changes_do_not_notify_ui(self):
         from llm.services.infrastructure import transactions

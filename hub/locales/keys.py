@@ -2,6 +2,20 @@
 
 
 class MessageKey:
+    STARTUP_FAILURE = 'startup_failure'
+    STARTUP_LOADING = 'startup_loading'
+    STARTUP_PROGRESS = 'startup_progress'
+    STARTUP_TARGET = 'startup_target'
+    STARTUP_RETRY = 'startup_retry'
+    STARTUP_RESET = 'startup_reset'
+    STARTUP_RESET_CONFIRM = 'startup_reset_confirm'
+    STARTUP_RESET_HINT = 'startup_reset_hint'
+    STARTUP_PERMISSION_HINT = 'startup_permission_hint'
+    STARTUP_INSTALL_HINT = 'startup_install_hint'
+    STARTUP_BACKEND_HINT = 'startup_backend_hint'
+    STARTUP_CLEANUP_HINT = 'startup_cleanup_hint'
+    STARTUP_RESETTING = 'startup_resetting'
+    PROGRESS_BACKEND_PREFERENCES = 'progress_backend_preferences'
     FAILURE_MODEL_RESPONSE = 'failure_model_response'
     FAILURE_MCP_CONNECTION = 'failure_mcp_connection'
     FAILURE_MCP_AUTHENTICATION = 'failure_mcp_authentication'
@@ -844,7 +858,6 @@ class MessageKey:
     RUN = 'run'
     STEPS = 'steps'
     CONNECTING = 'connecting'
-    CONNECTING_NOTICE = 'connecting_notice'
     NEW_SESSION = 'new_session'
     SESSIONS = 'sessions'
     WORKSPACE = 'workspace'

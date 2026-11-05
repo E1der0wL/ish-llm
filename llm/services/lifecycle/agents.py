@@ -124,6 +124,14 @@ class AgentRepository:
         return AgentSnapshot.from_record(value).to_dict()
 
     @workspace_locked
+    def get_times(self, project, identifier):
+        AgentDefinition.identifier(identifier)
+        records = self._inventory(project).records
+        if identifier not in records:
+            raise FileNotFoundError(self.UNKNOWN_AGENT.format(identifier=identifier))
+        return records[identifier].times.to_dict()
+
+    @workspace_locked
     def load(self, project, identifier):
         # Inventory has already validated the record and its revision. Avoid
         # serializing/revalidating an observation merely to read its definition.
@@ -144,8 +152,11 @@ class AgentRepository:
             result[identifier] = records[identifier].definition
         return result
 
-    def _write(self, project, identifier, definition, manifest):
-        value = AgentRecord.create(project.id, identifier, definition)
+    def _write(self, project, identifier, definition, manifest, *, previous=None):
+        if previous is not None and AgentDefinition.revision(definition) == previous.revision:
+            return manifest
+        value = AgentRecord.create(project.id, identifier, definition,
+                                   times=previous.times.touch() if previous is not None else None)
         raw = json.dumps(value.to_dict(), ensure_ascii=self.ENSURE_ASCII, allow_nan=JsonObject.ALLOW_NON_FINITE).encode(self.JSON_ENCODING)
         root = self.root(project)
         manifest = manifest.with_record(identifier, hashlib.sha256(raw).hexdigest())
@@ -177,7 +188,7 @@ class AgentRepository:
         if identifier not in records:
             raise FileNotFoundError(self.UNKNOWN_AGENT.format(identifier=identifier))
         self._check_revision(records[identifier], expected_revision)
-        self._write(project, identifier, definition, manifest)
+        self._write(project, identifier, definition, manifest, previous=records[identifier])
 
     @workspace_locked
     def delete(self, project, identifier, *, expected_revision):
@@ -300,6 +311,10 @@ class AgentManager:
         return self.repository.snapshot(self.access.require(project), identifier)
 
     @workspace_locked
+    def get_times(self, project, identifier):
+        return self.repository.get_times(self.access.require(project), identifier)
+
+    @workspace_locked
     def revise(self, project, identifier, definition, *, expected_revision):
         project = self.access.require(project)
         self._validate(identifier, definition)
@@ -417,6 +432,9 @@ class AgentHandle:
     def snapshot(self, identifier):
         return self._call(AgentManager.snapshot.__name__, identifier)
 
+    def get_times(self, identifier):
+        return self._call(AgentManager.get_times.__name__, identifier)
+
     def revise(self, identifier, definition, *, expected_revision):
         return self._call(AgentManager.revise.__name__, identifier, definition, expected_revision=expected_revision)
 
@@ -440,6 +458,7 @@ class AgentHandle:
     aload = async_method(load)
     alist = async_method(list)
     asnapshot = async_method(snapshot)
+    aget_times = async_method(get_times)
     arevise = async_method(revise)
     asave = async_method(save)
     aupdate = async_method(update)

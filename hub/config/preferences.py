@@ -47,6 +47,38 @@ def configured_profile(config):
     )
 
 
+def prepare_profile(config):
+    """Keep an installation usable in recovery mode without accepting bad settings."""
+    from pathlib import Path
+    from .workspace import workspace_path
+    from ..errors.startup import StartupFailure, StartupLoadError
+    from ..locales.keys import MessageKey
+    anchor = Path(config.launch_workspace).expanduser().absolute()
+    store = PreferencesStore(anchor)
+    try:
+        stored = store.snapshot(startup=True)
+        try:
+            selected = workspace_path(stored.workspace_selection)
+            effective = replace(config, workspace=selected or anchor, _workspace_anchor=anchor)
+            profile = stored.profile(config.user_profile)
+            general = stored.general()
+            language = general.resolved_language(config.language)
+            if general.language == GeneralSettings.AUTO_LANGUAGE and profile.language != UserProfile.AUTO_LANGUAGE:
+                language = profile.language
+            effective = replace(effective, user_profile=profile, language=language,
+                                language_packs={**config.language_packs, **general.language_packs})
+        except (ValueError, TypeError, RuntimeError) as error:
+            from .recovery import FileReset
+            raise StartupLoadError(error, store.path, reset=FileReset.capture(store)) from error
+        return effective, stored, None
+    except Exception as error:
+        # These defaults render only the recovery UI; no backend or Project is
+        # opened and nothing is saved until the user explicitly retries/resets.
+        issue = StartupFailure.observe(error, MessageKey.PROGRESS_BACKEND_PREFERENCES, store.path)
+        fallback = replace(config, workspace=anchor, _workspace_anchor=anchor)
+        return fallback, PreferenceSnapshot({}), issue
+
+
 class PreferencesStore(WorkspaceJSONStore):
     VERSION = PreferenceRecord.VERSION
     SECTIONS = PreferenceRecord.SECTIONS
@@ -60,14 +92,19 @@ class PreferencesStore(WorkspaceJSONStore):
         """Validate a complete current section, including portable presets."""
         return PreferenceRecord.validate_section(cls.SECTIONS[section], section, record)
 
-    def snapshot(self):
-        value = self._read_json(PreferenceRecord.empty(self.VERSION))
-        result = PreferenceRecord.read(
-            value, self.VERSION, self.SECTIONS, self.validate_section
-        )
-        sidebar = self.sidebar._read_json(SidebarWidth.ABSENT)
+    def snapshot(self, *, startup=False):
+        from .recovery import read_for_startup
+        def preferences():
+            return PreferenceRecord.read(
+                self._read_json(PreferenceRecord.empty(self.VERSION)),
+                self.VERSION, self.SECTIONS, self.validate_section)
+        result = read_for_startup(self, preferences) if startup else preferences()
+        def width():
+            value = self.sidebar._read_json(SidebarWidth.ABSENT)
+            return SidebarWidth.ABSENT if value is SidebarWidth.ABSENT else SidebarWidth.read(value)
+        sidebar = read_for_startup(self.sidebar, width) if startup else width()
         if sidebar is not SidebarWidth.ABSENT:
-            result.apply_sidebar(SidebarWidth.read(sidebar))
+            result.apply_sidebar(sidebar)
         return result
 
     def load(self):

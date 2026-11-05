@@ -6,7 +6,6 @@ from copy import deepcopy
 from llm.core.models import ProjectConfig, ConversationStorage
 from .definitions import PluginDefinition, PluginIdentity
 from ..session_contracts import InternalSession
-from ..project.management_values import ResourceTimestamps
 
 
 class PluginProjects:
@@ -63,7 +62,7 @@ class PluginProjects:
                 existing = set(await project.agents.alist())
                 for name, value in definition.agents.items():
                     if name not in existing:
-                        await project.agents.acreate(ResourceTimestamps.created(value), identifier=name)
+                        await project.agents.acreate(value, identifier=name)
             except BaseException:
                 if created:
                     await asyncio.shield(project.adelete())

@@ -11,6 +11,7 @@ from typing import Union
 
 from llm.engines.base import EngineEventType
 from llm.core.results import EngineOutput, EngineDelta, OutputContract
+from llm.services.infrastructure.cancellation import cancel_tasks
 
 
 class OutputQueueKind(StrEnum):
@@ -22,7 +23,6 @@ class OutputQueueKind(StrEnum):
 class OutputQueue:
     ZERO_CHARS = 0
     NO_WAIT = 0
-    COLLECT_CANCELLATION = True
     CLOSE_METHOD = "aclose"
 
 
@@ -207,6 +207,9 @@ async def consume_events(events, batching, handle):
                 barrier.set()
     finally:
         stopping.set()
-        producer.cancel()
-        await asyncio.gather(producer, return_exceptions=OutputQueue.COLLECT_CANCELLATION)
-        await flush()
+        try:
+            await cancel_tasks((producer,))
+        finally:
+            # Repeated cancellation cannot skip already accepted output. The
+            # storage owner still controls durability and observation callbacks.
+            await flush()

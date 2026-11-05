@@ -11,7 +11,7 @@ MCP 연결 정의와 발견한 Tool 목록을 Project 데이터로 관리합니�
 | [records.py](records.py) | 정의·선택 Schema, 발견 기록·실행 binding·런타임 연결의 타입과 Reader/Writer입니다. |
 | [catalogs.py](catalogs.py) | 발견 기록의 경로와 원자적 파일 저장을 소유합니다. |
 | [data.py](data.py) | 명시적 발견, 정의·connector 최신성 검사와 선택한 원격 Tool의 실행 연결입니다. |
-| [access.py](access.py) | 애플리케이션이 연 연결 범위에서 상태·리소스·선택 Tool을 재사용합니다. |
+| [access.py](access.py) | 애플리케이션이 연 연결 범위에서 상태·리소스·prompts·선택 Tool을 재사용합니다. |
 | [client.py](client.py) | 선택적 connector 기능의 공개 계약입니다. SDK 세부 옵션은 해석하지 않습니다. |
 
 ## 정의 저장 예

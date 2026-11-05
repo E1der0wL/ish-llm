@@ -88,8 +88,13 @@ class ToolPaths:
         return _checked(self.root / validate_name(name))
 
     def modified_at(self, name):
-        """Display-only timestamp; callers obtain the current package snapshot first."""
-        return max(path.stat().st_mtime for path in self.package(name).iterdir())
+        """Existing display projection of owner-managed updated_at, never filesystem mtime."""
+        from datetime import datetime
+        from llm.core.record_times import RecordTimes
+        manifest, packages = self.inventory()
+        if name not in packages:
+            raise FileNotFoundError(self.MISSING_PACKAGE)
+        return datetime.fromisoformat(RecordTimes.read(manifest.times[name]).updated_at).timestamp()
 
     def source(self, name):
         return _checked(self.package(name) / (name + self.SOURCE_SUFFIX))
@@ -227,7 +232,9 @@ def _write_text(path, text):
 
 def write_package(paths, name, data):
     data = ToolPackageSource.read(data)
-    manifest, _ = paths.inventory()
+    manifest, packages = paths.inventory()
+    if packages.get(name) == data:
+        return
     make_directory(paths.package(name))
     _write_text(paths.source(name), data.source)
     if data.has_requirements:

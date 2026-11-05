@@ -117,6 +117,8 @@ class BackendWorker:
         self._closed = BackendWorker.OPEN
         self._restarting = BackendWorker.NOT_RESTARTING
         self._failure = BackendWorker.ABSENT
+        self.startup_failure = None
+        self._runtime_closed = False
         self._shutdown_error = BackendWorker.ABSENT
         self._commands = set()
         self._snapshot_task = BackendWorker.ABSENT
@@ -161,12 +163,13 @@ class BackendWorker:
                 )
 
     async def _serve(self) -> None:
-        self.runtime = HubRuntime(self.config, self.backend_factory)
-        self.runtime.request_started = self._publish_request_started
         refresher = BackendWorker.ABSENT
         try:
             try:
                 with OperationProgress.bind(self._report_startup):
+                    OperationProgress.report(MessageKey.PROGRESS_BACKEND_PREFERENCES)
+                    self.runtime = HubRuntime(self.config, self.backend_factory)
+                    self.runtime.request_started = self._publish_request_started
                     await self.runtime.start()
                     OperationProgress.report(MessageKey.PROGRESS_BACKEND_HISTORY)
                     self.runtime.dirty.clear()
@@ -175,13 +178,22 @@ class BackendWorker:
                 refresher = asyncio.create_task(self._refresh(initial))
             except Exception as error:
                 self._failure = error
-                self.report_error(
-                    from_exception(
-                        error,
-                        origin=ErrorOrigin.BACKEND,
-                        operation=HubRuntime.start.__name__,
-                    )
-                )
+                from ..errors.startup import StartupFailure
+                retry_allowed = True
+                # Release handles/ownership before offering a loading retry.
+                # This is not Run retry, resume or replay.
+                if self.runtime is not None:
+                    try:
+                        await self.runtime.close()
+                        self._runtime_closed = True
+                    except Exception as cleanup_error:
+                        error = ExceptionGroup("Startup and cleanup failed", [error, cleanup_error])
+                        retry_allowed = False
+                target = (self.runtime.project.id if self.runtime is not None
+                          and self.runtime.project is not None else str(self.config.workspace))
+                self.startup_failure = StartupFailure.observe(
+                    error, self._startup_progress.key, target, retry_allowed=retry_allowed)
+                self.report_error(self.startup_failure.error)
             finally:
                 self._initialized.set()
             await self._stop.wait()
@@ -196,7 +208,9 @@ class BackendWorker:
                 await asyncio.gather(
                     refresher, return_exceptions=BackendWorker.CAPTURE_ERRORS
                 )
-            await self.runtime.close()
+            if self.runtime is not None and not self._runtime_closed:
+                await self.runtime.close()
+                self._runtime_closed = True
 
     def _report_startup(self, update):
         with self._startup_lock:
@@ -409,6 +423,10 @@ class BackendWorker:
     async def _prepare_restart(self):
         await self._initialized.wait()
         self._restarting = BackendWorker.RESTARTING
+        if self.startup_failure is not None:
+            if not self.startup_failure.retry_allowed:
+                raise RuntimeError("Failed startup still owns resources; restart ish after reviewing cleanup errors")
+            return
         commands = tuple(self._commands)
         for task in commands:
             task.cancel()
