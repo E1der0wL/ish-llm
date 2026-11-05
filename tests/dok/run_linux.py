@@ -46,7 +46,7 @@ def main():
     (report / "snapshot.json").write_text(json.dumps({"root": str(target), "python": sys.executable,
                                                      "files": hashes}, indent=2))
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION")
-    for name in ("WSL_DISTRO_NAME", "WSL_INTEROP", "DISPLAY", "WAYLAND_DISPLAY"):
+    for name in ("WSL_DISTRO_NAME", "WSL_INTEROP", "DISPLAY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS"):
         env.pop(name, None)
     suites = [("dok", ["-m", "unittest", "discover", "-s", "tests/dok", "-t", ".", "-v"])]
     results = {}

@@ -45,12 +45,14 @@ class ClockFormat(Rule):
         return {"type": "string", "pattern": self.PATTERN}
 
     @classmethod
-    def render(cls, fmt, now):
+    def render(cls, fmt, now, *, weekdays: tuple[str, ...] | None = None):
         def token(match):
             value = match.group()
             if value in ("%B", "%b"):
                 month = cls.MONTHS[now.month - 1]
                 return month if value == "%B" else month[:3]
+            if value in ("%a", "%A") and weekdays is not None:
+                return weekdays[now.weekday()]
             return now.strftime(value)
         return re.sub(r"%.", token, fmt)
 
@@ -70,8 +72,7 @@ class ClockConfig(Record):
         return self.schedule(date, time).next_tick(now)
 
     def schedule(self, date, time) -> ClockSchedule:
-        seconds = any(element.needs_clock and "%S" in element.format.replace("%%", "") for element in (date, time))
-        return ClockSchedule(self, seconds)
+        return ClockSchedule.for_formats(self, *(element.format for element in (date, time) if element.needs_clock))
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,6 +81,11 @@ class ClockSchedule:
 
     clock: ClockConfig
     seconds: bool
+
+    @classmethod
+    def for_formats(cls, clock: ClockConfig, *formats: str) -> ClockSchedule:
+        """Own cadence interpretation for every consumer of clock formats."""
+        return cls(clock, any("%S" in fmt.replace("%%", "") for fmt in formats))
 
     def next_tick(self, now: datetime) -> float:
         return (1 if self.seconds else 60 - now.second) - now.microsecond / 1_000_000

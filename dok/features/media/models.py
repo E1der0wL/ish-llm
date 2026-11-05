@@ -1,4 +1,4 @@
-"""Read-only presentation contract; no player or audio process is started."""
+"""Immutable playback presentation and action names; no I/O is performed here."""
 
 from dataclasses import dataclass
 from enum import StrEnum

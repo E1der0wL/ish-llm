@@ -1,14 +1,18 @@
 # 설정 구조
 
-설정은 `dock`, `audio`, `clock`, `widgets` 네 그룹으로 구성한다. [전체 기본 설정과 영어 설명](config.example.jsonc)은 실제 Owner에서 생성한 JSONC다. 이전 필드명·구조·버전은 읽거나 변환하지 않는다. 이미 있는 파일은 자동으로 새 형식으로 바뀌지 않는다.
+설정은 `dock`, `audio`, `media`, `clock`, `widgets`, `system`, `toolbar`로 구성한다. [전체 기본 설정과 영어 설명](config.example.jsonc)은 실제 Owner에서 생성한 JSONC다. 이전 필드명·구조·버전은 읽거나 변환하지 않는다. 이미 있는 파일은 자동으로 새 형식으로 바뀌지 않는다.
 
 | 그룹 | 책임 |
 | --- | --- |
 | `dock.keys` | `toggle` 키 시퀀스, 기본 Ctrl+W. 펼침 크기는 공간에 따라 자동 조절 |
 | `dock.width` | `mode: fixed/ratio`, `value` |
+| `dock.mouse.enabled` | 독 마우스 켜기·끄기, 기본 false |
+| `media` | MPRIS 활성화·플레이어 선택·조회 주기·요청 제한 시간. [설명](media.md) |
 | `audio` | Linux 출력 캡처 활성화와 모니터 소스 |
 | `clock.timezone` | 날짜·시간·요일과 날씨 갱신 시각의 공통 시간대. 기본 `null`은 시스템 시간대 |
 | `widgets` | 화면 순서대로 기능별 내용·스타일·간격 |
+| `system` | Linux 측정 활성화·주기·기록 한도·네트워크 인터페이스 |
+| `toolbar` | 날짜·입력 상태·숫자 합계(평균)와 오른쪽 시스템 정보. [설명](toolbar.md) |
 
 `widgets`에는 `weather`, `weekday_art`, `date`, `time`, `visualizer`, `progress`, `title`, `media_controls`, `shortcuts`가 있다. 정보 영역의 네 위젯은 최대화에서 표시한다. 순서를 바꾸는 옵션은 추가하지 않았다.
 
@@ -77,7 +81,7 @@
 
 ## Owner와 공개 API
 
-`DockConfig`는 `DockSettings`, `AudioConfig`, `ClockConfig`, `WidgetsConfig`를 조합한다. `ShortcutsConfig`는 기본 항목·슬롯·키 검증과 조회를 소유하고, 각 화면 요소는 자신에게 필요한 `Spacing`·스타일·문구 Owner를 조합한다. 저장·schema·JSONC 주석은 같은 `Record` 필드 선언에서 생성한다. 화면과 서비스는 typed 객체와 공개 메서드를 사용한다.
+`DockConfig`는 `DockSettings`, `AudioConfig`, `ClockConfig`, `WidgetsConfig`, `MediaConfig`, `SystemConfig`, `ToolbarConfig`를 조합한다. `ShortcutsConfig`는 기본 항목·슬롯·키 검증과 조회를 소유하고, 각 화면 요소는 자신에게 필요한 `Spacing`·스타일·문구 Owner를 조합한다. 저장·schema·JSONC 주석은 같은 `Record` 필드 선언에서 생성한다. 화면과 서비스는 typed 객체와 공개 메서드를 사용한다.
 
 ```python
 from dok import DockConfig

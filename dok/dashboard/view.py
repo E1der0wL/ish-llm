@@ -33,8 +33,9 @@ class DashboardView:
 
 
 class DockView:
-    def __init__(self, execute):
+    def __init__(self, execute, media=None):
         self._execute = execute
+        self._media = media
 
     def render(self, config, snapshot, audio, diagnostic, total_width, body_width,
                dashboard_rows=(), mode=DockMode.BASIC):
@@ -47,7 +48,7 @@ class DockView:
             fragments = tuple((DockStyle.foreground(span.color, bold=span.bold), span.text, swallow_mouse)
                               for span in content.spans)
             lines.append(DockLine(row, left, occupied, fragments))
-        for widget in body_widgets(config, self._execute):
+        for widget in body_widgets(config, self._execute, self._media):
             rows = widget.rows(mode)
             if not rows:
                 continue

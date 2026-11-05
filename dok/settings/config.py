@@ -9,6 +9,10 @@ from ..dashboard.config import WidgetsConfig
 from ..features.audio.config import AudioConfig, VisualizerConfig, VisualizerStyle
 from ..features.clock.config import ClockConfig
 from ..features.shortcuts.config import Shortcut, ShortcutsConfig
+from ..features.media.connection import MediaConfig
+from ..features.system.config import SystemConfig
+from ..features.toolbar.config import ToolbarConfig
+from ..integrations.ish.mouse import MouseConfig
 from ..integrations.ish.keys import KeyRule, KeySequence
 
 class WidthMode(StrEnum):
@@ -73,6 +77,8 @@ class DockSettings(Record):
         factory=Width,
         description="Overall dock width; widget rows are centered within it."
     )
+    mouse: MouseConfig = setting(Nested(MouseConfig), factory=MouseConfig,
+        description="Mouse reporting and dock-only action routing.")
 
 @dataclass(frozen=True, slots=True)
 class DockConfig(Record):
@@ -96,6 +102,12 @@ class DockConfig(Record):
         factory=WidgetsConfig,
         description="Widget content, appearance and spacing."
     )
+    media: MediaConfig = setting(Nested(MediaConfig), factory=MediaConfig,
+        description="MPRIS discovery, player selection and control. Independent of audio capture.")
+    system: SystemConfig = setting(Nested(SystemConfig), factory=SystemConfig,
+        description="Linux CPU, memory and network sampling. WSL metrics do not represent the entire Windows host.")
+    toolbar: ToolbarConfig = setting(Nested(ToolbarConfig), factory=ToolbarConfig,
+        description="Left-aligned date and prompt status, with system metrics at the right edge.")
 
     def _check(self):
         self.widgets.shortcuts.validate_keys((self.dock.keys.toggle,))

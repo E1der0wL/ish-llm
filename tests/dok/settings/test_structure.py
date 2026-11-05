@@ -66,7 +66,7 @@ class StructureTests(unittest.TestCase):
 
     def test_generated_root_and_widget_order_matches_display(self):
         data = Jsonc.loads(Jsonc.dumps(DockConfig()))
-        self.assertEqual(list(data), ["dock", "audio", "clock", "widgets"])
+        self.assertEqual(list(data), ["dock", "audio", "clock", "widgets", "media", "system", "toolbar"])
         self.assertEqual(
             list(data["widgets"]),
             [

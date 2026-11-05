@@ -6,7 +6,7 @@ PLUGIN_META = {
     "description": "Floating shell dock with configurable command-prefix shortcuts.",
     "author": "",
     "requirements": [],
-    "dependencies": ["pyfiglet", "httpx"],
+    "dependencies": ["pyfiglet", "httpx", "dbus-fast>=5.2,<6|dbus_fast", "psutil>=7,<8"],
 }
 
 from pathlib import Path

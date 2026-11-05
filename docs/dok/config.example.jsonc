@@ -15,6 +15,11 @@
       "mode": "fixed",
       // Cell count for fixed, or a fraction greater than 0 and at most 1 for ratio. Clamped to the available width.
       "value": 80
+    },
+    // Mouse reporting and dock-only action routing.
+    "mouse": {
+      // Enable dock-only mouse actions while visible. Terminal text selection requires Shift+drag.
+      "enabled": false
     }
   },
   // Linux output audio capture. Native Windows audio is not included.
@@ -169,7 +174,7 @@
       // Visualizer length in terminal cells. Clamped to the dock width.
       "width_columns": 38
     },
-    // Playback progress bar. No external player is connected.
+    // Playback progress bar. Seek is available when the connected player supports it.
     "progress": {
       // Show this widget. false removes its content and trailing spacing.
       "enabled": true,
@@ -212,7 +217,7 @@
         "audio_error": "Audio connection failed"
       }
     },
-    // Display-only music buttons; no playback control is connected.
+    // Music buttons. Unsupported player actions are dimmed and inactive.
     "media_controls": {
       // Show this widget. false removes its content and trailing spacing.
       "enabled": true,
@@ -478,6 +483,212 @@
           }
         }
       ]
+    }
+  },
+  // MPRIS discovery, player selection and control. Independent of audio capture.
+  "media": {
+    // Connect to MPRIS players on the Linux session bus while the dock is visible.
+    "enabled": true,
+    // Exact MPRIS bus name, or null to select a playing player and retain it until it exits.
+    "player": null,
+    // Seconds between player state queries while visible. No polling while hidden.
+    "refresh_seconds": 1.0,
+    // Maximum seconds for each D-Bus request. Failed commands are never retried.
+    "timeout_seconds": 2.0
+  },
+  // Linux CPU, memory and network sampling. WSL metrics do not represent the entire Windows host.
+  "system": {
+    // Collect Linux system metrics while a system toolbar is visible.
+    "enabled": true,
+    // Seconds between samples. Sampling runs outside the UI thread.
+    "refresh_seconds": 1.0,
+    // Maximum recent samples retained in memory for graphs. No history files are written.
+    "history_samples": 120,
+    // Network interfaces to sum, for example ["eth0"]. null selects active non-loopback interfaces; bridges/VPNs may count traffic twice.
+    "interfaces": null
+  },
+  // Left-aligned date and prompt status, with system metrics at the right edge.
+  "toolbar": {
+    // Let dok define the existing ish bottom toolbar. Disabling restores its previous content.
+    "enabled": true,
+    // Separator between items. The left/right gap expands to fill the terminal.
+    "separator": "  ",
+    // Far-left date and weekday, using the shared clock settings.
+    "date": {
+      // Show the date at the far left.
+      "enabled": true,
+      // Hide this date only while the dock is actually painted, in either basic or maximized mode.
+      "hide_when_dock_visible": true,
+      // Date format using the shared clock timezone. %a and %A use the weekday labels below.
+      "format": "%Y-%m-%d(%a)",
+      // Seven weekday labels, Monday through Sunday.
+      "weekdays": ["월", "화", "수", "목", "금", "토", "일"],
+      // Date foreground color.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db"
+      }
+    },
+    // Left-hand shell prompt status fields.
+    "input": {
+      // Show status of the shell prompt buffer, excluding prompt decoration and suggestions.
+      "enabled": true,
+      // Input status items in display order. On narrow terminals, later items are omitted first.
+      "items": [
+        {
+          // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
+          "field": "length",
+          // Text immediately before the value.
+          "label": "Len:",
+          // Show this input status item.
+          "enabled": true,
+          // Input status foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#d1d5db"
+          }
+        },
+        {
+          // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
+          "field": "lines",
+          // Text immediately before the value.
+          "label": "Lines:",
+          // Show this input status item.
+          "enabled": true,
+          // Input status foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#d1d5db"
+          }
+        },
+        {
+          // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
+          "field": "line",
+          // Text immediately before the value.
+          "label": "Ln:",
+          // Show this input status item.
+          "enabled": true,
+          // Input status foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#d1d5db"
+          }
+        },
+        {
+          // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
+          "field": "column",
+          // Text immediately before the value.
+          "label": "Col:",
+          // Show this input status item.
+          "enabled": true,
+          // Input status foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#d1d5db"
+          }
+        },
+        {
+          // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
+          "field": "position",
+          // Text immediately before the value.
+          "label": "Pos:",
+          // Show this input status item.
+          "enabled": true,
+          // Input status foreground color.
+          "style": {
+            // Foreground color in #RRGGBB format.
+            "color": "#d1d5db"
+          }
+        }
+      ]
+    },
+    // Numeric sum and mean after the input status fields.
+    "numbers": {
+      // Show the sum and mean of extracted numbers; never executes expressions.
+      "enabled": true,
+      // selection uses the prompt's selected ranges; input uses the entire prompt buffer. Terminal-native mouse selection is not visible to dok.
+      "scope": "selection",
+      // Text before sum(mean).
+      "label": "Σ ",
+      // Maximum decimal places, rounded half up; trailing zeros are removed.
+      "decimal_places": 2,
+      // Shown when no numbers are selected/found.
+      "empty_text": "—",
+      // Shown instead of partial results when calculation limits are exceeded.
+      "limit_text": "…",
+      // Sum and mean foreground color.
+      "style": {
+        // Foreground color in #RRGGBB format.
+        "color": "#d1d5db"
+      }
+    },
+    // Right-aligned CPU, memory and network display.
+    "system": {
+      // Keep system metrics aligned to the right edge of the toolbar.
+      "enabled": true,
+      // Metric display order and priority; later metrics are omitted first if their text cannot fit.
+      "order": ["cpu", "memory", "network"],
+      // Average CPU utilization and recent-history line graph.
+      "cpu": {
+        // Show this metric in the right-hand group.
+        "enabled": true,
+        // Metric icon or label, usually a Nerd Font glyph.
+        "label": "",
+        // Metric text and graph foreground color.
+        "style": {
+          // Foreground color in #RRGGBB format.
+          "color": "#b6c78c"
+        },
+        // Graph visibility and maximum length.
+        "graph": {
+          // Show a compact graph; it shrinks before any text is removed.
+          "enabled": true,
+          // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
+          "columns": 12
+        }
+      },
+      // Used/total memory, percentage and capacity bar.
+      "memory": {
+        // Show this metric in the right-hand group.
+        "enabled": true,
+        // Metric icon or label, usually a Nerd Font glyph.
+        "label": "",
+        // Metric text and graph foreground color.
+        "style": {
+          // Foreground color in #RRGGBB format.
+          "color": "#8ccfc8"
+        },
+        // Graph visibility and maximum length.
+        "graph": {
+          // Show a compact graph; it shrinks before any text is removed.
+          "enabled": true,
+          // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
+          "columns": 12
+        }
+      },
+      // Receive/send rates and optional combined-traffic history graph.
+      "network": {
+        // Show this metric in the right-hand group.
+        "enabled": true,
+        // Metric icon or label, usually a Nerd Font glyph.
+        "label": "NET",
+        // Metric text and graph foreground color.
+        "style": {
+          // Foreground color in #RRGGBB format.
+          "color": "#d49abb"
+        },
+        // Graph visibility and maximum length.
+        "graph": {
+          // Show a compact graph; it shrinks before any text is removed.
+          "enabled": false,
+          // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
+          "columns": 12
+        }
+      },
+      // Receive-rate label.
+      "download_label": "↓",
+      // Send-rate label.
+      "upload_label": "↑"
     }
   }
 }

@@ -19,6 +19,65 @@ from tests.dok.support import HostPrompt, Output, render, screen_lines, wait_run
 
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
+    async def test_hide_cancels_media_before_the_next_render(self):
+        from tests.dok.features.test_media import Backend, player, until
+        from dok import PlaybackAction
+        backend = Backend((player(),))
+        self.dock._media._factory = lambda timeout: backend
+        self.dock.configure(DockConfig(audio={'enabled': False}))
+        await self.start('draft')
+        self.dock.show()
+        await render(self.prompt.app)
+        await until(lambda: self.dock._media.state.connected)
+        entered, release = asyncio.Event(), asyncio.Event()
+        original = backend.read
+        async def slow(name):
+            entered.set()
+            await release.wait()
+            return await original(name)
+        backend.read = slow
+        self.dock._media.request(self.dock._media.state, action=PlaybackAction.PAUSE,
+                                 start_task=self.prompt.app.create_background_task)
+        await entered.wait()
+        with patch.object(self.prompt.app, 'invalidate'):
+            self.dock.show(False)
+            release.set()
+            await until(lambda: not self.dock._media.busy)
+        self.assertEqual(backend.calls, [])
+
+
+    async def test_mouse_option_tracks_visibility_and_preserves_prompt_editing(self):
+        from prompt_toolkit.data_structures import Point
+        from prompt_toolkit.mouse_events import MouseEvent, MouseEventType, MouseButton
+        from prompt_toolkit.application.current import set_app
+        self.dock.configure(DockConfig(audio={'enabled': False}, media={'enabled': False}))
+        await self.start('draft')
+        self.assertFalse(self.prompt.app.mouse_support())
+        self.dock.show()
+        await render(self.prompt.app)
+        self.assertFalse(self.prompt.app.mouse_support())
+        self.dock.configure(replace(self.dock.config, dock=replace(self.dock.config.dock, mouse={'enabled': True})))
+        await render(self.prompt.app)
+        self.assertTrue(self.prompt.app.mouse_support())
+        original = self.prompt.default_buffer.document
+        with set_app(self.prompt.app):
+            self.prompt.app.renderer.mouse_handlers.mouse_handlers[0][0](MouseEvent(
+                Point(0, 0), MouseEventType.MOUSE_DOWN, MouseButton.LEFT, frozenset()))
+            self.prompt.app.renderer.mouse_handlers.mouse_handlers[0][1](MouseEvent(
+                Point(1, 0), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
+        self.assertEqual(self.prompt.default_buffer.document, original)
+        self.assertIsNone(self.prompt.default_buffer.selection_state)
+        self.dock.configure(replace(self.dock.config, dock=replace(self.dock.config.dock, mouse={'enabled': False})))
+        await render(self.prompt.app)
+        self.assertFalse(self.prompt.app.mouse_support())
+        self.dock.configure(replace(self.dock.config, dock=replace(self.dock.config.dock, mouse={'enabled': True})))
+        await render(self.prompt.app)
+        self.assertTrue(self.prompt.app.mouse_support())
+        self.dock.show(False)
+        await render(self.prompt.app)
+        self.assertFalse(self.prompt.app.mouse_support())
+
+
     async def asyncSetUp(self):
 
         async def silent_frames(backend, source):
@@ -64,6 +123,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         return await render(self.prompt.app)
 
     async def test_float_covers_completion_and_multiline_without_changing_buffer(self):
+        self.dock.configure(replace(self.dock.config, toolbar={'enabled': False}))
         await self.start('\n'.join((f'editor-{index:02}' for index in range(30))))
         buffer = self.prompt.default_buffer
         original = buffer.document
@@ -157,6 +217,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(monitors.await_count, 2)
 
     async def test_both_completion_menus_restore_with_and_without_input_frame(self):
+        self.dock.configure(replace(self.dock.config, toolbar={'enabled': False}))
         from prompt_toolkit.shortcuts import CompleteStyle
         self.output.rows = 12
         await self.start('draft')

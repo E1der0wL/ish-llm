@@ -36,12 +36,12 @@ class BodyWidget:
         return self.view.element.arrange((self.row,), mode, None)
 
 
-def body_widgets(config, execute=None) -> tuple[BodyWidget, ...]:
+def body_widgets(config, execute=None, media=None) -> tuple[BodyWidget, ...]:
     """The single declaration of body order and feature-to-setting bindings."""
     return (
         BodyWidget(DockRow.VISUALIZER, VisualizerView(config.widgets.visualizer)),
-        BodyWidget(DockRow.PROGRESS, ProgressView(config.widgets.progress)),
+        BodyWidget(DockRow.PROGRESS, ProgressView(config.widgets.progress, media)),
         BodyWidget(DockRow.TITLE, TitleView(config.widgets.title)),
-        BodyWidget(DockRow.TRANSPORT, TransportView(config.widgets.media_controls)),
+        BodyWidget(DockRow.TRANSPORT, TransportView(config.widgets.media_controls, media)),
         BodyWidget(DockRow.SHORTCUTS, ShortcutView(config, execute)),
     )

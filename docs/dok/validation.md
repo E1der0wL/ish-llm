@@ -264,3 +264,33 @@ Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **12
 설치·재설치·재로드는 `ConfigStore.load_or_create()`를 공유하여 `config.jsonc`가 없으면 원자적으로 생성하고 실제 파일을 읽어 적용한다. 동시에 다른 파일이 생성되면 그 내용을 사용하며, 기존 빈 설정·부분 설정·잘못된 파일을 덮어쓰지 않는다. 생성 실패 시 실행 중 설정을 보존한다. 읽기 전용 `load()`의 기존 계약은 유지한다.
 
 Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **135개 통과**(16.574초). 파일 삭제 후 재설치·재로드, 동시 생성, 쓰기 실패와 재시도, 빈 슬롯 렌더링, 기본 단색과 초기 그라데이션의 schema·저장·로드를 검증했다. [실행 로그](../../tests/dok/reports/dok-95gkkp5a/dok.txt), [소스 해시](../../tests/dok/reports/dok-95gkkp5a/snapshot.json). 초기 JSONC와 현재 문서 예시 9개도 Owner 및 schema로 검증했다. ish 본체와 개인 설정은 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.
+
+## MPRIS 연결과 독 마우스 (2026-11-05)
+
+Linux 세션 D-Bus의 MPRIS 플레이어 검색·상태 조회·기능별 제어를 추가했다. `MediaConfig`, `PlayerState`, `MediaRuntime`, `MprisBackend`, `MediaInput`이 설정·상태 해석·작업 전이·외부 프로토콜·드래그를 각각 소유한다. `dock.mouse.enabled`로 독 마우스를 끌 수 있고, `media.enabled`는 연결만 별도로 제어한다. 날씨 아이콘 동작과 GUI 프롬프트 편집은 추가하지 않았다. 이전 공개 API와 설정 생성자의 위치 인자 순서를 유지한다.
+
+Linux Python 3.12.14의 Linux 파일시스템 스냅샷에서 dok 테스트 **153개 통과**(19.884초). 실제 임시 D-Bus 서버와 dbus-fast 5.2.0을 사용해 검색·속성 변환·재생 명령·SetPosition·연결 종료·요청 제한 시간을 검증했다. 지원 기능 변경·플레이어 소유자 변경·곡 변경 시 제어 거부, 일시정지 후 대상 유지, 명시 대상 부재, 실패 후 재활성화, 숨김 직후 렌더 전 명령 취소를 검사했다. 마우스 테스트는 실제 셀 위치에서 드래그 미리보기·단일 전송·바깥 취소·비활성 버튼·설정 끄기·호스트 필터 복원·프롬프트 보존·날씨 무동작을 확인한다. 리소스 누수 경고와 건너뛴 테스트는 없었다.
+
+[실행 로그](../../tests/dok/reports/dok-ol3ey4bz/dok.txt), [소스 해시](../../tests/dok/reports/dok-ol3ey4bz/snapshot.json). 초기 JSONC와 문서 예시 10개도 Owner 및 schema로 검증했다. 테스트 실행기는 사용자 세션 버스를 상속하지 않으며 MPRIS 통합 테스트는 전용 임시 버스를 사용한다. 실제 사용자 플레이어의 동작이나 Windows 플레이어 연결은 검증 범위에 포함하지 않는다. ish 본체, llm, hub, 개인 설정은 수정하지 않았고 llm/hub 전체 회귀도 실행하지 않았다.
+
+## 마우스 기본 비활성화와 생성 포맷 (2026-11-05)
+
+`MouseConfig.enabled` 기본값을 `false`로 변경하고 초기 JSONC를 Owner에서 재생성했다. 설정을 생략하거나 새 파일을 생성하면 독 마우스는 꺼져 있으며, 기존 파일의 명시적인 `true`는 유지한다. 최신 옵션·기본값·사용 안내도 같은 값으로 갱신했다.
+
+Linux Python 3.12.14 스냅샷에서 dok 테스트 **153개 통과**(20.252초). 기본 상태로 펼쳐도 마우스가 꺼져 있고 명시적으로 켜기·끄기·숨김 복원이 동작함을 확인했다. 문서 예시 10개와 생성 JSONC를 검증했다. [실행 로그](../../tests/dok/reports/dok-fg0c4d2s/dok.txt), [소스 해시](../../tests/dok/reports/dok-fg0c4d2s/snapshot.json). ish 본체·llm·hub는 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.
+
+## 시스템 정보와 하단 toolbar (2026-11-06)
+
+왼쪽 날짜·입력 상태·선택 숫자의 합계(평균), 오른쪽 CPU·메모리·네트워크 표시를 추가했다. 시스템 측정은 psutil 7.2.2를 사용하며 toolbar가 있는 프롬프트에서만 한 작업으로 실행한다. `SystemConfig`·측정 모델·`ToolbarConfig`·`NumberCalculator`·ish 어댑터가 각 설정, 의미 해석, 계산, 호스트 등록·복원을 소유한다. 기존 생성자 위치 인자는 유지하고 루트 설정 끝에 `system`, `toolbar`를 추가했다. 새 기본 JSONC는 영어 주석을 포함해 Owner에서 생성했다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 스냅샷에서 dok 테스트 **175개 통과**(32.526초). [실행 로그](../../tests/dok/reports/dok-3qri7rxl/dok.txt), [소스 해시](../../tests/dok/reports/dok-3qri7rxl/snapshot.json). 명령은 `/home/user/.cache/ish-scope-deps-69rd8deo/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/dok/run_linux.py`다. 경고와 건너뛴 테스트는 없었다. 초기 JSONC와 문서 설정 예시 11개도 Owner·schema로 검증했다.
+
+검증 범위는 실제 Linux 측정, CPU guest/iowait 해석, available 기반 메모리, monotonic 네트워크 속도, 초기 샘플·카운터 초기화·인터페이스 교체, 부분 오류 복구, 제한 길이 기록, 반복 취소 시 읽기 중첩 방지다. 실제 ish 레이아웃에서 기본/최대화/공간 부족에 따른 날짜 숨김·복원, 프롬프트 종료·재진입, 입력·선택 보존, 블록 선택의 합계·평균, 원래 toolbar·컨트롤·Filter 복원, 후속 플러그인 변경 보존, 1–240칸 화면과 오른쪽 정렬을 확인했다. 40칸 toolbar를 연속 갱신해 짧은 행 문자열이 prompt-toolkit 폭 캐시에 누적되지 않는 것도 검사했다. 기존 PTY·Float·MPRIS·마우스 검증도 통과했다.
+
+수정 범위는 `dok/`, `docs/dok`, `tests/dok`다. ish 본체·llm·hub와 개인 설정·배포 경로는 수정하지 않았고 llm/hub 전체 회귀, 커밋·업로드는 수행하지 않았다. WSL 측정은 Linux에서 보이는 자원 기준이며 Windows 전체 수집은 포함하지 않는다.
+
+## 커밋 전 계약 검토 (2026-11-06)
+
+[계약 검토](contract-review-20261106.md)에서 날짜 해석·갱신 규칙의 중복과 빈 합계 문구의 좁은 화면 처리를 수정했다. 기존 공개 내보내기 39개·컨트롤러 시그니처·설정 생성자 인자 순서를 확인했고, 기본 JSONC와 문서 예시 11개도 Owner 선언에 부합했다.
+
+최종 Linux Python 3.12.14 스냅샷에서 dok 테스트 **177개 통과**(38.774초). 경고·건너뛴 테스트는 없었다. [실행 로그](../../tests/dok/reports/dok-3xuiyxqb/dok.txt), [소스 해시](../../tests/dok/reports/dok-3xuiyxqb/snapshot.json), [API·설정 검사 결과](../../tests/dok/reports/review-20261106/audit.json). ish 본체·llm·hub는 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.

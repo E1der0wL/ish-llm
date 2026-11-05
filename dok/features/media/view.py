@@ -1,4 +1,4 @@
-"""Title, progress and display-only transport widgets."""
+"""Title, progress and capability-aware transport widgets."""
 
 from ...rendering.presentation import DockStyle, RenderContext, swallow_mouse
 from ...rendering.text import fit, fit_labels, width
@@ -8,8 +8,9 @@ from .config import ProgressConfig, TitleConfig, TransportConfig
 class ProgressView:
     TIME_SEPARATOR = " "
 
-    def __init__(self, config: ProgressConfig):
+    def __init__(self, config: ProgressConfig, interaction=None):
         self.element = config
+        self._interaction = interaction
 
     @staticmethod
     def _time(seconds):
@@ -23,6 +24,12 @@ class ProgressView:
         left, right = self._time(snapshot.position), self._time(snapshot.duration)
         length = self.element.display_length(context.width - width(left + right) - 2 * width(self.TIME_SEPARATOR))
         filled = int(snapshot.progress * length)
+        if self._interaction is not None and self._interaction.can_seek and length > 1:
+            style = DockStyle.foreground(self.element.style.color)
+            return ((style, left + self.TIME_SEPARATOR, swallow_mouse), *(
+                (style, "━" if index < filled else "─", self._interaction.seek(index / (length - 1)))
+                for index in range(length)
+            ), (style, self.TIME_SEPARATOR + right, swallow_mouse))
         text = self.TIME_SEPARATOR.join((left, "━" * filled + "─" * (length - filled), right))
         return ((DockStyle.foreground(self.element.style.color), fit(text, context.width), swallow_mouse),)
 
@@ -40,8 +47,9 @@ class TitleView:
 
 
 class TransportView:
-    def __init__(self, config: TransportConfig):
+    def __init__(self, config: TransportConfig, interaction=None):
         self.element = config
+        self._interaction = interaction
 
     def render(self, context: RenderContext) -> tuple:
         buttons = self.element.buttons
@@ -51,5 +59,9 @@ class TransportView:
         for index, (button, label) in enumerate(zip(buttons, labels)):
             if index:
                 result.append((DockStyle.BACKGROUND, separator, swallow_mouse))
-            result.append((DockStyle.foreground(button.style.color), label, swallow_mouse))
+            enabled = self._interaction is not None and self._interaction.supports(button.action)
+            style = DockStyle.foreground(button.style.color)
+            if self._interaction is not None and not enabled:
+                style += " dim"
+            result.append((style, label, self._interaction.button(button.action) if enabled else swallow_mouse))
         return tuple(result)

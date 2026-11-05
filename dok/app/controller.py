@@ -9,6 +9,12 @@ from ..dashboard.view import DockView
 from ..features.audio.models import AudioSnapshot
 from ..features.audio.runtime import AudioRuntime
 from ..features.media.models import PlaybackSnapshot
+from ..features.media.runtime import MediaRuntime
+from ..features.media.input import MediaInput
+from ..features.system.runtime import SystemRuntime
+from ..features.system.models import SystemSnapshot
+from ..integrations.ish.toolbar import DockToolbar
+from ..integrations.ish.mouse import DockMouse
 from ..integrations.ish.host import HostAccess
 from ..integrations.ish.keys import KeyRegistration, OwnedBindings
 from ..integrations.ish.submission import ShortcutSubmission
@@ -29,12 +35,23 @@ class DockController:
         self._config = DockConfig()
         self._playback = PlaybackSnapshot()
         self._audio = AudioRuntime(prompt.app.invalidate)
+        self._media = MediaRuntime(prompt.app.invalidate)
+        self._system = SystemRuntime(prompt.app.invalidate)
+        self._toolbar = DockToolbar(prompt, self)
+        self._media_input = MediaInput(self._media, prompt.app.create_background_task, prompt.app.invalidate,
+                                      lambda: self._config.dock.mouse.enabled and self.visible)
         self._dashboard = DashboardRuntime(prompt.app.invalidate)
         self._bindings = OwnedBindings(prompt)
         self._submission = ShortcutSubmission(prompt, self._state)
-        self._view = DockView(self.execute)
+        self._view = DockView(self._mouse_execute, self._media_input)
         self._overlay = DockOverlay(self, self._view)
+        self._mouse = None
         self._float_handle = None
+
+    def _mouse_execute(self, slot):
+        if self._config.dock.mouse.enabled and self.visible and not self._media_input.dragging:
+            return self.execute(slot)
+        return False
 
     def _entries(self, config: DockConfig):
         entries = [KeyRegistration(config.dock.keys.toggle, lambda event: self.toggle(), self._toggle_enabled)]
@@ -56,8 +73,17 @@ class DockController:
     def _before_render(self, app):
         self._host.observe_loop()
         self._state.enter_prompt(app.future)
+        self._toolbar.prepare()
 
     def _after_render(self, app):
+        active = app.is_running and not app.is_done
+        self._toolbar.sync(active=active, dock_visible=self.display_mode != DockMode.HIDDEN)
+        self._system.sync(active=active and self._toolbar.owned and self._config.toolbar.needs_system,
+                          config=self._config.system, start_task=app.create_background_task)
+        self._media.sync(active=self.visible and self.display_mode != DockMode.HIDDEN,
+                         config=self._config.media, start_task=app.create_background_task)
+        if self._mouse is not None:
+            self._mouse.sync()
         self._audio.sync(active=self.visible and self.display_mode != DockMode.HIDDEN
                          and (self._config.widgets.visualizer.enabled or self._config.widgets.title.enabled),
                          config=self._config.audio, start_task=app.create_background_task)
@@ -67,6 +93,10 @@ class DockController:
     def _change_mode(self, change):
         was_visible = self._state.requested_visible
         change()
+        self._media_input.cancel()
+        if not self.visible:
+            self._media.sync(active=False, config=self._config.media,
+                             start_task=self._prompt.app.create_background_task)
         if self._state.requested_visible and not was_visible:
             self._audio.begin_activation()
         self._prompt.app.invalidate()
@@ -76,6 +106,9 @@ class DockController:
             raise RuntimeError("dok has been uninstalled")
         if self._float_handle is not None:
             return
+        self._mouse = DockMouse(self._prompt.app,
+            lambda: self._config.dock.mouse.enabled and self.visible and self._overlay.has_room,
+            lambda: self._overlay.mouse_regions, self._media_input.cancel)
         self._float_handle = self._prompt.set_float(
             self._overlay, left=0, right=0, top=0, bottom=0,
             xcursor=False, ycursor=False, transparent=self._overlay.TRANSPARENT, hide_when_covering_content=False,
@@ -89,7 +122,15 @@ class DockController:
         if not isinstance(config, DockConfig):
             raise TypeError("configure expects a DockConfig")
         self._bindings.replace(self._entries(config))
+        self._media_input.cancel()
+        if config.media != self._config.media:
+            self._media.sync(active=False, config=config.media,
+                             start_task=self._prompt.app.create_background_task)
         self._config = config
+        self._toolbar.configure(config.toolbar.enabled)
+        self._system.sync(active=self._prompt.app.is_running and not self._prompt.app.is_done
+                          and self._toolbar.owned and config.toolbar.needs_system,
+                          config=config.system, start_task=self._prompt.app.create_background_task)
         self._state.report("")
         self._prompt.app.invalidate()
 
@@ -111,6 +152,11 @@ class DockController:
             return
         self._state.close()
         self._audio.close()
+        self._media.close()
+        self._system.close()
+        self._toolbar.close()
+        if self._mouse is not None:
+            self._mouse.close()
         self._dashboard.close()
         self._bindings.clear()
         self._prompt.app.before_render -= self._before_render
@@ -128,7 +174,26 @@ class DockController:
 
     @property
     def playback(self) -> PlaybackSnapshot:
-        return self._playback
+        current = self._media.state
+        return self._media_input.preview(current.playback if current.connected else self._playback)
+
+    @property
+    def media_players(self) -> tuple[str, ...]:
+        return self._media.players
+
+    @property
+    def media_diagnostic(self) -> str:
+        return self._media.diagnostic
+
+    @property
+    def system(self) -> SystemSnapshot:
+        """Latest immutable Linux system snapshot; no I/O on access."""
+        return self._system.snapshot
+
+    @property
+    def system_history(self) -> tuple[SystemSnapshot, ...]:
+        """Bounded recent samples, oldest first."""
+        return self._system.history
 
     @property
     def audio(self) -> AudioSnapshot:

@@ -16,9 +16,9 @@ async def preview(*, audio_enabled=True, offline=False):
     print('Submitted commands are printed only. No shell commands are executed.')
     with tempfile.TemporaryDirectory() as directory, closing(create_input()) as input:
         prompt = HostPrompt(input, create_output())
-        prompt.mouse_support = True
         dock = install(prompt, config_path=Path(directory) / 'config.jsonc')
         dock.configure(DockConfig(
+            media={'enabled': not offline},
             audio=AudioConfig(enabled=audio_enabled and not offline),
             widgets=WidgetsConfig(
                 weather=WeatherConfig(),

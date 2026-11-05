@@ -10,6 +10,12 @@ from .features.audio.models import AudioSnapshot, AudioStatus
 from .features.clock.config import ClockConfig, DateConfig, TimeConfig, WeekdayConfig
 from .features.media.config import ProgressConfig, TitleConfig, TransportButton, TransportConfig
 from .features.media.models import PlaybackAction, PlaybackSnapshot, PlaybackStatus
+from .features.media.connection import MediaConfig, PlayerState
+from .features.system.config import SystemConfig
+from .features.system.models import SystemSnapshot
+from .features.toolbar.config import ToolbarConfig, ToolbarDate, InputConfig, InputItem, NumbersConfig, SystemDisplay, GraphConfig
+from .features.toolbar.editor import InputField, NumberScope, NumberSummary
+from .integrations.ish.mouse import MouseConfig
 from .features.shortcuts.config import Separator, Shortcut, ShortcutsConfig
 from .features.weather.config import WeatherConfig, WeatherLocation, WeatherIcons
 from .features.weather.models import TemperatureUnit, WeatherSnapshot
@@ -29,6 +35,9 @@ def uninstall(prompt):
     return uninstall_plugin(prompt)
 
 __all__ = [
+    "SystemConfig", "SystemSnapshot", "ToolbarConfig", "ToolbarDate", "InputConfig", "InputItem",
+    "NumbersConfig", "SystemDisplay", "GraphConfig", "InputField", "NumberScope", "NumberSummary",
+    "MediaConfig", "PlayerState", "MouseConfig",
     "install", "uninstall", "ConfigStore", "DockConfig", "Width", "WidthMode",
     "KeySequence", "Shortcut", "SettingsError", "PlaybackSnapshot", "PlaybackStatus",
     "AudioConfig", "AudioSnapshot", "AudioStatus",

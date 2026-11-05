@@ -8,13 +8,13 @@
 
 [Float dock 설계](design.md)에 배치, 표시 우선순위, 사용자 설정, 입력 처리, 재생 연동과 구현 검증 기준을 정리했다. 토글 키·명령어·이모지는 사용자가 수정하고, 너비는 고정 셀 수 또는 ish PTY 너비 비율로 지정한다. 바로가기는 등록 명령어와 현재 프롬프트 버퍼 전체를 이어 붙여 즉시 제출한다.
 
-현재 구현은 dock, 바로가기와 Linux 출력 오디오 비주얼라이저를 제공한다. 재생 바·제목·재생 버튼은 아직 외부 플레이어에 연결하지 않았다. 비주얼라이저는 플레이어 상태와 독립적으로 Linux 오디오 서버의 출력 모니터를 읽는다.
+현재 구현은 dock, 바로가기, Linux 출력 오디오 비주얼라이저, MPRIS 재생 제어와 하단 상태 표시줄을 제공한다. 비주얼라이저는 플레이어 상태와 독립적으로 Linux 오디오 서버의 출력 모니터를 읽는다. [하단 toolbar](toolbar.md)는 왼쪽 날짜·입력 정보·선택 숫자의 합계(평균), 오른쪽 끝 CPU·메모리·네트워크를 표시한다. dock이 실제로 표시되면 toolbar 날짜만 숨긴다.
 
 기본 dock은 비주얼라이저 → 재생 바 → 타이틀 → 음악 버튼 → 투명 padding 1줄 → 바로가기 순서의 6줄이다. 그 아래 투명 padding 1줄과 bottom-toolbar가 이어진다. 최대화하면 위쪽에 날씨·ASCII 아트 요일·날짜·시간을 추가한다. 기본 설정에서는 입력 영역 높이가 8줄 미만이면 dock을 잠시 숨긴다. [요소 표시와 세로 간격](layout.md)에서 각 요소를 켜고 끄거나 여백을 바꿀 수 있으며, 실제 설정에 맞춰 필요한 높이도 계산한다. 날씨 위의 작은 영문 요일 문구도 수정할 수 있다.
 
 ## 설치
 
-Python 3.12.14와 prompt-toolkit 3.0.53을 사용하는 ish에서 실행한다. 저장소의 `dok/` 디렉터리만 ish 설정 홈의 `plugin/script/dok/`로 복사한다. 기본 경로는 `~/ish/plugin/script/dok/`이며 `--home`을 사용하면 해당 홈 아래에 설치한다. 다른 플러그인이나 테스트 파일은 필요하지 않다. `PLUGIN_META.dependencies`에 `pyfiglet`, `httpx`를 선언했다. 독립 실행 환경에서는 해당 Python에 `python -m pip install pyfiglet httpx`로 설치한다. 플러그인 코드 교체 후 ish를 다시 시작한다.
+Python 3.12.14와 prompt-toolkit 3.0.53을 사용하는 ish에서 실행한다. 저장소의 `dok/` 디렉터리만 ish 설정 홈의 `plugin/script/dok/`로 복사한다. 기본 경로는 `~/ish/plugin/script/dok/`이며 `--home`을 사용하면 해당 홈 아래에 설치한다. 의존성은 `PLUGIN_META.dependencies`가 선언한다. 독립 실행 환경에서는 해당 Python에 `python -m pip install pyfiglet httpx 'dbus-fast>=5.2,<6' 'psutil>=7,<8'`로 설치한다. 플러그인 코드 교체 후 ish를 다시 시작한다.
 
 `.ishrc.py`에서 다음과 같이 연결한다.
 
@@ -26,11 +26,11 @@ if dok_plugin is not None:
 
 설치·재로드 시 설정 파일이 없으면 `<ish home>/dok/config.jsonc`에 모든 설정값·바로가기 예시 10개와 항목별 영어 설명 주석을 저장한 뒤 읽어 적용한다. 기본 경로는 항상 `config.jsonc`이며 이전 `config.json`은 자동으로 읽지 않는다. [주석 있는 설정 파일](configuration-file.md)에 생성·편집·기존 파일 처리 규칙을 정리했다. Ctrl+W는 숨김과 펼침을 전환한다. 초기 dock은 숨김이며 처음 펼치면 최대화를 요청하고, 공간이 부족하면 기본 크기로 표시한다. 크기 전환용 단축키는 없다. 다른 파일은 `install(prompt, config_path="/absolute/path/config.jsonc")`로 지정한다.
 
-마우스 클릭을 사용하려면 사용자 설정에서 `prompt.mouse_support = True`를 지정한다. 플러그인은 이 호스트 설정을 바꾸지 않는다. 토글과 등록한 단축키는 마우스 설정과 무관하게 동작한다. 마우스를 켜면 일반 터미널 텍스트 선택 방식이 달라질 수 있다.
+`dock.mouse.enabled`로 독 마우스를 켜거나 끈다(기본 `false`). `true`로 지정한 경우 독이 보일 때만 마우스를 활성화하고 숨김·해제 시 기존 호스트 설정으로 복원한다. 바로가기·음악 버튼·재생바만 조작하며 날씨 클릭 기능은 아직 없다. 터미널 텍스트 선택은 Shift+드래그를 사용한다. [MPRIS와 마우스 설정](media.md)을 참고한다.
 
 ## 사용자 설정
 
-설정은 `dock`, `audio`, `clock`, `widgets`로 나눈다. [옵션 구조](options.md)와 [전체 JSONC 예시](config.example.jsonc)를 참고한다. 이전 설정 이름과 구조는 지원하지 않으며 기존 파일을 자동 변환하지 않는다.
+설정은 `dock`, `audio`, `media`, `clock`, `widgets`, `system`, `toolbar`로 나눈다. [옵션 구조](options.md)와 [전체 JSONC 예시](config.example.jsonc)를 참고한다. 이전 설정 이름과 구조는 지원하지 않으며 기존 파일을 자동 변환하지 않는다.
 
 바로가기의 런타임 기본값은 빈 목록이며 `[1]`~`[0]`으로 표시한다. 새로 생성하는 파일에는 바로가기 예시 9개와 구분선이 명시된다. 기존 파일에서 항목을 생략하면 예시를 채우지 않는다. 나머지 [현재 기본 설정](defaults.md)에는 Nerd Font 버튼, 38칸 단색 비주얼라이저, `future` 요일 아트가 포함된다. 날씨 위치는 미설정이며 사용자가 직접 지정한다. `widgets.shortcuts.items: []`는 기본 바로가기를 사용하지 않고 빈 슬롯으로 표시한다.
 
@@ -206,7 +206,7 @@ sudo apt-get install --no-install-recommends pulseaudio-utils
 
 이름은 오디오 서버에 등록된 앱 이름, 실행 파일 이름, 미디어 이름 순으로 선택한다. Python에서 PCM을 생성해 `pacat`으로 보낸 경우 오디오를 전송하는 `pacat` 이름이 표시된다. 이름은 활성 재생 스트림 기준이므로 앱이 무음 PCM을 보내는 순간에도 표시될 수 있다. 등록된 이름을 구할 수 없으면 `이름 없는 프로그램`으로 표시한다.
 
-프로그램 이름 조회만으로 재생을 제어할 수는 없다. 현재 재생 버튼은 미연결 상태다. Linux 앱이 [MPRIS](https://specifications.freedesktop.org/mpris/latest/Player_Interface.html)를 제공한다면 별도 어댑터로 재생·일시정지·정지를 연결할 수 있다. 여러 앱이 있으면 제어 대상을 선택하고, 일시정지로 오디오 스트림이 사라져도 그 대상을 유지해야 다시 재생할 수 있다. 단순 PCM 출력 앱의 음소거는 재생 일시정지와 다르다.
+프로그램 이름 조회와 별도로 Linux MPRIS 플레이어를 연결해 지원되는 음악 버튼과 재생바를 활성화한다. `media.player`로 대상을 지정하거나 자동 선택할 수 있으며 일시정지해도 선택을 유지한다. 단순 PCM 출력 앱은 재생 제어 대상이 아니다. [연결·선택·오류 처리 계약](media.md)을 따른다.
 
 장시간 표시 시 비주얼라이저 조합 문자열을 터미널의 무제한 폭 캐시에 넣지 않고 글자 단위로 폭을 계산한다. 무음 PCM은 FFT를 건너뛰며, 캡처 읽기와 분석을 분리해 분석이 늦어질 때는 최신 PCM 블록만 보관한다. 실제 소리가 있는 프레임의 FFT 방식과 24개 대역은 유지한다.
 
@@ -267,7 +267,7 @@ dock.show()
 
 `dock.toggle()`, `dock.show(False)`, `dock.reload()`, `dock.execute(1)`, `dock.uninstall()`을 제공한다. `uninstall()`은 소유한 Float와 핸들러만 제거한다. 해제 후 다시 설치할 때는 `install()`을 호출한다.
 
-`PlaybackSnapshot`과 `dock.set_playback(snapshot)`은 향후 플레이어의 제목·재생 진행 정보를 전달하는 계약이다. 스펙트럼과 오디오 수집 상태는 별도의 `AudioSnapshot`이 소유한다. 플레이어 외부 연결·재생 제어·자동 시간 보간은 아직 없다.
+`PlaybackSnapshot`과 `dock.set_playback(snapshot)`은 외부 표시값을 전달하는 공개 계약으로 유지한다. MPRIS 연결 시 실제 플레이어 상태를 우선 표시하고, 미연결 시 외부 표시값을 사용한다. `dock.media_players`와 `dock.media_diagnostic`으로 연결을 관찰한다. 스펙트럼과 오디오 수집 상태는 별도의 `AudioSnapshot`이 소유한다.
 
 ## 검증과 수동 미리보기
 
@@ -287,7 +287,7 @@ Linux Python 3.12.14 환경에서 실행한다. runner는 소스를 Linux 파일
 .venv-linux312/bin/python -m tests.dok.terminal_fixture --offline
 ```
 
-미리보기는 Ctrl+W, Alt+1..3, 마우스와 창 크기 변경을 확인하는 용도이며 조합한 명령을 출력만 한다. 실제 셸 명령은 실행하지 않는다. Ctrl+D로 종료한다.
+미리보기는 Ctrl+W, Alt+1..3과 창 크기 변경을 확인하는 용도이며 조합한 명령을 출력만 한다. 실제 셸 명령은 실행하지 않는다. Ctrl+D로 종료한다.
 
 자동 테스트와 `--offline` 미리보기는 실제 시스템 오디오를 수집하거나 날씨 서버에 접속하지 않는다. 실제 오디오와 날씨를 포함한 수동 미리보기에는 `--offline`을 생략한다. 오디오만 끄려면 `--no-audio`를 사용한다. 오디오 도구와 출력 모니터 설정은 위 Linux 전체 출력 비주얼라이저 안내를 따른다.
 

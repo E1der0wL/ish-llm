@@ -39,6 +39,7 @@ class DockOverlay(Container):
         self._available = (0, 0)
         self._dashboard = DashboardView()
         self.display_mode = DockMode.HIDDEN
+        self.mouse_regions = []
         self._fragments = {row: () for row in DockRow}
         self._windows = {
             row: DockRowWindow(
@@ -78,6 +79,7 @@ class DockOverlay(Container):
         owner = self._controller
         self._available = (write_position.height, write_position.width)
         self.display_mode = DockMode.HIDDEN
+        self.mouse_regions = []
         if not owner.visible:
             return
         self.display_mode, extra, body_width = self._layout(*self._available)
@@ -100,6 +102,7 @@ class DockOverlay(Container):
                     )
                 self._fragments[line.row] = line.fragments
                 position = WritePosition(write_position.xpos + line.left, top + line.row, line.width, 1)
+                self.mouse_regions.append((position.xpos, position.xpos + line.width, position.ypos))
                 self._windows[line.row].write_to_screen(
                     screen, mouse_handlers, position, parent_style, erase_bg, z_index,
                 )

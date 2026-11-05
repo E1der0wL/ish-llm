@@ -29,7 +29,7 @@ class WidgetsConfig(Record):
     progress: ProgressConfig = setting(
         Nested(ProgressConfig),
         factory=ProgressConfig,
-        description="Playback progress bar. No external player is connected."
+        description="Playback progress bar. Seek is available when the connected player supports it."
     )
     title: TitleConfig = setting(
         Nested(TitleConfig),
@@ -39,7 +39,7 @@ class WidgetsConfig(Record):
     media_controls: TransportConfig = setting(
         Nested(TransportConfig),
         factory=TransportConfig,
-        description="Display-only music buttons; no playback control is connected."
+        description="Music buttons. Unsupported player actions are dimmed and inactive."
     )
     shortcuts: ShortcutsConfig = setting(
         Nested(ShortcutsConfig),
